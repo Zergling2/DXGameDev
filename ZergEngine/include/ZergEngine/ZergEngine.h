@@ -1,0 +1,21 @@
+#pragma once
+
+#include <ZergEngine\System\Runtime.h>
+#include <ZergEngine\System\Time.h>
+#include <ZergEngine\System\Graphics.h>
+#include <ZergEngine\System\Resource.h>
+#include <ZergEngine\System\Material.h>
+#include <ZergEngine\System\Texture.h>
+#include <ZergEngine\System\Mesh.h>
+#include <ZergEngine\System\Skybox.h>
+#include <ZergEngine\System\Terrain.h>
+#include <ZergEngine\System\Debug.h>
+#include <ZergEngine\System\Input.h>
+#include <ZergEngine\System\Scene.h>
+#include <ZergEngine\System\SceneManager.h>
+#include <ZergEngine\System\GameObject.h>
+#include <ZergEngine\System\Component\Camera.h>
+#include <ZergEngine\System\Component\Transform.h>
+#include <ZergEngine\System\Component\IScript.h>
+#include <ZergEngine\System\Component\MeshRenderer.h>
+#include <ZergEngine\System\Component\Light.h>

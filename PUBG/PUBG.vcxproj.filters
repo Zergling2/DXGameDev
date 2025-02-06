@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="source">
+      <UniqueIdentifier>{c2cd5de4-e07e-454b-a174-8d05d9a522d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Scene">
+      <UniqueIdentifier>{b0aed8eb-e240-462e-94e6-fa21a3ac961f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Script">
+      <UniqueIdentifier>{377b3fe9-29a8-4e9d-9d2a-01708d0cd013}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="source\main.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Scene\Lobby.cpp">
+      <Filter>source\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Script\TestScript.cpp">
+      <Filter>source\Script</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Script\CameraTestMovement.cpp">
+      <Filter>source\Script</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Script\SunScript.cpp">
+      <Filter>source\Script</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="source\Scene\Lobby.h">
+      <Filter>source\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Script\TestScript.h">
+      <Filter>source\Script</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Script\CameraTestMovement.h">
+      <Filter>source\Script</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Script\SunScript.h">
+      <Filter>source\Script</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
