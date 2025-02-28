@@ -502,9 +502,7 @@ void XM_CALLCONV StandardPNTEffect::Render(FXMMATRIX vp, const MeshRenderer* pMe
 		}
 		*/
 
-		OutputDebugStringW(L"Begin StandardPNTEffect DrawIndexed\n");
 		Graphics::GetImmediateContext()->DrawIndexed(subset.GetIndexCount(), subset.GetStartIndexLocation(), 0);
-		OutputDebugStringW(L"End StandardPNTEffect DrawIndexed\n");
 	}
 }
 
@@ -579,9 +577,7 @@ void XM_CALLCONV SkyboxEffect::Render(FXMMATRIX vp, FXMVECTOR camPos, const Skyb
 	Graphics::GetImmediateContext()->PSSetShaderResources(TextureSlotNumber::SKYBOX_CUBE_SLOT_NUM, 1, srvs);
 	// #############################
 
-	OutputDebugStringW(L"Begin SkyboxEffect DrawIndexed\n");
 	Graphics::GetImmediateContext()->DrawIndexed(36, 0, 0);
-	OutputDebugStringW(L"End SkyboxEffect DrawIndexed\n");
 }
 
 void XM_CALLCONV TerrainEffect::Render(FXMMATRIX vp, FXMVECTOR camPos, const Terrain* pTerrain)
@@ -653,7 +649,5 @@ void XM_CALLCONV TerrainEffect::Render(FXMMATRIX vp, FXMVECTOR camPos, const Ter
 	Graphics::GetImmediateContext()->PSSetShaderResources(TextureSlotNumber::HEIGHT_MAP_SLOT_NUM, 1, srvs);
 	// #############################
 
-	OutputDebugStringW(L"Begin TerrainEffect DrawIndexed\n");
 	Graphics::GetImmediateContext()->DrawIndexed(pTerrain->GetPatchControlPointIndexCount(), 0, 0);
-	OutputDebugStringW(L"End TerrainEffect DrawIndexed\n");
 }

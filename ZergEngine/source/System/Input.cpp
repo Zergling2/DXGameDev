@@ -109,6 +109,9 @@ sysresult Input::SysStartup(const EngineSystemInitDescriptor& desc)
 
 void Input::SysCleanup()
 {
+	Input::s_mouse->Unacquire();
+	Input::s_keyboard->Unacquire();
+
 	Input::s_mouse.Reset();
 	Input::s_keyboard.Reset();
 	Input::s_directInput.Reset();
