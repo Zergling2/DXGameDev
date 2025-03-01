@@ -46,12 +46,25 @@ void CHierarchyTreeView::OnInitialUpdate()
 
 	// TODO: Add your specialized code here and/or call the base class
 	CTreeCtrl& tree = GetTreeCtrl();
+	tree.SetBkColor(Settings::GetHierarchyTreeViewBkColor());
+	tree.SetTextColor(Settings::GetHierarchyTreeViewTextColor());
 
-	CImageList smallImageList;
-	smallImageList.Create(IDB_ZEPACKEDICON, 16, GetZergEnginePackedIconCount(), GetZergEnginePackedIconColorMask());
+	CBitmap iconBitmap;
+	iconBitmap.LoadBitmap(IDB_ZEPACKEDICON);
 
-	tree.SetImageList(&smallImageList, TVSIL_NORMAL);
-	smallImageList.Detach();
+	CImageList iconList;
+	iconList.Create(
+		GetZergEnginePackedIconSizeX(),
+		GetZergEnginePackedIconSizeY(),
+		ILC_COLOR24 | ILC_MASK,
+		GetZergEnginePackedIconCount(),
+		0
+	);
+	iconList.Add(&iconBitmap, GetZergEnginePackedIconColorMask());
+	iconBitmap.Detach();
+
+	tree.SetImageList(&iconList, TVSIL_NORMAL);
+	iconList.Detach();
 
 	{
 		// 1. 레벨 초기화
@@ -104,8 +117,8 @@ void CHierarchyTreeView::OnInitialUpdate()
 
 		tree.InsertItem(
 			_T("OS"),
-			GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::GAMEOBJECT_ICON),
-			GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::GAMEOBJECT_ICON),
+			GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::PREFAB_ICON),
+			GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::PREFAB_ICON),
 			hKind[2],
 			TVI_LAST
 		);
@@ -120,8 +133,8 @@ void CHierarchyTreeView::OnInitialUpdate()
 
 		tree.InsertItem(
 			_T("Programming Language"),
-			GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::GAMEOBJECT_ICON),
-			GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::GAMEOBJECT_ICON),
+			GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::PREFAB_ICON),
+			GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::PREFAB_ICON),
 			hKind[2],
 			TVI_LAST
 		);

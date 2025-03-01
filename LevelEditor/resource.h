@@ -5,8 +5,7 @@
 #define IDD_ABOUTBOX                    100
 #define IDR_MAINFRAME                   128
 #define IDR_LevelEditorTYPE             130
-#define IDD_CTransformInspectorFormView	310
-#define IDB_BITMAP1                     312
+#define IDD_CTransformInspectorFormView 310
 #define IDB_ZEPACKEDICON                312
 #define IDC_EDIT_POSITIONX              1000
 #define IDC_EDIT_POSITIONY              1001

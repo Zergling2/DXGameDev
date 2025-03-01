@@ -49,15 +49,26 @@ void CLogListView::OnInitialUpdate()
 	CListCtrl& list = this->GetListCtrl();
 
 	list.ModifyStyle(LVS_TYPEMASK, LVS_REPORT);
-	list.SetBkColor(Settings::GetListBkColor());
-	list.SetTextColor(RGB(0, 0, 0));
-	list.SetTextBkColor(Settings::GetListBkColor());
+	list.SetBkColor(Settings::GetLogListViewBkColor());
+	list.SetTextColor(Settings::GetLogListViewTextColor());
+	list.SetTextBkColor(Settings::GetLogListViewBkColor());
 
-	CImageList smallImageList;
-	smallImageList.Create(IDB_ZEPACKEDICON, 16, GetZergEnginePackedIconCount(), GetZergEnginePackedIconColorMask());
+	CBitmap iconBitmap;
+	iconBitmap.LoadBitmap(IDB_ZEPACKEDICON);
 
-	list.SetImageList(&smallImageList, LVSIL_SMALL);
-	smallImageList.Detach();
+	CImageList iconList;
+	iconList.Create(
+		GetZergEnginePackedIconSizeX(),
+		GetZergEnginePackedIconSizeY(),
+		ILC_COLOR24 | ILC_MASK,
+		GetZergEnginePackedIconCount(),
+		0
+	);
+	iconList.Add(&iconBitmap, GetZergEnginePackedIconColorMask());
+	iconBitmap.Detach();
+
+	list.SetImageList(&iconList, LVSIL_SMALL);
+	iconList.Detach();
 
 	CRect cr;
 	list.GetClientRect(&cr);
