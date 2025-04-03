@@ -1,12 +1,17 @@
 #include "CameraTestMovement.h"
 
 using namespace pubg;
+using namespace ze;
 
 void CameraTestMovement::FixedUpdate()
 {
-	XMFLOAT3A position = this->GetGameObject()->GetTransform().m_position;
+	GameObject* pGameObject = this->GetGameObjectHandle().ToPtr();
+	if (!pGameObject)
+		return;
+
+	XMFLOAT3A position = pGameObject->GetTransform().m_position;
 	position.y -= 0.1f;
 	position.z += 0.0f;
 
-	this->GetGameObject()->GetTransform().m_position = position;
+	pGameObject->GetTransform().m_position = position;
 }

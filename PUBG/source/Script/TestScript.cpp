@@ -1,33 +1,42 @@
 #include "TestScript.h"
 
 using namespace pubg;
+using namespace ze;
 
 void TestScript::FixedUpdate()
 {
-	XMFLOAT3A position = this->GetGameObject()->GetTransform().m_position;
-	position.z += 0.01f;
-	this->GetGameObject()->GetTransform().m_position = position;
+	GameObject* pGameObject = this->GetGameObjectHandle().ToPtr();
 
-	XMFLOAT4A rotation = this->GetGameObject()->GetTransform().m_rotation;
+	if (!pGameObject)
+		return;
+
+	XMFLOAT3A position = pGameObject->GetTransform().m_position;
+	position.z += 0.01f;
+	pGameObject->GetTransform().m_position = position;
+
+	XMFLOAT4A rotation = pGameObject->GetTransform().m_rotation;
 	rotation.y += 0.005f;
-	this->GetGameObject()->GetTransform().m_rotation = rotation;
+	pGameObject->GetTransform().m_rotation = rotation;
 	
-	std::shared_ptr<zergengine::MeshRenderer> mr = this->GetGameObject()->GetComponent<zergengine::MeshRenderer>();
+	ComponentHandle hMeshRenderer = pGameObject->GetComponent<ze::MeshRenderer>();
+	MeshRenderer* pMeshRenderer = static_cast<MeshRenderer*>(hMeshRenderer.ToPtr());
+	if (!pMeshRenderer)
+		return;
 
 	static int i = 0;
 	i++;
 
-	static std::shared_ptr<zergengine::Texture2D> tex;
+	static std::shared_ptr<ze::Texture2D> tex;
 	if (i == 60)
 	{
-		if (mr->m_mesh->m_subsets[0].m_material->m_baseMap)
+		if (pMeshRenderer->m_mesh->m_subsets[0].m_material->m_baseMap)
 		{
-			tex = mr->m_mesh->m_subsets[0].m_material->m_baseMap;
-			mr->m_mesh->m_subsets[0].m_material->m_baseMap = nullptr;
+			tex = pMeshRenderer->m_mesh->m_subsets[0].m_material->m_baseMap;
+			pMeshRenderer->m_mesh->m_subsets[0].m_material->m_baseMap = nullptr;
 		}
 		else
 		{
-			mr->m_mesh->m_subsets[0].m_material->m_baseMap = tex;
+			pMeshRenderer->m_mesh->m_subsets[0].m_material->m_baseMap = tex;
 			tex = nullptr;
 		}
 

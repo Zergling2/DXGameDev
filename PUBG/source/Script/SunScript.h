@@ -4,12 +4,11 @@
 
 namespace pubg
 {
-	class SunScript : public zergengine::IScript
+	class SunScript : public ze::IScript
 	{
 	public:
-		SunScript()
-		{
-		}
+		SunScript() = default;
+		virtual ~SunScript() = default;
 		virtual void FixedUpdate() override;
 	};
 }

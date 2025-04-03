@@ -2,7 +2,7 @@
 //
 
 #include "HierarchyTreeView.h"
-#include "Constants.h"
+#include "Settings.h"
 
 // CHierarchyTreeView
 
@@ -46,21 +46,21 @@ void CHierarchyTreeView::OnInitialUpdate()
 
 	// TODO: Add your specialized code here and/or call the base class
 	CTreeCtrl& tree = GetTreeCtrl();
-	tree.SetBkColor(Settings::GetHierarchyTreeViewBkColor());
-	tree.SetTextColor(Settings::GetHierarchyTreeViewTextColor());
+	tree.SetBkColor(HIERARCHY_TREEVIEW_BK_COLOR);
+	tree.SetTextColor(HIERARCHY_TREEVIEW_TEXT_COLOR);
 
 	CBitmap iconBitmap;
 	iconBitmap.LoadBitmap(IDB_ZEPACKEDICON);
 
 	CImageList iconList;
 	iconList.Create(
-		GetZergEnginePackedIconSizeX(),
-		GetZergEnginePackedIconSizeY(),
+		ZE_PACKED_ICON_SIZE_X,
+		ZE_PACKED_ICON_SIZE_Y,
 		ILC_COLOR24 | ILC_MASK,
-		GetZergEnginePackedIconCount(),
+		ZE_PACKED_ICON_COUNT,
 		0
 	);
-	iconList.Add(&iconBitmap, GetZergEnginePackedIconColorMask());
+	iconList.Add(&iconBitmap, ZE_PACKED_ICON_COLOR_MASK);
 	iconBitmap.Detach();
 
 	tree.SetImageList(&iconList, TVSIL_NORMAL);
@@ -70,8 +70,8 @@ void CHierarchyTreeView::OnInitialUpdate()
 		// 1. 레벨 초기화
 		HTREEITEM hRoot = tree.InsertItem(
 			_T("New Scene"),
-			GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::ENGINE_LOGO_ICON),
-			GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::ENGINE_LOGO_ICON),
+			ZE_ICON_INDEX::ENGINE_LOGO_ICON,
+			ZE_ICON_INDEX::ENGINE_LOGO_ICON,
 			TVI_ROOT,
 			TVI_LAST
 		);
@@ -84,65 +84,65 @@ void CHierarchyTreeView::OnInitialUpdate()
 		for (int i = 0; i < _countof(hKind); ++i)
 			hKind[i] = tree.InsertItem(
 				kind[i],
-				GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::GAMEOBJECT_ICON),
-				GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::GAMEOBJECT_ICON),
+				ZE_ICON_INDEX::GAMEOBJECT_ICON,
+				ZE_ICON_INDEX::GAMEOBJECT_ICON,
 				hRoot,
 				TVI_LAST
 			);
 
 		// 3. 레벨 초기화
 		tree.InsertItem(
-			_T("Excel"),
-			GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::GAMEOBJECT_ICON),
-			GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::GAMEOBJECT_ICON),
+			_T("Body"),
+			ZE_ICON_INDEX::GAMEOBJECT_ICON,
+			ZE_ICON_INDEX::GAMEOBJECT_ICON,
 			hKind[2],
 			TVI_LAST
 		);
 
 		tree.InsertItem(
-			_T("Word"),
-			GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::GAMEOBJECT_ICON),
-			GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::GAMEOBJECT_ICON),
+			_T("Hand"),
+			ZE_ICON_INDEX::GAMEOBJECT_ICON,
+			ZE_ICON_INDEX::GAMEOBJECT_ICON,
 			hKind[2],
 			TVI_LAST
 		);
 
 		tree.InsertItem(
-			_T("Dream"),
-			GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::GAMEOBJECT_ICON),
-			GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::GAMEOBJECT_ICON),
+			_T("Shoes"),
+			ZE_ICON_INDEX::GAMEOBJECT_ICON,
+			ZE_ICON_INDEX::GAMEOBJECT_ICON,
 			hKind[2],
 			TVI_LAST
 		);
 
 		tree.InsertItem(
-			_T("OS"),
-			GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::PREFAB_ICON),
-			GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::PREFAB_ICON),
+			_T("aaaaa"),
+			ZE_ICON_INDEX::PREFAB_ICON,
+			ZE_ICON_INDEX::PREFAB_ICON,
 			hKind[2],
 			TVI_LAST
 		);
 
 		tree.InsertItem(
-			_T("DB"),
-			GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::GAMEOBJECT_ICON),
-			GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::GAMEOBJECT_ICON),
+			_T("bbbbb"),
+			ZE_ICON_INDEX::GAMEOBJECT_ICON,
+			ZE_ICON_INDEX::GAMEOBJECT_ICON,
 			hKind[2],
 			TVI_LAST
 		);
 
 		tree.InsertItem(
-			_T("Programming Language"),
-			GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::PREFAB_ICON),
-			GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::PREFAB_ICON),
+			_T("ccccc"),
+			ZE_ICON_INDEX::PREFAB_ICON,
+			ZE_ICON_INDEX::PREFAB_ICON,
 			hKind[2],
 			TVI_LAST
 		);
 
 		tree.InsertItem(
-			_T("Computer Engineering"),
-			GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::GAMEOBJECT_ICON),
-			GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::GAMEOBJECT_ICON),
+			_T("ddddd"),
+			ZE_ICON_INDEX::GAMEOBJECT_ICON,
+			ZE_ICON_INDEX::GAMEOBJECT_ICON,
 			hKind[2],
 			TVI_LAST
 		);

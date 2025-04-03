@@ -4,12 +4,11 @@
 
 namespace pubg
 {
-	class TestScript : public zergengine::IScript
+	class TestScript : public ze::IScript
 	{
 	public:
-		TestScript()	// 스크립트 시스템 완성되면 OnStart 등에서 초기화
-		{
-		}
+		TestScript() = default;
+		virtual ~TestScript() = default;
 		virtual void FixedUpdate() override;
 	};
 }

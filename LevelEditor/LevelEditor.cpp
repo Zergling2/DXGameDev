@@ -27,6 +27,7 @@ END_MESSAGE_MAP()
 // CLevelEditorApp construction
 
 CLevelEditorApp::CLevelEditorApp() noexcept
+	: m_pLevelEditorView(nullptr)
 {
 
 	// TODO: replace application ID string below with unique ID string; recommended
@@ -158,3 +159,19 @@ void CLevelEditorApp::OnAppAbout()
 
 
 
+BOOL CLevelEditorApp::OnIdle(LONG lCount)
+{
+	// TODO: Add your specialized code here and/or call the base class
+	do
+	{
+		if (!m_pMainWnd)
+			break;
+
+		if (m_pMainWnd->IsIconic())
+			break;
+
+		m_pLevelEditorView->Render();
+	} while (false);
+
+	return TRUE;
+}

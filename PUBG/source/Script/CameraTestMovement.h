@@ -4,7 +4,7 @@
 
 namespace pubg
 {
-	class CameraTestMovement : public zergengine::IScript
+	class CameraTestMovement : public ze::IScript
 	{
 	public:
 		CameraTestMovement()

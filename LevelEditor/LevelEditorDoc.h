@@ -1,10 +1,6 @@
-
-// LevelEditorDoc.h : interface of the CLevelEditorDoc class
-//
-
-
 #pragma once
 
+#include "framework.h"
 
 class CLevelEditorDoc : public CDocument
 {

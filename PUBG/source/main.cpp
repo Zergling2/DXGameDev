@@ -1,5 +1,4 @@
 #include <ZergEngine\ZergEngine.h>
-#include "Scene\Lobby.h"
 
 #if defined(DEBUG) || defined(_DEBUG)
 #if defined(UNICODE) || defined(_UNICODE)
@@ -9,15 +8,11 @@
 #endif
 #endif
 
-using namespace zergengine;
-using namespace pubg;
-
-IScene* LobbySceneFactory() { return new Lobby(); }
+using namespace ze;
 
 int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nShowCmd)
 {
-	SceneTableMap stm;
-	stm[L"Lobby"] = LobbySceneFactory;
+	Runtime::Run(hInstance, nShowCmd, L"PUBG", L"Lobby", SIZE{ 1280, 720 }, false);
 
-	return Engine::Start(hInstance, nShowCmd, L"PUBG", stm, L"Lobby", 1280, 720, false);
+	return 0;
 }

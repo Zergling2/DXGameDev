@@ -1,8 +1,6 @@
-
-// LevelEditorView.h : interface of the CLevelEditorView class
-//
-
 #pragma once
+
+#include "framework.h"
 
 class CLevelEditorDoc;
 
@@ -23,8 +21,6 @@ public:
 public:
 	virtual void OnDraw(CDC* pDC);  // overridden to draw this view
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
-protected:
-
 // Implementation
 public:
 	virtual ~CLevelEditorView();
@@ -32,12 +28,20 @@ public:
 	virtual void AssertValid() const;
 	virtual void Dump(CDumpContext& dc) const;
 #endif
-
-protected:
-
+	void Render();
 // Generated message map functions
 protected:
 	DECLARE_MESSAGE_MAP()
+public:
+	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
+	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
+	afx_msg void OnDestroy();
+	afx_msg void OnSize(UINT nType, int cx, int cy);
+private:
+	ID3D11Device* m_pDevice;
+	ID3D11DeviceContext* m_pImmediateContext;
+	IDXGISwapChain* m_pSwapChain;
+	ID3D11RenderTargetView* m_pSwapChainRTV;
 };
 
 #ifndef _DEBUG  // debug version in LevelEditorView.cpp
@@ -46,4 +50,3 @@ inline CLevelEditorDoc* CLevelEditorView::GetDocument() const
 	return reinterpret_cast<CLevelEditorDoc*>(m_pDocument);
 }
 #endif
-

@@ -2,7 +2,7 @@
 //
 
 #include "LogListView.h"
-#include "Constants.h"
+#include "Settings.h"
 
 // CLogListView
 
@@ -49,22 +49,22 @@ void CLogListView::OnInitialUpdate()
 	CListCtrl& list = this->GetListCtrl();
 
 	list.ModifyStyle(LVS_TYPEMASK, LVS_REPORT);
-	list.SetBkColor(Settings::GetLogListViewBkColor());
-	list.SetTextColor(Settings::GetLogListViewTextColor());
-	list.SetTextBkColor(Settings::GetLogListViewBkColor());
+	list.SetBkColor(LOG_LISTVIEW_BK_COLOR);
+	list.SetTextColor(LOG_LISTVIEW_TEXT_COLOR);
+	list.SetTextBkColor(LOG_LISTVIEW_BK_COLOR);
 
 	CBitmap iconBitmap;
 	iconBitmap.LoadBitmap(IDB_ZEPACKEDICON);
 
 	CImageList iconList;
 	iconList.Create(
-		GetZergEnginePackedIconSizeX(),
-		GetZergEnginePackedIconSizeY(),
+		ZE_PACKED_ICON_SIZE_X,
+		ZE_PACKED_ICON_SIZE_Y,
 		ILC_COLOR24 | ILC_MASK,
-		GetZergEnginePackedIconCount(),
+		ZE_PACKED_ICON_COUNT,
 		0
 	);
-	iconList.Add(&iconBitmap, GetZergEnginePackedIconColorMask());
+	iconList.Add(&iconBitmap, ZE_PACKED_ICON_COLOR_MASK);
 	iconBitmap.Detach();
 
 	list.SetImageList(&iconList, LVSIL_SMALL);
@@ -82,15 +82,15 @@ void CLogListView::OnInitialUpdate()
 	ret = list.InsertColumn(0, _T("Description"), LVCFMT_LEFT, descriptionWidth);
 	ret = list.InsertColumn(1, _T("Time"), LVCFMT_LEFT, timeWidth);
 
-	list.InsertItem(0, _T("This is a test log 0"), GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::INFO_ICON));
-	list.InsertItem(1, _T("This is a test log 1"), GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::INFO_ICON));
-	list.InsertItem(2, _T("This is a test log 2"), GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::WARNING_ICON));
-	list.InsertItem(3, _T("This is a test log 3"), GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::INFO_ICON));
-	list.InsertItem(4, _T("This is a test log 4"), GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::ERROR_ICON));
-	list.InsertItem(5, _T("This is a test log 5"), GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::ERROR_ICON));
-	list.InsertItem(6, _T("This is a test log 6"), GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::INFO_ICON));
-	list.InsertItem(7, _T("This is a test log 7"), GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::INFO_ICON));
-	list.InsertItem(8, _T("This is a test log 8"), GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::WARNING_ICON));
-	list.InsertItem(9, _T("This is a test log 9"), GetZergEngineIconIndex(ZERGENGINE_ICON_INDEX::INFO_ICON));
+	list.InsertItem(0, _T("This is a test log 0"), ZE_ICON_INDEX::INFO_ICON);
+	list.InsertItem(1, _T("This is a test log 1"), ZE_ICON_INDEX::INFO_ICON);
+	list.InsertItem(2, _T("This is a test log 2"), ZE_ICON_INDEX::WARNING_ICON);
+	list.InsertItem(3, _T("This is a test log 3"), ZE_ICON_INDEX::INFO_ICON);
+	list.InsertItem(4, _T("This is a test log 4"), ZE_ICON_INDEX::ERROR_ICON);
+	list.InsertItem(5, _T("This is a test log 5"), ZE_ICON_INDEX::ERROR_ICON);
+	list.InsertItem(6, _T("This is a test log 6"), ZE_ICON_INDEX::INFO_ICON);
+	list.InsertItem(7, _T("This is a test log 7"), ZE_ICON_INDEX::INFO_ICON);
+	list.InsertItem(8, _T("This is a test log 8"), ZE_ICON_INDEX::WARNING_ICON);
+	list.InsertItem(9, _T("This is a test log 9"), ZE_ICON_INDEX::INFO_ICON);
 }
 

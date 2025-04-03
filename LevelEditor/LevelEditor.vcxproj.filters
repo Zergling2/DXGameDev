@@ -45,13 +45,16 @@
     <ClInclude Include="LogListView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Constants.h">
+    <ClInclude Include="Settings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BufferDC.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ComponentListView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Helper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

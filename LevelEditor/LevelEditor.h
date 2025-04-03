@@ -1,5 +1,3 @@
-// LevelEditor.h : main header file for the LevelEditor application
-//
 #pragma once
 
 #include "framework.h"
@@ -14,6 +12,8 @@
 // See LevelEditor.cpp for the implementation of this class
 //
 
+class CLevelEditorView;
+
 class CLevelEditorApp : public CWinApp
 {
 public:
@@ -27,6 +27,9 @@ public:
 // Implementation
 	afx_msg void OnAppAbout();
 	DECLARE_MESSAGE_MAP()
+	virtual BOOL OnIdle(LONG lCount);
+public:
+	CLevelEditorView* m_pLevelEditorView;
 };
 
 extern CLevelEditorApp theApp;

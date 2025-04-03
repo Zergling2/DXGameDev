@@ -4,9 +4,10 @@
 
 namespace pubg
 {
-	class Lobby : public zergengine::IScene
+	class Lobby : public ze::IScene
 	{
+		ZE_DECLARE_SCENE(Lobby);
 	public:
-		virtual void LoadScene() override;
+		virtual void OnLoadScene() override;
 	};
 }
