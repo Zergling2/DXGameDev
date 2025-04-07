@@ -4,10 +4,10 @@
 
 namespace ze
 {
-	class FileSystem : public ISubsystem
+	class FileSystemImpl : public ISubsystem
 	{
-		friend class Runtime;
-		ZE_DECLARE_SINGLETON(FileSystem);
+		friend class RuntimeImpl;
+		ZE_DECLARE_SINGLETON(FileSystemImpl);
 	private:
 		virtual void Init(void* pDesc) override;
 		virtual void Release() override;
@@ -18,4 +18,6 @@ namespace ze
 		WCHAR m_exePath[MAX_PATH];
 		WCHAR m_exeRelPath[MAX_PATH];
 	};
+
+	extern FileSystemImpl FileSystem;
 }

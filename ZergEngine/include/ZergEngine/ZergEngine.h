@@ -5,6 +5,7 @@
 #include <ZergEngine\CoreSystem\SceneManager.h>
 #include <ZergEngine\CoreSystem\ResourceManager.h>
 #include <ZergEngine\CoreSystem\EnvironmentManager.h>
+#include <ZergEngine\CoreSystem\Input.h>
 #include <ZergEngine\CoreSystem\Resource\Mesh.h>
 #include <ZergEngine\CoreSystem\Resource\Material.h>
 #include <ZergEngine\CoreSystem\Resource\Texture.h>

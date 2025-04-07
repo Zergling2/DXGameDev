@@ -6,11 +6,11 @@ namespace ze
 {
 	class Skybox;
 
-	class Environment : ISubsystem
+	class EnvironmentManagerImpl : ISubsystem
 	{
-		ZE_DECLARE_SINGLETON(Environment);
-		friend class Runtime;
-		friend class Renderer;
+		ZE_DECLARE_SINGLETON(EnvironmentManagerImpl);
+		friend class RuntimeImpl;
+		friend class RendererImpl;
 	private:
 		virtual void Init(void* pDesc) override;
 		virtual void Release() override;
@@ -22,4 +22,6 @@ namespace ze
 	private:
 		std::shared_ptr<Skybox> m_spSkybox;
 	};
+
+	extern EnvironmentManagerImpl Environment;
 }

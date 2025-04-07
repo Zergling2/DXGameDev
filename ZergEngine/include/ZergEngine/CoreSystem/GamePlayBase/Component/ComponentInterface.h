@@ -8,9 +8,9 @@ namespace ze
 
 	class IComponent
 	{
-		friend class Runtime;
+		friend class RuntimeImpl;
 		friend class IComponentManager;
-		friend class SceneManager;
+		friend class SceneManagerImpl;
 	public:
 		IComponent();
 		virtual ~IComponent() = default;

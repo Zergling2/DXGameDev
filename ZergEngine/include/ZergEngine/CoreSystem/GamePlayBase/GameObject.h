@@ -16,10 +16,10 @@ namespace ze
 
 	class GameObject
 	{
-		friend class Runtime;
+		friend class RuntimeImpl;
 		friend class IScene;
-		friend class GameObjectManager;
-		friend class SceneManager;
+		friend class GameObjectManagerImpl;
+		friend class SceneManagerImpl;
 	private:
 		GameObject(bool deferred, PCWSTR name);
 	public:

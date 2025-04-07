@@ -125,10 +125,10 @@ namespace ze
 		std::map<IndexSet::PositionNormalTexCoord, uint32_t> vvnvtIndexMap;
 	};
 
-	class ResourceManager : public ISubsystem
+	class ResourceManagerImpl : public ISubsystem
 	{
-		friend class Runtime;
-		ZE_DECLARE_SINGLETON(ResourceManager);
+		friend class RuntimeImpl;
+		ZE_DECLARE_SINGLETON(ResourceManagerImpl);
 	private:
 		virtual void Init(void* pDesc) override;
 		virtual void Release() override;
@@ -150,6 +150,7 @@ namespace ze
 		bool ReadObject_deprecated(FILE* const objFile, long* pofpos, VertexPack& vp, Mesh& mesh, const size_t meshIndex,
 			std::vector<DeferredMtlLinkingData>& dml);
 		*/
-	private:
 	};
+
+	extern ResourceManagerImpl Resource;
 }

@@ -157,16 +157,17 @@ namespace ze
 			HLSLStruct::Material cbps_subsetMtl;
 		};
 
-		cbuffer PerRenderResultMerge
+		cbuffer PerCameraMerge
 		{
 			DECLARE_SLOT_NUMBER(4);
 
-			FLOAT cbprrm_width;
-			FLOAT cbprrm_height;
-			FLOAT cbprrm_topLeftX;
-			FLOAT cbprrm_topLeftY;
+			FLOAT cbpcm_width;
+			FLOAT cbpcm_height;
+			FLOAT cbpcm_topLeftX;
+			FLOAT cbpcm_topLeftY;
 		};
 
+		using PerMSCameraMerge = PerCameraMerge;
 		using PerSkybox = PerMesh;
 	};
 

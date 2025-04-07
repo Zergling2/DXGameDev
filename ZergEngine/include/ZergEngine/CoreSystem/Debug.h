@@ -134,9 +134,9 @@ namespace ze
 		std::vector<LPVOID> m_bufferLargePages;
 	};
 
-	class GlobalLog
+	class GlobalLogImpl
 	{
-		ZE_DECLARE_SINGLETON(GlobalLog);
+		ZE_DECLARE_SINGLETON(GlobalLogImpl);
 	public:
 		SyncFileLogger& GetSyncFileLogger() { return m_logger; }
 
@@ -145,4 +145,6 @@ namespace ze
 	private:
 		SyncFileLogger m_logger;
 	};
+
+	extern GlobalLogImpl GlobalLog;
 }

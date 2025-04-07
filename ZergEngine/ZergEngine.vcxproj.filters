@@ -219,7 +219,7 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\ComponentSystem\DirectionalLightManager.h">
       <Filter>Files\ZergEngine\CoreSystem\ComponentSystem</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\LowLevelRenderer\TechniqueInterface.h">
+    <ClInclude Include="include\ZergEngine\CoreSystem\LowLevelRenderer\Pass.h">
       <Filter>Files\ZergEngine\CoreSystem\LowLevelRenderer</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\FileSystem.h">
@@ -237,7 +237,7 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\ComponentSystem\TerrainManager.h">
       <Filter>Files\ZergEngine\CoreSystem\ComponentSystem</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\Runtime.h">
+    <ClInclude Include="include\ZergEngine\CoreSystem\RuntimeImpl::h">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\SubsystemInterface.h">
@@ -254,30 +254,6 @@
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\RenderState.h">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\LowLevelRenderer\StandardPTechnique.h">
-      <Filter>Files\ZergEngine\CoreSystem\LowLevelRenderer</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\LowLevelRenderer\StandardPCTechnique.h">
-      <Filter>Files\ZergEngine\CoreSystem\LowLevelRenderer</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\LowLevelRenderer\StandardPNTechnique.h">
-      <Filter>Files\ZergEngine\CoreSystem\LowLevelRenderer</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\LowLevelRenderer\StandardPNTTechnique.h">
-      <Filter>Files\ZergEngine\CoreSystem\LowLevelRenderer</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\LowLevelRenderer\StandardPTTechnique.h">
-      <Filter>Files\ZergEngine\CoreSystem\LowLevelRenderer</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\LowLevelRenderer\SkyboxTechnique.h">
-      <Filter>Files\ZergEngine\CoreSystem\LowLevelRenderer</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\LowLevelRenderer\StandardTechniqueInterface.h">
-      <Filter>Files\ZergEngine\CoreSystem\LowLevelRenderer</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\LowLevelRenderer\TerrainTechnique.h">
-      <Filter>Files\ZergEngine\CoreSystem\LowLevelRenderer</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\TerrainData.h">
       <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
@@ -416,7 +392,7 @@
     <ClCompile Include="source\CoreSystem\ComponentSystem\TerrainManager.cpp">
       <Filter>Files\ZergEngine\CoreSystem\ComponentSystem</Filter>
     </ClCompile>
-    <ClCompile Include="source\CoreSystem\Runtime.cpp">
+    <ClCompile Include="source\CoreSystem\RuntimeImpl::cpp">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\SubsystemInterface.cpp">
@@ -437,30 +413,6 @@
     <ClCompile Include="source\CoreSystem\RenderState.cpp">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClCompile>
-    <ClCompile Include="source\CoreSystem\LowLevelRenderer\StandardPTechnique.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\LowLevelRenderer</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\LowLevelRenderer\StandardPCTechnique.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\LowLevelRenderer</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\LowLevelRenderer\StandardPNTechnique.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\LowLevelRenderer</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\LowLevelRenderer\StandardPNTTechnique.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\LowLevelRenderer</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\LowLevelRenderer\StandardPTTechnique.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\LowLevelRenderer</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\LowLevelRenderer\SkyboxTechnique.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\LowLevelRenderer</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\LowLevelRenderer\StandardTechniqueInterface.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\LowLevelRenderer</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\LowLevelRenderer\TerrainTechnique.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\LowLevelRenderer</Filter>
-    </ClCompile>
     <ClCompile Include="source\CoreSystem\Resource\TerrainData.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
     </ClCompile>
@@ -472,6 +424,9 @@
     </ClCompile>
     <ClCompile Include="source\CoreSystem\ComponentSystem\ComponentManagerMap.cpp">
       <Filter>Files\ZergEngine\CoreSystem\ComponentSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\LowLevelRenderer\Pass.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\LowLevelRenderer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -522,10 +477,10 @@
     <FxCompile Include="source\CoreSystem\Resource\ShaderCode\PSStandardColoringPT.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\Resource\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\VSRenderingResultMerge.hlsl">
+    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\VSCameraMerge.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\Resource\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\PSMSRenderingResultMerge.hlsl">
+    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\PSMSCameraMerge.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\Resource\ShaderCode</Filter>
     </FxCompile>
     <FxCompile Include="source\CoreSystem\Resource\ShaderCode\VSTerrainTransform.hlsl">

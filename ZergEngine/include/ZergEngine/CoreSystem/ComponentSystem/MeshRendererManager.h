@@ -4,13 +4,15 @@
 
 namespace ze
 {
-	class MeshRendererManager : public IComponentManager
+	class MeshRendererManagerImpl : public IComponentManager
 	{
-		friend class Runtime;
+		friend class RuntimeImpl;
 		friend class MeshRenderer;
-		ZE_DECLARE_SINGLETON(MeshRendererManager);
+		ZE_DECLARE_SINGLETON(MeshRendererManagerImpl);
 	private:
 		virtual void Init(void* pDesc) override;
 		virtual void Release() override;
 	};
+
+	extern MeshRendererManagerImpl MeshRendererManager;
 }

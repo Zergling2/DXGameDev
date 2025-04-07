@@ -16,8 +16,8 @@ namespace ze
 	// 스레드 동기화가 필요해지는데 엔진 메인 루프 스레드에서도 항상 스레드 동기화가 필요해지므로 이게 더 페널티 요소이다. (자주 일어나는 일을 빠르게)
 	class Camera : public IComponent
 	{
-		friend class CameraManager;
-		friend class Renderer;
+		friend class CameraManagerImpl;
+		friend class RendererImpl;
 	public:
 		static constexpr COMPONENT_TYPE TYPE = COMPONENT_TYPE::CAMERA;
 		Camera();
@@ -86,7 +86,6 @@ namespace ze
 		XMFLOAT4X4A m_viewMatrix;
 		XMFLOAT4X4A m_projMatrix;
 		D3D11_VIEWPORT m_fullbufferViewport;
-		DXGI_SAMPLE_DESC m_descSample;
 		float m_tessMinDist;		// 최대한으로 테셀레이션 되는 최소 거리 정의 ┓
 									// (이 사이의 거리에서는 m_minTessFactor와 m_maxTessFactor에 설정한 값 사이로 보간된 Factor가 사용된다.
 		float m_tessMaxDist;		// 최소한으로 테셀레이션 되는 최대 거리 정의 ┛

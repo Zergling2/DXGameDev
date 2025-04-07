@@ -57,16 +57,8 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\EnvironmentManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Handle.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\ComponentType.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\LowLevelRenderer\SkyboxTechnique.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\LowLevelRenderer\StandardPCTechnique.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\LowLevelRenderer\StandardPNTechnique.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\LowLevelRenderer\StandardPNTTechnique.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\LowLevelRenderer\StandardPTechnique.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\LowLevelRenderer\StandardPTTechnique.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\LowLevelRenderer\StandardTechniqueInterface.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\LowLevelRenderer\TechniqueInterface.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\LowLevelRenderer\Pass.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\LowLevelRenderer\Renderer.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\LowLevelRenderer\TerrainTechnique.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Math.h" />
     <ClInclude Include="include\ZergEngine\Common\ThirdPartySDK.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\Camera.h" />
@@ -104,11 +96,10 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Texture.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Time.h" />
     <ClInclude Include="include\ZergEngine\ZergEngine.h" />
+    <ClCompile Include="source\CoreSystem\LowLevelRenderer\Pass.cpp" />
     <ClCompile Include="source\CoreSystem\ComponentSystem\ComponentManagerMap.cpp" />
     <ClCompile Include="source\CoreSystem\EnvironmentManager.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Handle.cpp" />
-    <ClCompile Include="source\CoreSystem\LowLevelRenderer\SkyboxTechnique.cpp" />
-    <ClCompile Include="source\CoreSystem\LowLevelRenderer\StandardTechniqueInterface.cpp" />
     <ClCompile Include="source\Common\EngineHelper.cpp" />
     <ClCompile Include="source\CoreSystem\COMInitializer.cpp" />
     <ClCompile Include="source\CoreSystem\ComponentSystem\CameraManager.cpp" />
@@ -123,12 +114,6 @@
     <ClCompile Include="source\CoreSystem\GameObjectManager.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\Light.cpp" />
     <ClCompile Include="source\CoreSystem\LowLevelRenderer\Renderer.cpp" />
-    <ClCompile Include="source\CoreSystem\LowLevelRenderer\StandardPCTechnique.cpp" />
-    <ClCompile Include="source\CoreSystem\LowLevelRenderer\StandardPNTechnique.cpp" />
-    <ClCompile Include="source\CoreSystem\LowLevelRenderer\StandardPNTTechnique.cpp" />
-    <ClCompile Include="source\CoreSystem\LowLevelRenderer\StandardPTechnique.cpp" />
-    <ClCompile Include="source\CoreSystem\LowLevelRenderer\StandardPTTechnique.cpp" />
-    <ClCompile Include="source\CoreSystem\LowLevelRenderer\TerrainTechnique.cpp" />
     <ClCompile Include="source\CoreSystem\MemoryAllocator.cpp" />
     <ClCompile Include="source\CoreSystem\ResourceManager.cpp" />
     <ClCompile Include="source\CoreSystem\RenderState.cpp" />
@@ -198,7 +183,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Hull</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\PSMSRenderingResultMerge.hlsl">
+    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\PSMSCameraMerge.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
@@ -278,7 +263,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\VSRenderingResultMerge.hlsl">
+    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\VSCameraMerge.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>

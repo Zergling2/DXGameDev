@@ -5,12 +5,12 @@ using namespace ze;
 
 IScript::IScript()
 {
-	this->SetId(ScriptManager::GetInstance().AssignUniqueId());
+	this->SetId(ScriptManager.AssignUniqueId());
 }
 
 IComponentManager* IScript::GetComponentManager() const
 {
-	return &ScriptManager::GetInstance();
+	return &ScriptManager;
 }
 
 void IScript::SystemJobOnEnabled()

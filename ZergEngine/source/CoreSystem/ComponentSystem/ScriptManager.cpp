@@ -1,27 +1,30 @@
 #include <ZergEngine\CoreSystem\ComponentSystem\ScriptManager.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\ScriptInterface.h>
 
+namespace ze
+{
+    ScriptManagerImpl ScriptManager;
+}
+
 using namespace ze;
 
-ZE_IMPLEMENT_SINGLETON(ScriptManager);
-
-ScriptManager::ScriptManager()
+ScriptManagerImpl::ScriptManagerImpl()
 {
 }
 
-ScriptManager::~ScriptManager()
+ScriptManagerImpl::~ScriptManagerImpl()
 {
 }
 
-void ScriptManager::Init(void* pDesc)
+void ScriptManagerImpl::Init(void* pDesc)
 {
 }
 
-void ScriptManager::Release()
+void ScriptManagerImpl::Release()
 {
 }
 
-void ScriptManager::FixedUpdateScripts()
+void ScriptManagerImpl::FixedUpdateScripts()
 {
     // 일단은 Deferred Remove를 이용.
     // 즉시 삭제 방법은 외부 이터레이터 손상을 막기 위해 인덱스로 접근한다던가 해야하고
@@ -64,7 +67,7 @@ void ScriptManager::FixedUpdateScripts()
     m_activeComponents.erase(destroyedBegin, m_activeComponents.cend());
 }
 
-void ScriptManager::UpdateScripts()
+void ScriptManagerImpl::UpdateScripts()
 {
     auto destroyedBegin = std::remove_if(
         m_activeComponents.begin(),
@@ -85,7 +88,7 @@ void ScriptManager::UpdateScripts()
     m_activeComponents.erase(destroyedBegin, m_activeComponents.cend());
 }
 
-void ScriptManager::LateUpdateScripts()
+void ScriptManagerImpl::LateUpdateScripts()
 {
     auto destroyedBegin = std::remove_if(
         m_activeComponents.begin(),

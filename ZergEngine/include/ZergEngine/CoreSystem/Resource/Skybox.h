@@ -6,7 +6,7 @@ namespace ze
 {
 	class Skybox
 	{
-		friend class ResourceManager;
+		friend class ResourceManagerImpl;
 	public:
 		Skybox() = default;
 		~Skybox() = default;

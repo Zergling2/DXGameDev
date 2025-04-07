@@ -22,10 +22,10 @@ namespace ze
 	private:
 	};
 
-	class SceneManager : public ISubsystem
+	class SceneManagerImpl : public ISubsystem
 	{
-		friend class Runtime;
-		ZE_DECLARE_SINGLETON(SceneManager);
+		friend class RuntimeImpl;
+		ZE_DECLARE_SINGLETON(SceneManagerImpl);
 	private:
 		virtual void Init(void* pDesc) override;
 		virtual void Release() override;
@@ -40,4 +40,6 @@ namespace ze
 		std::unique_ptr<IScene> m_upCurrentScene;
 		std::unique_ptr<IScene> m_upNextScene;
 	};
+
+	extern SceneManagerImpl SceneManager;
 }

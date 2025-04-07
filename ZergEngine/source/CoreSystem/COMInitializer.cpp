@@ -1,21 +1,24 @@
 #include <ZergEngine\CoreSystem\COMInitializer.h>
 #include <ZergEngine\CoreSystem\Debug.h>
 
+namespace ze
+{
+	COMInitializerImpl COMInitializer;
+}
+
 using namespace ze;
 
-ZE_IMPLEMENT_SINGLETON(COMInitializer);
-
-COMInitializer::COMInitializer()
+COMInitializerImpl::COMInitializerImpl()
 	: m_init(false)
 {
 }
 
-COMInitializer::~COMInitializer()
+COMInitializerImpl::~COMInitializerImpl()
 {
 	this->Release();
 }
 
-void COMInitializer::Init(void* pDesc)
+void COMInitializerImpl::Init(void* pDesc)
 {
 	HRESULT hr;
 
@@ -25,11 +28,11 @@ void COMInitializer::Init(void* pDesc)
 		if (SUCCEEDED(hr))
 			m_init = true;
 		else
-			Debug::ForceCrashWithHRESULTErrorMessageBox(L"COMInitializer::Init()", hr);
+			Debug::ForceCrashWithHRESULTErrorMessageBox(L"COMInitializerImpl::Init()", hr);
 	}
 }
 
-void COMInitializer::Release()
+void COMInitializerImpl::Release()
 {
 	if (m_init)
 	{

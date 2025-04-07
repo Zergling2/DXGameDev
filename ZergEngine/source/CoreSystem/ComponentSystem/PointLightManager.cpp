@@ -1,21 +1,24 @@
 #include <ZergEngine\CoreSystem\ComponentSystem\PointLightManager.h>
 
+namespace ze
+{
+    PointLightManagerImpl PointLightManager;
+}
+
 using namespace ze;
 
-ZE_IMPLEMENT_SINGLETON(PointLightManager);
-
-PointLightManager::PointLightManager()
+PointLightManagerImpl::PointLightManagerImpl()
 {
 }
 
-PointLightManager::~PointLightManager()
+PointLightManagerImpl::~PointLightManagerImpl()
 {
 }
 
-void PointLightManager::Init(void* pDesc)
+void PointLightManagerImpl::Init(void* pDesc)
 {
 }
 
-void PointLightManager::Release()
+void PointLightManagerImpl::Release()
 {
 }

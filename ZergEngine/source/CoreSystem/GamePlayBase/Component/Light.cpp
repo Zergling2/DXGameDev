@@ -7,24 +7,24 @@ using namespace ze;
 
 DirectionalLight::DirectionalLight()
 {
-	this->SetId(DirectionalLightManager::GetInstance().AssignUniqueId());
+	this->SetId(DirectionalLightManager.AssignUniqueId());
 }
 
 IComponentManager* DirectionalLight::GetComponentManager() const
 {
-	return &DirectionalLightManager::GetInstance();
+	return &DirectionalLightManager;
 }
 
 PointLight::PointLight()
 	: m_range(1.0f)
 	, m_att(0.0f, 0.0f, 1.0f)
 {
-	this->SetId(PointLightManager::GetInstance().AssignUniqueId());
+	this->SetId(PointLightManager.AssignUniqueId());
 }
 
 IComponentManager* PointLight::GetComponentManager() const
 {
-	return &PointLightManager::GetInstance();
+	return &PointLightManager;
 }
 
 SpotLight::SpotLight()
@@ -32,10 +32,10 @@ SpotLight::SpotLight()
 	, m_spotExp(4.0f)
 	, m_att(0.0f, 0.0f, 1.0f)
 {
-	this->SetId(SpotLightManager::GetInstance().AssignUniqueId());
+	this->SetId(SpotLightManager.AssignUniqueId());
 }
 
 IComponentManager* SpotLight::GetComponentManager() const
 {
-	return &SpotLightManager::GetInstance();
+	return &SpotLightManager;
 }

@@ -34,22 +34,14 @@ namespace ze
 	// 曲收收收收收收收收收收收收收收收收收收收收收收收收收收收收收旭
 	#define ZE_INF_FORLOOP ;;
 
-	#define FILELINELOGFORMAT L"%s(%u) HRESULT=0x%x\n", __FILEW__, __LINE__, hr
-
 	#define ZE_DECLARE_SINGLETON(ClassName)\
 	public:\
-		static inline ClassName& GetInstance() { return ClassName::s_instance; }\
+		ClassName();\
+		~ClassName();\
 		ClassName(const ClassName&) = delete;\
 		ClassName& operator=(const ClassName&) = delete;\
 		ClassName(ClassName&&) = delete;\
 		ClassName& operator=(ClassName&&) = delete;\
-	private:\
-		ClassName();\
-		~ClassName();\
-	private:\
-		static ClassName s_instance
-
-	#define ZE_IMPLEMENT_SINGLETON(ClassName) ClassName ClassName::s_instance
 
 	#define DECLARE_SLOT_NUMBER(Num)\
 		private:\

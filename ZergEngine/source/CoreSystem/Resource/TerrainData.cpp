@@ -62,14 +62,14 @@ bool TerrainData::SetHeightmap(const std::shared_ptr<Texture2D> heightmap)
 	descSysMemHeightmap.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
 
 	ComPtr<ID3D11Texture2D> cpSysMemHeightmap;
-	HRESULT hr = GraphicDevice::GetInstance().GetDeviceComInterface()->CreateTexture2D(&descSysMemHeightmap, nullptr, cpSysMemHeightmap.GetAddressOf());
+	HRESULT hr = GraphicDevice.GetDeviceComInterface()->CreateTexture2D(&descSysMemHeightmap, nullptr, cpSysMemHeightmap.GetAddressOf());
 	if (FAILED(hr))
 		return false;
 
 	// 스테이징 텍스처로 높이맵 복사
-	GraphicDevice::GetInstance().GetImmContextComInterface()->CopyResource(cpSysMemHeightmap.Get(), m_spHeightmap->GetTex2DComInterface());
+	GraphicDevice.GetImmContextComInterface()->CopyResource(cpSysMemHeightmap.Get(), m_spHeightmap->GetTex2DComInterface());
 	D3D11_MAPPED_SUBRESOURCE mapped;
-	hr = GraphicDevice::GetInstance().GetImmContextComInterface()->Map(cpSysMemHeightmap.Get(), D3D11CalcSubresource(0, 0, 0), D3D11_MAP_READ,
+	hr = GraphicDevice.GetImmContextComInterface()->Map(cpSysMemHeightmap.Get(), D3D11CalcSubresource(0, 0, 0), D3D11_MAP_READ,
 		0, &mapped);
 	if (FAILED(hr))
 		return false;
@@ -96,7 +96,7 @@ bool TerrainData::SetHeightmap(const std::shared_ptr<Texture2D> heightmap)
 		break;
 	}
 
-	GraphicDevice::GetInstance().GetImmContextComInterface()->Unmap(cpSysMemHeightmap.Get(), D3D11CalcSubresource(0, 0, 0));
+	GraphicDevice.GetImmContextComInterface()->Unmap(cpSysMemHeightmap.Get(), D3D11CalcSubresource(0, 0, 0));
 
 	// 물리 콜라이더 생성
 	// ...

@@ -4,13 +4,15 @@
 
 namespace ze
 {
-	class TerrainManager : public IComponentManager
+	class TerrainManagerImpl : public IComponentManager
 	{
-		friend class Runtime;
+		friend class RuntimeImpl;
 		friend class Terrain;
-		ZE_DECLARE_SINGLETON(TerrainManager);
+		ZE_DECLARE_SINGLETON(TerrainManagerImpl);
 	private:
 		virtual void Init(void* pDesc) override;
 		virtual void Release() override;
 	};
+
+	extern TerrainManagerImpl TerrainManager;
 }

@@ -4,13 +4,15 @@
 
 namespace ze
 {
-	class SpotLightManager : public IComponentManager
+	class SpotLightManagerImpl : public IComponentManager
 	{
-		friend class Runtime;
+		friend class RuntimeImpl;
 		friend class SpotLight;
-		ZE_DECLARE_SINGLETON(SpotLightManager);
+		ZE_DECLARE_SINGLETON(SpotLightManagerImpl);
 	private:
 		virtual void Init(void* pDesc) override;
 		virtual void Release() override;
 	};
+
+	extern SpotLightManagerImpl SpotLightManager;
 }

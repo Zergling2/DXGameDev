@@ -4,12 +4,12 @@
 
 namespace ze
 {
-	class CameraManager : public IComponentManager
+	class CameraManagerImpl : public IComponentManager
 	{
-		friend class Runtime;
-		friend class Window;
+		friend class RuntimeImpl;
+		friend class WindowImpl;
 		friend class Camera;
-		ZE_DECLARE_SINGLETON(CameraManager);
+		ZE_DECLARE_SINGLETON(CameraManagerImpl);
 	private:
 		virtual void Init(void* pDesc) override;
 		virtual void Release() override;
@@ -20,4 +20,6 @@ namespace ze
 		virtual ComponentHandle Register(IComponent* pComponent) override;
 		virtual void Unregister(IComponent* pComponent) override;
 	};
+
+	extern CameraManagerImpl CameraManager;
 }

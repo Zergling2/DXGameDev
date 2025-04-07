@@ -378,7 +378,7 @@ namespace DirectX
             void __cdecl SetTexture(_In_opt_ ID3D11ShaderResourceView* value);
             void __cdecl SetEnvironmentMap(_In_opt_ ID3D11ShaderResourceView* value);
 
-            // Environment map settings.
+            // EnvironmentManagerImpl map settings.
             void __cdecl SetMode(Mapping mapping);
             void __cdecl SetEnvironmentMapAmount(float value);
             void XM_CALLCONV SetEnvironmentMapSpecular(FXMVECTOR value);

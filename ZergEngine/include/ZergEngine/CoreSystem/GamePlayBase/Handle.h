@@ -11,8 +11,8 @@ namespace ze
 
 	class GameObjectHandle
 	{
-		friend class Runtime;
-		friend class GameObjectManager;
+		friend class RuntimeImpl;
+		friend class GameObjectManagerImpl;
 		friend class GameObject;
 	public:
 		GameObjectHandle() noexcept
@@ -69,7 +69,7 @@ namespace ze
 	class ComponentHandle
 	{
 		friend class IComponentManager;
-		friend class SceneManager;
+		friend class SceneManagerImpl;
 	public:
 		static ComponentHandle MakeFakeHandle(IComponent* pComponent);
 	public:

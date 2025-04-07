@@ -6,12 +6,12 @@ using namespace ze;
 Terrain::Terrain()
 	: m_spTerrainData(nullptr)
 {
-	this->SetId(TerrainManager::GetInstance().AssignUniqueId());
+	this->SetId(TerrainManager.AssignUniqueId());
 }
 
 IComponentManager* Terrain::GetComponentManager() const
 {
-	return &TerrainManager::GetInstance();
+	return &TerrainManager;
 }
 
 
@@ -25,7 +25,7 @@ std::shared_ptr<Terrain> Terrain::LoadTerrain(PCWSTR path, const TerrainData& td
 	do
 	{
 		wchar_t filePath[MAX_PATH];
-		StringCbCopyW(filePath, sizeof(filePath), FileSystem::GetResourcePath());
+		StringCbCopyW(filePath, sizeof(filePath), FileSystemImpl::GetResourcePath());
 		StringCbCatW(filePath, sizeof(filePath), path);
 		const wchar_t* ext = wcsrchr(filePath, L'.');
 

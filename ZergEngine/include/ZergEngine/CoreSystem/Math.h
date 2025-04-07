@@ -32,6 +32,6 @@ namespace ze
 		// Graphics math
 		
 		// 월드 공간에서의 절두체 평면 6개 계산 및 반환
-		static void ExtractFrustumPlanesInWorldSpace(XMMATRIX vp, XMFLOAT4A planes[6]);
+		static void ExtractFrustumPlanesInWorldSpace(const XMFLOAT4X4A* pViewProjMatrix, XMFLOAT4A planes[6]);
 	};
 }

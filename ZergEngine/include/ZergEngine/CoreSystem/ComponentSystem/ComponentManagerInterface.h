@@ -9,9 +9,9 @@ namespace ze
 
 	class IComponentManager : public ISubsystem
 	{
-		friend class Runtime;
-		friend class SceneManager;
-		friend class Renderer;
+		friend class RuntimeImpl;
+		friend class SceneManagerImpl;
+		friend class RendererImpl;
 		friend class ComponentHandle;
 	public:
 		IComponentManager();

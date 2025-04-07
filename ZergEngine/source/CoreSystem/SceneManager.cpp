@@ -7,9 +7,12 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 #include <ZergEngine\CoreSystem\ComponentSystem\ComponentManagerInterface.h>
 
-using namespace ze;
+namespace ze
+{
+	SceneManagerImpl SceneManager;
+}
 
-ZE_IMPLEMENT_SINGLETON(SceneManager);
+using namespace ze;
 
 class DummyScene : public IScene
 {
@@ -19,29 +22,29 @@ public:
 	virtual void OnLoadScene() override {}
 };
 
-SceneManager::SceneManager()
+SceneManagerImpl::SceneManagerImpl()
 	: m_lock()
 	, m_upCurrentScene(nullptr)
 	, m_upNextScene(nullptr)
 {
 }
 
-SceneManager::~SceneManager()
+SceneManagerImpl::~SceneManagerImpl()
 {
 }
 
-void SceneManager::Init(void* pDesc)
+void SceneManagerImpl::Init(void* pDesc)
 {
 	m_lock.Init();
 
 	m_upCurrentScene = std::make_unique<DummyScene>();
 	m_upCurrentScene->OnLoadScene();
 
-	m_upNextScene = this->CreateScene(Runtime::GetStartSceneName());
+	m_upNextScene = this->CreateScene(Runtime.GetStartSceneName());
 	m_upNextScene->OnLoadScene();
 }
 
-void SceneManager::Release()
+void SceneManagerImpl::Release()
 {
 	// safe cleanup...
 
@@ -49,7 +52,7 @@ void SceneManager::Release()
 	m_upNextScene.reset();
 }
 
-bool SceneManager::LoadScene(PCWSTR sceneName)
+bool SceneManagerImpl::LoadScene(PCWSTR sceneName)
 {
 	bool success = false;
 
@@ -73,7 +76,7 @@ bool SceneManager::LoadScene(PCWSTR sceneName)
 	return success;
 }
 
-void SceneManager::Update(float* pLoopTime)
+void SceneManagerImpl::Update(float* pLoopTime)
 {
 	if (m_upNextScene == nullptr)
 		return;
@@ -82,7 +85,7 @@ void SceneManager::Update(float* pLoopTime)
 
 	// 씬 교체 필요
 	// DontDestroyOnLoad 오브젝트를 제외하고 모두 파괴
-	auto& activeGameObjects = GameObjectManager::GetInstance().m_activeGameObjects;
+	auto& activeGameObjects = GameObjectManager.m_activeGameObjects;
 	size_t cursor = 0;
 	while (cursor < activeGameObjects.size())
 	{
@@ -96,7 +99,7 @@ void SceneManager::Update(float* pLoopTime)
 		{
 			GameObjectHandle hGameObject = pGameObject->ToHandle();
 			assert(hGameObject.IsValid());
-			Runtime::Destroy(hGameObject);
+			Runtime.Destroy(hGameObject);
 		}
 	}
 
@@ -105,7 +108,7 @@ void SceneManager::Update(float* pLoopTime)
 	// 그리고 레지스터 하면서 핸들을 받는데
 	for (auto pGameObject : m_upNextScene->m_pDeferredGameObjects)
 	{
-		GameObjectHandle hGameObject = GameObjectManager::GetInstance().Register(pGameObject);
+		GameObjectHandle hGameObject = GameObjectManager.Register(pGameObject);
 		if (!hGameObject.IsValid())
 			Debug::ForceCrashWithMessageBox(
 				L"Move deferred game objects",
@@ -133,13 +136,13 @@ void SceneManager::Update(float* pLoopTime)
 	m_upCurrentScene = std::move(m_upNextScene);
 }
 
-std::unique_ptr<IScene> SceneManager::CreateScene(PCWSTR sceneName)
+std::unique_ptr<IScene> SceneManagerImpl::CreateScene(PCWSTR sceneName)
 {
 	std::unique_ptr<IScene> upNewScene;
 
 	const SceneFactory sf = SceneTable::GetItem(sceneName);
 	if (sf == nullptr)
-		GlobalLog::GetInstance().GetSyncFileLogger().WriteFormat(L"'%s' scene name does not exist!\n", sceneName);
+		GlobalLog.GetSyncFileLogger().WriteFormat(L"'%s' scene name does not exist!\n", sceneName);
 	else
 		upNewScene = sf();
 

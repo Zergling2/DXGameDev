@@ -1,27 +1,30 @@
 #include <ZergEngine\CoreSystem\ComponentSystem\CameraManager.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Camera.h>
 
+namespace ze
+{
+    CameraManagerImpl CameraManager;
+}
+
 using namespace ze;
 
-ZE_IMPLEMENT_SINGLETON(CameraManager);
-
-CameraManager::CameraManager()
+CameraManagerImpl::CameraManagerImpl()
 {
 }
 
-CameraManager::~CameraManager()
+CameraManagerImpl::~CameraManagerImpl()
 {
 }
 
-void CameraManager::Init(void* pDesc)
+void CameraManagerImpl::Init(void* pDesc)
 {
 }
 
-void CameraManager::Release()
+void CameraManagerImpl::Release()
 {
 }
 
-void CameraManager::Update()
+void CameraManagerImpl::Update()
 {
     // Depth 기준 재정렬
     std::sort(
@@ -33,7 +36,7 @@ void CameraManager::Update()
     );
 }
 
-void CameraManager::OnResize()
+void CameraManagerImpl::OnResize()
 {
     for (auto pComponent : m_activeComponents)
     {
@@ -45,7 +48,7 @@ void CameraManager::OnResize()
     }
 }
 
-ComponentHandle CameraManager::Register(IComponent* pComponent)
+ComponentHandle CameraManagerImpl::Register(IComponent* pComponent)
 {
     ComponentHandle hComponent = IComponentManager::Register(pComponent);
 
@@ -54,7 +57,7 @@ ComponentHandle CameraManager::Register(IComponent* pComponent)
     return hComponent;
 }
 
-void CameraManager::Unregister(IComponent* pComponent)
+void CameraManagerImpl::Unregister(IComponent* pComponent)
 {
     IComponentManager::Unregister(pComponent);
 

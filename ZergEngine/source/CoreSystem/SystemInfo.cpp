@@ -1,24 +1,27 @@
 #include <ZergEngine\CoreSystem\SystemInfo.h>
 
+namespace ze
+{
+    SystemInfoImpl SystemInfo;
+}
+
 using namespace ze;
 
-ZE_IMPLEMENT_SINGLETON(SystemInfo);
-
-SystemInfo::SystemInfo()
+SystemInfoImpl::SystemInfoImpl()
     : m_si{}
 {
 }
 
-SystemInfo::~SystemInfo()
+SystemInfoImpl::~SystemInfoImpl()
 {
 }
 
-void SystemInfo::Init(void* pDesc)
+void SystemInfoImpl::Init(void* pDesc)
 {
     ::GetSystemInfo(&m_si);
 }
 
-void SystemInfo::Release()
+void SystemInfoImpl::Release()
 {
     // Nothing to do.
 }

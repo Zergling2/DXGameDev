@@ -8,7 +8,7 @@ namespace ze
 
 	class ISubsystem abstract
 	{
-		friend class Runtime;
+		friend class RuntimeImpl;
 	public:
 		ISubsystem();
 		virtual ~ISubsystem() = default;

@@ -1,26 +1,29 @@
 #include <ZergEngine\CoreSystem\Time.h>
 #include <ZergEngine\CoreSystem\Debug.h>
 
+namespace ze
+{
+	TimeImpl ze::Time;
+}
+
 using namespace ze;
 
-ZE_IMPLEMENT_SINGLETON(Time);
-
-Time::Time()
+TimeImpl::TimeImpl()
 {
 }
 
-Time::~Time()
+TimeImpl::~TimeImpl()
 {
 }
 
-void Time::Init(void* pDesc)
+void TimeImpl::Init(void* pDesc)
 {
 	LARGE_INTEGER freq;
 
 	// On systems that run Windows XP or later, 
 	// the function will always succeed and will thus never return zero.
 	if (QueryPerformanceFrequency(&freq) == FALSE)
-		Debug::ForceCrashWithWin32ErrorMessageBox(L"Time::Init() > QueryPerformanceFrequency()", GetLastError());
+		Debug::ForceCrashWithWin32ErrorMessageBox(L"TimeImpl::Init() > QueryPerformanceFrequency()", GetLastError());
 
 	m_spc = 1.0f / static_cast<float>(freq.QuadPart);
 	m_ts = 1.0f;
@@ -31,7 +34,7 @@ void Time::Init(void* pDesc)
 	// On systems that run Windows XP or later, 
 	// the function will always succeed and will thus never return zero.
 	if (QueryPerformanceCounter(&m_qpcBaseCnt) == FALSE)
-		Debug::ForceCrashWithWin32ErrorMessageBox(L"Time::Init() > QueryPerformanceCounter()", GetLastError());
+		Debug::ForceCrashWithWin32ErrorMessageBox(L"TimeImpl::Init() > QueryPerformanceCounter()", GetLastError());
 
 	m_qpcDeltaCnt.QuadPart = 0;
 	m_qpcPrevCnt = m_qpcBaseCnt;
@@ -39,11 +42,11 @@ void Time::Init(void* pDesc)
 	m_qpcPausedCnt.QuadPart = 0;
 }
 
-void Time::Release()
+void TimeImpl::Release()
 {
 }
 
-void Time::SetTimeScale(float ts)
+void TimeImpl::SetTimeScale(float ts)
 {
 	if (ts < 0.0f)
 		return;
@@ -51,7 +54,7 @@ void Time::SetTimeScale(float ts)
 	m_ts = ts;
 }
 
-void Time::Update()
+void TimeImpl::Update()
 {
 	QueryPerformanceCounter(&m_qpcCurrentCnt);
 	m_qpcDeltaCnt.QuadPart = m_qpcCurrentCnt.QuadPart - m_qpcPrevCnt.QuadPart;
@@ -64,13 +67,13 @@ void Time::Update()
 	m_qpcPrevCnt = m_qpcCurrentCnt;
 }
 
-void Time::ChangeDeltaTimeToFixedDeltaTime()
+void TimeImpl::ChangeDeltaTimeToFixedDeltaTime()
 {
 	m_dtBackup = m_dt;
 	m_dt = FIXED_DELTA_TIME;
 }
 
-void Time::RecoverDeltaTime()
+void TimeImpl::RecoverDeltaTime()
 {
 	m_dt = m_dtBackup;
 }

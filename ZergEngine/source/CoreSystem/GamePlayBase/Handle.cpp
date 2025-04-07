@@ -19,8 +19,8 @@ ComponentHandle ComponentHandle::MakeFakeHandle(IComponent* pComponent)
 
 GameObject* GameObjectHandle::ToPtr() const
 {
-	assert(m_index < _countof(GameObjectManager::m_ptrTable));
-	GameObject* pGameObject = GameObjectManager::GetInstance().m_ptrTable[m_index];
+	assert(m_index < _countof(GameObjectManagerImpl::m_ptrTable));
+	GameObject* pGameObject = GameObjectManager.m_ptrTable[m_index];
 	
 	if (pGameObject == nullptr || pGameObject->GetId() != m_id)
 		return nullptr;

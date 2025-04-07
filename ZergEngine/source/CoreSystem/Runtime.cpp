@@ -23,37 +23,45 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\ScriptInterface.h>
 
+namespace ze
+{
+    RuntimeImpl Runtime;
+}
+
 using namespace ze;
 
-ZE_IMPLEMENT_SINGLETON(Runtime);
+enum RUNTIME_FLAG : uint32_t
+{
+    RENDER_ENABLED = 0x00000001,
+    SCRIPT_UPDATE = 0x00000002
+};
 
-HINSTANCE Runtime::s_hInstance;
-std::wstring Runtime::s_startScene;
-float Runtime::s_loopTime;
-uint32_t Runtime::s_flag;
-
-Runtime::Runtime()
+RuntimeImpl::RuntimeImpl()
+    : m_hInstance(NULL)
+    , m_startScene()
+    , m_loopTime(0.0f)
+    , m_flag(0)
 {
 }
 
-Runtime::~Runtime()
+RuntimeImpl::~RuntimeImpl()
 {
 }
 
-void Runtime::Run(HINSTANCE hInstance, int nShowCmd, PCWSTR wndTitle, PCWSTR startScene, SIZE resolution, bool fullscreen)
+void RuntimeImpl::Run(HINSTANCE hInstance, int nShowCmd, PCWSTR wndTitle, PCWSTR startScene, SIZE resolution, bool fullscreen)
 {
-    Runtime::s_hInstance = hInstance;
-    Runtime::s_startScene = startScene;
-    Runtime::s_loopTime = 0.0f;
-    Runtime::s_flag = RENDER_ENABLED | SCRIPT_UPDATE;
+    m_hInstance = hInstance;
+    m_startScene = startScene;
+    m_loopTime = 0.0f;
+    m_flag = RENDER_ENABLED | SCRIPT_UPDATE;
 
-    Runtime::InitAllSubsystem(wndTitle, resolution, fullscreen);
+    RuntimeImpl::InitAllSubsystem(wndTitle, resolution, fullscreen);
 
-    ShowWindow(Window::GetInstance().GetWindowHandle(), nShowCmd);
-    // UpdateWindow(Runtime::GetMainWindowHandle());
+    ShowWindow(Window.GetWindowHandle(), nShowCmd);
+    // UpdateWindow(RuntimeImpl::GetMainWindowHandle());
 
     // update initial time value
-    Time::GetInstance().Update();
+    Time.Update();
 
     MSG msg;
     do
@@ -65,21 +73,36 @@ void Runtime::Run(HINSTANCE hInstance, int nShowCmd, PCWSTR wndTitle, PCWSTR sta
         }
         else
         {
-            Runtime::OnIdle();
+            RuntimeImpl::OnIdle();
         }
     } while (msg.message != WM_QUIT);
 
     const int ret = static_cast<int>(msg.wParam);
 
-    Runtime::ReleaseAllSubsystem();
+    RuntimeImpl::ReleaseAllSubsystem();
 }
 
-void Runtime::Exit()
+void RuntimeImpl::Exit()
 {
-    DestroyWindow(Window::GetInstance().GetWindowHandle());
+    DestroyWindow(Window.GetWindowHandle());
 }
 
-void Runtime::InitAllSubsystem(PCWSTR wndTitle, SIZE resolution, bool fullscreen)
+void RuntimeImpl::EnableRendering()
+{
+    m_flag |= RENDER_ENABLED;
+}
+
+void RuntimeImpl::DisableRendering()
+{
+    m_flag &= ~RENDER_ENABLED;
+}
+
+GameObjectHandle RuntimeImpl::Find(PCWSTR name)
+{
+    return GameObjectManager.FindGameObject(name);
+}
+
+void RuntimeImpl::InitAllSubsystem(PCWSTR wndTitle, SIZE resolution, bool fullscreen)
 {
     const time_t rawTime = time(nullptr);
     tm timeInfo;
@@ -106,94 +129,94 @@ void Runtime::InitAllSubsystem(PCWSTR wndTitle, SIZE resolution, bool fullscreen
     // and generate an error report if the application failed to free all the memory it allocated.
 #endif
 
-    SystemInfo::GetInstance().Init(nullptr);
-    MemoryAllocator::GetInstance().Init(nullptr);
-    FileSystem::GetInstance().Init(nullptr);
-    GlobalLog::GetInstance().Init(syncLogName);
-    COMInitializer::GetInstance().Init(nullptr);
-    Time::GetInstance().Init(nullptr);
+    SystemInfo.Init(nullptr);
+    MemoryAllocator.Init(nullptr);
+    FileSystem.Init(nullptr);
+    GlobalLog.Init(syncLogName);
+    COMInitializer.Init(nullptr);
+    Time.Init(nullptr);
 
-    Window::InitDesc initDesc;
+    WindowImpl::InitDesc initDesc;
     initDesc.m_resolution = resolution;
     initDesc.m_fullscreen = fullscreen;
     initDesc.m_title = wndTitle;
-    Window::GetInstance().Init(&initDesc);
+    Window.Init(&initDesc);
 
-    GraphicDevice::GetInstance().Init(nullptr);
-    SceneManager::GetInstance().Init(nullptr);
-    ResourceManager::GetInstance().Init(nullptr);
-    Renderer::GetInstance().Init(nullptr);
-    Input::GetInstance().Init(nullptr);
-    GameObjectManager::GetInstance().Init(nullptr);
-    Environment::GetInstance().Init(nullptr);
-    CameraManager::GetInstance().Init(nullptr);
-    DirectionalLightManager::GetInstance().Init(nullptr);
-    PointLightManager::GetInstance().Init(nullptr);
-    SpotLightManager::GetInstance().Init(nullptr);
-    MeshRendererManager::GetInstance().Init(nullptr);
-    ScriptManager::GetInstance().Init(nullptr);
-    TerrainManager::GetInstance().Init(nullptr);
+    GraphicDevice.Init(nullptr);
+    SceneManager.Init(nullptr);
+    Resource.Init(nullptr);
+    Renderer.Init(nullptr);
+    Input.Init(nullptr);
+    GameObjectManager.Init(nullptr);
+    Environment.Init(nullptr);
+    CameraManager.Init(nullptr);
+    DirectionalLightManager.Init(nullptr);
+    PointLightManager.Init(nullptr);
+    SpotLightManager.Init(nullptr);
+    MeshRendererManager.Init(nullptr);
+    ScriptManager.Init(nullptr);
+    TerrainManager.Init(nullptr);
 }
 
-void Runtime::ReleaseAllSubsystem()
+void RuntimeImpl::ReleaseAllSubsystem()
 {
-    TerrainManager::GetInstance().Release();
-    ScriptManager::GetInstance().Release();
-    MeshRendererManager::GetInstance().Release();
-    SpotLightManager::GetInstance().Release();
-    PointLightManager::GetInstance().Release();
-    DirectionalLightManager::GetInstance().Release();
-    CameraManager::GetInstance().Release();
-    Environment::GetInstance().Release();
-    GameObjectManager::GetInstance().Release();
-    Input::GetInstance().Release();
-    Renderer::GetInstance().Release();
-    ResourceManager::GetInstance().Release();
-    SceneManager::GetInstance().Release();
-    GraphicDevice::GetInstance().Release();
-    Window::GetInstance().Release();
-    Time::GetInstance().Release();
-    COMInitializer::GetInstance().Release();
-    GlobalLog::GetInstance().Release();
-    FileSystem::GetInstance().Release();
-    MemoryAllocator::GetInstance().Release();
-    SystemInfo::GetInstance().Release();
+    TerrainManager.Release();
+    ScriptManager.Release();
+    MeshRendererManager.Release();
+    SpotLightManager.Release();
+    PointLightManager.Release();
+    DirectionalLightManager.Release();
+    CameraManager.Release();
+    Environment.Release();
+    GameObjectManager.Release();
+    Input.Release();
+    Renderer.Release();
+    Resource.Release();
+    SceneManager.Release();
+    GraphicDevice.Release();
+    Window.Release();
+    Time.Release();
+    COMInitializer.Release();
+    GlobalLog.Release();
+    FileSystem.Release();
+    MemoryAllocator.Release();
+    SystemInfo.Release();
 }
 
-void Runtime::OnIdle()
+void RuntimeImpl::OnIdle()
 {
     // Update timer.
-    Time::GetInstance().Update();
+    Time.Update();
 
-    SceneManager::GetInstance().Update(&Runtime::s_loopTime);
+    SceneManager.Update(&m_loopTime);
 
-    Input::GetInstance().Update();
+    Input.Update();
 
     // For the FixedUpdate
-    Runtime::s_loopTime += Time::GetInstance().GetUnscaledDeltaTime();
+    m_loopTime += Time.GetUnscaledDeltaTime();
 
     // 정수 기준 루프로 수정 필요
-    Time::GetInstance().ChangeDeltaTimeToFixedDeltaTime();
-    while (Time::GetInstance().GetFixedDeltaTime() <= Runtime::s_loopTime)
+    Time.ChangeDeltaTimeToFixedDeltaTime();
+    while (Time.GetFixedDeltaTime() <= m_loopTime)
     {
-        ScriptManager::GetInstance().FixedUpdateScripts();
-        Runtime::s_loopTime -= Time::GetInstance().GetFixedDeltaTime();
+        ScriptManager.FixedUpdateScripts();
+        m_loopTime -= Time.GetFixedDeltaTime();
     }
-    Time::GetInstance().RecoverDeltaTime();
+    Time.RecoverDeltaTime();
 
-    ScriptManager::GetInstance().UpdateScripts();
-    ScriptManager::GetInstance().LateUpdateScripts();
+    ScriptManager.UpdateScripts();
+    ScriptManager.LateUpdateScripts();
+
+    Input.FinalUpdate();
 
     // Render
-    if (Runtime::s_flag & RUNTIME_FLAG::RENDER_ENABLED)
-        Renderer::GetInstance().RenderFrame();
-
-    // Input::GetInstance().Clear();
+    if (m_flag & RUNTIME_FLAG::RENDER_ENABLED)
+        Renderer.RenderFrame();
     
     Sleep(6);       // 나중에 Max fps 기능 추가해야함
 }
 
-GameObjectHandle Runtime::CreateGameObject(PCWSTR name)
+GameObjectHandle RuntimeImpl::CreateGameObject(PCWSTR name)
 {
     GameObjectHandle hGameObject;
 
@@ -203,13 +226,13 @@ GameObjectHandle Runtime::CreateGameObject(PCWSTR name)
         if (!pGameObject)
             break;
 
-        hGameObject = GameObjectManager::GetInstance().Register(pGameObject);
+        hGameObject = GameObjectManager.Register(pGameObject);
     } while (false);
 
     return hGameObject;
 }
 
-void Runtime::DontDestroyOnLoad(GameObjectHandle gameObject)
+void RuntimeImpl::DontDestroyOnLoad(GameObjectHandle gameObject)
 {
     GameObject* pGameObject = gameObject.ToPtr();
     if (!pGameObject)
@@ -218,14 +241,7 @@ void Runtime::DontDestroyOnLoad(GameObjectHandle gameObject)
     pGameObject->m_flag = static_cast<GAMEOBJECT_FLAG>(pGameObject->m_flag | GOF_DONT_DESTROY_ON_LOAD);
 }
 
-/*
-Destroy routine!
-1. check is already destroyed.
-2. unregister
-3. set destroyed flag
-*/
-
-void Runtime::Destroy(GameObjectHandle hGameObject)
+void RuntimeImpl::Destroy(GameObjectHandle hGameObject)
 {
     // GameObjectManager의 Unregister()를 호출해주고 메모리 해제도 해주어야 한다.
     // SceneManager에서 GameObject 파괴하는 부분 참고해서 최대한 실수 없이 만들자.
@@ -237,14 +253,14 @@ void Runtime::Destroy(GameObjectHandle hGameObject)
     assert(pGameObject->IsDeferred() == false);
 
     // 모든 컴포넌트 제거
-    Runtime::DestroyAllComponents(hGameObject);
+    RuntimeImpl::DestroyAllComponents(hGameObject);
 
-    GameObjectManager::GetInstance().Unregister(pGameObject);        // 전역 관리자에서 제거
+    GameObjectManager.Unregister(pGameObject);        // 전역 관리자에서 제거
 
     delete pGameObject; // 메모리 해제
 }
 
-void Runtime::DestroyAllComponents(GameObjectHandle hGameObject)
+void RuntimeImpl::DestroyAllComponents(GameObjectHandle hGameObject)
 {
     GameObject* pGameObject = hGameObject.ToPtr();
     if (!pGameObject)
@@ -261,7 +277,7 @@ void Runtime::DestroyAllComponents(GameObjectHandle hGameObject)
     }
 }
 
-void Runtime::Destroy(ComponentHandle hComponent)
+void RuntimeImpl::Destroy(ComponentHandle hComponent)
 {
     IComponent* pComponent = hComponent.ToPtr();
     if (!pComponent)

@@ -1,22 +1,24 @@
 #include <ZergEngine\CoreSystem\ComponentSystem\MeshRendererManager.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\Component\MeshRenderer.h>
+
+namespace ze
+{
+    MeshRendererManagerImpl MeshRendererManager;
+}
 
 using namespace ze;
 
-ZE_IMPLEMENT_SINGLETON(MeshRendererManager);
-
-MeshRendererManager::MeshRendererManager()
+MeshRendererManagerImpl::MeshRendererManagerImpl()
 {
 }
 
-MeshRendererManager::~MeshRendererManager()
+MeshRendererManagerImpl::~MeshRendererManagerImpl()
 {
 }
 
-void MeshRendererManager::Init(void* pDesc)
+void MeshRendererManagerImpl::Init(void* pDesc)
 {
 }
 
-void MeshRendererManager::Release()
+void MeshRendererManagerImpl::Release()
 {
 }

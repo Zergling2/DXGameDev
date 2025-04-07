@@ -4,11 +4,11 @@
 
 namespace ze
 {
-	class ScriptManager : public IComponentManager
+	class ScriptManagerImpl : public IComponentManager
 	{
-		friend class Runtime;
+		friend class RuntimeImpl;
 		friend class IScript;
-		ZE_DECLARE_SINGLETON(ScriptManager);
+		ZE_DECLARE_SINGLETON(ScriptManagerImpl);
 	private:
 		virtual void Init(void* pDesc) override;
 		virtual void Release() override;
@@ -20,4 +20,6 @@ namespace ze
 		// 스크립트의 경우 지연 삭제를 한다.
 		virtual void Unregister(IComponent* pComponent) override {}
 	};
+
+	extern ScriptManagerImpl ScriptManager;
 }

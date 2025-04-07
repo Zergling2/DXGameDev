@@ -4,10 +4,10 @@
 
 namespace ze
 {
-	class Time : public ISubsystem
+	class TimeImpl : public ISubsystem
 	{
-		friend class Runtime;
-		ZE_DECLARE_SINGLETON(Time);
+		friend class RuntimeImpl;
+		ZE_DECLARE_SINGLETON(TimeImpl);
 	public:
 		static constexpr float FIXED_DELTA_TIME = 1.0f / 60.0f;
 	public:
@@ -35,4 +35,6 @@ namespace ze
 		LARGE_INTEGER m_qpcCurrentCnt;	// current count
 		LARGE_INTEGER m_qpcPausedCnt;	// paused count
 	};
+
+	extern TimeImpl Time;
 }

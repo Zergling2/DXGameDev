@@ -30,8 +30,8 @@ PSInputCameraMerger main(uint vertexId : SV_VertexID)
     // Perspective division 효과 없이 그대로 NDC 공간으로 (NDC공간 z = 0.0f인 평면에 모두 투영)
     // 모니터상에서의 뷰포트를 정규화된 값으로 나타내므로 손쉽게 변환 가능.
     output.posH = float4(
-        -1.0f + DIRECTX_NDC_SIZE * cbprrm_topLeftX + ndcQuad[vertexId].x * cbprrm_width,
-        +1.0f - DIRECTX_NDC_SIZE * cbprrm_topLeftY + ndcQuad[vertexId].y * cbprrm_height,
+        -1.0f + DIRECTX_NDC_SIZE * cbpcm_topLeftX + ndcQuad[vertexId].x * cbpcm_width,
+        +1.0f - DIRECTX_NDC_SIZE * cbpcm_topLeftY + ndcQuad[vertexId].y * cbpcm_height,
         0.0f,
         1.0f
     );

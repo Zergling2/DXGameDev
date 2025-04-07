@@ -42,7 +42,7 @@ Camera::Camera()
 	, m_minTessExponent(0.0f)
 	, m_maxTessExponent(6.0f)
 {
-	this->SetId(CameraManager::GetInstance().AssignUniqueId());
+	this->SetId(CameraManager.AssignUniqueId());
 }
 
 void Camera::SetFieldOfView(uint8_t degree)
@@ -106,7 +106,7 @@ void Camera::SetDepth(int8_t depth)
 {
 	m_depth = depth;
 
-	CameraManager::GetInstance().Update();	// 카메라 깊이값으로 정렬 다시
+	CameraManager.Update();	// 카메라 깊이값으로 정렬 다시
 }
 
 bool Camera::SetMinimumTessellationExponent(float exponent)
@@ -149,18 +149,18 @@ HRESULT Camera::CreateBufferAndView()
 		descColorBuffer.MipLevels = 1;
 		descColorBuffer.ArraySize = 1;
 		descColorBuffer.Format = BACKBUFFER_FORMAT;
-		descColorBuffer.SampleDesc = GraphicDevice::GetInstance().GetSwapChainDesc().SampleDesc;
+		descColorBuffer.SampleDesc = GraphicDevice.GetSwapChainDesc().SampleDesc;
 		descColorBuffer.Usage = D3D11_USAGE_DEFAULT;
 		descColorBuffer.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;		// 렌더링 + 카메라병합셰이더 리소스
 		descColorBuffer.CPUAccessFlags = 0;
 		descColorBuffer.MiscFlags = 0;
 
 		ComPtr<ID3D11Texture2D> colorBuffer;
-		hr = GraphicDevice::GetInstance().GetDeviceComInterface()->CreateTexture2D(&descColorBuffer, nullptr, colorBuffer.GetAddressOf());
+		hr = GraphicDevice.GetDeviceComInterface()->CreateTexture2D(&descColorBuffer, nullptr, colorBuffer.GetAddressOf());
 		if (FAILED(hr))
 			break;
 
-		hr = GraphicDevice::GetInstance().GetDeviceComInterface()->CreateRenderTargetView(colorBuffer.Get(), nullptr, cpColorBufferRTV.GetAddressOf());
+		hr = GraphicDevice.GetDeviceComInterface()->CreateRenderTargetView(colorBuffer.Get(), nullptr, cpColorBufferRTV.GetAddressOf());
 		if (FAILED(hr))
 			break;
 
@@ -168,7 +168,7 @@ HRESULT Camera::CreateBufferAndView()
 		ZeroMemory(&descColorBufferSRV, sizeof(descColorBufferSRV));
 		descColorBufferSRV.Format = descColorBuffer.Format;
 		descColorBufferSRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMS;
-		hr = GraphicDevice::GetInstance().GetDeviceComInterface()->CreateShaderResourceView(colorBuffer.Get(), &descColorBufferSRV, cpColorBufferSRV.GetAddressOf());
+		hr = GraphicDevice.GetDeviceComInterface()->CreateShaderResourceView(colorBuffer.Get(), &descColorBufferSRV, cpColorBufferSRV.GetAddressOf());
 		if (FAILED(hr))
 			break;
 
@@ -187,11 +187,11 @@ HRESULT Camera::CreateBufferAndView()
 		descDepthStencilBuffer.MiscFlags = 0;
 
 		ComPtr<ID3D11Texture2D> depthStencilBuffer;
-		hr = GraphicDevice::GetInstance().GetDeviceComInterface()->CreateTexture2D(&descDepthStencilBuffer, nullptr, depthStencilBuffer.GetAddressOf());
+		hr = GraphicDevice.GetDeviceComInterface()->CreateTexture2D(&descDepthStencilBuffer, nullptr, depthStencilBuffer.GetAddressOf());
 		if (FAILED(hr))
 			break;
 
-		hr = GraphicDevice::GetInstance().GetDeviceComInterface()->CreateDepthStencilView(depthStencilBuffer.Get(), nullptr, cpDepthStencilBufferDSV.GetAddressOf());
+		hr = GraphicDevice.GetDeviceComInterface()->CreateDepthStencilView(depthStencilBuffer.Get(), nullptr, cpDepthStencilBufferDSV.GetAddressOf());
 		if (FAILED(hr))
 			break;
 
@@ -206,17 +206,17 @@ HRESULT Camera::CreateBufferAndView()
 
 IComponentManager* Camera::GetComponentManager() const
 {
-	return &CameraManager::GetInstance();
+	return &CameraManager;
 }
 
 float Camera::CalcBufferWidth()
 {
-	return static_cast<float>(Window::GetInstance().GetWidth()) * m_nzdVp.w;
+	return static_cast<float>(Window.GetWidth()) * m_nzdVp.w;
 }
 
 float Camera::CalcBufferHeight()
 {
-	return static_cast<float>(Window::GetInstance().GetHeight()) * m_nzdVp.h;
+	return static_cast<float>(Window.GetHeight()) * m_nzdVp.h;
 }
 
 void Camera::UpdateViewMatrix()

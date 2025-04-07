@@ -1,21 +1,24 @@
 #include <ZergEngine\CoreSystem\ComponentSystem\DirectionalLightManager.h>
 
+namespace ze
+{
+    DirectionalLightManagerImpl DirectionalLightManager;
+}
+
 using namespace ze;
 
-ZE_IMPLEMENT_SINGLETON(DirectionalLightManager);
-
-DirectionalLightManager::DirectionalLightManager()
+DirectionalLightManagerImpl::DirectionalLightManagerImpl()
 {
 }
 
-DirectionalLightManager::~DirectionalLightManager()
+DirectionalLightManagerImpl::~DirectionalLightManagerImpl()
 {
 }
 
-void DirectionalLightManager::Init(void* pDesc)
+void DirectionalLightManagerImpl::Init(void* pDesc)
 {
 }
 
-void DirectionalLightManager::Release()
+void DirectionalLightManagerImpl::Release()
 {
 }

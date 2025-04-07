@@ -10,30 +10,33 @@
 #include <ZergEngine\CoreSystem\Resource\Texture.h>
 #include <ZergEngine\CoreSystem\Resource\Material.h>
 
-using namespace ze;
+namespace ze
+{
+	ResourceManagerImpl Resource;
+}
 
-ZE_IMPLEMENT_SINGLETON(ResourceManager);
+using namespace ze;
 
 constexpr int MAX_LINE_LENGTH = 256;
 PCWSTR OBJ_MTL_DELIM = L" \t\n";
 
-ResourceManager::ResourceManager()
+ResourceManagerImpl::ResourceManagerImpl()
 {
 }
 
-ResourceManager::~ResourceManager()
+ResourceManagerImpl::~ResourceManagerImpl()
 {
 }
 
-void ResourceManager::Init(void* pDesc)
+void ResourceManagerImpl::Init(void* pDesc)
 {
 }
 
-void ResourceManager::Release()
+void ResourceManagerImpl::Release()
 {
 }
 
-std::vector<std::shared_ptr<Mesh>> ResourceManager::CreateMesh(PCWSTR path)
+std::vector<std::shared_ptr<Mesh>> ResourceManagerImpl::CreateMesh(PCWSTR path)
 {
 	HRESULT hr = S_OK;
 	std::vector<std::shared_ptr<Mesh>> meshes;
@@ -46,7 +49,7 @@ std::vector<std::shared_ptr<Mesh>> ResourceManager::CreateMesh(PCWSTR path)
 		filePath[0] = L'\0';
 
 		// Open OBJ file
-		hr = StringCbCopyW(filePath, sizeof(filePath), FileSystem::GetInstance().GetExeRelativePath());
+		hr = StringCbCopyW(filePath, sizeof(filePath), FileSystem.GetExeRelativePath());
 		if (FAILED(hr))
 			Debug::ForceCrashWithMessageBox(L"Error", L"Failed to create full file path.\n%s", path);
 		hr = StringCbCatW(filePath, sizeof(filePath), path);
@@ -81,7 +84,7 @@ std::vector<std::shared_ptr<Mesh>> ResourceManager::CreateMesh(PCWSTR path)
 					const size_t meshIndex = meshes.size() - 1;
 					Mesh& mesh = *meshes[meshIndex].get();
 					long ofpos;
-					if (ResourceManager::ReadObject(meshFile, &ofpos, vp, mesh, meshIndex))
+					if (ResourceManagerImpl::ReadObject(meshFile, &ofpos, vp, mesh, meshIndex))
 						fseek(meshFile, ofpos, SEEK_SET);
 				}
 			}
@@ -93,14 +96,14 @@ std::vector<std::shared_ptr<Mesh>> ResourceManager::CreateMesh(PCWSTR path)
 	return meshes;
 }
 
-std::shared_ptr<Texture2D> ResourceManager::CreateTexture(PCWSTR path)
+std::shared_ptr<Texture2D> ResourceManagerImpl::CreateTexture(PCWSTR path)
 {
 	HRESULT hr;
 
 	std::shared_ptr<Texture2D> texture;
 
 	WCHAR filePath[MAX_PATH];
-	hr = StringCbCopyW(filePath, sizeof(filePath), FileSystem::GetInstance().GetExeRelativePath());
+	hr = StringCbCopyW(filePath, sizeof(filePath), FileSystem.GetExeRelativePath());
 	if (FAILED(hr))
 		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to create full file path.\n%s", path);
 
@@ -143,7 +146,7 @@ std::shared_ptr<Texture2D> ResourceManager::CreateTexture(PCWSTR path)
 				// https://github.com/microsoft/DirectXTex/wiki/GenerateMipMaps
 				// https://github.com/microsoft/DirectXTex/wiki/Decompress
 				// https://github.com/microsoft/DirectXTex/wiki/Compress
-				GlobalLog::GetInstance().GetSyncFileLogger().WriteFormat(
+				GlobalLog.GetSyncFileLogger().WriteFormat(
 					L"DirectX::GenerateMipMaps failed. HRESULT: 0x%x %s\n", hr, path);
 				mipChain = std::move(image);
 			}
@@ -176,7 +179,7 @@ std::shared_ptr<Texture2D> ResourceManager::CreateTexture(PCWSTR path)
 			// sbrcTexels[i].SysMemSlicePitch = 0;	// 3D 텍스쳐에서만 의미 있음.
 		}
 
-		hr = GraphicDevice::GetInstance().GetDeviceComInterface()->CreateTexture2D(
+		hr = GraphicDevice.GetDeviceComInterface()->CreateTexture2D(
 			&descTexture, sbrcTexels.data(), cpTex2d.GetAddressOf()
 		);
 		if (FAILED(hr))
@@ -192,7 +195,7 @@ std::shared_ptr<Texture2D> ResourceManager::CreateTexture(PCWSTR path)
 		descSRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 		descSRV.Texture2D.MipLevels = descTexture.MipLevels;
 		descSRV.Texture2D.MostDetailedMip = 0;
-		hr = GraphicDevice::GetInstance().GetDeviceComInterface()->CreateShaderResourceView(
+		hr = GraphicDevice.GetDeviceComInterface()->CreateShaderResourceView(
 			cpTex2d.Get(), &descSRV, cpSRV.GetAddressOf()
 		);
 		if (FAILED(hr))
@@ -206,18 +209,18 @@ std::shared_ptr<Texture2D> ResourceManager::CreateTexture(PCWSTR path)
 	return texture;
 }
 
-std::shared_ptr<Material> ResourceManager::CreateMaterial()
+std::shared_ptr<Material> ResourceManagerImpl::CreateMaterial()
 {
 	return std::make_shared<Material>();
 }
 
-std::shared_ptr<Skybox> ResourceManager::CreateSkybox(PCWSTR path)
+std::shared_ptr<Skybox> ResourceManagerImpl::CreateSkybox(PCWSTR path)
 {
 	HRESULT hr;
 	std::shared_ptr<Skybox> skybox;
 
 	WCHAR filePath[MAX_PATH];
-	hr = StringCbCopyW(filePath, sizeof(filePath), FileSystem::GetInstance().GetExeRelativePath());
+	hr = StringCbCopyW(filePath, sizeof(filePath), FileSystem.GetExeRelativePath());
 	if (FAILED(hr))
 		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to create full file path.\n%s", path);
 	hr = StringCbCatW(filePath, sizeof(filePath), path);
@@ -288,7 +291,7 @@ std::shared_ptr<Skybox> ResourceManager::CreateSkybox(PCWSTR path)
 			}
 		}
 
-		hr = GraphicDevice::GetInstance().GetDeviceComInterface()->CreateTexture2D(
+		hr = GraphicDevice.GetDeviceComInterface()->CreateTexture2D(
 			&descTexture, sbrcTexels.data(), cpTex2dSkyboxCubemap.GetAddressOf()
 		);
 		if (FAILED(hr))
@@ -303,7 +306,7 @@ std::shared_ptr<Skybox> ResourceManager::CreateSkybox(PCWSTR path)
 	descSRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
 	descSRV.TextureCube.MostDetailedMip = 0;	// 사용할 가장 디테일한 밉 레벨
 	descSRV.TextureCube.MipLevels = -1;		// -1로 설정 시 MostDetailedMip에 설정한 밉 레벨부터 최소 퀄리티 밉맵까지 사용
-	hr = GraphicDevice::GetInstance().GetDeviceComInterface()->CreateShaderResourceView(
+	hr = GraphicDevice.GetDeviceComInterface()->CreateShaderResourceView(
 		cpTex2dSkyboxCubemap.Get(), &descSRV, cpSRVSkybox.GetAddressOf()
 	);
 	if (FAILED(hr))
@@ -316,7 +319,7 @@ std::shared_ptr<Skybox> ResourceManager::CreateSkybox(PCWSTR path)
 	return skybox;
 }
 
-bool ResourceManager::ReadObject(FILE* const objFile, long* pofpos, VertexPack& vp, Mesh& mesh, const size_t meshIndex)
+bool ResourceManagerImpl::ReadObject(FILE* const objFile, long* pofpos, VertexPack& vp, Mesh& mesh, const size_t meshIndex)
 {
 	// object 정보를 읽는다.
 	// f가 나오면 ReadFaces 함수로 면 정보들을 읽는다.
@@ -407,7 +410,7 @@ bool ResourceManager::ReadObject(FILE* const objFile, long* pofpos, VertexPack& 
 
 			fseek(objFile, fpos, SEEK_SET);
 			long nffpos;
-			if (ResourceManager::ReadFaces(objFile, &nffpos, vft, vp, imp, mesh, meshIndex, tempVB, tempIB))
+			if (ResourceManagerImpl::ReadFaces(objFile, &nffpos, vft, vp, imp, mesh, meshIndex, tempVB, tempIB))
 				fseek(objFile, nffpos, SEEK_SET);
 		}
 
@@ -434,7 +437,7 @@ bool ResourceManager::ReadObject(FILE* const objFile, long* pofpos, VertexPack& 
 		// sbrcBuffer.SysMemSlicePitch = 0;	// unused
 
 		ComPtr<ID3D11Buffer> cpVB;
-		if (FAILED(GraphicDevice::GetInstance().GetDeviceComInterface()->CreateBuffer(&descBuffer, &sbrcBuffer, cpVB.GetAddressOf())))
+		if (FAILED(GraphicDevice.GetDeviceComInterface()->CreateBuffer(&descBuffer, &sbrcBuffer, cpVB.GetAddressOf())))
 			break;
 
 		// Create an index buffer
@@ -449,7 +452,7 @@ bool ResourceManager::ReadObject(FILE* const objFile, long* pofpos, VertexPack& 
 		// sbrcBuffer.SysMemSlicePitch = 0;	// unused
 
 		ComPtr<ID3D11Buffer> cpIB;
-		if (FAILED(GraphicDevice::GetInstance().GetDeviceComInterface()->CreateBuffer(&descBuffer, &sbrcBuffer, cpIB.GetAddressOf())))
+		if (FAILED(GraphicDevice.GetDeviceComInterface()->CreateBuffer(&descBuffer, &sbrcBuffer, cpIB.GetAddressOf())))
 			break;
 
 		mesh.m_cpVB = std::move(cpVB);
@@ -459,7 +462,7 @@ bool ResourceManager::ReadObject(FILE* const objFile, long* pofpos, VertexPack& 
 	return ret_o;
 }
 
-bool ResourceManager::ReadFaces(FILE* const objFile, long* pnffpos, VERTEX_FORMAT_TYPE vft, const VertexPack& vp,
+bool ResourceManagerImpl::ReadFaces(FILE* const objFile, long* pnffpos, VERTEX_FORMAT_TYPE vft, const VertexPack& vp,
 	IndexMapPack& imp, Mesh& mesh, size_t meshIndex, RawVector& tempVB, std::vector<uint32_t>& tempIB)
 {
 	// f만 읽다가 아닌 경우 리턴
@@ -974,7 +977,7 @@ std::vector<std::shared_ptr<Mesh>> Resource::LoadWavefrontOBJ_deprecated(const w
 	}
 
 	// Open OBJ file
-	e = wcscpy_s(filePath, FileSystem::GetResourcePath());
+	e = wcscpy_s(filePath, FileSystemImpl::GetResourcePath());
 	if (e != 0)
 		return meshes;
 
@@ -1211,7 +1214,7 @@ std::vector<std::shared_ptr<Mesh>> Resource::LoadWavefrontOBJ(const wchar_t* pat
 	}
 
 	// Open OBJ file
-	e = wcscpy_s(filePath, FileSystem::GetResourcePath());
+	e = wcscpy_s(filePath, FileSystemImpl::GetResourcePath());
 	if (e != 0)
 		return meshes;
 
@@ -1442,7 +1445,7 @@ std::shared_ptr<ShaderResourceTexture> Resource::LoadTexture_deprecated(const wc
 	}
 
 	wchar_t filePath[MAX_PATH];
-	StringCbCopyW(filePath, sizeof(filePath), FileSystem::GetResourcePath());
+	StringCbCopyW(filePath, sizeof(filePath), FileSystemImpl::GetResourcePath());
 	StringCbCatW(filePath, sizeof(filePath), path);
 	const wchar_t* ext = wcsrchr(filePath, L'.');
 

@@ -4,10 +4,10 @@
 
 namespace ze
 {
-	class SystemInfo : public ISubsystem
+	class SystemInfoImpl : public ISubsystem
 	{
-		friend class Runtime;
-		ZE_DECLARE_SINGLETON(SystemInfo);
+		friend class RuntimeImpl;
+		ZE_DECLARE_SINGLETON(SystemInfoImpl);
 	public:
 		inline const SYSTEM_INFO& GetSystemInfo() { return m_si; }
 	private:
@@ -16,4 +16,6 @@ namespace ze
 	private:
 		SYSTEM_INFO m_si;
 	};
+
+	extern SystemInfoImpl SystemInfo;
 }

@@ -5,10 +5,10 @@ using namespace ze;
 
 MeshRenderer::MeshRenderer()
 {
-	this->SetId(MeshRendererManager::GetInstance().AssignUniqueId());
+	this->SetId(MeshRendererManager.AssignUniqueId());
 }
 
 IComponentManager* MeshRenderer::GetComponentManager() const
 {
-	return &MeshRendererManager::GetInstance();
+	return &MeshRendererManager;
 }

@@ -4,9 +4,12 @@
 #include <ZergEngine\CoreSystem\Window.h>
 #include <ZergEngine\CoreSystem\FileSystem.h>
 
-using namespace ze;
+namespace ze
+{
+	GraphicDeviceImpl GraphicDevice;
+}
 
-ZE_IMPLEMENT_SINGLETON(GraphicDevice);
+using namespace ze;
 
 // constexpr float allows only one floating point constant to exist in memory, even if it is not encoded in a x86 command.
 constexpr DXGI_FORMAT BACKBUFFER_FORMAT = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -20,7 +23,7 @@ static PCWSTR ENGINEBIN_CSO_VS_PATH[static_cast<size_t>(VERTEX_SHADER_TYPE::COUN
 	L"Engine\\Bin\\CSO\\VSStandardTransformPC.cso",
 	L"Engine\\Bin\\CSO\\VSStandardTransformPN.cso",
 	L"Engine\\Bin\\CSO\\VSStandardTransformPT.cso",
-	L"Engine\\Bin\\CSO\\VSRenderingResultMerge.cso",
+	L"Engine\\Bin\\CSO\\VSCameraMerge.cso",
 	L"Engine\\Bin\\CSO\\VSStandardTransformPNT.cso"
 };
 static PCWSTR ENGINEBIN_CSO_HS_PATH[static_cast<size_t>(HULL_SHADER_TYPE::COUNT)] =
@@ -39,12 +42,12 @@ static PCWSTR ENGINEBIN_CSO_PS_PATH[static_cast<size_t>(PIXEL_SHADER_TYPE::COUNT
 	L"Engine\\Bin\\CSO\\PSStandardColoringPC.cso",
 	L"Engine\\Bin\\CSO\\PSStandardColoringPN.cso",
 	L"Engine\\Bin\\CSO\\PSStandardColoringPT.cso",
-	L"Engine\\Bin\\CSO\\PSRenderingResultMerge_Unimplemented.cso",		// 더미
-	L"Engine\\Bin\\CSO\\PSMSRenderingResultMerge.cso",
+	L"Engine\\Bin\\CSO\\PSCameraMerge_Unimplemented.cso",		// unimplemented
+	L"Engine\\Bin\\CSO\\PSMSCameraMerge.cso",
 	L"Engine\\Bin\\CSO\\PSStandardColoringPNT.cso"
 };
 
-GraphicDevice::GraphicDevice()
+GraphicDeviceImpl::GraphicDeviceImpl()
 	: m_descAdapter()
 	, m_descSwapChain()
 	, m_descDepthStencil()
@@ -67,11 +70,11 @@ GraphicDevice::GraphicDevice()
 {
 }
 
-GraphicDevice::~GraphicDevice()
+GraphicDeviceImpl::~GraphicDeviceImpl()
 {
 }
 
-void GraphicDevice::Init(void* pDesc)
+void GraphicDeviceImpl::Init(void* pDesc)
 {
 	HRESULT hr;
 
@@ -184,14 +187,14 @@ void GraphicDevice::Init(void* pDesc)
 		// If not full screen, enable full screen again.
 		if (SUCCEEDED(hr) && isFullscreen == FALSE)
 		{
-			ShowWindow(Window::GetInstance().GetWindowHandle(), SW_MINIMIZE);
-			ShowWindow(Window::GetInstance().GetWindowHandle(), SW_RESTORE);
+			ShowWindow(Window.GetWindowHandle(), SW_MINIMIZE);
+			ShowWindow(Window.GetWindowHandle(), SW_RESTORE);
 			m_cpSwapChain->SetFullscreenState(TRUE, nullptr);
 		}
 	}
 
 	// Disable ALT+ENTER window mode change
-	hr = cpDXGIFactory->MakeWindowAssociation(Window::GetInstance().GetWindowHandle(), DXGI_MWA_NO_ALT_ENTER);
+	hr = cpDXGIFactory->MakeWindowAssociation(Window.GetWindowHandle(), DXGI_MWA_NO_ALT_ENTER);
 	if (FAILED(hr))
 		Debug::ForceCrashWithHRESULTErrorMessageBox(L"IDXGIFactory::MakeWindowAssociation()", hr);
 
@@ -208,7 +211,7 @@ void GraphicDevice::Init(void* pDesc)
 	this->CreateShaderAndInputLayout();
 }
 
-void GraphicDevice::Release()
+void GraphicDeviceImpl::Release()
 {
 	HRESULT hr;
 
@@ -244,7 +247,7 @@ void GraphicDevice::Release()
 	m_cpDevice.Reset();
 }
 
-UINT GraphicDevice::GetMSAAMaximumQuality(MSAA_SAMPLE_COUNT sampleCount)
+UINT GraphicDeviceImpl::GetMSAAMaximumQuality(MSAA_SAMPLE_COUNT sampleCount)
 {
 	UINT quality = 0;
 
@@ -262,15 +265,15 @@ UINT GraphicDevice::GetMSAAMaximumQuality(MSAA_SAMPLE_COUNT sampleCount)
 	return quality;
 }
 
-void GraphicDevice::CreateShaderAndInputLayout()
+void GraphicDeviceImpl::CreateShaderAndInputLayout()
 {
 	std::vector<byte> shaderByteCode;
 
 	// 1. POSITION
-	shaderByteCode = GraphicDevice::LoadShaderByteCode(ENGINEBIN_CSO_VS_PATH[static_cast<size_t>(VERTEX_SHADER_TYPE::SKYBOX_TRANSFORM)]);
+	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_VS_PATH[static_cast<size_t>(VERTEX_SHADER_TYPE::SKYBOX_TRANSFORM)]);
 	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::SKYBOX_TRANSFORM)].Init(m_cpDevice.Get(), shaderByteCode.data(), shaderByteCode.size());
 
-	shaderByteCode = GraphicDevice::LoadShaderByteCode(ENGINEBIN_CSO_VS_PATH[static_cast<size_t>(VERTEX_SHADER_TYPE::STANDARD_TRANSFORM_P)]);
+	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_VS_PATH[static_cast<size_t>(VERTEX_SHADER_TYPE::STANDARD_TRANSFORM_P)]);
 	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::STANDARD_TRANSFORM_P)].Init(m_cpDevice.Get(), shaderByteCode.data(), shaderByteCode.size());
 	// ┗━ Create compatible Input Layout
 	m_il[static_cast<size_t>(VERTEX_FORMAT_TYPE::POSITION)].Init(
@@ -282,7 +285,7 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	);
 
 	// 2. POSITION, COLOR
-	shaderByteCode = GraphicDevice::LoadShaderByteCode(ENGINEBIN_CSO_VS_PATH[static_cast<size_t>(VERTEX_SHADER_TYPE::STANDARD_TRANSFORM_PC)]);
+	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_VS_PATH[static_cast<size_t>(VERTEX_SHADER_TYPE::STANDARD_TRANSFORM_PC)]);
 	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::STANDARD_TRANSFORM_PC)].Init(m_cpDevice.Get(), shaderByteCode.data(), shaderByteCode.size());
 	// ┗━ Create compatible Input Layout
 	m_il[static_cast<size_t>(VERTEX_FORMAT_TYPE::POSITION_COLOR)].Init(
@@ -294,7 +297,7 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	);
 
 	// 3. POSITION, NORMAL
-	shaderByteCode = GraphicDevice::LoadShaderByteCode(ENGINEBIN_CSO_VS_PATH[static_cast<size_t>(VERTEX_SHADER_TYPE::STANDARD_TRANSFORM_PN)]);
+	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_VS_PATH[static_cast<size_t>(VERTEX_SHADER_TYPE::STANDARD_TRANSFORM_PN)]);
 	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::STANDARD_TRANSFORM_PN)].Init(m_cpDevice.Get(), shaderByteCode.data(), shaderByteCode.size());
 	// ┗━ Create compatible Input Layout
 	m_il[static_cast<size_t>(VERTEX_FORMAT_TYPE::POSITION_NORMAL)].Init(
@@ -306,11 +309,11 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	);
 
 	// 4. POSITION, TEXCOORD
-	shaderByteCode = GraphicDevice::LoadShaderByteCode(ENGINEBIN_CSO_VS_PATH[static_cast<size_t>(VERTEX_SHADER_TYPE::STANDARD_TRANSFORM_PT)]);
+	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_VS_PATH[static_cast<size_t>(VERTEX_SHADER_TYPE::STANDARD_TRANSFORM_PT)]);
 	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::STANDARD_TRANSFORM_PT)].Init(m_cpDevice.Get(), shaderByteCode.data(), shaderByteCode.size());
 
-	shaderByteCode = GraphicDevice::LoadShaderByteCode(ENGINEBIN_CSO_VS_PATH[static_cast<size_t>(VERTEX_SHADER_TYPE::RENDER_RESULT_MERGE)]);
-	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::RENDER_RESULT_MERGE)].Init(m_cpDevice.Get(), shaderByteCode.data(), shaderByteCode.size());
+	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_VS_PATH[static_cast<size_t>(VERTEX_SHADER_TYPE::CAMERA_MERGE)]);
+	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::CAMERA_MERGE)].Init(m_cpDevice.Get(), shaderByteCode.data(), shaderByteCode.size());
 	// ┗━ Create compatible Input Layout
 	m_il[static_cast<size_t>(VERTEX_FORMAT_TYPE::POSITION_TEXCOORD)].Init(
 		m_cpDevice.Get(),
@@ -321,7 +324,7 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	);
 
 	// 5. POSITION, NORMAL, TEXCOORD
-	shaderByteCode = GraphicDevice::LoadShaderByteCode(ENGINEBIN_CSO_VS_PATH[static_cast<size_t>(VERTEX_SHADER_TYPE::STANDARD_TRANSFORM_PNT)]);
+	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_VS_PATH[static_cast<size_t>(VERTEX_SHADER_TYPE::STANDARD_TRANSFORM_PNT)]);
 	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::STANDARD_TRANSFORM_PNT)].Init(m_cpDevice.Get(), shaderByteCode.data(), shaderByteCode.size());
 	// ┗━ Create compatible Input Layout
 	m_il[static_cast<size_t>(VERTEX_FORMAT_TYPE::POSITION_NORMAL_TEXCOORD)].Init(
@@ -333,7 +336,7 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	);
 
 	// 6. POSITION, TEXCOORD0, TEXCOORD1
-	shaderByteCode = GraphicDevice::LoadShaderByteCode(ENGINEBIN_CSO_VS_PATH[static_cast<size_t>(VERTEX_SHADER_TYPE::TERRAIN_TRANSFORM)]);
+	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_VS_PATH[static_cast<size_t>(VERTEX_SHADER_TYPE::TERRAIN_TRANSFORM)]);
 	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::TERRAIN_TRANSFORM)].Init(m_cpDevice.Get(), shaderByteCode.data(), shaderByteCode.size());
 	// ┗━ Create compatible Input Layout
 	m_il[static_cast<size_t>(VERTEX_FORMAT_TYPE::TERRAIN_CONTROL_POINT)].Init(
@@ -345,51 +348,51 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	);
 
 	// 1. HSTerrainRendering
-	shaderByteCode = GraphicDevice::LoadShaderByteCode(ENGINEBIN_CSO_HS_PATH[static_cast<size_t>(HULL_SHADER_TYPE::TERRAIN_RENDERING)]);
+	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_HS_PATH[static_cast<size_t>(HULL_SHADER_TYPE::TERRAIN_RENDERING)]);
 	m_hs[static_cast<size_t>(HULL_SHADER_TYPE::TERRAIN_RENDERING)].Init(m_cpDevice.Get(), shaderByteCode.data(), shaderByteCode.size());
 
 	// 1. DSTerrainRendering
-	shaderByteCode = GraphicDevice::LoadShaderByteCode(ENGINEBIN_CSO_DS_PATH[static_cast<size_t>(DOMAIN_SHADER_TYPE::TERRAIN_RENDERING)]);
+	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_DS_PATH[static_cast<size_t>(DOMAIN_SHADER_TYPE::TERRAIN_RENDERING)]);
 	m_ds[static_cast<size_t>(DOMAIN_SHADER_TYPE::TERRAIN_RENDERING)].Init(m_cpDevice.Get(), shaderByteCode.data(), shaderByteCode.size());
 
 	// 1. PSSkyboxColoring
-	shaderByteCode = GraphicDevice::LoadShaderByteCode(ENGINEBIN_CSO_PS_PATH[static_cast<size_t>(PIXEL_SHADER_TYPE::SKYBOX_COLORING)]);
+	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_PS_PATH[static_cast<size_t>(PIXEL_SHADER_TYPE::SKYBOX_COLORING)]);
 	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::SKYBOX_COLORING)].Init(m_cpDevice.Get(), shaderByteCode.data(), shaderByteCode.size());
 
 	// 2. PSTerrainColoring
-	shaderByteCode = GraphicDevice::LoadShaderByteCode(ENGINEBIN_CSO_PS_PATH[static_cast<size_t>(PIXEL_SHADER_TYPE::TERRAIN_COLORING)]);
+	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_PS_PATH[static_cast<size_t>(PIXEL_SHADER_TYPE::TERRAIN_COLORING)]);
 	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::TERRAIN_COLORING)].Init(m_cpDevice.Get(), shaderByteCode.data(), shaderByteCode.size());
 
 	// 3. PSStandardColoringP
-	shaderByteCode = GraphicDevice::LoadShaderByteCode(ENGINEBIN_CSO_PS_PATH[static_cast<size_t>(PIXEL_SHADER_TYPE::STANDARD_COLORING_P)]);
+	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_PS_PATH[static_cast<size_t>(PIXEL_SHADER_TYPE::STANDARD_COLORING_P)]);
 	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::STANDARD_COLORING_P)].Init(m_cpDevice.Get(), shaderByteCode.data(), shaderByteCode.size());
 
 	// 4. PSStandardColoringPC
-	shaderByteCode = GraphicDevice::LoadShaderByteCode(ENGINEBIN_CSO_PS_PATH[static_cast<size_t>(PIXEL_SHADER_TYPE::STANDARD_COLORING_PC)]);
+	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_PS_PATH[static_cast<size_t>(PIXEL_SHADER_TYPE::STANDARD_COLORING_PC)]);
 	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::STANDARD_COLORING_PC)].Init(m_cpDevice.Get(), shaderByteCode.data(), shaderByteCode.size());
 
 	// 5. PSStandardColoringPN
-	shaderByteCode = GraphicDevice::LoadShaderByteCode(ENGINEBIN_CSO_PS_PATH[static_cast<size_t>(PIXEL_SHADER_TYPE::STANDARD_COLORING_PN)]);
+	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_PS_PATH[static_cast<size_t>(PIXEL_SHADER_TYPE::STANDARD_COLORING_PN)]);
 	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::STANDARD_COLORING_PN)].Init(m_cpDevice.Get(), shaderByteCode.data(), shaderByteCode.size());
 
 	// 6. PSStandardColoringPT
-	shaderByteCode = GraphicDevice::LoadShaderByteCode(ENGINEBIN_CSO_PS_PATH[static_cast<size_t>(PIXEL_SHADER_TYPE::STANDARD_COLORING_PT)]);
+	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_PS_PATH[static_cast<size_t>(PIXEL_SHADER_TYPE::STANDARD_COLORING_PT)]);
 	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::STANDARD_COLORING_PT)].Init(m_cpDevice.Get(), shaderByteCode.data(), shaderByteCode.size());
 
-	// 7. PSRenderResultMerge (Not implemented)
-	// shaderByteCode = GraphicDevice::LoadShaderByteCode(ENGINEBIN_CSO_PS_PATH[static_cast<size_t>(PIXEL_SHADER_TYPE::RENDER_RESULT_MERGE)]);
-	// m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::RENDER_RESULT_MERGE)].Init(m_cpDevice.Get(), shaderByteCode.data(), shaderByteCode.size());
+	// 7. PSCameraMerge (Not implemented)
+	// shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_PS_PATH[static_cast<size_t>(PIXEL_SHADER_TYPE::CAMERA_MERGE)]);
+	// m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::CAMERA_MERGE)].Init(m_cpDevice.Get(), shaderByteCode.data(), shaderByteCode.size());
 
-	// 8. PSMSRenderResultMerge
-	shaderByteCode = GraphicDevice::LoadShaderByteCode(ENGINEBIN_CSO_PS_PATH[static_cast<size_t>(PIXEL_SHADER_TYPE::MSRENDER_RESULT_MERGE)]);
-	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::MSRENDER_RESULT_MERGE)].Init(m_cpDevice.Get(), shaderByteCode.data(), shaderByteCode.size());
+	// 8. PSMSCameraMerge
+	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_PS_PATH[static_cast<size_t>(PIXEL_SHADER_TYPE::MSCAMERA_MERGE)]);
+	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::MSCAMERA_MERGE)].Init(m_cpDevice.Get(), shaderByteCode.data(), shaderByteCode.size());
 
 	// 9. PSStandardColoringPNT
-	shaderByteCode = GraphicDevice::LoadShaderByteCode(ENGINEBIN_CSO_PS_PATH[static_cast<size_t>(PIXEL_SHADER_TYPE::STANDARD_COLORING_PNT)]);
+	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_PS_PATH[static_cast<size_t>(PIXEL_SHADER_TYPE::STANDARD_COLORING_PNT)]);
 	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::STANDARD_COLORING_PNT)].Init(m_cpDevice.Get(), shaderByteCode.data(), shaderByteCode.size());
 }
 
-void GraphicDevice::ReleaseShaderAndInputLayout()
+void GraphicDeviceImpl::ReleaseShaderAndInputLayout()
 {
 	for (size_t i = 0; i < _countof(m_vs); ++i)
 		m_vs[i].Release();
@@ -407,7 +410,7 @@ void GraphicDevice::ReleaseShaderAndInputLayout()
 		m_il[i].Release();
 }
 
-void GraphicDevice::CreateRasterizerStates()
+void GraphicDeviceImpl::CreateRasterizerStates()
 {
 	ID3D11Device* pDevice = m_cpDevice.Get();
 
@@ -452,14 +455,14 @@ void GraphicDevice::CreateRasterizerStates()
 	);
 }
 
-void GraphicDevice::ReleaseRasterizerStates()
+void GraphicDeviceImpl::ReleaseRasterizerStates()
 {
 	for (size_t i = 0; i < static_cast<size_t>(RASTERIZER_FILL_MODE::COUNT); ++i)
 		for (size_t j = 0; j < static_cast<size_t>(RASTERIZER_CULL_MODE::COUNT); ++j)
 			m_rasterizerStates[i][j].Release();
 }
 
-void GraphicDevice::CreateSamplerStates()
+void GraphicDeviceImpl::CreateSamplerStates()
 {
 	ID3D11Device* pDevice = m_cpDevice.Get();
 
@@ -536,7 +539,7 @@ void GraphicDevice::CreateSamplerStates()
 	m_heightmapSamplerState.Init(pDevice, &descSampler);
 }
 
-void GraphicDevice::ReleaseSamplerStates()
+void GraphicDeviceImpl::ReleaseSamplerStates()
 {
 	for (size_t i = 0; i < _countof(m_samplerStates); ++i)
 		m_samplerStates[i].Release();
@@ -545,7 +548,7 @@ void GraphicDevice::ReleaseSamplerStates()
 	m_heightmapSamplerState.Release();
 }
 
-void GraphicDevice::CreateDepthStencilStates()
+void GraphicDeviceImpl::CreateDepthStencilStates()
 {
 	ID3D11Device* pDevice = m_cpDevice.Get();
 
@@ -574,16 +577,16 @@ void GraphicDevice::CreateDepthStencilStates()
 	ZeroMemory(&descDepthStencil, sizeof(descDepthStencil));
 	descDepthStencil.DepthEnable = FALSE;
 	descDepthStencil.StencilEnable = FALSE;
-	m_depthStencilStates[static_cast<size_t>(DEPTH_STENCIL_STATE_TYPE::RENDER_RESULT_MERGE)].Init(pDevice, &descDepthStencil);
+	m_depthStencilStates[static_cast<size_t>(DEPTH_STENCIL_STATE_TYPE::CAMERA_MERGE)].Init(pDevice, &descDepthStencil);
 }
 
-void GraphicDevice::ReleaseDepthStencilStates()
+void GraphicDeviceImpl::ReleaseDepthStencilStates()
 {
 	for (size_t i = 0; i < _countof(m_depthStencilStates); ++i)
 		m_depthStencilStates[i].Release();
 }
 
-std::vector<byte> GraphicDevice::LoadShaderByteCode(PCWSTR path)
+std::vector<byte> GraphicDeviceImpl::LoadShaderByteCode(PCWSTR path)
 {
 	std::vector<byte> byteCode;
 	FILE* csoFile = NULL;
@@ -592,7 +595,7 @@ std::vector<byte> GraphicDevice::LoadShaderByteCode(PCWSTR path)
 
 	HRESULT hr;
 
-	hr = StringCbCopyW(filePath, sizeof(filePath), FileSystem::GetInstance().GetExeRelativePath());
+	hr = StringCbCopyW(filePath, sizeof(filePath), FileSystem.GetExeRelativePath());
 	if (FAILED(hr))
 		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to create full file path.\n%s", path);
 
@@ -619,7 +622,7 @@ std::vector<byte> GraphicDevice::LoadShaderByteCode(PCWSTR path)
 	return byteCode;
 }
 
-void GraphicDevice::CreateSupportedMSAAQualityInfo()
+void GraphicDeviceImpl::CreateSupportedMSAAQualityInfo()
 {
 	HRESULT hr;
 
@@ -639,11 +642,11 @@ void GraphicDevice::CreateSupportedMSAAQualityInfo()
 	}
 }
 
-void GraphicDevice::InitializeSwapChainAndDepthStencilBufferDesc()
+void GraphicDeviceImpl::InitializeSwapChainAndDepthStencilBufferDesc()
 {
 	// Initialize SwapChain descriptor.
-	m_descSwapChain.BufferDesc.Width = Window::GetInstance().GetWidth();
-	m_descSwapChain.BufferDesc.Height = Window::GetInstance().GetHeight();
+	m_descSwapChain.BufferDesc.Width = Window.GetWidth();
+	m_descSwapChain.BufferDesc.Height = Window.GetHeight();
 	m_descSwapChain.BufferDesc.RefreshRate.Numerator = 60;
 	m_descSwapChain.BufferDesc.RefreshRate.Denominator = 1;
 	m_descSwapChain.BufferDesc.Format = BACKBUFFER_FORMAT;
@@ -657,7 +660,7 @@ void GraphicDevice::InitializeSwapChainAndDepthStencilBufferDesc()
 
 	m_descSwapChain.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	m_descSwapChain.BufferCount = 2;
-	m_descSwapChain.OutputWindow = Window::GetInstance().GetWindowHandle();
+	m_descSwapChain.OutputWindow = Window.GetWindowHandle();
 	// m_descSwapChain.Windowed = m_fullscreenRequested ? FALSE : TRUE;
 	m_descSwapChain.Windowed = TRUE;		// 최초에는 창 모드 스왑체인을 생성하는 것으로 (MSDN 내용 참고해서..)
 	m_descSwapChain.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
@@ -679,7 +682,7 @@ void GraphicDevice::InitializeSwapChainAndDepthStencilBufferDesc()
 	m_descDepthStencil.MiscFlags = 0;
 }
 
-void GraphicDevice::OnResize()
+void GraphicDeviceImpl::OnResize()
 {
 	HRESULT hr;
 
@@ -711,10 +714,10 @@ void GraphicDevice::OnResize()
 		Debug::ForceCrashWithHRESULTErrorMessageBox(L"IDXGISwapChain::GetDesc()", hr);
 
 	const bool needResize =
-		descSwapChain.BufferDesc.Width != Window::GetInstance().GetWidth() ||
-		descSwapChain.BufferDesc.Height != Window::GetInstance().GetHeight();
+		descSwapChain.BufferDesc.Width != Window.GetWidth() ||
+		descSwapChain.BufferDesc.Height != Window.GetHeight();
 	const bool isSwapChainFullscreen = descSwapChain.Windowed == FALSE;
-	const bool needScreenModeChange = isSwapChainFullscreen != Window::GetInstance().IsFullscreen();
+	const bool needScreenModeChange = isSwapChainFullscreen != Window.IsFullscreen();
 
 	if (needResize)
 	{
@@ -740,8 +743,8 @@ void GraphicDevice::OnResize()
 		// m_pSwapChain->ResizeTarget();
 		hr = m_cpSwapChain->ResizeBuffers(
 			0,							// Set this number to zero to preserve the existing number of buffers in the swap chain.
-			Window::GetInstance().GetWidth(),
-			Window::GetInstance().GetHeight(),
+			Window.GetWidth(),
+			Window.GetHeight(),
 			DXGI_FORMAT_UNKNOWN,		// Set this value to DXGI_FORMAT_UNKNOWN to preserve the existing format of the back buffer.
 			SWAP_CHAIN_FLAG
 		);
@@ -780,7 +783,7 @@ void GraphicDevice::OnResize()
 		// 지원되지 않는 디스플레이 모드로 생성된 스왑 체인은 디스플레이가 검게 변하고 최종 사용자가 아무것도 볼 수 없게 만들 수 있기 때문입니다. (중요!)
 		// 또한 최종 사용자가 디스플레이 모드를 변경할 수 있도록 허용할 때 시간 초과 확인 화면이나 기타 대체 메커니즘을 갖는 것이 좋습니다.
 
-		const BOOL fullscreen = Window::GetInstance().IsFullscreen() ? TRUE : FALSE;
+		const BOOL fullscreen = Window.IsFullscreen() ? TRUE : FALSE;
 		hr = m_cpSwapChain->SetFullscreenState(fullscreen, nullptr);	// Windowed -> Fullscreen
 		if (FAILED(hr))
 			Debug::ForceCrashWithHRESULTErrorMessageBox(L"IDXGISwapChain::SetFullscreenState()", hr);
@@ -793,15 +796,15 @@ void GraphicDevice::OnResize()
 		Debug::ForceCrashWithHRESULTErrorMessageBox(L"IDXGISwapChain::GetDesc()", hr);
 }
 
-HRESULT GraphicDevice::GetFullscreenState(BOOL* pFullscreen)
+HRESULT GraphicDeviceImpl::GetFullscreenState(BOOL* pFullscreen)
 {
 	assert(pFullscreen != nullptr);
 
 	ComPtr<IDXGIOutput> cpTarget;
 	HRESULT hr = m_cpSwapChain->GetFullscreenState(pFullscreen, cpTarget.GetAddressOf());
 	if (FAILED(hr))
-		GlobalLog::GetInstance().GetSyncFileLogger().WriteFormat(
-			L"GraphicDevice::GetFullscreenState() > IDXGISwapChain::GetFullscreenState() failed. HRESULT: 0x%x", hr
+		GlobalLog.GetSyncFileLogger().WriteFormat(
+			L"GraphicDeviceImpl::GetFullscreenState() > IDXGISwapChain::GetFullscreenState() failed. HRESULT: 0x%x", hr
 		);
 
 	return hr;

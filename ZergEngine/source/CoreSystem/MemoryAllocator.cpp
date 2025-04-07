@@ -2,31 +2,34 @@
 #include <ZergEngine\CoreSystem\SystemInfo.h>
 #include <ZergEngine\CoreSystem\Debug.h>
 
+namespace ze
+{
+	MemoryAllocatorImpl MemoryAllocator;
+}
+
 using namespace ze;
 
-ZE_IMPLEMENT_SINGLETON(MemoryAllocator);
-
-MemoryAllocator::MemoryAllocator()
+MemoryAllocatorImpl::MemoryAllocatorImpl()
 {
 }
 
-MemoryAllocator::~MemoryAllocator()
+MemoryAllocatorImpl::~MemoryAllocatorImpl()
 {
 }
 
-void MemoryAllocator::Init(void* pDesc)
+void MemoryAllocatorImpl::Init(void* pDesc)
 {
 }
 
-void MemoryAllocator::Release()
+void MemoryAllocatorImpl::Release()
 {
 }
 
-LPVOID MemoryAllocator::RequestSystemAllocGranularitySize()
+LPVOID MemoryAllocatorImpl::RequestSystemAllocGranularitySize()
 {
 	LPVOID pages = VirtualAlloc(
 		nullptr,
-		SystemInfo::GetInstance().GetSystemInfo().dwAllocationGranularity,
+		SystemInfo.GetSystemInfo().dwAllocationGranularity,
 		MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE
 	);
 

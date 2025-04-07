@@ -1,21 +1,24 @@
 #include <ZergEngine\CoreSystem\ComponentSystem\SpotLightManager.h>
 
+namespace ze
+{
+	SpotLightManagerImpl SpotLightManager;
+}
+
 using namespace ze;
 
-ZE_IMPLEMENT_SINGLETON(SpotLightManager);
-
-SpotLightManager::SpotLightManager()
+SpotLightManagerImpl::SpotLightManagerImpl()
 {
 }
 
-SpotLightManager::~SpotLightManager()
+SpotLightManagerImpl::~SpotLightManagerImpl()
 {
 }
 
-void SpotLightManager::Init(void* pDesc)
+void SpotLightManagerImpl::Init(void* pDesc)
 {
 }
 
-void SpotLightManager::Release()
+void SpotLightManagerImpl::Release()
 {
 }

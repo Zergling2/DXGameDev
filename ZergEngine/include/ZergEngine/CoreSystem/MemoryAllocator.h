@@ -4,10 +4,10 @@
 
 namespace ze
 {
-	class MemoryAllocator : public ISubsystem
+	class MemoryAllocatorImpl : public ISubsystem
 	{
-		friend class Runtime;
-		ZE_DECLARE_SINGLETON(MemoryAllocator);
+		friend class RuntimeImpl;
+		ZE_DECLARE_SINGLETON(MemoryAllocatorImpl);
 	private:
 		virtual void Init(void* pDesc) override;
 		virtual void Release() override;
@@ -15,4 +15,6 @@ namespace ze
 		LPVOID RequestSystemAllocPageSize(uint32_t page);
 		LPVOID RequestSystemAllocGranularitySize();
 	};
+
+	extern MemoryAllocatorImpl MemoryAllocator;
 }

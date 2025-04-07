@@ -202,22 +202,22 @@ cbuffer PerSubset : register(b3)
     Material cbps_subsetMtl;
 }
 
-cbuffer PerRenderResultMerge : register(b4)
+cbuffer PerCameraMerge : register(b4)
 {
     // 정규화된 값
-    float cbprrm_width;
-    float cbprrm_height;
-    float cbprrm_topLeftX;
-    float cbprrm_topLeftY;
+    float cbpcm_width;
+    float cbpcm_height;
+    float cbpcm_topLeftX;
+    float cbpcm_topLeftY;
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Sampler States
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 SamplerState ss_meshTexSampler : register(s0);
-SamplerState ss_skyboxSampler : register(s0);
-SamplerState ss_terrainTexSampler : register(s0);
-SamplerState ss_heightmapSampler : register(s1);
+SamplerState ss_skyboxSampler : register(s1);
+SamplerState ss_terrainTexSampler : register(s2);
+SamplerState ss_heightmapSampler : register(s3);
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Textures

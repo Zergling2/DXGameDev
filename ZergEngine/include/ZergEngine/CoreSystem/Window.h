@@ -4,11 +4,10 @@
 
 namespace ze
 {
-	class Window : public ISubsystem
+	class WindowImpl : public ISubsystem
 	{
-		friend class Runtime;
-		ZE_DECLARE_SINGLETON(Window);
-
+		friend class RuntimeImpl;
+		ZE_DECLARE_SINGLETON(WindowImpl);
 		struct InitDesc
 		{
 			SIZE m_resolution;
@@ -35,4 +34,6 @@ namespace ze
 		bool m_fullscreen;
 		D3D11_VIEWPORT m_fullClientViewport;
 	};
+
+	extern WindowImpl Window;
 }

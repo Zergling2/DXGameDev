@@ -8,11 +8,11 @@
 
 namespace ze
 {
-	class GraphicDevice : public ISubsystem
+	class GraphicDeviceImpl : public ISubsystem
 	{
-		friend class Runtime;
-		friend class Window;
-		ZE_DECLARE_SINGLETON(GraphicDevice);
+		friend class RuntimeImpl;
+		friend class WindowImpl;
+		ZE_DECLARE_SINGLETON(GraphicDeviceImpl);
 	private:
 		virtual void Init(void* pDesc) override;
 		virtual void Release() override;
@@ -84,4 +84,6 @@ namespace ze
 		SamplerState m_skyboxSamplerState;
 		SamplerState m_heightmapSamplerState;
 	};
+
+	extern GraphicDeviceImpl GraphicDevice;
 }

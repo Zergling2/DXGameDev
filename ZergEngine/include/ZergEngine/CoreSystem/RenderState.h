@@ -8,53 +8,53 @@ namespace ze
 	{
 	public:
 		RasterizerState()
-			: m_cpInterface(nullptr)
+			: m_pRasterizerState(nullptr)
 		{
 		}
-		~RasterizerState() = default;
+		~RasterizerState();
 		void Init(ID3D11Device* pDevice, const D3D11_RASTERIZER_DESC* pDesc);
-		inline void Release() { m_cpInterface.Reset(); }
+		void Release();
 
-		inline ID3D11RasterizerState* GetComInterface() const { return m_cpInterface.Get(); }
+		inline ID3D11RasterizerState* GetComInterface() const { return m_pRasterizerState; }
 	private:
-		ComPtr<ID3D11RasterizerState> m_cpInterface;
+		ID3D11RasterizerState* m_pRasterizerState;
 	};
 
 	class SamplerState
 	{
 	public:
+		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+		// 연속 레지스터 바인딩으로 한번에 세팅
 		class MeshTextureSampler
 		{
 			DECLARE_SLOT_NUMBER(0);
 		};
-
 		class SkyboxSampler
-		{
-			DECLARE_SLOT_NUMBER(0);
-		};
-
-		class TerrainTextureSampler
-		{
-			DECLARE_SLOT_NUMBER(0);
-		};
-
-		class HeightmapSampler
 		{
 			DECLARE_SLOT_NUMBER(1);
 		};
+		class TerrainTextureSampler
+		{
+			DECLARE_SLOT_NUMBER(2);
+		};
+		class HeightmapSampler
+		{
+			DECLARE_SLOT_NUMBER(3);
+		};
+		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	public:
 		SamplerState()
-			: m_cpInterface(nullptr)
+			: m_pSamplerState(nullptr)
 		{
 		}
-		~SamplerState() = default;
+		~SamplerState();
 
 		void Init(ID3D11Device* pDevice, const D3D11_SAMPLER_DESC* pDesc);
-		inline void Release() { m_cpInterface.Reset(); }
+		void Release();
 
-		inline ID3D11SamplerState* GetComInterface() const { return m_cpInterface.Get(); }
+		inline ID3D11SamplerState* GetComInterface() const { return m_pSamplerState; }
 	private:
-		ComPtr<ID3D11SamplerState> m_cpInterface;
+		ID3D11SamplerState* m_pSamplerState;
 	};
 
 	enum class DEPTH_STENCIL_STATE_TYPE
@@ -76,7 +76,7 @@ namespace ze
 
 		// DepthEnable = FALSE
 		// StencilEnable = FALSE
-		RENDER_RESULT_MERGE,
+		CAMERA_MERGE,
 
 		// Number of depth stencil states
 		COUNT
@@ -86,33 +86,41 @@ namespace ze
 	{
 	public:
 		DepthStencilState()
-			: m_cpInterface(nullptr)
+			: m_pDepthStencilState(nullptr)
 		{
 		}
-		~DepthStencilState() = default;
+		~DepthStencilState();
 
 		void Init(ID3D11Device* pDevice, const D3D11_DEPTH_STENCIL_DESC* pDesc);
-		inline void Release() { m_cpInterface.Reset(); }
+		void Release();
 
-		inline ID3D11DepthStencilState* GetComInterface() const { return m_cpInterface.Get(); }
+		inline ID3D11DepthStencilState* GetComInterface() const { return m_pDepthStencilState; }
 	private:
-		ComPtr<ID3D11DepthStencilState> m_cpInterface;
+		ID3D11DepthStencilState* m_pDepthStencilState;
 	};
 	
 	class BlendState
 	{
 	public:
 		BlendState()
-			: m_cpInterface(nullptr)
+			: m_pBlendState(nullptr)
+			, m_blendFactor{ 1.0f, 1.0f, 1.0f, 1.0f }
+			, m_mask(0xFFFFFFFF)
 		{
 		}
-		~BlendState() = default;
+		~BlendState();
 
 		void Init(ID3D11Device* pDevice, const D3D11_BLEND_DESC* pDesc);
-		inline void Release() { m_cpInterface.Reset(); }
+		void Release();
 
-		inline ID3D11BlendState* GetComInterface() const { return m_cpInterface.Get(); }
+		void SetBlendFactor(const FLOAT blendFactor[4]);
+		inline const FLOAT* GetBlendFactor() const { return m_blendFactor; }
+		inline void SetMask(UINT mask) { m_mask = mask; }
+		inline UINT GetMask() const { return m_mask; }
+		inline ID3D11BlendState* GetComInterface() const { return m_pBlendState; }
 	private:
-		ComPtr<ID3D11BlendState> m_cpInterface;
+		ID3D11BlendState* m_pBlendState;
+		FLOAT m_blendFactor[4];
+		UINT m_mask;
 	};
 }

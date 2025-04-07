@@ -1,23 +1,26 @@
 #include <ZergEngine\CoreSystem\EnvironmentManager.h>
 
+namespace ze
+{
+	EnvironmentManagerImpl Environment;
+}
+
 using namespace ze;
 
-ZE_IMPLEMENT_SINGLETON(Environment);
-
-Environment::Environment()
+EnvironmentManagerImpl::EnvironmentManagerImpl()
 	: m_spSkybox()
 {
 }
 
-Environment::~Environment()
+EnvironmentManagerImpl::~EnvironmentManagerImpl()
 {
 }
 
-void Environment::Init(void* pDesc)
+void EnvironmentManagerImpl::Init(void* pDesc)
 {
 }
 
-void Environment::Release()
+void EnvironmentManagerImpl::Release()
 {
 	m_spSkybox.reset();
 }

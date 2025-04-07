@@ -1,28 +1,31 @@
 #include <ZergEngine\CoreSystem\GameObjectManager.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 
+namespace ze
+{
+	GameObjectManagerImpl GameObjectManager;
+}
+
 using namespace ze;
 
-ZE_IMPLEMENT_SINGLETON(GameObjectManager);
-
-GameObjectManager::GameObjectManager()
+GameObjectManagerImpl::GameObjectManagerImpl()
 	: m_uniqueId(0)
 	, m_activeGameObjects()
 	, m_ptrTable{}
 {
 }
 
-GameObjectManager::~GameObjectManager()
+GameObjectManagerImpl::~GameObjectManagerImpl()
 {
 }
 
-void GameObjectManager::Init(void* pDesc)
+void GameObjectManagerImpl::Init(void* pDesc)
 {
 	m_uniqueId = 0;
 	ZeroMemory(m_ptrTable, sizeof(m_ptrTable));
 }
 
-void GameObjectManager::Release()
+void GameObjectManagerImpl::Release()
 {
 	for (auto p : m_activeGameObjects)
 		delete p;
@@ -33,7 +36,23 @@ void GameObjectManager::Release()
 	m_uniqueId = 0;
 }
 
-GameObjectHandle GameObjectManager::Register(GameObject* pGameObject)
+GameObjectHandle GameObjectManagerImpl::FindGameObject(PCWSTR name)
+{
+	GameObjectHandle hGameObject;
+
+	for (auto p : m_activeGameObjects)
+	{
+		if (wcscmp(p->GetName(), name) == 0)
+		{
+			hGameObject = p->ToHandle();
+			break;
+		}
+	}
+
+	return hGameObject;
+}
+
+GameObjectHandle GameObjectManagerImpl::Register(GameObject* pGameObject)
 {
 	assert(pGameObject != nullptr);
 
@@ -68,7 +87,7 @@ GameObjectHandle GameObjectManager::Register(GameObject* pGameObject)
 	return hGameObject;
 }
 
-void GameObjectManager::Unregister(GameObject* pGameObject)
+void GameObjectManagerImpl::Unregister(GameObject* pGameObject)
 {
 	uint32_t vectorSize = static_cast<uint32_t>(m_activeGameObjects.size());
 	assert(vectorSize > 0);

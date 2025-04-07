@@ -3,16 +3,19 @@
 #include <ZergEngine\CoreSystem\SystemInfo.h>
 #include <ZergEngine\Common\EngineHelper.h>
 
+namespace ze
+{
+	GlobalLogImpl GlobalLog;
+}
+
 using namespace ze;
 
-ZE_IMPLEMENT_SINGLETON(GlobalLog);
-
-GlobalLog::GlobalLog()
+GlobalLogImpl::GlobalLogImpl()
 	: m_logger()
 {
 }
 
-GlobalLog::~GlobalLog()
+GlobalLogImpl::~GlobalLogImpl()
 {
 }
 
@@ -156,12 +159,12 @@ AsyncLogBuffer* AsyncConsoleLogger::GetLogBuffer()
 AsyncLogBuffer* AsyncConsoleLogger::AllocLogBufferList()
 {
 	// Protected by SRWLOCK
-	LPVOID pages = MemoryAllocator::GetInstance().RequestSystemAllocGranularitySize();
+	LPVOID pages = MemoryAllocator.RequestSystemAllocGranularitySize();
 	if (pages == nullptr)
-		Debug::ForceCrashWithWin32ErrorMessageBox(L"MemoryAllocator::RequestSystemAllocGranularitySize()", GetLastError());
+		Debug::ForceCrashWithWin32ErrorMessageBox(L"MemoryAllocatorImpl::RequestSystemAllocGranularitySize()", GetLastError());
 
 	// 할당한 페이지들 전체를 연결한다.
-	const size_t itercnt = SystemInfo::GetInstance().GetSystemInfo().dwAllocationGranularity / sizeof(AsyncLogBuffer) - 1;
+	const size_t itercnt = SystemInfo.GetSystemInfo().dwAllocationGranularity / sizeof(AsyncLogBuffer) - 1;
 	AsyncLogBuffer* cursor = reinterpret_cast<AsyncLogBuffer*>(pages);
 	for (size_t i = 0; i < itercnt; ++i)
 	{
@@ -406,12 +409,12 @@ AsyncLogBuffer* AsyncFileLogger::GetLogBuffer()
 AsyncLogBuffer* AsyncFileLogger::AllocLogBufferList()
 {
 	// Protected by SRWLOCK
-	LPVOID pages = MemoryAllocator::GetInstance().RequestSystemAllocGranularitySize();
+	LPVOID pages = MemoryAllocator.RequestSystemAllocGranularitySize();
 	if (pages == nullptr)
 		return nullptr;
 
 	// 할당한 페이지들 전체를 연결한다.
-	const size_t itercnt = SystemInfo::GetInstance().GetSystemInfo().dwAllocationGranularity / sizeof(AsyncLogBuffer) - 1;
+	const size_t itercnt = SystemInfo.GetSystemInfo().dwAllocationGranularity / sizeof(AsyncLogBuffer) - 1;
 	AsyncLogBuffer* cursor = reinterpret_cast<AsyncLogBuffer*>(pages);
 	for (size_t i = 0; i < itercnt; ++i)
 	{
@@ -470,15 +473,15 @@ void AsyncFileLogger::SafeReleaseWorkerThread()
 	}
 }
 
-void GlobalLog::Init(PCWSTR fileName)
+void GlobalLogImpl::Init(PCWSTR fileName)
 {
 	bool ret = m_logger.Init(fileName);
 
 	if (!ret)
-		Debug::ForceCrashWithMessageBox(L"GlobalLog::Init()", L"Failed to initialize global logger module.");
+		Debug::ForceCrashWithMessageBox(L"GlobalLogImpl::Init()", L"Failed to initialize global logger module.");
 }
 
-void GlobalLog::Release()
+void GlobalLogImpl::Release()
 {
 	m_logger.Release();
 }

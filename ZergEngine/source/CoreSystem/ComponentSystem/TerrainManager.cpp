@@ -1,21 +1,24 @@
 #include <ZergEngine\CoreSystem\ComponentSystem\TerrainManager.h>
 
+namespace ze
+{
+	TerrainManagerImpl TerrainManager;
+}
+
 using namespace ze;
 
-ZE_IMPLEMENT_SINGLETON(TerrainManager);
-
-TerrainManager::TerrainManager()
+TerrainManagerImpl::TerrainManagerImpl()
 {
 }
 
-TerrainManager::~TerrainManager()
+TerrainManagerImpl::~TerrainManagerImpl()
 {
 }
 
-void TerrainManager::Init(void* pDesc)
+void TerrainManagerImpl::Init(void* pDesc)
 {
 }
 
-void TerrainManager::Release()
+void TerrainManagerImpl::Release()
 {
 }

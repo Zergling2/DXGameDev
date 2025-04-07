@@ -32,7 +32,7 @@ namespace ze
 
 	class SceneTable
 	{
-		friend class SceneManager;
+		friend class SceneManagerImpl;
 	public:
 		static void AddItem(PCWSTR sceneName, SceneFactory factory);
 		static SceneFactory GetItem(PCWSTR sceneName);

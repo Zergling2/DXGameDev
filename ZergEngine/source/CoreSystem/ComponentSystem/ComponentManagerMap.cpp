@@ -15,17 +15,17 @@ IComponentManager* ComponentManagerMap::GetComponentManager(COMPONENT_TYPE type)
 	switch (type)
 	{
 	case COMPONENT_TYPE::CAMERA:
-		return &CameraManager::GetInstance();
+		return &CameraManager;
 	case COMPONENT_TYPE::MESH_RENDERER:
-		return &MeshRendererManager::GetInstance();
+		return &MeshRendererManager;
 	case COMPONENT_TYPE::DIRECTIONAL_LIGHT:
-		return &DirectionalLightManager::GetInstance();
+		return &DirectionalLightManager;
 	case COMPONENT_TYPE::POINT_LIGHT:
-		return &PointLightManager::GetInstance();
+		return &PointLightManager;
 	case COMPONENT_TYPE::SPOT_LIGHT:
-		return &SpotLightManager::GetInstance();
+		return &SpotLightManager;
 	case COMPONENT_TYPE::SCRIPT:
-		return &ScriptManager::GetInstance();
+		return &ScriptManager;
 	case COMPONENT_TYPE::RIGIDBODY:
 		return nullptr;
 	case COMPONENT_TYPE::BOX_COLLIDER:
@@ -35,7 +35,7 @@ IComponentManager* ComponentManagerMap::GetComponentManager(COMPONENT_TYPE type)
 	case COMPONENT_TYPE::MESH_COLLIDER:
 		return nullptr;
 	case COMPONENT_TYPE::TERRAIN:
-		return &TerrainManager::GetInstance();
+		return &TerrainManager;
 	case COMPONENT_TYPE::UNKNOWN:
 		return nullptr;
 	default:
