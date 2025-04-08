@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ZergEngine\CoreSystem\Runtime.h>
+#include <ZergEngine\CoreSystem\Window.h>
 #include <ZergEngine\CoreSystem\Scene.h>
 #include <ZergEngine\CoreSystem\SceneManager.h>
 #include <ZergEngine\CoreSystem\ResourceManager.h>

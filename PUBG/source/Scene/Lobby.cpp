@@ -30,6 +30,7 @@ void Lobby::OnLoadScene()
 	pCamera->SetBackgroundColor(Colors::DarkOliveGreen);
 	pCamera->SetDepth(0);
 	pCamera->SetFieldOfView(92);
+	pCamera->SetClippingPlanes(0.01f, 500.0f);
 	pGameObject->AddDeferredComponent<FirstPersonCamera>();		// 1인칭 카메라 조작
 
 	pGameObject = this->CreateGameObject(L"Camera2");
@@ -39,7 +40,6 @@ void Lobby::OnLoadScene()
 	pCamera->SetBackgroundColor(Colors::Chocolate);
 	pCamera->SetDepth(1);
 	pCamera->SetFieldOfView(70);
-	pCamera->SetClippingPlanes(0.01f, 500.0f);
 	pCamera->SetMaximumTessellationExponent(4.0f);
 	pCamera->SetMinimumTessellationExponent(0.0f);
 	pCamera->SetMaximumDistanceEndTessellation(300.0f);

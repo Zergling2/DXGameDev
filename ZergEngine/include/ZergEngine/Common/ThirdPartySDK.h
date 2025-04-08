@@ -30,6 +30,9 @@
 // DirectX
 
 #define DIRECTINPUT_VERSION 0x0800
+#if defined(DEBUG) || defined(_DEBUG)
+#include <dxgidebug.h>
+#endif
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include <d3d11shader.h>

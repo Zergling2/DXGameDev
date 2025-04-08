@@ -34,14 +34,15 @@ namespace ze
 
 		std::vector<byte> LoadShaderByteCode(PCWSTR path);
 
+		void CreateSupportedResolutionInfo();
 		void CreateSupportedMSAAQualityInfo();
 		void InitializeSwapChainAndDepthStencilBufferDesc();
 	public:
 		// Return max quality level
 		UINT GetMSAAMaximumQuality(MSAA_SAMPLE_COUNT sampleCount);
 		inline const DXGI_SWAP_CHAIN_DESC& GetSwapChainDesc() { return m_descSwapChain; }
-		inline ID3D11Device* GetDeviceComInterface() { return m_cpDevice.Get(); }
-		inline ID3D11DeviceContext* GetImmContextComInterface() { return m_cpImmContext.Get(); }
+		inline ID3D11Device* GetDeviceComInterface() { return m_pDevice; }
+		inline ID3D11DeviceContext* GetImmContextComInterface() { return m_pImmContext; }
 
 		// Shaders getter
 		inline ID3D11VertexShader* GetVSComInterface(VERTEX_SHADER_TYPE type) { return m_vs[static_cast<size_t>(type)].GetComInterface(); }
@@ -57,20 +58,21 @@ namespace ze
 		inline ID3D11SamplerState* GetSkyboxSamplerComInterface() const { return m_skyboxSamplerState.GetComInterface(); }
 		inline ID3D11SamplerState* GetHeightmapSamplerComInterface() const { return m_heightmapSamplerState.GetComInterface(); }
 
-		inline IDXGISwapChain* GetSwapChainComInterface() const { return m_cpSwapChain.Get(); }
-		inline ID3D11RenderTargetView* GetSwapChainRTVComInterface() const { return m_cpSwapChainRTV.Get(); }
-		inline ID3D11DepthStencilView* GetSwapChainDSVComInterface() const { return m_cpSwapChainDSV.Get(); }
+		inline IDXGISwapChain* GetSwapChainComInterface() const { return m_pSwapChain; }
+		inline ID3D11RenderTargetView* GetSwapChainRTVComInterface() const { return m_pSwapChainRTV; }
+		inline ID3D11DepthStencilView* GetSwapChainDSVComInterface() const { return m_pSwapChainDSV; }
 	private:
 		DXGI_ADAPTER_DESC m_descAdapter;
 		DXGI_SWAP_CHAIN_DESC m_descSwapChain;
 		D3D11_TEXTURE2D_DESC m_descDepthStencil;
-		ComPtr<ID3D11Device> m_cpDevice;
-		ComPtr<ID3D11DeviceContext> m_cpImmContext;
+		ID3D11Device* m_pDevice;
+		ID3D11DeviceContext* m_pImmContext;
+		std::vector<DXGI_MODE_DESC> m_supportedResolution;
 		std::vector<std::pair<MSAA_SAMPLE_COUNT, UINT>> m_supportedMSAA;
-		ComPtr<IDXGISwapChain> m_cpSwapChain;
+		IDXGISwapChain* m_pSwapChain;
 		// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
-		ComPtr<ID3D11RenderTargetView> m_cpSwapChainRTV;
-		ComPtr<ID3D11DepthStencilView> m_cpSwapChainDSV;
+		ID3D11RenderTargetView* m_pSwapChainRTV;
+		ID3D11DepthStencilView* m_pSwapChainDSV;
 		// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
 		VertexShader m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::COUNT)];
 		HullShader m_hs[static_cast<size_t>(HULL_SHADER_TYPE::COUNT)];

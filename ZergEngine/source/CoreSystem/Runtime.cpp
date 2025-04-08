@@ -39,7 +39,7 @@ enum RUNTIME_FLAG : uint32_t
 RuntimeImpl::RuntimeImpl()
     : m_hInstance(NULL)
     , m_startScene()
-    , m_loopTime(0.0f)
+    , m_fixedUpdateTimer(0.0f)
     , m_flag(0)
 {
 }
@@ -48,17 +48,17 @@ RuntimeImpl::~RuntimeImpl()
 {
 }
 
-void RuntimeImpl::Run(HINSTANCE hInstance, int nShowCmd, PCWSTR wndTitle, PCWSTR startScene, SIZE resolution, bool fullscreen)
+void RuntimeImpl::Run(HINSTANCE hInstance, int nShowCmd, PCWSTR wndTitle, PCWSTR startScene, uint32_t width, uint32_t height, bool fullscreen)
 {
     m_hInstance = hInstance;
     m_startScene = startScene;
-    m_loopTime = 0.0f;
+    m_fixedUpdateTimer = 0.0f;
     m_flag = RENDER_ENABLED | SCRIPT_UPDATE;
 
-    RuntimeImpl::InitAllSubsystem(wndTitle, resolution, fullscreen);
+    RuntimeImpl::InitAllSubsystem(wndTitle, width, height, fullscreen);
 
     ShowWindow(Window.GetWindowHandle(), nShowCmd);
-    // UpdateWindow(RuntimeImpl::GetMainWindowHandle());
+    // UpdateWindow(Runtime.GetMainWindowHandle());
 
     // update initial time value
     Time.Update();
@@ -80,6 +80,28 @@ void RuntimeImpl::Run(HINSTANCE hInstance, int nShowCmd, PCWSTR wndTitle, PCWSTR
     const int ret = static_cast<int>(msg.wParam);
 
     RuntimeImpl::ReleaseAllSubsystem();
+
+#if defined(DEBUG) || defined(_DEBUG)
+    HMODULE dxgiDebugDll = GetModuleHandleW(L"dxgidebug.dll");
+    if (dxgiDebugDll != NULL)
+    {
+        decltype(&DXGIGetDebugInterface) DebugInterface =
+            reinterpret_cast<decltype(&DXGIGetDebugInterface)>(GetProcAddress(dxgiDebugDll, "DXGIGetDebugInterface"));
+
+        IDXGIDebug* pDXGIDebug;
+        DebugInterface(IID_PPV_ARGS(&pDXGIDebug));
+
+        OutputDebugStringW(L"##### DXGI DEBUG INFO START #####\n");
+        pDXGIDebug->ReportLiveObjects(DXGI_DEBUG_D3D11, DXGI_DEBUG_RLO_DETAIL);
+        OutputDebugStringW(L"##### DXGI DEBUG INFO END #####\n");
+
+        pDXGIDebug->Release();
+    }
+    else
+    {
+        OutputDebugStringW(L"Failed to get dxgidebug.dll module handle. Can't use ReportLiveObjects() function.\n");
+    }
+#endif
 }
 
 void RuntimeImpl::Exit()
@@ -102,7 +124,7 @@ GameObjectHandle RuntimeImpl::Find(PCWSTR name)
     return GameObjectManager.FindGameObject(name);
 }
 
-void RuntimeImpl::InitAllSubsystem(PCWSTR wndTitle, SIZE resolution, bool fullscreen)
+void RuntimeImpl::InitAllSubsystem(PCWSTR wndTitle, uint32_t width, uint32_t height, bool fullscreen)
 {
     const time_t rawTime = time(nullptr);
     tm timeInfo;
@@ -137,7 +159,8 @@ void RuntimeImpl::InitAllSubsystem(PCWSTR wndTitle, SIZE resolution, bool fullsc
     Time.Init(nullptr);
 
     WindowImpl::InitDesc initDesc;
-    initDesc.m_resolution = resolution;
+    initDesc.m_width = width;
+    initDesc.m_height = height;
     initDesc.m_fullscreen = fullscreen;
     initDesc.m_title = wndTitle;
     Window.Init(&initDesc);
@@ -188,19 +211,17 @@ void RuntimeImpl::OnIdle()
     // Update timer.
     Time.Update();
 
-    SceneManager.Update(&m_loopTime);
+    SceneManager.Update(&m_fixedUpdateTimer);
 
     Input.Update();
 
     // For the FixedUpdate
-    m_loopTime += Time.GetUnscaledDeltaTime();
-
-    // 정수 기준 루프로 수정 필요
+    m_fixedUpdateTimer += Time.GetUnscaledDeltaTime();
     Time.ChangeDeltaTimeToFixedDeltaTime();
-    while (Time.GetFixedDeltaTime() <= m_loopTime)
+    while (Time.GetFixedDeltaTime() <= m_fixedUpdateTimer)
     {
         ScriptManager.FixedUpdateScripts();
-        m_loopTime -= Time.GetFixedDeltaTime();
+        m_fixedUpdateTimer -= Time.GetFixedDeltaTime();
     }
     Time.RecoverDeltaTime();
 
@@ -213,7 +234,7 @@ void RuntimeImpl::OnIdle()
     if (m_flag & RUNTIME_FLAG::RENDER_ENABLED)
         Renderer.RenderFrame();
     
-    Sleep(6);       // 나중에 Max fps 기능 추가해야함
+    Sleep(5);       // 나중에 Max fps 기능 추가해야함
 }
 
 GameObjectHandle RuntimeImpl::CreateGameObject(PCWSTR name)

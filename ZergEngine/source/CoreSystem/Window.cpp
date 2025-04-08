@@ -11,11 +11,14 @@ namespace ze
 
 using namespace ze;
 
-PCWSTR WNDCLASS_NAME = L"zewndclass";
+PCWSTR WNDCLASS_NAME = L"zemainframe";
 
 WindowImpl::WindowImpl()
     : m_hWnd(NULL)
-    , m_resolution{ 0, 0 }
+    // , m_style(WS_POPUP)  // 테두리 없음
+    , m_style(WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX)
+    , m_width(0)
+    , m_height(0)
     , m_fullscreen(false)
     , m_fullClientViewport { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f }
 {
@@ -30,13 +33,14 @@ void WindowImpl::Init(void* pDesc)
     WindowImpl::InitDesc* pInitDesc = reinterpret_cast<WindowImpl::InitDesc*>(pDesc);
 
     m_hWnd = NULL;
-    m_resolution = pInitDesc->m_resolution;
+    m_width = pInitDesc->m_width;
+    m_height = pInitDesc->m_height;
     m_fullscreen = pInitDesc->m_fullscreen;
 
     m_fullClientViewport.TopLeftX = 0.0f;
     m_fullClientViewport.TopLeftY = 0.0f;
-    m_fullClientViewport.Width = static_cast<float>(m_resolution.cx);
-    m_fullClientViewport.Height = static_cast<float>(m_resolution.cy);
+    m_fullClientViewport.Width = static_cast<float>(m_width);
+    m_fullClientViewport.Height = static_cast<float>(m_height);
     m_fullClientViewport.MinDepth = 0.0f;
     m_fullClientViewport.MaxDepth = 1.0f;
 
@@ -65,8 +69,8 @@ void WindowImpl::Init(void* pDesc)
     }
     else
     {
-        RECT cr = RECT{ 0, 0, m_resolution.cx, m_resolution.cy };
-        if (AdjustWindowRect(&cr, WS_OVERLAPPEDWINDOW, FALSE) == FALSE)
+        RECT cr = RECT{ 0, 0, static_cast<LONG>(m_width), static_cast<LONG>(m_height) };
+        if (AdjustWindowRect(&cr, m_style, FALSE) == FALSE)
             Debug::ForceCrashWithWin32ErrorMessageBox(L"WindowImpl::Init() > AdjustWindowRect()", GetLastError());
 
         wndFrameWidth = cr.right - cr.left;
@@ -77,7 +81,7 @@ void WindowImpl::Init(void* pDesc)
     m_hWnd = CreateWindowW(
         WNDCLASS_NAME,                                                  // Window class
         pInitDesc->m_title,                                             // Window title
-        WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,       // Window style
+        m_style,       // Window style
         CW_USEDEFAULT,                                                  // Pos X
         CW_USEDEFAULT,                                                  // Pos Y
         wndFrameWidth,                                                  // Width
@@ -93,13 +97,36 @@ void WindowImpl::Release()
 {
 }
 
-void WindowImpl::SetResolution(SIZE resolution, bool fullscreen)
+void WindowImpl::SetResolution(uint32_t width, uint32_t height, bool fullscreen)
 {
-    if (fullscreen == false)
-        MoveWindow(WindowImpl::GetWindowHandle(), 0, 0, static_cast<int>(resolution.cx), static_cast<int>(resolution.cy), FALSE);
+    if (width == 0 || height == 0)
+        return;
 
-    WindowImpl::m_fullscreen = fullscreen;
-    SendMessage(m_hWnd, WM_SIZE, SIZE_RESTORED, MAKELPARAM(resolution.cx, resolution.cy));
+    m_fullscreen = fullscreen;
+    m_width = width;
+    m_height = height;
+
+    GraphicDevice.OnResize();
+    CameraManager.OnResize();    // 카메라 렌더버퍼 재생성, 투영 행렬, D3D11 뷰포트 구조체 업데이트
+
+    if (m_fullscreen == false)
+    {
+        RECT cr = RECT{ 0, 0, static_cast<LONG>(m_width), static_cast<LONG>(m_height) };
+        if (AdjustWindowRect(&cr, m_style, FALSE) == FALSE)
+            Debug::ForceCrashWithWin32ErrorMessageBox(L"WindowImpl::SetResolution() > AdjustWindowRect()", GetLastError());
+
+        const int wndFrameWidth = cr.right - cr.left;
+        const int wndFrameHeight = cr.bottom - cr.top;
+        MoveWindow(Window.GetWindowHandle(), 0, 0, wndFrameWidth, wndFrameHeight, FALSE);
+    }
+
+    // Update full client area viewport
+    Window.m_fullClientViewport.TopLeftX = 0.0f;
+    Window.m_fullClientViewport.TopLeftY = 0.0f;
+    Window.m_fullClientViewport.Width = static_cast<float>(m_width);
+    Window.m_fullClientViewport.Height = static_cast<float>(m_height);
+    Window.m_fullClientViewport.MinDepth = 0.0f;
+    Window.m_fullClientViewport.MaxDepth = 1.0f;
 }
 
 LRESULT WindowImpl::WinProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -126,7 +153,6 @@ LRESULT WindowImpl::WinProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         default:
             break;
         }
-        WindowImpl::OnResize(SIZE{ LOWORD(lParam), HIWORD(lParam) });
         return 0;
     case WM_SHOWWINDOW:
         if (wParam == TRUE)
@@ -143,27 +169,4 @@ LRESULT WindowImpl::WinProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     default:
         return DefWindowProc(hwnd, uMsg, wParam, lParam);
     }
-}
-
-void WindowImpl::OnResize(SIZE resolution)
-{
-    if (resolution.cx == 0 || resolution.cy == 0)
-        return;
-    
-    // If fullscreen requested...
-    // wndFrameWidth = GetSystemMetrics(SM_CXSCREEN);
-    // wndFrameHeight = GetSystemMetrics(SM_CYSCREEN);
-
-    Window.m_resolution = resolution;
-
-    // Update full client area viewport
-    Window.m_fullClientViewport.TopLeftX = 0.0f;
-    Window.m_fullClientViewport.TopLeftY = 0.0f;
-    Window.m_fullClientViewport.Width = static_cast<float>(resolution.cx);
-    Window.m_fullClientViewport.Height = static_cast<float>(resolution.cy);
-    Window.m_fullClientViewport.MinDepth = 0.0f;
-    Window.m_fullClientViewport.MaxDepth = 1.0f;
-
-    GraphicDevice.OnResize();
-    CameraManager.OnResize();    // 카메라 렌더버퍼 재생성, 투영 행렬, D3D11 뷰포트 구조체 업데이트
 }

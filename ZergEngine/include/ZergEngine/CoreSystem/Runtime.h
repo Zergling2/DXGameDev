@@ -12,7 +12,7 @@ namespace ze
 	{
 		ZE_DECLARE_SINGLETON(RuntimeImpl);
 	public:
-		void Run(HINSTANCE hInstance, int nShowCmd, PCWSTR wndTitle, PCWSTR startScene, SIZE resolution, bool fullscreen);
+		void Run(HINSTANCE hInstance, int nShowCmd, PCWSTR wndTitle, PCWSTR startScene, uint32_t width, uint32_t height, bool fullscreen);
 		void Exit();
 
 		void EnableRendering();
@@ -44,13 +44,13 @@ namespace ze
 		inline HINSTANCE GetInstanceHandle() const { return m_hInstance; }
 		inline PCWSTR GetStartSceneName() const { return m_startScene.c_str(); }
 	private:
-		void InitAllSubsystem(PCWSTR wndTitle, SIZE resolution, bool fullscreen);
+		void InitAllSubsystem(PCWSTR wndTitle, uint32_t width, uint32_t height, bool fullscreen);
 		void ReleaseAllSubsystem();
 		void OnIdle();
 	private:
 		HINSTANCE m_hInstance;
 		std::wstring m_startScene;
-		float m_loopTime;
+		float m_fixedUpdateTimer;
 		uint32_t m_flag;
 	};
 

@@ -8,6 +8,8 @@ namespace ze
 
 using namespace ze;
 
+static constexpr float DEFAULT_FIXED_DELTA_TIME = 1.0f / 50.0f;
+
 TimeImpl::TimeImpl()
 {
 }
@@ -27,19 +29,20 @@ void TimeImpl::Init(void* pDesc)
 
 	m_spc = 1.0f / static_cast<float>(freq.QuadPart);
 	m_ts = 1.0f;
+	m_fdt = DEFAULT_FIXED_DELTA_TIME;
 	m_udt = 0.0f;
 	m_dt = 0.0f;
 	m_dtBackup = m_dt;
 
 	// On systems that run Windows XP or later, 
 	// the function will always succeed and will thus never return zero.
-	if (QueryPerformanceCounter(&m_qpcBaseCnt) == FALSE)
+	if (QueryPerformanceCounter(&m_basePC) == FALSE)
 		Debug::ForceCrashWithWin32ErrorMessageBox(L"TimeImpl::Init() > QueryPerformanceCounter()", GetLastError());
 
-	m_qpcDeltaCnt.QuadPart = 0;
-	m_qpcPrevCnt = m_qpcBaseCnt;
-	m_qpcCurrentCnt = m_qpcBaseCnt;
-	m_qpcPausedCnt.QuadPart = 0;
+	m_deltaPC.QuadPart = 0;
+	m_prevPC = m_basePC;
+	m_currPC = m_basePC;
+	m_pausedPC.QuadPart = 0;
 }
 
 void TimeImpl::Release()
@@ -54,23 +57,32 @@ void TimeImpl::SetTimeScale(float ts)
 	m_ts = ts;
 }
 
+bool TimeImpl::SetFixedDeltaTime(float fdt)
+{
+	if (fdt <= 0.0f)
+		return false;
+
+	m_fdt = fdt;
+	return true;
+}
+
 void TimeImpl::Update()
 {
-	QueryPerformanceCounter(&m_qpcCurrentCnt);
-	m_qpcDeltaCnt.QuadPart = m_qpcCurrentCnt.QuadPart - m_qpcPrevCnt.QuadPart;
-	if (m_qpcDeltaCnt.QuadPart < 0)
-		m_qpcDeltaCnt.QuadPart = 0;
+	QueryPerformanceCounter(&m_currPC);
+	m_deltaPC.QuadPart = m_currPC.QuadPart - m_prevPC.QuadPart;
+	if (m_deltaPC.QuadPart < 0)
+		m_deltaPC.QuadPart = 0;
 
-	m_udt = static_cast<float>(m_qpcDeltaCnt.QuadPart) * m_spc;
+	m_udt = static_cast<float>(m_deltaPC.QuadPart) * m_spc;
 	m_dt = m_udt * m_ts;
 
-	m_qpcPrevCnt = m_qpcCurrentCnt;
+	m_prevPC = m_currPC;
 }
 
 void TimeImpl::ChangeDeltaTimeToFixedDeltaTime()
 {
 	m_dtBackup = m_dt;
-	m_dt = FIXED_DELTA_TIME;
+	m_dt = m_fdt;
 }
 
 void TimeImpl::RecoverDeltaTime()

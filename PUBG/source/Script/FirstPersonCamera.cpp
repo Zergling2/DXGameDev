@@ -48,4 +48,10 @@ void FirstPersonCamera::FixedUpdate()
 
 	if (Input.GetKey(DIK_D))
 		XMStoreFloat3A(&transform.m_position, XMLoadFloat3A(&transform.m_position) + worldRightAxis * speed);
+
+	if (Input.GetKeyDown(DIK_J))
+		Window.SetResolution(800, 600, true);
+
+	if (Input.GetKeyDown(DIK_K))
+		Window.SetResolution(1280, 720, false);
 }
