@@ -75,9 +75,6 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\Light.h">
       <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\ReferenceCounter.h">
-      <Filter>Files\ZergEngine\CoreSystem</Filter>
-    </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\Terrain.h">
       <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
     </ClInclude>
@@ -237,9 +234,6 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\ComponentSystem\TerrainManager.h">
       <Filter>Files\ZergEngine\CoreSystem\ComponentSystem</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\RuntimeImpl::h">
-      <Filter>Files\ZergEngine\CoreSystem</Filter>
-    </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\SubsystemInterface.h">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClInclude>
@@ -273,6 +267,9 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\ComponentSystem\ComponentManagerMap.h">
       <Filter>Files\ZergEngine\CoreSystem\ComponentSystem</Filter>
     </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Runtime.h">
+      <Filter>Files\ZergEngine\CoreSystem</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\CoreSystem\Time.cpp">
@@ -301,9 +298,6 @@
     </ClCompile>
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\Light.cpp">
       <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\ReferenceCounter.cpp">
-      <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\Terrain.cpp">
       <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
@@ -392,9 +386,6 @@
     <ClCompile Include="source\CoreSystem\ComponentSystem\TerrainManager.cpp">
       <Filter>Files\ZergEngine\CoreSystem\ComponentSystem</Filter>
     </ClCompile>
-    <ClCompile Include="source\CoreSystem\RuntimeImpl::cpp">
-      <Filter>Files\ZergEngine\CoreSystem</Filter>
-    </ClCompile>
     <ClCompile Include="source\CoreSystem\SubsystemInterface.cpp">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClCompile>
@@ -427,6 +418,9 @@
     </ClCompile>
     <ClCompile Include="source\CoreSystem\LowLevelRenderer\Pass.cpp">
       <Filter>Files\ZergEngine\CoreSystem\LowLevelRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Runtime.cpp">
+      <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

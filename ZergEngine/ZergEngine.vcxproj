@@ -85,7 +85,6 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\Terrain.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Input.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\RawVector.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\ReferenceCounter.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Resource.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Window.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Runtime.h" />
@@ -127,7 +126,6 @@
     <ClCompile Include="source\CoreSystem\Resource\Skybox.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\Terrain.cpp" />
     <ClCompile Include="source\CoreSystem\DataStructure\RawVector.cpp" />
-    <ClCompile Include="source\CoreSystem\ReferenceCounter.cpp" />
     <ClCompile Include="source\CoreSystem\Resource\Resource.cpp" />
     <ClCompile Include="source\CoreSystem\InputLayout.cpp" />
   </ItemGroup>
