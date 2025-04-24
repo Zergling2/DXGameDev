@@ -7,6 +7,7 @@
 #include <windowsx.h>
 #include <winerror.h>
 #include <process.h>
+#include <intrin.h>
 #include <wrl\client.h>
 #include <strsafe.h>
 
@@ -19,6 +20,7 @@
 // C++ STL
 #include <utility>
 #include <string>
+#include <array>
 #include <vector>
 #include <list>
 #include <queue>

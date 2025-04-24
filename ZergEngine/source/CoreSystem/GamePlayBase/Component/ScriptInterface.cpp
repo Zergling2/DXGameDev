@@ -1,11 +1,43 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\ScriptInterface.h>
-#include <ZergEngine\CoreSystem\ComponentSystem\ScriptManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\ScriptManager.h>
 
 using namespace ze;
 
 IScript::IScript()
+	: IComponent(ScriptManager.AssignUniqueId())
 {
-	this->SetId(ScriptManager.AssignUniqueId());
+}
+
+void IScript::Awake()
+{
+}
+
+void IScript::Start()
+{
+}
+
+void IScript::FixedUpdate()
+{
+}
+
+void IScript::Update()
+{
+}
+
+void IScript::LateUpdate()
+{
+}
+
+void IScript::OnEnable()
+{
+}
+
+void IScript::OnDisable()
+{
+}
+
+void IScript::OnDestroy()
+{
 }
 
 IComponentManager* IScript::GetComponentManager() const

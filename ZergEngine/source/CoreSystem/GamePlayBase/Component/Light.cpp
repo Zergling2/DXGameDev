@@ -1,13 +1,14 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Light.h>
-#include <ZergEngine\CoreSystem\ComponentSystem\DirectionalLightManager.h>
-#include <ZergEngine\CoreSystem\ComponentSystem\PointLightManager.h>
-#include <ZergEngine\CoreSystem\ComponentSystem\SpotLightManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\DirectionalLightManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\PointLightManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\SpotLightManager.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 
 using namespace ze;
 
-DirectionalLight::DirectionalLight()
+DirectionalLight::DirectionalLight() noexcept
+	: ILight(DirectionalLightManager.AssignUniqueId())
 {
-	this->SetId(DirectionalLightManager.AssignUniqueId());
 }
 
 IComponentManager* DirectionalLight::GetComponentManager() const
@@ -15,11 +16,11 @@ IComponentManager* DirectionalLight::GetComponentManager() const
 	return &DirectionalLightManager;
 }
 
-PointLight::PointLight()
-	: m_range(1.0f)
+PointLight::PointLight() noexcept
+	: ILight(PointLightManager.AssignUniqueId())
+	, m_range(1.0f)
 	, m_att(0.0f, 0.0f, 1.0f)
 {
-	this->SetId(PointLightManager.AssignUniqueId());
 }
 
 IComponentManager* PointLight::GetComponentManager() const
@@ -27,12 +28,28 @@ IComponentManager* PointLight::GetComponentManager() const
 	return &PointLightManager;
 }
 
-SpotLight::SpotLight()
-	: m_range(1.0f)
+void PointLight::SetRange(FLOAT range)
+{
+	if (range < 0.0f)
+		range = 0.0f;
+}
+
+void PointLight::SetAtt(const XMFLOAT3 att)
+{
+	SetAtt(&att);
+}
+
+void PointLight::SetAtt(const XMFLOAT3* pAtt)
+{
+	m_att = *pAtt;
+}
+
+SpotLight::SpotLight() noexcept
+	: ILight(SpotLightManager.AssignUniqueId())
+	, m_range(1.0f)
 	, m_spotExp(4.0f)
 	, m_att(0.0f, 0.0f, 1.0f)
 {
-	this->SetId(SpotLightManager.AssignUniqueId());
 }
 
 IComponentManager* SpotLight::GetComponentManager() const

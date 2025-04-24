@@ -10,17 +10,8 @@
     <Filter Include="Files\ZergEngine\Common">
       <UniqueIdentifier>{8e8f9bc5-ff4a-49f6-a92e-70e9c3cb4545}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Files\ZergEngine\Common\DirectXTK">
-      <UniqueIdentifier>{e75b379c-6843-48e4-8db7-51c6e9b26863}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Files\ZergEngine\Common\DirectXTex">
-      <UniqueIdentifier>{cd70828c-a9dd-447e-8adb-676863c74751}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Files\ZergEngine\CoreSystem">
       <UniqueIdentifier>{7e7c8dbb-7a71-43dc-959b-c165adef07dd}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Files\ZergEngine\CoreSystem\LowLevelRenderer">
-      <UniqueIdentifier>{42a626f7-272a-46a5-866d-6207bd092ff2}</UniqueIdentifier>
     </Filter>
     <Filter Include="Files\ZergEngine\CoreSystem\Resource">
       <UniqueIdentifier>{0a66c9c5-141f-446a-aac3-ca87a345ab7f}</UniqueIdentifier>
@@ -34,11 +25,35 @@
     <Filter Include="Files\ZergEngine\CoreSystem\DataStructure">
       <UniqueIdentifier>{ec3203ef-c6f5-4119-8cae-74bbf095d79e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Files\ZergEngine\CoreSystem\ComponentSystem">
-      <UniqueIdentifier>{b3d46867-08c0-4d55-96b4-3cfddbe60ac3}</UniqueIdentifier>
+    <Filter Include="Files\ZergEngine\CoreSystem\Manager">
+      <UniqueIdentifier>{f0593807-9c9f-4454-8195-2a4ae107f2f0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Files\ZergEngine\CoreSystem\Resource\ShaderCode">
+    <Filter Include="Files\ZergEngine\CoreSystem\Manager\ComponentManager">
+      <UniqueIdentifier>{25bfb02a-cb58-4c28-a904-cb1592907472}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Files\ZergEngine\CoreSystem\GamePlayBase\CanvasItem">
+      <UniqueIdentifier>{a0ea046f-46b1-4b58-9ce8-9d82f4cef7cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Files\ZergEngine\CoreSystem\Effect">
+      <UniqueIdentifier>{5f426cbe-d976-4d11-bacb-7efe9eadec62}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Files\extlib">
+      <UniqueIdentifier>{722aff78-7126-4485-9ead-31076d4187ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Files\extlib\DirectXTex">
+      <UniqueIdentifier>{cd70828c-a9dd-447e-8adb-676863c74751}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Files\extlib\DirectXTK">
+      <UniqueIdentifier>{e75b379c-6843-48e4-8db7-51c6e9b26863}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Files\ZergEngine\CoreSystem\ShaderResource">
+      <UniqueIdentifier>{f098acac-efa6-4024-9447-910bc6a88b7e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Files\ZergEngine\CoreSystem\ShaderCode">
       <UniqueIdentifier>{e92a1726-7c06-492a-86bb-e736f838346a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Files\ZergEngine\CoreSystem\DeviceContext">
+      <UniqueIdentifier>{42897642-bd97-4a56-9cb8-a63142bf1766}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -82,70 +97,70 @@
       <Filter>Files\ZergEngine\Common</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\Common\DirectXTK\Audio.h">
-      <Filter>Files\ZergEngine\Common\DirectXTK</Filter>
+      <Filter>Files\extlib\DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\Common\DirectXTK\BufferHelpers.h">
-      <Filter>Files\ZergEngine\Common\DirectXTK</Filter>
+      <Filter>Files\extlib\DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\Common\DirectXTK\CommonStates.h">
-      <Filter>Files\ZergEngine\Common\DirectXTK</Filter>
+      <Filter>Files\extlib\DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\Common\DirectXTK\DDSTextureLoader.h">
-      <Filter>Files\ZergEngine\Common\DirectXTK</Filter>
+      <Filter>Files\extlib\DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\Common\DirectXTK\DirectXHelpers.h">
-      <Filter>Files\ZergEngine\Common\DirectXTK</Filter>
+      <Filter>Files\extlib\DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\Common\DirectXTK\Effects.h">
-      <Filter>Files\ZergEngine\Common\DirectXTK</Filter>
+      <Filter>Files\extlib\DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\Common\DirectXTK\GamePad.h">
-      <Filter>Files\ZergEngine\Common\DirectXTK</Filter>
+      <Filter>Files\extlib\DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\Common\DirectXTK\GeometricPrimitive.h">
-      <Filter>Files\ZergEngine\Common\DirectXTK</Filter>
+      <Filter>Files\extlib\DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\Common\DirectXTK\GraphicsMemory.h">
-      <Filter>Files\ZergEngine\Common\DirectXTK</Filter>
+      <Filter>Files\extlib\DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\Common\DirectXTK\Keyboard.h">
-      <Filter>Files\ZergEngine\Common\DirectXTK</Filter>
+      <Filter>Files\extlib\DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\Common\DirectXTK\Model.h">
-      <Filter>Files\ZergEngine\Common\DirectXTK</Filter>
+      <Filter>Files\extlib\DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\Common\DirectXTK\Mouse.h">
-      <Filter>Files\ZergEngine\Common\DirectXTK</Filter>
+      <Filter>Files\extlib\DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\Common\DirectXTK\PostProcess.h">
-      <Filter>Files\ZergEngine\Common\DirectXTK</Filter>
+      <Filter>Files\extlib\DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\Common\DirectXTK\PrimitiveBatch.h">
-      <Filter>Files\ZergEngine\Common\DirectXTK</Filter>
+      <Filter>Files\extlib\DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\Common\DirectXTK\ScreenGrab.h">
-      <Filter>Files\ZergEngine\Common\DirectXTK</Filter>
+      <Filter>Files\extlib\DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\Common\DirectXTK\SimpleMath.h">
-      <Filter>Files\ZergEngine\Common\DirectXTK</Filter>
+      <Filter>Files\extlib\DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\Common\DirectXTK\SpriteBatch.h">
-      <Filter>Files\ZergEngine\Common\DirectXTK</Filter>
+      <Filter>Files\extlib\DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\Common\DirectXTK\SpriteFont.h">
-      <Filter>Files\ZergEngine\Common\DirectXTK</Filter>
+      <Filter>Files\extlib\DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\Common\DirectXTK\VertexTypes.h">
-      <Filter>Files\ZergEngine\Common\DirectXTK</Filter>
+      <Filter>Files\extlib\DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\Common\DirectXTK\WICTextureLoader.h">
-      <Filter>Files\ZergEngine\Common\DirectXTK</Filter>
+      <Filter>Files\extlib\DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\Common\DirectXTK\XboxDDSTextureLoader.h">
-      <Filter>Files\ZergEngine\Common\DirectXTK</Filter>
+      <Filter>Files\extlib\DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\Common\DirectXTex\DirectXTex.h">
-      <Filter>Files\ZergEngine\Common\DirectXTex</Filter>
+      <Filter>Files\extlib\DirectXTex</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\Math.h">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
@@ -165,13 +180,7 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Mesh.h">
       <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Skybox.h">
-      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
-    </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Texture.h">
-      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Resource.h">
       <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\COMInitializer.h">
@@ -183,20 +192,8 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\GraphicDevice.h">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\LowLevelRenderer\Renderer.h">
-      <Filter>Files\ZergEngine\CoreSystem\LowLevelRenderer</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Shader.h">
-      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\ResourceManager.h">
-      <Filter>Files\ZergEngine\CoreSystem</Filter>
-    </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\RawVector.h">
       <Filter>Files\ZergEngine\CoreSystem\DataStructure</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\SceneManager.h">
-      <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\Scene.h">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
@@ -204,43 +201,13 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\SlimRWLock.h">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\ComponentSystem\CameraManager.h">
-      <Filter>Files\ZergEngine\CoreSystem\ComponentSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\ComponentSystem\ScriptManager.h">
-      <Filter>Files\ZergEngine\CoreSystem\ComponentSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\ComponentSystem\MeshRendererManager.h">
-      <Filter>Files\ZergEngine\CoreSystem\ComponentSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\ComponentSystem\DirectionalLightManager.h">
-      <Filter>Files\ZergEngine\CoreSystem\ComponentSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\LowLevelRenderer\Pass.h">
-      <Filter>Files\ZergEngine\CoreSystem\LowLevelRenderer</Filter>
-    </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\FileSystem.h">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\ComponentSystem\ComponentManagerInterface.h">
-      <Filter>Files\ZergEngine\CoreSystem\ComponentSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\ComponentSystem\PointLightManager.h">
-      <Filter>Files\ZergEngine\CoreSystem\ComponentSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\ComponentSystem\SpotLightManager.h">
-      <Filter>Files\ZergEngine\CoreSystem\ComponentSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\ComponentSystem\TerrainManager.h">
-      <Filter>Files\ZergEngine\CoreSystem\ComponentSystem</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\SubsystemInterface.h">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\SceneTable.h">
-      <Filter>Files\ZergEngine\CoreSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\GameObjectManager.h">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\InputLayout.h">
@@ -252,9 +219,6 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\TerrainData.h">
       <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\EnvironmentManager.h">
-      <Filter>Files\ZergEngine\CoreSystem</Filter>
-    </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\GameObject.h">
       <Filter>Files\ZergEngine\CoreSystem\GamePlayBase</Filter>
     </ClInclude>
@@ -264,11 +228,110 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Handle.h">
       <Filter>Files\ZergEngine\CoreSystem\GamePlayBase</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\ComponentSystem\ComponentManagerMap.h">
-      <Filter>Files\ZergEngine\CoreSystem\ComponentSystem</Filter>
-    </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\Runtime.h">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Aabb.h">
+      <Filter>Files\ZergEngine\CoreSystem\DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Renderer.h">
+      <Filter>Files\ZergEngine\CoreSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\SceneManager.h">
+      <Filter>Files\ZergEngine\CoreSystem\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ResourceManager.h">
+      <Filter>Files\ZergEngine\CoreSystem\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\GameObjectManager.h">
+      <Filter>Files\ZergEngine\CoreSystem\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\EnvironmentManager.h">
+      <Filter>Files\ZergEngine\CoreSystem\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\CameraManager.h">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\ComponentManagerInterface.h">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\ComponentManagerMap.h">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\DirectionalLightManager.h">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\MeshRendererManager.h">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\PointLightManager.h">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\ScriptManager.h">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\SpotLightManager.h">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\TerrainManager.h">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\ViewportRect.h">
+      <Filter>Files\ZergEngine\CoreSystem\DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\CanvasItem\UIHitbox.h">
+      <Filter>Files\ZergEngine\CoreSystem\DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\TransformManager.h">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\CanvasItem\RectTransform.h">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\CanvasItem</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\CanvasItem\Image.h">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\CanvasItem</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\CanvasItem\CanvasItemInterface.h">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\CanvasItem</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\EffectInterface.h">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPNT.h">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\ShaderResource\ShaderResourceSlotNumTable.h">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderResource</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\ShaderResource\ConstantBuffer.h">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderResource</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Shader.h">
+      <Filter>Files\ZergEngine\CoreSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\DeviceContext\EffectDeviceContext.h">
+      <Filter>Files\ZergEngine\CoreSystem\DeviceContext</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DummyEffect.h">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectP.h">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPC.h">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPN.h">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPT.h">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\SkyboxEffect.h">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\MSCameraMergeEffect.h">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -317,13 +380,7 @@
     <ClCompile Include="source\CoreSystem\Resource\Mesh.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
     </ClCompile>
-    <ClCompile Include="source\CoreSystem\Resource\Skybox.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
-    </ClCompile>
     <ClCompile Include="source\CoreSystem\Resource\Texture.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\Resource\Resource.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\COMInitializer.cpp">
@@ -335,20 +392,8 @@
     <ClCompile Include="source\CoreSystem\GraphicDevice.cpp">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClCompile>
-    <ClCompile Include="source\CoreSystem\LowLevelRenderer\Renderer.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\LowLevelRenderer</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\Resource\Shader.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\ResourceManager.cpp">
-      <Filter>Files\ZergEngine\CoreSystem</Filter>
-    </ClCompile>
     <ClCompile Include="source\CoreSystem\DataStructure\RawVector.cpp">
       <Filter>Files\ZergEngine\CoreSystem\DataStructure</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\SceneManager.cpp">
-      <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\Scene.cpp">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
@@ -356,43 +401,16 @@
     <ClCompile Include="source\CoreSystem\SlimRWLock.cpp">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClCompile>
-    <ClCompile Include="source\CoreSystem\ComponentSystem\CameraManager.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\ComponentSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\ComponentSystem\ScriptManager.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\ComponentSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\ComponentSystem\MeshRendererManager.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\ComponentSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\ComponentSystem\DirectionalLightManager.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\ComponentSystem</Filter>
-    </ClCompile>
     <ClCompile Include="source\Common\EngineHelper.cpp">
       <Filter>Files\ZergEngine\Common</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\FileSystem.cpp">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClCompile>
-    <ClCompile Include="source\CoreSystem\ComponentSystem\ComponentManagerInterface.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\ComponentSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\ComponentSystem\PointLightManager.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\ComponentSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\ComponentSystem\SpotLightManager.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\ComponentSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\ComponentSystem\TerrainManager.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\ComponentSystem</Filter>
-    </ClCompile>
     <ClCompile Include="source\CoreSystem\SubsystemInterface.cpp">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\SceneTable.cpp">
-      <Filter>Files\ZergEngine\CoreSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\GameObjectManager.cpp">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\GamePlayBase\GameObject.cpp">
@@ -407,90 +425,171 @@
     <ClCompile Include="source\CoreSystem\Resource\TerrainData.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
     </ClCompile>
-    <ClCompile Include="source\CoreSystem\EnvironmentManager.cpp">
-      <Filter>Files\ZergEngine\CoreSystem</Filter>
-    </ClCompile>
     <ClCompile Include="source\CoreSystem\GamePlayBase\Handle.cpp">
       <Filter>Files\ZergEngine\CoreSystem\GamePlayBase</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\ComponentSystem\ComponentManagerMap.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\ComponentSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\LowLevelRenderer\Pass.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\LowLevelRenderer</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\Runtime.cpp">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClCompile>
+    <ClCompile Include="source\CoreSystem\DataStructure\Aabb.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\DataStructure</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Renderer.cpp">
+      <Filter>Files\ZergEngine\CoreSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Manager\SceneManager.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Manager\ResourceManager.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Manager\GameObjectManager.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Manager\EnvironmentManager.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\CameraManager.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\ComponentManagerInterface.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\ComponentManagerMap.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\DirectionalLightManager.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\MeshRendererManager.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\PointLightManager.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\ScriptManager.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\SpotLightManager.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\TerrainManager.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\TransformManager.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\GamePlayBase\CanvasItem\RectTransform.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\CanvasItem</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\GamePlayBase\CanvasItem\Image.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\CanvasItem</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\GamePlayBase\CanvasItem\CanvasItemInterface.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\CanvasItem</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Effect\BasicEffectPNT.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\ShaderResource\ConstantBuffer.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderResource</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Shader.cpp">
+      <Filter>Files\ZergEngine\CoreSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\DeviceContext\EffectDeviceContext.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\DeviceContext</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Effect\DummyEffect.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Effect\BasicEffectP.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Effect\BasicEffectPC.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Effect\BasicEffectPN.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Effect\BasicEffectPT.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Effect\SkyboxEffect.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Effect\MSCameraMergeEffect.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="source\CoreSystem\Resource\ShaderCode\ShaderCommon.hlsli">
-      <Filter>Files\ZergEngine\CoreSystem\Resource\ShaderCode</Filter>
+    <None Include="source\CoreSystem\ShaderCode\ShaderCommon.hlsli">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </None>
     <None Include="include\ZergEngine\Common\DirectXTK\SimpleMath.inl">
-      <Filter>Files\ZergEngine\Common\DirectXTK</Filter>
+      <Filter>Files\extlib\DirectXTK</Filter>
     </None>
     <None Include="include\ZergEngine\Common\DirectXTex\DirectXTex.inl">
-      <Filter>Files\ZergEngine\Common\DirectXTex</Filter>
+      <Filter>Files\extlib\DirectXTex</Filter>
     </None>
-    <None Include="source\CoreSystem\Resource\ShaderCode\SubsetLighting.hlsli">
-      <Filter>Files\ZergEngine\CoreSystem\Resource\ShaderCode</Filter>
+    <None Include="source\CoreSystem\ShaderCode\SubsetLighting.hlsli">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\VSStandardTransformPNT.hlsl">
-      <Filter>Files\ZergEngine\CoreSystem\Resource\ShaderCode</Filter>
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformPNTToHCS.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\PSStandardColoringP.hlsl">
-      <Filter>Files\ZergEngine\CoreSystem\Resource\ShaderCode</Filter>
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorPFragment.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\PSStandardColoringPN.hlsl">
-      <Filter>Files\ZergEngine\CoreSystem\Resource\ShaderCode</Filter>
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorPNFragment.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\PSStandardColoringPNT.hlsl">
-      <Filter>Files\ZergEngine\CoreSystem\Resource\ShaderCode</Filter>
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorPNTFragment.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\PSSkyboxColoring.hlsl">
-      <Filter>Files\ZergEngine\CoreSystem\Resource\ShaderCode</Filter>
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorSkyboxFragment.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\VSStandardTransformPN.hlsl">
-      <Filter>Files\ZergEngine\CoreSystem\Resource\ShaderCode</Filter>
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformPNToHCS.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\VSStandardTransformP.hlsl">
-      <Filter>Files\ZergEngine\CoreSystem\Resource\ShaderCode</Filter>
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformPToHCS.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\VSStandardTransformPC.hlsl">
-      <Filter>Files\ZergEngine\CoreSystem\Resource\ShaderCode</Filter>
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformPCToHCS.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\PSStandardColoringPC.hlsl">
-      <Filter>Files\ZergEngine\CoreSystem\Resource\ShaderCode</Filter>
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorPCFragment.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\VSStandardTransformPT.hlsl">
-      <Filter>Files\ZergEngine\CoreSystem\Resource\ShaderCode</Filter>
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformPTToHCS.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\PSStandardColoringPT.hlsl">
-      <Filter>Files\ZergEngine\CoreSystem\Resource\ShaderCode</Filter>
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorPTFragment.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\VSCameraMerge.hlsl">
-      <Filter>Files\ZergEngine\CoreSystem\Resource\ShaderCode</Filter>
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformCameraMergeQuad.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\PSMSCameraMerge.hlsl">
-      <Filter>Files\ZergEngine\CoreSystem\Resource\ShaderCode</Filter>
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorPTFragmentSingleMSTexture.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\VSTerrainTransform.hlsl">
-      <Filter>Files\ZergEngine\CoreSystem\Resource\ShaderCode</Filter>
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformTerrainPatchCtrlPt.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\HSTerrainRendering.hlsl">
-      <Filter>Files\ZergEngine\CoreSystem\Resource\ShaderCode</Filter>
+    <FxCompile Include="source\CoreSystem\ShaderCode\HSCalcTerrainTessFactor.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\DSTerrainRendering.hlsl">
-      <Filter>Files\ZergEngine\CoreSystem\Resource\ShaderCode</Filter>
+    <FxCompile Include="source\CoreSystem\ShaderCode\DSSampleTerrainHeightMap.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\PSTerrainColoring.hlsl">
-      <Filter>Files\ZergEngine\CoreSystem\Resource\ShaderCode</Filter>
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorTerrainFragment.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\VSSkyboxTransform.hlsl">
-      <Filter>Files\ZergEngine\CoreSystem\Resource\ShaderCode</Filter>
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformSkyboxToHCS.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

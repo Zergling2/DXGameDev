@@ -1,19 +1,18 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Terrain.h>
-#include <ZergEngine\CoreSystem\ComponentSystem\TerrainManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\TerrainManager.h>
 
 using namespace ze;
 
 Terrain::Terrain()
-	: m_spTerrainData(nullptr)
+	: IComponent(TerrainManager.AssignUniqueId())
+	, m_spTerrainData(nullptr)
 {
-	this->SetId(TerrainManager.AssignUniqueId());
 }
 
 IComponentManager* Terrain::GetComponentManager() const
 {
 	return &TerrainManager;
 }
-
 
 /*
 std::shared_ptr<Terrain> Terrain::LoadTerrain(PCWSTR path, const TerrainData& td)

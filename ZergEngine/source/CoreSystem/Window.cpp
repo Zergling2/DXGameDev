@@ -2,7 +2,7 @@
 #include <ZergEngine\CoreSystem\Runtime.h>
 #include <ZergEngine\CoreSystem\Debug.h>
 #include <ZergEngine\CoreSystem\GraphicDevice.h>
-#include <ZergEngine\CoreSystem\ComponentSystem\CameraManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\CameraManager.h>
 
 namespace ze
 {
@@ -109,7 +109,7 @@ void WindowImpl::SetResolution(uint32_t width, uint32_t height, bool fullscreen)
     GraphicDevice.OnResize();
     CameraManager.OnResize();    // 카메라 렌더버퍼 재생성, 투영 행렬, D3D11 뷰포트 구조체 업데이트
 
-    if (m_fullscreen == false)
+    if (!m_fullscreen)
     {
         RECT cr = RECT{ 0, 0, static_cast<LONG>(m_width), static_cast<LONG>(m_height) };
         if (AdjustWindowRect(&cr, m_style, FALSE) == FALSE)

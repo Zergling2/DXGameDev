@@ -142,16 +142,20 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="source\main.cpp" />
-    <ClCompile Include="source\Scene\Lobby.cpp" />
-    <ClCompile Include="source\Script\CameraTestMovement.cpp" />
+    <ClCompile Include="source\Scene\SpaceTestScene.cpp" />
+    <ClCompile Include="source\Scene\TestScene1.cpp" />
+    <ClCompile Include="source\Scene\TestScene2.cpp" />
     <ClCompile Include="source\Script\FirstPersonCamera.cpp" />
+    <ClCompile Include="source\Script\MovePointLight.cpp" />
     <ClCompile Include="source\Script\SunScript.cpp" />
     <ClCompile Include="source\Script\TestScript.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="source\Scene\Lobby.h" />
-    <ClInclude Include="source\Script\CameraTestMovement.h" />
+    <ClInclude Include="source\Scene\SpaceTestScene.h" />
+    <ClInclude Include="source\Scene\TestScene1.h" />
+    <ClInclude Include="source\Scene\TestScene2.h" />
     <ClInclude Include="source\Script\FirstPersonCamera.h" />
+    <ClInclude Include="source\Script\MovePointLight.h" />
     <ClInclude Include="source\Script\SunScript.h" />
     <ClInclude Include="source\Script\TestScript.h" />
   </ItemGroup>

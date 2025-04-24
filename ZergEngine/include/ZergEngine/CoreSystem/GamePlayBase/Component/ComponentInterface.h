@@ -11,26 +11,47 @@ namespace ze
 		friend class RuntimeImpl;
 		friend class IComponentManager;
 		friend class SceneManagerImpl;
+		friend class GameObject;
+		friend class Camera;
+		friend class RendererImpl;
+		friend class BasicEffectP;
+		friend class BasicEffectPC;
+		friend class BasicEffectPN;
+		friend class BasicEffectPT;
+		friend class BasicEffectPNT;
+		friend class SkyboxEffect;
 	public:
-		IComponent();
+		IComponent(uint64_t id) noexcept
+			: m_pGameObject(nullptr)
+			, m_id(id)
+			, m_tableIndex(std::numeric_limits<uint32_t>::max())
+			, m_activeIndex(std::numeric_limits<uint32_t>::max())
+			, m_onDestroyQueue(false)
+			, m_enabled(true)
+		{
+		}
 		virtual ~IComponent() = default;
+
 		virtual COMPONENT_TYPE GetType() const = 0;
-		const GameObjectHandle& GetGameObjectHandle() const { return m_hGameObject; }
-		inline uint64_t GetId() const { return m_id; }
-		inline bool IsEnabled() const { return m_enabled; }
-		bool Enable();
-		bool Disable();
-	protected:
-		inline void SetId(uint64_t id) { m_id = id; }
+		const GameObjectHandle GetGameObjectHandle() const;
+		uint64_t GetId() const { return m_id; }
+		bool IsEnabled() const { return m_enabled; }
+		void Enable();
+		void Disable();
 	private:
+		ComponentHandleBase ToHandleBase() const;
 		virtual IComponentManager* GetComponentManager() const = 0;
 		virtual void SystemJobOnEnabled();
 		virtual void SystemJobOnDisabled();
+
+		void SetOnDestroyQueueFlag() { m_onDestroyQueue = true; }
+		bool IsOnTheDestroyQueue() const { return m_onDestroyQueue; }
 	private:
-		GameObjectHandle m_hGameObject;
+		GameObject* m_pGameObject;
 		uint64_t m_id;
-		uint32_t m_index;
+		uint32_t m_tableIndex;
 		uint32_t m_activeIndex;
+		bool m_onDestroyQueue;
 		bool m_enabled;
 	};
 }

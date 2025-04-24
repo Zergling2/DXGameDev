@@ -28,10 +28,13 @@ namespace ze
 			return static_cast<T>(1) << n;
 		}
 
+		// 쿼터니언을 Z(Roll), X(Pitch), Y(Yaw) 변환 순서의 오일러 각도 모음으로 변환시킵니다.
+		static XMVECTOR XM_CALLCONV QuaternionToEuler(XMVECTOR quaternion) noexcept;
+
 		// ============================================================================
 		// Graphics math
 		
 		// 월드 공간에서의 절두체 평면 6개 계산 및 반환
-		static void ExtractFrustumPlanesInWorldSpace(const XMFLOAT4X4A* pViewProjMatrix, XMFLOAT4A planes[6]);
+		static void ExtractFrustumPlanesInWorldSpace(const XMFLOAT4X4A* pViewProjMatrix, XMFLOAT4A planes[6]) noexcept;
 	};
 }

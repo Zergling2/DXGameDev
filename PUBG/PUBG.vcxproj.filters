@@ -15,13 +15,10 @@
     <ClCompile Include="source\main.cpp">
       <Filter>source</Filter>
     </ClCompile>
-    <ClCompile Include="source\Scene\Lobby.cpp">
+    <ClCompile Include="source\Scene\TestScene1.cpp">
       <Filter>source\Scene</Filter>
     </ClCompile>
     <ClCompile Include="source\Script\TestScript.cpp">
-      <Filter>source\Script</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Script\CameraTestMovement.cpp">
       <Filter>source\Script</Filter>
     </ClCompile>
     <ClCompile Include="source\Script\SunScript.cpp">
@@ -30,15 +27,21 @@
     <ClCompile Include="source\Script\FirstPersonCamera.cpp">
       <Filter>source\Script</Filter>
     </ClCompile>
+    <ClCompile Include="source\Scene\TestScene2.cpp">
+      <Filter>source\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Script\MovePointLight.cpp">
+      <Filter>source\Script</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Scene\SpaceTestScene.cpp">
+      <Filter>source\Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="source\Scene\Lobby.h">
+    <ClInclude Include="source\Scene\TestScene1.h">
       <Filter>source\Scene</Filter>
     </ClInclude>
     <ClInclude Include="source\Script\TestScript.h">
-      <Filter>source\Script</Filter>
-    </ClInclude>
-    <ClInclude Include="source\Script\CameraTestMovement.h">
       <Filter>source\Script</Filter>
     </ClInclude>
     <ClInclude Include="source\Script\SunScript.h">
@@ -46,6 +49,15 @@
     </ClInclude>
     <ClInclude Include="source\Script\FirstPersonCamera.h">
       <Filter>source\Script</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Scene\TestScene2.h">
+      <Filter>source\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Script\MovePointLight.h">
+      <Filter>source\Script</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Scene\SpaceTestScene.h">
+      <Filter>source\Scene</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

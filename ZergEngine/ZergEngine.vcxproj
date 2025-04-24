@@ -43,22 +43,38 @@
     <ClInclude Include="include\ZergEngine\Common\EngineConstants.h" />
     <ClInclude Include="include\ZergEngine\Common\EngineHelper.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\COMInitializer.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\ComponentSystem\CameraManager.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\ComponentSystem\ComponentManagerInterface.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\ComponentSystem\ComponentManagerMap.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\ComponentSystem\DirectionalLightManager.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\ComponentSystem\MeshRendererManager.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\ComponentSystem\PointLightManager.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\ComponentSystem\ScriptManager.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\ComponentSystem\SpotLightManager.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\ComponentSystem\TerrainManager.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\DeviceContext\EffectDeviceContext.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectP.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPC.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPN.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPNT.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPT.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\MSCameraMergeEffect.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DummyEffect.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\EffectInterface.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\SkyboxEffect.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\CanvasItem\UIHitbox.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\ViewportRect.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\CanvasItem\CanvasItemInterface.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\CanvasItem\Image.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\CanvasItem\RectTransform.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\CameraManager.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\ComponentManagerInterface.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\ComponentManagerMap.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\DirectionalLightManager.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\MeshRendererManager.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\PointLightManager.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\ScriptManager.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\SpotLightManager.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\TerrainManager.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Aabb.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\FileSystem.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\GameObjectManager.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\EnvironmentManager.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\TransformManager.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\GameObjectManager.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\EnvironmentManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Handle.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\ComponentType.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\LowLevelRenderer\Pass.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\LowLevelRenderer\Renderer.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Renderer.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Math.h" />
     <ClInclude Include="include\ZergEngine\Common\ThirdPartySDK.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\Camera.h" />
@@ -69,64 +85,76 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Debug.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\ComponentInterface.h" />
     <ClInclude Include="include\ZergEngine\Common\DirectXTex\DirectXTex.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\ResourceManager.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ResourceManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\GameObject.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\MemoryAllocator.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\RenderState.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\TerrainData.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\SceneTable.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\ShaderResource\ConstantBuffer.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\ShaderResource\ShaderResourceSlotNumTable.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\SlimRWLock.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\SubsystemInterface.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\SystemInfo.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GraphicDevice.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Material.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Mesh.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Skybox.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\Terrain.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Input.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\RawVector.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Resource.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Window.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Runtime.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Scene.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\SceneManager.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\SceneManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\InputLayout.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Shader.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Shader.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Texture.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Time.h" />
     <ClInclude Include="include\ZergEngine\ZergEngine.h" />
-    <ClCompile Include="source\CoreSystem\LowLevelRenderer\Pass.cpp" />
-    <ClCompile Include="source\CoreSystem\ComponentSystem\ComponentManagerMap.cpp" />
-    <ClCompile Include="source\CoreSystem\EnvironmentManager.cpp" />
+    <ClCompile Include="source\CoreSystem\DataStructure\Aabb.cpp" />
+    <ClCompile Include="source\CoreSystem\DeviceContext\EffectDeviceContext.cpp" />
+    <ClCompile Include="source\CoreSystem\Effect\BasicEffectP.cpp" />
+    <ClCompile Include="source\CoreSystem\Effect\BasicEffectPC.cpp" />
+    <ClCompile Include="source\CoreSystem\Effect\BasicEffectPN.cpp" />
+    <ClCompile Include="source\CoreSystem\Effect\BasicEffectPNT.cpp" />
+    <ClCompile Include="source\CoreSystem\Effect\BasicEffectPT.cpp" />
+    <ClCompile Include="source\CoreSystem\Effect\MSCameraMergeEffect.cpp" />
+    <ClCompile Include="source\CoreSystem\Effect\DummyEffect.cpp" />
+    <ClCompile Include="source\CoreSystem\Effect\SkyboxEffect.cpp" />
+    <ClCompile Include="source\CoreSystem\GamePlayBase\CanvasItem\CanvasItemInterface.cpp" />
+    <ClCompile Include="source\CoreSystem\GamePlayBase\CanvasItem\Image.cpp" />
+    <ClCompile Include="source\CoreSystem\GamePlayBase\CanvasItem\RectTransform.cpp" />
+    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\TransformManager.cpp" />
+    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\ComponentManagerMap.cpp" />
+    <ClCompile Include="source\CoreSystem\Manager\EnvironmentManager.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Handle.cpp" />
     <ClCompile Include="source\Common\EngineHelper.cpp" />
     <ClCompile Include="source\CoreSystem\COMInitializer.cpp" />
-    <ClCompile Include="source\CoreSystem\ComponentSystem\CameraManager.cpp" />
-    <ClCompile Include="source\CoreSystem\ComponentSystem\ComponentManagerInterface.cpp" />
-    <ClCompile Include="source\CoreSystem\ComponentSystem\DirectionalLightManager.cpp" />
-    <ClCompile Include="source\CoreSystem\ComponentSystem\MeshRendererManager.cpp" />
-    <ClCompile Include="source\CoreSystem\ComponentSystem\PointLightManager.cpp" />
-    <ClCompile Include="source\CoreSystem\ComponentSystem\ScriptManager.cpp" />
-    <ClCompile Include="source\CoreSystem\ComponentSystem\SpotLightManager.cpp" />
-    <ClCompile Include="source\CoreSystem\ComponentSystem\TerrainManager.cpp" />
+    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\CameraManager.cpp" />
+    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\ComponentManagerInterface.cpp" />
+    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\DirectionalLightManager.cpp" />
+    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\MeshRendererManager.cpp" />
+    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\PointLightManager.cpp" />
+    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\ScriptManager.cpp" />
+    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\SpotLightManager.cpp" />
+    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\TerrainManager.cpp" />
     <ClCompile Include="source\CoreSystem\FileSystem.cpp" />
-    <ClCompile Include="source\CoreSystem\GameObjectManager.cpp" />
+    <ClCompile Include="source\CoreSystem\Manager\GameObjectManager.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\Light.cpp" />
-    <ClCompile Include="source\CoreSystem\LowLevelRenderer\Renderer.cpp" />
+    <ClCompile Include="source\CoreSystem\Renderer.cpp" />
     <ClCompile Include="source\CoreSystem\MemoryAllocator.cpp" />
-    <ClCompile Include="source\CoreSystem\ResourceManager.cpp" />
+    <ClCompile Include="source\CoreSystem\Manager\ResourceManager.cpp" />
     <ClCompile Include="source\CoreSystem\RenderState.cpp" />
     <ClCompile Include="source\CoreSystem\Resource\TerrainData.cpp" />
     <ClCompile Include="source\CoreSystem\SceneTable.cpp" />
+    <ClCompile Include="source\CoreSystem\ShaderResource\ConstantBuffer.cpp" />
     <ClCompile Include="source\CoreSystem\SlimRWLock.cpp" />
     <ClCompile Include="source\CoreSystem\SubsystemInterface.cpp" />
     <ClCompile Include="source\CoreSystem\SystemInfo.cpp" />
     <ClCompile Include="source\CoreSystem\Resource\Material.cpp" />
     <ClCompile Include="source\CoreSystem\Resource\Mesh.cpp" />
-    <ClCompile Include="source\CoreSystem\Resource\Skybox.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\Terrain.cpp" />
     <ClCompile Include="source\CoreSystem\DataStructure\RawVector.cpp" />
-    <ClCompile Include="source\CoreSystem\Resource\Resource.cpp" />
     <ClCompile Include="source\CoreSystem\InputLayout.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -143,25 +171,25 @@
     <ClCompile Include="source\CoreSystem\Input.cpp" />
     <ClCompile Include="source\CoreSystem\Window.cpp" />
     <ClCompile Include="source\CoreSystem\Runtime.cpp" />
-    <ClCompile Include="source\CoreSystem\SceneManager.cpp" />
-    <ClCompile Include="source\CoreSystem\Resource\Shader.cpp" />
+    <ClCompile Include="source\CoreSystem\Manager\SceneManager.cpp" />
+    <ClCompile Include="source\CoreSystem\Shader.cpp" />
     <ClCompile Include="source\CoreSystem\Resource\Texture.cpp" />
     <ClCompile Include="source\CoreSystem\Time.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="include\ZergEngine\Common\DirectXTK\SimpleMath.inl" />
     <None Include="include\ZergEngine\Common\DirectXTex\DirectXTex.inl" />
-    <None Include="source\CoreSystem\Resource\ShaderCode\ShaderCommon.hlsli">
+    <None Include="source\CoreSystem\ShaderCode\ShaderCommon.hlsli">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <FileType>Document</FileType>
     </None>
-    <None Include="source\CoreSystem\Resource\ShaderCode\SubsetLighting.hlsli" />
+    <None Include="source\CoreSystem\ShaderCode\SubsetLighting.hlsli" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\DSTerrainRendering.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\DSSampleTerrainHeightMap.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Domain</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Domain</ShaderType>
@@ -171,7 +199,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Domain</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\HSTerrainRendering.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\HSCalcTerrainTessFactor.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Hull</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Hull</ShaderType>
@@ -181,7 +209,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Hull</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\PSMSCameraMerge.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorPTFragmentSingleMSTexture.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
@@ -191,7 +219,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\PSStandardColoringPC.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorPCFragment.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
@@ -201,7 +229,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\PSStandardColoringPN.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorPNFragment.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -211,7 +239,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\PSStandardColoringPNT.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorPNTFragment.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -221,7 +249,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\PSStandardColoringP.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorPFragment.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
@@ -231,7 +259,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\PSSkyboxColoring.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorSkyboxFragment.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
@@ -241,7 +269,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\PSStandardColoringPT.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorPTFragment.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
@@ -251,7 +279,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\PSTerrainColoring.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorTerrainFragment.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
@@ -261,7 +289,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\VSCameraMerge.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformCameraMergeQuad.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
@@ -271,7 +299,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\VSSkyboxTransform.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformSkyboxToHCS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
@@ -281,7 +309,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\VSStandardTransformP.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformPToHCS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
@@ -291,7 +319,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\VSStandardTransformPC.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformPCToHCS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
@@ -301,7 +329,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\VSStandardTransformPN.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformPNToHCS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
@@ -311,7 +339,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\VSStandardTransformPNT.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformPNTToHCS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
@@ -321,7 +349,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\VSStandardTransformPT.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformPTToHCS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
@@ -331,7 +359,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\Resource\ShaderCode\VSTerrainTransform.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformTerrainPatchCtrlPt.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
@@ -420,7 +448,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(ProjectDir)include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)include\;$(ProjectDir)extlib\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
     <Link>
@@ -429,8 +457,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\Win32\Debug\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex_Win32_Debug.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\bullet3\;$(ProjectDir)extlib\lib\DirectXTex\</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -443,7 +471,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(ProjectDir)include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)include\;$(ProjectDir)extlib\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>MaxSpeed</Optimization>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
@@ -455,8 +483,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\Win32\Release\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex_Win32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\bullet3\;$(ProjectDir)extlib\lib\DirectXTex\</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -467,7 +495,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(ProjectDir)include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)include\;$(ProjectDir)extlib\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
     <Link>
@@ -476,8 +504,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\x64\Debug\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;dinput8.lib;dxguid.lib;BulletDynamics_vs2010_x64_debug.lib;BulletInverseDynamics_vs2010_x64_debug.lib;BulletCollision_vs2010_x64_debug.lib;BulletSoftBody_vs2010_x64_debug.lib;LinearMath_vs2010_x64_debug.lib;DirectXTex_x64_Debug.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\bullet3\;$(ProjectDir)extlib\lib\DirectXTex\</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -490,7 +518,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(ProjectDir)include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)include\;$(ProjectDir)extlib\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>MaxSpeed</Optimization>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
@@ -502,8 +530,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\x64\Release\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;dinput8.lib;dxguid.lib;BulletDynamics_vs2010_x64_release.lib;BulletInverseDynamics_vs2010_x64_release.lib;BulletCollision_vs2010_x64_release.lib;BulletSoftBody_vs2010_x64_release.lib;LinearMath_vs2010_x64_release.lib;DirectXTex_x64.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\bullet3\;$(ProjectDir)extlib\lib\DirectXTex\</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

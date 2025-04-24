@@ -25,177 +25,170 @@ namespace ze
 		ComPtr<ID3D11InputLayout> m_cpInputLayout;
 	};
 
-	class VertexFormat
+	struct VFPosition
 	{
 	public:
-		static UINT GetStructureByteStride(VERTEX_FORMAT_TYPE vft);
-
-		struct Position
+		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
+		static constexpr uint32_t GetInputElementCount() { return VFPosition::INPUT_ELEMENT_COUNT; }
+		VFPosition() = default;
+		VFPosition(const VFPosition&) = default;
+		VFPosition& operator=(const VFPosition&) = default;
+		VFPosition(const XMFLOAT3& position) noexcept
+			: m_position(position)
 		{
-		public:
-			static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_descIE; }
-			static constexpr UINT GetInputElementCount() { return INPUT_ELEMENT_COUNT; }
-
-			Position() = default;
-			Position(const Position&) = default;
-			Position& operator=(const Position&) = default;
-			Position(const XMFLOAT3& position) noexcept
-				: m_position(position)
-			{
-			}
-			Position(FXMVECTOR position) noexcept
-			{
-				XMStoreFloat3(&m_position, position);
-			}
-		private:
-			static constexpr size_t INPUT_ELEMENT_COUNT = 1;
-			static const D3D11_INPUT_ELEMENT_DESC s_descIE[INPUT_ELEMENT_COUNT];
-		public:
-			XMFLOAT3 m_position;
-		};
-
-		// Vertex struct holding position and color information.
-		struct PositionColor	// Used for only debug wireframe mode
+		}
+		VFPosition(FXMVECTOR position) noexcept
 		{
-		public:
-			static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_descIE; }
-			static constexpr UINT GetInputElementCount() { return INPUT_ELEMENT_COUNT; }
+			XMStoreFloat3(&m_position, position);
+		}
+	private:
+		static constexpr size_t INPUT_ELEMENT_COUNT = 1;
+		static const D3D11_INPUT_ELEMENT_DESC s_ied[INPUT_ELEMENT_COUNT];
+	public:
+		XMFLOAT3 m_position;
+	};
 
-			PositionColor() = default;
-			PositionColor(const PositionColor&) = default;
-			PositionColor& operator=(const PositionColor&) = default;
-			PositionColor(const XMFLOAT3& position, const XMFLOAT4& color) noexcept
-				: m_position(position)
-				, m_color(color)
-			{
-			}
-			PositionColor(FXMVECTOR position, FXMVECTOR color) noexcept
-			{
-				XMStoreFloat3(&m_position, position);
-				XMStoreFloat4(&m_color, color);
-			}
-		private:
-			static constexpr size_t INPUT_ELEMENT_COUNT = 2;
-			static const D3D11_INPUT_ELEMENT_DESC s_descIE[INPUT_ELEMENT_COUNT];
-		public:
-			XMFLOAT3 m_position;
-			XMFLOAT4 m_color;
-			
-		};
+	// Vertex struct holding position and color information.
+	struct VFPositionColor	// Used for only debug wireframe mode
+	{
+	public:
+		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
+		static constexpr uint32_t GetInputElementCount() { return VFPositionColor::INPUT_ELEMENT_COUNT; }
 
-		// Vertex struct holding position and normal vector.
-		struct PositionNormal
+		VFPositionColor() = default;
+		VFPositionColor(const VFPositionColor&) = default;
+		VFPositionColor& operator=(const VFPositionColor&) = default;
+		VFPositionColor(const XMFLOAT3& position, const XMFLOAT4& color) noexcept
+			: m_position(position)
+			, m_color(color)
 		{
-		public:
-			static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_descIE; }
-			static constexpr UINT GetInputElementCount() { return INPUT_ELEMENT_COUNT; }
-
-			PositionNormal() = default;
-			PositionNormal(const PositionNormal&) = default;
-			PositionNormal& operator=(const PositionNormal&) = default;
-			PositionNormal(const XMFLOAT3& position, const XMFLOAT3& normal) noexcept
-				: m_position(position)
-				, m_normal(normal)
-			{
-			}
-			PositionNormal(FXMVECTOR position, FXMVECTOR normal) noexcept
-			{
-				XMStoreFloat3(&m_position, position);
-				XMStoreFloat3(&m_normal, normal);
-			}
-		private:
-			static constexpr size_t INPUT_ELEMENT_COUNT = 2;
-			static const D3D11_INPUT_ELEMENT_DESC s_descIE[INPUT_ELEMENT_COUNT];
-		public:
-			XMFLOAT3 m_position;
-			XMFLOAT3 m_normal;
-		};
-
-		struct PositionTexCoord
+		}
+		VFPositionColor(FXMVECTOR position, FXMVECTOR color) noexcept
 		{
-		public:
-			static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_descIE; }
-			static constexpr UINT GetInputElementCount() { return INPUT_ELEMENT_COUNT; }
+			XMStoreFloat3(&m_position, position);
+			XMStoreFloat4(&m_color, color);
+		}
+	private:
+		static constexpr size_t INPUT_ELEMENT_COUNT = 2;
+		static const D3D11_INPUT_ELEMENT_DESC s_ied[INPUT_ELEMENT_COUNT];
+	public:
+		XMFLOAT3 m_position;
+		XMFLOAT4 m_color;
 
-			PositionTexCoord() = default;
-			PositionTexCoord(const PositionTexCoord&) = default;
-			PositionTexCoord& operator=(const PositionTexCoord&) = default;
-			PositionTexCoord(const XMFLOAT3& position, const XMFLOAT2& texCoord) noexcept
-				: m_position(position)
-				, m_texCoord(texCoord)
-			{
-			}
-			PositionTexCoord(FXMVECTOR position, FXMVECTOR texCoord) noexcept
-			{
-				XMStoreFloat3(&m_position, position);
-				XMStoreFloat2(&m_texCoord, texCoord);
-			}
-		private:
-			static constexpr size_t INPUT_ELEMENT_COUNT = 2;
-			static const D3D11_INPUT_ELEMENT_DESC s_descIE[INPUT_ELEMENT_COUNT];
-		public:
-			XMFLOAT3 m_position;
-			XMFLOAT2 m_texCoord;
-		};
+	};
 
-		struct PositionNormalTexCoord
+	// Vertex struct holding position and normal vector.
+	struct VFPositionNormal
+	{
+	public:
+		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
+		static constexpr uint32_t GetInputElementCount() { return VFPositionNormal::INPUT_ELEMENT_COUNT; }
+
+		VFPositionNormal() = default;
+		VFPositionNormal(const VFPositionNormal&) = default;
+		VFPositionNormal& operator=(const VFPositionNormal&) = default;
+		VFPositionNormal(const XMFLOAT3& position, const XMFLOAT3& normal) noexcept
+			: m_position(position)
+			, m_normal(normal)
 		{
-		public:
-			static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_descIE; }
-			static constexpr UINT GetInputElementCount() { return INPUT_ELEMENT_COUNT; }
-
-			PositionNormalTexCoord() = default;
-			PositionNormalTexCoord(const PositionNormalTexCoord&) = default;
-			PositionNormalTexCoord& operator=(const PositionNormalTexCoord&) = default;
-			PositionNormalTexCoord(const XMFLOAT3& position, const XMFLOAT3& normal, const XMFLOAT2& texCoord) noexcept
-				: m_position(position)
-				, m_normal(normal)
-				, m_texCoord(texCoord)
-			{
-			}
-			PositionNormalTexCoord(FXMVECTOR position, FXMVECTOR normal, FXMVECTOR texCoord) noexcept
-			{
-				XMStoreFloat3(&m_position, position);
-				XMStoreFloat3(&m_normal, normal);
-				XMStoreFloat2(&m_texCoord, texCoord);
-			}
-		private:
-			static constexpr size_t INPUT_ELEMENT_COUNT = 3;
-			static const D3D11_INPUT_ELEMENT_DESC s_descIE[INPUT_ELEMENT_COUNT];
-		public:
-			XMFLOAT3 m_position;
-			XMFLOAT3 m_normal;
-			XMFLOAT2 m_texCoord;
-		};
-
-		struct TerrainControlPoint
+		}
+		VFPositionNormal(FXMVECTOR position, FXMVECTOR normal) noexcept
 		{
-		public:
-			static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_descIE; }
-			static constexpr UINT GetInputElementCount() { return INPUT_ELEMENT_COUNT; }
+			XMStoreFloat3(&m_position, position);
+			XMStoreFloat3(&m_normal, normal);
+		}
+	private:
+		static constexpr size_t INPUT_ELEMENT_COUNT = 2;
+		static const D3D11_INPUT_ELEMENT_DESC s_ied[INPUT_ELEMENT_COUNT];
+	public:
+		XMFLOAT3 m_position;
+		XMFLOAT3 m_normal;
+	};
 
-			TerrainControlPoint() = default;
-			TerrainControlPoint(const TerrainControlPoint&) = default;
-			TerrainControlPoint& operator=(const TerrainControlPoint&) = default;
-			TerrainControlPoint(const XMFLOAT3& position, const XMFLOAT2& texCoord, const XMFLOAT2& boundsY) noexcept
-				: m_position(position)
-				, m_texCoord(texCoord)
-				, m_boundsY(boundsY)
-			{
-			}
-			TerrainControlPoint(FXMVECTOR position, FXMVECTOR texCoord, FXMVECTOR boundsY) noexcept
-			{
-				XMStoreFloat3(&m_position, position);
-				XMStoreFloat2(&m_texCoord, texCoord);
-				XMStoreFloat2(&m_boundsY, boundsY);
-			}
-		private:
-			static constexpr size_t INPUT_ELEMENT_COUNT = 3;
-			static const D3D11_INPUT_ELEMENT_DESC s_descIE[INPUT_ELEMENT_COUNT];
-		public:
-			XMFLOAT3 m_position;	// POSITION
-			XMFLOAT2 m_texCoord;	// TEXCOORD0
-			XMFLOAT2 m_boundsY;		// TEXCOORD1	(Min Y, Max Y)
-		};
+	struct VFPositionTexCoord
+	{
+	public:
+		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
+		static constexpr uint32_t GetInputElementCount() { return VFPositionTexCoord::INPUT_ELEMENT_COUNT; }
+
+		VFPositionTexCoord() = default;
+		VFPositionTexCoord(const VFPositionTexCoord&) = default;
+		VFPositionTexCoord& operator=(const VFPositionTexCoord&) = default;
+		VFPositionTexCoord(const XMFLOAT3& position, const XMFLOAT2& texCoord) noexcept
+			: m_position(position)
+			, m_texCoord(texCoord)
+		{
+		}
+		VFPositionTexCoord(FXMVECTOR position, FXMVECTOR texCoord) noexcept
+		{
+			XMStoreFloat3(&m_position, position);
+			XMStoreFloat2(&m_texCoord, texCoord);
+		}
+	private:
+		static constexpr size_t INPUT_ELEMENT_COUNT = 2;
+		static const D3D11_INPUT_ELEMENT_DESC s_ied[INPUT_ELEMENT_COUNT];
+	public:
+		XMFLOAT3 m_position;
+		XMFLOAT2 m_texCoord;
+	};
+
+	struct VFPositionNormalTexCoord
+	{
+	public:
+		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
+		static constexpr uint32_t GetInputElementCount() { return VFPositionNormalTexCoord::INPUT_ELEMENT_COUNT; }
+
+		VFPositionNormalTexCoord() = default;
+		VFPositionNormalTexCoord(const VFPositionNormalTexCoord&) = default;
+		VFPositionNormalTexCoord& operator=(const VFPositionNormalTexCoord&) = default;
+		VFPositionNormalTexCoord(const XMFLOAT3& position, const XMFLOAT3& normal, const XMFLOAT2& texCoord) noexcept
+			: m_position(position)
+			, m_normal(normal)
+			, m_texCoord(texCoord)
+		{
+		}
+		VFPositionNormalTexCoord(FXMVECTOR position, FXMVECTOR normal, FXMVECTOR texCoord) noexcept
+		{
+			XMStoreFloat3(&m_position, position);
+			XMStoreFloat3(&m_normal, normal);
+			XMStoreFloat2(&m_texCoord, texCoord);
+		}
+	private:
+		static constexpr size_t INPUT_ELEMENT_COUNT = 3;
+		static const D3D11_INPUT_ELEMENT_DESC s_ied[INPUT_ELEMENT_COUNT];
+	public:
+		XMFLOAT3 m_position;
+		XMFLOAT3 m_normal;
+		XMFLOAT2 m_texCoord;
+	};
+
+	struct VFTerrainPatchControlPoint
+	{
+	public:
+		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
+		static constexpr uint32_t GetInputElementCount() { return VFTerrainPatchControlPoint::INPUT_ELEMENT_COUNT; }
+
+		VFTerrainPatchControlPoint() = default;
+		VFTerrainPatchControlPoint(const VFTerrainPatchControlPoint&) = default;
+		VFTerrainPatchControlPoint& operator=(const VFTerrainPatchControlPoint&) = default;
+		VFTerrainPatchControlPoint(const XMFLOAT3& position, const XMFLOAT2& texCoord, const XMFLOAT2& boundsY) noexcept
+			: m_position(position)
+			, m_texCoord(texCoord)
+			, m_boundsY(boundsY)
+		{
+		}
+		VFTerrainPatchControlPoint(FXMVECTOR position, FXMVECTOR texCoord, FXMVECTOR boundsY) noexcept
+		{
+			XMStoreFloat3(&m_position, position);
+			XMStoreFloat2(&m_texCoord, texCoord);
+			XMStoreFloat2(&m_boundsY, boundsY);
+		}
+	private:
+		static constexpr size_t INPUT_ELEMENT_COUNT = 3;
+		static const D3D11_INPUT_ELEMENT_DESC s_ied[INPUT_ELEMENT_COUNT];
+	public:
+		XMFLOAT3 m_position;	// POSITION
+		XMFLOAT2 m_texCoord;	// TEXCOORD0
+		XMFLOAT2 m_boundsY;		// TEXCOORD1	(Min Y, Max Y)
 	};
 }

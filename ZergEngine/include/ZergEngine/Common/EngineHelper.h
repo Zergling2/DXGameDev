@@ -43,12 +43,6 @@ namespace ze
 		ClassName(ClassName&&) = delete;\
 		ClassName& operator=(ClassName&&) = delete;\
 
-	#define DECLARE_SLOT_NUMBER(Num)\
-		private:\
-			static constexpr uint32_t SLOT_NUM = Num;\
-		public:\
-			static constexpr uint32_t GetSlotNumber() { return SLOT_NUM; }
-
 	// HLSL 셰이더 행렬로 변환
 	#define ConvertToHLSLMatrix XMMatrixTranspose
 	// 전치 후 HLSL 셰이더 행렬로 변환
@@ -57,77 +51,76 @@ namespace ze
 	// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 	// ┃       Helper functions      ┃
 	// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-	template<class T>
-	void SafeDelete(T*& ptr)
+	class Helper
 	{
-		if (ptr)
+	public:
+		class AutoCRTFileCloser
 		{
-			delete ptr;
-			ptr = nullptr;
-		}
-	}
+		public:
+			AutoCRTFileCloser() noexcept
+				: m_pFile(nullptr)
+			{
+			}
+			AutoCRTFileCloser(FILE* pFile) noexcept
+				: m_pFile()
+			{
+			}
+			~AutoCRTFileCloser()
+			{
+				this->Close();
+			}
 
-	template<class T>
-	void SafeDeleteArray(T*& ptr)
-	{
-		if (ptr)
+			void Set(FILE* pFile)
+			{
+				this->Close();
+				m_pFile = pFile;
+			}
+			void Close();
+		private:
+			FILE* m_pFile;
+		};
+
+		template<class T>
+		static void SafeDelete(T*& ptr)
 		{
-			delete[] ptr;
-			ptr = nullptr;
+			if (ptr)
+			{
+				delete ptr;
+				ptr = nullptr;
+			}
 		}
-	}
 
-	template<class T>
-	void SafeReleaseCOM(T*& ptr)
-	{
-		if (ptr)
+		template<class T>
+		static void SafeDeleteArray(T*& ptr)
 		{
-			ptr->Release();
-			ptr = nullptr;
+			if (ptr)
+			{
+				delete[] ptr;
+				ptr = nullptr;
+			}
 		}
-	}
 
-	void SafeCloseCRTFile(FILE*& pFile);
-	void SafeCloseWinThreadHandle(HANDLE& handle);
+		template<typename _T>
+		static void SafeReleaseCom(_T*& cp)
+		{
+			if (cp)
+			{
+				cp->Release();
+				cp = nullptr;
+			}
+		}
+
+		static void SafeCloseWinThreadHandle(HANDLE& handle);
+	};
 
 	// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 	// ┃            Types            ┃
 	// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-	#define cbuffer struct alignas(16)
-	#define hlsl_struct struct alignas(16)
-
-	struct WideStringComparator
+	struct MultiByteStringComparator
 	{
-		bool operator()(const PCWSTR lhs, const PCWSTR rhs) const
+		bool operator()(const PCSTR lhs, const PCSTR rhs) const
 		{
-			return wcscmp(lhs, rhs) < 0;
+			return strcmp(lhs, rhs) < 0;
 		}
-	};
-
-	struct ClippingPlanes
-	{
-		inline ClippingPlanes(float nearZ, float farZ)
-			: nearZ(nearZ)
-			, farZ(farZ)
-		{
-		}
-		float nearZ;
-		float farZ;
-	};
-
-	// All member values are normalized value
-	struct NormalizedViewportRect
-	{
-		inline NormalizedViewportRect(float x, float y, float w, float h)
-			: x(x)
-			, y(y)
-			, w(w)
-			, h(h)
-		{
-		}
-		float x;
-		float y;
-		float w;
-		float h;
 	};
 }

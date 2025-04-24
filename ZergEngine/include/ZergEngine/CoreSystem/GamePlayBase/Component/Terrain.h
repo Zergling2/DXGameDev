@@ -4,11 +4,15 @@
 
 namespace ze
 {
+	class GameObject;
 	class TerrainData;
 
 	class Terrain : public IComponent
 	{
 	public:
+		static constexpr COMPONENT_TYPE TYPE = COMPONENT_TYPE::TERRAIN;
+		static constexpr bool IsCreatable() { return true; }
+
 		Terrain();
 		~Terrain() = default;
 	private:

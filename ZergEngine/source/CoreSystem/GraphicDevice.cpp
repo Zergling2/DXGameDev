@@ -1,8 +1,9 @@
 #include <ZergEngine\CoreSystem\GraphicDevice.h>
-#include <ZergEngine\Common\EngineConstants.h>
 #include <ZergEngine\CoreSystem\Debug.h>
 #include <ZergEngine\CoreSystem\Window.h>
 #include <ZergEngine\CoreSystem\FileSystem.h>
+#include <ZergEngine\CoreSystem\InputLayout.h>
+#include <ZergEngine\CoreSystem\RenderState.h>
 
 namespace ze
 {
@@ -11,63 +12,55 @@ namespace ze
 
 using namespace ze;
 
+PCWSTR SHADER_PATH = L"Engine\\Bin\\Shader\\";
+
+static PCWSTR VERTEX_SHADER_FILES[static_cast<size_t>(VERTEX_SHADER_TYPE::COUNT)] =
+{
+	L"VSTransformSkyboxToHCS.cso",
+	L"VSTransformTerrainPatchCtrlPt.cso",
+	L"VSTransformPToHCS.cso",
+	L"VSTransformPCToHCS.cso",
+	L"VSTransformPNToHCS.cso",
+	L"VSTransformPTToHCS.cso",
+	L"VSTransformCameraMergeQuad.cso",
+	L"VSTransformPNTToHCS.cso"
+};
+static PCWSTR HULL_SHADER_FILES[static_cast<size_t>(HULL_SHADER_TYPE::COUNT)] =
+{
+	L"HSCalcTerrainTessFactor.cso"
+};
+static PCWSTR DOMAIN_SHADER_FILES[static_cast<size_t>(DOMAIN_SHADER_TYPE::COUNT)] =
+{
+	L"DSSampleTerrainHeightMap.cso"
+};
+static PCWSTR PIXEL_SHADER_FILES[static_cast<size_t>(PIXEL_SHADER_TYPE::COUNT)] =
+{
+	L"PSColorSkyboxFragment.cso",
+	L"PSColorTerrainFragment.cso",
+	L"PSColorPFragment.cso",
+	L"PSColorPCFragment.cso",
+	L"PSColorPNFragment.cso",
+	L"PSColorPTFragment.cso",
+	L"PSColorPNTFragment.cso",
+	L"PSColorPTFragmentSingleTexture.cso",		// unimplemented
+	L"PSColorPTFragmentSingleMSTexture.cso",
+};
+
 // constexpr float allows only one floating point constant to exist in memory, even if it is not encoded in a x86 command.
 constexpr DXGI_FORMAT BACKBUFFER_FORMAT = DXGI_FORMAT_R8G8B8A8_UNORM;
 constexpr uint32_t SWAP_CHAIN_FLAG = 0;
-
-static PCWSTR ENGINEBIN_CSO_VS_PATH[static_cast<size_t>(VERTEX_SHADER_TYPE::COUNT)] =
-{
-	L"Engine\\Bin\\CSO\\VSSkyboxTransform.cso",
-	L"Engine\\Bin\\CSO\\VSTerrainTransform.cso",
-	L"Engine\\Bin\\CSO\\VSStandardTransformP.cso",
-	L"Engine\\Bin\\CSO\\VSStandardTransformPC.cso",
-	L"Engine\\Bin\\CSO\\VSStandardTransformPN.cso",
-	L"Engine\\Bin\\CSO\\VSStandardTransformPT.cso",
-	L"Engine\\Bin\\CSO\\VSCameraMerge.cso",
-	L"Engine\\Bin\\CSO\\VSStandardTransformPNT.cso"
-};
-static PCWSTR ENGINEBIN_CSO_HS_PATH[static_cast<size_t>(HULL_SHADER_TYPE::COUNT)] =
-{
-	L"Engine\\Bin\\CSO\\HSTerrainRendering.cso"
-};
-static PCWSTR ENGINEBIN_CSO_DS_PATH[static_cast<size_t>(DOMAIN_SHADER_TYPE::COUNT)] =
-{
-	L"Engine\\Bin\\CSO\\DSTerrainRendering.cso"
-};
-static PCWSTR ENGINEBIN_CSO_PS_PATH[static_cast<size_t>(PIXEL_SHADER_TYPE::COUNT)] =
-{
-	L"Engine\\Bin\\CSO\\PSSkyboxColoring.cso",
-	L"Engine\\Bin\\CSO\\PSTerrainColoring.cso",
-	L"Engine\\Bin\\CSO\\PSSkyboxColoring.cso",
-	L"Engine\\Bin\\CSO\\PSStandardColoringPC.cso",
-	L"Engine\\Bin\\CSO\\PSStandardColoringPN.cso",
-	L"Engine\\Bin\\CSO\\PSStandardColoringPT.cso",
-	L"Engine\\Bin\\CSO\\PSCameraMerge_Unimplemented.cso",		// unimplemented
-	L"Engine\\Bin\\CSO\\PSMSCameraMerge.cso",
-	L"Engine\\Bin\\CSO\\PSStandardColoringPNT.cso"
-};
 
 GraphicDeviceImpl::GraphicDeviceImpl()
 	: m_descAdapter()
 	, m_descSwapChain()
 	, m_descDepthStencil()
 	, m_pDevice(nullptr)
-	, m_pImmContext(nullptr)
+	, m_pImmediateContext(nullptr)
 	, m_supportedResolution()
 	, m_supportedMSAA()
 	, m_pSwapChain(nullptr)
 	, m_pSwapChainRTV(nullptr)
 	, m_pSwapChainDSV(nullptr)
-	, m_vs{}
-	, m_hs{}
-	, m_ds{}
-	, m_ps{}
-	, m_il{}
-	, m_rasterizerStates{}
-	, m_samplerStates{}
-	, m_depthStencilStates{}
-	, m_skyboxSamplerState()
-	, m_heightmapSamplerState()
 {
 }
 
@@ -86,18 +79,12 @@ void GraphicDeviceImpl::Init(void* pDesc)
 #endif
 	const D3D_FEATURE_LEVEL featureLevels[] =
 	{
-		D3D_FEATURE_LEVEL_11_1,
-		D3D_FEATURE_LEVEL_11_0,
-		D3D_FEATURE_LEVEL_10_1,
-		D3D_FEATURE_LEVEL_10_0,
-		D3D_FEATURE_LEVEL_9_3,
-		D3D_FEATURE_LEVEL_9_2,
-		D3D_FEATURE_LEVEL_9_1
+		D3D_FEATURE_LEVEL_11_1,	// For the Direct2D interoperability with Direc3D 11
 	};
 	D3D_FEATURE_LEVEL maxSupportedFeatureLevel;
 
 	assert(m_pDevice == nullptr);
-	assert(m_pImmContext == nullptr);
+	assert(m_pImmediateContext == nullptr);
 	hr = D3D11CreateDevice(
 		nullptr,
 		D3D_DRIVER_TYPE_HARDWARE,
@@ -108,7 +95,7 @@ void GraphicDeviceImpl::Init(void* pDesc)
 		D3D11_SDK_VERSION,
 		&m_pDevice,
 		&maxSupportedFeatureLevel,
-		&m_pImmContext
+		&m_pImmediateContext
 	);
 	if (FAILED(hr))
 		Debug::ForceCrashWithHRESULTErrorMessageBox(L"D3D11CreateDevice()", hr);
@@ -236,8 +223,8 @@ void GraphicDeviceImpl::Release()
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━ RELEASE RASTERIZER STATES ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	this->ReleaseRasterizerStates();
 
-	SafeReleaseCOM(m_pSwapChainDSV);
-	SafeReleaseCOM(m_pSwapChainRTV);
+	Helper::SafeReleaseCom(m_pSwapChainDSV);
+	Helper::SafeReleaseCom(m_pSwapChainRTV);
 
 	// 전체화면 모드였다면 스왑 체인 해제 전에 창모드로 변경해줘야 크래시 방지 가능
 	// https://learn.microsoft.com/ko-kr/windows/win32/direct3ddxgi/d3d10-graphics-programming-guide-dxgi#destroying-a-swap-chain
@@ -250,155 +237,256 @@ void GraphicDeviceImpl::Release()
 			m_pSwapChain->SetFullscreenState(FALSE, nullptr);
 	}
 
-	SafeReleaseCOM(m_pSwapChain);
 	m_supportedMSAA.clear();
-	SafeReleaseCOM(m_pImmContext);
-	SafeReleaseCOM(m_pDevice);
+	Helper::SafeReleaseCom(m_pSwapChain);
+	Helper::SafeReleaseCom(m_pImmediateContext);
+	Helper::SafeReleaseCom(m_pDevice);
 }
 
-UINT GraphicDeviceImpl::GetMSAAMaximumQuality(MSAA_SAMPLE_COUNT sampleCount)
+bool GraphicDeviceImpl::LoadShaderByteCode(PCWSTR path, byte** ppByteCode, size_t* pSize)
 {
-	UINT quality = 0;
+	byte* pByteCode = nullptr;
+	FILE* pCSOFile = nullptr;
+	WCHAR filePath[MAX_PATH];
 
-	// first = Sample count
-	// second = Quality level
-	for (const auto& info : m_supportedMSAA)
-	{
-		if (info.first == sampleCount)
-		{
-			quality = info.second;
-			break;
-		}
-	}
+	HRESULT hr;
+	hr = FileSystem.RelativePathToFullPath(path, filePath, sizeof(filePath));
+	if (FAILED(hr))
+		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to create full file path.\n%s", path);
 
-	return quality;
+	errno_t e = _wfopen_s(&pCSOFile, filePath, L"rb");
+	if (e != 0)
+		return false;
+
+	Helper::AutoCRTFileCloser af(pCSOFile);
+
+	fseek(pCSOFile, 0, SEEK_END);
+	const size_t fileSize = static_cast<size_t>(ftell(pCSOFile));
+	fseek(pCSOFile, 0, SEEK_SET);
+
+	pByteCode = new byte[fileSize];
+
+	const size_t bytesRead = static_cast<size_t>(fread_s(pByteCode, fileSize, 1, fileSize, pCSOFile));
+	// Check error
+	assert(bytesRead == fileSize);
+
+	af.Close();
+
+	// 바이트 코드와 크기 리턴
+	*ppByteCode = pByteCode;
+	*pSize = fileSize;
+
+	return true;
 }
 
 void GraphicDeviceImpl::CreateShaderAndInputLayout()
 {
-	std::vector<byte> shaderByteCode;
+	ID3D11Device* pDevice = GraphicDevice.GetDeviceComInterface();
+
+	byte* pByteCode = nullptr;
+	size_t byteCodeSize = 0;
+	WCHAR targetPath[MAX_PATH];
 
 	// 1. POSITION
-	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_VS_PATH[static_cast<size_t>(VERTEX_SHADER_TYPE::SKYBOX_TRANSFORM)]);
-	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::SKYBOX_TRANSFORM)].Init(m_pDevice, shaderByteCode.data(), shaderByteCode.size());
+	// 경로 완성
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_SKYBOX_TO_HCS)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to open compiled shader object.\n%s", targetPath);
+	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_SKYBOX_TO_HCS)].Init(pDevice, pByteCode, byteCodeSize);
+	delete[] pByteCode;
 
-	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_VS_PATH[static_cast<size_t>(VERTEX_SHADER_TYPE::STANDARD_TRANSFORM_P)]);
-	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::STANDARD_TRANSFORM_P)].Init(m_pDevice, shaderByteCode.data(), shaderByteCode.size());
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_P_TO_HCS)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to open compiled shader object.\n%s", targetPath);
+	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_P_TO_HCS)].Init(pDevice, pByteCode, byteCodeSize);
 	// ┗━ Create compatible Input Layout
 	m_il[static_cast<size_t>(VERTEX_FORMAT_TYPE::POSITION)].Init(
-		m_pDevice,
-		VertexFormat::Position::GetInputElementDescriptor(),
-		VertexFormat::Position::GetInputElementCount(),
-		shaderByteCode.data(),
-		shaderByteCode.size()
+		pDevice,
+		VFPosition::GetInputElementDescriptor(),
+		VFPosition::GetInputElementCount(),
+		pByteCode,
+		byteCodeSize
 	);
+	delete[] pByteCode;
 
 	// 2. POSITION, COLOR
-	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_VS_PATH[static_cast<size_t>(VERTEX_SHADER_TYPE::STANDARD_TRANSFORM_PC)]);
-	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::STANDARD_TRANSFORM_PC)].Init(m_pDevice, shaderByteCode.data(), shaderByteCode.size());
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_PC_TO_HCS)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to open compiled shader object.\n%s", targetPath);
+	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_PC_TO_HCS)].Init(pDevice, pByteCode, byteCodeSize);
 	// ┗━ Create compatible Input Layout
 	m_il[static_cast<size_t>(VERTEX_FORMAT_TYPE::POSITION_COLOR)].Init(
-		m_pDevice,
-		VertexFormat::PositionColor::GetInputElementDescriptor(),
-		VertexFormat::PositionColor::GetInputElementCount(),
-		shaderByteCode.data(),
-		shaderByteCode.size()
+		pDevice,
+		VFPositionColor::GetInputElementDescriptor(),
+		VFPositionColor::GetInputElementCount(),
+		pByteCode,
+		byteCodeSize
 	);
+	delete[] pByteCode;
 
 	// 3. POSITION, NORMAL
-	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_VS_PATH[static_cast<size_t>(VERTEX_SHADER_TYPE::STANDARD_TRANSFORM_PN)]);
-	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::STANDARD_TRANSFORM_PN)].Init(m_pDevice, shaderByteCode.data(), shaderByteCode.size());
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_PN_TO_HCS)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to open compiled shader object.\n%s", targetPath);
+	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_PN_TO_HCS)].Init(pDevice, pByteCode, byteCodeSize);
 	// ┗━ Create compatible Input Layout
 	m_il[static_cast<size_t>(VERTEX_FORMAT_TYPE::POSITION_NORMAL)].Init(
-		m_pDevice,
-		VertexFormat::PositionNormal::GetInputElementDescriptor(),
-		VertexFormat::PositionNormal::GetInputElementCount(),
-		shaderByteCode.data(),
-		shaderByteCode.size()
+		pDevice,
+		VFPositionNormal::GetInputElementDescriptor(),
+		VFPositionNormal::GetInputElementCount(),
+		pByteCode,
+		byteCodeSize
 	);
+	delete[] pByteCode;
 
 	// 4. POSITION, TEXCOORD
-	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_VS_PATH[static_cast<size_t>(VERTEX_SHADER_TYPE::STANDARD_TRANSFORM_PT)]);
-	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::STANDARD_TRANSFORM_PT)].Init(m_pDevice, shaderByteCode.data(), shaderByteCode.size());
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_PT_TO_HCS)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to open compiled shader object.\n%s", targetPath);
+	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_PT_TO_HCS)].Init(pDevice, pByteCode, byteCodeSize);
+	delete[] pByteCode;
 
-	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_VS_PATH[static_cast<size_t>(VERTEX_SHADER_TYPE::CAMERA_MERGE)]);
-	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::CAMERA_MERGE)].Init(m_pDevice, shaderByteCode.data(), shaderByteCode.size());
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_CAMERA_MERGE_QUAD)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to open compiled shader object.\n%s", targetPath);
+	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_CAMERA_MERGE_QUAD)].Init(pDevice, pByteCode, byteCodeSize);
 	// ┗━ Create compatible Input Layout
 	m_il[static_cast<size_t>(VERTEX_FORMAT_TYPE::POSITION_TEXCOORD)].Init(
-		m_pDevice,
-		VertexFormat::PositionTexCoord::GetInputElementDescriptor(),
-		VertexFormat::PositionTexCoord::GetInputElementCount(),
-		shaderByteCode.data(),
-		shaderByteCode.size()
+		pDevice,
+		VFPositionTexCoord::GetInputElementDescriptor(),
+		VFPositionTexCoord::GetInputElementCount(),
+		pByteCode,
+		byteCodeSize
 	);
+	delete[] pByteCode;
 
 	// 5. POSITION, NORMAL, TEXCOORD
-	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_VS_PATH[static_cast<size_t>(VERTEX_SHADER_TYPE::STANDARD_TRANSFORM_PNT)]);
-	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::STANDARD_TRANSFORM_PNT)].Init(m_pDevice, shaderByteCode.data(), shaderByteCode.size());
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_PNT_TO_HCS)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to open compiled shader object.\n%s", targetPath);
+	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_PNT_TO_HCS)].Init(pDevice, pByteCode, byteCodeSize);
 	// ┗━ Create compatible Input Layout
 	m_il[static_cast<size_t>(VERTEX_FORMAT_TYPE::POSITION_NORMAL_TEXCOORD)].Init(
-		m_pDevice,
-		VertexFormat::PositionNormalTexCoord::GetInputElementDescriptor(),
-		VertexFormat::PositionNormalTexCoord::GetInputElementCount(),
-		shaderByteCode.data(),
-		shaderByteCode.size()
+		pDevice,
+		VFPositionNormalTexCoord::GetInputElementDescriptor(),
+		VFPositionNormalTexCoord::GetInputElementCount(),
+		pByteCode,
+		byteCodeSize
 	);
+	delete[] pByteCode;
 
 	// 6. POSITION, TEXCOORD0, TEXCOORD1
-	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_VS_PATH[static_cast<size_t>(VERTEX_SHADER_TYPE::TERRAIN_TRANSFORM)]);
-	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::TERRAIN_TRANSFORM)].Init(m_pDevice, shaderByteCode.data(), shaderByteCode.size());
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_TERRAIN_PATCH_CTRL_PT)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to open compiled shader object.\n%s", targetPath);
+	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_TERRAIN_PATCH_CTRL_PT)].Init(pDevice, pByteCode, byteCodeSize);
 	// ┗━ Create compatible Input Layout
-	m_il[static_cast<size_t>(VERTEX_FORMAT_TYPE::TERRAIN_CONTROL_POINT)].Init(
-		m_pDevice,
-		VertexFormat::TerrainControlPoint::GetInputElementDescriptor(),
-		VertexFormat::TerrainControlPoint::GetInputElementCount(),
-		shaderByteCode.data(),
-		shaderByteCode.size()
+	m_il[static_cast<size_t>(VERTEX_FORMAT_TYPE::TERRAIN_PATCH_CTRL_PT)].Init(
+		pDevice,
+		VFTerrainPatchControlPoint::GetInputElementDescriptor(),
+		VFTerrainPatchControlPoint::GetInputElementCount(),
+		pByteCode,
+		byteCodeSize
 	);
+	delete[] pByteCode;
 
-	// 1. HSTerrainRendering
-	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_HS_PATH[static_cast<size_t>(HULL_SHADER_TYPE::TERRAIN_RENDERING)]);
-	m_hs[static_cast<size_t>(HULL_SHADER_TYPE::TERRAIN_RENDERING)].Init(m_pDevice, shaderByteCode.data(), shaderByteCode.size());
+	// 1. HS CALC_TERRAIN_TESS_FACTOR
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), HULL_SHADER_FILES[static_cast<size_t>(HULL_SHADER_TYPE::CALC_TERRAIN_TESS_FACTOR)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to open compiled shader object.\n%s", targetPath);
+	m_hs[static_cast<size_t>(HULL_SHADER_TYPE::CALC_TERRAIN_TESS_FACTOR)].Init(pDevice, pByteCode, byteCodeSize);
+	delete[] pByteCode;
 
-	// 1. DSTerrainRendering
-	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_DS_PATH[static_cast<size_t>(DOMAIN_SHADER_TYPE::TERRAIN_RENDERING)]);
-	m_ds[static_cast<size_t>(DOMAIN_SHADER_TYPE::TERRAIN_RENDERING)].Init(m_pDevice, shaderByteCode.data(), shaderByteCode.size());
+	// 1. DS SAMPLE_TERRAIN_HEIGHT_MAP
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), DOMAIN_SHADER_FILES[static_cast<size_t>(DOMAIN_SHADER_TYPE::SAMPLE_TERRAIN_HEIGHT_MAP)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to open compiled shader object.\n%s", targetPath);
+	m_ds[static_cast<size_t>(DOMAIN_SHADER_TYPE::SAMPLE_TERRAIN_HEIGHT_MAP)].Init(pDevice, pByteCode, byteCodeSize);
+	delete[] pByteCode;
 
-	// 1. PSSkyboxColoring
-	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_PS_PATH[static_cast<size_t>(PIXEL_SHADER_TYPE::SKYBOX_COLORING)]);
-	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::SKYBOX_COLORING)].Init(m_pDevice, shaderByteCode.data(), shaderByteCode.size());
+	// 1. COLOR_SKYBOX_FRAGMENT
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), PIXEL_SHADER_FILES[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_SKYBOX_FRAGMENT)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to open compiled shader object.\n%s", targetPath);
+	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_SKYBOX_FRAGMENT)].Init(pDevice, pByteCode, byteCodeSize);
+	delete[] pByteCode;
 
-	// 2. PSTerrainColoring
-	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_PS_PATH[static_cast<size_t>(PIXEL_SHADER_TYPE::TERRAIN_COLORING)]);
-	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::TERRAIN_COLORING)].Init(m_pDevice, shaderByteCode.data(), shaderByteCode.size());
+	// 2. COLOR_TERRAIN_FRAGMENT
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), PIXEL_SHADER_FILES[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_TERRAIN_FRAGMENT)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to open compiled shader object.\n%s", targetPath);
+	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_TERRAIN_FRAGMENT)].Init(pDevice, pByteCode, byteCodeSize);
+	delete[] pByteCode;
 
-	// 3. PSStandardColoringP
-	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_PS_PATH[static_cast<size_t>(PIXEL_SHADER_TYPE::STANDARD_COLORING_P)]);
-	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::STANDARD_COLORING_P)].Init(m_pDevice, shaderByteCode.data(), shaderByteCode.size());
+	// 3. COLOR_P_FRAGMENT
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), PIXEL_SHADER_FILES[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_P_FRAGMENT)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to open compiled shader object.\n%s", targetPath);
+	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_P_FRAGMENT)].Init(pDevice, pByteCode, byteCodeSize);
+	delete[] pByteCode;
 
-	// 4. PSStandardColoringPC
-	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_PS_PATH[static_cast<size_t>(PIXEL_SHADER_TYPE::STANDARD_COLORING_PC)]);
-	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::STANDARD_COLORING_PC)].Init(m_pDevice, shaderByteCode.data(), shaderByteCode.size());
+	// 4. COLOR_PC_FRAGMENT
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), PIXEL_SHADER_FILES[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_PC_FRAGMENT)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to open compiled shader object.\n%s", targetPath);
+	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_PC_FRAGMENT)].Init(pDevice, pByteCode, byteCodeSize);
+	delete[] pByteCode;
 
-	// 5. PSStandardColoringPN
-	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_PS_PATH[static_cast<size_t>(PIXEL_SHADER_TYPE::STANDARD_COLORING_PN)]);
-	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::STANDARD_COLORING_PN)].Init(m_pDevice, shaderByteCode.data(), shaderByteCode.size());
+	// 5. COLOR_PN_FRAGMENT
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), PIXEL_SHADER_FILES[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_PN_FRAGMENT)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to open compiled shader object.\n%s", targetPath);
+	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_PN_FRAGMENT)].Init(pDevice, pByteCode, byteCodeSize);
+	delete[] pByteCode;
 
-	// 6. PSStandardColoringPT
-	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_PS_PATH[static_cast<size_t>(PIXEL_SHADER_TYPE::STANDARD_COLORING_PT)]);
-	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::STANDARD_COLORING_PT)].Init(m_pDevice, shaderByteCode.data(), shaderByteCode.size());
+	// 6. COLOR_PT_FRAGMENT
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), PIXEL_SHADER_FILES[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_PT_FRAGMENT)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to open compiled shader object.\n%s", targetPath);
+	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_PT_FRAGMENT)].Init(pDevice, pByteCode, byteCodeSize);
+	delete[] pByteCode;
 
-	// 7. PSCameraMerge (Not implemented)
-	// shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_PS_PATH[static_cast<size_t>(PIXEL_SHADER_TYPE::CAMERA_MERGE)]);
-	// m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::CAMERA_MERGE)].Init(m_pDevice, shaderByteCode.data(), shaderByteCode.size());
+	// 7. PSStandardColoringPNT
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), PIXEL_SHADER_FILES[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_PNT_FRAGMENT)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to open compiled shader object.\n%s", targetPath);
+	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_PNT_FRAGMENT)].Init(pDevice, pByteCode, byteCodeSize);
+	delete[] pByteCode;
 
-	// 8. PSMSCameraMerge
-	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_PS_PATH[static_cast<size_t>(PIXEL_SHADER_TYPE::MSCAMERA_MERGE)]);
-	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::MSCAMERA_MERGE)].Init(m_pDevice, shaderByteCode.data(), shaderByteCode.size());
+	// 8. PSCameraMerge (Not implemented)
+	/*
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), PIXEL_SHADER_FILES[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_PT_FRAGMENT_SINGLE_TEXTURE)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to open compiled shader object.\n%s", targetPath);
+	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_PT_FRAGMENT_SINGLE_TEXTURE)].Init(pDevice, pByteCode, byteCodeSize);
+	delete[] pByteCode;
+	*/
 
-	// 9. PSStandardColoringPNT
-	shaderByteCode = GraphicDeviceImpl::LoadShaderByteCode(ENGINEBIN_CSO_PS_PATH[static_cast<size_t>(PIXEL_SHADER_TYPE::STANDARD_COLORING_PNT)]);
-	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::STANDARD_COLORING_PNT)].Init(m_pDevice, shaderByteCode.data(), shaderByteCode.size());
+	// 9. PSMSCameraMerge
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), PIXEL_SHADER_FILES[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_PT_FRAGMENT_SINGLE_MS_TEXTURE)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to open compiled shader object.\n%s", targetPath);
+	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_PT_FRAGMENT_SINGLE_MS_TEXTURE)].Init(pDevice, pByteCode, byteCodeSize);
+	delete[] pByteCode;
 }
 
 void GraphicDeviceImpl::ReleaseShaderAndInputLayout()
@@ -421,7 +509,7 @@ void GraphicDeviceImpl::ReleaseShaderAndInputLayout()
 
 void GraphicDeviceImpl::CreateRasterizerStates()
 {
-	ID3D11Device* pDevice = m_pDevice;
+	ID3D11Device* pDevice = GraphicDevice.GetDeviceComInterface();
 
 	D3D11_RASTERIZER_DESC descRS;
 	ZeroMemory(&descRS, sizeof(descRS));
@@ -429,37 +517,37 @@ void GraphicDeviceImpl::CreateRasterizerStates()
 
 	descRS.FillMode = D3D11_FILL_WIREFRAME;
 	descRS.CullMode = D3D11_CULL_NONE;
-	m_rasterizerStates[static_cast<size_t>(RASTERIZER_FILL_MODE::WIREFRAME)][static_cast<size_t>(RASTERIZER_CULL_MODE::NONE)].Init(
+	m_rs[static_cast<size_t>(RASTERIZER_FILL_MODE::WIREFRAME)][static_cast<size_t>(RASTERIZER_CULL_MODE::NONE)].Init(
 		pDevice, &descRS
 	);
 
 	descRS.FillMode = D3D11_FILL_WIREFRAME;
 	descRS.CullMode = D3D11_CULL_FRONT;
-	m_rasterizerStates[static_cast<size_t>(RASTERIZER_FILL_MODE::WIREFRAME)][static_cast<size_t>(RASTERIZER_CULL_MODE::FRONT)].Init(
+	m_rs[static_cast<size_t>(RASTERIZER_FILL_MODE::WIREFRAME)][static_cast<size_t>(RASTERIZER_CULL_MODE::FRONT)].Init(
 		pDevice, &descRS
 	);
 
 	descRS.FillMode = D3D11_FILL_WIREFRAME;
 	descRS.CullMode = D3D11_CULL_BACK;
-	m_rasterizerStates[static_cast<size_t>(RASTERIZER_FILL_MODE::WIREFRAME)][static_cast<size_t>(RASTERIZER_CULL_MODE::BACK)].Init(
+	m_rs[static_cast<size_t>(RASTERIZER_FILL_MODE::WIREFRAME)][static_cast<size_t>(RASTERIZER_CULL_MODE::BACK)].Init(
 		pDevice, &descRS
 	);
 
 	descRS.FillMode = D3D11_FILL_SOLID;
 	descRS.CullMode = D3D11_CULL_NONE;
-	m_rasterizerStates[static_cast<size_t>(RASTERIZER_FILL_MODE::SOLID)][static_cast<size_t>(RASTERIZER_CULL_MODE::NONE)].Init(
+	m_rs[static_cast<size_t>(RASTERIZER_FILL_MODE::SOLID)][static_cast<size_t>(RASTERIZER_CULL_MODE::NONE)].Init(
 		pDevice, &descRS
 	);
 
 	descRS.FillMode = D3D11_FILL_SOLID;
 	descRS.CullMode = D3D11_CULL_FRONT;
-	m_rasterizerStates[static_cast<size_t>(RASTERIZER_FILL_MODE::SOLID)][static_cast<size_t>(RASTERIZER_CULL_MODE::FRONT)].Init(
+	m_rs[static_cast<size_t>(RASTERIZER_FILL_MODE::SOLID)][static_cast<size_t>(RASTERIZER_CULL_MODE::FRONT)].Init(
 		pDevice, &descRS
 	);
 
 	descRS.FillMode = D3D11_FILL_SOLID;
 	descRS.CullMode = D3D11_CULL_BACK;
-	m_rasterizerStates[static_cast<size_t>(RASTERIZER_FILL_MODE::SOLID)][static_cast<size_t>(RASTERIZER_CULL_MODE::BACK)].Init(
+	m_rs[static_cast<size_t>(RASTERIZER_FILL_MODE::SOLID)][static_cast<size_t>(RASTERIZER_CULL_MODE::BACK)].Init(
 		pDevice, &descRS
 	);
 }
@@ -468,12 +556,12 @@ void GraphicDeviceImpl::ReleaseRasterizerStates()
 {
 	for (size_t i = 0; i < static_cast<size_t>(RASTERIZER_FILL_MODE::COUNT); ++i)
 		for (size_t j = 0; j < static_cast<size_t>(RASTERIZER_CULL_MODE::COUNT); ++j)
-			m_rasterizerStates[i][j].Release();
+			m_rs[i][j].Release();
 }
 
 void GraphicDeviceImpl::CreateSamplerStates()
 {
-	ID3D11Device* pDevice = m_pDevice;
+	ID3D11Device* pDevice = GraphicDevice.GetDeviceComInterface();
 
 	D3D11_SAMPLER_DESC descSampler;
 
@@ -485,7 +573,7 @@ void GraphicDeviceImpl::CreateSamplerStates()
 	descSampler.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
 	descSampler.MinLOD = 0.0f;
 	descSampler.MaxLOD = D3D11_FLOAT32_MAX;
-	m_samplerStates[static_cast<size_t>(TEXTURE_FILTERING_OPTION::POINT)].Init(pDevice, &descSampler);
+	m_ss[static_cast<size_t>(TEXTURE_FILTERING_OPTION::POINT)].Init(pDevice, &descSampler);
 
 	ZeroMemory(&descSampler, sizeof(descSampler));
 	descSampler.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT; // 쌍선형 (Bilinear)
@@ -495,7 +583,7 @@ void GraphicDeviceImpl::CreateSamplerStates()
 	descSampler.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
 	descSampler.MinLOD = 0.0f;
 	descSampler.MaxLOD = D3D11_FLOAT32_MAX;
-	m_samplerStates[static_cast<size_t>(TEXTURE_FILTERING_OPTION::BILINEAR)].Init(pDevice, &descSampler);
+	m_ss[static_cast<size_t>(TEXTURE_FILTERING_OPTION::BILINEAR)].Init(pDevice, &descSampler);
 
 	ZeroMemory(&descSampler, sizeof(descSampler));
 	descSampler.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR; // 삼선형 (Trilinear)
@@ -505,7 +593,7 @@ void GraphicDeviceImpl::CreateSamplerStates()
 	descSampler.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
 	descSampler.MinLOD = 0.0f;
 	descSampler.MaxLOD = D3D11_FLOAT32_MAX;
-	m_samplerStates[static_cast<size_t>(TEXTURE_FILTERING_OPTION::TRILINEAR)].Init(pDevice, &descSampler);
+	m_ss[static_cast<size_t>(TEXTURE_FILTERING_OPTION::TRILINEAR)].Init(pDevice, &descSampler);
 
 	ZeroMemory(&descSampler, sizeof(descSampler));
 	descSampler.Filter = D3D11_FILTER_ANISOTROPIC;
@@ -516,16 +604,16 @@ void GraphicDeviceImpl::CreateSamplerStates()
 	descSampler.MaxAnisotropy = 2;
 	descSampler.MinLOD = 0.0f;
 	descSampler.MaxLOD = D3D11_FLOAT32_MAX;
-	m_samplerStates[static_cast<size_t>(TEXTURE_FILTERING_OPTION::ANISOTROPIC_2X)].Init(pDevice, &descSampler);
+	m_ss[static_cast<size_t>(TEXTURE_FILTERING_OPTION::ANISOTROPIC_2X)].Init(pDevice, &descSampler);
 
 	descSampler.MaxAnisotropy = 4;
-	m_samplerStates[static_cast<size_t>(TEXTURE_FILTERING_OPTION::ANISOTROPIC_4X)].Init(pDevice, &descSampler);
+	m_ss[static_cast<size_t>(TEXTURE_FILTERING_OPTION::ANISOTROPIC_4X)].Init(pDevice, &descSampler);
 
 	descSampler.MaxAnisotropy = 8;
-	m_samplerStates[static_cast<size_t>(TEXTURE_FILTERING_OPTION::ANISOTROPIC_8X)].Init(pDevice, &descSampler);
+	m_ss[static_cast<size_t>(TEXTURE_FILTERING_OPTION::ANISOTROPIC_8X)].Init(pDevice, &descSampler);
 
 	descSampler.MaxAnisotropy = 16;
-	m_samplerStates[static_cast<size_t>(TEXTURE_FILTERING_OPTION::ANISOTROPIC_16X)].Init(pDevice, &descSampler);
+	m_ss[static_cast<size_t>(TEXTURE_FILTERING_OPTION::ANISOTROPIC_16X)].Init(pDevice, &descSampler);
 
 	ZeroMemory(&descSampler, sizeof(descSampler));
 	descSampler.Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
@@ -535,7 +623,7 @@ void GraphicDeviceImpl::CreateSamplerStates()
 	descSampler.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
 	descSampler.MinLOD = 0.0f;
 	descSampler.MaxLOD = D3D11_FLOAT32_MAX;
-	m_skyboxSamplerState.Init(pDevice, &descSampler);
+	m_ssSkybox.Init(pDevice, &descSampler);
 
 	ZeroMemory(&descSampler, sizeof(descSampler));
 	descSampler.Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
@@ -545,21 +633,21 @@ void GraphicDeviceImpl::CreateSamplerStates()
 	descSampler.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
 	descSampler.MinLOD = 0.0f;
 	descSampler.MaxLOD = D3D11_FLOAT32_MAX;
-	m_heightmapSamplerState.Init(pDevice, &descSampler);
+	m_ssHeightMap.Init(pDevice, &descSampler);
 }
 
 void GraphicDeviceImpl::ReleaseSamplerStates()
 {
-	for (size_t i = 0; i < _countof(m_samplerStates); ++i)
-		m_samplerStates[i].Release();
+	for (size_t i = 0; i < _countof(m_ss); ++i)
+		m_ss[i].Release();
 
-	m_skyboxSamplerState.Release();
-	m_heightmapSamplerState.Release();
+	m_ssSkybox.Release();
+	m_ssHeightMap.Release();
 }
 
 void GraphicDeviceImpl::CreateDepthStencilStates()
 {
-	ID3D11Device* pDevice = m_pDevice;
+	ID3D11Device* pDevice = GraphicDevice.GetDeviceComInterface();
 
 	D3D11_DEPTH_STENCIL_DESC descDepthStencil;
 	ZeroMemory(&descDepthStencil, sizeof(descDepthStencil));
@@ -569,14 +657,14 @@ void GraphicDeviceImpl::CreateDepthStencilStates()
 	descDepthStencil.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 	descDepthStencil.DepthFunc = D3D11_COMPARISON_LESS;
 	descDepthStencil.StencilEnable = FALSE;	// 일반 렌더링용
-	m_depthStencilStates[static_cast<size_t>(DEPTH_STENCIL_STATE_TYPE::STANDARD)].Init(pDevice, &descDepthStencil);
+	m_dss[static_cast<size_t>(DEPTH_STENCIL_STATE_TYPE::STANDARD)].Init(pDevice, &descDepthStencil);
 
 	// 2. 스카이박스 렌더링용
 	descDepthStencil.DepthEnable = TRUE;
 	descDepthStencil.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 	descDepthStencil.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;	// 스카이박스 렌더링 시 중요
 	descDepthStencil.StencilEnable = FALSE;
-	m_depthStencilStates[static_cast<size_t>(DEPTH_STENCIL_STATE_TYPE::SKYBOX)].Init(pDevice, &descDepthStencil);
+	m_dss[static_cast<size_t>(DEPTH_STENCIL_STATE_TYPE::SKYBOX)].Init(pDevice, &descDepthStencil);
 
 	// 3. 거울 렌더링용
 	// ...
@@ -586,49 +674,77 @@ void GraphicDeviceImpl::CreateDepthStencilStates()
 	ZeroMemory(&descDepthStencil, sizeof(descDepthStencil));
 	descDepthStencil.DepthEnable = FALSE;
 	descDepthStencil.StencilEnable = FALSE;
-	m_depthStencilStates[static_cast<size_t>(DEPTH_STENCIL_STATE_TYPE::CAMERA_MERGE)].Init(pDevice, &descDepthStencil);
+	m_dss[static_cast<size_t>(DEPTH_STENCIL_STATE_TYPE::CAMERA_MERGE)].Init(pDevice, &descDepthStencil);
 }
 
 void GraphicDeviceImpl::ReleaseDepthStencilStates()
 {
-	for (size_t i = 0; i < _countof(m_depthStencilStates); ++i)
-		m_depthStencilStates[i].Release();
+	for (size_t i = 0; i < _countof(m_dss); ++i)
+		m_dss[i].Release();
 }
 
-std::vector<byte> GraphicDeviceImpl::LoadShaderByteCode(PCWSTR path)
+void GraphicDeviceImpl::CreateBlendStates()
 {
-	std::vector<byte> byteCode;
-	FILE* csoFile = NULL;
-	WCHAR filePath[MAX_PATH];
-	filePath[0] = L'\0';
+	// D3D11_BLEND_ONE, D3D11_BLEND_ZERO
+	D3D11_BLEND srcBlend[static_cast<size_t>(BLEND_STATE_TYPE::COUNT)];
+	D3D11_BLEND destBlend[static_cast<size_t>(BLEND_STATE_TYPE::COUNT)];
 
-	HRESULT hr;
+	// 1. OPAQUE
+	srcBlend[static_cast<size_t>(BLEND_STATE_TYPE::OPAQUE_)] = D3D11_BLEND_ONE;
+	destBlend[static_cast<size_t>(BLEND_STATE_TYPE::OPAQUE_)] = D3D11_BLEND_ZERO;
 
-	hr = StringCbCopyW(filePath, sizeof(filePath), FileSystem.GetExeRelativePath());
-	if (FAILED(hr))
-		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to create full file path.\n%s", path);
+	// 2. ALPHABLEND
+	srcBlend[static_cast<size_t>(BLEND_STATE_TYPE::ALPHABLEND)] = D3D11_BLEND_ONE;
+	destBlend[static_cast<size_t>(BLEND_STATE_TYPE::ALPHABLEND)] = D3D11_BLEND_INV_SRC_ALPHA;
 
-	hr = StringCbCatW(filePath, sizeof(filePath), path);
-	if (FAILED(hr))
-		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to create full file path.\n%s", path);
+	// 3. ADDITIVE
+	srcBlend[static_cast<size_t>(BLEND_STATE_TYPE::ADDITIVE)] = D3D11_BLEND_SRC_ALPHA;
+	destBlend[static_cast<size_t>(BLEND_STATE_TYPE::ADDITIVE)] = D3D11_BLEND_ONE;
 
-	errno_t e = _wfopen_s(&csoFile, filePath, L"rb");
-	if (e != 0)
-		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to open compiled shader object.\n%s", path);
+	// 4. NON_PREMULTIPLIED
+	srcBlend[static_cast<size_t>(BLEND_STATE_TYPE::NON_PREMULTIPLIED)] = D3D11_BLEND_SRC_ALPHA;
+	destBlend[static_cast<size_t>(BLEND_STATE_TYPE::NON_PREMULTIPLIED)] = D3D11_BLEND_INV_SRC_ALPHA;
 
-	fseek(csoFile, 0, SEEK_END);
-	const size_t fileSize = static_cast<size_t>(ftell(csoFile));
-	fseek(csoFile, 0, SEEK_SET);
+	for (size_t i = 0; i < static_cast<size_t>(BLEND_STATE_TYPE::COUNT); ++i)
+	{
+		D3D11_BLEND_DESC descBlend;
+		ZeroMemory(&descBlend, sizeof(descBlend));
 
-	byteCode.resize(fileSize);
+		descBlend.RenderTarget[0].BlendEnable = (srcBlend[i] != D3D11_BLEND_ONE) ||
+			(destBlend[i] != D3D11_BLEND_ZERO);
 
-	const size_t bytesRead = static_cast<size_t>(fread_s(byteCode.data(), byteCode.size(), sizeof(byte), fileSize, csoFile));
-	// Check error
-	assert(bytesRead == fileSize);
+		descBlend.RenderTarget[0].SrcBlend = descBlend.RenderTarget[0].SrcBlendAlpha = srcBlend[i];
+		descBlend.RenderTarget[0].DestBlend = descBlend.RenderTarget[0].DestBlendAlpha = destBlend[i];
+		descBlend.RenderTarget[0].BlendOp = descBlend.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 
-	SafeCloseCRTFile(csoFile);
+		descBlend.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
-	return byteCode;
+		m_bs[i].Init(m_pDevice, &descBlend);
+	}
+}
+
+void GraphicDeviceImpl::ReleaseBlendStates()
+{
+	for (size_t i = 0; i < static_cast<size_t>(BLEND_STATE_TYPE::COUNT); ++i)
+		m_bs[i].Release();
+}
+
+UINT GraphicDeviceImpl::GetMSAAMaximumQuality(MSAA_SAMPLE_COUNT sampleCount)
+{
+	UINT quality = 0;
+
+	// first = Sample count
+	// second = Quality level
+	for (const auto& info : m_supportedMSAA)
+	{
+		if (info.first == sampleCount)
+		{
+			quality = info.second;
+			break;
+		}
+	}
+
+	return quality;
 }
 
 void GraphicDeviceImpl::CreateSupportedResolutionInfo()
@@ -658,18 +774,12 @@ void GraphicDeviceImpl::CreateSupportedResolutionInfo()
 	UINT numModes = 0;
 	hr = cpOutput->GetDisplayModeList(BACKBUFFER_FORMAT, 0, &numModes, nullptr);
 	if (FAILED(hr))
-	{
-		GlobalLog.GetSyncFileLogger().WriteFormat(L"Failed to load display mode list.");
-		return;
-	}
+		Debug::ForceCrashWithHRESULTErrorMessageBox(L"Failed to load display mode list.", hr);
 
 	m_supportedResolution.resize(numModes);
 	hr = cpOutput->GetDisplayModeList(BACKBUFFER_FORMAT, 0, &numModes, m_supportedResolution.data());
 	if (FAILED(hr))
-	{
-		GlobalLog.GetSyncFileLogger().WriteFormat(L"Failed to load display mode list.");
-		return;
-	}
+		Debug::ForceCrashWithHRESULTErrorMessageBox(L"Failed to load display mode list.", hr);
 }
 
 void GraphicDeviceImpl::CreateSupportedMSAAQualityInfo()
@@ -697,8 +807,8 @@ void GraphicDeviceImpl::InitializeSwapChainAndDepthStencilBufferDesc()
 	// Initialize SwapChain descriptor.
 	m_descSwapChain.BufferDesc.Width = Window.GetWidth();
 	m_descSwapChain.BufferDesc.Height = Window.GetHeight();
-	m_descSwapChain.BufferDesc.RefreshRate.Numerator = 60;
-	m_descSwapChain.BufferDesc.RefreshRate.Denominator = 1;
+	m_descSwapChain.BufferDesc.RefreshRate.Numerator = 1;
+	m_descSwapChain.BufferDesc.RefreshRate.Denominator = 60;
 	m_descSwapChain.BufferDesc.Format = BACKBUFFER_FORMAT;
 	m_descSwapChain.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 	m_descSwapChain.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
@@ -761,7 +871,7 @@ void GraphicDeviceImpl::OnResize()
 	hr = m_pSwapChain->GetDesc(&descSwapChain);
 	if (FAILED(hr))
 	{
-		GlobalLog.GetSyncFileLogger().WriteFormat(L"IDXGISwapChain::GetDesc() Exception from HRESULT: 0x%x\n", hr);
+		wprintf(L"IDXGISwapChain::GetDesc() Exception from HRESULT: 0x%x\n", hr);
 		return;
 	}
 
@@ -789,8 +899,8 @@ void GraphicDeviceImpl::OnResize()
 		*/
 
 		// 스왑 체인에 관한 리소스를 모두 해제
-		SafeReleaseCOM(m_pSwapChainDSV);
-		SafeReleaseCOM(m_pSwapChainRTV);
+		Helper::SafeReleaseCom(m_pSwapChainDSV);
+		Helper::SafeReleaseCom(m_pSwapChainRTV);
 
 		// m_pSwapChain->ResizeTarget();
 		hr = m_pSwapChain->ResizeBuffers(
@@ -847,10 +957,7 @@ void GraphicDeviceImpl::OnResize()
 	// 시스템 요청에 의해 변경되었을 수 있으니 임의로 m_descSwapChain 갱신하는 방법 보다는 다시 GetDesc 호출하는 식으로
 	hr = m_pSwapChain->GetDesc(&descSwapChain);
 	if (FAILED(hr))
-	{
-		GlobalLog.GetSyncFileLogger().WriteFormat(L"IDXGISwapChain::GetDesc() Exception from HRESULT: 0x%x\n", hr);
-		return;
-	}
+		Debug::ForceCrashWithHRESULTErrorMessageBox(L"IDXGISwapChain::GetDesc()", hr);
 }
 
 HRESULT GraphicDeviceImpl::GetFullscreenState(BOOL* pFullscreen)
@@ -860,9 +967,7 @@ HRESULT GraphicDeviceImpl::GetFullscreenState(BOOL* pFullscreen)
 	ComPtr<IDXGIOutput> cpTarget;
 	HRESULT hr = m_pSwapChain->GetFullscreenState(pFullscreen, cpTarget.GetAddressOf());
 	if (FAILED(hr))
-		GlobalLog.GetSyncFileLogger().WriteFormat(
-			L"GraphicDeviceImpl::GetFullscreenState() > IDXGISwapChain::GetFullscreenState() failed. HRESULT: 0x%x", hr
-		);
+		wprintf(L"GraphicDeviceImpl::GetFullscreenState() > IDXGISwapChain::GetFullscreenState() failed. HRESULT: 0x%x", hr);
 
 	return hr;
 }

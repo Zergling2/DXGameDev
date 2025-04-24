@@ -1,11 +1,13 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\MeshRenderer.h>
-#include <ZergEngine\CoreSystem\ComponentSystem\MeshRendererManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\MeshRendererManager.h>
 
 using namespace ze;
 
-MeshRenderer::MeshRenderer()
+MeshRenderer::MeshRenderer() noexcept
+	: IComponent(MeshRendererManager.AssignUniqueId())
+	, m_castShadows(false)
+	, m_receiveShadows(false)
 {
-	this->SetId(MeshRendererManager.AssignUniqueId());
 }
 
 IComponentManager* MeshRenderer::GetComponentManager() const

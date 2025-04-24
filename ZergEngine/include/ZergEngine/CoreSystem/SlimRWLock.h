@@ -7,7 +7,16 @@ namespace ze
 	class SlimRWLock
 	{
 	public:
-		SlimRWLock();
+		SlimRWLock()
+#if defined(DEBUG) || defined(_DEBUG)
+			: m_init(false)
+			, m_lock{}
+#else
+			: m_lock{}
+#endif
+		{
+		}
+		~SlimRWLock() = default;
 
 		void Init();
 
@@ -24,8 +33,50 @@ namespace ze
 
 		// If the lock is successfully acquired, the return value is true.
 		inline bool TryAcquireLockShared() { assert(m_init == true); return TryAcquireSRWLockShared(&m_lock) != 0; }
+
+#if defined(DEBUG) || defined(_DEBUG)
+		inline bool IsInitialized() const { return m_init; }
+#endif
 	private:
+#if defined(DEBUG) || defined(_DEBUG)
 		bool m_init;
+#endif
 		SRWLOCK m_lock;
+	};
+
+	// RAII
+	class AutoAcquireSlimRWLockExclusive
+	{
+	public:
+		inline AutoAcquireSlimRWLockExclusive(SlimRWLock& lock)
+			: m_lock(lock)
+		{
+			assert(lock.IsInitialized());
+			lock.AcquireLockExclusive();
+		}
+		~AutoAcquireSlimRWLockExclusive()
+		{
+			m_lock.ReleaseLockExclusive();
+		}
+	private:
+		SlimRWLock& m_lock;
+	};
+
+	// RAII
+	class AutoAcquireSlimRWLockShared
+	{
+	public:
+		inline AutoAcquireSlimRWLockShared(SlimRWLock& lock)
+			: m_lock(lock)
+		{
+			assert(lock.IsInitialized());
+			lock.AcquireLockShared();
+		}
+		~AutoAcquireSlimRWLockShared()
+		{
+			m_lock.ReleaseLockShared();
+		}
+	private:
+		SlimRWLock& m_lock;
 	};
 }

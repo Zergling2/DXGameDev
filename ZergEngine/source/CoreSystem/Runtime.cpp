@@ -6,20 +6,21 @@
 #include <ZergEngine\CoreSystem\COMInitializer.h>
 #include <ZergEngine\CoreSystem\Time.h>
 #include <ZergEngine\CoreSystem\Window.h>
-#include <ZergEngine\CoreSystem\GraphicDevice.h>
-#include <ZergEngine\CoreSystem\SceneManager.h>
-#include <ZergEngine\CoreSystem\ResourceManager.h>
-#include <ZergEngine\CoreSystem\LowLevelRenderer\Renderer.h>
 #include <ZergEngine\CoreSystem\Input.h>
-#include <ZergEngine\CoreSystem\GameObjectManager.h>
-#include <ZergEngine\CoreSystem\EnvironmentManager.h>
-#include <ZergEngine\CoreSystem\ComponentSystem\CameraManager.h>
-#include <ZergEngine\CoreSystem\ComponentSystem\DirectionalLightManager.h>
-#include <ZergEngine\CoreSystem\ComponentSystem\PointLightManager.h>
-#include <ZergEngine\CoreSystem\ComponentSystem\SpotLightManager.h>
-#include <ZergEngine\CoreSystem\ComponentSystem\MeshRendererManager.h>
-#include <ZergEngine\CoreSystem\ComponentSystem\ScriptManager.h>
-#include <ZergEngine\CoreSystem\ComponentSystem\TerrainManager.h>
+#include <ZergEngine\CoreSystem\GraphicDevice.h>
+#include <ZergEngine\CoreSystem\Renderer.h>
+#include <ZergEngine\CoreSystem\Manager\ResourceManager.h>
+#include <ZergEngine\CoreSystem\Manager\GameObjectManager.h>
+#include <ZergEngine\CoreSystem\Manager\EnvironmentManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\TransformManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\CameraManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\DirectionalLightManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\PointLightManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\SpotLightManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\MeshRendererManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\ScriptManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\TerrainManager.h>
+#include <ZergEngine\CoreSystem\Manager\SceneManager.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\ScriptInterface.h>
 
@@ -48,7 +49,7 @@ RuntimeImpl::~RuntimeImpl()
 {
 }
 
-void RuntimeImpl::Run(HINSTANCE hInstance, int nShowCmd, PCWSTR wndTitle, PCWSTR startScene, uint32_t width, uint32_t height, bool fullscreen)
+void RuntimeImpl::Run(HINSTANCE hInstance, int nShowCmd, PCWSTR wndTitle, PCSTR startScene, uint32_t width, uint32_t height, bool fullscreen)
 {
     m_hInstance = hInstance;
     m_startScene = startScene;
@@ -78,6 +79,13 @@ void RuntimeImpl::Run(HINSTANCE hInstance, int nShowCmd, PCWSTR wndTitle, PCWSTR
     } while (msg.message != WM_QUIT);
 
     const int ret = static_cast<int>(msg.wParam);
+
+    auto& activeGameObjects = GameObjectManager.m_activeGameObjects;
+    for (GameObject* pGameObject : activeGameObjects)
+        if (!pGameObject->IsDontDestroyOnLoad())
+            Runtime.Destroy(pGameObject);
+
+    Runtime.RemoveDestroyedComponentsAndGameObjects();
 
     RuntimeImpl::ReleaseAllSubsystem();
 
@@ -130,8 +138,8 @@ void RuntimeImpl::InitAllSubsystem(PCWSTR wndTitle, uint32_t width, uint32_t hei
     tm timeInfo;
     localtime_s(&timeInfo, &rawTime);
 
-    WCHAR syncLogName[64];
-    StringCbPrintfW(syncLogName, sizeof(syncLogName),
+    WCHAR engineLogName[64];
+    StringCbPrintfW(engineLogName, sizeof(engineLogName),
         L"Log%d%02d%02d-%02d%02d%02d.log",
         1900 + timeInfo.tm_year,
         1 + timeInfo.tm_mon,
@@ -154,7 +162,7 @@ void RuntimeImpl::InitAllSubsystem(PCWSTR wndTitle, uint32_t width, uint32_t hei
     SystemInfo.Init(nullptr);
     MemoryAllocator.Init(nullptr);
     FileSystem.Init(nullptr);
-    GlobalLog.Init(syncLogName);
+    FileLog.Init(engineLogName);
     COMInitializer.Init(nullptr);
     Time.Init(nullptr);
 
@@ -165,24 +173,26 @@ void RuntimeImpl::InitAllSubsystem(PCWSTR wndTitle, uint32_t width, uint32_t hei
     initDesc.m_title = wndTitle;
     Window.Init(&initDesc);
 
+    Input.Init(nullptr);
     GraphicDevice.Init(nullptr);
-    SceneManager.Init(nullptr);
     Resource.Init(nullptr);
     Renderer.Init(nullptr);
-    Input.Init(nullptr);
     GameObjectManager.Init(nullptr);
     Environment.Init(nullptr);
+    TransformManager.Init(nullptr);
     CameraManager.Init(nullptr);
     DirectionalLightManager.Init(nullptr);
     PointLightManager.Init(nullptr);
     SpotLightManager.Init(nullptr);
     MeshRendererManager.Init(nullptr);
-    ScriptManager.Init(nullptr);
     TerrainManager.Init(nullptr);
+    ScriptManager.Init(nullptr);
+    SceneManager.Init(nullptr);
 }
 
 void RuntimeImpl::ReleaseAllSubsystem()
 {
+    SceneManager.Release();
     TerrainManager.Release();
     ScriptManager.Release();
     MeshRendererManager.Release();
@@ -190,17 +200,17 @@ void RuntimeImpl::ReleaseAllSubsystem()
     PointLightManager.Release();
     DirectionalLightManager.Release();
     CameraManager.Release();
+    TransformManager.Release();
     Environment.Release();
     GameObjectManager.Release();
-    Input.Release();
     Renderer.Release();
     Resource.Release();
-    SceneManager.Release();
     GraphicDevice.Release();
+    Input.Release();
     Window.Release();
     Time.Release();
     COMInitializer.Release();
-    GlobalLog.Release();
+    FileLog.Release();
     FileSystem.Release();
     MemoryAllocator.Release();
     SystemInfo.Release();
@@ -210,10 +220,9 @@ void RuntimeImpl::OnIdle()
 {
     // Update timer.
     Time.Update();
+    Input.Update();
 
     SceneManager.Update(&m_fixedUpdateTimer);
-
-    Input.Update();
 
     // For the FixedUpdate
     m_fixedUpdateTimer += Time.GetUnscaledDeltaTime();
@@ -228,13 +237,13 @@ void RuntimeImpl::OnIdle()
     ScriptManager.UpdateScripts();
     ScriptManager.LateUpdateScripts();
 
-    Input.FinalUpdate();
+    RemoveDestroyedComponentsAndGameObjects();
 
     // Render
     if (m_flag & RUNTIME_FLAG::RENDER_ENABLED)
         Renderer.RenderFrame();
-    
-    Sleep(5);       // 나중에 Max fps 기능 추가해야함
+
+    Sleep(5);
 }
 
 GameObjectHandle RuntimeImpl::CreateGameObject(PCWSTR name)
@@ -243,7 +252,10 @@ GameObjectHandle RuntimeImpl::CreateGameObject(PCWSTR name)
 
     do
     {
-        GameObject* pGameObject = new(std::nothrow) GameObject(false, name);
+        GameObject* pGameObject = new(std::nothrow) GameObject(
+            static_cast<GAMEOBJECT_FLAG>(GOF_ACTIVE),
+            name
+        );
         if (!pGameObject)
             break;
 
@@ -264,21 +276,11 @@ void RuntimeImpl::DontDestroyOnLoad(GameObjectHandle gameObject)
 
 void RuntimeImpl::Destroy(GameObjectHandle hGameObject)
 {
-    // GameObjectManager의 Unregister()를 호출해주고 메모리 해제도 해주어야 한다.
-    // SceneManager에서 GameObject 파괴하는 부분 참고해서 최대한 실수 없이 만들자.
-
     GameObject* pGameObject = hGameObject.ToPtr();
     if (!pGameObject)
         return;
 
-    assert(pGameObject->IsDeferred() == false);
-
-    // 모든 컴포넌트 제거
-    RuntimeImpl::DestroyAllComponents(hGameObject);
-
-    GameObjectManager.Unregister(pGameObject);        // 전역 관리자에서 제거
-
-    delete pGameObject; // 메모리 해제
+    this->Destroy(pGameObject);
 }
 
 void RuntimeImpl::DestroyAllComponents(GameObjectHandle hGameObject)
@@ -287,43 +289,63 @@ void RuntimeImpl::DestroyAllComponents(GameObjectHandle hGameObject)
     if (!pGameObject)
         return;
 
+    this->DestroyAllComponents(pGameObject);
+}
+
+void RuntimeImpl::Destroy(GameObject* pGameObject)
+{
     assert(pGameObject->IsDeferred() == false);
 
-    while (!pGameObject->m_components.empty())
+    // 자식 게임 오브젝트까지 재귀적으로 삭제
+    // 자식과의 연결을 끊는 동작은 최대한 지연시킨다. (OnDestroy에서 최대한의 객체 접근 자유도 보장)
+    // 자식과의 연결을 끊는 동작은 GameObjectManager의 RemoveDestroyedGameObjects() 함수에서 수행.
+    for (GameObject* pChildGameObject : pGameObject->m_children)
     {
-        ComponentHandle hComponent = *pGameObject->m_components.begin();
-        assert(hComponent.ToPtr() != nullptr);      // 컴포넌트는 자신이 제거될 때 자신을 소유하는 게임 오브젝트에 접근해 자신의 핸들을 제거한다.
+        assert(pChildGameObject != nullptr);
+        this->Destroy(pChildGameObject);
+    }
 
-        Destroy(hComponent);
+    if (pGameObject->IsOnTheDestroyQueue())
+        return;
+
+    this->DestroyAllComponents(pGameObject);
+    GameObjectManager.AddToDestroyQueue(pGameObject);
+}
+
+void RuntimeImpl::Destroy(IComponent* pComponent)
+{
+    if (pComponent->IsOnTheDestroyQueue())  // 먼저 검사하면 가상함수 호출 비용 절약 가능
+        return;
+
+    IComponentManager* pComponentManager = pComponent->GetComponentManager();
+    pComponentManager->AddToDestroyQueue(pComponent);
+}
+
+void RuntimeImpl::DestroyAllComponents(GameObject* pGameObject)
+{
+    assert(pGameObject->IsDeferred() == false);
+
+    for (IComponent* pComponent : pGameObject->m_components)
+    {
+        if (pComponent->IsOnTheDestroyQueue())  // 먼저 검사하면 가상함수 호출 비용 절약 가능
+            continue;
+
+        IComponentManager* pComponentManager = pComponent->GetComponentManager();
+        pComponentManager->AddToDestroyQueue(pComponent);
     }
 }
 
-void RuntimeImpl::Destroy(ComponentHandle hComponent)
+void RuntimeImpl::RemoveDestroyedComponentsAndGameObjects()
 {
-    IComponent* pComponent = hComponent.ToPtr();
-    if (!pComponent)
-        return;
-
-    GameObject* pGameObject = pComponent->GetGameObjectHandle().ToPtr();
-    assert(pGameObject != nullptr);
-
-    // GameObject의 컴포넌트 리스트에서 제거
-    auto& components = pGameObject->m_components;
-
-    const auto end = components.cend();
-    auto iter = components.cbegin();
-    while (iter != end)
-    {
-        if (hComponent == *iter)
-        {
-            components.erase(iter);
-            break;
-        }
-        ++iter;
-    }
-
-    IComponentManager* pComponentManager = pComponent->GetComponentManager();
-    pComponentManager->Unregister(pComponent);
-
-    delete pComponent;  // 메모리 해제
+    // 컴포넌트 제거 작업
+    ScriptManager.RemoveDestroyedComponents();
+    TransformManager.RemoveDestroyedComponents();
+    CameraManager.RemoveDestroyedComponents();
+    DirectionalLightManager.RemoveDestroyedComponents();
+    PointLightManager.RemoveDestroyedComponents();
+    SpotLightManager.RemoveDestroyedComponents();
+    MeshRendererManager.RemoveDestroyedComponents();
+    TerrainManager.RemoveDestroyedComponents();
+    // 반드시 컴포넌트 제거 작업 이후 실행
+    GameObjectManager.RemoveDestroyedGameObjects();
 }

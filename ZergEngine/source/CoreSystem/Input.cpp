@@ -4,9 +4,12 @@
 #include <ZergEngine\CoreSystem\Runtime.h>
 #include <ZergEngine\CoreSystem\Window.h>
 
-using namespace ze;
+namespace ze
+{
+	InputImpl Input;
+}
 
-InputImpl ze::Input;
+using namespace ze;
 
 static PCWSTR UPDATE_LOG_PREFIX = L"InputImpl::Update > ";
 
@@ -14,10 +17,11 @@ InputImpl::InputImpl()
 	: m_cpDirectInput(nullptr)
 	, m_cpDIKeyboard(nullptr)
 	, m_cpDIMouse(nullptr)
-	, m_prevKeyState{ 0 }
-	, m_currKeyState{ 0 }
-	, m_mouseState{ 0 }
-	, m_mousePos{ 0, 0 }
+	, m_prevKeyState{}
+	, m_currKeyState{}
+	, m_prevMouseBtnState{}
+	, m_currMouseState{}
+	, m_cursorPos{ 0, 0 }
 {
 }
 
@@ -31,7 +35,10 @@ void InputImpl::Init(void* pDesc)
 
 	ZeroMemory(&m_prevKeyState, sizeof(m_prevKeyState));
 	ZeroMemory(&m_currKeyState, sizeof(m_currKeyState));
-	GetCursorPos(&m_mousePos);
+	ZeroMemory(m_prevMouseBtnState, sizeof(m_prevMouseBtnState));
+	ZeroMemory(&m_currMouseState, sizeof(m_currMouseState));
+	m_cursorPos.x = 0;
+	m_cursorPos.y = 0;
 
 	// DirectInput ÃÊ±âÈ­
 	hr = DirectInput8Create(
@@ -64,7 +71,7 @@ void InputImpl::Init(void* pDesc)
 	if (FAILED(hr))
 		Debug::ForceCrashWithHRESULTErrorMessageBox(L"InputImpl::Init() > m_cpDirectInput->CreateDevice() failed.", hr);
 
-	hr = m_cpDIMouse->SetDataFormat(&c_dfDIMouse);
+	hr = m_cpDIMouse->SetDataFormat(&c_dfDIMouse2);
 	if (FAILED(hr))
 		Debug::ForceCrashWithHRESULTErrorMessageBox(L"InputImpl::Init() > m_cpDIMouse->SetDataFormat() failed.", hr);
 
@@ -90,6 +97,9 @@ void InputImpl::Release()
 
 void InputImpl::Update()
 {
+	memcpy(m_prevKeyState, m_currKeyState, sizeof(m_prevKeyState));
+	memcpy(m_prevMouseBtnState, m_currMouseState.rgbButtons, sizeof(m_prevMouseBtnState));
+
 	HRESULT hr;
 
 	// Read keyboard
@@ -102,38 +112,52 @@ void InputImpl::Update()
 	}
 
 	// Read mouse
-	m_mouseState.lX = 0;
-	m_mouseState.lY = 0;
-	hr = m_cpDIMouse->GetDeviceState(sizeof(DIMOUSESTATE), reinterpret_cast<LPVOID>(&m_mouseState));
+	hr = m_cpDIMouse->GetDeviceState(sizeof(m_currMouseState), reinterpret_cast<LPVOID>(&m_currMouseState));
 	if (FAILED(hr) && (hr == DIERR_INPUTLOST || hr == DIERR_NOTACQUIRED))
 	{
 		hr = m_cpDIMouse->Acquire();
 		if (SUCCEEDED(hr))
-			m_cpDIMouse->GetDeviceState(sizeof(DIMOUSESTATE), reinterpret_cast<LPVOID>(&m_mouseState));
+			m_cpDIMouse->GetDeviceState(sizeof(m_currMouseState), reinterpret_cast<LPVOID>(&m_currMouseState));
 	}
 
-	m_mousePos.x += m_mouseState.lX;
-	m_mousePos.y += m_mouseState.lY;
-	Math::Clamp(m_mousePos.x, 0L, static_cast<LONG>(Window.GetWidth()));
-	Math::Clamp(m_mousePos.y, 0L, static_cast<LONG>(Window.GetHeight()));
+	m_cursorPos.x += m_currMouseState.lX;
+	m_cursorPos.y += m_currMouseState.lY;
+	Math::Clamp(m_cursorPos.x, 0L, static_cast<LONG>(Window.GetWidth()));
+	Math::Clamp(m_cursorPos.y, 0L, static_cast<LONG>(Window.GetHeight()));
 }
 
-void InputImpl::FinalUpdate()
+bool InputImpl::GetKey(KEYCODE code) const
 {
-	memcpy(m_prevKeyState, m_currKeyState, sizeof(m_prevKeyState));
+	assert(static_cast<size_t>(code) < 256);
+	return m_currKeyState[static_cast<size_t>(code)] & 0x80;
 }
 
-bool InputImpl::GetKey(uint8_t keyCode)
+bool InputImpl::GetKeyDown(KEYCODE code) const
 {
-	return m_currKeyState[keyCode] & 0x80;
+	assert(static_cast<size_t>(code) < 256);
+	return (m_currKeyState[static_cast<size_t>(code)] & 0x80) && !(m_prevKeyState[static_cast<size_t>(code)] & 0x80);
 }
 
-bool InputImpl::GetKeyDown(uint8_t keyCode)
+bool InputImpl::GetKeyUp(KEYCODE code) const
 {
-	return (m_currKeyState[keyCode] & 0x80) && !(m_prevKeyState[keyCode] & 0x80);
+	assert(static_cast<size_t>(code) < 256);
+	return !(m_currKeyState[static_cast<size_t>(code)] & 0x80) && (m_prevKeyState[static_cast<size_t>(code)] & 0x80);
 }
 
-bool InputImpl::GetKeyUp(uint8_t keyCode)
+bool InputImpl::GetMouseButton(MOUSE_BUTTON button) const
 {
-	return !(m_currKeyState[keyCode] & 0x80) && (m_prevKeyState[keyCode] & 0x80);
+	assert(static_cast<size_t>(button) < MOUSE_BUTTON::COUNT);
+	return m_currMouseState.rgbButtons[static_cast<size_t>(button)] & 0x80;
+}
+
+bool InputImpl::GetMouseButtonDown(MOUSE_BUTTON button) const
+{
+	assert(static_cast<size_t>(button) < MOUSE_BUTTON::COUNT);
+	return (m_currMouseState.rgbButtons[static_cast<size_t>(button)] & 0x80) && !(m_prevMouseBtnState[static_cast<size_t>(button)] & 0x80);
+}
+
+bool InputImpl::GetMouseButtonUp(MOUSE_BUTTON button) const
+{
+	assert(static_cast<size_t>(button) < MOUSE_BUTTON::COUNT);
+	return !(m_currMouseState.rgbButtons[static_cast<size_t>(button)] & 0x80) && (m_prevMouseBtnState[static_cast<size_t>(button)] & 0x80);
 }

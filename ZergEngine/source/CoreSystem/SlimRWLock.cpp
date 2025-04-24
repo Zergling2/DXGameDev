@@ -2,17 +2,13 @@
 
 using namespace ze;
 
-SlimRWLock::SlimRWLock()
-	: m_init(false)
-{
-}
-
 void SlimRWLock::Init()
 {
-	if (!m_init)
-	{
-		InitializeSRWLock(&m_lock);
-		m_init = true;
-	}
-}
+	assert(m_init == false);
 
+	InitializeSRWLock(&m_lock);
+
+#if defined(DEBUG) || defined(_DEBUG)
+	m_init = true;
+#endif
+}

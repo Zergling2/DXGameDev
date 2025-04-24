@@ -5,19 +5,10 @@
 
 namespace ze
 {
-	GlobalLogImpl GlobalLog;
+	SyncFileLogger FileLog;
 }
 
 using namespace ze;
-
-GlobalLogImpl::GlobalLogImpl()
-	: m_logger()
-{
-}
-
-GlobalLogImpl::~GlobalLogImpl()
-{
-}
 
 static VOID NTAPI WakeUpThread(ULONG_PTR parameter)
 {
@@ -140,6 +131,11 @@ HRESULT AsyncConsoleLogger::Write(PCWSTR str)
 	return hr;
 }
 
+HRESULT __cdecl AsyncConsoleLogger::WriteFormat(PCWSTR format, ...)
+{
+	return E_NOTIMPL;
+}
+
 AsyncLogBuffer* AsyncConsoleLogger::GetLogBuffer()
 {
 	m_lock.AcquireLockExclusive();
@@ -244,7 +240,11 @@ bool SyncFileLogger::Init(PCWSTR fileName)
 
 void SyncFileLogger::Release()
 {
-	SafeCloseCRTFile(m_pFile);
+	if (m_pFile)
+	{
+		fclose(m_pFile);
+		m_pFile = nullptr;
+	}
 
 	m_init = false;
 }
@@ -337,7 +337,12 @@ bool AsyncFileLogger::Init(PCWSTR fileName)
 
 void AsyncFileLogger::Release()
 {
-	SafeCloseCRTFile(m_pFile);
+	if (m_pFile)
+	{
+		fclose(m_pFile);
+		m_pFile = nullptr;
+	}
+
 	this->SafeReleaseWorkerThread();
 
 	m_pTop = nullptr;
@@ -448,12 +453,15 @@ VOID AsyncFileLogger::WriteProc(ULONG_PTR parameter)
 
 	fputws(pLogBuffer->buffer, pInstance->m_pFile);
 
+	/*
 	++pInstance->m_flushTimer;
-	if (pInstance->m_flushTimer & 0x00000010)
+	if (pInstance->m_flushTimer & 0x00000001)
 	{
 		fflush(pInstance->m_pFile);
 		pInstance->m_flushTimer = 0;
 	}
+	*/
+	fflush(pInstance->m_pFile);
 
 	pInstance->m_lock.AcquireLockExclusive();
 	pLogBuffer->m_pNext = pInstance->m_pTop;
@@ -471,17 +479,4 @@ void AsyncFileLogger::SafeReleaseWorkerThread()
 		CloseHandle(m_hWorker);
 		m_hWorker = NULL;
 	}
-}
-
-void GlobalLogImpl::Init(PCWSTR fileName)
-{
-	bool ret = m_logger.Init(fileName);
-
-	if (!ret)
-		Debug::ForceCrashWithMessageBox(L"GlobalLogImpl::Init()", L"Failed to initialize global logger module.");
-}
-
-void GlobalLogImpl::Release()
-{
-	m_logger.Release();
 }

@@ -1,10 +1,11 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Camera.h>
-#include <ZergEngine\Common\EngineConstants.h>
-#include <ZergEngine\CoreSystem\ComponentSystem\CameraManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\CameraManager.h>
 #include <ZergEngine\CoreSystem\GraphicDevice.h>
 #include <ZergEngine\CoreSystem\Window.h>
 #include <ZergEngine\CoreSystem\Math.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\Transform.h>
+#include <ZergEngine\Common\EngineConstants.h>
 
 using namespace ze;
 
@@ -12,9 +13,7 @@ constexpr uint8_t CAMERA_FIELD_OF_VIEW_DEFAULT = 92;
 constexpr int8_t CAMERA_DEPTH_DEFAULT = 0;
 constexpr PROJECTION_METHOD CAMERA_PROJECTION_METHOD_DEFAULT = PROJECTION_METHOD::PERSPECTIVE;
 constexpr CLEAR_FLAG CAMERA_CLEAR_FLAG_DEFAULT = CLEAR_FLAG::SOLID_COLOR;
-const XMVECTORF32 CAMERA_BACKGROUND_COLOR_DEFAULT = Colors::DarkMagenta;
-const XMVECTORF32 CAMERA_FORWARD_VECTOR = XMVECTORF32{ 0.0f, 0.0f, 1.0f, 0.0f };
-const XMVECTORF32 CAMERA_UP_VECTOR = XMVECTORF32{ 0.0f, 0.0f, 1.0f, 0.0f };
+const XMVECTORF32 CAMERA_BACKGROUND_COLOR_DEFAULT = Colors::Blue;
 
 constexpr float CAMERA_CLIPPING_NEAR_PLANE_DEFAULT = 0.3f;
 constexpr float CAMERA_CLIPPING_FAR_PLANE_DEFAULT = 1000.0f;
@@ -23,8 +22,9 @@ constexpr float CAMERA_VIEWPORT_Y_DEFAULT = 0.0f;
 constexpr float CAMERA_VIEWPORT_WIDTH_DEFAULT = 1.0f;
 constexpr float CAMERA_VIEWPORT_HEIGHT_DEFAULT = 1.0f;
 
-Camera::Camera()
-	: m_cpColorBufferRTV(nullptr)
+Camera::Camera() noexcept
+	: IComponent(CameraManager.AssignUniqueId())
+	, m_cpColorBufferRTV(nullptr)
 	, m_cpColorBufferSRV(nullptr)
 	, m_cpDepthStencilBufferDSV(nullptr)
 	, m_backgroundColor(CAMERA_BACKGROUND_COLOR_DEFAULT)
@@ -32,8 +32,9 @@ Camera::Camera()
 	, m_depth(CAMERA_DEPTH_DEFAULT)
 	, m_projMethod(CAMERA_PROJECTION_METHOD_DEFAULT)
 	, m_clearFlag(CAMERA_CLEAR_FLAG_DEFAULT)
-	, m_clippingPlanes(CAMERA_CLIPPING_NEAR_PLANE_DEFAULT, CAMERA_CLIPPING_FAR_PLANE_DEFAULT)
-	, m_nzdVp(CAMERA_VIEWPORT_X_DEFAULT, CAMERA_VIEWPORT_Y_DEFAULT, CAMERA_VIEWPORT_WIDTH_DEFAULT, CAMERA_VIEWPORT_HEIGHT_DEFAULT)
+	, m_nearPlane(CAMERA_CLIPPING_NEAR_PLANE_DEFAULT)
+	, m_farPlane(CAMERA_CLIPPING_FAR_PLANE_DEFAULT)
+	, m_viewportRect(CAMERA_VIEWPORT_X_DEFAULT, CAMERA_VIEWPORT_Y_DEFAULT, CAMERA_VIEWPORT_WIDTH_DEFAULT, CAMERA_VIEWPORT_HEIGHT_DEFAULT)
 	, m_viewMatrix()
 	, m_projMatrix()
 	, m_fullbufferViewport()
@@ -42,7 +43,6 @@ Camera::Camera()
 	, m_minTessExponent(0.0f)
 	, m_maxTessExponent(6.0f)
 {
-	this->SetId(CameraManager.AssignUniqueId());
 }
 
 void Camera::SetFieldOfView(uint8_t degree)
@@ -57,17 +57,17 @@ void Camera::SetFieldOfView(uint8_t degree)
 	this->UpdateProjectionMatrix();
 }
 
-void Camera::SetClippingPlanes(float nearZ, float farZ)
+void Camera::SetClippingPlanes(float nearPlane, float farPlane)
 {
 	// Near plane, Far plane 변경
 	// 백 버퍼는 그대로 사용 가능.
 	// 투영 행렬만 업데이트하면 된다.
 
-	if (nearZ <= 0.0f || farZ < nearZ)
+	if (nearPlane <= 0.0f || farPlane < nearPlane)
 		return;
 
-	m_clippingPlanes.nearZ = nearZ;
-	m_clippingPlanes.farZ = farZ;
+	m_nearPlane = nearPlane;
+	m_farPlane = farPlane;
 
 	this->UpdateProjectionMatrix();
 }
@@ -85,17 +85,17 @@ void Camera::SetViewportRect(float x, float y, float w, float h)
 		h <= 0.0f || h > 1.0f)
 		return;
 
-	if (m_nzdVp.x != x || m_nzdVp.y != y || m_nzdVp.w != w || m_nzdVp.h != h)
+	if (m_viewportRect.m_x != x || m_viewportRect.m_y != y || m_viewportRect.m_width != w || m_viewportRect.m_height != h)
 	{
 		// 컬러버퍼 및 뎁스스텐실 버퍼를 재생성하게 한다. (비싼 작업이므로 설정이 실질적으로 변경된 경우에만 버퍼 재생성)
 		m_cpColorBufferRTV.Reset();
 		m_cpColorBufferSRV.Reset();
 		m_cpDepthStencilBufferDSV.Reset();
 
-		m_nzdVp.x = x;
-		m_nzdVp.y = y;
-		m_nzdVp.w = w;
-		m_nzdVp.h = h;
+		m_viewportRect.m_x = x;
+		m_viewportRect.m_y = y;
+		m_viewportRect.m_width = w;
+		m_viewportRect.m_height = h;
 
 		this->UpdateProjectionMatrix();
 		this->UpdateFullbufferViewport();
@@ -106,7 +106,11 @@ void Camera::SetDepth(int8_t depth)
 {
 	m_depth = depth;
 
-	CameraManager.Update();	// 카메라 깊이값으로 정렬 다시
+	assert(m_pGameObject != nullptr);
+
+	// 지연된 오브젝트인 경우에는 비동기 씬에서 생성되었을 수 있으므로 함부로 CameraManager.Update()를 호출하면 안된다.
+	if (!m_pGameObject->IsDeferred())
+		CameraManager.Update();	// 카메라 깊이값으로 정렬 다시
 }
 
 bool Camera::SetMinimumTessellationExponent(float exponent)
@@ -211,24 +215,31 @@ IComponentManager* Camera::GetComponentManager() const
 
 float Camera::CalcBufferWidth()
 {
-	return static_cast<float>(Window.GetWidth()) * m_nzdVp.w;
+	return static_cast<float>(Window.GetWidth()) * m_viewportRect.m_width;
 }
 
 float Camera::CalcBufferHeight()
 {
-	return static_cast<float>(Window.GetHeight()) * m_nzdVp.h;
+	return static_cast<float>(Window.GetHeight()) * m_viewportRect.m_height;
 }
 
 void Camera::UpdateViewMatrix()
 {
-	const GameObject* pCameraOwner = this->GetGameObjectHandle().ToPtr();
+	const GameObject* pCameraOwner = m_pGameObject;
 	assert(pCameraOwner != nullptr);
 
-	const XMVECTOR cameraRotation = XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat4A(&pCameraOwner->GetTransform().m_rotation));
-	const XMVECTOR forward = XMVector3Rotate(CAMERA_FORWARD_VECTOR, cameraRotation);
-	const XMVECTOR up = XMVector3Rotate(CAMERA_UP_VECTOR, cameraRotation);
-	const XMVECTOR eye = XMLoadFloat3A(&pCameraOwner->GetTransform().m_position);
+	const XMMATRIX w = pCameraOwner->CalcWorldTransformMatrix();
+	XMVECTOR scale;
+	XMVECTOR rotation;		// Camera rotation quaternion
+	XMVECTOR translation;
+
+	XMMatrixDecompose(&scale, &rotation, &translation, w);
+
+	const XMVECTOR forward = XMVector3Rotate(LOCAL_FORWARD, rotation);
+	const XMVECTOR up = XMVector3Rotate(LOCAL_UP, rotation);
+	const XMVECTOR eye = translation;
 	const XMVECTOR at = eye + forward;
+
 	XMStoreFloat4x4A(&m_viewMatrix, XMMatrixLookAtLH(eye, at, up));
 }
 
@@ -241,8 +252,8 @@ void Camera::UpdateProjectionMatrix()
 	XMStoreFloat4x4A(&m_projMatrix, XMMatrixPerspectiveFovLH(
 		XMConvertToRadians(static_cast<float>(m_fov)),
 		aspectRatio,
-		m_clippingPlanes.nearZ,
-		m_clippingPlanes.farZ)
+		m_nearPlane,
+		m_farPlane)
 	);
 }
 

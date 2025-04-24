@@ -6,8 +6,16 @@ namespace ze
 {
 	class GameObject;
 	class IComponent;
+	class Canvas;
+	class ICanvasItem;
 
 	constexpr uint64_t INVALID_ID = std::numeric_limits<uint64_t>::max();
+
+	class HandleHelper
+	{
+	public:
+		static IComponent* ToPtrImpl(COMPONENT_TYPE type, uint32_t tableIndex, uint64_t id);
+	};
 
 	class GameObjectHandle
 	{
@@ -16,38 +24,32 @@ namespace ze
 		friend class GameObject;
 	public:
 		GameObjectHandle() noexcept
-			: m_index(0)
-			, m_reserved(0)
+			: m_tableIndex(0)
 			, m_id(INVALID_ID)
 		{
 		}
 	private:
 		GameObjectHandle(uint32_t index, uint64_t id) noexcept
-			: m_index(index)
-			, m_reserved(0)
+			: m_tableIndex(index)
 			, m_id(id)
 		{
 		}
 	public:
 		GameObjectHandle(const GameObjectHandle& other) noexcept
-			: m_index(other.m_index)
-			, m_reserved(other.m_reserved)
+			: m_tableIndex(other.m_tableIndex)
 			, m_id(other.m_id)
 		{
 		}
 		GameObjectHandle(GameObjectHandle&& other) noexcept
-			: m_index(other.m_index)
-			, m_reserved(other.m_reserved)
+			: m_tableIndex(other.m_tableIndex)
 			, m_id(other.m_id)
 		{
-			other.m_index = 0;
-			other.m_reserved = 0;
+			other.m_tableIndex = 0;
 			other.m_id = INVALID_ID;
 		}
-		GameObjectHandle& operator=(const GameObjectHandle& other)
+		GameObjectHandle& operator=(const GameObjectHandle& other) noexcept
 		{
-			m_index = other.m_index;
-			m_reserved = other.m_reserved;
+			m_tableIndex = other.m_tableIndex;
 			m_id = other.m_id;
 
 			return *this;
@@ -56,79 +58,109 @@ namespace ze
 
 		GameObject* ToPtr() const;	// index에 가서 nullptr이면 파괴된 것, 아니라면 m_id와 객체의 id 비교
 		bool IsDestroyed() const { return ToPtr() == nullptr; }
-		inline bool IsValid() const { return ToPtr() != nullptr; }
+		bool IsValid() const { return ToPtr() != nullptr; }
 
-		inline uint32_t GetIndex() const { return m_index; }
-		inline uint64_t GetId() const { return m_id; }
+		uint32_t GetIndex() const { return m_tableIndex; }
+		uint64_t GetId() const { return m_id; }
 	private:
-		uint32_t m_index;
-		uint32_t m_reserved;
+		uint32_t m_tableIndex;
+		// uint32_t m_reserved;
 		uint64_t m_id;
 	};
 
-	class ComponentHandle
+	class ComponentHandleBase
 	{
 		friend class IComponentManager;
-		friend class SceneManagerImpl;
+		friend class IComponent;
 	public:
-		static ComponentHandle MakeFakeHandle(IComponent* pComponent);
-	public:
-		ComponentHandle() noexcept
-			: m_index(0)
-			, m_type(COMPONENT_TYPE::UNKNOWN)
+		ComponentHandleBase() noexcept
+			: m_tableIndex(0)
 			, m_id(INVALID_ID)
 		{
 		}
 	private:
-		ComponentHandle(uint32_t index, COMPONENT_TYPE type, uint64_t id) noexcept
-			: m_index(index)
-			, m_type(type)
+		ComponentHandleBase(uint32_t index, uint64_t id) noexcept
+			: m_tableIndex(index)
 			, m_id(id)
 		{
 		}
 	public:
-		ComponentHandle(const ComponentHandle& other) noexcept
-			: m_index(other.m_index)
-			, m_type(other.m_type)
+		ComponentHandleBase(const ComponentHandleBase& other) noexcept
+			: m_tableIndex(other.m_tableIndex)
 			, m_id(other.m_id)
 		{
 		}
-		ComponentHandle(ComponentHandle&& other) noexcept
-			: m_index(other.m_index)
-			, m_type(other.m_type)
+		ComponentHandleBase(ComponentHandleBase&& other) noexcept
+			: m_tableIndex(other.m_tableIndex)
 			, m_id(other.m_id)
 		{
-			other.m_index = 0;
-			other.m_type = COMPONENT_TYPE::UNKNOWN;
+			other.m_tableIndex = 0;
 			other.m_id = INVALID_ID;
 		}
-		ComponentHandle& operator=(const ComponentHandle& other)
+		ComponentHandleBase& operator=(const ComponentHandleBase& other) noexcept
 		{
-			m_index = other.m_index;
-			m_type = other.m_type;
+			m_tableIndex = other.m_tableIndex;
 			m_id = other.m_id;
+
+			return *this;
+		}
+		~ComponentHandleBase() = default;	// 가상함수로 지정 X. 객체 공간 절약 (ComponentHandleBase*로 조작할 일 없음)
+
+		uint32_t GetIndex() const { return m_tableIndex; }
+		uint64_t GetId() const { return m_id; }
+	protected:
+		uint32_t m_tableIndex;
+		// uint32_t m_reserved;
+		uint64_t m_id;
+	};
+
+	template<typename _T>
+	class ComponentHandle : public ComponentHandleBase
+	{
+	public:
+		ComponentHandle() noexcept
+			: ComponentHandleBase()
+		{
+		}
+		ComponentHandle(const ComponentHandleBase& base) noexcept
+			: ComponentHandleBase(base)
+		{
+		}
+		ComponentHandle(ComponentHandleBase&& base) noexcept
+			: ComponentHandleBase(base)
+		{
+		}
+		ComponentHandle& operator=(const ComponentHandleBase& other) noexcept
+		{
+			*static_cast<ComponentHandleBase*>(this) = other;
 
 			return *this;
 		}
 		~ComponentHandle() = default;
 
-		IComponent* ToPtr() const;	// index에 가서 nullptr이면 파괴된 것, 아니라면 m_id와 객체의 id 비교
+		_T* ToPtr() const;
 		bool IsDestroyed() const { return ToPtr() == nullptr; }
-		inline bool IsValid() const { return ToPtr() != nullptr; }
-
-		inline uint32_t GetIndex() const { return m_index; }
-		inline COMPONENT_TYPE GetType() const { return m_type; }
-		inline uint64_t GetId() const { return m_id; }
-	private:
-		uint32_t m_index;
-		COMPONENT_TYPE m_type;
-		union
-		{
-			uint64_t m_id;
-			IComponent* m_pComponent;
-		};
+		bool IsValid() const { return ToPtr() != nullptr; }
 	};
 
-	bool operator==(const GameObjectHandle& hA, const GameObjectHandle& hB);
-	bool operator==(const ComponentHandle& hA, const ComponentHandle& hB);
+	inline bool operator==(const GameObjectHandle& hA, const GameObjectHandle& hB)
+	{
+		return
+			hA.GetIndex() == hB.GetIndex() &&
+			hA.GetId() == hB.GetId();
+	}
+
+	template<typename _T>
+	inline bool operator==(const ComponentHandle<_T>& hA, const ComponentHandle<_T>& hB)
+	{
+		return
+			hA.GetIndex() == hB.GetIndex() &&
+			hA.GetId() == hB.GetId();
+	}
+
+	template<typename _T>
+	_T* ComponentHandle<_T>::ToPtr() const
+	{
+		return static_cast<_T*>(HandleHelper::ToPtrImpl(_T::TYPE, m_tableIndex, m_id));
+	}
 }

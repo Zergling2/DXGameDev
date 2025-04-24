@@ -9,6 +9,8 @@ namespace pubg
 	public:
 		FirstPersonCamera() = default;
 		virtual ~FirstPersonCamera() = default;
+
 		virtual void FixedUpdate() override;
+		virtual void Update() override;
 	};
 }

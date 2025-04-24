@@ -10,34 +10,33 @@ void TestScript::FixedUpdate()
 	if (!pGameObject)
 		return;
 
-	XMFLOAT3A position = pGameObject->GetTransform().m_position;
-	position.z += 0.01f;
-	pGameObject->GetTransform().m_position = position;
+	ComponentHandle<Transform> hTransform = pGameObject->GetComponent<Transform>();
+	Transform* pTransform = hTransform.ToPtr();
 
-	XMFLOAT4A rotation = pGameObject->GetTransform().m_rotation;
-	rotation.y += 0.005f;
-	pGameObject->GetTransform().m_rotation = rotation;
+	pTransform->Translate(XMVectorMultiply(XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f), XMVectorReplicate(Time.GetDeltaTime())));
+
+	pTransform->Rotate(XMQuaternionRotationAxis(WORLD_UP, XMConvertToRadians(90) * Time.GetDeltaTime()));
 	
-	ComponentHandle hMeshRenderer = pGameObject->GetComponent<ze::MeshRenderer>();
-	MeshRenderer* pMeshRenderer = static_cast<MeshRenderer*>(hMeshRenderer.ToPtr());
+	ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->GetComponent<MeshRenderer>();
+	MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 	if (!pMeshRenderer)
 		return;
 
 	static int i = 0;
 	i++;
 
-	static std::shared_ptr<ze::Texture2D> tex;
+	static Texture2D tex;
 	if (i == 60)
 	{
-		if (pMeshRenderer->m_mesh->m_subsets[0].m_material->m_baseMap)
+		if (pMeshRenderer->m_mesh->m_subsets[0].m_material->m_diffuseMap)
 		{
-			tex = pMeshRenderer->m_mesh->m_subsets[0].m_material->m_baseMap;
-			pMeshRenderer->m_mesh->m_subsets[0].m_material->m_baseMap = nullptr;
+			tex = pMeshRenderer->m_mesh->m_subsets[0].m_material->m_diffuseMap;
+			pMeshRenderer->m_mesh->m_subsets[0].m_material->m_diffuseMap.Reset();
 		}
 		else
 		{
-			pMeshRenderer->m_mesh->m_subsets[0].m_material->m_baseMap = tex;
-			tex = nullptr;
+			pMeshRenderer->m_mesh->m_subsets[0].m_material->m_diffuseMap = tex;
+			tex.Reset();
 		}
 
 		i = 0;

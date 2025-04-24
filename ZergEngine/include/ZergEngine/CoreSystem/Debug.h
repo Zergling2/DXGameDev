@@ -14,33 +14,36 @@ namespace ze
 		static void ForceCrashWithHRESULTErrorMessageBox(PCWSTR message, HRESULT hr);
 	};
 
-	class EngineError
+	enum class SEVERITY
+	{
+		SUCCESS = 0,
+		INFO = 1,
+		WARNING = 2,
+		ERR0R = 3
+	};
+	enum class IDENTIFICATION_CODE
+	{
+		MICROSOFT_DEFINED = Math::PowerOf2(8) - 1,
+
+		CREATE_THREAD_ISSUE,
+		FILE_IO_ISSUE,
+		RELEASE_ISSUE,
+
+		MAX = Math::PowerOf2(12) - 1
+	};
+	enum class EXCEPTION_CODE : DWORD
+	{
+		FAILED_TO_CREATE_THREAD,
+		FAILED_TO_OPEN_FILE,
+
+		MAX = Math::PowerOf2(16) - 1
+	};
+
+	class ErrorCodeCreator
 	{
 	private:
 		//                                                .   .   .   .   .   .   .   .
 		static constexpr DWORD USER_DEFINED_CODE_BASE = 0b00100000000000000000000000000000;
-	public:
-		enum class SEVERITY
-		{
-			SUCCESS = 0,
-			INFO = 1,
-			WARNING = 2,
-			ERR0R = 3
-		};
-		enum class IDENTIFICATION_CODE
-		{
-			MICROSOFT_DEFINED = Math::PowerOf2(8) - 1,
-			CREATE_THREAD_ISSUE,
-			FILE_IO_ISSUE,
-			RELEASE_ISSUE,
-			MAX = Math::PowerOf2(12) - 1
-		};
-		enum class EXCEPTION_CODE : DWORD
-		{
-			FAILED_TO_CREATE_THREAD,
-			FAILED_TO_OPEN_FILE,
-			MAX = Math::PowerOf2(16) - 1
-		};
 		static constexpr DWORD Create(SEVERITY s, IDENTIFICATION_CODE ic, EXCEPTION_CODE ec)
 		{
 			return (static_cast<DWORD>(s) << 30) | USER_DEFINED_CODE_BASE | (static_cast<DWORD>(ic) << 16) | static_cast<DWORD>(ec);
@@ -68,11 +71,12 @@ namespace ze
 		void Release();
 
 		HRESULT Write(PCWSTR str);
+		HRESULT __cdecl WriteFormat(PCWSTR format, ...);
 	private:
 		AsyncLogBuffer* GetLogBuffer();
 		AsyncLogBuffer* AllocLogBufferList();
 
-		inline volatile LONG GetExitFlag() const { return m_exit; }
+		volatile LONG GetExitFlag() const { return m_exit; }
 		static unsigned int __stdcall WorkerThreadEntry(void* arg);
 		static VOID NTAPI WriteProc(ULONG_PTR parameter);
 
@@ -117,7 +121,7 @@ namespace ze
 		AsyncLogBuffer* GetLogBuffer();
 		AsyncLogBuffer* AllocLogBufferList();
 
-		inline volatile LONG GetExitFlag() const { return m_exit; }
+		volatile LONG GetExitFlag() const { return m_exit; }
 		static UINT __stdcall WorkerThreadEntry(void* arg);
 		static VOID NTAPI WriteProc(ULONG_PTR parameter);
 
@@ -134,17 +138,5 @@ namespace ze
 		std::vector<LPVOID> m_bufferLargePages;
 	};
 
-	class GlobalLogImpl
-	{
-		ZE_DECLARE_SINGLETON(GlobalLogImpl);
-	public:
-		SyncFileLogger& GetSyncFileLogger() { return m_logger; }
-
-		void Init(PCWSTR fileName);
-		void Release();
-	private:
-		SyncFileLogger m_logger;
-	};
-
-	extern GlobalLogImpl GlobalLog;
+	extern SyncFileLogger FileLog;
 }

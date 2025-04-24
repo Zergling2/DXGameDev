@@ -1,40 +1,41 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\ComponentInterface.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\ComponentManagerInterface.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
+#include <ZergEngine\CoreSystem\Debug.h>
 
 using namespace ze;
 
-IComponent::IComponent()
-	: m_hGameObject()
-	, m_id(std::numeric_limits<uint64_t>::max())
-	, m_index(std::numeric_limits<uint32_t>::max())
-	, m_activeIndex(std::numeric_limits<uint32_t>::max())
-	, m_enabled(true)
+const GameObjectHandle IComponent::GetGameObjectHandle() const
 {
+	if (m_pGameObject == nullptr)
+		Debug::ForceCrashWithMessageBox(L"Fatal Error", L"m_pGameObject was null in the IComponent::GetGameObjectHandle()");
+
+	return m_pGameObject->ToHandle();
 }
 
-bool IComponent::Enable()
+void IComponent::Enable()
 {
-	bool currentVal = m_enabled;
-
-	if (m_enabled == false)
+	if (!m_enabled)
 	{
 		m_enabled = true;
 		this->SystemJobOnEnabled();
 	}
-
-	return currentVal;
 }
 
-bool IComponent::Disable()
+void IComponent::Disable()
 {
-	bool currentVal = m_enabled;
-
-	if (m_enabled == true)
+	if (m_enabled)
 	{
 		m_enabled = false;
 		this->SystemJobOnDisabled();
 	}
+}
 
-	return currentVal;
+ComponentHandleBase IComponent::ToHandleBase() const
+{
+	assert(this->GetComponentManager()->m_table[m_tableIndex] == this);
+
+	return ComponentHandleBase(m_tableIndex, m_id);
 }
 
 void IComponent::SystemJobOnEnabled()

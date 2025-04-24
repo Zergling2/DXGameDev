@@ -9,6 +9,7 @@ namespace pubg
 	public:
 		TestScript() = default;
 		virtual ~TestScript() = default;
+
 		virtual void FixedUpdate() override;
 	};
 }

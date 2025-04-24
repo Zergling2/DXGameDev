@@ -15,33 +15,13 @@ namespace ze
 		void Init(ID3D11Device* pDevice, const D3D11_RASTERIZER_DESC* pDesc);
 		void Release();
 
-		inline ID3D11RasterizerState* GetComInterface() const { return m_pRasterizerState; }
+		ID3D11RasterizerState* GetComInterface() const { return m_pRasterizerState; }
 	private:
 		ID3D11RasterizerState* m_pRasterizerState;
 	};
 
 	class SamplerState
 	{
-	public:
-		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-		// 연속 레지스터 바인딩으로 한번에 세팅
-		class MeshTextureSampler
-		{
-			DECLARE_SLOT_NUMBER(0);
-		};
-		class SkyboxSampler
-		{
-			DECLARE_SLOT_NUMBER(1);
-		};
-		class TerrainTextureSampler
-		{
-			DECLARE_SLOT_NUMBER(2);
-		};
-		class HeightmapSampler
-		{
-			DECLARE_SLOT_NUMBER(3);
-		};
-		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	public:
 		SamplerState()
 			: m_pSamplerState(nullptr)
@@ -52,7 +32,7 @@ namespace ze
 		void Init(ID3D11Device* pDevice, const D3D11_SAMPLER_DESC* pDesc);
 		void Release();
 
-		inline ID3D11SamplerState* GetComInterface() const { return m_pSamplerState; }
+		ID3D11SamplerState* GetComInterface() const { return m_pSamplerState; }
 	private:
 		ID3D11SamplerState* m_pSamplerState;
 	};
@@ -94,18 +74,26 @@ namespace ze
 		void Init(ID3D11Device* pDevice, const D3D11_DEPTH_STENCIL_DESC* pDesc);
 		void Release();
 
-		inline ID3D11DepthStencilState* GetComInterface() const { return m_pDepthStencilState; }
+		ID3D11DepthStencilState* GetComInterface() const { return m_pDepthStencilState; }
 	private:
 		ID3D11DepthStencilState* m_pDepthStencilState;
 	};
 	
+	enum class BLEND_STATE_TYPE
+	{
+		OPAQUE_,
+		ALPHABLEND,
+		ADDITIVE,
+		NON_PREMULTIPLIED,
+
+		COUNT
+	};
+
 	class BlendState
 	{
 	public:
 		BlendState()
 			: m_pBlendState(nullptr)
-			, m_blendFactor{ 1.0f, 1.0f, 1.0f, 1.0f }
-			, m_mask(0xFFFFFFFF)
 		{
 		}
 		~BlendState();
@@ -113,14 +101,8 @@ namespace ze
 		void Init(ID3D11Device* pDevice, const D3D11_BLEND_DESC* pDesc);
 		void Release();
 
-		void SetBlendFactor(const FLOAT blendFactor[4]);
-		inline const FLOAT* GetBlendFactor() const { return m_blendFactor; }
-		inline void SetMask(UINT mask) { m_mask = mask; }
-		inline UINT GetMask() const { return m_mask; }
-		inline ID3D11BlendState* GetComInterface() const { return m_pBlendState; }
+		ID3D11BlendState* GetComInterface() const { return m_pBlendState; }
 	private:
 		ID3D11BlendState* m_pBlendState;
-		FLOAT m_blendFactor[4];
-		UINT m_mask;
 	};
 }

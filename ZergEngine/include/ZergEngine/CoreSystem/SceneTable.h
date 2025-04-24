@@ -25,7 +25,7 @@ namespace ze
 	std::unique_ptr<IScene> ClassName::SF() { return std::make_unique<ClassName>(); }\
 	ClassName::ClassName##Register::ClassName##Register()\
 	{\
-		SceneTable::AddItem(L#ClassName, ClassName::SF);\
+		SceneTable::AddItem(#ClassName, ClassName::SF);\
 	}\
 	ClassName::ClassName##Register ClassName::ClassName##Register::s_autoRegister;
 
@@ -34,9 +34,9 @@ namespace ze
 	{
 		friend class SceneManagerImpl;
 	public:
-		static void AddItem(PCWSTR sceneName, SceneFactory factory);
-		static SceneFactory GetItem(PCWSTR sceneName);
+		static void AddItem(PCSTR sceneName, SceneFactory factory);
+		static SceneFactory GetItem(PCSTR sceneName);
 	private:
-		static std::map<PCWSTR, SceneFactory, WideStringComparator>* s_pSceneTable;
+		static std::map<PCSTR, SceneFactory, MultiByteStringComparator>* s_pSceneTable;
 	};
 }

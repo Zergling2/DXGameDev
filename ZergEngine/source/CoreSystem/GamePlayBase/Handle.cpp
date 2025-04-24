@@ -1,26 +1,16 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\Handle.h>
-#include <ZergEngine\CoreSystem\GameObjectManager.h>
+#include <ZergEngine\CoreSystem\Manager\GameObjectManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\ComponentManagerInterface.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\ComponentManagerMap.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\ComponentInterface.h>
-#include <ZergEngine\CoreSystem\ComponentSystem\ComponentManagerInterface.h>
-#include <ZergEngine\CoreSystem\ComponentSystem\ComponentManagerMap.h>
 
 using namespace ze;
 
-ComponentHandle ComponentHandle::MakeFakeHandle(IComponent* pComponent)
-{
-	ComponentHandle hFakeHandle;
-
-	hFakeHandle.m_type = pComponent->GetType();
-	hFakeHandle.m_pComponent = pComponent;
-
-	return hFakeHandle;
-}
-
 GameObject* GameObjectHandle::ToPtr() const
 {
-	assert(m_index < _countof(GameObjectManagerImpl::m_ptrTable));
-	GameObject* pGameObject = GameObjectManager.m_ptrTable[m_index];
+	assert(m_tableIndex < GameObjectManager.m_table.size());
+	GameObject* pGameObject = GameObjectManager.m_table[m_tableIndex];
 	
 	if (pGameObject == nullptr || pGameObject->GetId() != m_id)
 		return nullptr;
@@ -28,30 +18,15 @@ GameObject* GameObjectHandle::ToPtr() const
 		return pGameObject;
 }
 
-IComponent* ComponentHandle::ToPtr() const
+IComponent* HandleHelper::ToPtrImpl(COMPONENT_TYPE type, uint32_t tableIndex, uint64_t id)
 {
-	IComponentManager* pComponentManager = ComponentManagerMap::GetComponentManager(m_type);
-	if (!pComponentManager)	// UNKNOWN 타입으로 GetComponentManager를 호출한 경우
-		return nullptr;
+	IComponentManager* pComponentManager = ComponentManagerMap::GetComponentManager(type);
+	assert(pComponentManager != nullptr);
+	assert(tableIndex < pComponentManager->m_table.size());
 
-	IComponent* pComponent = pComponentManager->m_ptrTable[m_index];
-	if (pComponent == nullptr || pComponent->GetId() != m_id)
+	IComponent* pComponent = pComponentManager->m_table[tableIndex];
+	if (pComponent == nullptr || pComponent->GetId() != id)
 		return nullptr;
 	else
 		return pComponent;
-}
-
-bool ze::operator==(const GameObjectHandle& hA, const GameObjectHandle& hB)
-{
-	return
-		hA.GetIndex() == hB.GetIndex() &&
-		hA.GetId() == hB.GetId();
-}
-
-bool ze::operator==(const ComponentHandle& hA, const ComponentHandle& hB)
-{
-	return
-		hA.GetIndex() == hB.GetIndex() &&
-		hA.GetType() == hB.GetType() &&
-		hA.GetId() == hB.GetId();
 }

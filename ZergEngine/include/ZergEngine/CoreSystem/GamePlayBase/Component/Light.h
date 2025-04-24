@@ -7,8 +7,11 @@ namespace ze
 	class ILight : public IComponent
 	{
 	public:
-		ILight()
-			: m_ambient(1.0f, 1.0f, 1.0f, 1.0f)
+		static constexpr bool IsCreatable() { return true; }
+
+		ILight(uint64_t id) noexcept
+			: IComponent(id)
+			, m_ambient(1.0f, 1.0f, 1.0f, 1.0f)
 			, m_diffuse(1.0f, 1.0f, 1.0f, 1.0f)
 			, m_specular(1.0f, 1.0f, 1.0f, 1.0f)
 		{
@@ -25,7 +28,9 @@ namespace ze
 	{
 	public:
 		static constexpr COMPONENT_TYPE TYPE = COMPONENT_TYPE::DIRECTIONAL_LIGHT;
-		DirectionalLight();
+		static constexpr bool IsCreatable() { return ILight::IsCreatable(); }
+
+		DirectionalLight() noexcept;
 		virtual ~DirectionalLight() = default;
 		virtual COMPONENT_TYPE GetType() const override { return COMPONENT_TYPE::DIRECTIONAL_LIGHT; }
 	private:
@@ -36,12 +41,20 @@ namespace ze
 	{
 	public:
 		static constexpr COMPONENT_TYPE TYPE = COMPONENT_TYPE::POINT_LIGHT;
-		PointLight();
+		static constexpr bool IsCreatable() { return ILight::IsCreatable(); }
+
+		PointLight() noexcept;
 		virtual ~PointLight() = default;
 		virtual COMPONENT_TYPE GetType() const override { return COMPONENT_TYPE::POINT_LIGHT; }
+
+		void SetRange(FLOAT range);
+		FLOAT GetRange() const { return m_range; }
+		void SetAtt(const XMFLOAT3 att);
+		void SetAtt(const XMFLOAT3* pAtt);
+		const XMFLOAT3& GetAtt() const { return m_att; }
 	private:
 		virtual IComponentManager* GetComponentManager() const override;
-	public:
+	private:
 		FLOAT m_range;
 
 		// Ex)
@@ -55,7 +68,9 @@ namespace ze
 	{
 	public:
 		static constexpr COMPONENT_TYPE TYPE = COMPONENT_TYPE::SPOT_LIGHT;
-		SpotLight();
+		static constexpr bool IsCreatable() { return ILight::IsCreatable(); }
+
+		SpotLight() noexcept;
 		virtual ~SpotLight() = default;
 		virtual COMPONENT_TYPE GetType() const override { return COMPONENT_TYPE::SPOT_LIGHT; }
 	private:

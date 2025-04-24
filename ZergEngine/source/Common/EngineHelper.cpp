@@ -2,20 +2,20 @@
 
 using namespace ze;
 
-void ze::SafeCloseCRTFile(FILE*& pFile)
-{
-	if (pFile != NULL)
-	{
-		fclose(pFile);
-		pFile = NULL;
-	}
-}
-
-void ze::SafeCloseWinThreadHandle(HANDLE& handle)
+void Helper::SafeCloseWinThreadHandle(HANDLE& handle)
 {
 	if (handle != NULL)
 	{
 		CloseHandle(handle);
 		handle = NULL;
+	}
+}
+
+void Helper::AutoCRTFileCloser::Close()
+{
+	if (m_pFile != nullptr)
+	{
+		fclose(m_pFile);
+		m_pFile = nullptr;
 	}
 }

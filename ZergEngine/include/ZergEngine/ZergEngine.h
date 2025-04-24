@@ -1,16 +1,17 @@
 #pragma once
 
 #include <ZergEngine\CoreSystem\Runtime.h>
+#include <ZergEngine\CoreSystem\Math.h>
+#include <ZergEngine\CoreSystem\Time.h>
 #include <ZergEngine\CoreSystem\Window.h>
 #include <ZergEngine\CoreSystem\Scene.h>
-#include <ZergEngine\CoreSystem\SceneManager.h>
-#include <ZergEngine\CoreSystem\ResourceManager.h>
-#include <ZergEngine\CoreSystem\EnvironmentManager.h>
 #include <ZergEngine\CoreSystem\Input.h>
+#include <ZergEngine\CoreSystem\Manager\SceneManager.h>
+#include <ZergEngine\CoreSystem\Manager\ResourceManager.h>
+#include <ZergEngine\CoreSystem\Manager\EnvironmentManager.h>
 #include <ZergEngine\CoreSystem\Resource\Mesh.h>
 #include <ZergEngine\CoreSystem\Resource\Material.h>
 #include <ZergEngine\CoreSystem\Resource\Texture.h>
-#include <ZergEngine\CoreSystem\Resource\Skybox.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\ScriptInterface.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Transform.h>

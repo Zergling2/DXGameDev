@@ -33,22 +33,22 @@ namespace ze
 		Mesh(PCWSTR name)
 			: m_subsets()
 			, m_name(name)
-			, m_cpVB(nullptr)
-			, m_cpIB(nullptr)
+			, m_pVB(nullptr)
+			, m_pIB(nullptr)
 			, m_vft(VERTEX_FORMAT_TYPE::UNKNOWN)
 		{
 		}
-		~Mesh() = default;
-		inline PCWSTR GetName() const { return m_name.c_str(); }
-		inline ID3D11Buffer* GetVBComInterface() const { return m_cpVB.Get(); }
-		inline ID3D11Buffer* GetIBComInterface() const { return m_cpIB.Get(); }
-		inline VERTEX_FORMAT_TYPE GetVertexFormatType() const { return m_vft; }
+		~Mesh();
+		PCWSTR GetName() const { return m_name.c_str(); }
+		ID3D11Buffer* GetVBComInterface() const { return m_pVB; }
+		ID3D11Buffer* GetIBComInterface() const { return m_pIB; }
+		VERTEX_FORMAT_TYPE GetVertexFormatType() const { return m_vft; }
 	public:
 		std::vector<Subset> m_subsets;
 	private:
 		std::wstring m_name;
-		ComPtr<ID3D11Buffer> m_cpVB;
-		ComPtr<ID3D11Buffer> m_cpIB;
+		ID3D11Buffer* m_pVB;
+		ID3D11Buffer* m_pIB;
 		VERTEX_FORMAT_TYPE m_vft;
 	};
 }

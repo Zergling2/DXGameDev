@@ -5,6 +5,7 @@
 namespace ze
 {
 	class GameObject;
+	class Transform;
 
 	// Scene base class.
 	class IScene abstract
@@ -23,6 +24,6 @@ namespace ze
 		// OnLoadScene에서는 반드시 RuntimeImpl::CreateGameObject() 함수 대신 IScene::CreateGameObject() 함수를 사용하여 게임 오브젝트를 생성해야 합니다.
 		virtual void OnLoadScene() = 0;
 	private:
-		std::vector<GameObject*> m_pDeferredGameObjects;
+		std::vector<GameObject*>* m_pDeferredGameObjects;
 	};
 }
