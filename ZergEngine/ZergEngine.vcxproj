@@ -104,7 +104,7 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\RawVector.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Window.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Runtime.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\Scene.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\SceneInterface.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\SceneManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\InputLayout.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Shader.h" />
@@ -160,7 +160,7 @@
   <ItemGroup>
     <ClCompile Include="source\CoreSystem\Math.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\ScriptInterface.cpp" />
-    <ClCompile Include="source\CoreSystem\Scene.cpp" />
+    <ClCompile Include="source\CoreSystem\SceneInterface.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\Camera.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\ComponentInterface.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\MeshRenderer.cpp" />
@@ -457,7 +457,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex_Win32_Debug.lib</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex_$(Platform)_$(Configuration).lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\bullet3\;$(ProjectDir)extlib\lib\DirectXTex\</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
@@ -483,7 +483,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex_Win32.lib</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex_$(Platform).lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\bullet3\;$(ProjectDir)extlib\lib\DirectXTex\</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
@@ -504,7 +504,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;dinput8.lib;dxguid.lib;BulletDynamics_vs2010_x64_debug.lib;BulletInverseDynamics_vs2010_x64_debug.lib;BulletCollision_vs2010_x64_debug.lib;BulletSoftBody_vs2010_x64_debug.lib;LinearMath_vs2010_x64_debug.lib;DirectXTex_x64_Debug.lib</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex_$(Platform)_$(Configuration).lib;BulletDynamics_vs2010_x64_debug.lib;BulletInverseDynamics_vs2010_x64_debug.lib;BulletCollision_vs2010_x64_debug.lib;BulletSoftBody_vs2010_x64_debug.lib;LinearMath_vs2010_x64_debug.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\bullet3\;$(ProjectDir)extlib\lib\DirectXTex\</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
@@ -530,7 +530,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;dinput8.lib;dxguid.lib;BulletDynamics_vs2010_x64_release.lib;BulletInverseDynamics_vs2010_x64_release.lib;BulletCollision_vs2010_x64_release.lib;BulletSoftBody_vs2010_x64_release.lib;LinearMath_vs2010_x64_release.lib;DirectXTex_x64.lib</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex_$(Platform).lib;BulletDynamics_vs2010_x64_release.lib;BulletInverseDynamics_vs2010_x64_release.lib;BulletCollision_vs2010_x64_release.lib;BulletSoftBody_vs2010_x64_release.lib;LinearMath_vs2010_x64_release.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\bullet3\;$(ProjectDir)extlib\lib\DirectXTex\</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>

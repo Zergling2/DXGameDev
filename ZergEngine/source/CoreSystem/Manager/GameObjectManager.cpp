@@ -12,6 +12,7 @@ GameObjectManagerImpl::GameObjectManagerImpl()
 	: m_uniqueId(0)
 	, m_destroyed()
 	, m_activeGameObjects()
+	, m_inactiveGameObjects()
 	, m_table(8192, nullptr)
 {
 }
@@ -29,8 +30,8 @@ void GameObjectManagerImpl::Init(void* pDesc)
 void GameObjectManagerImpl::Release()
 {
 	assert(m_activeGameObjects.size() == 0);
+	assert(m_inactiveGameObjects.size() == 0);
 
-	m_activeGameObjects.clear();
 	m_table.clear();
 	m_uniqueId = 0;
 }
@@ -39,19 +40,19 @@ void GameObjectManagerImpl::AddToDestroyQueue(GameObject* pGameObject)
 {
 	assert(pGameObject->IsOnTheDestroyQueue() == false);
 
-	pGameObject->SetOnDestroyQueueFlag();
+	pGameObject->OnFlag(GOF_ON_DESTROY_QUEUE);
 	m_destroyed.push_back(pGameObject);
 }
 
 GameObjectHandle GameObjectManagerImpl::FindGameObject(PCWSTR name)
 {
-	GameObjectHandle hGameObject;
+	GameObjectHandle hGameObject;	// null handle
 
-	for (auto p : m_activeGameObjects)
+	for (GameObject* pGameObject : m_activeGameObjects)
 	{
-		if (wcscmp(p->GetName(), name) == 0)
+		if (wcscmp(pGameObject->GetName(), name) == 0)
 		{
-			hGameObject = p->ToHandle();
+			hGameObject = pGameObject->ToHandle();
 			break;
 		}
 	}
@@ -67,6 +68,7 @@ GameObjectHandle GameObjectManagerImpl::Register(GameObject* pGameObject)
 
 	GameObjectHandle hGameObject;
 
+	// 1. 테이블에 등록
 	// 빈 자리 검색
 	uint32_t emptyIndex = std::numeric_limits<uint32_t>::max();
 	const uint32_t tableSize = static_cast<uint32_t>(m_table.size());
@@ -86,15 +88,21 @@ GameObjectHandle GameObjectManagerImpl::Register(GameObject* pGameObject)
 		m_table.push_back(nullptr);	// 테이블 공간 확보
 	}
 
-	m_activeGameObjects.push_back(pGameObject);
-	pGameObject->m_activeIndex = static_cast<uint32_t>(m_activeGameObjects.size() - 1);
 	m_table[emptyIndex] = pGameObject;
 	pGameObject->m_tableIndex = emptyIndex;
 
+	hGameObject = GameObjectHandle(emptyIndex, pGameObject->GetId());	// 유효한 핸들 준비
+
+	// Direct access vector에 접근
+	// 지연되었다가 Register 되는경우 Active 플래그가 0일 수 있으므로
+	// 분리해야 한다.
+	if (pGameObject->IsActive())
+		AddPtrToActiveVector(pGameObject);
+	else
+		AddPtrToInactiveVector(pGameObject);
+
 	// deferred 플래그 해제 (AddComponent 올바르게 작동 보장)
 	pGameObject->m_flag = static_cast<GAMEOBJECT_FLAG>(pGameObject->m_flag & ~GOF_DEFERRED);
-
-	hGameObject = GameObjectHandle(emptyIndex, pGameObject->GetId());	// 유효한 핸들 준비
 
 	return hGameObject;
 }
@@ -105,37 +113,9 @@ void GameObjectManagerImpl::RemoveDestroyedGameObjects()
 	{
 		assert(pGameObject->IsOnTheDestroyQueue());
 
-		// 자식 부모 연결 제거
-		if (pGameObject->m_pParent != nullptr)
-		{
-#if defined(DEBUG) || defined(_DEBUG)
-			bool find = false;
-#endif
-			std::list<GameObject*>::const_iterator end = pGameObject->m_pParent->m_children.cend();
-			std::list<GameObject*>::const_iterator iter = pGameObject->m_pParent->m_children.cbegin();
-			while (iter != end)
-			{
-				if (*iter == pGameObject)
-				{
-#if defined(DEBUG) || defined(_DEBUG)
-					find = true;
-#endif
-					pGameObject->m_pParent->m_children.erase(iter);
-					break;
-				}
-			}
-			assert(find == true);
-		}
+		auto& vector = pGameObject->IsActive() ? m_activeGameObjects : m_inactiveGameObjects;
 
-		for (GameObject* pChild : pGameObject->m_children)
-		{
-			assert(pChild->m_pParent == pGameObject);
-			assert(pChild->IsOnTheDestroyQueue() == true);
-			pChild->m_pParent = nullptr;	// 밑에서 곧 delete될 자신을 접근하는 것을 방지 (댕글링포인터 제거)
-		}
-		// pGameObject->m_children.clear();	// 객체 delete시 자동 소멸
-
-		uint32_t activeSize = static_cast<uint32_t>(m_activeGameObjects.size());
+		uint32_t activeSize = static_cast<uint32_t>(vector.size());
 		assert(activeSize > 0);
 		assert(m_table[pGameObject->m_tableIndex] == pGameObject);
 		assert(pGameObject->m_tableIndex != std::numeric_limits<uint32_t>::max());
@@ -147,12 +127,12 @@ void GameObjectManagerImpl::RemoveDestroyedGameObjects()
 		if (activeIndex != lastIndex)
 		{
 			// 마지막 게임 오브젝트와 위치를 맞바꾼 후
-			std::swap(m_activeGameObjects[activeIndex], m_activeGameObjects[lastIndex]);
-			m_activeGameObjects[activeIndex]->m_activeIndex = activeIndex;
+			std::swap(vector[activeIndex], vector[lastIndex]);
+			vector[activeIndex]->m_activeIndex = activeIndex;
 		}
 
 		// Active 목록에서 제거
-		m_activeGameObjects.pop_back();
+		vector.pop_back();
 
 		// 테이블에서 제거
 		m_table[pGameObject->m_tableIndex] = nullptr;
@@ -164,4 +144,50 @@ void GameObjectManagerImpl::RemoveDestroyedGameObjects()
 	}
 
 	m_destroyed.clear();
+}
+
+void GameObjectManagerImpl::MoveToInactiveVectorFromActiveVector(GameObject* pGameObject)
+{
+	// 비활성화된 게임오브젝트인지 확인 assert
+	assert(pGameObject->IsActive() == false);
+	RemovePtrFromActiveVector(pGameObject);
+	AddPtrToInactiveVector(pGameObject);
+}
+
+void GameObjectManagerImpl::MoveToActiveVectorFromInactiveVector(GameObject* pGameObject)
+{
+	// 활성화된 게임오브젝트인지 확인 assert
+	assert(pGameObject->IsActive() == true);
+	RemovePtrFromInactiveVector(pGameObject);
+	AddPtrToActiveVector(pGameObject);
+}
+
+void GameObjectManagerImpl::AddPtrToVector(std::vector<GameObject*>& vector, GameObject* pGameObject)
+{
+	vector.push_back(pGameObject);
+	pGameObject->m_activeIndex = static_cast<uint32_t>(vector.size() - 1);
+}
+
+void GameObjectManagerImpl::RemovePtrFromVector(std::vector<GameObject*>& vector, GameObject* pGameObject)
+{
+	uint32_t vectorSize = static_cast<uint32_t>(vector.size());
+	assert(vectorSize > 0);
+
+	const uint32_t activeIndex = pGameObject->m_activeIndex;
+	const uint32_t lastIndex = vectorSize - 1;
+
+	assert(activeIndex < vectorSize);
+	// assert(activeIndex != std::numeric_limits<uint32_t>::max());
+	assert(vector[activeIndex] == pGameObject);	// 중요!
+
+	// 지우려는 게임오브젝트 포인터가 맨 뒤에 있는것이 아닌경우
+	// 마지막에 위치한 포인터와 위치를 바꾼다.
+	if (activeIndex != lastIndex)
+	{
+		std::swap(vector[activeIndex], vector[lastIndex]);
+		vector[activeIndex]->m_activeIndex = activeIndex;	// 마지막에 있던 게임오브젝트의 activeIndex를 올바르게 업데이트 해주어야 한다!
+	}
+
+	// 소속되어 있던 vector에서 제거
+	vector.pop_back();
 }

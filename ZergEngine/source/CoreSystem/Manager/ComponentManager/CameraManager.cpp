@@ -28,7 +28,7 @@ void CameraManagerImpl::Update()
 {
     // Depth 기준 재정렬
     std::sort(
-        m_activeComponents.begin(), m_activeComponents.end(),
+        m_enabledComponents.begin(), m_enabledComponents.end(),
         [](const IComponent* pA, const IComponent* pB)
         {
             return static_cast<const Camera*>(pA)->GetDepth() < static_cast<const Camera*>(pB)->GetDepth();
@@ -38,7 +38,7 @@ void CameraManagerImpl::Update()
 
 void CameraManagerImpl::OnResize()
 {
-    for (auto pComponent : m_activeComponents)
+    for (auto pComponent : m_enabledComponents)
     {
         Camera* pCamera = static_cast<Camera*>(pComponent);
 
@@ -60,9 +60,9 @@ ComponentHandleBase CameraManagerImpl::Register(IComponent* pComponent)
 
 void CameraManagerImpl::RemoveDestroyedComponents()
 {
-    const size_t activeSizeBefore = m_activeComponents.size();
+    const size_t activeSizeBefore = m_enabledComponents.size();
     IComponentManager::RemoveDestroyedComponents();
-    const size_t activeSizeAfter = m_activeComponents.size();
+    const size_t activeSizeAfter = m_enabledComponents.size();
 
     // 파괴된 카메라가 있는 경우
     if (activeSizeBefore != activeSizeAfter)

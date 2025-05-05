@@ -46,7 +46,7 @@ void BasicEffectPT::SetCamera(const Camera* pCamera) noexcept
 	XMStoreFloat4x4A(&vp, pCamera->GetViewMatrix() * pCamera->GetProjMatrix());
 	Math::ExtractFrustumPlanesInWorldSpace(&vp, frustumPlanes);
 
-	XMStoreFloat3(&m_cbPerCameraCache.cameraPosW, pCameraOwner->m_pTransform->GetPosition());
+	XMStoreFloat3(&m_cbPerCameraCache.cameraPosW, pCameraOwner->m_pTransform->GetWorldPosition());
 	m_cbPerCameraCache.tessMinDist = pCamera->GetMinimumDistanceForTessellationToStart();
 	m_cbPerCameraCache.tessMaxDist = pCamera->GetMaximumDistanceForTessellationToStart();
 	m_cbPerCameraCache.minTessExponent = pCamera->GetMinimumTessellationExponent();

@@ -42,6 +42,8 @@ private:
 	ID3D11DeviceContext* m_pImmediateContext;
 	IDXGISwapChain* m_pSwapChain;
 	ID3D11RenderTargetView* m_pSwapChainRTV;
+
+
 };
 
 #ifndef _DEBUG  // debug version in LevelEditorView.cpp

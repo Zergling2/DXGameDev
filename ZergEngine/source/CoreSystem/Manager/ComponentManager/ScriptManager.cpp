@@ -9,6 +9,7 @@ namespace ze
 using namespace ze;
 
 ScriptManagerImpl::ScriptManagerImpl()
+    : m_startingScripts()
 {
 }
 
@@ -24,6 +25,34 @@ void ScriptManagerImpl::Release()
 {
 }
 
+void ScriptManagerImpl::AddToStartingQueue(IScript* pScript)
+{
+    assert((pScript->GetFlag() & CF_START_CALLED) == FALSE);
+    assert((pScript->GetFlag() & CF_ON_STARTING_QUEUE) == FALSE);
+
+    m_startingScripts.push_back(pScript);
+
+    // Start() 호출 큐에 들어있다가 직전 프레임에 제거되는 경우 StartingQueue에서 빠르게 제거하기 위해 인덱스를 기록해둔다.
+    pScript->m_startingQueueIndex = static_cast<uint32_t>(m_startingScripts.size() - 1);
+    pScript->OnFlag(CF_ON_STARTING_QUEUE);
+}
+
+void ScriptManagerImpl::CallStart()
+{
+    for (IScript* pScript : m_startingScripts)
+    {
+        assert((pScript->GetFlag() & CF_ON_STARTING_QUEUE) != FALSE);
+        assert((pScript->GetFlag() & CF_START_CALLED) == FALSE);
+
+        pScript->Start();
+        pScript->OnFlag(CF_START_CALLED);
+        pScript->OffFlag(CF_ON_STARTING_QUEUE);
+        pScript->m_startingQueueIndex = std::numeric_limits<uint32_t>::max();
+    }
+
+    m_startingScripts.clear();
+}
+
 void ScriptManagerImpl::FixedUpdateScripts()
 {
     // Deferred Remove 방식으로 구현.
@@ -34,49 +63,20 @@ void ScriptManagerImpl::FixedUpdateScripts()
     // 만약 순회 중 즉시 삭제가 이루어지면 뒤에서 땡겨진 컴포넌트가 업데이트가 생략되는 일이 없게 해주는 식으로 Update를 해주고 앞쪽으로
     // 이동시킨다던지... 그러나 이런 식으로 하면 복잡도가 올라가게 된다.
 
-    // 그리고 지연 삭제가 필요한 가장 중요한 이유
-    // 스크립트에서 Destroy(gameObject) 또는 Destroy(this) 호출 후 return하지 않고 계속 접근하는 경우
-    // Destroy 함수에서 지연 삭제를 요청해놓지 않고 바로 메모리 해제를 해버리면 잘못된 메모리 접근을 하게 된다.
-
-    // 이런 경우도 있을 수 있다.
-    // 컴포넌트가 Light나 Camera 이런거 멤버에 shared_ptr 두고 참조하고 있을 수 있는데
-    // 컴포넌트가 얘네(light, camera같은 컴포넌트)를 Destroy하고 자기 자신을 Destroy 한다음에 그 밑에서 계속 light나 camera에 접근하는 코드를
-    // 사용한다고 가정하면 만약 스크립트가 deferred destroy 방법으로 제거되지 않고 Destroy에서 바로 제거되었다면 스크립트 클래스의 소멸자가
-    // 불려버리고 멤버로 가지고 있던 light나 camera같은 컴포넌트의 shared_ptr 또한 해제된 상태가 되어버리게 된다.
-    // 결국 완전히 잘못된 메모리 접근이 일어나게 된다.
-    // 지연된 삭제를 통해 이것을 예방할 수 있다.
-    // 그러나 근본적으로 약간 설계가 불안하다고 느껴지는 부분은 스크립트가 실행 도중에 자기 자신을 delete하는 느낌이라는 것이다.
-    // 엔진 하부시스템에게 자기 자신의 삭제를 요청하는 식의 구조에서는 어쩔 수 없는 것일까...
-
-    for (size_t i = 0; i < m_activeComponents.size(); ++i)
-    {
-        IScript* pScript = static_cast<IScript*>(m_activeComponents[i]);
-
-        if (pScript->IsEnabled())
-            pScript->FixedUpdate();
-    }
+    for (size_t i = 0; i < m_enabledComponents.size(); ++i)
+        static_cast<IScript*>(m_enabledComponents[i])->FixedUpdate();
 }
 
 void ScriptManagerImpl::UpdateScripts()
 {
-    for (size_t i = 0; i < m_activeComponents.size(); ++i)
-    {
-        IScript* pScript = static_cast<IScript*>(m_activeComponents[i]);
-
-        if (pScript->IsEnabled())
-            pScript->Update();
-    }
+    for (size_t i = 0; i < m_enabledComponents.size(); ++i)
+        static_cast<IScript*>(m_enabledComponents[i])->Update();
 }
 
 void ScriptManagerImpl::LateUpdateScripts()
 {
-    for (size_t i = 0; i < m_activeComponents.size(); ++i)
-    {
-        IScript* pScript = static_cast<IScript*>(m_activeComponents[i]);
-
-        if (pScript->IsEnabled())
-            pScript->LateUpdate();
-    }
+    for (size_t i = 0; i < m_enabledComponents.size(); ++i)
+        static_cast<IScript*>(m_enabledComponents[i])->LateUpdate();
 }
 
 void ScriptManagerImpl::RemoveDestroyedComponents()
@@ -84,7 +84,26 @@ void ScriptManagerImpl::RemoveDestroyedComponents()
     // OnDestroy()에서 다른 스크립트를 Destroy 하는 경우를 고려하여
     // m_destroyed.size()를 매번 확인하여 추가된 파괴 예정 스크립트들도 모두 OnDestroy가 호출될 수 있게 한다.
     for (size_t i = 0; i < m_destroyed.size(); ++i)
-        static_cast<IScript*>(m_destroyed[i])->OnDestroy();
+    {
+        IScript* pScript = static_cast<IScript*>(m_destroyed[i]);
+        if (pScript->IsEnabled())   // 활성화 되어있는 스크립트에 한해서만 OnDestroy() 호출
+            pScript->OnDestroy();
+
+        // 파괴되는 스크립트가 Start 대기열에 있는 경우 댕글링 포인터가 남지 않게 제거
+        if (pScript->GetFlag() & CF_ON_STARTING_QUEUE)
+        {
+            assert(m_startingScripts.size() > 0);
+            const uint32_t lastIndex = static_cast<uint32_t>(m_startingScripts.size() - 1);
+            const uint32_t startingQueueIndex = pScript->m_startingQueueIndex;
+
+            if (startingQueueIndex != lastIndex)
+            {
+                std::swap(m_startingScripts[lastIndex], m_startingScripts[startingQueueIndex]);
+                m_startingScripts[startingQueueIndex]->m_startingQueueIndex = startingQueueIndex;   // 올바르게 업데이트
+            }
+            m_startingScripts.pop_back();
+        }
+    }
 
     IComponentManager::RemoveDestroyedComponents();
 }

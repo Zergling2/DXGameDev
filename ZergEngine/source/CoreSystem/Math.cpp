@@ -6,29 +6,33 @@ XMVECTOR Math::QuaternionToEuler(XMVECTOR quaternion) noexcept
 {
 	quaternion = XMQuaternionNormalize(quaternion);
 
+	return Math::QuaternionToEulerNormal(quaternion);
+}
+
+XMVECTOR XM_CALLCONV Math::QuaternionToEulerNormal(XMVECTOR quaternion) noexcept
+{
 	float qx = XMVectorGetX(quaternion);
 	float qy = XMVectorGetY(quaternion);
 	float qz = XMVectorGetZ(quaternion);
 	float qw = XMVectorGetW(quaternion);
 
 	XMFLOAT3A euler;
-
 	// X (Pitch)
 	float sinp = 2.0f * (qw * qx - qy * qz);
 	if (std::fabs(sinp) >= 1.0f)
-		euler.x = XMConvertToDegrees(copysign(XM_PIDIV2, sinp)); // 90도 or -90도
+		euler.x = std::copysign(XM_PIDIV2, sinp); // 90도 or -90도
 	else
-		euler.x = XMConvertToDegrees(asinf(sinp));
+		euler.x = std::asin(sinp);
 
 	// Z (Roll)
 	float sinr_cosp = 2.0f * (qw * qz + qx * qy);
 	float cosr_cosp = 1.0f - 2.0f * (qx * qx + qz * qz);
-	euler.z = XMConvertToDegrees(std::atan2f(sinr_cosp, cosr_cosp));
+	euler.z = std::atan2(sinr_cosp, cosr_cosp);
 
 	// Y (Yaw)
 	float siny_cosp = 2.0f * (qw * qy + qx * qz);
 	float cosy_cosp = 1.0f - 2.0f * (qx * qx + qy * qy);
-	euler.y = XMConvertToDegrees(std::atan2f(siny_cosp, cosy_cosp));
+	euler.y = std::atan2(siny_cosp, cosy_cosp);
 
 	// X(Pitch), Y(Yaw), Z(Roll) 순서로 XMVECTOR에 패킹
 	return XMLoadFloat3A(&euler);

@@ -195,7 +195,7 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\RawVector.h">
       <Filter>Files\ZergEngine\CoreSystem\DataStructure</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\Scene.h">
+    <ClInclude Include="include\ZergEngine\CoreSystem\SceneInterface.h">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\SlimRWLock.h">
@@ -395,7 +395,7 @@
     <ClCompile Include="source\CoreSystem\DataStructure\RawVector.cpp">
       <Filter>Files\ZergEngine\CoreSystem\DataStructure</Filter>
     </ClCompile>
-    <ClCompile Include="source\CoreSystem\Scene.cpp">
+    <ClCompile Include="source\CoreSystem\SceneInterface.cpp">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\SlimRWLock.cpp">

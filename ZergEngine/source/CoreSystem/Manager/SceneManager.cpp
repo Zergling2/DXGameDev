@@ -1,12 +1,12 @@
 #include <ZergEngine\CoreSystem\Manager\SceneManager.h>
 #include <ZergEngine\CoreSystem\Manager\GameObjectManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\CameraManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\ScriptManager.h>
 #include <ZergEngine\CoreSystem\Debug.h>
-#include <ZergEngine\CoreSystem\Scene.h>
-#include <ZergEngine\CoreSystem\SceneTable.h>
+#include <ZergEngine\CoreSystem\SceneInterface.h>
 #include <ZergEngine\CoreSystem\Runtime.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\Component\ComponentInterface.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\ScriptInterface.h>
 
 namespace ze
 {
@@ -88,8 +88,15 @@ void SceneManagerImpl::Update(float* pFixedUpdateTimer)
 
 	*pFixedUpdateTimer = 0.0f;
 
-	// 씬 교체 필요
+	// 씬 교체
+	
+
 	// DontDestroyOnLoad 오브젝트를 제외하고 모두 파괴
+	auto& inactiveGameObjects = GameObjectManager.m_inactiveGameObjects;
+	for (GameObject* pGameObject : inactiveGameObjects)
+		if (!pGameObject->IsDontDestroyOnLoad())
+			Runtime.Destroy(pGameObject);
+
 	auto& activeGameObjects = GameObjectManager.m_activeGameObjects;
 	for (GameObject* pGameObject : activeGameObjects)
 		if (!pGameObject->IsDontDestroyOnLoad())
@@ -98,6 +105,8 @@ void SceneManagerImpl::Update(float* pFixedUpdateTimer)
 	Runtime.RemoveDestroyedComponentsAndGameObjects();
 
 	// 지연된 게임오브젝트들 및 컴포넌트들을 관리 시작
+	std::vector<IScript*> scripts;
+	scripts.reserve(256);
 	auto& deferredGameObjects = *m_upNextScene->m_pDeferredGameObjects;
 	for (GameObject* pGameObject : deferredGameObjects)
 	{
@@ -108,6 +117,22 @@ void SceneManagerImpl::Update(float* pFixedUpdateTimer)
 		{
 			IComponentManager* pComponentManager = pComponent->GetComponentManager();
 			pComponentManager->Register(pComponent);
+
+			if (pComponent->GetType() == COMPONENT_TYPE::SCRIPT)
+				scripts.push_back(static_cast<IScript*>(pComponent));
+		}
+	}
+
+	// 게임오브젝트와 컴포넌트들이 모두 전역 관리자에 등록된 이후에 Awake, OnEnable, Start큐잉 처리
+	for (IScript* pScript : scripts)
+		pScript->Awake();
+
+	for (IScript* pScript : scripts)
+	{
+		if (pScript->IsEnabled())
+		{
+			pScript->OnEnable();
+			ScriptManager.AddToStartingQueue(pScript);
 		}
 	}
 

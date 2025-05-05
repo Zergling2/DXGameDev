@@ -36,6 +36,12 @@
     <ClCompile Include="source\Scene\SpaceTestScene.cpp">
       <Filter>source\Scene</Filter>
     </ClCompile>
+    <ClCompile Include="source\Script\SceneChange.cpp">
+      <Filter>source\Script</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Script\Planet.cpp">
+      <Filter>source\Script</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Scene\TestScene1.h">
@@ -58,6 +64,12 @@
     </ClInclude>
     <ClInclude Include="source\Scene\SpaceTestScene.h">
       <Filter>source\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Script\SceneChange.h">
+      <Filter>source\Script</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Script\Planet.h">
+      <Filter>source\Script</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

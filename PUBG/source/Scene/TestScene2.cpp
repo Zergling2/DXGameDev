@@ -3,6 +3,7 @@
 #include "..\Script\SunScript.h"
 #include "..\Script\FirstPersonCamera.h"
 #include "..\Script\MovePointLight.h"
+#include "..\Script\SceneChange.h"
 
 using namespace ze;
 using namespace pubg;
@@ -19,6 +20,9 @@ void TestScene2::OnLoadScene()
 	std::vector<std::shared_ptr<Mesh>> meshes;
 	std::shared_ptr<Material> material;
 	Transform* pTransform;
+
+	pGameObject = this->CreateGameObject(L"Scene Changer");
+	pGameObject->AddDeferredComponent<SceneChange>();
 
 	pGameObject = this->CreateGameObject(L"Sun");
 	pDirectionalLight = pGameObject->AddDeferredComponent<DirectionalLight>();

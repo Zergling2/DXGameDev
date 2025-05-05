@@ -77,14 +77,6 @@ void CLevelEditorView::Dump(CDumpContext& dc) const
 	CView::Dump(dc);
 }
 
-void CLevelEditorView::Render()
-{
-    const float clearColor[4] = { 0.8f, 0.3f, 0.4f, 1.0f };
-    m_pImmediateContext->ClearRenderTargetView(m_pSwapChainRTV, clearColor);
-
-    m_pSwapChain->Present(1, 0);
-}
-
 CLevelEditorDoc* CLevelEditorView::GetDocument() const // non-debug version is inline
 {
 	ASSERT(m_pDocument->IsKindOf(RUNTIME_CLASS(CLevelEditorDoc)));
@@ -92,6 +84,12 @@ CLevelEditorDoc* CLevelEditorView::GetDocument() const // non-debug version is i
 }
 #endif //_DEBUG
 
+void CLevelEditorView::Render()
+{
+    m_pImmediateContext->ClearRenderTargetView(m_pSwapChainRTV, Colors::Blue);
+
+    m_pSwapChain->Present(1, 0);
+}
 
 BOOL CLevelEditorView::OnEraseBkgnd(CDC* pDC)
 {
@@ -132,8 +130,7 @@ int CLevelEditorView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
     D3D_FEATURE_LEVEL featureLevelTest[] =
     {
-        D3D_FEATURE_LEVEL_11_1,
-        D3D_FEATURE_LEVEL_11_0,
+        D3D_FEATURE_LEVEL_11_1
     };
     D3D_FEATURE_LEVEL featureLevel;
     HRESULT hr = D3D11CreateDeviceAndSwapChain(
@@ -154,12 +151,12 @@ int CLevelEditorView::OnCreate(LPCREATESTRUCT lpCreateStruct)
         return -1;
 
     // RTV 생성
-    ComPtr<ID3D11Texture2D> backBuffer;
-    hr = m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(backBuffer.GetAddressOf()));
+    ComPtr<ID3D11Texture2D> cpBackBuffer;
+    hr = m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(cpBackBuffer.GetAddressOf()));
     if (FAILED(hr))
         return -1;
 
-    hr = m_pDevice->CreateRenderTargetView(backBuffer.Get(), nullptr, &m_pSwapChainRTV);
+    hr = m_pDevice->CreateRenderTargetView(cpBackBuffer.Get(), nullptr, &m_pSwapChainRTV);
     if (FAILED(hr))
         return -1;
 
@@ -186,8 +183,32 @@ void CLevelEditorView::OnSize(UINT nType, int cx, int cy)
     CView::OnSize(nType, cx, cy);
 
     // TODO: Add your message handler code here
+    WCHAR log[64];
+    CRect cr;
+
     if (!m_pDevice || !m_pSwapChain)
         return;
+
+    GetClientRect(&cr);
+    StringCbPrintfW(log, sizeof(log), L"CLevelEditorView::OnSize() cr: %d %d %d %d\n", cr.left, cr.top, cr.right, cr.bottom);
+    OutputDebugStringW(log);
+
+    switch (nType)
+    {
+    case SIZE_MINIMIZED:
+        OutputDebugStringW(L"CLevelEditorView::OnSize SIZE_MINIMIZED\n");
+        break;
+    case SIZE_MAXIMIZED:
+        OutputDebugStringW(L"CLevelEditorView::OnSize SIZE_MAXIMIZED\n");
+        break;
+    case SIZE_RESTORED:
+        OutputDebugStringW(L"CLevelEditorView::OnSize SIZE_RESTORED\n");
+        break;
+    default:
+        StringCbPrintfW(log, sizeof(log), L"CLevelEditorView::OnSize() Parameter nType was %u\n", nType);
+        OutputDebugStringW(log);
+        break;
+    }
 
     // 스왑 체인 간접/직접 참조 모두 해제
     SafeReleaseComPtr(m_pSwapChainRTV);

@@ -27,8 +27,6 @@ namespace ze
 		void Destroy(GameObjectHandle hGameObject);
 		void Destroy(GameObjectHandle hGameObject, float delay);
 
-		void DestroyAllComponents(GameObjectHandle hGameObject);
-
 		template<typename _T>
 		void Destroy(ComponentHandle<_T> hComponent);
 		template<typename _T>
@@ -38,10 +36,6 @@ namespace ze
 
 		GameObjectHandle Instantiate(const GameObjectHandle source);
 		// GameObjectHandle Instantiate(const GameObjectHandle source, GameObjectHandle pParent);
-
-		// Find a GameObject by name.
-		GameObjectHandle Find(PCWSTR name);
-		GameObjectHandle Find(const std::wstring& name) { return RuntimeImpl::Find(name.c_str()); }
 
 		inline HINSTANCE GetInstanceHandle() const { return m_hInstance; }
 		inline PCSTR GetStartSceneName() const { return m_startScene.c_str(); }
@@ -57,7 +51,6 @@ namespace ze
 		void Destroy(IComponent* pComponent, float delay);
 
 		void DestroyAllComponents(GameObject* pGameObject);
-
 		void RemoveDestroyedComponentsAndGameObjects();
 	private:
 		HINSTANCE m_hInstance;

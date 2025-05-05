@@ -23,6 +23,7 @@
 #include <ZergEngine\CoreSystem\Manager\SceneManager.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\ScriptInterface.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\Transform.h>
 
 namespace ze
 {
@@ -33,8 +34,7 @@ using namespace ze;
 
 enum RUNTIME_FLAG : uint32_t
 {
-    RENDER_ENABLED = 0x00000001,
-    SCRIPT_UPDATE = 0x00000002
+    RTF_RENDER_ENABLED = 0x00000001,
 };
 
 RuntimeImpl::RuntimeImpl()
@@ -54,7 +54,7 @@ void RuntimeImpl::Run(HINSTANCE hInstance, int nShowCmd, PCWSTR wndTitle, PCSTR 
     m_hInstance = hInstance;
     m_startScene = startScene;
     m_fixedUpdateTimer = 0.0f;
-    m_flag = RENDER_ENABLED | SCRIPT_UPDATE;
+    m_flag = RTF_RENDER_ENABLED;
 
     RuntimeImpl::InitAllSubsystem(wndTitle, width, height, fullscreen);
 
@@ -65,49 +65,49 @@ void RuntimeImpl::Run(HINSTANCE hInstance, int nShowCmd, PCWSTR wndTitle, PCSTR 
     Time.Update();
 
     MSG msg;
-    do
+    for (;;)
     {
         if (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
         {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
+
+            if (msg.message == WM_QUIT)
+                break;
         }
         else
         {
             RuntimeImpl::OnIdle();
         }
-    } while (msg.message != WM_QUIT);
+    }
 
-    const int ret = static_cast<int>(msg.wParam);
-
-    auto& activeGameObjects = GameObjectManager.m_activeGameObjects;
-    for (GameObject* pGameObject : activeGameObjects)
-        if (!pGameObject->IsDontDestroyOnLoad())
-            Runtime.Destroy(pGameObject);
-
+    // 모든 게임 오브젝트 및 컴포넌트를 제거
+    for (GameObject* pGameObject : GameObjectManager.m_inactiveGameObjects)
+        this->Destroy(pGameObject);
+    for (GameObject* pGameObject : GameObjectManager.m_activeGameObjects)
+        this->Destroy(pGameObject);
     Runtime.RemoveDestroyedComponentsAndGameObjects();
 
+    // 시스템 모듈들 해제
     RuntimeImpl::ReleaseAllSubsystem();
 
 #if defined(DEBUG) || defined(_DEBUG)
-    HMODULE dxgiDebugDll = GetModuleHandleW(L"dxgidebug.dll");
-    if (dxgiDebugDll != NULL)
+    HMODULE hDXGIDebugDll = GetModuleHandleW(L"dxgidebug.dll");
+    if (hDXGIDebugDll != NULL)
     {
         decltype(&DXGIGetDebugInterface) DebugInterface =
-            reinterpret_cast<decltype(&DXGIGetDebugInterface)>(GetProcAddress(dxgiDebugDll, "DXGIGetDebugInterface"));
+            reinterpret_cast<decltype(&DXGIGetDebugInterface)>(GetProcAddress(hDXGIDebugDll, "DXGIGetDebugInterface"));
 
-        IDXGIDebug* pDXGIDebug;
-        DebugInterface(IID_PPV_ARGS(&pDXGIDebug));
+        ComPtr<IDXGIDebug> cpDXGIDebug;
+        DebugInterface(IID_PPV_ARGS(&cpDXGIDebug));
 
         OutputDebugStringW(L"##### DXGI DEBUG INFO START #####\n");
-        pDXGIDebug->ReportLiveObjects(DXGI_DEBUG_D3D11, DXGI_DEBUG_RLO_DETAIL);
+        cpDXGIDebug->ReportLiveObjects(DXGI_DEBUG_D3D11, DXGI_DEBUG_RLO_DETAIL);
         OutputDebugStringW(L"##### DXGI DEBUG INFO END #####\n");
-
-        pDXGIDebug->Release();
     }
     else
     {
-        OutputDebugStringW(L"Failed to get dxgidebug.dll module handle. Can't use ReportLiveObjects() function.\n");
+        OutputDebugStringW(L"Failed to get dxgidebug.dll module handle.\n");
     }
 #endif
 }
@@ -119,17 +119,12 @@ void RuntimeImpl::Exit()
 
 void RuntimeImpl::EnableRendering()
 {
-    m_flag |= RENDER_ENABLED;
+    m_flag |= RTF_RENDER_ENABLED;
 }
 
 void RuntimeImpl::DisableRendering()
 {
-    m_flag &= ~RENDER_ENABLED;
-}
-
-GameObjectHandle RuntimeImpl::Find(PCWSTR name)
-{
-    return GameObjectManager.FindGameObject(name);
+    m_flag &= ~RTF_RENDER_ENABLED;
 }
 
 void RuntimeImpl::InitAllSubsystem(PCWSTR wndTitle, uint32_t width, uint32_t height, bool fullscreen)
@@ -224,6 +219,9 @@ void RuntimeImpl::OnIdle()
 
     SceneManager.Update(&m_fixedUpdateTimer);
 
+    // Call IScript::Start() for all starting scripts.
+    ScriptManager.CallStart();
+
     // For the FixedUpdate
     m_fixedUpdateTimer += Time.GetUnscaledDeltaTime();
     Time.ChangeDeltaTimeToFixedDeltaTime();
@@ -240,7 +238,7 @@ void RuntimeImpl::OnIdle()
     RemoveDestroyedComponentsAndGameObjects();
 
     // Render
-    if (m_flag & RUNTIME_FLAG::RENDER_ENABLED)
+    if (m_flag & RUNTIME_FLAG::RTF_RENDER_ENABLED)
         Renderer.RenderFrame();
 
     Sleep(5);
@@ -283,27 +281,15 @@ void RuntimeImpl::Destroy(GameObjectHandle hGameObject)
     this->Destroy(pGameObject);
 }
 
-void RuntimeImpl::DestroyAllComponents(GameObjectHandle hGameObject)
-{
-    GameObject* pGameObject = hGameObject.ToPtr();
-    if (!pGameObject)
-        return;
-
-    this->DestroyAllComponents(pGameObject);
-}
-
 void RuntimeImpl::Destroy(GameObject* pGameObject)
 {
     assert(pGameObject->IsDeferred() == false);
 
-    // 자식 게임 오브젝트까지 재귀적으로 삭제
+    // 자식 게임 오브젝트까지 Destroy
     // 자식과의 연결을 끊는 동작은 최대한 지연시킨다. (OnDestroy에서 최대한의 객체 접근 자유도 보장)
-    // 자식과의 연결을 끊는 동작은 GameObjectManager의 RemoveDestroyedGameObjects() 함수에서 수행.
-    for (GameObject* pChildGameObject : pGameObject->m_children)
-    {
-        assert(pChildGameObject != nullptr);
-        this->Destroy(pChildGameObject);
-    }
+    // 자식과의 연결을 끊는 동작은 TransformManagerImpl의 RemoveDestroyedGameObjects() 함수에서 수행.
+    for (Transform* pChildTransform : pGameObject->m_pTransform->m_children)
+        this->Destroy(pChildTransform->m_pGameObject);
 
     if (pGameObject->IsOnTheDestroyQueue())
         return;
@@ -314,7 +300,7 @@ void RuntimeImpl::Destroy(GameObject* pGameObject)
 
 void RuntimeImpl::Destroy(IComponent* pComponent)
 {
-    if (pComponent->IsOnTheDestroyQueue())  // 먼저 검사하면 가상함수 호출 비용 절약 가능
+    if (pComponent->IsOnTheDestroyQueue())  // 먼저 검사하면 IComponent::GetComponentManager() 가상함수 호출 비용 절약 가능
         return;
 
     IComponentManager* pComponentManager = pComponent->GetComponentManager();
@@ -327,7 +313,7 @@ void RuntimeImpl::DestroyAllComponents(GameObject* pGameObject)
 
     for (IComponent* pComponent : pGameObject->m_components)
     {
-        if (pComponent->IsOnTheDestroyQueue())  // 먼저 검사하면 가상함수 호출 비용 절약 가능
+        if (pComponent->IsOnTheDestroyQueue())  // 먼저 검사하면 IComponent::GetComponentManager() 가상함수 호출 비용 절약 가능
             continue;
 
         IComponentManager* pComponentManager = pComponent->GetComponentManager();
@@ -346,6 +332,7 @@ void RuntimeImpl::RemoveDestroyedComponentsAndGameObjects()
     SpotLightManager.RemoveDestroyedComponents();
     MeshRendererManager.RemoveDestroyedComponents();
     TerrainManager.RemoveDestroyedComponents();
+
     // 반드시 컴포넌트 제거 작업 이후 실행
     GameObjectManager.RemoveDestroyedGameObjects();
 }

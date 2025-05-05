@@ -16,25 +16,26 @@ void FirstPersonCamera::FixedUpdate()
 	ComponentHandle<Transform> hTransform = pGameObject->GetComponent<Transform>();
 	Transform* pTransform = hTransform.ToPtr();
 
-	XMVECTOR worldForwardAxis = XMVector3Rotate(LOCAL_FORWARD, pTransform->GetRotation());
-	XMVECTOR worldRightAxis = XMVector3Rotate(LOCAL_RIGHT, pTransform->GetRotation());
+	XMVECTOR localRotation = pTransform->GetLocalRotation();
+	XMVECTOR worldForwardAxis = XMVector3Rotate(LOCAL_FORWARD, localRotation);
+	XMVECTOR worldRightAxis = XMVector3Rotate(LOCAL_RIGHT, localRotation);
 
 	const int32_t mx = Input.GetMouseAxisHorizontal();
 	const int32_t my = Input.GetMouseAxisVertical();
 	if (mx != 0 || my != 0)
 	{
+		XMVECTOR temp = Math::QuaternionToEuler(localRotation);
 		XMFLOAT3A rotationEuler;
-		XMStoreFloat3A(&rotationEuler, Math::QuaternionToEuler(pTransform->GetRotation()));
+		XMStoreFloat3A(&rotationEuler, temp);
 
-		rotationEuler.x += static_cast<float>(my) * SENSITIVITY;
-		rotationEuler.y += static_cast<float>(mx) * SENSITIVITY;
-
-		Math::Clamp(rotationEuler.x, -85.0f, +85.0f);
-
-		rotationEuler.x = XMConvertToRadians(rotationEuler.x);
-		rotationEuler.y = XMConvertToRadians(rotationEuler.y);
+		rotationEuler.x += XMConvertToRadians(static_cast<float>(my) * SENSITIVITY);
+		Math::Clamp(rotationEuler.x, XMConvertToRadians(-85.0f), XMConvertToRadians(+85.0f));
+		rotationEuler.y += XMConvertToRadians(static_cast<float>(mx) * SENSITIVITY);
 		rotationEuler.z = 0.0f;
-		pTransform->SetRotation(rotationEuler);
+
+		temp = XMLoadFloat3A(&rotationEuler);
+		temp = XMQuaternionRotationRollPitchYawFromVector(temp);
+		pTransform->SetRotation(temp);
 	}
 
 	const float speed = Input.GetKey(KEY_LSHIFT) ? WALK_SPEED : SPEED;
@@ -55,14 +56,14 @@ void FirstPersonCamera::FixedUpdate()
 void FirstPersonCamera::Update()
 {
 	if (Input.GetKeyDown(KEY_APOSTROPHE))
-		Window.SetResolution(1920, 1080, true);
+		Window.SetResolution(1600, 900, true);
 
 	if (Input.GetKeyDown(KEY_SEMICOLON))
 		Window.SetResolution(1280, 720, false);
 
-	if (Input.GetKeyDown(KEY_COMMA))
-		SceneManager.LoadScene("TestScene1");
+	if (Input.GetKeyDown(KEY_U))
+		this->Disable();
 
-	if (Input.GetKeyDown(KEY_PERIOD))
-		SceneManager.LoadScene("TestScene2");
+	if (Input.GetKeyDown(KEY_Y))
+		this->Enable();
 }

@@ -15,16 +15,22 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="LevelEditor.h">
+    <ClInclude Include="BufferDC.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentListView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="framework.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="targetver.h">
+    <ClInclude Include="Helper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MainFrm.h">
+    <ClInclude Include="HierarchyTreeView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LevelEditor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LevelEditorDoc.h">
@@ -33,28 +39,22 @@
     <ClInclude Include="LevelEditorView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TransformInspectorFormView.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="HierarchyTreeView.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="LogListView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MainFrm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Settings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BufferDC.h">
+    <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ComponentListView.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Helper.h">
+    <ClInclude Include="TransformInspectorFormView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

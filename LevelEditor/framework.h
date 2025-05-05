@@ -42,6 +42,12 @@
 // ###################################################################################
 
 #include <new>
+#include <strsafe.h>
 #include <d3d11.h>
+#include <d3dcompiler.h>
 #include <wrl.h>
+#include <DirectXColors.h>
+#include <DirectXMath.h>
+
 using namespace Microsoft::WRL;
+using namespace DirectX;

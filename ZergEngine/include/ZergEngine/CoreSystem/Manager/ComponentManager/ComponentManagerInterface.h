@@ -16,10 +16,26 @@ namespace ze
 		friend class GameObject;
 		friend class IComponent;
 	public:
-		IComponentManager();
+		IComponentManager()
+			: m_uniqueId(0)
+			, m_destroyed()
+			, m_enabledComponents()
+			, m_disabledComponents()
+			, m_table(128)
+		{
+		}
 		virtual ~IComponentManager() = default;
-	private:
+	protected:
 		void AddToDestroyQueue(IComponent* pComponent);
+		void MoveToDisabledVectorFromEnabledVector(IComponent* pComponent);
+		void MoveToEnabledVectorFromDisabledVector(IComponent* pComponent);
+
+		void AddPtrToEnabledVector(IComponent* pComponent) { AddPtrToVector(m_enabledComponents, pComponent); }
+		void AddPtrToDisabledVector(IComponent* pComponent) { AddPtrToVector(m_disabledComponents, pComponent); }
+		static void AddPtrToVector(std::vector<IComponent*>& vector, IComponent* pComponent);
+		void RemovePtrFromEnabledVector(IComponent* pComponent) { RemovePtrFromVector(m_enabledComponents, pComponent); }
+		void RemovePtrFromDisabledVector(IComponent* pComponent) { RemovePtrFromVector(m_disabledComponents, pComponent); }
+		static void RemovePtrFromVector(std::vector<IComponent*>& vector, IComponent* pComponent);
 	protected:
 		virtual ComponentHandleBase Register(IComponent* pComponent);
 		virtual void RemoveDestroyedComponents();
@@ -28,7 +44,8 @@ namespace ze
 	protected:
 		uint64_t m_uniqueId;
 		std::vector<IComponent*> m_destroyed;
-		std::vector<IComponent*> m_activeComponents;	// 업데이트 시 전체 테이블을 순회할 필요를 없앤다.
+		std::vector<IComponent*> m_enabledComponents;
+		std::vector<IComponent*> m_disabledComponents;
 		std::vector<IComponent*> m_table;
 	};
 }

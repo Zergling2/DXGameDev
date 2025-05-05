@@ -4,7 +4,7 @@
 #include <ZergEngine\CoreSystem\Math.h>
 #include <ZergEngine\CoreSystem\Time.h>
 #include <ZergEngine\CoreSystem\Window.h>
-#include <ZergEngine\CoreSystem\Scene.h>
+#include <ZergEngine\CoreSystem\SceneInterface.h>
 #include <ZergEngine\CoreSystem\Input.h>
 #include <ZergEngine\CoreSystem\Manager\SceneManager.h>
 #include <ZergEngine\CoreSystem\Manager\ResourceManager.h>

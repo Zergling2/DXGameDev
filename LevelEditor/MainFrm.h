@@ -14,6 +14,7 @@ protected: // create from serialization only
 
 // Attributes
 protected:
+	bool m_splitterInitialized;
 	CSplitterWnd m_wndSplitter[4];
 
 // Operations

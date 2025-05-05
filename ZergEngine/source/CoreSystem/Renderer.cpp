@@ -149,16 +149,16 @@ void RendererImpl::RenderFrame()
 	// PerFrame 상수버퍼 업데이트 및 바인딩
 	{
 		DirectionalLightData light[MAX_GLOBAL_LIGHT_COUNT];
-		const uint32_t lightCount = static_cast<uint32_t>(DirectionalLightManager.m_activeComponents.size());
+		const uint32_t lightCount = static_cast<uint32_t>(DirectionalLightManager.m_enabledComponents.size());
 		assert(lightCount <= MAX_GLOBAL_LIGHT_COUNT);
 
 		for (uint32_t i = 0; i < lightCount; ++i)
 		{
-			const DirectionalLight* pLight = static_cast<DirectionalLight*>(DirectionalLightManager.m_activeComponents[i]);
+			const DirectionalLight* pLight = static_cast<DirectionalLight*>(DirectionalLightManager.m_enabledComponents[i]);
 			const GameObject* pGameObject = pLight->m_pGameObject;
 			assert(pGameObject != nullptr);
 
-			const XMMATRIX w = pGameObject->CalcWorldTransformMatrix();
+			const XMMATRIX w = pGameObject->m_pTransform->GetWorldTransformMatrix();
 			XMVECTOR scale;
 			XMVECTOR rotation;	// Quaternion
 			XMVECTOR transation;
@@ -184,12 +184,12 @@ void RendererImpl::RenderFrame()
 
 	{
 		PointLightData light[MAX_GLOBAL_LIGHT_COUNT];
-		const uint32_t lightCount = static_cast<uint32_t>(PointLightManager.m_activeComponents.size());
+		const uint32_t lightCount = static_cast<uint32_t>(PointLightManager.m_enabledComponents.size());
 		assert(lightCount <= MAX_GLOBAL_LIGHT_COUNT);
 
 		for (uint32_t i = 0; i < lightCount; ++i)
 		{
-			const PointLight* pLight = static_cast<PointLight*>(PointLightManager.m_activeComponents[i]);
+			const PointLight* pLight = static_cast<PointLight*>(PointLightManager.m_enabledComponents[i]);
 			const GameObject* pGameObject = pLight->m_pGameObject;
 			assert(pGameObject != nullptr);
 
@@ -197,7 +197,7 @@ void RendererImpl::RenderFrame()
 			light[i].diffuse = pLight->m_diffuse;
 			light[i].specular = pLight->m_specular;
 
-			XMStoreFloat3(&light[i].positionW, pGameObject->m_pTransform->GetPosition());
+			XMStoreFloat3(&light[i].positionW, pGameObject->m_pTransform->GetWorldPosition());
 			light[i].range = pLight->GetRange();
 
 			light[i].att = pLight->GetAtt();
@@ -214,16 +214,16 @@ void RendererImpl::RenderFrame()
 
 	{
 		SpotLightData light[MAX_GLOBAL_LIGHT_COUNT];
-		const uint32_t lightCount = static_cast<uint32_t>(SpotLightManager.m_activeComponents.size());
+		const uint32_t lightCount = static_cast<uint32_t>(SpotLightManager.m_enabledComponents.size());
 		assert(lightCount <= MAX_GLOBAL_LIGHT_COUNT);
 
 		for (uint32_t i = 0; i < lightCount; ++i)
 		{
-			const SpotLight* pLight = static_cast<SpotLight*>(SpotLightManager.m_activeComponents[i]);
+			const SpotLight* pLight = static_cast<SpotLight*>(SpotLightManager.m_enabledComponents[i]);
 			const GameObject* pGameObject = pLight->m_pGameObject;
 			assert(pGameObject != nullptr);
 
-			const XMMATRIX w = pGameObject->CalcWorldTransformMatrix();
+			const XMMATRIX w = pGameObject->m_pTransform->GetWorldTransformMatrix();
 			XMVECTOR scale;
 			XMVECTOR rotation;	// Quaternion
 			XMVECTOR transation;
@@ -255,7 +255,7 @@ void RendererImpl::RenderFrame()
 	}
 
 	// Camera마다 프레임 렌더링
-	for (IComponent* pComponent : CameraManager.m_activeComponents)
+	for (IComponent* pComponent : CameraManager.m_enabledComponents)
 	{
 		Camera* pCamera = static_cast<Camera*>(pComponent);
 
@@ -295,7 +295,7 @@ void RendererImpl::RenderFrame()
 		m_skyboxEffect.SetCamera(pCamera);
 		// m_terrainEffect.SetCamera(pCamera);
 
-		for (const IComponent* pComponent : MeshRendererManager.m_activeComponents)
+		for (const IComponent* pComponent : MeshRendererManager.m_enabledComponents)
 		{
 			const MeshRenderer* pMeshRenderer = static_cast<const MeshRenderer*>(pComponent);
 			if (!pMeshRenderer->IsEnabled() || pMeshRenderer->m_mesh == nullptr)
@@ -327,7 +327,7 @@ void RendererImpl::RenderFrame()
 		}
 
 		// 지형 렌더링
-		for (const IComponent* pComponent : TerrainManager.m_activeComponents)
+		for (const IComponent* pComponent : TerrainManager.m_enabledComponents)
 		{
 			const Terrain* pTerrain = static_cast<const Terrain*>(pComponent);
 			// RenderTerrain(pTerrain);
@@ -363,7 +363,7 @@ void RendererImpl::RenderFrame()
 	ID3D11RenderTargetView* const rtvs[] = { pColorBufferRTV };
 	pImmContext->OMSetRenderTargets(_countof(rtvs), rtvs, pDepthStencilBufferDSV);
 	
-	for (const IComponent* pComponent : CameraManager.m_activeComponents)
+	for (const IComponent* pComponent : CameraManager.m_enabledComponents)
 	{
 		const Camera* pCamera = static_cast<const Camera*>(pComponent);
 		if (!pCamera->IsEnabled())
@@ -397,7 +397,7 @@ void RendererImpl::RenderVFPositionMesh(const MeshRenderer* pMeshRenderer)
 	const GameObject* pGameObject = pMeshRenderer->m_pGameObject;
 	assert(pGameObject != nullptr);
 
-	m_basicEffectP.SetWorldMatrix(pGameObject->CalcWorldTransformMatrix());
+	m_basicEffectP.SetWorldMatrix(pGameObject->m_pTransform->GetWorldTransformMatrix());
 
 	// 버텍스 버퍼 설정
 	const UINT stride[] = { InputLayoutHelper::GetStructureByteStride(pMesh->GetVertexFormatType()) };
@@ -430,7 +430,7 @@ void RendererImpl::RenderVFPositionColorMesh(const MeshRenderer* pMeshRenderer)
 	const GameObject* pGameObject = pMeshRenderer->m_pGameObject;
 	assert(pGameObject != nullptr);
 
-	m_basicEffectPC.SetWorldMatrix(pGameObject->CalcWorldTransformMatrix());
+	m_basicEffectPC.SetWorldMatrix(pGameObject->m_pTransform->GetWorldTransformMatrix());
 
 	// 버텍스 버퍼 설정
 	const UINT stride[] = { InputLayoutHelper::GetStructureByteStride(pMesh->GetVertexFormatType()) };
@@ -463,7 +463,7 @@ void RendererImpl::RenderVFPositionNormalMesh(const MeshRenderer* pMeshRenderer)
 	const GameObject* pGameObject = pMeshRenderer->m_pGameObject;
 	assert(pGameObject != nullptr);
 
-	m_basicEffectPN.SetWorldMatrix(pGameObject->CalcWorldTransformMatrix());
+	m_basicEffectPN.SetWorldMatrix(pGameObject->m_pTransform->GetWorldTransformMatrix());
 
 	// 버텍스 버퍼 설정
 	const UINT stride[] = { InputLayoutHelper::GetStructureByteStride(pMesh->GetVertexFormatType()) };
@@ -508,7 +508,7 @@ void RendererImpl::RenderVFPositionTexCoordMesh(const MeshRenderer* pMeshRendere
 	const GameObject* pGameObject = pMeshRenderer->m_pGameObject;
 	assert(pGameObject != nullptr);
 
-	m_basicEffectPT.SetWorldMatrix(pGameObject->CalcWorldTransformMatrix());
+	m_basicEffectPT.SetWorldMatrix(pGameObject->m_pTransform->GetWorldTransformMatrix());
 
 	// 버텍스 버퍼 설정
 	const UINT stride[] = { InputLayoutHelper::GetStructureByteStride(pMesh->GetVertexFormatType()) };
@@ -554,7 +554,7 @@ void RendererImpl::RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshR
 	const GameObject* pGameObject = pMeshRenderer->m_pGameObject;
 	assert(pGameObject != nullptr);
 
-	m_basicEffectPNT.SetWorldMatrix(pGameObject->CalcWorldTransformMatrix());
+	m_basicEffectPNT.SetWorldMatrix(pGameObject->m_pTransform->GetWorldTransformMatrix());
 
 	// 버텍스 버퍼 설정
 	const UINT stride[] = { InputLayoutHelper::GetStructureByteStride(pMesh->GetVertexFormatType()) };

@@ -38,6 +38,8 @@ constexpr int FOURTH_UDSPLIT_TOP_HEIGHT = 256;		// ComponentListView ≥Ù¿Ã
 // CMainFrame construction/destruction
 
 CMainFrame::CMainFrame() noexcept
+	: m_splitterInitialized(false)
+	, m_wndSplitter{}
 {
 	// TODO: add member initialization code here
 }
@@ -152,6 +154,8 @@ BOOL CMainFrame::OnCreateClient(LPCREATESTRUCT /*lpcs*/,
 		if (!result)
 			break;
 
+		m_splitterInitialized = true;
+
 		m_wndSplitter[0].SetColumnInfo(0, cr.Width() - FIRST_LRSPLIT_RIGHT_WIDTH, 0);
 		m_wndSplitter[1].SetRowInfo(0, cr.Height() - SECOND_UDSPLIT_BOTTOM_HEIGHT, 0);
 		m_wndSplitter[2].SetColumnInfo(0, THIRD_LRSPLIT_LEFT_WIDTH, 0);
@@ -202,20 +206,37 @@ void CMainFrame::OnSize(UINT nType, int cx, int cy)
 	CFrameWnd::OnSize(nType, cx, cy);
 
 	// TODO: Add your message handler code here
-	for (size_t i = 0; i < _countof(m_wndSplitter); ++i)
-		if (m_wndSplitter[i].GetSafeHwnd() == NULL)
-			return;
-
+	WCHAR log[64];
 	CRect cr;
-	GetClientRect(&cr);
 
-	m_wndSplitter[0].SetColumnInfo(0, cr.Width() - FIRST_LRSPLIT_RIGHT_WIDTH, 0);
-	m_wndSplitter[1].SetRowInfo(0, cr.Height() - SECOND_UDSPLIT_BOTTOM_HEIGHT, 0);
-	m_wndSplitter[2].SetColumnInfo(0, THIRD_LRSPLIT_LEFT_WIDTH, 0);
-	m_wndSplitter[3].SetRowInfo(0, FOURTH_UDSPLIT_TOP_HEIGHT, 0);
+	if (!m_splitterInitialized)
+		return;
 
-	m_wndSplitter[0].RecalcLayout();
-	m_wndSplitter[1].RecalcLayout();
-	m_wndSplitter[2].RecalcLayout();
-	m_wndSplitter[3].RecalcLayout();
+	switch (nType)
+	{
+	case SIZE_MINIMIZED:
+		OutputDebugStringW(L"CMainFrame::OnSize SIZE_MINIMIZED\n");
+		break;
+	case SIZE_MAXIMIZED:
+		OutputDebugStringW(L"CMainFrame::OnSize SIZE_MAXIMIZED\n");
+		break;
+	case SIZE_RESTORED:
+		OutputDebugStringW(L"CMainFrame::OnSize SIZE_RESTORED\n");
+		GetClientRect(&cr);
+
+		m_wndSplitter[0].SetColumnInfo(0, cr.Width() - FIRST_LRSPLIT_RIGHT_WIDTH, 0);
+		m_wndSplitter[1].SetRowInfo(0, cr.Height() - SECOND_UDSPLIT_BOTTOM_HEIGHT, 0);
+		m_wndSplitter[2].SetColumnInfo(0, THIRD_LRSPLIT_LEFT_WIDTH, 0);
+		m_wndSplitter[3].SetRowInfo(0, FOURTH_UDSPLIT_TOP_HEIGHT, 0);
+
+		m_wndSplitter[0].RecalcLayout();
+		m_wndSplitter[1].RecalcLayout();
+		m_wndSplitter[2].RecalcLayout();
+		m_wndSplitter[3].RecalcLayout();
+		break;
+	default:
+		StringCbPrintfW(log, sizeof(log), L"CMainFrame::OnSize() Parameter nType was %u\n", nType);
+		OutputDebugStringW(log);
+		break;
+	}
 }

@@ -147,6 +147,8 @@
     <ClCompile Include="source\Scene\TestScene2.cpp" />
     <ClCompile Include="source\Script\FirstPersonCamera.cpp" />
     <ClCompile Include="source\Script\MovePointLight.cpp" />
+    <ClCompile Include="source\Script\Planet.cpp" />
+    <ClCompile Include="source\Script\SceneChange.cpp" />
     <ClCompile Include="source\Script\SunScript.cpp" />
     <ClCompile Include="source\Script\TestScript.cpp" />
   </ItemGroup>
@@ -156,6 +158,8 @@
     <ClInclude Include="source\Scene\TestScene2.h" />
     <ClInclude Include="source\Script\FirstPersonCamera.h" />
     <ClInclude Include="source\Script\MovePointLight.h" />
+    <ClInclude Include="source\Script\Planet.h" />
+    <ClInclude Include="source\Script\SceneChange.h" />
     <ClInclude Include="source\Script\SunScript.h" />
     <ClInclude Include="source\Script\TestScript.h" />
   </ItemGroup>

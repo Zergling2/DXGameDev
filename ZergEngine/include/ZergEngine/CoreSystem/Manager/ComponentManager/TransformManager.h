@@ -12,6 +12,8 @@ namespace ze
 	private:
 		virtual void Init(void* pDesc) override;
 		virtual void Release() override;
+
+		virtual void RemoveDestroyedComponents() override;
 	};
 
 	extern TransformManagerImpl TransformManager;

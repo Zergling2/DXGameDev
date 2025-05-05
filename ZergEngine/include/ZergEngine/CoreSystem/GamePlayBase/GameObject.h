@@ -4,12 +4,14 @@
 
 namespace ze
 {
-	class IComponentManager;
 	class Transform;
 
-	enum GAMEOBJECT_FLAG : uint16_t
+	using GameObjectFlagType = uint16_t;
+
+	enum GAMEOBJECT_FLAG : GameObjectFlagType
 	{
 		GOF_NONE					= 0,
+
 		GOF_STATIC					= 1 << 0,
 		GOF_DONT_DESTROY_ON_LOAD	= 1 << 1,
 		GOF_DEFERRED				= 1 << 2,
@@ -23,8 +25,11 @@ namespace ze
 		friend class IScene;
 		friend class GameObjectManagerImpl;
 		friend class SceneManagerImpl;
+		friend class TransformManagerImpl;
 		friend class IComponentManager;
 		friend class RendererImpl;
+		friend class Transform;
+		friend class Camera;
 		friend class BasicEffectP;
 		friend class BasicEffectPC;
 		friend class BasicEffectPN;
@@ -33,6 +38,10 @@ namespace ze
 		friend class SkyboxEffect;
 	private:
 		GameObject(GAMEOBJECT_FLAG flag, PCWSTR name);
+	public:
+		// 씬에 존재하는 활성화된 게임 오브젝트를 이름으로 검색하여 핸들을 반환합니다.
+		static GameObjectHandle Find(PCWSTR name);
+		static GameObjectHandle Find(const std::wstring& name) { GameObject::Find(name.c_str()); }
 	public:
 		bool IsDontDestroyOnLoad() const { return m_flag & GOF_DONT_DESTROY_ON_LOAD; }
 
@@ -68,26 +77,19 @@ namespace ze
 		uint32_t GetComponents(ComponentHandle<ComponentType> componentArr[], uint32_t len);
 
 		GameObjectHandle ToHandle() const;
-
-		bool SetParent(GameObject* pGameObject);
-		bool IsDescendant(GameObject* pGameObject) const;
-		bool IsDeferred() const { return m_flag & GOF_DEFERRED; }
-		GAMEOBJECT_FLAG GetFlag() const { return m_flag; }
-
-		XMMATRIX CalcWorldTransformMatrix() const noexcept;
-		XMMATRIX CalcLocalTransformMatrix() const noexcept;
 	private:
-		void SetOnDestroyQueueFlag() { m_flag = static_cast<GAMEOBJECT_FLAG>(m_flag | GOF_ON_DESTROY_QUEUE); }
+		bool IsDeferred() const { return m_flag & GOF_DEFERRED; }
+		void OnFlag(GameObjectFlagType flag) { m_flag |= flag; }
+		void OffFlag(GameObjectFlagType flag) { m_flag &= ~flag; }
 		bool IsOnTheDestroyQueue() const { return m_flag & GOF_ON_DESTROY_QUEUE; }
 	private:
-		GameObject* m_pParent;
-		std::list<GameObject*> m_children;
 		std::list<IComponent*> m_components;
-		Transform* m_pTransform;
+		Transform* m_pTransform;	// Direct access
+
 		uint64_t m_id;
 		uint32_t m_tableIndex;
 		uint32_t m_activeIndex;
-		GAMEOBJECT_FLAG m_flag;
+		GameObjectFlagType m_flag;
 		WCHAR m_name[23];
 	};
 

@@ -29,7 +29,12 @@ namespace ze
 		}
 
 		// 쿼터니언을 Z(Roll), X(Pitch), Y(Yaw) 변환 순서의 오일러 각도 모음으로 변환시킵니다.
+		// 각도 단위는 라디안입니다.
 		static XMVECTOR XM_CALLCONV QuaternionToEuler(XMVECTOR quaternion) noexcept;
+
+		// 정규화된 쿼터니언을 Z(Roll), X(Pitch), Y(Yaw) 변환 순서의 오일러 각도 모음으로 변환시킵니다.
+		// 각도 단위는 라디안입니다.
+		static XMVECTOR XM_CALLCONV QuaternionToEulerNormal(XMVECTOR quaternion) noexcept;
 
 		// ============================================================================
 		// Graphics math
