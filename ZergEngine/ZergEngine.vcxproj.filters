@@ -282,9 +282,6 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\CanvasItem\UIHitbox.h">
       <Filter>Files\ZergEngine\CoreSystem\DataStructure</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\TransformManager.h">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
-    </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\CanvasItem\RectTransform.h">
       <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\CanvasItem</Filter>
     </ClInclude>
@@ -474,9 +471,6 @@
       <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\TerrainManager.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\TransformManager.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\GamePlayBase\CanvasItem\RectTransform.cpp">

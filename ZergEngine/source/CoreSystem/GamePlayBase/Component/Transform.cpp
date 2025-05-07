@@ -1,11 +1,10 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Transform.h>
-#include <ZergEngine\CoreSystem\Manager\ComponentManager\TransformManager.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 
 using namespace ze;
 
-Transform::Transform() noexcept
-	: IComponent(TransformManager.AssignUniqueId())
+Transform::Transform(GameObject* pGameObject) noexcept
+    : m_pGameObject(pGameObject)
     , m_pParentTransform(nullptr)
     , m_children()
 {
@@ -122,7 +121,7 @@ bool Transform::SetParent(Transform* pTransform)
     if (pTransform != nullptr && pTransform->IsDescendantOf(this))
         return false;
 
-    // 기존 부모에서 떠나는 자식 포인터를 찾아 제거
+    // 기존 부모에서 떠나기 위해 자신의 포인터를 찾아 제거
     if (m_pParentTransform != nullptr)
     {
 #if defined(DEBUG) || defined(_DEBUG)
@@ -140,6 +139,7 @@ bool Transform::SetParent(Transform* pTransform)
 #endif
                 break;
             }
+            ++iter;
         }
         assert(find == true);
     }
@@ -167,9 +167,4 @@ bool Transform::IsDescendantOf(Transform* pTransform) const
     }
 
     return false;
-}
-
-IComponentManager* Transform::GetComponentManager() const
-{
-	return &TransformManager;
 }

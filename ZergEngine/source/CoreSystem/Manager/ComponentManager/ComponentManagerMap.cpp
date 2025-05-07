@@ -1,5 +1,4 @@
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\ComponentManagerMap.h>
-#include <ZergEngine\CoreSystem\Manager\ComponentManager\TransformManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\CameraManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\MeshRendererManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\DirectionalLightManager.h>
@@ -15,8 +14,6 @@ IComponentManager* ComponentManagerMap::GetComponentManager(COMPONENT_TYPE type)
 {
 	switch (type)
 	{
-	case COMPONENT_TYPE::TRANSFORM:
-		return &TransformManager;
 	case COMPONENT_TYPE::CAMERA:
 		return &CameraManager;
 	case COMPONENT_TYPE::MESH_RENDERER:

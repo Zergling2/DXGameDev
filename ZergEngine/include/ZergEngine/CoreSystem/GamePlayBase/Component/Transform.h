@@ -4,19 +4,16 @@
 
 namespace ze
 {
-	class Transform : public IComponent
+	class GameObject;
+	
+	class Transform
 	{
 		friend class RuntimeImpl;
+		friend class GameObjectManagerImpl;
 		friend class GameObject;
-		friend class TransformManagerImpl;
 	public:
-		static constexpr COMPONENT_TYPE TYPE = COMPONENT_TYPE::TRANSFORM;
-		static bool IsCreatable() { return false; }
-
-		Transform() noexcept;
-		virtual ~Transform() = default;
-
-		virtual COMPONENT_TYPE GetType() const override { return COMPONENT_TYPE::TRANSFORM; }
+		Transform(GameObject* pGameObject) noexcept;
+		~Transform() = default;
 
 		XMMATRIX GetWorldTransformMatrix() const noexcept;
 		XMMATRIX GetLocalTransformMatrix() const noexcept
@@ -69,8 +66,7 @@ namespace ze
 		bool SetParent(Transform* pTransform);
 		bool IsDescendantOf(Transform* pTransform) const;
 	private:
-		virtual IComponentManager* GetComponentManager() const override;
-	private:
+		GameObject* m_pGameObject;
 		Transform* m_pParentTransform;
 		std::vector<Transform*> m_children;
 

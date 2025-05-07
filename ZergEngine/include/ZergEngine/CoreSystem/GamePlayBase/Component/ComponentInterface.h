@@ -27,7 +27,6 @@ namespace ze
 		friend class IComponentManager;
 		friend class SceneManagerImpl;
 		friend class ScriptManagerImpl;
-		friend class TransformManagerImpl;
 		friend class GameObject;
 		friend class Camera;
 		friend class Transform;

@@ -158,7 +158,7 @@ void RendererImpl::RenderFrame()
 			const GameObject* pGameObject = pLight->m_pGameObject;
 			assert(pGameObject != nullptr);
 
-			const XMMATRIX w = pGameObject->m_pTransform->GetWorldTransformMatrix();
+			const XMMATRIX w = pGameObject->m_transform.GetWorldTransformMatrix();
 			XMVECTOR scale;
 			XMVECTOR rotation;	// Quaternion
 			XMVECTOR transation;
@@ -197,7 +197,7 @@ void RendererImpl::RenderFrame()
 			light[i].diffuse = pLight->m_diffuse;
 			light[i].specular = pLight->m_specular;
 
-			XMStoreFloat3(&light[i].positionW, pGameObject->m_pTransform->GetWorldPosition());
+			XMStoreFloat3(&light[i].positionW, pGameObject->m_transform.GetWorldPosition());
 			light[i].range = pLight->GetRange();
 
 			light[i].att = pLight->GetAtt();
@@ -223,7 +223,7 @@ void RendererImpl::RenderFrame()
 			const GameObject* pGameObject = pLight->m_pGameObject;
 			assert(pGameObject != nullptr);
 
-			const XMMATRIX w = pGameObject->m_pTransform->GetWorldTransformMatrix();
+			const XMMATRIX w = pGameObject->m_transform.GetWorldTransformMatrix();
 			XMVECTOR scale;
 			XMVECTOR rotation;	// Quaternion
 			XMVECTOR transation;
@@ -397,7 +397,7 @@ void RendererImpl::RenderVFPositionMesh(const MeshRenderer* pMeshRenderer)
 	const GameObject* pGameObject = pMeshRenderer->m_pGameObject;
 	assert(pGameObject != nullptr);
 
-	m_basicEffectP.SetWorldMatrix(pGameObject->m_pTransform->GetWorldTransformMatrix());
+	m_basicEffectP.SetWorldMatrix(pGameObject->m_transform.GetWorldTransformMatrix());
 
 	// 버텍스 버퍼 설정
 	const UINT stride[] = { InputLayoutHelper::GetStructureByteStride(pMesh->GetVertexFormatType()) };
@@ -430,7 +430,7 @@ void RendererImpl::RenderVFPositionColorMesh(const MeshRenderer* pMeshRenderer)
 	const GameObject* pGameObject = pMeshRenderer->m_pGameObject;
 	assert(pGameObject != nullptr);
 
-	m_basicEffectPC.SetWorldMatrix(pGameObject->m_pTransform->GetWorldTransformMatrix());
+	m_basicEffectPC.SetWorldMatrix(pGameObject->m_transform.GetWorldTransformMatrix());
 
 	// 버텍스 버퍼 설정
 	const UINT stride[] = { InputLayoutHelper::GetStructureByteStride(pMesh->GetVertexFormatType()) };
@@ -463,7 +463,7 @@ void RendererImpl::RenderVFPositionNormalMesh(const MeshRenderer* pMeshRenderer)
 	const GameObject* pGameObject = pMeshRenderer->m_pGameObject;
 	assert(pGameObject != nullptr);
 
-	m_basicEffectPN.SetWorldMatrix(pGameObject->m_pTransform->GetWorldTransformMatrix());
+	m_basicEffectPN.SetWorldMatrix(pGameObject->m_transform.GetWorldTransformMatrix());
 
 	// 버텍스 버퍼 설정
 	const UINT stride[] = { InputLayoutHelper::GetStructureByteStride(pMesh->GetVertexFormatType()) };
@@ -508,7 +508,7 @@ void RendererImpl::RenderVFPositionTexCoordMesh(const MeshRenderer* pMeshRendere
 	const GameObject* pGameObject = pMeshRenderer->m_pGameObject;
 	assert(pGameObject != nullptr);
 
-	m_basicEffectPT.SetWorldMatrix(pGameObject->m_pTransform->GetWorldTransformMatrix());
+	m_basicEffectPT.SetWorldMatrix(pGameObject->m_transform.GetWorldTransformMatrix());
 
 	// 버텍스 버퍼 설정
 	const UINT stride[] = { InputLayoutHelper::GetStructureByteStride(pMesh->GetVertexFormatType()) };
@@ -554,7 +554,7 @@ void RendererImpl::RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshR
 	const GameObject* pGameObject = pMeshRenderer->m_pGameObject;
 	assert(pGameObject != nullptr);
 
-	m_basicEffectPNT.SetWorldMatrix(pGameObject->m_pTransform->GetWorldTransformMatrix());
+	m_basicEffectPNT.SetWorldMatrix(pGameObject->m_transform.GetWorldTransformMatrix());
 
 	// 버텍스 버퍼 설정
 	const UINT stride[] = { InputLayoutHelper::GetStructureByteStride(pMesh->GetVertexFormatType()) };

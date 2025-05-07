@@ -111,6 +111,38 @@ void GameObjectManagerImpl::RemoveDestroyedGameObjects()
 {
 	for (GameObject* pGameObject : m_destroyed)
 	{
+		// 1. Transform 자식 부모 연결 제거
+		Transform* pTransform = &pGameObject->m_transform;
+		Transform* pParentTransform = pTransform->m_pParentTransform;
+		if (pParentTransform != nullptr)
+		{
+#if defined(DEBUG) || defined(_DEBUG)
+			bool find = false;
+#endif
+			std::vector<Transform*>::const_iterator end = pParentTransform->m_children.cend();
+			std::vector<Transform*>::const_iterator iter = pParentTransform->m_children.cbegin();
+			while (iter != end)
+			{
+				if (*iter == pTransform)
+				{
+#if defined(DEBUG) || defined(_DEBUG)
+					find = true;
+#endif
+					pParentTransform->m_children.erase(iter);
+					break;
+				}
+				++iter;
+			}
+			assert(find == true);
+		}
+
+		for (Transform* pChild : pTransform->m_children)
+		{
+			assert(pChild->m_pParentTransform == pTransform);
+			pChild->m_pParentTransform = nullptr;	// 밑에서 곧 delete될 자신을 접근하는 것을 방지 (댕글링포인터 제거)
+		}
+		// pTransform->m_children.clear();	// 객체 delete시 자동 소멸
+
 		assert(pGameObject->IsOnTheDestroyQueue());
 
 		auto& vector = pGameObject->IsActive() ? m_activeGameObjects : m_inactiveGameObjects;

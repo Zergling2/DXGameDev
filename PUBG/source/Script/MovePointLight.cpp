@@ -26,9 +26,6 @@ void MovePointLight::Update()
 		att.z += 0.01f;
 	pPointLight->SetAtt(&att);
 
-	ComponentHandle<Transform> hTransform = pGameObject->GetComponent<Transform>();
-	Transform* pTransform = hTransform.ToPtr();
-
 	XMFLOAT3A translation;
 	XMStoreFloat3A(&translation, XMVectorZero());
 
@@ -50,5 +47,5 @@ void MovePointLight::Update()
 	if (Input.GetKey(KEY_NUMPAD9))
 		translation.y += Time.GetDeltaTime();
 
-	pTransform->Translate(XMLoadFloat3A(&translation));
+	pGameObject->m_transform.Translate(XMLoadFloat3A(&translation));
 }

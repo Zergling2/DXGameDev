@@ -13,10 +13,7 @@ void FirstPersonCamera::FixedUpdate()
 	if (!pGameObject)
 		return;
 
-	ComponentHandle<Transform> hTransform = pGameObject->GetComponent<Transform>();
-	Transform* pTransform = hTransform.ToPtr();
-
-	XMVECTOR localRotation = pTransform->GetLocalRotation();
+	XMVECTOR localRotation = pGameObject->m_transform.GetLocalRotation();
 	XMVECTOR worldForwardAxis = XMVector3Rotate(LOCAL_FORWARD, localRotation);
 	XMVECTOR worldRightAxis = XMVector3Rotate(LOCAL_RIGHT, localRotation);
 
@@ -35,22 +32,22 @@ void FirstPersonCamera::FixedUpdate()
 
 		temp = XMLoadFloat3A(&rotationEuler);
 		temp = XMQuaternionRotationRollPitchYawFromVector(temp);
-		pTransform->SetRotation(temp);
+		pGameObject->m_transform.SetRotation(temp);
 	}
 
 	const float speed = Input.GetKey(KEY_LSHIFT) ? WALK_SPEED : SPEED;
 	
 	if (Input.GetKey(KEY_W))
-		pTransform->Translate(worldForwardAxis * speed);
+		pGameObject->m_transform.Translate(worldForwardAxis * speed);
 
 	if (Input.GetKey(KEY_S))
-		pTransform->Translate(worldForwardAxis * -speed);
+		pGameObject->m_transform.Translate(worldForwardAxis * -speed);
 
 	if (Input.GetKey(KEY_A))
-		pTransform->Translate(worldRightAxis * -speed);
+		pGameObject->m_transform.Translate(worldRightAxis * -speed);
 
 	if (Input.GetKey(KEY_D))
-		pTransform->Translate(worldRightAxis * speed);
+		pGameObject->m_transform.Translate(worldRightAxis * speed);
 }
 
 void FirstPersonCamera::Update()

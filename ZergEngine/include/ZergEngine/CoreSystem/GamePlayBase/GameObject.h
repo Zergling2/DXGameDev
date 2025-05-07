@@ -1,11 +1,10 @@
 #pragma once
 
 #include <ZergEngine\CoreSystem\GamePlayBase\Handle.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\Transform.h>
 
 namespace ze
 {
-	class Transform;
-
 	using GameObjectFlagType = uint16_t;
 
 	enum GAMEOBJECT_FLAG : GameObjectFlagType
@@ -25,7 +24,6 @@ namespace ze
 		friend class IScene;
 		friend class GameObjectManagerImpl;
 		friend class SceneManagerImpl;
-		friend class TransformManagerImpl;
 		friend class IComponentManager;
 		friend class RendererImpl;
 		friend class Transform;
@@ -82,9 +80,10 @@ namespace ze
 		void OnFlag(GameObjectFlagType flag) { m_flag |= flag; }
 		void OffFlag(GameObjectFlagType flag) { m_flag &= ~flag; }
 		bool IsOnTheDestroyQueue() const { return m_flag & GOF_ON_DESTROY_QUEUE; }
+	public:
+		Transform m_transform;
 	private:
 		std::list<IComponent*> m_components;
-		Transform* m_pTransform;	// Direct access
 
 		uint64_t m_id;
 		uint32_t m_tableIndex;

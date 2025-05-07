@@ -26,6 +26,7 @@ namespace ze
 	private:
 		virtual void UpdateHitbox() = 0;	// 부모 Canvas의 스크린 영역 너비를 통해 자신의 히트박스 업데이트
 	private:
+
 		RectTransform m_transform;
 		float m_width;
 		float m_height;

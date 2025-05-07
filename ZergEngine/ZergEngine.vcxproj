@@ -69,7 +69,6 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\TerrainManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Aabb.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\FileSystem.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\TransformManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\GameObjectManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\EnvironmentManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Handle.h" />
@@ -124,7 +123,6 @@
     <ClCompile Include="source\CoreSystem\GamePlayBase\CanvasItem\CanvasItemInterface.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\CanvasItem\Image.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\CanvasItem\RectTransform.cpp" />
-    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\TransformManager.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\ComponentManagerMap.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\EnvironmentManager.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Handle.cpp" />

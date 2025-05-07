@@ -9,11 +9,5 @@ void SunScript::FixedUpdate()
 	if (!pGameObject)
 		return;
 
-	ComponentHandle<Transform> hTransform;
-	Transform* pTransform;
-
-	hTransform = pGameObject->GetComponent<Transform>();
-	pTransform = hTransform.ToPtr();
-
-	pTransform->Rotate(XMQuaternionRotationAxis(WORLD_RIGHT, 0.005f));
+	pGameObject->m_transform.Rotate(XMQuaternionRotationAxis(WORLD_RIGHT, 0.005f));
 }

@@ -12,7 +12,6 @@
 #include <ZergEngine\CoreSystem\Manager\ResourceManager.h>
 #include <ZergEngine\CoreSystem\Manager\GameObjectManager.h>
 #include <ZergEngine\CoreSystem\Manager\EnvironmentManager.h>
-#include <ZergEngine\CoreSystem\Manager\ComponentManager\TransformManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\CameraManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\DirectionalLightManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\PointLightManager.h>
@@ -174,7 +173,6 @@ void RuntimeImpl::InitAllSubsystem(PCWSTR wndTitle, uint32_t width, uint32_t hei
     Renderer.Init(nullptr);
     GameObjectManager.Init(nullptr);
     Environment.Init(nullptr);
-    TransformManager.Init(nullptr);
     CameraManager.Init(nullptr);
     DirectionalLightManager.Init(nullptr);
     PointLightManager.Init(nullptr);
@@ -195,7 +193,6 @@ void RuntimeImpl::ReleaseAllSubsystem()
     PointLightManager.Release();
     DirectionalLightManager.Release();
     CameraManager.Release();
-    TransformManager.Release();
     Environment.Release();
     GameObjectManager.Release();
     Renderer.Release();
@@ -286,9 +283,7 @@ void RuntimeImpl::Destroy(GameObject* pGameObject)
     assert(pGameObject->IsDeferred() == false);
 
     // 자식 게임 오브젝트까지 Destroy
-    // 자식과의 연결을 끊는 동작은 최대한 지연시킨다. (OnDestroy에서 최대한의 객체 접근 자유도 보장)
-    // 자식과의 연결을 끊는 동작은 TransformManagerImpl의 RemoveDestroyedGameObjects() 함수에서 수행.
-    for (Transform* pChildTransform : pGameObject->m_pTransform->m_children)
+    for (Transform* pChildTransform : pGameObject->m_transform.m_children)
         this->Destroy(pChildTransform->m_pGameObject);
 
     if (pGameObject->IsOnTheDestroyQueue())
@@ -325,7 +320,6 @@ void RuntimeImpl::RemoveDestroyedComponentsAndGameObjects()
 {
     // 컴포넌트 제거 작업
     ScriptManager.RemoveDestroyedComponents();
-    TransformManager.RemoveDestroyedComponents();
     CameraManager.RemoveDestroyedComponents();
     DirectionalLightManager.RemoveDestroyedComponents();
     PointLightManager.RemoveDestroyedComponents();

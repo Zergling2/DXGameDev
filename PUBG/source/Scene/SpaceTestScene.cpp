@@ -12,7 +12,6 @@ ZE_IMPLEMENT_SCENE(SpaceTestScene);
 void SpaceTestScene::OnLoadScene()
 {
 	GameObject* pGameObject = nullptr;
-	Transform* pTransform = nullptr;
 	Camera* pCamera = nullptr;
 	MeshRenderer* pMeshRenderer = nullptr;
 	std::vector<std::shared_ptr<Mesh>> meshes;
@@ -22,8 +21,7 @@ void SpaceTestScene::OnLoadScene()
 	pGameObject->AddDeferredComponent<SceneChange>();
 
 	pGameObject = this->CreateGameObject(L"Camera");
-	pTransform = pGameObject->GetComponentRawPtr<Transform>();
-	pTransform->SetPosition(XMFLOAT3A(0.0f, 0.0f, 0.0f));
+	pGameObject->m_transform.SetPosition(XMFLOAT3A(0.0f, 0.0f, 0.0f));
 	pCamera = pGameObject->AddDeferredComponent<Camera>();
 	pCamera->SetBackgroundColor(Colors::White);
 	pCamera->SetDepth(0);
@@ -32,9 +30,8 @@ void SpaceTestScene::OnLoadScene()
 	pGameObject->AddDeferredComponent<FirstPersonCamera>();		// 1인칭 카메라 조작
 
 	pGameObject = this->CreateGameObject(L"AlienPlanet");
+	pGameObject->m_transform.SetPosition(XMFLOAT3A(0.0f, 0.0f, 0.0f));
 	pMeshRenderer = pGameObject->AddDeferredComponent<MeshRenderer>();
-	pTransform = pGameObject->GetComponentRawPtr<Transform>();
-	pTransform->SetPosition(XMFLOAT3A(0.0f, 0.0f, 0.0f));
 	// 메시 설정
 	meshes = Resource.LoadWavefrontOBJ(L"Resource\\Model\\planet\\RinglessPlanet.obj");
 	pMeshRenderer->m_mesh = meshes[0];

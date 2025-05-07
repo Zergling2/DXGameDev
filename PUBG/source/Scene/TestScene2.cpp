@@ -19,7 +19,6 @@ void TestScene2::OnLoadScene()
 	PointLight* pPointLight;
 	std::vector<std::shared_ptr<Mesh>> meshes;
 	std::shared_ptr<Material> material;
-	Transform* pTransform;
 
 	pGameObject = this->CreateGameObject(L"Scene Changer");
 	pGameObject->AddDeferredComponent<SceneChange>();
@@ -32,8 +31,7 @@ void TestScene2::OnLoadScene()
 	pGameObject->AddDeferredComponent<SunScript>();
 
 	pGameObject = this->CreateGameObject(L"Camera");
-	pTransform = pGameObject->GetComponentRawPtr<Transform>();
-	pTransform->SetPosition(XMFLOAT3A(0.0f, 0.0f, -5.0f));
+	pGameObject->m_transform.SetPosition(XMFLOAT3A(0.0f, 0.0f, -5.0f));
 	pCamera = pGameObject->AddDeferredComponent<Camera>();
 	pCamera->SetBackgroundColor(Colors::DarkOliveGreen);
 	pCamera->SetDepth(0);
@@ -42,9 +40,8 @@ void TestScene2::OnLoadScene()
 	pGameObject->AddDeferredComponent<FirstPersonCamera>();		// 1인칭 카메라 조작
 
 	pGameObject = this->CreateGameObject(L"Camera2");
-	pTransform = pGameObject->GetComponentRawPtr<Transform>();
-	pTransform->SetPosition(XMFLOAT3A(-5.5f, 5.0f, -2.5f));
-	pTransform->SetRotation(XMFLOAT3A(0.0f, XMConvertToRadians(90.0f), 0.0f));
+	pGameObject->m_transform.SetPosition(XMFLOAT3A(-5.5f, 5.0f, -2.5f));
+	pGameObject->m_transform.SetRotation(XMFLOAT3A(0.0f, XMConvertToRadians(90.0f), 0.0f));
 	pCamera = pGameObject->AddDeferredComponent<Camera>();
 	pCamera->SetBackgroundColor(Colors::Chocolate);
 	pCamera->SetDepth(1);
@@ -69,8 +66,7 @@ void TestScene2::OnLoadScene()
 	pMeshRenderer->m_mesh->m_subsets[0].m_material = material;
 
 	pGameObject = this->CreateGameObject(L"Point Light");
-	pTransform = pGameObject->GetComponentRawPtr<Transform>();
-	pTransform->SetPosition(XMFLOAT3A(0.0f, 2.5f, -1.0f));
+	pGameObject->m_transform.SetPosition(XMFLOAT3A(0.0f, 2.5f, -1.0f));
 	pGameObject->AddDeferredComponent<MovePointLight>();
 	pPointLight = pGameObject->AddDeferredComponent<PointLight>();
 	pPointLight->m_ambient = XMFLOAT4A(0.0f, 0.0f, 0.0f, 1.0f);
@@ -81,8 +77,7 @@ void TestScene2::OnLoadScene()
 
 
 	pGameObject = this->CreateGameObject(L"Bollard");
-	pTransform = pGameObject->GetComponentRawPtr<Transform>();
-	pTransform->SetPosition(XMFLOAT3A(-2.0f, 0.0f, 0.0f));
+	pGameObject->m_transform.SetPosition(XMFLOAT3A(-2.0f, 0.0f, 0.0f));
 	pMeshRenderer = pGameObject->AddDeferredComponent<MeshRenderer>();
 	// 메시 설정
 	meshes = Resource.LoadWavefrontOBJ(L"Resource\\maps\\mart\\bollard.obj");
@@ -92,8 +87,7 @@ void TestScene2::OnLoadScene()
 
 
 	pGameObject = this->CreateGameObject(L"KartBody");
-	pTransform = pGameObject->GetComponentRawPtr<Transform>();
-	pTransform->SetPosition(XMFLOAT3A(5.0f, 0.0f, 0.0f));
+	pGameObject->m_transform.SetPosition(XMFLOAT3A(5.0f, 0.0f, 0.0f));
 	// pGameObject->AddDeferredComponent<TestScript>();
 	pMeshRenderer = pGameObject->AddDeferredComponent<MeshRenderer>();
 	meshes = Resource.LoadWavefrontOBJ(L"Resource\\Model\\newyorktourbus\\newyorktourbus_body.obj");

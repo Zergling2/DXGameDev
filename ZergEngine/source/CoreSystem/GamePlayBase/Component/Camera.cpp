@@ -227,9 +227,8 @@ void Camera::UpdateViewMatrix()
 {
 	const GameObject* pCameraOwner = m_pGameObject;
 	assert(pCameraOwner != nullptr);
-	assert(pCameraOwner->m_pTransform != nullptr);
 
-	const XMMATRIX w = pCameraOwner->m_pTransform->GetWorldTransformMatrix();
+	const XMMATRIX w = pCameraOwner->m_transform.GetWorldTransformMatrix();
 	XMVECTOR scale;
 	XMVECTOR rotation;		// Camera rotation quaternion
 	XMVECTOR translation;

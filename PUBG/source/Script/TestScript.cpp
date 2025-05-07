@@ -10,12 +10,9 @@ void TestScript::FixedUpdate()
 	if (!pGameObject)
 		return;
 
-	ComponentHandle<Transform> hTransform = pGameObject->GetComponent<Transform>();
-	Transform* pTransform = hTransform.ToPtr();
+	pGameObject->m_transform.Translate(XMVectorMultiply(XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f), XMVectorReplicate(Time.GetDeltaTime())));
 
-	pTransform->Translate(XMVectorMultiply(XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f), XMVectorReplicate(Time.GetDeltaTime())));
-
-	pTransform->Rotate(XMQuaternionRotationAxis(WORLD_UP, XMConvertToRadians(90) * Time.GetDeltaTime()));
+	pGameObject->m_transform.Rotate(XMQuaternionRotationAxis(WORLD_UP, XMConvertToRadians(90) * Time.GetDeltaTime()));
 	
 	ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->GetComponent<MeshRenderer>();
 	MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();

@@ -69,6 +69,9 @@ void ScriptManagerImpl::FixedUpdateScripts()
 
 void ScriptManagerImpl::UpdateScripts()
 {
+    // 업데이트 도중 자기 자신을 disable 시키는 경우
+    // 바깥 이터레이터 손상됨 (for문 i 인덱스)
+
     for (size_t i = 0; i < m_enabledComponents.size(); ++i)
         static_cast<IScript*>(m_enabledComponents[i])->Update();
 }

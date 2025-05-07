@@ -6,7 +6,6 @@ namespace ze
 {
 	enum class COMPONENT_TYPE : uint16_t
 	{
-		TRANSFORM,
 		CAMERA,
 		MESH_RENDERER,
 		DIRECTIONAL_LIGHT,
