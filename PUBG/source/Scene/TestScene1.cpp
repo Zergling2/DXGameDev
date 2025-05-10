@@ -15,38 +15,44 @@ void TestScene1::OnLoadScene()
 	std::shared_ptr<Material> parkinglotMat;
 	
 	{
-		GameObject* pSceneChanger = CreateGameObject(L"Scene Changer");
-		pSceneChanger->AddDeferredComponent<SceneChange>();
+		GameObjectHandle hSceneChanger = CreateGameObject(L"Scene Changer");
+		hSceneChanger.ToPtr()->AddComponent<SceneChange>();
 	}
 
 
 	{
-		GameObject* pSun = CreateGameObject(L"Sun");
-		DirectionalLight* pLight = pSun->AddDeferredComponent<DirectionalLight>();
+		GameObjectHandle hSun = CreateGameObject(L"Sun");
+		GameObject* pSun = hSun.ToPtr();
+		ComponentHandle<DirectionalLight> hLight = pSun->AddComponent<DirectionalLight>();
+		DirectionalLight* pLight = hLight.ToPtr();
 		pLight->m_ambient = XMFLOAT4A(1.0f, 1.0f, 1.0f, 1.0f);
 		pLight->m_diffuse = XMFLOAT4A(1.0f, 1.0f, 1.0f, 1.0f);
 		pLight->m_specular = XMFLOAT4A(1.0f, 1.0f, 1.0f, 1.0f);
-		pSun->AddDeferredComponent<SunScript>();
+		pSun->AddComponent<SunScript>();
 	}
 	
 
 	{
-		GameObject* pCamera1 = CreateGameObject(L"Camera");
+		GameObjectHandle hCamera1 = CreateGameObject(L"Camera");
+		GameObject* pCamera1 = hCamera1.ToPtr();
 		pCamera1->m_transform.SetPosition(XMFLOAT3A(0.0f, 0.0f, -5.0f));
-		Camera* pCamera1CamComponent = pCamera1->AddDeferredComponent<Camera>();
+		ComponentHandle<Camera> hCamera1CamComponent = pCamera1->AddComponent<Camera>();
+		Camera* pCamera1CamComponent = hCamera1CamComponent.ToPtr();
 		pCamera1CamComponent->SetBackgroundColor(Colors::Gray);
 		pCamera1CamComponent->SetDepth(0);
 		pCamera1CamComponent->SetFieldOfView(92);
 		pCamera1CamComponent->SetClippingPlanes(0.01f, 500.0f);
-		pCamera1->AddDeferredComponent<FirstPersonCamera>();		// 1인칭 카메라 조작
+		pCamera1->AddComponent<FirstPersonCamera>();		// 1인칭 카메라 조작
 	}
 	
 
 	{
-		GameObject* pCamera2 = CreateGameObject(L"Camera2");
+		GameObjectHandle hCamera2 = CreateGameObject(L"Camera2");
+		GameObject* pCamera2 = hCamera2.ToPtr();
 		pCamera2->m_transform.SetPosition(XMFLOAT3A(-5.5f, 2.5f, -2.5f));
 		pCamera2->m_transform.SetRotation(XMFLOAT3A(0.0f, XMConvertToRadians(90), 0.0f));
-		Camera* pCamera2CamComponent = pCamera2->AddDeferredComponent<Camera>();
+		ComponentHandle< Camera> hCamera2CamComponent = pCamera2->AddComponent<Camera>();
+		Camera* pCamera2CamComponent = hCamera2CamComponent.ToPtr();
 		pCamera2CamComponent->SetBackgroundColor(Colors::Green);
 		pCamera2CamComponent->SetDepth(1);
 		pCamera2CamComponent->SetFieldOfView(70);
@@ -58,12 +64,15 @@ void TestScene1::OnLoadScene()
 	}
 
 
+	GameObjectHandle hKart;
 	GameObject* pKart;
 	{
-		pKart = CreateGameObject(L"Kart");
+		hKart = CreateGameObject(L"Kart");
+		pKart = hKart.ToPtr();
 		pKart->m_transform.SetPosition(XMFLOAT3A(0.0f, 0.0f, 0.0f));
-		pKart->AddDeferredComponent<TestScript>();
-		MeshRenderer* pKartMeshRenderer = pKart->AddDeferredComponent<MeshRenderer>();
+		pKart->AddComponent<TestScript>();
+		ComponentHandle< MeshRenderer> hKartMeshRenderer = pKart->AddComponent<MeshRenderer>();
+		MeshRenderer* pKartMeshRenderer = hKartMeshRenderer.ToPtr();
 
 		meshes = Resource.LoadWavefrontOBJ(L"Resource\\Model\\newyorkmusclecar\\newyorkmusclecar_body.obj");
 		pKartMeshRenderer->m_mesh = meshes[0];
@@ -75,15 +84,16 @@ void TestScene1::OnLoadScene()
 		material->m_diffuseMap = Resource.LoadTexture(L"Resource\\Model\\newyorkmusclecar\\newyorkmusclecar_tex.png");
 		pKartMeshRenderer->m_mesh->m_subsets[0].m_material = material;
 	}
-	
 
 	
 	{
-		GameObject* pPlanet = CreateGameObject(L"AlienPlanet");
+		GameObjectHandle hPlanet = CreateGameObject(L"AlienPlanet");
+		GameObject* pPlanet = hPlanet.ToPtr();
 		pPlanet->m_transform.SetPosition(XMFLOAT3A(0.0f, 5.0f, 0.0f));
 		pPlanet->m_transform.SetParent(&pKart->m_transform);
 
-		MeshRenderer* pPlanetMeshRenderer = pPlanet->AddDeferredComponent<MeshRenderer>();
+		ComponentHandle<MeshRenderer> hPlanetMeshRenderer = pPlanet->AddComponent<MeshRenderer>();
+		MeshRenderer* pPlanetMeshRenderer = hPlanetMeshRenderer.ToPtr();
 		// 메시 설정
 		meshes = Resource.LoadWavefrontOBJ(L"Resource\\Model\\planet\\RinglessPlanet.obj");
 		pPlanetMeshRenderer->m_mesh = meshes[0];
@@ -103,8 +113,10 @@ void TestScene1::OnLoadScene()
 	parkinglotMat->m_specular = XMFLOAT4A(0.2f, 0.2f, 0.2f, 16.0f);
 	parkinglotMat->m_diffuseMap = Resource.LoadTexture(L"Resource\\maps\\mart\\ParkingLotInterior_Diffuse.png");
 	{
-		GameObject* pPillar = CreateGameObject(L"Pillar");
-		MeshRenderer* pPillarMeshRenderer = pPillar->AddDeferredComponent<MeshRenderer>();
+		GameObjectHandle hPillar = CreateGameObject(L"Pillar");
+		GameObject* pPillar = hPillar.ToPtr();
+		ComponentHandle<MeshRenderer> hPillarMeshRenderer = pPillar->AddComponent<MeshRenderer>();
+		MeshRenderer* pPillarMeshRenderer = hPillarMeshRenderer.ToPtr();
 		// 메시 설정
 		meshes = Resource.LoadWavefrontOBJ(L"Resource\\maps\\mart\\pillar.obj");
 		pPillarMeshRenderer->m_mesh = meshes[0];
@@ -114,18 +126,17 @@ void TestScene1::OnLoadScene()
 
 
 	{
-		GameObject* pBollard = CreateGameObject(L"Bollard");
+		GameObjectHandle hBollard = CreateGameObject(L"Bollard");
+		GameObject* pBollard = hBollard.ToPtr();
 		pBollard->m_transform.SetPosition(XMFLOAT3A(-2.0f, 0.0f, 0.0f));
-		MeshRenderer* pBollardMeshRenderer = pBollard->AddDeferredComponent<MeshRenderer>();
+		ComponentHandle<MeshRenderer> hBollardMeshRenderer = pBollard->AddComponent<MeshRenderer>();
 		// 메시 설정
 		meshes = Resource.LoadWavefrontOBJ(L"Resource\\maps\\mart\\bollard.obj");
+		MeshRenderer* pBollardMeshRenderer = hBollardMeshRenderer.ToPtr();
 		pBollardMeshRenderer->m_mesh = meshes[0];
 		// 재질 설정
 		pBollardMeshRenderer->m_mesh->m_subsets[0].m_material = parkinglotMat;
 	}
-	
-
-
 
 
 	Texture2D skyboxCubeMap = Resource.LoadCubeMapTexture(L"Resource\\Skybox\\cloudy_puresky.dds");

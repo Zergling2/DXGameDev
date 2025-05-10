@@ -243,19 +243,12 @@ void RuntimeImpl::OnIdle()
 
 GameObjectHandle RuntimeImpl::CreateGameObject(PCWSTR name)
 {
-    GameObjectHandle hGameObject;
+    // Not deferred game object.
+    GameObject* pGameObject = new GameObject(GOF_ACTIVE, name);
 
-    do
-    {
-        GameObject* pGameObject = new(std::nothrow) GameObject(
-            static_cast<GAMEOBJECT_FLAG>(GOF_ACTIVE),
-            name
-        );
-        if (!pGameObject)
-            break;
+    GameObjectHandle hGameObject = GameObjectManager.RegisterToHandleTable(pGameObject);
 
-        hGameObject = GameObjectManager.Register(pGameObject);
-    } while (false);
+    GameObjectManager.AddPtrToActiveVector(pGameObject);
 
     return hGameObject;
 }
@@ -273,6 +266,10 @@ void RuntimeImpl::Destroy(GameObjectHandle hGameObject)
 {
     GameObject* pGameObject = hGameObject.ToPtr();
     if (!pGameObject)
+        return;
+
+    // 지연된 게임 오브젝트를 제거하는 경우는 OnLoadScene에서 Destroy를 한다는 의미인데 이것은 허용하지 않는다.
+    if (pGameObject->IsDeferred())
         return;
 
     this->Destroy(pGameObject);
@@ -296,6 +293,10 @@ void RuntimeImpl::Destroy(GameObject* pGameObject)
 void RuntimeImpl::Destroy(IComponent* pComponent)
 {
     if (pComponent->IsOnTheDestroyQueue())  // 먼저 검사하면 IComponent::GetComponentManager() 가상함수 호출 비용 절약 가능
+        return;
+    
+    // OnLoadScene 함수에서 파괴는 허용하지 않는다.
+    if (pComponent->m_pGameObject->IsDeferred())
         return;
 
     IComponentManager* pComponentManager = pComponent->GetComponentManager();

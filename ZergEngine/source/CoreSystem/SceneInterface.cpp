@@ -1,5 +1,6 @@
 #include <ZergEngine\CoreSystem\SceneInterface.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
+#include <ZergEngine\CoreSystem\Manager\GameObjectManager.h>
 
 using namespace ze;
 
@@ -9,15 +10,13 @@ IScene::IScene()
 	assert(m_pDeferredGameObjects != nullptr);
 }
 
-GameObject* IScene::CreateGameObject(PCWSTR name)
+GameObjectHandle IScene::CreateGameObject(PCWSTR name)
 {
-	GameObject* pGameObject = new(std::nothrow) GameObject(
-		static_cast<GAMEOBJECT_FLAG>(GOF_DEFERRED | GOF_ACTIVE),
-		name
-	);
+	// Not deferred game object.
+	GameObject* pGameObject = new GameObject(GOF_DEFERRED | GOF_ACTIVE, name);
 
-	if (pGameObject)
-		m_pDeferredGameObjects->push_back(pGameObject);
+	GameObjectHandle hGameObject = GameObjectManager.RegisterToHandleTable(pGameObject);
+	m_pDeferredGameObjects->push_back(pGameObject);
 
-	return pGameObject;
+	return hGameObject;
 }

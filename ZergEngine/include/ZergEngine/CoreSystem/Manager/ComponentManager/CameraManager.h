@@ -18,7 +18,7 @@ namespace ze
 		void Update();
 		void OnResize();
 
-		virtual ComponentHandleBase Register(IComponent* pComponent) override;
+		virtual void AddPtrToActiveVector(IComponent* pComponent) override;
 		virtual void RemoveDestroyedComponents() override;
 	};
 

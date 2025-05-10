@@ -20,12 +20,9 @@ bool IComponent::Enable()
 
 	this->OnFlag(CF_ENABLED);
 
-	// disabled 벡터에서 enabled 벡터로 이동
-	IComponentManager* pComponentManager = this->GetComponentManager();
-	pComponentManager->MoveToEnabledVectorFromDisabledVector(this);
+	if (m_pGameObject->IsDeferred())	// 스크립트의 경우 deferred 상태에서 OnEnable이 호출되지 않도록 한다.
+		return false;
 
-	// 스크립트의 경우 SystemJobOnEnable() -> OnEnable()에서 다시 Disable()을 호출하는 경우에도
-	// 올바르게 작동할 수 있도록 플래그 업데이트 및 벡터 이동이 완료된 뒤에 호출해야 한다.
 	return true;
 }
 
@@ -36,9 +33,8 @@ bool IComponent::Disable()
 
 	this->OffFlag(CF_ENABLED);
 
-	// enabled 벡터에서 disabled 벡터로 이동
-	IComponentManager* pComponentManager = this->GetComponentManager();
-	pComponentManager->MoveToDisabledVectorFromEnabledVector(this);
+	if (m_pGameObject->IsDeferred())	// 스크립트의 경우 deferred 상태에서 OnDisable이 호출되지 않도록 한다.
+		return false;
 
 	return true;
 }

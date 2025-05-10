@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ZergEngine\CoreSystem\GamePlayBase\Component\ComponentInterface.h>
+#include <ZergEngine\Common\ThirdPartySDK.h>
 
 namespace ze
 {

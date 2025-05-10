@@ -20,22 +20,22 @@ namespace ze
 
 		void Init();
 
-		inline void AcquireLockExclusive() { assert(m_init == true); AcquireSRWLockExclusive(&m_lock); }
+		void AcquireLockExclusive() { assert(m_init == true); AcquireSRWLockExclusive(&m_lock); }
 
-		inline void ReleaseLockExclusive() { assert(m_init == true); ReleaseSRWLockExclusive(&m_lock); }
+		void ReleaseLockExclusive() { assert(m_init == true); ReleaseSRWLockExclusive(&m_lock); }
 
-		inline void AcquireLockShared() { assert(m_init == true); AcquireSRWLockShared(&m_lock); }
+		void AcquireLockShared() { assert(m_init == true); AcquireSRWLockShared(&m_lock); }
 
-		inline void ReleaseLockShared() { assert(m_init == true); ReleaseSRWLockShared(&m_lock); }
-
-		// If the lock is successfully acquired, the return value is true.
-		inline bool TryAcquireLockExclusive() { assert(m_init == true); return TryAcquireSRWLockExclusive(&m_lock) != 0; }
+		void ReleaseLockShared() { assert(m_init == true); ReleaseSRWLockShared(&m_lock); }
 
 		// If the lock is successfully acquired, the return value is true.
-		inline bool TryAcquireLockShared() { assert(m_init == true); return TryAcquireSRWLockShared(&m_lock) != 0; }
+		bool TryAcquireLockExclusive() { assert(m_init == true); return TryAcquireSRWLockExclusive(&m_lock) != 0; }
+
+		// If the lock is successfully acquired, the return value is true.
+		bool TryAcquireLockShared() { assert(m_init == true); return TryAcquireSRWLockShared(&m_lock) != 0; }
 
 #if defined(DEBUG) || defined(_DEBUG)
-		inline bool IsInitialized() const { return m_init; }
+		bool IsInitialized() const { return m_init; }
 #endif
 	private:
 #if defined(DEBUG) || defined(_DEBUG)
@@ -48,11 +48,11 @@ namespace ze
 	class AutoAcquireSlimRWLockExclusive
 	{
 	public:
-		inline AutoAcquireSlimRWLockExclusive(SlimRWLock& lock)
+		AutoAcquireSlimRWLockExclusive(SlimRWLock& lock)
 			: m_lock(lock)
 		{
-			assert(lock.IsInitialized());
-			lock.AcquireLockExclusive();
+			assert(m_lock.IsInitialized());
+			m_lock.AcquireLockExclusive();
 		}
 		~AutoAcquireSlimRWLockExclusive()
 		{
@@ -66,11 +66,11 @@ namespace ze
 	class AutoAcquireSlimRWLockShared
 	{
 	public:
-		inline AutoAcquireSlimRWLockShared(SlimRWLock& lock)
+		AutoAcquireSlimRWLockShared(SlimRWLock& lock)
 			: m_lock(lock)
 		{
-			assert(lock.IsInitialized());
-			lock.AcquireLockShared();
+			assert(m_lock.IsInitialized());
+			m_lock.AcquireLockShared();
 		}
 		~AutoAcquireSlimRWLockShared()
 		{

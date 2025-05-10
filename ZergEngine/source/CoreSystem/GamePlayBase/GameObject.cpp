@@ -5,7 +5,7 @@
 
 using namespace ze;
 
-GameObject::GameObject(GAMEOBJECT_FLAG flag, PCWSTR name)
+GameObject::GameObject(GameObjectFlagType flag, PCWSTR name)
 	: m_transform(this)
 	, m_components()
 	, m_id(GameObjectManager.AssignUniqueId())
@@ -26,13 +26,21 @@ void GameObject::SetActive(bool active)
 	for (Transform* pChildTransform : m_transform.m_children)
 		pChildTransform->m_pGameObject->SetActive(active);
 
+	// 이미 해당 활성 상태가 설정되어 있는 경우 함수 리턴
+	const bool isActive = this->IsActive();
+	if (isActive == active)
+		return;
+
 	if (active)
 	{
 		for (IComponent* pComponent : m_components)
 			pComponent->Enable();
 
 		this->OnFlag(GOF_ACTIVE);
-		GameObjectManager.MoveToInactiveVectorFromActiveVector(this);
+
+		// 지연되지 않은 경우에만 포인터 이동 (지연된 상태에서는 Active/Inactive 벡터에 포인터가 존재하지 않는다.)
+		if (!this->IsDeferred())
+			GameObjectManager.MoveToActiveVectorFromInactiveVector(this);
 	}
 	else
 	{
@@ -40,7 +48,10 @@ void GameObject::SetActive(bool active)
 			pComponent->Disable();
 
 		this->OffFlag(GOF_ACTIVE);
-		GameObjectManager.MoveToActiveVectorFromInactiveVector(this);
+
+		// 지연되지 않은 경우에만 포인터 이동 (지연된 상태에서는 Active/Inactive 벡터에 포인터가 존재하지 않는다.)
+		if (!this->IsDeferred())
+			GameObjectManager.MoveToInactiveVectorFromActiveVector(this);
 	}
 }
 

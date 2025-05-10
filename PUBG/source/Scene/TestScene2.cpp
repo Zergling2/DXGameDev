@@ -12,99 +12,128 @@ ZE_IMPLEMENT_SCENE(TestScene2);
 
 void TestScene2::OnLoadScene()
 {
-	GameObject* pGameObject;
-	MeshRenderer* pMeshRenderer;
-	Camera* pCamera;
-	DirectionalLight* pDirectionalLight;
-	PointLight* pPointLight;
-	std::vector<std::shared_ptr<Mesh>> meshes;
-	std::shared_ptr<Material> material;
-
-	pGameObject = this->CreateGameObject(L"Scene Changer");
-	pGameObject->AddDeferredComponent<SceneChange>();
-
-	pGameObject = this->CreateGameObject(L"Sun");
-	pDirectionalLight = pGameObject->AddDeferredComponent<DirectionalLight>();
-	pDirectionalLight->m_ambient = XMFLOAT4A(1.0f, 1.0f, 1.0f, 1.0f);
-	pDirectionalLight->m_diffuse = XMFLOAT4A(0.1f, 0.1f, 0.1f, 1.0f);
-	pDirectionalLight->m_specular = XMFLOAT4A(1.0f, 1.0f, 1.0f, 1.0f);
-	pGameObject->AddDeferredComponent<SunScript>();
-
-	pGameObject = this->CreateGameObject(L"Camera");
-	pGameObject->m_transform.SetPosition(XMFLOAT3A(0.0f, 0.0f, -5.0f));
-	pCamera = pGameObject->AddDeferredComponent<Camera>();
-	pCamera->SetBackgroundColor(Colors::DarkOliveGreen);
-	pCamera->SetDepth(0);
-	pCamera->SetFieldOfView(92);
-	pCamera->SetClippingPlanes(0.01f, 500.0f);
-	pGameObject->AddDeferredComponent<FirstPersonCamera>();		// 1인칭 카메라 조작
-
-	pGameObject = this->CreateGameObject(L"Camera2");
-	pGameObject->m_transform.SetPosition(XMFLOAT3A(-5.5f, 5.0f, -2.5f));
-	pGameObject->m_transform.SetRotation(XMFLOAT3A(0.0f, XMConvertToRadians(90.0f), 0.0f));
-	pCamera = pGameObject->AddDeferredComponent<Camera>();
-	pCamera->SetBackgroundColor(Colors::Chocolate);
-	pCamera->SetDepth(1);
-	pCamera->SetFieldOfView(70);
-	pCamera->SetMaximumTessellationExponent(4.0f);
-	pCamera->SetMinimumTessellationExponent(0.0f);
-	pCamera->SetMaximumDistanceEndTessellation(300.0f);
-	pCamera->SetMinimumDistanceStartTessellation(25.0f);
-	pCamera->SetViewportRect(0.7f, 0.05f, 0.25f, 0.25f);
-
-	pGameObject = this->CreateGameObject(L"Pillar");
-	pMeshRenderer = pGameObject->AddDeferredComponent<MeshRenderer>();
-	// 메시 설정
-	meshes = Resource.LoadWavefrontOBJ(L"Resource\\maps\\mart\\pillar.obj");
-	pMeshRenderer->m_mesh = meshes[0];
-	// 재질 설정
-	material = Resource.CreateMaterial();
-	material->m_diffuse = XMFLOAT4A(1.0f, 1.0f, 1.0f, 1.0f);
-	material->m_ambient = XMFLOAT4A(material->m_diffuse.x * 0.25f, material->m_diffuse.y * 0.25f, material->m_diffuse.z * 0.25f, 1.0f);
-	material->m_specular = XMFLOAT4A(0.2f, 0.2f, 0.2f, 16.0f);
-	material->m_diffuseMap = Resource.LoadTexture(L"Resource\\maps\\mart\\ParkingLotInterior_Diffuse.png");
-	pMeshRenderer->m_mesh->m_subsets[0].m_material = material;
-
-	pGameObject = this->CreateGameObject(L"Point Light");
-	pGameObject->m_transform.SetPosition(XMFLOAT3A(0.0f, 2.5f, -1.0f));
-	pGameObject->AddDeferredComponent<MovePointLight>();
-	pPointLight = pGameObject->AddDeferredComponent<PointLight>();
-	pPointLight->m_ambient = XMFLOAT4A(0.0f, 0.0f, 0.0f, 1.0f);
-	pPointLight->m_diffuse = XMFLOAT4A(0.0f, 1.0f, 0.0f, 1.0f);
-	pPointLight->m_specular = XMFLOAT4A(0.0f, 1.0f, 0.0f, 1.0f);
-	pPointLight->SetAtt(XMFLOAT3(0.0f, 5.0f, 0.0f));
-	pPointLight->SetRange(10.0f);
+	{
+		GameObjectHandle hSceneChanger = CreateGameObject(L"Scene Changer");
+		GameObject* pSceneChanger = hSceneChanger.ToPtr();
+		pSceneChanger->AddComponent<SceneChange>();
+	}
 
 
-	pGameObject = this->CreateGameObject(L"Bollard");
-	pGameObject->m_transform.SetPosition(XMFLOAT3A(-2.0f, 0.0f, 0.0f));
-	pMeshRenderer = pGameObject->AddDeferredComponent<MeshRenderer>();
-	// 메시 설정
-	meshes = Resource.LoadWavefrontOBJ(L"Resource\\maps\\mart\\bollard.obj");
-	pMeshRenderer->m_mesh = meshes[0];
-	// 재질 설정
-	pMeshRenderer->m_mesh->m_subsets[0].m_material = material;
+	{
+		GameObjectHandle hSun = CreateGameObject(L"Sun");
+		GameObject* pSun = hSun.ToPtr();
+		ComponentHandle<DirectionalLight> hDirectionalLight = pSun->AddComponent<DirectionalLight>();
+		DirectionalLight* pDirectionalLight = hDirectionalLight.ToPtr();
+		pDirectionalLight->m_ambient = XMFLOAT4A(1.0f, 1.0f, 1.0f, 1.0f);
+		pDirectionalLight->m_diffuse = XMFLOAT4A(0.1f, 0.1f, 0.1f, 1.0f);
+		pDirectionalLight->m_specular = XMFLOAT4A(1.0f, 1.0f, 1.0f, 1.0f);
+		pSun->AddComponent<SunScript>();
+	}
 
 
-	pGameObject = this->CreateGameObject(L"KartBody");
-	pGameObject->m_transform.SetPosition(XMFLOAT3A(5.0f, 0.0f, 0.0f));
-	// pGameObject->AddDeferredComponent<TestScript>();
-	pMeshRenderer = pGameObject->AddDeferredComponent<MeshRenderer>();
-	meshes = Resource.LoadWavefrontOBJ(L"Resource\\Model\\newyorktourbus\\newyorktourbus_body.obj");
-	pMeshRenderer->m_mesh = meshes[0];
+	{
+		GameObjectHandle hCamera = CreateGameObject(L"Camera");
+		GameObject* pCamera = hCamera.ToPtr();
+		pCamera->m_transform.SetPosition(XMFLOAT3A(0.0f, 0.0f, -5.0f));
+		ComponentHandle<Camera> hCameraComponent = pCamera->AddComponent<Camera>();
+		Camera* pCameraComponent = hCameraComponent.ToPtr();
+		pCameraComponent->SetBackgroundColor(Colors::DarkOliveGreen);
+		pCameraComponent->SetDepth(0);
+		pCameraComponent->SetFieldOfView(92);
+		pCameraComponent->SetClippingPlanes(0.01f, 500.0f);
+		pCamera->AddComponent<FirstPersonCamera>();		// 1인칭 카메라 조작
+	}
 
-	material = Resource.CreateMaterial();
-	material->m_ambient = XMFLOAT4A(0.25f, 0.25f, 0.25f, 1.0f);
-	material->m_diffuse = XMFLOAT4A(0.8f, 0.8f, 0.8f, 1.0f);
-	material->m_specular = XMFLOAT4A(0.5f, 0.5f, 0.5f, 55.0f);
-	material->m_diffuseMap = Resource.LoadTexture(L"Resource\\Model\\newyorktourbus\\newyorktourbus_tex.png");
-	pMeshRenderer->m_mesh->m_subsets[0].m_material = material;
+
+	{
+		GameObjectHandle hCamera2 = CreateGameObject(L"Camera2");
+		GameObject* pCamera2 = hCamera2.ToPtr();
+		pCamera2->m_transform.SetPosition(XMFLOAT3A(-5.5f, 5.0f, -2.5f));
+		pCamera2->m_transform.SetRotation(XMFLOAT3A(0.0f, XMConvertToRadians(90.0f), 0.0f));
+		ComponentHandle<Camera> hCameraComponent = pCamera2->AddComponent<Camera>();
+		Camera* pCameraComponent = hCameraComponent.ToPtr();
+		pCameraComponent->SetBackgroundColor(Colors::Chocolate);
+		pCameraComponent->SetDepth(1);
+		pCameraComponent->SetFieldOfView(70);
+		pCameraComponent->SetMaximumTessellationExponent(4.0f);
+		pCameraComponent->SetMinimumTessellationExponent(0.0f);
+		pCameraComponent->SetMaximumDistanceEndTessellation(300.0f);
+		pCameraComponent->SetMinimumDistanceStartTessellation(25.0f);
+		pCameraComponent->SetViewportRect(0.7f, 0.05f, 0.25f, 0.25f);
+	}
+	
+
+	{
+		GameObjectHandle hPointLight = CreateGameObject(L"Point Light");
+		GameObject* pPointLight = hPointLight.ToPtr();
+		pPointLight->m_transform.SetPosition(XMFLOAT3A(0.0f, 2.5f, -1.0f));
+		pPointLight->AddComponent<MovePointLight>();
+		ComponentHandle<PointLight> hPointLightComponent = pPointLight->AddComponent<PointLight>();
+		PointLight* pPointLightComponent = hPointLightComponent.ToPtr();
+		pPointLightComponent->m_ambient = XMFLOAT4A(0.0f, 0.0f, 0.0f, 1.0f);
+		pPointLightComponent->m_diffuse = XMFLOAT4A(0.0f, 1.0f, 0.0f, 1.0f);
+		pPointLightComponent->m_specular = XMFLOAT4A(0.0f, 1.0f, 0.0f, 1.0f);
+		pPointLightComponent->SetAtt(XMFLOAT3(0.0f, 5.0f, 0.0f));
+		pPointLightComponent->SetRange(10.0f);
+	}
+
+
+	std::shared_ptr<Material> parkinglotMaterial;
+	{
+		GameObjectHandle hPillar = CreateGameObject(L"Pillar");
+		GameObject* pPillar = hPillar.ToPtr();
+		ComponentHandle<MeshRenderer> hMeshRenderer = pPillar->AddComponent<MeshRenderer>();
+		// 메시 설정
+		auto meshes = Resource.LoadWavefrontOBJ(L"Resource\\maps\\mart\\pillar.obj");
+		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+		pMeshRenderer->m_mesh = meshes[0];
+		// 재질 설정
+		parkinglotMaterial = Resource.CreateMaterial();
+		parkinglotMaterial->m_diffuse = XMFLOAT4A(1.0f, 1.0f, 1.0f, 1.0f);
+		parkinglotMaterial->m_ambient = XMFLOAT4A(0.25f, 0.25f, 0.25f, 1.0f);
+		parkinglotMaterial->m_specular = XMFLOAT4A(0.2f, 0.2f, 0.2f, 16.0f);
+		parkinglotMaterial->m_diffuseMap = Resource.LoadTexture(L"Resource\\maps\\mart\\ParkingLotInterior_Diffuse.png");
+		pMeshRenderer->m_mesh->m_subsets[0].m_material = parkinglotMaterial;
+	}
+	
+
+	{
+		GameObjectHandle hBollard = this->CreateGameObject(L"Bollard");
+		GameObject* pBollard = hBollard.ToPtr();
+		pBollard->m_transform.SetPosition(XMFLOAT3A(-2.0f, 0.0f, 0.0f));
+		ComponentHandle<MeshRenderer> hMeshRenderer = pBollard->AddComponent<MeshRenderer>();
+		// 메시 설정
+		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+		auto meshes = Resource.LoadWavefrontOBJ(L"Resource\\maps\\mart\\bollard.obj");
+		pMeshRenderer->m_mesh = meshes[0];
+		// 재질 설정
+		pMeshRenderer->m_mesh->m_subsets[0].m_material = parkinglotMaterial;
+	}
+
+
+	{
+		GameObjectHandle hKart = CreateGameObject(L"KartBody");
+		GameObject* pKart = hKart.ToPtr();
+		pKart->m_transform.SetPosition(XMFLOAT3A(5.0f, 0.0f, 0.0f));
+		auto hMeshRenderer = pKart->AddComponent<MeshRenderer>();
+		auto meshes = Resource.LoadWavefrontOBJ(L"Resource\\Model\\newyorktourbus\\newyorktourbus_body.obj");
+		auto pMeshRenderer = hMeshRenderer.ToPtr();
+		pMeshRenderer->m_mesh = meshes[0];
+		auto material = Resource.CreateMaterial();
+		material->m_ambient = XMFLOAT4A(0.25f, 0.25f, 0.25f, 1.0f);
+		material->m_diffuse = XMFLOAT4A(0.85f, 0.85f, 0.85f, 1.0f);
+		material->m_specular = XMFLOAT4A(0.5f, 0.5f, 0.5f, 55.0f);
+		material->m_diffuseMap = Resource.LoadTexture(L"Resource\\Model\\newyorktourbus\\newyorktourbus_tex.png");
+		pMeshRenderer->m_mesh->m_subsets[0].m_material = material;
+	}
+	
 
 	// Texture2D skyboxCubeMap = Resource.LoadCubeMapTexture(L"Resource\\Skybox\\cloudy_puresky.dds");
 	// Texture2D skyboxCubeMap = Resource.LoadCubeMapTexture(L"Resource\\Skybox\\warm_restaurant_night.dds");
 	// Texture2D skyboxCubeMap = Resource.LoadCubeMapTexture(L"Resource\\Skybox\\snowcube.dds");
 	Texture2D skyboxCubeMap = Resource.LoadCubeMapTexture(L"Resource\\Skybox\\sunsetcube.dds");
 	Environment.SetSkyboxCubeMap(skyboxCubeMap);
+
 
 	// TerrainData tmd;
 	// tmd.heightMapSize.row = 1025;

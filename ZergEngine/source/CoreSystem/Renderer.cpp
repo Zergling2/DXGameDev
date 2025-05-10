@@ -149,12 +149,15 @@ void RendererImpl::RenderFrame()
 	// PerFrame 상수버퍼 업데이트 및 바인딩
 	{
 		DirectionalLightData light[MAX_GLOBAL_LIGHT_COUNT];
-		const uint32_t lightCount = static_cast<uint32_t>(DirectionalLightManager.m_enabledComponents.size());
-		assert(lightCount <= MAX_GLOBAL_LIGHT_COUNT);
+		const uint32_t lightCount = static_cast<uint32_t>(DirectionalLightManager.m_activeComponents.size());
 
-		for (uint32_t i = 0; i < lightCount; ++i)
+		uint32_t index = 0;
+		for (const IComponent* pLightComponent : DirectionalLightManager.m_activeComponents)
 		{
-			const DirectionalLight* pLight = static_cast<DirectionalLight*>(DirectionalLightManager.m_enabledComponents[i]);
+			if (index >= MAX_GLOBAL_LIGHT_COUNT)
+				break;
+
+			const DirectionalLight* pLight = static_cast<const DirectionalLight*>(pLightComponent);
 			const GameObject* pGameObject = pLight->m_pGameObject;
 			assert(pGameObject != nullptr);
 
@@ -164,13 +167,15 @@ void RendererImpl::RenderFrame()
 			XMVECTOR transation;
 			XMMatrixDecompose(&scale, &rotation, &transation, w);
 
-			light[i].ambient = pLight->m_ambient;
-			light[i].diffuse = pLight->m_diffuse;
-			light[i].specular = pLight->m_specular;
+			light[index].ambient = pLight->m_ambient;
+			light[index].diffuse = pLight->m_diffuse;
+			light[index].specular = pLight->m_specular;
 			XMStoreFloat3(
-				&light[i].directionW,
-				XMVector3Rotate(LIGHT_DIRECTION_LOCAL_AXIS,	rotation)
+				&light[index].directionW,
+				XMVector3Rotate(LIGHT_DIRECTION_LOCAL_AXIS, rotation)
 			);
+
+			++index;
 		}
 
 		// m_basicEffectP.SetDirectionalLight(light, lightCount);
@@ -184,23 +189,28 @@ void RendererImpl::RenderFrame()
 
 	{
 		PointLightData light[MAX_GLOBAL_LIGHT_COUNT];
-		const uint32_t lightCount = static_cast<uint32_t>(PointLightManager.m_enabledComponents.size());
-		assert(lightCount <= MAX_GLOBAL_LIGHT_COUNT);
+		const uint32_t lightCount = static_cast<uint32_t>(PointLightManager.m_activeComponents.size());
 
-		for (uint32_t i = 0; i < lightCount; ++i)
+		uint32_t index = 0;
+		for (const IComponent* pLightComponent : PointLightManager.m_activeComponents)
 		{
-			const PointLight* pLight = static_cast<PointLight*>(PointLightManager.m_enabledComponents[i]);
+			if (index >= MAX_GLOBAL_LIGHT_COUNT)
+				break;
+
+			const PointLight* pLight = static_cast<const PointLight*>(pLightComponent);
 			const GameObject* pGameObject = pLight->m_pGameObject;
 			assert(pGameObject != nullptr);
 
-			light[i].ambient = pLight->m_ambient;
-			light[i].diffuse = pLight->m_diffuse;
-			light[i].specular = pLight->m_specular;
+			light[index].ambient = pLight->m_ambient;
+			light[index].diffuse = pLight->m_diffuse;
+			light[index].specular = pLight->m_specular;
 
-			XMStoreFloat3(&light[i].positionW, pGameObject->m_transform.GetWorldPosition());
-			light[i].range = pLight->GetRange();
+			XMStoreFloat3(&light[index].positionW, pGameObject->m_transform.GetWorldPosition());
+			light[index].range = pLight->GetRange();
 
-			light[i].att = pLight->GetAtt();
+			light[index].att = pLight->GetAtt();
+
+			++index;
 		}
 
 		// m_basicEffectP.SetPointLight(light, lightCount);
@@ -214,12 +224,15 @@ void RendererImpl::RenderFrame()
 
 	{
 		SpotLightData light[MAX_GLOBAL_LIGHT_COUNT];
-		const uint32_t lightCount = static_cast<uint32_t>(SpotLightManager.m_enabledComponents.size());
-		assert(lightCount <= MAX_GLOBAL_LIGHT_COUNT);
+		const uint32_t lightCount = static_cast<uint32_t>(SpotLightManager.m_activeComponents.size());
 
-		for (uint32_t i = 0; i < lightCount; ++i)
+		uint32_t index = 0;
+		for (const IComponent* pLightComponent : SpotLightManager.m_activeComponents)
 		{
-			const SpotLight* pLight = static_cast<SpotLight*>(SpotLightManager.m_enabledComponents[i]);
+			if (index >= MAX_GLOBAL_LIGHT_COUNT)
+				break;
+
+			const SpotLight* pLight = static_cast<const SpotLight*>(pLightComponent);
 			const GameObject* pGameObject = pLight->m_pGameObject;
 			assert(pGameObject != nullptr);
 
@@ -229,20 +242,22 @@ void RendererImpl::RenderFrame()
 			XMVECTOR transation;
 			XMMatrixDecompose(&scale, &rotation, &transation, w);
 
-			light[i].ambient = pLight->m_ambient;
-			light[i].diffuse = pLight->m_diffuse;
-			light[i].specular = pLight->m_specular;
+			light[index].ambient = pLight->m_ambient;
+			light[index].diffuse = pLight->m_diffuse;
+			light[index].specular = pLight->m_specular;
 
-			XMStoreFloat3(&light[i].positionW, transation);
-			light[i].range = pLight->m_range;
+			XMStoreFloat3(&light[index].positionW, transation);
+			light[index].range = pLight->m_range;
 
 			XMStoreFloat3(
-				&light[i].directionW,
-				XMVector3Rotate(LIGHT_DIRECTION_LOCAL_AXIS,	rotation)
+				&light[index].directionW,
+				XMVector3Rotate(LIGHT_DIRECTION_LOCAL_AXIS, rotation)
 			);
-			light[i].spotExp = pLight->m_spotExp;
+			light[index].spotExp = pLight->m_spotExp;
 
-			light[i].att = pLight->m_att;
+			light[index].att = pLight->m_att;
+
+			++index;
 		}
 
 		// m_basicEffectP.SetSpotLight(light, lightCount);
@@ -255,7 +270,7 @@ void RendererImpl::RenderFrame()
 	}
 
 	// Camera마다 프레임 렌더링
-	for (IComponent* pComponent : CameraManager.m_enabledComponents)
+	for (IComponent* pComponent : CameraManager.m_activeComponents)
 	{
 		Camera* pCamera = static_cast<Camera*>(pComponent);
 
@@ -295,7 +310,7 @@ void RendererImpl::RenderFrame()
 		m_skyboxEffect.SetCamera(pCamera);
 		// m_terrainEffect.SetCamera(pCamera);
 
-		for (const IComponent* pComponent : MeshRendererManager.m_enabledComponents)
+		for (const IComponent* pComponent : MeshRendererManager.m_activeComponents)
 		{
 			const MeshRenderer* pMeshRenderer = static_cast<const MeshRenderer*>(pComponent);
 			if (!pMeshRenderer->IsEnabled() || pMeshRenderer->m_mesh == nullptr)
@@ -327,7 +342,7 @@ void RendererImpl::RenderFrame()
 		}
 
 		// 지형 렌더링
-		for (const IComponent* pComponent : TerrainManager.m_enabledComponents)
+		for (const IComponent* pComponent : TerrainManager.m_activeComponents)
 		{
 			const Terrain* pTerrain = static_cast<const Terrain*>(pComponent);
 			// RenderTerrain(pTerrain);
@@ -363,7 +378,7 @@ void RendererImpl::RenderFrame()
 	ID3D11RenderTargetView* const rtvs[] = { pColorBufferRTV };
 	pImmContext->OMSetRenderTargets(_countof(rtvs), rtvs, pDepthStencilBufferDSV);
 	
-	for (const IComponent* pComponent : CameraManager.m_enabledComponents)
+	for (const IComponent* pComponent : CameraManager.m_activeComponents)
 	{
 		const Camera* pCamera = static_cast<const Camera*>(pComponent);
 		if (!pCamera->IsEnabled())

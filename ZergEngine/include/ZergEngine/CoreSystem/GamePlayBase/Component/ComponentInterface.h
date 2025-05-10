@@ -18,9 +18,6 @@ namespace ze
 		CF_ON_DESTROY_QUEUE		= 1 << 15,
 	};
 
-	constexpr size_t DISABLED_COMPONENT_VECTOR_INDEX = 0;
-	constexpr size_t ENABLED_COMPONENT_VECTOR_INDEX = CF_ENABLED;
-
 	class IComponent
 	{
 		friend class RuntimeImpl;
@@ -43,7 +40,7 @@ namespace ze
 			, m_id(id)
 			, m_tableIndex(std::numeric_limits<uint32_t>::max())
 			, m_activeIndex(std::numeric_limits<uint32_t>::max())
-			, m_flag(CF_ENABLED)
+			, m_flag(CF_ENABLED)	// 기본 상태는 enable 상태
 		{
 		}
 		virtual ~IComponent() = default;
@@ -69,7 +66,7 @@ namespace ze
 		uint64_t m_id;
 
 		uint32_t m_tableIndex;
-		uint32_t m_activeIndex;		// Enabled 여부에 따라 ComponentManager에서의 소속 벡터 결정
+		uint32_t m_activeIndex;
 
 		ComponentFlagType m_flag;
 		uint16_t m_reserved0;

@@ -106,17 +106,22 @@ void SceneManagerImpl::Update(float* pFixedUpdateTimer)
 
 	// 지연된 게임오브젝트들 및 컴포넌트들을 관리 시작
 	std::vector<IScript*> scripts;
-	scripts.reserve(256);
+	scripts.reserve(512);
 	auto& deferredGameObjects = *m_upNextScene->m_pDeferredGameObjects;
 	for (GameObject* pGameObject : deferredGameObjects)
 	{
-		GameObjectHandle hGameObject = GameObjectManager.Register(pGameObject);	// Deferred 플래그 제거도 포함
-		assert(hGameObject.IsValid() == true);
+		// 중요 (플래그 제거)
+		pGameObject->OffFlag(GOF_DEFERRED);
+
+		if (pGameObject->IsActive())
+			GameObjectManager.AddPtrToActiveVector(pGameObject);
+		else
+			GameObjectManager.AddPtrToInactiveVector(pGameObject);
 
 		for (IComponent* pComponent : pGameObject->m_components)
 		{
 			IComponentManager* pComponentManager = pComponent->GetComponentManager();
-			pComponentManager->Register(pComponent);
+			pComponentManager->AddPtrToActiveVector(pComponent);
 
 			if (pComponent->GetType() == COMPONENT_TYPE::SCRIPT)
 				scripts.push_back(static_cast<IScript*>(pComponent));
@@ -132,7 +137,7 @@ void SceneManagerImpl::Update(float* pFixedUpdateTimer)
 		if (pScript->IsEnabled())
 		{
 			pScript->OnEnable();
-			ScriptManager.AddToStartingQueue(pScript);
+			ScriptManager.AddToStartingQueue(pScript);	// 활성화된 채로 씬에서 시작되는 경우 Start 대기열에 추가
 		}
 	}
 

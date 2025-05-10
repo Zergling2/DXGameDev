@@ -2,6 +2,8 @@
 
 #include <ZergEngine\CoreSystem\GamePlayBase\Handle.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Transform.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\ComponentInterface.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\ComponentManagerInterface.h>
 
 namespace ze
 {
@@ -34,8 +36,9 @@ namespace ze
 		friend class BasicEffectPT;
 		friend class BasicEffectPNT;
 		friend class SkyboxEffect;
+		friend class IComponent;
 	private:
-		GameObject(GAMEOBJECT_FLAG flag, PCWSTR name);
+		GameObject(GameObjectFlagType flag, PCWSTR name);
 	public:
 		// 씬에 존재하는 활성화된 게임 오브젝트를 이름으로 검색하여 핸들을 반환합니다.
 		static GameObjectHandle Find(PCWSTR name);
@@ -49,20 +52,11 @@ namespace ze
 		void SetActive(bool active);
 		bool IsActive() { return m_flag & GOF_ACTIVE; }
 
-		// IScene::OnLoadScene() 함수 안에서는 AddComponent 함수로 컴포넌트를 추가하면 실패합니다. 대신 이 함수를 사용하여야 합니다.
-		// 이 함수가 반환한 객체 포인터에 절대로 delete를 호출해서는 안됩니다.
+		// IScene::OnLoadScene() 함수 내에서는 GameObject 및 Component의 생성만 가능하며 Destroy는 허용되지 않습니다.
 		// 명시적 객체 파괴는 스크립트에서 핸들을 통해서만 가능하며, 암시적 객체 파괴는 씬 전환 시
 		// DontDestroyOnLoad가 호출되지 않았던 객체들에 한해서 자동으로 이루어집니다.
 		template<class ComponentType, typename... Args>
-		ComponentType* AddDeferredComponent(Args&& ...args);
-
-		// 스크립트 내에서는 이 함수로 컴포넌트를 추가해야 합니다. AddDeferredComponent 함수로 컴포넌트를 추가하면 실패합니다.
-		template<class ComponentType, typename... Args>
 		ComponentHandle<ComponentType> AddComponent(Args&& ...args);
-
-		// IScene 클래스의 OnLoadScene() 함수를 오버라이드한 함수 내에서만 사용해야 합니다. 그렇지 않으면 nullptr을 반환합니다.
-		template<class ComponentType>
-		ComponentType* GetComponentRawPtr();
 
 		template<class ComponentType>
 		ComponentHandle<ComponentType> GetComponent();
@@ -93,77 +87,33 @@ namespace ze
 	};
 
 	template<class ComponentType, typename ...Args>
-	ComponentType* GameObject::AddDeferredComponent(Args && ...args)
-	{
-		ComponentType* pComponent = nullptr;
-		
-		do
-		{
-			if (!IsDeferred())
-				break;
-
-			if (!ComponentType::IsCreatable())
-				break;
-
-			pComponent = new ComponentType(std::forward<Args>(args)...);
-
-			pComponent->m_pGameObject = this;
-			m_components.push_back(pComponent);
-		} while (false);
-
-		return pComponent;
-	}
-
-	template<class ComponentType, typename ...Args>
 	ComponentHandle<ComponentType> GameObject::AddComponent(Args && ...args)
 	{
 		ComponentHandle<ComponentType> hComponent;	// Invalid handle
 
 		do
 		{
-			if (IsDeferred())
-				break;
-
 			if (!ComponentType::IsCreatable())
 				break;
 
-			ComponentType* pComponent = new ComponentType(std::forward<Args>(args)...);
-
+			IComponent* pComponent = new ComponentType(std::forward<Args>(args)...);
 			pComponent->m_pGameObject = this;
 			m_components.push_back(pComponent);
 
-			IComponentManager* pComponentManager = pComponent->GetComponentManager();
-			assert(pComponentManager != nullptr);
+			if (!this->IsActive())
+				pComponent->OffFlag(CF_ENABLED);
 
-			hComponent = pComponentManager->Register(pComponent);
-			assert(hComponent.IsValid() == true);
+			IComponentManager* pComponentManager = pComponent->GetComponentManager();
+
+			hComponent = pComponentManager->RegisterToHandleTable(pComponent);
+			assert(hComponent.IsValid());
+
+			// 지연된 게임오브젝트가 아닌 경우에만 바로 포인터 활성화
+			if (!this->IsDeferred())
+				pComponentManager->AddPtrToActiveVector(pComponent);
 		} while (false);
 
 		return hComponent;
-	}
-
-	template<class ComponentType>
-	ComponentType* GameObject::GetComponentRawPtr()
-	{
-		ComponentType* pFind = nullptr;
-
-		do
-		{
-			if (!this->IsDeferred())
-				break;
-
-			for (auto pComponent : m_components)
-			{
-				assert(pComponent != nullptr);
-				if (dynamic_cast<ComponentType*>(pComponent))
-				{
-					pFind = static_cast<ComponentType*>(pComponent);
-					break;
-				}
-			}
-		} while (false);
-
-		return pFind;
 	}
 
 	template<class ComponentType>

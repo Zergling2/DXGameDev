@@ -11,37 +11,45 @@ ZE_IMPLEMENT_SCENE(SpaceTestScene);
 
 void SpaceTestScene::OnLoadScene()
 {
-	GameObject* pGameObject = nullptr;
-	Camera* pCamera = nullptr;
-	MeshRenderer* pMeshRenderer = nullptr;
-	std::vector<std::shared_ptr<Mesh>> meshes;
-	std::shared_ptr<Material> material;
+	{
+		auto hSceneChanger = CreateGameObject(L"Scene Changer");
+		auto pSceneChanger = hSceneChanger.ToPtr();
+		pSceneChanger->AddComponent<SceneChange>();
+	}
+	
 
-	pGameObject = this->CreateGameObject(L"Scene Changer");
-	pGameObject->AddDeferredComponent<SceneChange>();
+	{
+		auto hCamera = CreateGameObject(L"Camera");
+		auto pCamera = hCamera.ToPtr();
+		pCamera->m_transform.SetPosition(XMFLOAT3A(0.0f, 0.0f, 0.0f));
+		auto hCameraComponent = pCamera->AddComponent<Camera>();
+		auto pCameraComponent = hCameraComponent.ToPtr();
+		pCameraComponent->SetBackgroundColor(Colors::White);
+		pCameraComponent->SetDepth(0);
+		pCameraComponent->SetFieldOfView(92);
+		pCameraComponent->SetClippingPlanes(0.01f, 500.0f);
+		pCamera->AddComponent<FirstPersonCamera>();		// 1인칭 카메라 조작
+	}
+	
 
-	pGameObject = this->CreateGameObject(L"Camera");
-	pGameObject->m_transform.SetPosition(XMFLOAT3A(0.0f, 0.0f, 0.0f));
-	pCamera = pGameObject->AddDeferredComponent<Camera>();
-	pCamera->SetBackgroundColor(Colors::White);
-	pCamera->SetDepth(0);
-	pCamera->SetFieldOfView(92);
-	pCamera->SetClippingPlanes(0.01f, 500.0f);
-	pGameObject->AddDeferredComponent<FirstPersonCamera>();		// 1인칭 카메라 조작
-
-	pGameObject = this->CreateGameObject(L"AlienPlanet");
-	pGameObject->m_transform.SetPosition(XMFLOAT3A(0.0f, 0.0f, 0.0f));
-	pMeshRenderer = pGameObject->AddDeferredComponent<MeshRenderer>();
-	// 메시 설정
-	meshes = Resource.LoadWavefrontOBJ(L"Resource\\Model\\planet\\RinglessPlanet.obj");
-	pMeshRenderer->m_mesh = meshes[0];
-	// 재질 설정
-	material = Resource.CreateMaterial();
-	material->m_diffuse = XMFLOAT4A(1.0f, 1.0f, 1.0f, 1.0f);
-	material->m_ambient = XMFLOAT4A(material->m_diffuse.x * 0.2f, material->m_diffuse.y * 0.2f, material->m_diffuse.z * 0.2f, 1.0f);
-	material->m_specular = XMFLOAT4A(0.2f, 0.2f, 0.2f, 16.0f);
-	material->m_diffuseMap = Resource.LoadTexture(L"Resource\\Model\\planet\\RinglessPlanetA_Diffuse.png");
-	pMeshRenderer->m_mesh->m_subsets[0].m_material = material;
+	{
+		auto hAlienPlanet = CreateGameObject(L"AlienPlanet");
+		auto pAlienPlanet = hAlienPlanet.ToPtr();
+		pAlienPlanet->m_transform.SetPosition(XMFLOAT3A(0.0f, 0.0f, 0.0f));
+		auto hMeshRenderer = pAlienPlanet->AddComponent<MeshRenderer>();
+		// 메시 설정
+		auto pMeshRenderer = hMeshRenderer.ToPtr();
+		auto meshes = Resource.LoadWavefrontOBJ(L"Resource\\Model\\planet\\RinglessPlanet.obj");
+		pMeshRenderer->m_mesh = meshes[0];
+		// 재질 설정
+		auto material = Resource.CreateMaterial();
+		material->m_diffuse = XMFLOAT4A(1.0f, 1.0f, 1.0f, 1.0f);
+		material->m_ambient = XMFLOAT4A(0.2f, 0.2f, 0.2f, 1.0f);
+		material->m_specular = XMFLOAT4A(0.2f, 0.2f, 0.2f, 16.0f);
+		material->m_diffuseMap = Resource.LoadTexture(L"Resource\\Model\\planet\\RinglessPlanetA_Diffuse.png");
+		pMeshRenderer->m_mesh->m_subsets[0].m_material = material;
+	}
+	
 
 
 	// Texture2D skyboxCubeMap = Resource.LoadCubeMapTexture(L"Resource\\Skybox\\cloudy_puresky.dds");

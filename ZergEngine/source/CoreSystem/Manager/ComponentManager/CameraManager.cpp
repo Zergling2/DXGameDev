@@ -28,7 +28,7 @@ void CameraManagerImpl::Update()
 {
     // Depth 기준 재정렬
     std::sort(
-        m_enabledComponents.begin(), m_enabledComponents.end(),
+        m_activeComponents.begin(), m_activeComponents.end(),
         [](const IComponent* pA, const IComponent* pB)
         {
             return static_cast<const Camera*>(pA)->GetDepth() < static_cast<const Camera*>(pB)->GetDepth();
@@ -38,7 +38,7 @@ void CameraManagerImpl::Update()
 
 void CameraManagerImpl::OnResize()
 {
-    for (auto pComponent : m_enabledComponents)
+    for (auto pComponent : m_activeComponents)
     {
         Camera* pCamera = static_cast<Camera*>(pComponent);
 
@@ -48,23 +48,20 @@ void CameraManagerImpl::OnResize()
     }
 }
 
-ComponentHandleBase CameraManagerImpl::Register(IComponent* pComponent)
+void CameraManagerImpl::AddPtrToActiveVector(IComponent* pComponent)
 {
-    ComponentHandleBase hComponent = IComponentManager::Register(pComponent);
+    IComponentManager::AddPtrToActiveVector(pComponent);
 
-    // 카메라 컴포넌트는 적은 개수만 사용되므로 Register 함수 호출 시마다 Update를 해주어도 상관 없다.
     this->Update();
-
-    return hComponent;
 }
 
 void CameraManagerImpl::RemoveDestroyedComponents()
 {
-    const size_t activeSizeBefore = m_enabledComponents.size();
+    const size_t activeSizeBefore = m_activeComponents.size();
     IComponentManager::RemoveDestroyedComponents();
-    const size_t activeSizeAfter = m_enabledComponents.size();
+    const size_t activeSizeAfter = m_activeComponents.size();
 
     // 파괴된 카메라가 있는 경우
-    if (activeSizeBefore != activeSizeAfter)
+    if (activeSizeAfter < activeSizeBefore)
         this->Update();
 }

@@ -2,6 +2,7 @@
 
 #include <ZergEngine\CoreSystem\SubsystemInterface.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Handle.h>
+#include <ZergEngine\CoreSystem\SlimRWLock.h>
 
 namespace ze
 {
@@ -18,34 +19,27 @@ namespace ze
 	public:
 		IComponentManager()
 			: m_uniqueId(0)
+			, m_lock()
 			, m_destroyed()
-			, m_enabledComponents()
-			, m_disabledComponents()
+			, m_activeComponents()
 			, m_table(128)
 		{
+			m_lock.Init();
 		}
 		virtual ~IComponentManager() = default;
 	protected:
 		void AddToDestroyQueue(IComponent* pComponent);
-		void MoveToDisabledVectorFromEnabledVector(IComponent* pComponent);
-		void MoveToEnabledVectorFromDisabledVector(IComponent* pComponent);
 
-		void AddPtrToEnabledVector(IComponent* pComponent) { AddPtrToVector(m_enabledComponents, pComponent); }
-		void AddPtrToDisabledVector(IComponent* pComponent) { AddPtrToVector(m_disabledComponents, pComponent); }
-		static void AddPtrToVector(std::vector<IComponent*>& vector, IComponent* pComponent);
-		void RemovePtrFromEnabledVector(IComponent* pComponent) { RemovePtrFromVector(m_enabledComponents, pComponent); }
-		void RemovePtrFromDisabledVector(IComponent* pComponent) { RemovePtrFromVector(m_disabledComponents, pComponent); }
-		static void RemovePtrFromVector(std::vector<IComponent*>& vector, IComponent* pComponent);
-	protected:
-		virtual ComponentHandleBase Register(IComponent* pComponent);
+		ComponentHandleBase RegisterToHandleTable(IComponent* pComponent);
+		virtual void AddPtrToActiveVector(IComponent* pComponent);
 		virtual void RemoveDestroyedComponents();
 
-		inline uint64_t AssignUniqueId() { return InterlockedIncrement64(reinterpret_cast<LONG64*>(&m_uniqueId)); }
+		uint64_t AssignUniqueId() { return InterlockedIncrement64(reinterpret_cast<LONG64*>(&m_uniqueId)); }
 	protected:
 		uint64_t m_uniqueId;
+		SlimRWLock m_lock;
 		std::vector<IComponent*> m_destroyed;
-		std::vector<IComponent*> m_enabledComponents;
-		std::vector<IComponent*> m_disabledComponents;
+		std::vector<IComponent*> m_activeComponents;
 		std::vector<IComponent*> m_table;
 	};
 }

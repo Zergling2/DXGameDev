@@ -63,23 +63,32 @@ void ScriptManagerImpl::FixedUpdateScripts()
     // 만약 순회 중 즉시 삭제가 이루어지면 뒤에서 땡겨진 컴포넌트가 업데이트가 생략되는 일이 없게 해주는 식으로 Update를 해주고 앞쪽으로
     // 이동시킨다던지... 그러나 이런 식으로 하면 복잡도가 올라가게 된다.
 
-    for (size_t i = 0; i < m_enabledComponents.size(); ++i)
-        static_cast<IScript*>(m_enabledComponents[i])->FixedUpdate();
+    for (size_t i = 0; i < m_activeComponents.size(); ++i)
+    {
+        IScript* pScript = static_cast<IScript*>(m_activeComponents[i]);
+        if (pScript->IsEnabled())
+            pScript->FixedUpdate();
+    }
 }
 
 void ScriptManagerImpl::UpdateScripts()
 {
-    // 업데이트 도중 자기 자신을 disable 시키는 경우
-    // 바깥 이터레이터 손상됨 (for문 i 인덱스)
-
-    for (size_t i = 0; i < m_enabledComponents.size(); ++i)
-        static_cast<IScript*>(m_enabledComponents[i])->Update();
+    for (size_t i = 0; i < m_activeComponents.size(); ++i)
+    {
+        IScript* pScript = static_cast<IScript*>(m_activeComponents[i]);
+        if (pScript->IsEnabled())
+            pScript->Update();
+    }
 }
 
 void ScriptManagerImpl::LateUpdateScripts()
 {
-    for (size_t i = 0; i < m_enabledComponents.size(); ++i)
-        static_cast<IScript*>(m_enabledComponents[i])->LateUpdate();
+    for (size_t i = 0; i < m_activeComponents.size(); ++i)
+    {
+        IScript* pScript = static_cast<IScript*>(m_activeComponents[i]);
+        if (pScript->IsEnabled())
+            pScript->LateUpdate();
+    }
 }
 
 void ScriptManagerImpl::RemoveDestroyedComponents()
@@ -92,7 +101,7 @@ void ScriptManagerImpl::RemoveDestroyedComponents()
         if (pScript->IsEnabled())   // 활성화 되어있는 스크립트에 한해서만 OnDestroy() 호출
             pScript->OnDestroy();
 
-        // 파괴되는 스크립트가 Start 대기열에 있는 경우 댕글링 포인터가 남지 않게 제거
+        // 파괴되는 스크립트가 Start 대기열에 있는 경우 Start 대기열에 댕글링 포인터가 남지 않게 제거
         if (pScript->GetFlag() & CF_ON_STARTING_QUEUE)
         {
             assert(m_startingScripts.size() > 0);
