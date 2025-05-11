@@ -62,6 +62,9 @@ namespace ze
 		void XM_CALLCONV SetPosition(XMVECTOR position) { XMStoreFloat3A(&m_position, position); }
 		void SetPosition(const XMFLOAT3& position) { SetPosition(XMLoadFloat3(&position)); }
 		void SetPosition(const XMFLOAT3A& position) { m_position = position; }
+		void XM_CALLCONV SetWorldPosition(XMVECTOR position);
+		void SetWorldPosition(const XMFLOAT3& position) { SetWorldPosition(XMLoadFloat3(&position)); }
+		void SetWorldPosition(const XMFLOAT3A& position) { SetWorldPosition(XMLoadFloat3A(&position)); }
 
 		bool SetParent(Transform* pTransform);
 		bool IsDescendantOf(Transform* pTransform) const;

@@ -4,7 +4,7 @@
 
 namespace pubg
 {
-	class MovePointLight : public ze::IScript
+	class MovePointLight : public ze::MonoBehaviour
 	{
 	public:
 		MovePointLight() = default;

@@ -4,15 +4,15 @@
 
 namespace ze
 {
-	class IScript : public IComponent
+	class MonoBehaviour : public IComponent
 	{
 		friend class ScriptManagerImpl;
 	public:
 		static constexpr COMPONENT_TYPE TYPE = COMPONENT_TYPE::SCRIPT;
 		static bool IsCreatable() { return true; }
 
-		IScript();
-		virtual ~IScript() = default;
+		MonoBehaviour();
+		virtual ~MonoBehaviour() = default;
 
 		virtual bool Enable() override;
 		virtual bool Disable() override;

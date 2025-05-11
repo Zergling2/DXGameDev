@@ -3,6 +3,7 @@
 #include "..\Script\SunScript.h"
 #include "..\Script\FirstPersonCamera.h"
 #include "..\Script\SceneChange.h"
+#include "..\Script\Planet.h"
 
 using namespace ze;
 using namespace pubg;
@@ -89,9 +90,10 @@ void TestScene1::OnLoadScene()
 	{
 		GameObjectHandle hPlanet = CreateGameObject(L"AlienPlanet");
 		GameObject* pPlanet = hPlanet.ToPtr();
-		pPlanet->m_transform.SetPosition(XMFLOAT3A(0.0f, 5.0f, 0.0f));
-		pPlanet->m_transform.SetParent(&pKart->m_transform);
-
+		pPlanet->m_transform.SetPosition(XMFLOAT3A(-5.0f, 0.0f, 0.0f));
+		auto hPlanetScript = pPlanet->AddComponent<Planet>();
+		auto pPlanetScript = hPlanetScript.ToPtr();
+		pPlanetScript->m_hCenter = hKart;
 		ComponentHandle<MeshRenderer> hPlanetMeshRenderer = pPlanet->AddComponent<MeshRenderer>();
 		MeshRenderer* pPlanetMeshRenderer = hPlanetMeshRenderer.ToPtr();
 		// 메시 설정

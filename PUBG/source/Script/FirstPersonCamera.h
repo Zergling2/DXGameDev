@@ -4,7 +4,7 @@
 
 namespace pubg
 {
-	class FirstPersonCamera : public ze::IScript
+	class FirstPersonCamera : public ze::MonoBehaviour
 	{
 	public:
 		FirstPersonCamera() = default;

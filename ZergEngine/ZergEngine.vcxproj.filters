@@ -78,7 +78,7 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\Camera.h">
       <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\ScriptInterface.h">
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\MonoBehaviour.h">
       <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\Transform.h">
@@ -353,7 +353,7 @@
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\MeshRenderer.cpp">
       <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
     </ClCompile>
-    <ClCompile Include="source\CoreSystem\GamePlayBase\Component\ScriptInterface.cpp">
+    <ClCompile Include="source\CoreSystem\GamePlayBase\Component\MonoBehaviour.cpp">
       <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\Light.cpp">

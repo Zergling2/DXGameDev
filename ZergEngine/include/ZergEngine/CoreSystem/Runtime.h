@@ -6,7 +6,7 @@
 namespace ze
 {
 	class SyncFileLogger;
-	class IScript;
+	class MonoBehaviour;
 
 	class RuntimeImpl
 	{
@@ -32,7 +32,7 @@ namespace ze
 		template<typename _T>
 		void Destroy(ComponentHandle<_T> hComponent, float delay);
 
-		void Destroy(IScript* pScript);
+		void Destroy(MonoBehaviour* pScript);
 
 		GameObjectHandle Instantiate(const GameObjectHandle source);
 		// GameObjectHandle Instantiate(const GameObjectHandle source, GameObjectHandle pParent);

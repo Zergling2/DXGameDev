@@ -4,7 +4,7 @@
 
 namespace pubg
 {
-	class TestScript : public ze::IScript
+	class TestScript : public ze::MonoBehaviour
 	{
 	public:
 		TestScript() = default;

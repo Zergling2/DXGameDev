@@ -4,7 +4,7 @@
 
 namespace pubg
 {
-	class SunScript : public ze::IScript
+	class SunScript : public ze::MonoBehaviour
 	{
 	public:
 		SunScript() = default;

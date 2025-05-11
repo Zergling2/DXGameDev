@@ -13,7 +13,7 @@
 #include <ZergEngine\CoreSystem\Resource\Material.h>
 #include <ZergEngine\CoreSystem\Resource\Texture.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\Component\ScriptInterface.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\MonoBehaviour.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Transform.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Camera.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Light.h>

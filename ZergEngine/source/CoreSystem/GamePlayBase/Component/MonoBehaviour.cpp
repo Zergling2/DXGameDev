@@ -1,52 +1,52 @@
-#include <ZergEngine\CoreSystem\GamePlayBase\Component\ScriptInterface.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\MonoBehaviour.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\ScriptManager.h>
 
 using namespace ze;
 
-IScript::IScript()
+MonoBehaviour::MonoBehaviour()
 	: IComponent(ScriptManager.AssignUniqueId())
 	, m_startingQueueIndex(std::numeric_limits<uint32_t>::max())
 {
 }
 
-void IScript::Awake()
+void MonoBehaviour::Awake()
 {
 }
 
-void IScript::Start()
+void MonoBehaviour::Start()
 {
 }
 
-void IScript::FixedUpdate()
+void MonoBehaviour::FixedUpdate()
 {
 }
 
-void IScript::Update()
+void MonoBehaviour::Update()
 {
 }
 
-void IScript::LateUpdate()
+void MonoBehaviour::LateUpdate()
 {
 }
 
-void IScript::OnEnable()
+void MonoBehaviour::OnEnable()
 {
 }
 
-void IScript::OnDisable()
+void MonoBehaviour::OnDisable()
 {
 }
 
-void IScript::OnDestroy()
+void MonoBehaviour::OnDestroy()
 {
 }
 
-IComponentManager* IScript::GetComponentManager() const
+IComponentManager* MonoBehaviour::GetComponentManager() const
 {
 	return &ScriptManager;
 }
 
-bool IScript::Enable()
+bool MonoBehaviour::Enable()
 {
 	if (!IComponent::Enable())
 		return false;
@@ -60,7 +60,7 @@ bool IScript::Enable()
 	return true;
 }
 
-bool IScript::Disable()
+bool MonoBehaviour::Disable()
 {
 	if (!IComponent::Disable())
 		return false;

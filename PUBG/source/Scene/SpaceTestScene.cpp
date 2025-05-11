@@ -35,7 +35,7 @@ void SpaceTestScene::OnLoadScene()
 	{
 		auto hAlienPlanet = CreateGameObject(L"AlienPlanet");
 		auto pAlienPlanet = hAlienPlanet.ToPtr();
-		pAlienPlanet->m_transform.SetPosition(XMFLOAT3A(0.0f, 0.0f, 0.0f));
+		pAlienPlanet->m_transform.SetPosition(XMFLOAT3A(0.0f, 0.0f, 10.0f));
 		auto hMeshRenderer = pAlienPlanet->AddComponent<MeshRenderer>();
 		// 메시 설정
 		auto pMeshRenderer = hMeshRenderer.ToPtr();

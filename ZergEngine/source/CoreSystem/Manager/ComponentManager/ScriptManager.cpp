@@ -1,5 +1,5 @@
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\ScriptManager.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\Component\ScriptInterface.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\MonoBehaviour.h>
 
 namespace ze
 {
@@ -25,7 +25,7 @@ void ScriptManagerImpl::Release()
 {
 }
 
-void ScriptManagerImpl::AddToStartingQueue(IScript* pScript)
+void ScriptManagerImpl::AddToStartingQueue(MonoBehaviour* pScript)
 {
     assert((pScript->GetFlag() & CF_START_CALLED) == FALSE);
     assert((pScript->GetFlag() & CF_ON_STARTING_QUEUE) == FALSE);
@@ -39,7 +39,7 @@ void ScriptManagerImpl::AddToStartingQueue(IScript* pScript)
 
 void ScriptManagerImpl::CallStart()
 {
-    for (IScript* pScript : m_startingScripts)
+    for (MonoBehaviour* pScript : m_startingScripts)
     {
         assert((pScript->GetFlag() & CF_ON_STARTING_QUEUE) != FALSE);
         assert((pScript->GetFlag() & CF_START_CALLED) == FALSE);
@@ -65,7 +65,7 @@ void ScriptManagerImpl::FixedUpdateScripts()
 
     for (size_t i = 0; i < m_activeComponents.size(); ++i)
     {
-        IScript* pScript = static_cast<IScript*>(m_activeComponents[i]);
+        MonoBehaviour* pScript = static_cast<MonoBehaviour*>(m_activeComponents[i]);
         if (pScript->IsEnabled())
             pScript->FixedUpdate();
     }
@@ -75,7 +75,7 @@ void ScriptManagerImpl::UpdateScripts()
 {
     for (size_t i = 0; i < m_activeComponents.size(); ++i)
     {
-        IScript* pScript = static_cast<IScript*>(m_activeComponents[i]);
+        MonoBehaviour* pScript = static_cast<MonoBehaviour*>(m_activeComponents[i]);
         if (pScript->IsEnabled())
             pScript->Update();
     }
@@ -85,7 +85,7 @@ void ScriptManagerImpl::LateUpdateScripts()
 {
     for (size_t i = 0; i < m_activeComponents.size(); ++i)
     {
-        IScript* pScript = static_cast<IScript*>(m_activeComponents[i]);
+        MonoBehaviour* pScript = static_cast<MonoBehaviour*>(m_activeComponents[i]);
         if (pScript->IsEnabled())
             pScript->LateUpdate();
     }
@@ -97,7 +97,7 @@ void ScriptManagerImpl::RemoveDestroyedComponents()
     // m_destroyed.size()를 매번 확인하여 추가된 파괴 예정 스크립트들도 모두 OnDestroy가 호출될 수 있게 한다.
     for (size_t i = 0; i < m_destroyed.size(); ++i)
     {
-        IScript* pScript = static_cast<IScript*>(m_destroyed[i]);
+        MonoBehaviour* pScript = static_cast<MonoBehaviour*>(m_destroyed[i]);
         if (pScript->IsEnabled())   // 활성화 되어있는 스크립트에 한해서만 OnDestroy() 호출
             pScript->OnDestroy();
 

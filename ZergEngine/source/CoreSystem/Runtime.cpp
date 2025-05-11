@@ -21,7 +21,7 @@
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\TerrainManager.h>
 #include <ZergEngine\CoreSystem\Manager\SceneManager.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\Component\ScriptInterface.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\MonoBehaviour.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Transform.h>
 
 namespace ze

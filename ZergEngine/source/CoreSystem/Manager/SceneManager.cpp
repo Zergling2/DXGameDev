@@ -6,7 +6,7 @@
 #include <ZergEngine\CoreSystem\SceneInterface.h>
 #include <ZergEngine\CoreSystem\Runtime.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\Component\ScriptInterface.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\MonoBehaviour.h>
 
 namespace ze
 {
@@ -105,7 +105,7 @@ void SceneManagerImpl::Update(float* pFixedUpdateTimer)
 	Runtime.RemoveDestroyedComponentsAndGameObjects();
 
 	// 지연된 게임오브젝트들 및 컴포넌트들을 관리 시작
-	std::vector<IScript*> scripts;
+	std::vector<MonoBehaviour*> scripts;
 	scripts.reserve(512);
 	auto& deferredGameObjects = *m_upNextScene->m_pDeferredGameObjects;
 	for (GameObject* pGameObject : deferredGameObjects)
@@ -124,15 +124,15 @@ void SceneManagerImpl::Update(float* pFixedUpdateTimer)
 			pComponentManager->AddPtrToActiveVector(pComponent);
 
 			if (pComponent->GetType() == COMPONENT_TYPE::SCRIPT)
-				scripts.push_back(static_cast<IScript*>(pComponent));
+				scripts.push_back(static_cast<MonoBehaviour*>(pComponent));
 		}
 	}
 
 	// 게임오브젝트와 컴포넌트들이 모두 전역 관리자에 등록된 이후에 Awake, OnEnable, Start큐잉 처리
-	for (IScript* pScript : scripts)
+	for (MonoBehaviour* pScript : scripts)
 		pScript->Awake();
 
-	for (IScript* pScript : scripts)
+	for (MonoBehaviour* pScript : scripts)
 	{
 		if (pScript->IsEnabled())
 		{

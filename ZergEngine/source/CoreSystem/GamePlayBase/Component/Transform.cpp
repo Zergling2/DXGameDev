@@ -78,7 +78,7 @@ void XM_CALLCONV Transform::RotateAround(XMVECTOR point, XMVECTOR axis, FLOAT an
 
     if (m_pParentTransform != nullptr)
     {
-        Transform* pParentTransform = m_pParentTransform;
+        const Transform* pParentTransform = m_pParentTransform;
 
         // 부모의 월드 매트릭스
         XMMATRIX parentWorldMatrix = pParentTransform->GetWorldTransformMatrix();
@@ -90,7 +90,7 @@ void XM_CALLCONV Transform::RotateAround(XMVECTOR point, XMVECTOR axis, FLOAT an
         // 위치 변환
         XMMATRIX parentWorldMatrixInv = XMMatrixInverse(nullptr, parentWorldMatrix);
         XMVECTOR newLocalPosition = XMVector3TransformCoord(newWorldPosition, parentWorldMatrixInv);
-
+        
         // 회전 변환
         XMVECTOR parentWorldRotationInv = XMQuaternionInverse(parentWorldRotation);
         XMVECTOR newLocalRotation = XMQuaternionMultiply(newWorldRotation, parentWorldRotationInv);
@@ -103,6 +103,31 @@ void XM_CALLCONV Transform::RotateAround(XMVECTOR point, XMVECTOR axis, FLOAT an
         // 부모 오브젝트가 없다면 world == local
         XMStoreFloat3A(&m_position, newWorldPosition);
         XMStoreFloat4A(&m_rotation, XMQuaternionNormalize(newWorldRotation));
+    }
+}
+
+void XM_CALLCONV Transform::SetWorldPosition(XMVECTOR position)
+{
+    assert(m_pGameObject != nullptr);
+
+    if (m_pParentTransform != nullptr)
+    {
+        const Transform* pParentTransform = m_pParentTransform;
+
+        // 부모의 월드 매트릭스
+        XMMATRIX parentWorldMatrix = pParentTransform->GetWorldTransformMatrix();
+
+        // 부모 space 기준으로 변환
+        // 위치 변환
+        XMMATRIX parentWorldMatrixInv = XMMatrixInverse(nullptr, parentWorldMatrix);
+        XMVECTOR newLocalPosition = XMVector3TransformCoord(position, parentWorldMatrixInv);
+
+        XMStoreFloat3A(&m_position, newLocalPosition);
+    }
+    else
+    {
+        // 부모 오브젝트가 없다면 world == local
+        XMStoreFloat3A(&m_position, position);
     }
 }
 

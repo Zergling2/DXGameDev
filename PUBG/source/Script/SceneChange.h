@@ -4,7 +4,7 @@
 
 namespace pubg
 {
-	class SceneChange : public ze::IScript
+	class SceneChange : public ze::MonoBehaviour
 	{
 	public:
 		SceneChange() = default;
