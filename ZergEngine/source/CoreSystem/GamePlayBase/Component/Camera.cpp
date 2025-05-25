@@ -4,7 +4,7 @@
 #include <ZergEngine\CoreSystem\Window.h>
 #include <ZergEngine\CoreSystem\Math.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\Component\Transform.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Transform.h>
 #include <ZergEngine\Common\EngineConstants.h>
 
 using namespace ze;
@@ -38,8 +38,8 @@ Camera::Camera() noexcept
 	, m_viewMatrix()
 	, m_projMatrix()
 	, m_fullbufferViewport()
-	, m_tessMinDist(50.0f)
-	, m_tessMaxDist(400.0f)
+	, mTessMinDist(50.0f)
+	, mTessMaxDist(400.0f)
 	, m_minTessExponent(0.0f)
 	, m_maxTessExponent(6.0f)
 {
@@ -153,7 +153,8 @@ HRESULT Camera::CreateBufferAndView()
 		descColorBuffer.MipLevels = 1;
 		descColorBuffer.ArraySize = 1;
 		descColorBuffer.Format = BACKBUFFER_FORMAT;
-		descColorBuffer.SampleDesc = GraphicDevice.GetSwapChainDesc().SampleDesc;
+		descColorBuffer.SampleDesc.Count = static_cast<UINT>(MSAA_SAMPLE_COUNT::X4);	// (테스트) 4X MSAA에 maximum quailty를 고정으로 사용
+		descColorBuffer.SampleDesc.Quality = GraphicDevice.GetMSAAMaximumQuality(MSAA_SAMPLE_COUNT::X4);	// Use max quality level
 		descColorBuffer.Usage = D3D11_USAGE_DEFAULT;
 		descColorBuffer.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;		// 렌더링 + 카메라병합셰이더 리소스
 		descColorBuffer.CPUAccessFlags = 0;
@@ -215,12 +216,12 @@ IComponentManager* Camera::GetComponentManager() const
 
 float Camera::CalcBufferWidth()
 {
-	return static_cast<float>(Window.GetWidth()) * m_viewportRect.m_width;
+	return Window.GetWidthFloat() * m_viewportRect.m_width;
 }
 
 float Camera::CalcBufferHeight()
 {
-	return static_cast<float>(Window.GetHeight()) * m_viewportRect.m_height;
+	return Window.GetHeightFloat() * m_viewportRect.m_height;
 }
 
 void Camera::UpdateViewMatrix()

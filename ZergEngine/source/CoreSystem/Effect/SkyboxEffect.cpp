@@ -3,7 +3,7 @@
 #include <ZergEngine\CoreSystem\Math.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Camera.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\Component\Transform.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Transform.h>
 
 using namespace ze;
 
@@ -96,7 +96,7 @@ void SkyboxEffect::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
 	ClearTextureSRVArray();
 }
 
-void SkyboxEffect::KickedFromDeviceContext() noexcept
+void SkyboxEffect::KickedOutOfDeviceContext() noexcept
 {
 	ClearTextureSRVArray();
 
@@ -115,9 +115,9 @@ void SkyboxEffect::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
 void SkyboxEffect::ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
 	m_cbPerCamera.Update(pDeviceContext, &m_cbPerCameraCache);
-	ID3D11Buffer* const cbArr[] = { m_cbPerCamera.GetComInterface() };
+	ID3D11Buffer* const cbs[] = { m_cbPerCamera.GetComInterface() };
 
 	// PerCamera 상수버퍼 사용 셰이더
 	constexpr UINT startSlot = 0;
-	pDeviceContext->VSSetConstantBuffers(startSlot, 1, cbArr);
+	pDeviceContext->VSSetConstantBuffers(startSlot, 1, cbs);
 }

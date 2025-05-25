@@ -6,7 +6,7 @@
 namespace ze
 {
 	class IScene;
-	class GameObject;
+	class IUIObject;
 
 	class AsyncOperation
 	{
@@ -30,14 +30,15 @@ namespace ze
 		virtual void Init(void* pDesc) override;
 		virtual void Release() override;
 
-		void Update(float* pLoopTime);
+		void Update(LONGLONG* pLoopTime);
 		std::unique_ptr<IScene> CreateScene(PCSTR sceneName);
+
+		void AddPtrRecursively(IUIObject* pUIObject);
 	public:
 		bool LoadScene(PCSTR sceneName);
 		AsyncOperationHandle LoadSceneAsync(PCSTR sceneName);
 	private:
 		SlimRWLock m_lock;
-		std::unique_ptr<IScene> m_upCurrentScene;
 		std::unique_ptr<IScene> m_upNextScene;
 	};
 

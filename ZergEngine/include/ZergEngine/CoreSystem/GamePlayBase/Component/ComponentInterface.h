@@ -7,15 +7,16 @@ namespace ze
 	class IComponentManager;
 
 	using ComponentFlagType = uint16_t;
+	using cft = ComponentFlagType;
 
-	enum COMPONENT_FLAG : ComponentFlagType
+	enum class COMPONENT_FLAG : cft
 	{
-		CF_NONE					= 0,
-		CF_ENABLED				= 1 << 0,
+		NONE				= 0,
+		ENABLED				= 1 << 0,
 
-		CF_ON_STARTING_QUEUE	= 1 << 13,
-		CF_START_CALLED			= 1 << 14,
-		CF_ON_DESTROY_QUEUE		= 1 << 15,
+		ON_STARTING_QUEUE	= 1 << 13,
+		START_CALLED		= 1 << 14,
+		ON_DESTROY_QUEUE	= 1 << 15,
 	};
 
 	class IComponent
@@ -23,7 +24,7 @@ namespace ze
 		friend class RuntimeImpl;
 		friend class IComponentManager;
 		friend class SceneManagerImpl;
-		friend class ScriptManagerImpl;
+		friend class MonoBehaviourManagerImpl;
 		friend class GameObject;
 		friend class Camera;
 		friend class Transform;
@@ -40,7 +41,7 @@ namespace ze
 			, m_id(id)
 			, m_tableIndex(std::numeric_limits<uint32_t>::max())
 			, m_activeIndex(std::numeric_limits<uint32_t>::max())
-			, m_flag(CF_ENABLED)	// 기본 상태는 enable 상태
+			, m_flag(COMPONENT_FLAG::ENABLED)	// 기본 상태는 enable 상태
 		{
 		}
 		virtual ~IComponent() = default;
@@ -48,18 +49,19 @@ namespace ze
 		virtual COMPONENT_TYPE GetType() const = 0;
 		const GameObjectHandle GetGameObjectHandle() const;
 		uint64_t GetId() const { return m_id; }
-		bool IsEnabled() const { return m_flag & CF_ENABLED; }
+		bool IsEnabled() const { return static_cast<cft>(m_flag) & static_cast<cft>(COMPONENT_FLAG::ENABLED); }
 		virtual bool Enable();
 		virtual bool Disable();
-
-		ComponentFlagType GetFlag() const { return m_flag; }
 	private:
 		virtual IComponentManager* GetComponentManager() const = 0;
 
-		ComponentHandleBase ToHandleBase() const;
-		void OnFlag(ComponentFlagType flag) { m_flag |= flag; }
-		void OffFlag(ComponentFlagType flag) { m_flag &= ~flag; }
-		bool IsOnTheDestroyQueue() const { return m_flag & CF_ON_DESTROY_QUEUE; }
+		const ComponentHandleBase ToHandleBase() const;
+		void OnFlag(COMPONENT_FLAG flag) { m_flag = static_cast<COMPONENT_FLAG>(static_cast<cft>(m_flag) | static_cast<cft>(flag)); }
+		void OffFlag(COMPONENT_FLAG flag) { m_flag = static_cast<COMPONENT_FLAG>(static_cast<cft>(m_flag) & ~static_cast<cft>(flag)); }
+	protected:
+		bool IsOnTheDestroyQueue() const { return static_cast<cft>(m_flag) & static_cast<cft>(COMPONENT_FLAG::ON_DESTROY_QUEUE); }
+		bool IsOnTheStartingQueue() const { return static_cast<cft>(m_flag) & static_cast<cft>(COMPONENT_FLAG::ON_STARTING_QUEUE); }
+		bool IsStartCalled() const { return static_cast<cft>(m_flag) & static_cast<cft>(COMPONENT_FLAG::START_CALLED); }
 	private:
 		GameObject* m_pGameObject;
 
@@ -68,7 +70,7 @@ namespace ze
 		uint32_t m_tableIndex;
 		uint32_t m_activeIndex;
 
-		ComponentFlagType m_flag;
+		COMPONENT_FLAG m_flag;
 		uint16_t m_reserved0;
 		uint32_t m_reserved1;
 	};

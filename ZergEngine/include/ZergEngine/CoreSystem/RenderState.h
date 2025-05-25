@@ -37,13 +37,9 @@ namespace ze
 		ID3D11SamplerState* m_pSamplerState;
 	};
 
-	enum class DEPTH_STENCIL_STATE_TYPE
+	enum class DEPTH_STENCIL_STATETYPE
 	{
-		// DepthEnable = TRUE
-		// DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL
-		// DepthFunc = D3D11_COMPARISON_LESS
-		// StencilEnable = FALSE
-		STANDARD,
+		DEFAULT,
 
 		// DepthEnable = TRUE
 		// DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL
@@ -51,12 +47,14 @@ namespace ze
 		// StencilEnable = FALSE
 		SKYBOX,
 
-
 		MIRROR,
+
+		// Depth read only, No Write
+		DEPTH_READ_ONLY,
 
 		// DepthEnable = FALSE
 		// StencilEnable = FALSE
-		CAMERA_MERGE,
+		NO_DEPTH_STENCILTEST,
 
 		// Number of depth stencil states
 		COUNT
@@ -78,13 +76,12 @@ namespace ze
 	private:
 		ID3D11DepthStencilState* m_pDepthStencilState;
 	};
-	
-	enum class BLEND_STATE_TYPE
+
+	enum class BLEND_STATETYPE
 	{
 		OPAQUE_,
 		ALPHABLEND,
-		ADDITIVE,
-		NON_PREMULTIPLIED,
+		NO_COLOR_WRITE,		// Backbuffer에는 쓰기 X, Depth/Stencil 버퍼에만 쓰기 시 사용
 
 		COUNT
 	};

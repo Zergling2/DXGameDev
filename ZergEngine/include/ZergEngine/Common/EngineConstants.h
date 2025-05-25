@@ -7,8 +7,6 @@ namespace ze
 	// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 	// ┃          Constants          ┃
 	// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-	constexpr float FIXED_DELTA_TIME = 1.0f / 60.0f;
-
 	XMGLOBALCONST XMVECTORF32 WORLD_RIGHT = { 1.0f, 0.0f, 0.0f, 0.0f };
 	XMGLOBALCONST XMVECTORF32 WORLD_UP = { 0.0f, 1.0f, 0.0f, 0.0f };
 	XMGLOBALCONST XMVECTORF32 WORLD_FORWARD = { 0.0f, 0.0f, 1.0f, 0.0f };
@@ -59,6 +57,7 @@ namespace ze
 		TRANSFORM_PT_TO_HCS,
 		TRANSFORM_CAMERA_MERGE_QUAD,
 		TRANSFORM_PNT_TO_HCS,
+		TRANSFORM_BUTTON_TO_HCS,
 
 		COUNT
 	};
@@ -87,7 +86,16 @@ namespace ze
 		COLOR_PT_FRAGMENT,
 		COLOR_PNT_FRAGMENT,
 		COLOR_PT_FRAGMENT_SINGLE_TEXTURE,
-		COLOR_PT_FRAGMENT_SINGLE_MS_TEXTURE,
+		COLOR_PT_FRAGMENT_SINGLE_MSTEXTURE,
+		COLOR_BUTTON_FRAGMENT,
+
+		COUNT
+	};
+
+	enum class VERTEX_BUFFER_TYPE
+	{
+		BUTTON,
+		// IMAGE_BUTTON,	// (셰이더 지역변수로 처리 가능)
 
 		COUNT
 	};
@@ -124,8 +132,22 @@ namespace ze
 		POSITION_TEXCOORD,
 		POSITION_NORMAL_TEXCOORD,
 		TERRAIN_PATCH_CTRL_PT,
+		BUTTON,
+		IMAGE_BUTTON,
 		// ━━━━━━━━━━━━━━━━━━━━━━
 		COUNT,
 		UNKNOWN
+	};
+
+	enum class WINDOW_MODE
+	{
+		// Windowed Mode
+		WINDOWED,
+
+		// Borderless Fullscreen Windowed Mode
+		WINDOWED_FULLSCREEN,
+
+		// Exclusive fullscreen Mode
+		FULLSCREEN
 	};
 }

@@ -1,32 +1,33 @@
 #pragma once
 
-#include <ZergEngine\CoreSystem\GamePlayBase\Handle.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\Component\Transform.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Transform.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\ComponentInterface.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\ComponentManagerInterface.h>
 
 namespace ze
 {
 	using GameObjectFlagType = uint16_t;
+	using goft = GameObjectFlagType;
 
-	enum GAMEOBJECT_FLAG : GameObjectFlagType
+	enum class GAMEOBJECT_FLAG : goft
 	{
-		GOF_NONE					= 0,
+		NONE					= 0,
 
-		GOF_STATIC					= 1 << 0,
-		GOF_DONT_DESTROY_ON_LOAD	= 1 << 1,
-		GOF_DEFERRED				= 1 << 2,
-		GOF_ACTIVE					= 1 << 3,
-		GOF_ON_DESTROY_QUEUE		= 1 << 4,
+		STATIC					= 1 << 0,
+		DONT_DESTROY_ON_LOAD	= 1 << 1,
+		DEFERRED				= 1 << 2,
+		ACTIVE					= 1 << 3,
+		ON_DESTROY_QUEUE		= 1 << 4,
 	};
 
 	class GameObject
 	{
 		friend class RuntimeImpl;
-		friend class IScene;
 		friend class GameObjectManagerImpl;
 		friend class SceneManagerImpl;
+		friend class IScene;
 		friend class IComponentManager;
+		friend class IComponent;
 		friend class RendererImpl;
 		friend class Transform;
 		friend class Camera;
@@ -36,21 +37,20 @@ namespace ze
 		friend class BasicEffectPT;
 		friend class BasicEffectPNT;
 		friend class SkyboxEffect;
-		friend class IComponent;
 	private:
-		GameObject(GameObjectFlagType flag, PCWSTR name);
+		GameObject(GAMEOBJECT_FLAG flag, PCWSTR name);
 	public:
 		// 씬에 존재하는 활성화된 게임 오브젝트를 이름으로 검색하여 핸들을 반환합니다.
 		static GameObjectHandle Find(PCWSTR name);
 		static GameObjectHandle Find(const std::wstring& name) { GameObject::Find(name.c_str()); }
 	public:
-		bool IsDontDestroyOnLoad() const { return m_flag & GOF_DONT_DESTROY_ON_LOAD; }
+		bool IsDontDestroyOnLoad() const { return static_cast<goft>(m_flag) & static_cast<goft>(GAMEOBJECT_FLAG::DONT_DESTROY_ON_LOAD); }
+		bool IsActive() const { return static_cast<goft>(m_flag) & static_cast<goft>(GAMEOBJECT_FLAG::ACTIVE); }
 
 		PCWSTR GetName() const { return m_name; }
 		uint64_t GetId() const { return m_id; }
 
 		void SetActive(bool active);
-		bool IsActive() { return m_flag & GOF_ACTIVE; }
 
 		// IScene::OnLoadScene() 함수 내에서는 GameObject 및 Component의 생성만 가능하며 Destroy는 허용되지 않습니다.
 		// 명시적 객체 파괴는 스크립트에서 핸들을 통해서만 가능하며, 암시적 객체 파괴는 씬 전환 시
@@ -68,12 +68,12 @@ namespace ze
 		template<class ComponentType>
 		uint32_t GetComponents(ComponentHandle<ComponentType> componentArr[], uint32_t len);
 
-		GameObjectHandle ToHandle() const;
+		const GameObjectHandle ToHandle() const;
 	private:
-		bool IsDeferred() const { return m_flag & GOF_DEFERRED; }
-		void OnFlag(GameObjectFlagType flag) { m_flag |= flag; }
-		void OffFlag(GameObjectFlagType flag) { m_flag &= ~flag; }
-		bool IsOnTheDestroyQueue() const { return m_flag & GOF_ON_DESTROY_QUEUE; }
+		bool IsDeferred() const { return static_cast<goft>(m_flag) & static_cast<goft>(GAMEOBJECT_FLAG::DEFERRED); }
+		void OnFlag(GAMEOBJECT_FLAG flag) { m_flag = static_cast<GAMEOBJECT_FLAG>(static_cast<goft>(m_flag) | static_cast<goft>(flag)); }
+		void OffFlag(GAMEOBJECT_FLAG flag) { m_flag = static_cast<GAMEOBJECT_FLAG>(static_cast<goft>(m_flag) & ~static_cast<goft>(flag)); }
+		bool IsOnTheDestroyQueue() const { return static_cast<goft>(m_flag) & static_cast<goft>(GAMEOBJECT_FLAG::ON_DESTROY_QUEUE); }
 	public:
 		Transform m_transform;
 	private:
@@ -82,8 +82,8 @@ namespace ze
 		uint64_t m_id;
 		uint32_t m_tableIndex;
 		uint32_t m_activeIndex;
-		GameObjectFlagType m_flag;
-		WCHAR m_name[23];
+		GAMEOBJECT_FLAG m_flag;
+		WCHAR m_name[27];
 	};
 
 	template<class ComponentType, typename ...Args>
@@ -101,7 +101,7 @@ namespace ze
 			m_components.push_back(pComponent);
 
 			if (!this->IsActive())
-				pComponent->OffFlag(CF_ENABLED);
+				pComponent->OffFlag(COMPONENT_FLAG::ENABLED);
 
 			IComponentManager* pComponentManager = pComponent->GetComponentManager();
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ZergEngine\CoreSystem\SubsystemInterface.h>
+#include <ZergEngine\Common\EngineConstants.h>
 
 namespace ze
 {
@@ -12,17 +13,20 @@ namespace ze
 		{
 			uint32_t m_width;
 			uint32_t m_height;
-			bool m_fullscreen;
-			PCWSTR m_title;
+			WINDOW_MODE m_mode;
+			PCWSTR mTitle;
 		};
 	public:
-		inline HWND GetWindowHandle() const { return m_hWnd; }
-		inline uint32_t GetWidth() const { return m_width; }
-		inline uint32_t GetHeight() const { return m_height; }
-		inline bool IsFullscreen() const { return m_fullscreen; }
+		HWND GetWindowHandle() const { return m_hWnd; }
+		uint32_t GetWidthInteger() const { return m_width; }
+		uint32_t GetHeightInteger() const { return m_height; }
+		float GetWidthFloat() const { return m_sizeFlt.x; }
+		float GetHeightFloat() const { return m_sizeFlt.y; }
+		float GetHalfWidthFloat() const { return m_halfSizeFlt.x; }
+		float GetHalfHeightFloat() const { return m_halfSizeFlt.y; }
+		bool IsFullscreen() const { return m_mode == WINDOW_MODE::FULLSCREEN; }
 
-		void SetResolution(uint32_t width, uint32_t height, bool fullscreen);
-		inline const D3D11_VIEWPORT& GetFullClientViewport() const { return m_fullClientViewport; }
+		void SetResolution(uint32_t width, uint32_t height, WINDOW_MODE mode);
 	private:
 		virtual void Init(void* pDesc) override;
 		virtual void Release() override;
@@ -33,8 +37,9 @@ namespace ze
 		DWORD m_style;
 		uint32_t m_width;
 		uint32_t m_height;
-		bool m_fullscreen;
-		D3D11_VIEWPORT m_fullClientViewport;
+		XMFLOAT2 m_sizeFlt;
+		XMFLOAT2 m_halfSizeFlt;
+		WINDOW_MODE m_mode;
 	};
 
 	extern WindowImpl Window;

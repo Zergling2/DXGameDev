@@ -1,7 +1,6 @@
 #pragma once
 
 #include <ZergEngine\CoreSystem\SubsystemInterface.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 #include <ZergEngine\CoreSystem\SlimRWLock.h>
 
 namespace ze

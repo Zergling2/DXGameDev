@@ -14,5 +14,5 @@ namespace ze
 		~UIHitbox() = default;
 	};
 
-	inline bool PointInUIHitbox(const UIHitbox* pUIHitbox, POINT pt) { return PtInRect(pUIHitbox, pt); }
+	bool PointInUIHitbox(const UIHitbox& uiHitbox, POINT pt) { return PtInRect(&uiHitbox, pt); }
 }

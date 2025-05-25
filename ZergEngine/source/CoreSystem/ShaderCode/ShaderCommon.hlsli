@@ -9,6 +9,8 @@
 #define HLSLPad float
 #define uint32_t uint
 #define FLOAT float
+#define XMFLOAT2 float2
+#define XMFLOAT2A float2
 #define XMFLOAT3 float3
 #define XMFLOAT3A float3
 #define XMFLOAT4A float4
@@ -23,6 +25,7 @@
 #define IsUsingDiffuseMap(mtlFlag)  ((mtlFlag) & 0x00000002)
 #define IsUsingNormalMap(mtlFlag)   ((mtlFlag) & 0x00000004)
 #define IsUsingSpecularMap(mtlFlag) ((mtlFlag) & 0x00000008)
+
 hlslstruct MaterialData
 {
     uint32_t mtlFlag;
@@ -116,7 +119,7 @@ struct PSInputPNFragment
 struct PSInputPTFragment
 {
     float4 posH : SV_Position;
-    float2 texCoord : TEXCOORD;
+    float2 texCoord : TEXCOORD0;
 };
 
 struct PSInputPNTFragment
@@ -124,7 +127,7 @@ struct PSInputPNTFragment
     float4 posH : SV_Position;      // Homogeneous clip space position
     float3 posW : POSITION;         // World space position (조명 처리를 위해서)
     float3 normalW : NORMAL;
-    float2 texCoord : TEXCOORD;
+    float2 texCoord : TEXCOORD0;
 };
 
 struct PSInputSkyboxFragment
@@ -139,6 +142,12 @@ struct PSInputTerrainFragment
     float3 posW : POSITION;
     float2 texCoord : TEXCOORD0;
     float2 tiledTexCoord : TEXCOORD1;
+};
+
+struct PSInputButtonFragment
+{
+    float4 posH : SV_Position;
+    float4 color : COLOR0;
 };
 
 struct PSOutput
@@ -206,6 +215,19 @@ hlslstruct CbPerCameraMerge
 hlslstruct CbPerSubset
 {
     MaterialData mtl;
+};
+
+hlslstruct CbPerUIRender
+{
+    XMFLOAT2 toNDCSpaceRatio;
+};
+
+hlslstruct CbPerButton
+{
+    XMFLOAT4A color;
+	XMFLOAT2 size;
+	XMFLOAT2 position;
+	uint32_t shadeIndex; // [0] not pressed, [1] pressed
 };
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

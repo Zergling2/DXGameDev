@@ -1,59 +1,59 @@
-#include <ZergEngine\CoreSystem\Manager\ComponentManager\ScriptManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\MonoBehaviourManager.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\MonoBehaviour.h>
 
 namespace ze
 {
-    ScriptManagerImpl ScriptManager;
+    MonoBehaviourManagerImpl MonoBehaviourManager;
 }
 
 using namespace ze;
 
-ScriptManagerImpl::ScriptManagerImpl()
+MonoBehaviourManagerImpl::MonoBehaviourManagerImpl()
     : m_startingScripts()
 {
 }
 
-ScriptManagerImpl::~ScriptManagerImpl()
+MonoBehaviourManagerImpl::~MonoBehaviourManagerImpl()
 {
 }
 
-void ScriptManagerImpl::Init(void* pDesc)
+void MonoBehaviourManagerImpl::Init(void* pDesc)
 {
 }
 
-void ScriptManagerImpl::Release()
+void MonoBehaviourManagerImpl::Release()
 {
 }
 
-void ScriptManagerImpl::AddToStartingQueue(MonoBehaviour* pScript)
+void MonoBehaviourManagerImpl::AddToStartingQueue(MonoBehaviour* pScript)
 {
-    assert((pScript->GetFlag() & CF_START_CALLED) == FALSE);
-    assert((pScript->GetFlag() & CF_ON_STARTING_QUEUE) == FALSE);
+    assert(!pScript->IsOnTheStartingQueue());
+    assert(!pScript->IsStartCalled());
 
     m_startingScripts.push_back(pScript);
 
     // Start() 호출 큐에 들어있다가 직전 프레임에 제거되는 경우 StartingQueue에서 빠르게 제거하기 위해 인덱스를 기록해둔다.
     pScript->m_startingQueueIndex = static_cast<uint32_t>(m_startingScripts.size() - 1);
-    pScript->OnFlag(CF_ON_STARTING_QUEUE);
+    pScript->OnFlag(COMPONENT_FLAG::ON_STARTING_QUEUE);
 }
 
-void ScriptManagerImpl::CallStart()
+void MonoBehaviourManagerImpl::CallStart()
 {
     for (MonoBehaviour* pScript : m_startingScripts)
     {
-        assert((pScript->GetFlag() & CF_ON_STARTING_QUEUE) != FALSE);
-        assert((pScript->GetFlag() & CF_START_CALLED) == FALSE);
+        assert(pScript->IsOnTheStartingQueue());
+        assert(!pScript->IsStartCalled());
 
         pScript->Start();
-        pScript->OnFlag(CF_START_CALLED);
-        pScript->OffFlag(CF_ON_STARTING_QUEUE);
+        pScript->OnFlag(COMPONENT_FLAG::START_CALLED);
+        pScript->OffFlag(COMPONENT_FLAG::ON_STARTING_QUEUE);
         pScript->m_startingQueueIndex = std::numeric_limits<uint32_t>::max();
     }
 
     m_startingScripts.clear();
 }
 
-void ScriptManagerImpl::FixedUpdateScripts()
+void MonoBehaviourManagerImpl::FixedUpdateScripts()
 {
     // Deferred Remove 방식으로 구현.
     // 즉시 삭제 방법은 외부 이터레이터 손상을 막기 위해 인덱스로 접근한다던가 해야하고
@@ -71,7 +71,7 @@ void ScriptManagerImpl::FixedUpdateScripts()
     }
 }
 
-void ScriptManagerImpl::UpdateScripts()
+void MonoBehaviourManagerImpl::UpdateScripts()
 {
     for (size_t i = 0; i < m_activeComponents.size(); ++i)
     {
@@ -81,7 +81,7 @@ void ScriptManagerImpl::UpdateScripts()
     }
 }
 
-void ScriptManagerImpl::LateUpdateScripts()
+void MonoBehaviourManagerImpl::LateUpdateScripts()
 {
     for (size_t i = 0; i < m_activeComponents.size(); ++i)
     {
@@ -91,7 +91,7 @@ void ScriptManagerImpl::LateUpdateScripts()
     }
 }
 
-void ScriptManagerImpl::RemoveDestroyedComponents()
+void MonoBehaviourManagerImpl::RemoveDestroyedComponents()
 {
     // OnDestroy()에서 다른 스크립트를 Destroy 하는 경우를 고려하여
     // m_destroyed.size()를 매번 확인하여 추가된 파괴 예정 스크립트들도 모두 OnDestroy가 호출될 수 있게 한다.
@@ -99,10 +99,13 @@ void ScriptManagerImpl::RemoveDestroyedComponents()
     {
         MonoBehaviour* pScript = static_cast<MonoBehaviour*>(m_destroyed[i]);
         if (pScript->IsEnabled())   // 활성화 되어있는 스크립트에 한해서만 OnDestroy() 호출
+        {
+            pScript->Disable();
             pScript->OnDestroy();
+        }
 
         // 파괴되는 스크립트가 Start 대기열에 있는 경우 Start 대기열에 댕글링 포인터가 남지 않게 제거
-        if (pScript->GetFlag() & CF_ON_STARTING_QUEUE)
+        if (pScript->IsOnTheStartingQueue())
         {
             assert(m_startingScripts.size() > 0);
             const uint32_t lastIndex = static_cast<uint32_t>(m_startingScripts.size() - 1);

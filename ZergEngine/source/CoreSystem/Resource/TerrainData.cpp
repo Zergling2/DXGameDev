@@ -4,7 +4,7 @@
 
 using namespace ze;
 
-constexpr uint32_t CELLS_PER_TERRAIN_PATCH = 64;
+constexpr uint32_t CELLS_PERTERRAIN_PATCH = 64;
 
 TerrainData::TerrainData()
 	: m_heightmapScale(1.0f, 1.0f, 1.0f)
@@ -51,8 +51,8 @@ bool TerrainData::SetHeightmap(const std::shared_ptr<Texture2D> heightmap)
 	m_spHeightmap = heightmap;
 	m_descHeightmap = descHeightmap;
 
-	m_patchCtrlPtCountRow = (m_descHeightmap.Height - 1) / CELLS_PER_TERRAIN_PATCH + 1;
-	m_patchCtrlPtCountCol = (m_descHeightmap.Width - 1) / CELLS_PER_TERRAIN_PATCH + 1;
+	m_patchCtrlPtCountRow = (m_descHeightmap.Height - 1) / CELLS_PERTERRAIN_PATCH + 1;
+	m_patchCtrlPtCountCol = (m_descHeightmap.Width - 1) / CELLS_PERTERRAIN_PATCH + 1;
 	m_patchCtrlPtIndexCount = (m_patchCtrlPtCountRow - 1) * (m_patchCtrlPtCountCol - 1) * 4;	// 패치당 인덱스 4개 (사각 패치)
 
 	// 높이맵 데이터를 시스템 메모리에 생성

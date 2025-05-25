@@ -127,15 +127,15 @@ std::shared_ptr<Terrain> Terrain::LoadTerrain(PCWSTR path, const TerrainData& td
 			const float fltColTexelCoordBase = static_cast<float>(tmd.heightMapSize.column);
 			const float texelHalfSpacingU = (1.0f / fltColTexelCoordBase) * 0.5f;
 			const float texelHalfSpacingV = (1.0f / fltRowTexelCoordBase) * 0.5f;
-			for (uint16_t row = 0; row < tmd.heightMapSize.row; row += CELLS_PER_TERRAIN_PATCH)
+			for (uint16_t row = 0; row < tmd.heightMapSize.row; row += CELLS_PERTERRAIN_PATCH)
 			{
 				const float z = ltZ - static_cast<float>(row) * terrain->GetCellSpacing();
-				for (uint16_t col = 0; col < tmd.heightMapSize.column; col += CELLS_PER_TERRAIN_PATCH)
+				for (uint16_t col = 0; col < tmd.heightMapSize.column; col += CELLS_PERTERRAIN_PATCH)
 				{
 					const float x = ltX + static_cast<float>(col) * terrain->GetCellSpacing();
 					controlPoints[patchVertexIndexCursor].m_position = XMFLOAT3(x, 0.0f, z);
 					// 가만 생각해보면 양 끝 좌표는 0.0과 1.0이 아니다! (착오가 있었음)
-					controlPoints[patchVertexIndexCursor].m_texCoord = XMFLOAT2(
+					controlPoints[patchVertexIndexCursor].mTexCoord = XMFLOAT2(
 						static_cast<float>(col + 1) / fltColTexelCoordBase - texelHalfSpacingU,
 						static_cast<float>(row + 1) / fltRowTexelCoordBase - texelHalfSpacingV
 					);
@@ -145,9 +145,9 @@ std::shared_ptr<Terrain> Terrain::LoadTerrain(PCWSTR path, const TerrainData& td
 					{
 						float minY = std::numeric_limits<float>::max();
 						float maxY = std::numeric_limits<float>::lowest();
-						for (uint16_t rowOffset = 0; rowOffset <= CELLS_PER_TERRAIN_PATCH; ++rowOffset)
+						for (uint16_t rowOffset = 0; rowOffset <= CELLS_PERTERRAIN_PATCH; ++rowOffset)
 						{
-							for (uint16_t colOffset = 0; colOffset <= CELLS_PER_TERRAIN_PATCH; ++colOffset)
+							for (uint16_t colOffset = 0; colOffset <= CELLS_PERTERRAIN_PATCH; ++colOffset)
 							{
 								const uint32_t texelIndex =
 									static_cast<uint32_t>(row + rowOffset) * static_cast<uint32_t>(tmd.heightMapSize.column) + (col + colOffset);

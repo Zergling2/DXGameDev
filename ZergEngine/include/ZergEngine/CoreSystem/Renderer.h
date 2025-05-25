@@ -9,11 +9,13 @@
 #include <ZergEngine\CoreSystem\Effect\BasicEffectPNT.h>
 #include <ZergEngine\CoreSystem\Effect\SkyboxEffect.h>
 #include <ZergEngine\CoreSystem\Effect\MSCameraMergeEffect.h>
+#include <ZergEngine\CoreSystem\Effect\ButtonEffect.h>
 
 namespace ze
 {
 	class MeshRenderer;
-	class Texture2D;
+	class IUIObject;
+	class Button;
 
 	class RendererImpl : public ISubsystem
 	{
@@ -34,17 +36,19 @@ namespace ze
 		void RenderVFPositionTexCoordMesh(const MeshRenderer* pMeshRenderer);
 		void RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshRenderer);
 		void RenderSkybox(ID3D11ShaderResourceView* pSkyboxCubeMapSRV);
+		void RenderButton(const Button* pButton);
 	private:
 		ID3D11RasterizerState* m_pCullBackRS;
 		ID3D11RasterizerState* m_pCullNoneRS;
 		ID3D11RasterizerState* m_pWireFrameRS;
-		ID3D11DepthStencilState* m_pBasicDSS;
+		ID3D11DepthStencilState* m_pDefaultDSS;
 		ID3D11DepthStencilState* m_pSkyboxDSS;
-		ID3D11DepthStencilState* m_pCameraMergeDSS;
-		ID3D11SamplerState* m_pSamplerState;
+		ID3D11DepthStencilState* m_pDepthReadOnlyDSS;
+		ID3D11DepthStencilState* m_pNoDepthStencilTestDSS;
 		ID3D11BlendState* m_pOpaqueBS;
-		ID3D11BlendState* m_pAdditiveBS;
-		float m_normalBlendFactor[4];
+		ID3D11BlendState* m_pAlphaBlendBS;
+		ID3D11BlendState* m_pNoColorWriteBS;
+		ID3D11Buffer* m_pButtonVB;
 
 		EffectDeviceContext m_effectImmediateContext;
 
@@ -53,9 +57,11 @@ namespace ze
 		BasicEffectPN m_basicEffectPN;
 		BasicEffectPT m_basicEffectPT;
 		BasicEffectPNT m_basicEffectPNT;
-		// TerrainEffect m_terrainEffect;
+		// TerrainEffect mTerrainEffect;
 		SkyboxEffect m_skyboxEffect;
 		MSCameraMergeEffect m_msCameraMergeEffect;
+		ButtonEffect m_buttonEffect;
+		std::vector<const IUIObject*> m_uiRenderQueue;
 	};
 
 	extern RendererImpl Renderer;

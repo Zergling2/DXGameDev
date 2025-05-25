@@ -42,10 +42,10 @@ namespace ze
 		// View Matrix, Projection Matrix가 업데이트 된 상태로 전달되어야 함. (=> 엔진 런타임에서 자동으로 처리중)
 		void SetCamera(const Camera* pCamera) noexcept;
 
-		void XM_CALLCONV SetWorldMatrix(XMMATRIX w) noexcept;
+		void XM_CALLCONV SetWorldMatrix(FXMMATRIX w) noexcept;
 	private:
 		virtual void ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept override;
-		virtual void KickedFromDeviceContext() noexcept override;
+		virtual void KickedOutOfDeviceContext() noexcept override;
 
 		void ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept;
 		void ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;

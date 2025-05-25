@@ -21,6 +21,8 @@ UINT InputLayoutHelper::GetStructureByteStride(VERTEX_FORMAT_TYPE vft)
 		return static_cast<UINT>(sizeof(VFPositionNormalTexCoord));
 	case VERTEX_FORMAT_TYPE::TERRAIN_PATCH_CTRL_PT:
 		return static_cast<UINT>(sizeof(VFTerrainPatchControlPoint));
+	case VERTEX_FORMAT_TYPE::BUTTON:
+		return static_cast<UINT>(sizeof(VFButton));
 	default:
 		Debug::ForceCrashWithMessageBox(
 			L"Fatal Error",
@@ -102,3 +104,13 @@ const D3D11_INPUT_ELEMENT_DESC VFTerrainPatchControlPoint::s_ied[] =
 	{ "TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 };
 static_assert(sizeof(VFTerrainPatchControlPoint) == 28, INPUT_LAYOUT_STATIC_ASSERT_MESSAGE);
+
+//--------------------------------------------------------------------------------------
+// Vertex struct holding position, texture mapping information and bounding volume.
+const D3D11_INPUT_ELEMENT_DESC VFButton::s_ied[] =
+{
+	{ "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "COLOR", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+};
+static_assert(sizeof(VFButton) == 24, INPUT_LAYOUT_STATIC_ASSERT_MESSAGE);

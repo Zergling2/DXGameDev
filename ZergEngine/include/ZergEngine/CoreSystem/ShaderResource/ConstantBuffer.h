@@ -26,15 +26,15 @@ namespace ze
 		ID3D11Buffer* m_pConstantBuffer;
 	};
 
-	template<typename _T>
+	template<typename T>
 	class ConstantBuffer : public IConstantBuffer
 	{
 	public:
 		ConstantBuffer() = default;
 		virtual ~ConstantBuffer() = default;
 
-		void Init(ID3D11Device* pDevice) { InitImpl(pDevice, sizeof(_T)); }
-		void Update(ID3D11DeviceContext* pDeviceContext, const _T* pData) { ConstantBuffer::UpdateImpl(pDeviceContext, pData, sizeof(_T)); }
+		void Init(ID3D11Device* pDevice) { InitImpl(pDevice, sizeof(T)); }
+		void Update(ID3D11DeviceContext* pDeviceContext, const T* pData) { ConstantBuffer::UpdateImpl(pDeviceContext, pData, sizeof(T)); }
 	};
 
 	// 旨收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收旬
@@ -212,6 +212,19 @@ namespace ze
 	hlslstruct CbPerSubset
 	{
 		MaterialData mtl;
+	};
+
+	hlslstruct CbPerUIRender
+	{
+		XMFLOAT2 toNDCSpaceRatio;	// 
+	};
+
+	hlslstruct CbPerButton
+	{
+		XMFLOAT4A color;
+		XMFLOAT2 size;
+		XMFLOAT2 position;
+		uint32_t shadeIndex;	// [0] not pressed, [1] pressed
 	};
 
 	using CbPerMSCameraMerge = CbPerCameraMerge;

@@ -39,7 +39,7 @@ namespace ze
 		void SetMergeTexture(ID3D11ShaderResourceView* pMergeTextureSRV);
 	private:
 		virtual void ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept override;
-		virtual void KickedFromDeviceContext() noexcept override;
+		virtual void KickedOutOfDeviceContext() noexcept override;
 
 		void ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept;
 		void ApplyPerMSCameraMergeConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;

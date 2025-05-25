@@ -2,7 +2,9 @@
 #include <ZergEngine\CoreSystem\Manager\GameObjectManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\ComponentManagerInterface.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\ComponentManagerMap.h>
+#include <ZergEngine\CoreSystem\Manager\UIObjectManager.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObjectInterface.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\ComponentInterface.h>
 
 using namespace ze;
@@ -18,9 +20,20 @@ GameObject* GameObjectHandle::ToPtr() const
 		return pGameObject;
 }
 
-IComponent* HandleHelper::ToPtrImpl(COMPONENT_TYPE type, uint32_t tableIndex, uint64_t id)
+IUIObject* UIObjectHandle::ToPtr() const
 {
-	IComponentManager* pComponentManager = ComponentManagerMap::GetComponentManager(type);
+	assert(m_tableIndex < UIObjectManager.m_table.size());
+
+	IUIObject* pUIObject = UIObjectManager.m_table[m_tableIndex];
+	if (pUIObject == nullptr || pUIObject->GetId() != m_id)
+		return nullptr;
+	else
+		return pUIObject;
+}
+
+IComponent* ToPtrHelper::ToComponentPtrImpl(COMPONENT_TYPE type, uint32_t tableIndex, uint64_t id)
+{
+	IComponentManager* pComponentManager = ComponentManagerMap::GetManager(type);
 	assert(pComponentManager != nullptr);
 	assert(tableIndex < pComponentManager->m_table.size());
 

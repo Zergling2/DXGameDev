@@ -6,6 +6,7 @@ namespace pubg
 {
 	class TestScript : public ze::MonoBehaviour
 	{
+		DECLARE_MONOBEHAVIOUR_TYPE
 	public:
 		TestScript() = default;
 		virtual ~TestScript() = default;

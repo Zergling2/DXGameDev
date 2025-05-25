@@ -25,7 +25,7 @@ namespace ze
 		virtual ~Camera() = default;
 
 		virtual COMPONENT_TYPE GetType() const override { return COMPONENT_TYPE::CAMERA; }
-		const XMFLOAT4& GetBackgroundColor() const { return m_backgroundColor; }
+		const XMFLOAT4A& GetBackgroundColor() const { return m_backgroundColor; }
 		void SetBackgroundColor(const XMFLOAT4A color) { m_backgroundColor = color; }
 		void SetBackgroundColor(FXMVECTOR color) { XMStoreFloat4A(&m_backgroundColor, color); }
 		PROJECTION_METHOD GetProjectionMethod() const { return m_projMethod; }
@@ -43,8 +43,8 @@ namespace ze
 		int8_t GetDepth() const { return m_depth; }
 		void SetDepth(int8_t depth);
 
-		void SetMinimumDistanceStartTessellation(float distance) { m_tessMinDist = distance; }
-		void SetMaximumDistanceEndTessellation(float distance) { m_tessMaxDist = distance; }
+		void SetMinimumDistanceStartTessellation(float distance) { mTessMinDist = distance; }
+		void SetMaximumDistanceEndTessellation(float distance) { mTessMaxDist = distance; }
 
 		// Only the range of 0.0 to 6.0 is allowed. Other ranges are ignored.
 		bool SetMinimumTessellationExponent(float exponent);
@@ -52,8 +52,8 @@ namespace ze
 		// Only the range of 0.0 to 6.0 is allowed. Other ranges are ignored.
 		bool SetMaximumTessellationExponent(float exponent);
 
-		float GetMinimumDistanceForTessellationToStart() const { return m_tessMinDist; }
-		float GetMaximumDistanceForTessellationToStart() const { return m_tessMaxDist; }
+		float GetMinimumDistanceForTessellationToStart() const { return mTessMinDist; }
+		float GetMaximumDistanceForTessellationToStart() const { return mTessMaxDist; }
 		float GetMinimumTessellationExponent() const { return m_minTessExponent; }
 		float GetMaximumTessellationExponent() const { return m_maxTessExponent; }
 
@@ -68,6 +68,8 @@ namespace ze
 
 		float CalcBufferWidth();
 		float CalcBufferHeight();
+
+		const D3D11_VIEWPORT& GetFullBufferViewport() const { return m_fullbufferViewport; }
 
 		HRESULT CreateBufferAndView();			// 컬러 버퍼, 렌더 타겟 뷰, 셰이더 리소스 뷰, 뎁스 스텐실 버퍼, 뎁스 스텐실 뷰 생성
 		void UpdateViewMatrix();
@@ -88,9 +90,9 @@ namespace ze
 		XMFLOAT4X4A m_viewMatrix;
 		XMFLOAT4X4A m_projMatrix;
 		D3D11_VIEWPORT m_fullbufferViewport;
-		float m_tessMinDist;		// 최대한으로 테셀레이션 되는 최소 거리 정의 ┓
+		float mTessMinDist;		// 최대한으로 테셀레이션 되는 최소 거리 정의 ┓
 									// (이 사이의 거리에서는 m_minTessFactor와 m_maxTessFactor에 설정한 값 사이로 보간된 Factor가 사용된다.
-		float m_tessMaxDist;		// 최소한으로 테셀레이션 되는 최대 거리 정의 ┛
+		float mTessMaxDist;		// 최소한으로 테셀레이션 되는 최대 거리 정의 ┛
 		float m_minTessExponent;
 		float m_maxTessExponent;
 	};

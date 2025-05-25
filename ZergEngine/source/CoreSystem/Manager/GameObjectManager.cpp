@@ -25,8 +25,7 @@ GameObjectManagerImpl::~GameObjectManagerImpl()
 
 void GameObjectManagerImpl::Init(void* pDesc)
 {
-	// m_uniqueId = 0;
-	// std::fill(m_table.begin(), m_table.end(), nullptr);
+	m_uniqueId = 0;
 }
 
 void GameObjectManagerImpl::Release()
@@ -77,7 +76,7 @@ void GameObjectManagerImpl::AddToDestroyQueue(GameObject* pGameObject)
 {
 	assert(pGameObject->IsOnTheDestroyQueue() == false);
 
-	pGameObject->OnFlag(GOF_ON_DESTROY_QUEUE);
+	pGameObject->OnFlag(GAMEOBJECT_FLAG::ON_DESTROY_QUEUE);
 	m_destroyed.push_back(pGameObject);
 }
 

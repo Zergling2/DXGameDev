@@ -19,8 +19,9 @@ WindowImpl::WindowImpl()
     , m_style(WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX)
     , m_width(0)
     , m_height(0)
-    , m_fullscreen(false)
-    , m_fullClientViewport { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f }
+    , m_sizeFlt(0.0f, 0.0f)
+    , m_halfSizeFlt(0.0f, 0.0f)
+    , m_mode(WINDOW_MODE::WINDOWED)
 {
 }
 
@@ -35,14 +36,9 @@ void WindowImpl::Init(void* pDesc)
     m_hWnd = NULL;
     m_width = pInitDesc->m_width;
     m_height = pInitDesc->m_height;
-    m_fullscreen = pInitDesc->m_fullscreen;
-
-    m_fullClientViewport.TopLeftX = 0.0f;
-    m_fullClientViewport.TopLeftY = 0.0f;
-    m_fullClientViewport.Width = static_cast<float>(m_width);
-    m_fullClientViewport.Height = static_cast<float>(m_height);
-    m_fullClientViewport.MinDepth = 0.0f;
-    m_fullClientViewport.MaxDepth = 1.0f;
+    m_sizeFlt = XMFLOAT2(static_cast<FLOAT>(m_width), static_cast<FLOAT>(m_height));
+    m_halfSizeFlt = XMFLOAT2(m_sizeFlt.x * 0.5f, m_sizeFlt.y * 0.5f);
+    m_mode = pInitDesc->m_mode;
 
     WNDCLASSEXW wcex;
     ZeroMemory(&wcex, sizeof(wcex));
@@ -61,26 +57,30 @@ void WindowImpl::Init(void* pDesc)
 
     int wndFrameWidth;
     int wndFrameHeight;
+    RECT cr;
 
-    if (m_fullscreen)
+    switch (m_mode)
     {
-        wndFrameWidth = GetSystemMetrics(SM_CXSCREEN);
-        wndFrameHeight = GetSystemMetrics(SM_CYSCREEN);
-    }
-    else
-    {
-        RECT cr = RECT{ 0, 0, static_cast<LONG>(m_width), static_cast<LONG>(m_height) };
+    case WINDOW_MODE::WINDOWED:
+        __fallthrough;
+    case WINDOW_MODE::WINDOWED_FULLSCREEN:
+        cr = RECT{ 0, 0, static_cast<LONG>(m_width), static_cast<LONG>(m_height) };
         if (AdjustWindowRect(&cr, m_style, FALSE) == FALSE)
-            Debug::ForceCrashWithWin32ErrorMessageBox(L"WindowImpl::Init() > AdjustWindowRect()", GetLastError());
+            Debug::ForceCrashWithWin32ErrorMessageBox(L"AdjustWindowRect()", GetLastError());
 
         wndFrameWidth = cr.right - cr.left;
         wndFrameHeight = cr.bottom - cr.top;
+        break;
+    case WINDOW_MODE::FULLSCREEN:
+        wndFrameWidth = GetSystemMetrics(SM_CXSCREEN);
+        wndFrameHeight = GetSystemMetrics(SM_CYSCREEN);
+        break;
     }
 
     // Create the window.
     m_hWnd = CreateWindowW(
         WNDCLASS_NAME,                                                  // Window class
-        pInitDesc->m_title,                                             // Window title
+        pInitDesc->mTitle,                                             // Window title
         m_style,       // Window style
         CW_USEDEFAULT,                                                  // Pos X
         CW_USEDEFAULT,                                                  // Pos Y
@@ -97,36 +97,35 @@ void WindowImpl::Release()
 {
 }
 
-void WindowImpl::SetResolution(uint32_t width, uint32_t height, bool fullscreen)
+void WindowImpl::SetResolution(uint32_t width, uint32_t height, WINDOW_MODE mode)
 {
     if (width == 0 || height == 0)
         return;
 
-    m_fullscreen = fullscreen;
     m_width = width;
     m_height = height;
+    m_sizeFlt = XMFLOAT2(static_cast<FLOAT>(m_width), static_cast<FLOAT>(m_height));
+    m_halfSizeFlt = XMFLOAT2(m_sizeFlt.x * 0.5f, m_sizeFlt.y * 0.5f);
+    m_mode = mode;
 
     GraphicDevice.OnResize();
     CameraManager.OnResize();    // 카메라 렌더버퍼 재생성, 투영 행렬, D3D11 뷰포트 구조체 업데이트
 
-    if (!m_fullscreen)
+    // 아래 MoveWindow로 윈도우 크기 조절은 GraphicDevice::OnResize() 에서 SetFullscreenState 처리 뒤 처리해야 한다.
+    if (m_mode == WINDOW_MODE::WINDOWED || m_mode == WINDOW_MODE::WINDOWED_FULLSCREEN)
     {
-        RECT cr = RECT{ 0, 0, static_cast<LONG>(m_width), static_cast<LONG>(m_height) };
-        if (AdjustWindowRect(&cr, m_style, FALSE) == FALSE)
-            Debug::ForceCrashWithWin32ErrorMessageBox(L"WindowImpl::SetResolution() > AdjustWindowRect()", GetLastError());
+        int wndFrameWidth;
+        int wndFrameHeight;
+        RECT cr;
 
-        const int wndFrameWidth = cr.right - cr.left;
-        const int wndFrameHeight = cr.bottom - cr.top;
+        cr = RECT{ 0, 0, static_cast<LONG>(m_width), static_cast<LONG>(m_height) };
+        if (AdjustWindowRect(&cr, m_style, FALSE) == FALSE)
+            Debug::ForceCrashWithWin32ErrorMessageBox(L"AdjustWindowRect()", GetLastError());
+
+        wndFrameWidth = cr.right - cr.left;
+        wndFrameHeight = cr.bottom - cr.top;
         MoveWindow(Window.GetWindowHandle(), 0, 0, wndFrameWidth, wndFrameHeight, FALSE);
     }
-
-    // Update full client area viewport
-    Window.m_fullClientViewport.TopLeftX = 0.0f;
-    Window.m_fullClientViewport.TopLeftY = 0.0f;
-    Window.m_fullClientViewport.Width = static_cast<float>(m_width);
-    Window.m_fullClientViewport.Height = static_cast<float>(m_height);
-    Window.m_fullClientViewport.MinDepth = 0.0f;
-    Window.m_fullClientViewport.MaxDepth = 1.0f;
 }
 
 LRESULT WindowImpl::WinProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)

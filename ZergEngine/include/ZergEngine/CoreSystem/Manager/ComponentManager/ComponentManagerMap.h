@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ZergEngine/CoreSystem/GamePlayBase/Component/ComponentType.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\ComponentType.h>
 
 namespace ze
 {
@@ -9,6 +9,6 @@ namespace ze
 	class ComponentManagerMap
 	{
 	public:
-		static IComponentManager* GetComponentManager(COMPONENT_TYPE type);
+		static IComponentManager* GetManager(COMPONENT_TYPE type);
 	};
 }

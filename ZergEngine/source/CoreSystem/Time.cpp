@@ -8,7 +8,8 @@ namespace ze
 
 using namespace ze;
 
-static constexpr float DEFAULT_FIXED_DELTA_TIME = 1.0f / 50.0f;
+static constexpr uint32_t FIXED_UPDATE_HZ = 50;
+static constexpr float FIXED_DELTA_TIME = 1.0f / static_cast<float>(FIXED_UPDATE_HZ);
 
 TimeImpl::TimeImpl()
 {
@@ -25,19 +26,23 @@ void TimeImpl::Init(void* pDesc)
 	// On systems that run Windows XP or later, 
 	// the function will always succeed and will thus never return zero.
 	if (QueryPerformanceFrequency(&freq) == FALSE)
-		Debug::ForceCrashWithWin32ErrorMessageBox(L"TimeImpl::Init() > QueryPerformanceFrequency()", GetLastError());
+		Debug::ForceCrashWithWin32ErrorMessageBox(L"QueryPerformanceFrequency()", GetLastError());
+
+	if (freq.QuadPart % FIXED_UPDATE_HZ != 0)
+		Debug::ForceCrashWithMessageBox(L"FixedUpdateHz Error", L"Hardware counters are not supported at 50 Hz.");
 
 	m_spc = 1.0f / static_cast<float>(freq.QuadPart);
-	m_ts = 1.0f;
-	m_fdt = DEFAULT_FIXED_DELTA_TIME;
+	mTs = 1.0f;
+	m_fdt = FIXED_DELTA_TIME;
 	m_udt = 0.0f;
 	m_dt = 0.0f;
 	m_dtBackup = m_dt;
+	m_fdtPC.QuadPart = freq.QuadPart / FIXED_UPDATE_HZ;
 
 	// On systems that run Windows XP or later, 
 	// the function will always succeed and will thus never return zero.
 	if (QueryPerformanceCounter(&m_basePC) == FALSE)
-		Debug::ForceCrashWithWin32ErrorMessageBox(L"TimeImpl::Init() > QueryPerformanceCounter()", GetLastError());
+		Debug::ForceCrashWithWin32ErrorMessageBox(L"QueryPerformanceCounter()", GetLastError());
 
 	m_deltaPC.QuadPart = 0;
 	m_prevPC = m_basePC;
@@ -54,7 +59,7 @@ void TimeImpl::SetTimeScale(float ts)
 	if (ts < 0.0f)
 		return;
 
-	m_ts = ts;
+	mTs = ts;
 }
 
 bool TimeImpl::SetFixedDeltaTime(float fdt)
@@ -74,12 +79,12 @@ void TimeImpl::Update()
 		m_deltaPC.QuadPart = 0;
 
 	m_udt = static_cast<float>(m_deltaPC.QuadPart) * m_spc;
-	m_dt = m_udt * m_ts;
+	m_dt = m_udt * mTs;
 
 	m_prevPC = m_currPC;
 }
 
-void TimeImpl::ChangeDeltaTimeToFixedDeltaTime()
+void TimeImpl::ChangeDeltatime_toFixedDeltaTime()
 {
 	m_dtBackup = m_dt;
 	m_dt = m_fdt;

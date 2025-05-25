@@ -43,7 +43,7 @@ namespace ze
 		void SetSkyboxCubeMap(ID3D11ShaderResourceView* pSkyboxCubeMapSRV) { m_pTextureSRVArray[0] = pSkyboxCubeMapSRV; }
 	private:
 		virtual void ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept override;
-		virtual void KickedFromDeviceContext() noexcept override;
+		virtual void KickedOutOfDeviceContext() noexcept override;
 
 		void ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept;
 		void ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;

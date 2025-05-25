@@ -6,12 +6,12 @@ namespace ze
 {
 	class MonoBehaviour;
 
-	class ScriptManagerImpl : public IComponentManager
+	class MonoBehaviourManagerImpl : public IComponentManager
 	{
 		friend class RuntimeImpl;
 		friend class SceneManagerImpl;
 		friend class MonoBehaviour;
-		ZE_DECLARE_SINGLETON(ScriptManagerImpl);
+		ZE_DECLARE_SINGLETON(MonoBehaviourManagerImpl);
 	private:
 		virtual void Init(void* pDesc) override;
 		virtual void Release() override;
@@ -28,5 +28,5 @@ namespace ze
 		std::vector<MonoBehaviour*> m_startingScripts;
 	};
 
-	extern ScriptManagerImpl ScriptManager;
+	extern MonoBehaviourManagerImpl MonoBehaviourManager;
 }

@@ -11,7 +11,7 @@ namespace ze
 			: m_pShader(nullptr)
 		{
 		}
-		~VertexShader();
+		~VertexShader() { this->Release(); }
 
 		void Init(ID3D11Device* pDevice, const byte* pShaderByteCode, size_t shaderByteCodeSize);
 		void Release();
@@ -27,7 +27,7 @@ namespace ze
 			: m_pShader(nullptr)
 		{
 		}
-		~HullShader();
+		~HullShader() { this->Release(); }
 
 		void Init(ID3D11Device* pDevice, const byte* pShaderByteCode, size_t shaderByteCodeSize);
 		void Release();
@@ -43,7 +43,7 @@ namespace ze
 			: m_pShader(nullptr)
 		{
 		}
-		~DomainShader();
+		~DomainShader() { this->Release(); }
 
 		void Init(ID3D11Device* pDevice, const byte* pShaderByteCode, size_t shaderByteCodeSize);
 		void Release();
@@ -59,7 +59,7 @@ namespace ze
 			: m_pShader(nullptr)
 		{
 		}
-		~PixelShader();
+		~PixelShader() { this->Release(); }
 
 		void Init(ID3D11Device* pDevice, const byte* pShaderByteCode, size_t shaderByteCodeSize);
 		void Release();

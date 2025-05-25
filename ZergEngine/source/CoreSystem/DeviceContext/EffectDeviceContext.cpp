@@ -29,7 +29,7 @@ void EffectDeviceContext::Apply(IEffect* pEffect) noexcept
 
 	if (m_pCurrentEffect != pEffect)
 	{
-		m_pCurrentEffect->KickedFromDeviceContext();
+		m_pCurrentEffect->KickedOutOfDeviceContext();
 		m_pCurrentEffect = pEffect;
 	}
 
@@ -38,7 +38,7 @@ void EffectDeviceContext::Apply(IEffect* pEffect) noexcept
 
 void EffectDeviceContext::ClearState() noexcept
 {
-	m_pCurrentEffect->KickedFromDeviceContext();
+	m_pCurrentEffect->KickedOutOfDeviceContext();
 
 	m_pDeviceContext->ClearState();
 	m_pCurrentEffect = &g_de;

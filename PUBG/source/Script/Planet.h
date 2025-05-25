@@ -6,6 +6,7 @@ namespace pubg
 {
 	class Planet : public ze::MonoBehaviour
 	{
+		DECLARE_MONOBEHAVIOUR_TYPE
 	public:
 		Planet()
 			: m_hCenter()

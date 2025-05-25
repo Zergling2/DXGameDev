@@ -1,12 +1,14 @@
 #include <ZergEngine\CoreSystem\Manager\SceneManager.h>
 #include <ZergEngine\CoreSystem\Manager\GameObjectManager.h>
+#include <ZergEngine\CoreSystem\Manager\UIObjectManager.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObjectInterface.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\CameraManager.h>
-#include <ZergEngine\CoreSystem\Manager\ComponentManager\ScriptManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\MonoBehaviourManager.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\MonoBehaviour.h>
 #include <ZergEngine\CoreSystem\Debug.h>
 #include <ZergEngine\CoreSystem\SceneInterface.h>
 #include <ZergEngine\CoreSystem\Runtime.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\Component\MonoBehaviour.h>
 
 namespace ze
 {
@@ -25,7 +27,6 @@ public:
 
 SceneManagerImpl::SceneManagerImpl()
 	: m_lock()
-	, m_upCurrentScene(nullptr)
 	, m_upNextScene(nullptr)
 {
 }
@@ -38,8 +39,8 @@ void SceneManagerImpl::Init(void* pDesc)
 {
 	m_lock.Init();
 
-	m_upCurrentScene = std::make_unique<DummyScene>();
-	m_upCurrentScene->OnLoadScene();
+	std::unique_ptr<DummyScene> upCurrentScene = std::make_unique<DummyScene>();
+	upCurrentScene->OnLoadScene();
 
 	m_upNextScene = this->CreateScene(Runtime.GetStartSceneName());
 
@@ -52,8 +53,6 @@ void SceneManagerImpl::Init(void* pDesc)
 void SceneManagerImpl::Release()
 {
 	// safe cleanup...
-
-	m_upCurrentScene.reset();
 	m_upNextScene.reset();
 }
 
@@ -81,37 +80,39 @@ bool SceneManagerImpl::LoadScene(PCSTR sceneName)
 	return success;
 }
 
-void SceneManagerImpl::Update(float* pFixedUpdateTimer)
+void SceneManagerImpl::Update(LONGLONG* pFixedUpdateTimer)
 {
 	if (m_upNextScene == nullptr)
 		return;
 
-	*pFixedUpdateTimer = 0.0f;
-
+	*pFixedUpdateTimer = 0;
 	// 씬 교체
-	
 
 	// DontDestroyOnLoad 오브젝트를 제외하고 모두 파괴
-	auto& inactiveGameObjects = GameObjectManager.m_inactiveGameObjects;
-	for (GameObject* pGameObject : inactiveGameObjects)
+	for (GameObject* pGameObject : GameObjectManager.m_activeGameObjects)
 		if (!pGameObject->IsDontDestroyOnLoad())
 			Runtime.Destroy(pGameObject);
-
-	auto& activeGameObjects = GameObjectManager.m_activeGameObjects;
-	for (GameObject* pGameObject : activeGameObjects)
+	for (GameObject* pGameObject : GameObjectManager.m_inactiveGameObjects)
 		if (!pGameObject->IsDontDestroyOnLoad())
 			Runtime.Destroy(pGameObject);
+	for (IUIObject* pUIObject : UIObjectManager.m_activeUIObjects)
+		if (!pUIObject->IsDontDestroyOnLoad())
+			Runtime.Destroy(pUIObject);
+	for (IUIObject* pUIObject : UIObjectManager.m_inactiveUIObjects)
+		if (!pUIObject->IsDontDestroyOnLoad())
+			Runtime.Destroy(pUIObject);
 
-	Runtime.RemoveDestroyedComponentsAndGameObjects();
+	Runtime.RemoveDestroyedComponentsAndObjects();
 
 	// 지연된 게임오브젝트들 및 컴포넌트들을 관리 시작
 	std::vector<MonoBehaviour*> scripts;
 	scripts.reserve(512);
-	auto& deferredGameObjects = *m_upNextScene->m_pDeferredGameObjects;
+
+	auto& deferredGameObjects = *m_upNextScene->m_upDeferredGameObjects;
 	for (GameObject* pGameObject : deferredGameObjects)
 	{
 		// 중요 (플래그 제거)
-		pGameObject->OffFlag(GOF_DEFERRED);
+		pGameObject->OffFlag(GAMEOBJECT_FLAG::DEFERRED);
 
 		if (pGameObject->IsActive())
 			GameObjectManager.AddPtrToActiveVector(pGameObject);
@@ -123,29 +124,36 @@ void SceneManagerImpl::Update(float* pFixedUpdateTimer)
 			IComponentManager* pComponentManager = pComponent->GetComponentManager();
 			pComponentManager->AddPtrToActiveVector(pComponent);
 
-			if (pComponent->GetType() == COMPONENT_TYPE::SCRIPT)
+			if (pComponent->GetType() == COMPONENT_TYPE::MONOBEHAVIOUR)
 				scripts.push_back(static_cast<MonoBehaviour*>(pComponent));
 		}
 	}
 
-	// 게임오브젝트와 컴포넌트들이 모두 전역 관리자에 등록된 이후에 Awake, OnEnable, Start큐잉 처리
-	for (MonoBehaviour* pScript : scripts)
-		pScript->Awake();
+	auto& deferredUIObjects = *m_upNextScene->m_upDeferredUIObjects;
+	for (IUIObject* pRootUIObject : deferredUIObjects)
+	{
+		// 루트 UI 오브젝트 처리
+		// deferred ui 오브젝트들 벡터에는 루트 오브젝트들만 들어있다.
+		assert(pRootUIObject->m_transform.m_pParentTransform == nullptr);
+		pRootUIObject->OnFlag(UIOBJECT_FLAG::REAL_ROOT);
+		UIObjectManager.AddPtrToRootVector(pRootUIObject);
 
+		AddPtrRecursively(pRootUIObject);
+	}
+
+	// 게임오브젝트, UI오브젝트와 컴포넌트들이 모두 전역 관리자에 등록된 이후에 Awake, OnEnable, Start큐잉 처리
 	for (MonoBehaviour* pScript : scripts)
 	{
+		pScript->Awake();
 		if (pScript->IsEnabled())
 		{
 			pScript->OnEnable();
-			ScriptManager.AddToStartingQueue(pScript);	// 활성화된 채로 씬에서 시작되는 경우 Start 대기열에 추가
+			MonoBehaviourManager.AddToStartingQueue(pScript);	// 활성화된 채로 씬에서 시작되는 경우 Start 대기열에 추가
 		}
 	}
 
-	// 더 이상 필요 없게된 지연 벡터를 해제
-	delete m_upNextScene->m_pDeferredGameObjects;
-
-	// 기존 씬 제거 및 다음 씬으로 포인터 교체
-	m_upCurrentScene = std::move(m_upNextScene);
+	// 씬 로드 완료 후 필요없어진 씬 객체 제거
+	m_upNextScene.reset();
 }
 
 std::unique_ptr<IScene> SceneManagerImpl::CreateScene(PCSTR sceneName)
@@ -159,4 +167,24 @@ std::unique_ptr<IScene> SceneManagerImpl::CreateScene(PCSTR sceneName)
 		upNewScene = sf();
 
 	return upNewScene;
+}
+
+void SceneManagerImpl::AddPtrRecursively(IUIObject* pUIObject)
+{
+	// 중요 (플래그 제거)
+	pUIObject->OffFlag(UIOBJECT_FLAG::DEFERRED);
+
+	if (pUIObject->IsActive())
+		UIObjectManager.AddPtrToActiveVector(pUIObject);
+	else
+		UIObjectManager.AddPtrToInactiveVector(pUIObject);
+
+	// 지연되어 있던 자식 UI 오브젝트들도 전역 관리 대상으로 추가
+	for (RectTransform* pChildTransform : pUIObject->m_transform.m_children)
+	{
+		IUIObject* pChildUIObject = pChildTransform->m_pUIObject;
+		assert(pChildUIObject != nullptr);
+
+		AddPtrRecursively(pChildUIObject);
+	}
 }

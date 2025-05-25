@@ -2,14 +2,7 @@
 
 using namespace ze;
 
-XMVECTOR Math::QuaternionToEuler(XMVECTOR quaternion) noexcept
-{
-	quaternion = XMQuaternionNormalize(quaternion);
-
-	return Math::QuaternionToEulerNormal(quaternion);
-}
-
-XMVECTOR XM_CALLCONV Math::QuaternionToEulerNormal(XMVECTOR quaternion) noexcept
+XMVECTOR XM_CALLCONV Math::QuaternionToEulerNormal(FXMVECTOR quaternion) noexcept
 {
 	float qx = XMVectorGetX(quaternion);
 	float qy = XMVectorGetY(quaternion);

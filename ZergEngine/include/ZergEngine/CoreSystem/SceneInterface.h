@@ -18,10 +18,15 @@ namespace ze
 		// 명시적 객체 파괴는 스크립트에서 핸들을 통해서만 가능하며, 암시적 객체 파괴는 씬 전환 시
 		// DontDestroyOnLoad() 함수로 지정되지 않은 객체들에 한해서 자동으로 이루어집니다.
 		GameObjectHandle CreateGameObject(PCWSTR name = L"New Game Object");
+
+		// 루트 오브젝트로 버튼을 생성합니다.
+		UIObjectHandle CreateButton(PCWSTR name = L"New Button");
 	private:
-		// OnLoadScene에서는 반드시 RuntimeImpl::CreateGameObject() 함수 대신 IScene::CreateGameObject() 함수를 사용하여 게임 오브젝트를 생성해야 합니다.
+		// OnLoadScene 함수의 구현은 반드시 Runtime의 Create 함수들을 사용하지 말고 
+		// IScene 인터페이스에서 제공하는 Create 함수들을 사용하여 오브젝트를 생성해야 합니다.
 		virtual void OnLoadScene() = 0;
 	private:
-		std::vector<GameObject*>* m_pDeferredGameObjects;
+		std::unique_ptr<std::vector<GameObject*>> m_upDeferredGameObjects;
+		std::unique_ptr<std::vector<IUIObject*>> m_upDeferredUIObjects;
 	};
 }

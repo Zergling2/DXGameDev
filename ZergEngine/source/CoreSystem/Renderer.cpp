@@ -3,6 +3,7 @@
 #include <ZergEngine\CoreSystem\Debug.h>
 #include <ZergEngine\CoreSystem\Window.h>
 #include <ZergEngine\CoreSystem\Manager\EnvironmentManager.h>
+#include <ZergEngine\CoreSystem\Manager\UIObjectManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\CameraManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\DirectionalLightManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\PointLightManager.h>
@@ -13,7 +14,8 @@
 #include <ZergEngine\CoreSystem\Resource\Material.h>
 #include <ZergEngine\CoreSystem\Resource\Texture.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\Component\Transform.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Transform.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Button.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Camera.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Light.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\MeshRenderer.h>
@@ -30,24 +32,26 @@ RendererImpl::RendererImpl()
 	: m_pCullBackRS(nullptr)
 	, m_pCullNoneRS(nullptr)
 	, m_pWireFrameRS(nullptr)
-	, m_pBasicDSS(nullptr)
+	, m_pDefaultDSS(nullptr)
 	, m_pSkyboxDSS(nullptr)
-	, m_pCameraMergeDSS(nullptr)
-	, m_pSamplerState(nullptr)
+	, m_pDepthReadOnlyDSS(nullptr)
+	, m_pNoDepthStencilTestDSS(nullptr)
 	, m_pOpaqueBS(nullptr)
-	, m_pAdditiveBS(nullptr)
-	, m_normalBlendFactor{}
-	// , m_normalBlendFactor{ 1.0f, 1.0f, 1.0f, 1.0f }	// RendererImpl::Init에서 초기화
+	, m_pNoColorWriteBS(nullptr)
+	, m_pButtonVB(nullptr)
 	, m_effectImmediateContext()
 	, m_basicEffectP()
 	, m_basicEffectPC()
 	, m_basicEffectPN()
 	, m_basicEffectPT()
 	, m_basicEffectPNT()
-	// , m_terrainEffect()
+	// , mTerrainEffect()
 	, m_skyboxEffect()
 	, m_msCameraMergeEffect()
+	, m_buttonEffect()
+	, m_uiRenderQueue()
 {
+	m_uiRenderQueue.reserve(256);
 }
 
 RendererImpl::~RendererImpl()
@@ -59,13 +63,14 @@ void RendererImpl::Init(void* pDesc)
 	m_pCullBackRS = GraphicDevice.GetRSComInterface(RASTERIZER_FILL_MODE::SOLID, RASTERIZER_CULL_MODE::BACK);
 	m_pCullNoneRS = GraphicDevice.GetRSComInterface(RASTERIZER_FILL_MODE::SOLID, RASTERIZER_CULL_MODE::NONE);
 	m_pWireFrameRS = GraphicDevice.GetRSComInterface(RASTERIZER_FILL_MODE::WIREFRAME, RASTERIZER_CULL_MODE::NONE);
-	m_pBasicDSS = GraphicDevice.GetDSSComInterface(DEPTH_STENCIL_STATE_TYPE::STANDARD);
-	m_pSkyboxDSS = GraphicDevice.GetDSSComInterface(DEPTH_STENCIL_STATE_TYPE::SKYBOX);
-	m_pCameraMergeDSS = GraphicDevice.GetDSSComInterface(DEPTH_STENCIL_STATE_TYPE::CAMERA_MERGE);
-	m_pSamplerState = GraphicDevice.GetSSComInterface(TEXTURE_FILTERING_OPTION::ANISOTROPIC_4X);
-	m_pOpaqueBS = GraphicDevice.GetBSComInterface(BLEND_STATE_TYPE::OPAQUE_);
-	m_pAdditiveBS = GraphicDevice.GetBSComInterface(BLEND_STATE_TYPE::ADDITIVE);
-	m_normalBlendFactor[0] = m_normalBlendFactor[1] = m_normalBlendFactor[2] = m_normalBlendFactor[3] = 1.0f;
+	m_pDefaultDSS = GraphicDevice.GetDSSComInterface(DEPTH_STENCIL_STATETYPE::DEFAULT);
+	m_pSkyboxDSS = GraphicDevice.GetDSSComInterface(DEPTH_STENCIL_STATETYPE::SKYBOX);
+	m_pDepthReadOnlyDSS = GraphicDevice.GetDSSComInterface(DEPTH_STENCIL_STATETYPE::DEPTH_READ_ONLY);
+	m_pNoDepthStencilTestDSS = GraphicDevice.GetDSSComInterface(DEPTH_STENCIL_STATETYPE::NO_DEPTH_STENCILTEST);
+	m_pOpaqueBS = GraphicDevice.GetBSComInterface(BLEND_STATETYPE::OPAQUE_);
+	m_pAlphaBlendBS = GraphicDevice.GetBSComInterface(BLEND_STATETYPE::ALPHABLEND);
+	m_pNoColorWriteBS = GraphicDevice.GetBSComInterface(BLEND_STATETYPE::NO_COLOR_WRITE);
+	m_pButtonVB = GraphicDevice.GetVBComInterface(VERTEX_BUFFER_TYPE::BUTTON);	// Read only vertex buffer
 
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ INITIALIZE EFFECTS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	this->InitializeEffects();
@@ -82,7 +87,7 @@ void RendererImpl::Init(void* pDesc)
 	m_passTerrain.SetDomainShader(GraphicDevice.GetDSComInterface(DOMAIN_SHADER_TYPE::SAMPLE_TERRAIN_HEIGHT_MAP));
 	m_passTerrain.SetPixelShader(GraphicDevice.GetPSComInterface(PIXEL_SHADER_TYPE::COLOR_TERRAIN_FRAGMENT));
 	m_passTerrain.SetRasterizerState(GraphicDevice.GetRSComInterface(RASTERIZER_FILL_MODE::SOLID, RASTERIZER_CULL_MODE::BACK));
-	m_passTerrain.SetDepthStencilState(GraphicDevice.GetDSSComInterface(DEPTH_STENCIL_STATE_TYPE::STANDARD), 0);
+	m_passTerrain.SetDepthStencilState(GraphicDevice.GetDSSComInterface(DEPTH_STENCIL_STATETYPE::DEFAULT), 0);
 	*/
 }
 
@@ -94,8 +99,9 @@ void RendererImpl::InitializeEffects()
 	m_basicEffectPT.Init();
 	m_basicEffectPNT.Init();
 	m_skyboxEffect.Init();
-	// m_terrainEffect.Init();
+	// mTerrainEffect.Init();
 	m_msCameraMergeEffect.Init();
+	m_buttonEffect.Init();
 }
 
 void RendererImpl::ReleaseEffects()
@@ -106,8 +112,9 @@ void RendererImpl::ReleaseEffects()
 	m_basicEffectPT.Release();
 	m_basicEffectPNT.Release();
 	m_skyboxEffect.Release();
-	// m_terrainEffect.Release();
+	// mTerrainEffect.Release();
 	m_msCameraMergeEffect.Release();
+	m_buttonEffect.Release();
 }
 
 void RendererImpl::Release()
@@ -141,10 +148,10 @@ void RendererImpl::RenderFrame()
 	pImmContext->RSSetState(m_pCullBackRS);					// 후면 컬링 설정
 	
 	// DepthStencil State
-	pImmContext->OMSetDepthStencilState(m_pBasicDSS, 0);
+	pImmContext->OMSetDepthStencilState(m_pDefaultDSS, 0);
 
 	// BasicState
-	pImmContext->OMSetBlendState(m_pOpaqueBS, m_normalBlendFactor, 0xFFFFFFFF);
+	pImmContext->OMSetBlendState(m_pOpaqueBS, nullptr, 0xFFFFFFFF);
 
 	// PerFrame 상수버퍼 업데이트 및 바인딩
 	{
@@ -184,7 +191,7 @@ void RendererImpl::RenderFrame()
 		// m_basicEffectPT.SetDirectionalLight(light, lightCount);
 		m_basicEffectPNT.SetDirectionalLight(light, lightCount);
 		// m_skyboxEffect.SetDirectionalLight(light, lightCount);
-		// m_terrainEffect.SetDirectionalLight(light, lightCount);
+		// mTerrainEffect.SetDirectionalLight(light, lightCount);
 	}
 
 	{
@@ -219,7 +226,7 @@ void RendererImpl::RenderFrame()
 		// m_basicEffectPT.SetPointLight(light, lightCount);
 		m_basicEffectPNT.SetPointLight(light, lightCount);
 		// m_skyboxEffect.SetPointLight(light, lightCount);
-		// m_terrainEffect.SetPointLight(light, lightCount);
+		// mTerrainEffect.SetPointLight(light, lightCount);
 	}
 
 	{
@@ -266,7 +273,7 @@ void RendererImpl::RenderFrame()
 		// m_basicEffectPT.SetSpotLight(light, lightCount);
 		m_basicEffectPNT.SetSpotLight(light, lightCount);
 		// m_skyboxEffect.SetSpotLight(light, lightCount);
-		// m_terrainEffect.SetSpotLight(light, lightCount);
+		// mTerrainEffect.SetSpotLight(light, lightCount);
 	}
 
 	// Camera마다 프레임 렌더링
@@ -291,7 +298,7 @@ void RendererImpl::RenderFrame()
 
 		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 		// 뷰포트 바인딩
-		pImmContext->RSSetViewports(1, &pCamera->m_fullbufferViewport);
+		pImmContext->RSSetViewports(1, &pCamera->GetFullBufferViewport());
 		// 컬러 버퍼 및 뎁스스텐실 버퍼 바인딩
 		ID3D11RenderTargetView* pColorBufferRTV = pCamera->m_cpColorBufferRTV.Get();
 		ID3D11DepthStencilView* pDepthStencilBufferDSV = pCamera->m_cpDepthStencilBufferDSV.Get();
@@ -308,7 +315,7 @@ void RendererImpl::RenderFrame()
 		m_basicEffectPT.SetCamera(pCamera);
 		m_basicEffectPNT.SetCamera(pCamera);
 		m_skyboxEffect.SetCamera(pCamera);
-		// m_terrainEffect.SetCamera(pCamera);
+		// mTerrainEffect.SetCamera(pCamera);
 
 		for (const IComponent* pComponent : MeshRendererManager.m_activeComponents)
 		{
@@ -358,18 +365,18 @@ void RendererImpl::RenderFrame()
 	}
 
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-	// 카메라 렌더링 결과 병합
+	// 카메라 렌더링 결과 병합 및 UI 렌더링
 	// Rasterizer State
-	pImmContext->RSSetState(m_pCullBackRS);					// 후면 컬링 설정
+	pImmContext->RSSetState(m_pCullNoneRS);	// Quad 렌더링 뿐이므로 후면 컬링 끄기
 	
 	// DepthStencil State
-	pImmContext->OMSetDepthStencilState(m_pCameraMergeDSS, 0);
+	pImmContext->OMSetDepthStencilState(m_pNoDepthStencilTestDSS, 0);
 	
 	// BasicState
-	pImmContext->OMSetBlendState(m_pOpaqueBS, m_normalBlendFactor, 0xFFFFFFFF);
+	pImmContext->OMSetBlendState(m_pOpaqueBS, nullptr, 0xFFFFFFFF);
 	
 	// 전체 백버퍼에 대한 뷰포트 설정
-	pImmContext->RSSetViewports(1, &Window.GetFullClientViewport());
+	pImmContext->RSSetViewports(1, &GraphicDevice.GetFullSwapChainViewport());
 	// 렌더타겟 바인딩
 	ID3D11RenderTargetView* pColorBufferRTV = GraphicDevice.GetSwapChainRTVComInterface();
 	ID3D11DepthStencilView* pDepthStencilBufferDSV = GraphicDevice.GetSwapChainDSVComInterface();
@@ -394,9 +401,77 @@ void RendererImpl::RenderFrame()
 	
 		m_effectImmediateContext.Apply(&m_msCameraMergeEffect);
 	
-		pImmContext->Draw(4, 0);
+		m_effectImmediateContext.Draw(4, 0);
 	}
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+	// UI 렌더링
+	{
+		// Rasterizer State
+		pImmContext->RSSetState(m_pCullNoneRS);	// Quad 렌더링 뿐이므로 후면 컬링 끄기
+
+		// DepthStencil State
+		pImmContext->OMSetDepthStencilState(m_pNoDepthStencilTestDSS, 0);
+
+		// D3D11_BLEND_BLEND_FACTOR 또는 D3D11_BLEND_INV_BLEND_FACTOR 미사용 (blend factor로 nullptr 전달)
+		pImmContext->OMSetBlendState(m_pAlphaBlendBS, nullptr, 0xFFFFFFFF);
+
+		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+		// 모든 UI Effect들에 대한 ScreenToNDCSpaceRatio 설정
+		const XMFLOAT2 screenToNDCSpaceRatio = XMFLOAT2(
+			2.0f / static_cast<float>(GraphicDevice.GetSwapChainDesc().BufferDesc.Width),
+			2.0f / static_cast<float>(GraphicDevice.GetSwapChainDesc().BufferDesc.Height)
+		);
+		// m_panelEffect.SetScreenToNDCSpaceRatio(screenToNDCSpaceRatio);
+		m_buttonEffect.SetScreenToNDCSpaceRatio(screenToNDCSpaceRatio);
+		// m_imageButtonEffect.SetScreenToNDCSpaceRatio(screenToNDCSpaceRatio);
+		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+		for (const IUIObject* pRootUIObject : UIObjectManager.m_rootUIObjects)
+		{
+			assert(pRootUIObject->IsRootObject());
+
+			size_t index = 0;
+
+			// 큐는 노드 할당이 일어나므로 벡터를 사용
+			m_uiRenderQueue.push_back(pRootUIObject);
+
+			while (index < m_uiRenderQueue.size())
+			{
+				const IUIObject* pUIObject = m_uiRenderQueue[index];
+
+				// 자식들을 모두 큐에 넣는다.
+				for (const RectTransform* pChildTransform : pUIObject->m_transform.m_children)
+				{
+					const IUIObject* pChildUIObject = pChildTransform->m_pUIObject;
+					assert(pChildUIObject != nullptr);
+
+					m_uiRenderQueue.push_back(pChildUIObject);
+				}
+
+				switch (pUIObject->GetType())
+				{
+				case UIOBJECT_TYPE::PANEL:
+					break;
+				case UIOBJECT_TYPE::BUTTON:
+					this->RenderButton(static_cast<const Button*>(pUIObject));
+					break;
+				case UIOBJECT_TYPE::IMAGE_BUTTON:
+					break;
+				case UIOBJECT_TYPE::IMAGE:
+					break;
+				case UIOBJECT_TYPE::LABEL:
+					break;
+				case UIOBJECT_TYPE::TEXT_BOX:
+					break;
+				default:
+					break;
+				}
+				++index;
+			}
+			m_uiRenderQueue.clear();
+		}
+	}
 
 	GraphicDevice.GetSwapChainComInterface()->Present(0, 0);
 }
@@ -415,10 +490,10 @@ void RendererImpl::RenderVFPositionMesh(const MeshRenderer* pMeshRenderer)
 	m_basicEffectP.SetWorldMatrix(pGameObject->m_transform.GetWorldTransformMatrix());
 
 	// 버텍스 버퍼 설정
-	const UINT stride[] = { InputLayoutHelper::GetStructureByteStride(pMesh->GetVertexFormatType()) };
-	const UINT offset[] = { 0 };
+	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(pMesh->GetVertexFormatType()) };
+	const UINT offsets[] = { 0 };
 	ID3D11Buffer* const vbs[] = { pMesh->GetVBComInterface() };
-	m_effectImmediateContext.IASetVertexBuffers(0, _countof(vbs), vbs, stride, offset);
+	m_effectImmediateContext.IASetVertexBuffers(0, _countof(vbs), vbs, strides, offsets);
 
 	// 인덱스 버퍼 설정
 	m_effectImmediateContext.IASetIndexBuffer(pMesh->GetIBComInterface(), DXGI_FORMAT_R32_UINT, 0);
@@ -448,10 +523,10 @@ void RendererImpl::RenderVFPositionColorMesh(const MeshRenderer* pMeshRenderer)
 	m_basicEffectPC.SetWorldMatrix(pGameObject->m_transform.GetWorldTransformMatrix());
 
 	// 버텍스 버퍼 설정
-	const UINT stride[] = { InputLayoutHelper::GetStructureByteStride(pMesh->GetVertexFormatType()) };
-	const UINT offset[] = { 0 };
+	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(pMesh->GetVertexFormatType()) };
+	const UINT offsets[] = { 0 };
 	ID3D11Buffer* const vbs[] = { pMesh->GetVBComInterface() };
-	m_effectImmediateContext.IASetVertexBuffers(0, _countof(vbs), vbs, stride, offset);
+	m_effectImmediateContext.IASetVertexBuffers(0, _countof(vbs), vbs, strides, offsets);
 
 	// 인덱스 버퍼 설정
 	m_effectImmediateContext.IASetIndexBuffer(pMesh->GetIBComInterface(), DXGI_FORMAT_R32_UINT, 0);
@@ -481,10 +556,10 @@ void RendererImpl::RenderVFPositionNormalMesh(const MeshRenderer* pMeshRenderer)
 	m_basicEffectPN.SetWorldMatrix(pGameObject->m_transform.GetWorldTransformMatrix());
 
 	// 버텍스 버퍼 설정
-	const UINT stride[] = { InputLayoutHelper::GetStructureByteStride(pMesh->GetVertexFormatType()) };
-	const UINT offset[] = { 0 };
+	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(pMesh->GetVertexFormatType()) };
+	const UINT offsets[] = { 0 };
 	ID3D11Buffer* const vbs[] = { pMesh->GetVBComInterface() };
-	m_effectImmediateContext.IASetVertexBuffers(0, _countof(vbs), vbs, stride, offset);
+	m_effectImmediateContext.IASetVertexBuffers(0, _countof(vbs), vbs, strides, offsets);
 
 	// 인덱스 버퍼 설정
 	m_effectImmediateContext.IASetIndexBuffer(pMesh->GetIBComInterface(), DXGI_FORMAT_R32_UINT, 0);
@@ -526,10 +601,10 @@ void RendererImpl::RenderVFPositionTexCoordMesh(const MeshRenderer* pMeshRendere
 	m_basicEffectPT.SetWorldMatrix(pGameObject->m_transform.GetWorldTransformMatrix());
 
 	// 버텍스 버퍼 설정
-	const UINT stride[] = { InputLayoutHelper::GetStructureByteStride(pMesh->GetVertexFormatType()) };
-	const UINT offset[] = { 0 };
+	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(pMesh->GetVertexFormatType()) };
+	const UINT offsets[] = { 0 };
 	ID3D11Buffer* const vbs[] = { pMesh->GetVBComInterface() };
-	m_effectImmediateContext.IASetVertexBuffers(0, _countof(vbs), vbs, stride, offset);
+	m_effectImmediateContext.IASetVertexBuffers(0, _countof(vbs), vbs, strides, offsets);
 
 	// 인덱스 버퍼 설정
 	m_effectImmediateContext.IASetIndexBuffer(pMesh->GetIBComInterface(), DXGI_FORMAT_R32_UINT, 0);
@@ -572,10 +647,10 @@ void RendererImpl::RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshR
 	m_basicEffectPNT.SetWorldMatrix(pGameObject->m_transform.GetWorldTransformMatrix());
 
 	// 버텍스 버퍼 설정
-	const UINT stride[] = { InputLayoutHelper::GetStructureByteStride(pMesh->GetVertexFormatType()) };
-	const UINT offset[] = { 0 };
+	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(pMesh->GetVertexFormatType()) };
+	const UINT offsets[] = { 0 };
 	ID3D11Buffer* const vbs[] = { pMesh->GetVBComInterface() };
-	m_effectImmediateContext.IASetVertexBuffers(0, _countof(vbs), vbs, stride, offset);
+	m_effectImmediateContext.IASetVertexBuffers(0, _countof(vbs), vbs, strides, offsets);
 
 	// 인덱스 버퍼 설정
 	m_effectImmediateContext.IASetIndexBuffer(pMesh->GetIBComInterface(), DXGI_FORMAT_R32_UINT, 0);
@@ -616,7 +691,25 @@ void RendererImpl::RenderSkybox(ID3D11ShaderResourceView* pSkyboxCubeMapSRV)
 	m_effectImmediateContext.Apply(&m_skyboxEffect);
 
 	// 드로우
+	// 셰이더 지역변수 정점들 사용 (총 36개)
 	m_effectImmediateContext.Draw(36, 0);
+}
+
+void RendererImpl::RenderButton(const Button* pButton)
+{
+	ID3D11Buffer* vbs[] = { m_pButtonVB };
+	UINT strides[] = { sizeof(VFButton) };
+	UINT offsets[] = { 0 };
+
+	m_effectImmediateContext.IASetVertexBuffers(0, 1, vbs, strides, offsets);
+
+	m_buttonEffect.SetPressed(pButton->IsPressed());
+	m_buttonEffect.SetColor(pButton->GetColor());
+	m_buttonEffect.SetScreenPosition(pButton->m_transform.GetScreenPosition());
+	m_buttonEffect.SetSize(pButton->GetSize());
+
+	m_effectImmediateContext.Apply(&m_buttonEffect);
+	m_effectImmediateContext.Draw(30, 0);
 }
 
 /*
@@ -630,8 +723,8 @@ void RendererImpl::RenderTerrain(ID3D11DeviceContext* pDeviceContext, const Terr
 	D3D11_MAPPED_SUBRESOURCE mapped;
 
 	// 버텍스 버퍼 설정
-	const UINT stride[] = { sizeof(VertexFormat::TerrainControlPoint) };
-	const UINT offset[] = { 0 };
+	const UINT strides[] = { sizeof(VertexFormat::TerrainControlPoint) };
+	const UINT offsets[] = { 0 };
 	ID3D11Buffer* const vb[] = { pTerrain->GetPatchControlPointBufferInterface() };
 	this->GetDeviceContext()->IASetVertexBuffers(0, 1, vb, stride, offset);
 
@@ -645,10 +738,10 @@ void RendererImpl::RenderTerrain(ID3D11DeviceContext* pDeviceContext, const Terr
 	// XMStoreFloat4x4A(&cbPerTerrain.cbpt_w, ConvertToHLSLMatrix(w));		// 셰이더에서 미사용
 	// XMStoreFloat4x4A(&cbPerTerrain.cbpt_wInvTr, TransposeAndConvertToHLSLMatrix(XMMatrixInverse(&det, w)));	// 셰이더에서 미사용
 	XMStoreFloat4x4A(&cbPerTerrain.cbpt_wvp, ConvertToHLSLMatrix(XMLoadFloat4x4A(&m_vp)));	// 월드변환은 생략 (지형이 이미 월드 공간에서 정의되었다고 가정하므로)
-	cbPerTerrain.cbpt_terrainTextureTiling = pTerrain->GetTextureScale();
-	cbPerTerrain.cbpt_terrainCellSpacing = pTerrain->GetCellSpacing();
-	cbPerTerrain.cbpt_terrainTexelSpacingU = pTerrain->GetTexelSpacingU();
-	cbPerTerrain.cbpt_terrainTexelSpacingV = pTerrain->GetTexelSpacingV();
+	cbPerTerrain.cbptTerrainTextureTiling = pTerrain->GetTextureScale();
+	cbPerTerrain.cbptTerrainCellSpacing = pTerrain->GetCellSpacing();
+	cbPerTerrain.cbptTerrainTexelSpacingU = pTerrain->GetTexelSpacingU();
+	cbPerTerrain.cbptTerrainTexelSpacingV = pTerrain->GetTexelSpacingV();
 	hr = this->GetDeviceContext()->Map(
 		m_pCbPerTerrain,
 		0,

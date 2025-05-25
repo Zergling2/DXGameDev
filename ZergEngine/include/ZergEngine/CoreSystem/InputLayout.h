@@ -116,20 +116,20 @@ namespace ze
 		VFPositionTexCoord& operator=(const VFPositionTexCoord&) = default;
 		VFPositionTexCoord(const XMFLOAT3& position, const XMFLOAT2& texCoord) noexcept
 			: m_position(position)
-			, m_texCoord(texCoord)
+			, mTexCoord(texCoord)
 		{
 		}
 		VFPositionTexCoord(FXMVECTOR position, FXMVECTOR texCoord) noexcept
 		{
 			XMStoreFloat3(&m_position, position);
-			XMStoreFloat2(&m_texCoord, texCoord);
+			XMStoreFloat2(&mTexCoord, texCoord);
 		}
 	private:
 		static constexpr size_t INPUT_ELEMENT_COUNT = 2;
 		static const D3D11_INPUT_ELEMENT_DESC s_ied[INPUT_ELEMENT_COUNT];
 	public:
 		XMFLOAT3 m_position;
-		XMFLOAT2 m_texCoord;
+		XMFLOAT2 mTexCoord;
 	};
 
 	struct VFPositionNormalTexCoord
@@ -144,14 +144,14 @@ namespace ze
 		VFPositionNormalTexCoord(const XMFLOAT3& position, const XMFLOAT3& normal, const XMFLOAT2& texCoord) noexcept
 			: m_position(position)
 			, m_normal(normal)
-			, m_texCoord(texCoord)
+			, mTexCoord(texCoord)
 		{
 		}
 		VFPositionNormalTexCoord(FXMVECTOR position, FXMVECTOR normal, FXMVECTOR texCoord) noexcept
 		{
 			XMStoreFloat3(&m_position, position);
 			XMStoreFloat3(&m_normal, normal);
-			XMStoreFloat2(&m_texCoord, texCoord);
+			XMStoreFloat2(&mTexCoord, texCoord);
 		}
 	private:
 		static constexpr size_t INPUT_ELEMENT_COUNT = 3;
@@ -159,7 +159,7 @@ namespace ze
 	public:
 		XMFLOAT3 m_position;
 		XMFLOAT3 m_normal;
-		XMFLOAT2 m_texCoord;
+		XMFLOAT2 mTexCoord;
 	};
 
 	struct VFTerrainPatchControlPoint
@@ -173,14 +173,14 @@ namespace ze
 		VFTerrainPatchControlPoint& operator=(const VFTerrainPatchControlPoint&) = default;
 		VFTerrainPatchControlPoint(const XMFLOAT3& position, const XMFLOAT2& texCoord, const XMFLOAT2& boundsY) noexcept
 			: m_position(position)
-			, m_texCoord(texCoord)
+			, mTexCoord(texCoord)
 			, m_boundsY(boundsY)
 		{
 		}
 		VFTerrainPatchControlPoint(FXMVECTOR position, FXMVECTOR texCoord, FXMVECTOR boundsY) noexcept
 		{
 			XMStoreFloat3(&m_position, position);
-			XMStoreFloat2(&m_texCoord, texCoord);
+			XMStoreFloat2(&mTexCoord, texCoord);
 			XMStoreFloat2(&m_boundsY, boundsY);
 		}
 	private:
@@ -188,7 +188,42 @@ namespace ze
 		static const D3D11_INPUT_ELEMENT_DESC s_ied[INPUT_ELEMENT_COUNT];
 	public:
 		XMFLOAT3 m_position;	// POSITION
-		XMFLOAT2 m_texCoord;	// TEXCOORD0
+		XMFLOAT2 mTexCoord;	// TEXCOORD0
 		XMFLOAT2 m_boundsY;		// TEXCOORD1	(Min Y, Max Y)
+	};
+
+	class VFButton
+	{
+	public:
+		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
+		static constexpr uint32_t GetInputElementCount() { return VFButton::INPUT_ELEMENT_COUNT; }
+
+		VFButton() = default;
+		VFButton(const VFButton&) = default;
+		VFButton& operator=(const VFButton&) = default;
+		VFButton(const XMFLOAT2& position, const XMFLOAT2& offset, const XMFLOAT2& shade) noexcept
+			: m_position(position)
+			, m_offset(offset)
+			, m_shade(shade)
+		{
+		}
+		VFButton(FXMVECTOR position, FXMVECTOR offset, FXMVECTOR shade) noexcept
+		{
+			XMStoreFloat2(&m_position, position);
+			XMStoreFloat2(&m_offset, offset);
+			XMStoreFloat2(&m_shade, shade);
+		}
+	private:
+		static constexpr size_t INPUT_ELEMENT_COUNT = 3;
+		static const D3D11_INPUT_ELEMENT_DESC s_ied[INPUT_ELEMENT_COUNT];
+	public:
+		XMFLOAT2 m_position;	// POSITION
+		XMFLOAT2 m_offset;		// 버튼 정점 변환 오프셋
+		XMFLOAT2 m_shade;		// 버튼 음영 가중치 [0] 눌리지 않았을 때, [1] 눌렸을 때
+	};
+
+	class VFImageButton
+	{
+
 	};
 }

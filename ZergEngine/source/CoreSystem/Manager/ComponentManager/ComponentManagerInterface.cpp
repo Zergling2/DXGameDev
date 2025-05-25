@@ -4,11 +4,21 @@
 
 using namespace ze;
 
+IComponentManager::IComponentManager()
+	: m_uniqueId(0)
+	, m_lock()
+	, m_destroyed()
+	, m_activeComponents()
+	, m_table(128)
+{
+	m_lock.Init();
+}
+
 void IComponentManager::AddToDestroyQueue(IComponent* pComponent)
 {
 	assert(pComponent->IsOnTheDestroyQueue() == false);
 
-	pComponent->OnFlag(CF_ON_DESTROY_QUEUE);
+	pComponent->OnFlag(COMPONENT_FLAG::ON_DESTROY_QUEUE);
 	m_destroyed.push_back(pComponent);
 }
 

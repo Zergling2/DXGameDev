@@ -25,7 +25,7 @@ namespace ze
 	{
 		MICROSOFT_DEFINED = Math::PowerOf2(8) - 1,
 
-		CREATE_THREAD_ISSUE,
+		CREATETHREAD_ISSUE,
 		FILE_IO_ISSUE,
 		RELEASE_ISSUE,
 
@@ -33,8 +33,8 @@ namespace ze
 	};
 	enum class EXCEPTION_CODE : DWORD
 	{
-		FAILED_TO_CREATE_THREAD,
-		FAILED_TO_OPEN_FILE,
+		FAILEDTO_CREATETHREAD,
+		FAILEDTO_OPEN_FILE,
 
 		MAX = Math::PowerOf2(16) - 1
 	};

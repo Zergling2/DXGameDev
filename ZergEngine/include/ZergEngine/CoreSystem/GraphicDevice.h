@@ -4,6 +4,7 @@
 #include <ZergEngine\CoreSystem\Shader.h>
 #include <ZergEngine\CoreSystem\InputLayout.h>
 #include <ZergEngine\CoreSystem\RenderState.h>
+#include <ZergEngine\CoreSystem\ShaderResource\VertexBuffer.h>
 
 namespace ze
 {
@@ -33,6 +34,9 @@ namespace ze
 		void CreateBlendStates();
 		void ReleaseBlendStates();
 
+		void CreateCommonVertexBuffers();
+		void ReleaseCommonVertexBuffers();
+
 		void OnResize();
 		HRESULT GetFullscreenState(BOOL* pFullscreen);
 
@@ -43,6 +47,7 @@ namespace ze
 		// Return max quality level
 		UINT GetMSAAMaximumQuality(MSAA_SAMPLE_COUNT sampleCount);
 		const DXGI_SWAP_CHAIN_DESC& GetSwapChainDesc() { return m_descSwapChain; }
+		const D3D11_VIEWPORT& GetFullSwapChainViewport() const { return m_fullSwapChainViewport; }
 		ID3D11Device* GetDeviceComInterface() { return m_pDevice; }
 		ID3D11DeviceContext* GetImmediateContextComInterface() { return m_pImmediateContext; }
 
@@ -56,7 +61,7 @@ namespace ze
 		ID3D11DomainShader* GetDSComInterface(DOMAIN_SHADER_TYPE type) { return m_ds[static_cast<size_t>(type)].GetComInterface(); }
 		ID3D11PixelShader* GetPSComInterface(PIXEL_SHADER_TYPE type) { return m_ps[static_cast<size_t>(type)].GetComInterface(); }
 		ID3D11InputLayout* GetILComInterface(VERTEX_FORMAT_TYPE type) { return m_il[static_cast<size_t>(type)].GetComInterface(); }
-
+		ID3D11Buffer* GetVBComInterface(VERTEX_BUFFER_TYPE type) { return m_vb[static_cast<size_t>(type)].GetComInterface(); }
 		// Render state getter
 		ID3D11RasterizerState* GetRSComInterface(RASTERIZER_FILL_MODE fm, RASTERIZER_CULL_MODE cm) const
 		{
@@ -74,11 +79,11 @@ namespace ze
 		{
 			return m_ssHeightMap.GetComInterface();
 		}
-		ID3D11DepthStencilState* GetDSSComInterface(DEPTH_STENCIL_STATE_TYPE dst) const
+		ID3D11DepthStencilState* GetDSSComInterface(DEPTH_STENCIL_STATETYPE dst) const
 		{
 			return m_dss[static_cast<size_t>(dst)].GetComInterface();
 		}
-		ID3D11BlendState* GetBSComInterface(BLEND_STATE_TYPE bst) const
+		ID3D11BlendState* GetBSComInterface(BLEND_STATETYPE bst) const
 		{
 			return m_bs[static_cast<size_t>(bst)].GetComInterface();
 		}
@@ -86,6 +91,7 @@ namespace ze
 		DXGI_ADAPTER_DESC m_descAdapter;
 		DXGI_SWAP_CHAIN_DESC m_descSwapChain;
 		D3D11_TEXTURE2D_DESC m_descDepthStencil;
+		D3D11_VIEWPORT m_fullSwapChainViewport;
 		ID3D11Device* m_pDevice;
 		ID3D11DeviceContext* m_pImmediateContext;
 		std::vector<DXGI_MODE_DESC> m_supportedResolution;
@@ -100,13 +106,14 @@ namespace ze
 		DomainShader m_ds[static_cast<size_t>(DOMAIN_SHADER_TYPE::COUNT)];
 		PixelShader m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::COUNT)];
 		InputLayout m_il[static_cast<size_t>(VERTEX_FORMAT_TYPE::COUNT)];
+		VertexBuffer m_vb[static_cast<size_t>(VERTEX_BUFFER_TYPE::COUNT)];
 
 		RasterizerState m_rs[static_cast<size_t>(RASTERIZER_FILL_MODE::COUNT)][static_cast<size_t>(RASTERIZER_CULL_MODE::COUNT)];
 		SamplerState m_ss[static_cast<size_t>(TEXTURE_FILTERING_OPTION::COUNT)];
 		SamplerState m_ssSkybox;
 		SamplerState m_ssHeightMap;
-		DepthStencilState m_dss[static_cast<size_t>(DEPTH_STENCIL_STATE_TYPE::COUNT)];
-		BlendState m_bs[static_cast<size_t>(BLEND_STATE_TYPE::COUNT)];
+		DepthStencilState m_dss[static_cast<size_t>(DEPTH_STENCIL_STATETYPE::COUNT)];
+		BlendState m_bs[static_cast<size_t>(BLEND_STATETYPE::COUNT)];
 	};
 
 	extern GraphicDeviceImpl GraphicDevice;

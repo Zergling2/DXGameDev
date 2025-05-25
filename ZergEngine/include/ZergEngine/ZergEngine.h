@@ -14,8 +14,8 @@
 #include <ZergEngine\CoreSystem\Resource\Texture.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\MonoBehaviour.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\Component\Transform.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Camera.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Light.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\MeshRenderer.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Terrain.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Button.h>

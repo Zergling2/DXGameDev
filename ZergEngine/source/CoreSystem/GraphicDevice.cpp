@@ -23,7 +23,8 @@ static PCWSTR VERTEX_SHADER_FILES[static_cast<size_t>(VERTEX_SHADER_TYPE::COUNT)
 	L"VSTransformPNToHCS.cso",
 	L"VSTransformPTToHCS.cso",
 	L"VSTransformCameraMergeQuad.cso",
-	L"VSTransformPNTToHCS.cso"
+	L"VSTransformPNTToHCS.cso",
+	L"VSTransformButtonToHCS.cso"
 };
 static PCWSTR HULL_SHADER_FILES[static_cast<size_t>(HULL_SHADER_TYPE::COUNT)] =
 {
@@ -44,6 +45,7 @@ static PCWSTR PIXEL_SHADER_FILES[static_cast<size_t>(PIXEL_SHADER_TYPE::COUNT)] 
 	L"PSColorPNTFragment.cso",
 	L"PSColorPTFragmentSingleTexture.cso",		// unimplemented
 	L"PSColorPTFragmentSingleMSTexture.cso",
+	L"PSColorButtonFragment.cso"
 };
 
 // constexpr float allows only one floating point constant to exist in memory, even if it is not encoded in a x86 command.
@@ -54,6 +56,7 @@ GraphicDeviceImpl::GraphicDeviceImpl()
 	: m_descAdapter()
 	, m_descSwapChain()
 	, m_descDepthStencil()
+	, m_fullSwapChainViewport()
 	, m_pDevice(nullptr)
 	, m_pImmediateContext(nullptr)
 	, m_supportedResolution()
@@ -61,6 +64,18 @@ GraphicDeviceImpl::GraphicDeviceImpl()
 	, m_pSwapChain(nullptr)
 	, m_pSwapChainRTV(nullptr)
 	, m_pSwapChainDSV(nullptr)
+	, m_vs{}
+	, m_hs{}
+	, m_ds{}
+	, m_ps{}
+	, m_il{}
+	, m_vb{}
+	, m_rs{}
+	, m_ss{}
+	, m_ssSkybox()
+	, m_ssHeightMap()
+	, m_dss{}
+	, m_bs{}
 {
 }
 
@@ -189,39 +204,58 @@ void GraphicDeviceImpl::Init(void* pDesc)
 		}
 	}
 
+	m_fullSwapChainViewport.TopLeftX = 0.0f;
+	m_fullSwapChainViewport.TopLeftY = 0.0f;
+	m_fullSwapChainViewport.Width = static_cast<float>(m_descSwapChain.BufferDesc.Width);
+	m_fullSwapChainViewport.Height = static_cast<float>(m_descSwapChain.BufferDesc.Height);
+	m_fullSwapChainViewport.MinDepth = 0.0f;
+	m_fullSwapChainViewport.MaxDepth = 1.0f;
+
 	// DXGI 편의기능 비활성화
 	hr = cpDXGIFactory->MakeWindowAssociation(Window.GetWindowHandle(), DXGI_MWA_NO_WINDOW_CHANGES | DXGI_MWA_NO_ALT_ENTER);
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"IDXGIFactory::MakeWindowAssociation()", hr);
+		Debug::ForceCrashWithHRESULTErrorMessageBox(L"MakeWindowAssociation()", hr);
+
+	// ━━━━━━━━━━━━━━━━━━━━━━━━━ CREATE SHADERS AND INPUT LAYOUTS ━━━━━━━━━━━━━━━━━━━━━━━━━
+	this->CreateShaderAndInputLayout();
 
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ CREATE RASTERIZER STATES ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	this->CreateRasterizerStates();
 
-	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ CREATE DEPTHSTENCIL STATES ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-	this->CreateDepthStencilStates();
-
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ CREATE SAMPLER STATES ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	this->CreateSamplerStates();
 
-	// ━━━━━━━━━━━━━━━━━━━━━━━━━ CREATE SHADERS AND INPUT LAYOUTS ━━━━━━━━━━━━━━━━━━━━━━━━━
-	this->CreateShaderAndInputLayout();
+	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ CREATE DEPTHSTENCIL STATES ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+	this->CreateDepthStencilStates();
+
+	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ CREATE BLEND STATES ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+	this->CreateBlendStates();
+
+	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━ CREATE COMMON VERTEX BUFFERS ━━━━━━━━━━━━━━━━━━━━━━━━━━━
+	this->CreateCommonVertexBuffers();
 }
 
 void GraphicDeviceImpl::Release()
 {
 	HRESULT hr;
 
-	// ━━━━━━━━━━━━━━━━━━━━━━━━ RELEASE SHADERS AND INPUT LAYOUTS ━━━━━━━━━━━━━━━━━━━━━━━━━
-	this->ReleaseShaderAndInputLayout();
+	// ━━━━━━━━━━━━━━━━━━━━━━━━━━ RELEASE COMMON VERTEX BUFFERS ━━━━━━━━━━━━━━━━━━━━━━━━━━━
+	this->ReleaseCommonVertexBuffers();
 
-	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ RELEASE SAMPLER STATES ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-	this->ReleaseSamplerStates();
+	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ RELEASE BLEND STATES ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+	this->ReleaseBlendStates();
 
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━ RELEASE DEPTHSTENCIL STATES ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	this->ReleaseDepthStencilStates();
 
-	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━ RELEASE RASTERIZER STATES ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ RELEASE SAMPLER STATES ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+	this->ReleaseSamplerStates();
+
+	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ RELEASE RASTERIZER STATES ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	this->ReleaseRasterizerStates();
+
+	// ━━━━━━━━━━━━━━━━━━━━━━━━ RELEASE SHADERS AND INPUT LAYOUTS ━━━━━━━━━━━━━━━━━━━━━━━━━
+	this->ReleaseShaderAndInputLayout();
 
 	Helper::SafeReleaseCom(m_pSwapChainDSV);
 	Helper::SafeReleaseCom(m_pSwapChainRTV);
@@ -288,8 +322,7 @@ void GraphicDeviceImpl::CreateShaderAndInputLayout()
 	WCHAR targetPath[MAX_PATH];
 
 	// VERTEX SHADERS
-	// 1. POSITION
-	// 경로 완성
+	// 1. TRANSFORM_SKYBOX_TO_HCS (No Input Layout required)
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
 	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_SKYBOX_TO_HCS)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
@@ -297,6 +330,23 @@ void GraphicDeviceImpl::CreateShaderAndInputLayout()
 	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_SKYBOX_TO_HCS)].Init(pDevice, pByteCode, byteCodeSize);
 	delete[] pByteCode;
 
+	// 2. TRANSFORM_TERRAIN_PATCH_CTRL_PT (POSITION, TEXCOORD0, TEXCOORD1)
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_TERRAIN_PATCH_CTRL_PT)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to open compiled shader object.\n%s", targetPath);
+	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_TERRAIN_PATCH_CTRL_PT)].Init(pDevice, pByteCode, byteCodeSize);
+	// ┗━ Create compatible Input Layout
+	m_il[static_cast<size_t>(VERTEX_FORMAT_TYPE::TERRAIN_PATCH_CTRL_PT)].Init(
+		pDevice,
+		VFTerrainPatchControlPoint::GetInputElementDescriptor(),
+		VFTerrainPatchControlPoint::GetInputElementCount(),
+		pByteCode,
+		byteCodeSize
+	);
+	delete[] pByteCode;
+
+	// 3. TRANSFORM_P_TO_HCS (POSITION)
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
 	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_P_TO_HCS)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
@@ -312,7 +362,7 @@ void GraphicDeviceImpl::CreateShaderAndInputLayout()
 	);
 	delete[] pByteCode;
 
-	// 2. POSITION, COLOR
+	// 4. TRANSFORM_PC_TO_HCS (POSITION, COLOR0)
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
 	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_PC_TO_HCS)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
@@ -328,7 +378,7 @@ void GraphicDeviceImpl::CreateShaderAndInputLayout()
 	);
 	delete[] pByteCode;
 
-	// 3. POSITION, NORMAL
+	// 5. TRANSFORM_PN_TO_HCS (POSITION, NORMAL)
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
 	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_PN_TO_HCS)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
@@ -344,7 +394,7 @@ void GraphicDeviceImpl::CreateShaderAndInputLayout()
 	);
 	delete[] pByteCode;
 
-	// 4. POSITION, TEXCOORD
+	// 6. TRANSFORM_PT_TO_HCS (POSITION, TEXCOORD0)
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
 	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_PT_TO_HCS)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
@@ -360,7 +410,7 @@ void GraphicDeviceImpl::CreateShaderAndInputLayout()
 	);
 	delete[] pByteCode;
 
-	// 5.TRANSFORM_CAMERA_MERGE_QUAD (No Input Layout required)
+	// 7.TRANSFORM_CAMERA_MERGE_QUAD (No Input Layout required)
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
 	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_CAMERA_MERGE_QUAD)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
@@ -368,7 +418,7 @@ void GraphicDeviceImpl::CreateShaderAndInputLayout()
 	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_CAMERA_MERGE_QUAD)].Init(pDevice, pByteCode, byteCodeSize);
 	delete[] pByteCode;
 
-	// 6. POSITION, NORMAL, TEXCOORD
+	// 8. TRANSFORM_PNT_TO_HCS (POSITION, NORMAL, TEXCOORD)
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
 	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_PNT_TO_HCS)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
@@ -384,17 +434,17 @@ void GraphicDeviceImpl::CreateShaderAndInputLayout()
 	);
 	delete[] pByteCode;
 
-	// 7. POSITION, TEXCOORD0, TEXCOORD1
+	// 9. TRANSFORM_BUTTON_TO_HCS (POSITION, TEXCOORD0, COLOR0)
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
-	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_TERRAIN_PATCH_CTRL_PT)]);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_BUTTON_TO_HCS)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
 		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to open compiled shader object.\n%s", targetPath);
-	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_TERRAIN_PATCH_CTRL_PT)].Init(pDevice, pByteCode, byteCodeSize);
+	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_BUTTON_TO_HCS)].Init(pDevice, pByteCode, byteCodeSize);
 	// ┗━ Create compatible Input Layout
-	m_il[static_cast<size_t>(VERTEX_FORMAT_TYPE::TERRAIN_PATCH_CTRL_PT)].Init(
+	m_il[static_cast<size_t>(VERTEX_FORMAT_TYPE::BUTTON)].Init(
 		pDevice,
-		VFTerrainPatchControlPoint::GetInputElementDescriptor(),
-		VFTerrainPatchControlPoint::GetInputElementCount(),
+		VFButton::GetInputElementDescriptor(),
+		VFButton::GetInputElementCount(),
 		pByteCode,
 		byteCodeSize
 	);
@@ -467,7 +517,7 @@ void GraphicDeviceImpl::CreateShaderAndInputLayout()
 	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_PT_FRAGMENT)].Init(pDevice, pByteCode, byteCodeSize);
 	delete[] pByteCode;
 
-	// 7. PSStandardColoringPNT
+	// 7. COLOR_PNT_FRAGMENT
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
 	StringCbCatW(targetPath, sizeof(targetPath), PIXEL_SHADER_FILES[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_PNT_FRAGMENT)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
@@ -475,7 +525,7 @@ void GraphicDeviceImpl::CreateShaderAndInputLayout()
 	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_PNT_FRAGMENT)].Init(pDevice, pByteCode, byteCodeSize);
 	delete[] pByteCode;
 
-	// 8. PSCameraMerge (Not implemented)
+	// 8. COLOR_PT_FRAGMENT_SINGLE_TEXTURE (Not implemented)
 	/*
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
 	StringCbCatW(targetPath, sizeof(targetPath), PIXEL_SHADER_FILES[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_PT_FRAGMENT_SINGLE_TEXTURE)]);
@@ -485,12 +535,20 @@ void GraphicDeviceImpl::CreateShaderAndInputLayout()
 	delete[] pByteCode;
 	*/
 
-	// 9. PSMSCameraMerge
+	// 9. COLOR_PT_FRAGMENT_SINGLE_MSTEXTURE
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
-	StringCbCatW(targetPath, sizeof(targetPath), PIXEL_SHADER_FILES[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_PT_FRAGMENT_SINGLE_MS_TEXTURE)]);
+	StringCbCatW(targetPath, sizeof(targetPath), PIXEL_SHADER_FILES[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_PT_FRAGMENT_SINGLE_MSTEXTURE)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
 		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to open compiled shader object.\n%s", targetPath);
-	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_PT_FRAGMENT_SINGLE_MS_TEXTURE)].Init(pDevice, pByteCode, byteCodeSize);
+	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_PT_FRAGMENT_SINGLE_MSTEXTURE)].Init(pDevice, pByteCode, byteCodeSize);
+	delete[] pByteCode;
+
+	// 10. COLOR_BUTTON_FRAGMENT
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), PIXEL_SHADER_FILES[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_BUTTON_FRAGMENT)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to open compiled shader object.\n%s", targetPath);
+	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_BUTTON_FRAGMENT)].Init(pDevice, pByteCode, byteCodeSize);
 	delete[] pByteCode;
 }
 
@@ -657,29 +715,33 @@ void GraphicDeviceImpl::CreateDepthStencilStates()
 	D3D11_DEPTH_STENCIL_DESC descDepthStencil;
 	ZeroMemory(&descDepthStencil, sizeof(descDepthStencil));
 
-	// 1. 일반 렌더링용
-	descDepthStencil.DepthEnable = TRUE;
-	descDepthStencil.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-	descDepthStencil.DepthFunc = D3D11_COMPARISON_LESS;
-	descDepthStencil.StencilEnable = FALSE;	// 일반 렌더링용
-	m_dss[static_cast<size_t>(DEPTH_STENCIL_STATE_TYPE::STANDARD)].Init(pDevice, &descDepthStencil);
+	// 1. Default
+	// m_dss[static_cast<size_t>(DEPTH_STENCIL_STATETYPE::DEFAULT)].Init();
 
-	// 2. 스카이박스 렌더링용
+	// 2. 스카이박스 렌더링
 	descDepthStencil.DepthEnable = TRUE;
 	descDepthStencil.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 	descDepthStencil.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;	// 스카이박스 렌더링 시 중요
 	descDepthStencil.StencilEnable = FALSE;
-	m_dss[static_cast<size_t>(DEPTH_STENCIL_STATE_TYPE::SKYBOX)].Init(pDevice, &descDepthStencil);
+	m_dss[static_cast<size_t>(DEPTH_STENCIL_STATETYPE::SKYBOX)].Init(pDevice, &descDepthStencil);
 
 	// 3. 거울 렌더링용
 	// ...
 	// ...
 
-	// 4. 카메라 병합용
+	// 4. Depth read only
+	ZeroMemory(&descDepthStencil, sizeof(descDepthStencil));
+	descDepthStencil.DepthEnable = TRUE;
+	descDepthStencil.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	descDepthStencil.DepthFunc = D3D11_COMPARISON_LESS;
+	descDepthStencil.StencilEnable = FALSE;
+	m_dss[static_cast<size_t>(DEPTH_STENCIL_STATETYPE::DEPTH_READ_ONLY)].Init(pDevice, &descDepthStencil);
+
+	// 5. No Depth/Stencil test (카메라 병합 등...)
 	ZeroMemory(&descDepthStencil, sizeof(descDepthStencil));
 	descDepthStencil.DepthEnable = FALSE;
 	descDepthStencil.StencilEnable = FALSE;
-	m_dss[static_cast<size_t>(DEPTH_STENCIL_STATE_TYPE::CAMERA_MERGE)].Init(pDevice, &descDepthStencil);
+	m_dss[static_cast<size_t>(DEPTH_STENCIL_STATETYPE::NO_DEPTH_STENCILTEST)].Init(pDevice, &descDepthStencil);
 }
 
 void GraphicDeviceImpl::ReleaseDepthStencilStates()
@@ -690,47 +752,49 @@ void GraphicDeviceImpl::ReleaseDepthStencilStates()
 
 void GraphicDeviceImpl::CreateBlendStates()
 {
-	// D3D11_BLEND_ONE, D3D11_BLEND_ZERO
-	D3D11_BLEND srcBlend[static_cast<size_t>(BLEND_STATE_TYPE::COUNT)];
-	D3D11_BLEND destBlend[static_cast<size_t>(BLEND_STATE_TYPE::COUNT)];
+	D3D11_BLEND_DESC descBlend;
+	ZeroMemory(&descBlend, sizeof(descBlend));
+	descBlend.AlphaToCoverageEnable = FALSE;
+	descBlend.IndependentBlendEnable = FALSE;
+	D3D11_RENDER_TARGET_BLEND_DESC& descRenderTargetBlend = descBlend.RenderTarget[0];
 
-	// 1. OPAQUE
-	srcBlend[static_cast<size_t>(BLEND_STATE_TYPE::OPAQUE_)] = D3D11_BLEND_ONE;
-	destBlend[static_cast<size_t>(BLEND_STATE_TYPE::OPAQUE_)] = D3D11_BLEND_ZERO;
+	// 1. Opaque
+	descRenderTargetBlend.BlendEnable = FALSE;
+	descRenderTargetBlend.SrcBlend = D3D11_BLEND_ONE;
+	descRenderTargetBlend.DestBlend = D3D11_BLEND_ZERO;
+	descRenderTargetBlend.BlendOp = D3D11_BLEND_OP_ADD;
+	descRenderTargetBlend.SrcBlendAlpha = D3D11_BLEND_ONE;
+	descRenderTargetBlend.DestBlendAlpha = D3D11_BLEND_ZERO;
+	descRenderTargetBlend.BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	descRenderTargetBlend.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	m_bs[static_cast<size_t>(BLEND_STATETYPE::OPAQUE_)].Init(m_pDevice, &descBlend);
 
-	// 2. ALPHABLEND
-	srcBlend[static_cast<size_t>(BLEND_STATE_TYPE::ALPHABLEND)] = D3D11_BLEND_ONE;
-	destBlend[static_cast<size_t>(BLEND_STATE_TYPE::ALPHABLEND)] = D3D11_BLEND_INV_SRC_ALPHA;
+	// 2. AlphaBlend
+	descRenderTargetBlend.BlendEnable = TRUE;
+	descRenderTargetBlend.SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	descRenderTargetBlend.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;	
+	descRenderTargetBlend.BlendOp = D3D11_BLEND_OP_ADD;
+	descRenderTargetBlend.SrcBlendAlpha = D3D11_BLEND_ONE;
+	descRenderTargetBlend.DestBlendAlpha = D3D11_BLEND_ZERO;
+	descRenderTargetBlend.BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	descRenderTargetBlend.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	m_bs[static_cast<size_t>(BLEND_STATETYPE::ALPHABLEND)].Init(m_pDevice, &descBlend);
 
-	// 3. ADDITIVE
-	srcBlend[static_cast<size_t>(BLEND_STATE_TYPE::ADDITIVE)] = D3D11_BLEND_SRC_ALPHA;
-	destBlend[static_cast<size_t>(BLEND_STATE_TYPE::ADDITIVE)] = D3D11_BLEND_ONE;
-
-	// 4. NON_PREMULTIPLIED
-	srcBlend[static_cast<size_t>(BLEND_STATE_TYPE::NON_PREMULTIPLIED)] = D3D11_BLEND_SRC_ALPHA;
-	destBlend[static_cast<size_t>(BLEND_STATE_TYPE::NON_PREMULTIPLIED)] = D3D11_BLEND_INV_SRC_ALPHA;
-
-	for (size_t i = 0; i < static_cast<size_t>(BLEND_STATE_TYPE::COUNT); ++i)
-	{
-		D3D11_BLEND_DESC descBlend;
-		ZeroMemory(&descBlend, sizeof(descBlend));
-
-		descBlend.RenderTarget[0].BlendEnable = (srcBlend[i] != D3D11_BLEND_ONE) ||
-			(destBlend[i] != D3D11_BLEND_ZERO);
-
-		descBlend.RenderTarget[0].SrcBlend = descBlend.RenderTarget[0].SrcBlendAlpha = srcBlend[i];
-		descBlend.RenderTarget[0].DestBlend = descBlend.RenderTarget[0].DestBlendAlpha = destBlend[i];
-		descBlend.RenderTarget[0].BlendOp = descBlend.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-
-		descBlend.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-
-		m_bs[i].Init(m_pDevice, &descBlend);
-	}
+	// 3. No color write
+	descRenderTargetBlend.BlendEnable = TRUE;
+	descRenderTargetBlend.SrcBlend = D3D11_BLEND_ZERO;
+	descRenderTargetBlend.DestBlend = D3D11_BLEND_ONE;
+	descRenderTargetBlend.BlendOp = D3D11_BLEND_OP_ADD;
+	descRenderTargetBlend.SrcBlendAlpha = D3D11_BLEND_ZERO;
+	descRenderTargetBlend.DestBlendAlpha = D3D11_BLEND_ONE;
+	descRenderTargetBlend.BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	descRenderTargetBlend.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	m_bs[static_cast<size_t>(BLEND_STATETYPE::NO_COLOR_WRITE)].Init(m_pDevice, &descBlend);
 }
 
 void GraphicDeviceImpl::ReleaseBlendStates()
 {
-	for (size_t i = 0; i < static_cast<size_t>(BLEND_STATE_TYPE::COUNT); ++i)
+	for (size_t i = 0; i < static_cast<size_t>(BLEND_STATETYPE::COUNT); ++i)
 		m_bs[i].Release();
 }
 
@@ -810,24 +874,22 @@ void GraphicDeviceImpl::CreateSupportedMSAAQualityInfo()
 void GraphicDeviceImpl::InitializeSwapChainAndDepthStencilBufferDesc()
 {
 	// Initialize SwapChain descriptor.
-	m_descSwapChain.BufferDesc.Width = Window.GetWidth();
-	m_descSwapChain.BufferDesc.Height = Window.GetHeight();
+	m_descSwapChain.BufferDesc.Width = Window.GetWidthInteger();
+	m_descSwapChain.BufferDesc.Height = Window.GetHeightInteger();
 	m_descSwapChain.BufferDesc.RefreshRate.Numerator = 1;
-	m_descSwapChain.BufferDesc.RefreshRate.Denominator = 60;
+	m_descSwapChain.BufferDesc.RefreshRate.Denominator = 144;
 	m_descSwapChain.BufferDesc.Format = BACKBUFFER_FORMAT;
 	m_descSwapChain.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 	m_descSwapChain.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 
-	// (테스트) 4X MSAA에 maximum quailty를 고정으로 사용
-	// The default sampler mode, with no anti-aliasing, has a count of 1 and a quality level of 0.
-	m_descSwapChain.SampleDesc.Count = static_cast<UINT>(MSAA_SAMPLE_COUNT::X4);
-	m_descSwapChain.SampleDesc.Quality = this->GetMSAAMaximumQuality(MSAA_SAMPLE_COUNT::X4);	// Use max quality level
+	m_descSwapChain.SampleDesc.Count = 1;
+	m_descSwapChain.SampleDesc.Quality = 0;
 
 	m_descSwapChain.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	m_descSwapChain.BufferCount = 2;
 	m_descSwapChain.OutputWindow = Window.GetWindowHandle();
 	m_descSwapChain.Windowed = TRUE;		// 최초에는 창 모드 스왑체인을 생성하는 것으로 (MSDN 내용 참고해서..)
-	m_descSwapChain.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+	m_descSwapChain.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;	// Windows 10부터 지원!
 	m_descSwapChain.Flags = SWAP_CHAIN_FLAG;
 
 	// Depth/Stencil buffer (버퍼 크기는 반드시 스왑 체인의 백 버퍼와 일치해야 함)
@@ -844,6 +906,142 @@ void GraphicDeviceImpl::InitializeSwapChainAndDepthStencilBufferDesc()
 	m_descDepthStencil.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 	m_descDepthStencil.CPUAccessFlags = 0;
 	m_descDepthStencil.MiscFlags = 0;
+}
+
+void GraphicDeviceImpl::CreateCommonVertexBuffers()
+{
+	// 1. Button VB
+	{
+		const XMFLOAT2 ltShade = XMFLOAT2(+0.5f, -0.5f);
+		const XMFLOAT2 rbShade = XMFLOAT2(ltShade.y, ltShade.x);
+		const XMFLOAT2 centerShade = XMFLOAT2(0.0f, 0.0f);
+		const float offsetValue = 2.0f;
+		VFButton v[30];
+
+		// Top shaded
+		v[0].m_position = XMFLOAT2(-0.5f, +0.5f);
+		v[0].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[0].m_shade = ltShade;
+		v[1].m_position = XMFLOAT2(+0.5f, +0.5f);
+		v[1].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[1].m_shade = ltShade;
+		v[2].m_position = XMFLOAT2(-0.5f, +0.5f);
+		v[2].m_offset = XMFLOAT2(+offsetValue, -offsetValue);
+		v[2].m_shade = ltShade;
+		v[3].m_position = XMFLOAT2(-0.5f, +0.5f);
+		v[3].m_offset = XMFLOAT2(+offsetValue, -offsetValue);
+		v[3].m_shade = ltShade;
+		v[4].m_position = XMFLOAT2(+0.5f, +0.5f);
+		v[4].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[4].m_shade = ltShade;
+		v[5].m_position = XMFLOAT2(+0.5f, +0.5f);
+		v[5].m_offset = XMFLOAT2(-offsetValue, -offsetValue);
+		v[5].m_shade = ltShade;
+
+		// Left shaded
+		v[6].m_position = XMFLOAT2(-0.5f, +0.5f);
+		v[6].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[6].m_shade = ltShade;
+		v[7].m_position = XMFLOAT2(-0.5f, +0.5f);
+		v[7].m_offset = XMFLOAT2(+offsetValue, -offsetValue);
+		v[7].m_shade = ltShade;
+		v[8].m_position = XMFLOAT2(-0.5f, -0.5f);
+		v[8].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[8].m_shade = ltShade;
+		v[9].m_position = XMFLOAT2(-0.5f, -0.5f);
+		v[9].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[9].m_shade = ltShade;
+		v[10].m_position = XMFLOAT2(-0.5f, +0.5f);
+		v[10].m_offset = XMFLOAT2(+offsetValue, -offsetValue);
+		v[10].m_shade = ltShade;
+		v[11].m_position = XMFLOAT2(-0.5f, -0.5f);
+		v[11].m_offset = XMFLOAT2(+offsetValue, +offsetValue);
+		v[11].m_shade = ltShade;
+
+		// Right shaded
+		v[12].m_position = XMFLOAT2(+0.5f, -0.5f);
+		v[12].m_offset = XMFLOAT2(-offsetValue, +offsetValue);
+		v[12].m_shade = rbShade;
+		v[13].m_position = XMFLOAT2(+0.5f, +0.5f);
+		v[13].m_offset = XMFLOAT2(-offsetValue, -offsetValue);
+		v[13].m_shade = rbShade;
+		v[14].m_position = XMFLOAT2(+0.5f, -0.5f);
+		v[14].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[14].m_shade = rbShade;
+		v[15].m_position = XMFLOAT2(+0.5f, -0.5f);
+		v[15].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[15].m_shade = rbShade;
+		v[16].m_position = XMFLOAT2(+0.5f, +0.5f);
+		v[16].m_offset = XMFLOAT2(-offsetValue, -offsetValue);
+		v[16].m_shade = rbShade;
+		v[17].m_position = XMFLOAT2(+0.5f, +0.5f);
+		v[17].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[17].m_shade = rbShade;
+
+		// Bottom shaded
+		v[18].m_position = XMFLOAT2(-0.5f, -0.5f);
+		v[18].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[18].m_shade = rbShade;
+		v[19].m_position = XMFLOAT2(-0.5f, -0.5f);
+		v[19].m_offset = XMFLOAT2(+offsetValue, +offsetValue);
+		v[19].m_shade = rbShade;
+		v[20].m_position = XMFLOAT2(+0.5f, -0.5f);
+		v[20].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[20].m_shade = rbShade;
+		v[21].m_position = XMFLOAT2(+0.5f, -0.5f);
+		v[21].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[21].m_shade = rbShade;
+		v[22].m_position = XMFLOAT2(-0.5f, -0.5f);
+		v[22].m_offset = XMFLOAT2(+offsetValue, +offsetValue);
+		v[22].m_shade = rbShade;
+		v[23].m_position = XMFLOAT2(+0.5f, -0.5f);
+		v[23].m_offset = XMFLOAT2(-offsetValue, +offsetValue);
+		v[23].m_shade = rbShade;
+
+		// Center
+		v[24].m_position = XMFLOAT2(-0.5f, -0.5f);
+		v[24].m_offset = XMFLOAT2(+offsetValue, +offsetValue);
+		v[24].m_shade = centerShade;
+		v[25].m_position = XMFLOAT2(-0.5f, +0.5f);
+		v[25].m_offset = XMFLOAT2(+offsetValue, -offsetValue);
+		v[25].m_shade = centerShade;
+		v[26].m_position = XMFLOAT2(+0.5f, -0.5f);
+		v[26].m_offset = XMFLOAT2(-offsetValue, +offsetValue);
+		v[26].m_shade = centerShade;
+		v[27].m_position = XMFLOAT2(+0.5f, -0.5f);
+		v[27].m_offset = XMFLOAT2(-offsetValue, +offsetValue);
+		v[27].m_shade = centerShade;
+		v[28].m_position = XMFLOAT2(-0.5f, +0.5f);
+		v[28].m_offset = XMFLOAT2(+offsetValue, -offsetValue);
+		v[28].m_shade = centerShade;
+		v[29].m_position = XMFLOAT2(+0.5f, +0.5f);
+		v[29].m_offset = XMFLOAT2(-offsetValue, -offsetValue);
+		v[29].m_shade = centerShade;
+
+		// Create a vertex buffer
+		D3D11_BUFFER_DESC descBuffer;
+		ZeroMemory(&descBuffer, sizeof(descBuffer));
+		descBuffer.ByteWidth = sizeof(v);
+		descBuffer.Usage = D3D11_USAGE_IMMUTABLE;
+		descBuffer.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER;
+		descBuffer.CPUAccessFlags = 0;
+		descBuffer.MiscFlags = 0;
+		descBuffer.StructureByteStride = sizeof(VFButton);
+
+		D3D11_SUBRESOURCE_DATA sbrcBuffer;
+		ZeroMemory(&sbrcBuffer, sizeof(sbrcBuffer));
+		sbrcBuffer.pSysMem = v;
+		// sbrcBuffer.SysMemPitch = 0;		// unused
+		// sbrcBuffer.SysMemSlicePitch = 0;	// unused
+
+		m_vb[static_cast<size_t>(VERTEX_BUFFER_TYPE::BUTTON)].Init(m_pDevice, &descBuffer, &sbrcBuffer);
+	}
+}
+
+void GraphicDeviceImpl::ReleaseCommonVertexBuffers()
+{
+	for (size_t i = 0; i < static_cast<size_t>(VERTEX_BUFFER_TYPE::COUNT); ++i)
+		m_vb[i].Release();
 }
 
 void GraphicDeviceImpl::OnResize()
@@ -869,100 +1067,104 @@ void GraphicDeviceImpl::OnResize()
 		The primitive topology is set to UNDEFINED.
 		For a scenario where you would like to clear a list of commands recorded so far,
 		call ID3D11DeviceContext::FinishCommandList and throw away the resulting ID3D11CommandList.
-		*/
+	*/
 
-	// 스왑 체인의 현재 상태를 가져온다.
-	DXGI_SWAP_CHAIN_DESC descSwapChain;
-	hr = m_pSwapChain->GetDesc(&descSwapChain);
+	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+	// https://learn.microsoft.com/en-us/windows/win32/api/dxgi/nf-dxgi-idxgiswapchain-resizebuffers
+	// [Remarks] MSDN 내용
+	// You can't resize a swap chain unless you release all outstanding references to its back buffers. <- 중요
+	// 
+	// You must release all of its 'direct' and 'indirect' references on the back buffers in order for ResizeBuffers to succeed.
+	// (직접 참조)
+	// 'Direct references' are held by the application after it calls AddRef on a resource.
+	// 
+	// (간접 참조)
+	// 'Indirect references' are held by views to a resource, binding a view of the resource to a device context,
+	// a command list that used the resource, a command list that used a view to that resource,
+	// a command list that executed another command list that used the resource, and so on.
+
+	// 스왑 체인에 관한 리소스를 모두 해제
+	Helper::SafeReleaseCom(m_pSwapChainDSV);
+	Helper::SafeReleaseCom(m_pSwapChainRTV);
+	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+	// 모드 변경
+	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+	// 디스플레이가 지원하는 해상도여야만 한다. (사용자에게 열거하는 기능 구현 필요)
+	// MSDN
+	// 창 모드형 스왑 체인을 생성하고 최종 사용자가 SetFullscreenState를 통해 스왑 체인을 전체 화면으로 변경할 수 있도록 하는 것이 좋습니다.
+	// 즉, 스왑 체인을 전체 화면으로 강제로 설정하기 위해 DXGI_SWAP_CHAIN_DESC 의 Windowed 멤버를 FALSE로 설정하지 마십시오.
+	// 그러나 스왑 체인을 전체 화면으로 생성하는 경우 최종 사용자에게 지원되는 디스플레이 모드 목록도 제공해야 합니다.
+	// 지원되지 않는 디스플레이 모드로 생성된 스왑 체인은 디스플레이가 검게 변하고 최종 사용자가 아무것도 볼 수 없게 만들 수 있기 때문입니다. (중요!)
+	// 또한 최종 사용자가 디스플레이 모드를 변경할 수 있도록 허용할 때 시간 초과 확인 화면이나 기타 대체 메커니즘을 갖는 것이 좋습니다.
+	const BOOL fullscreen = Window.IsFullscreen() ? TRUE : FALSE;
+	hr = m_pSwapChain->SetFullscreenState(fullscreen, nullptr);	// Windowed -> Fullscreen
 	if (FAILED(hr))
-	{
-		wprintf(L"IDXGISwapChain::GetDesc() Exception from HRESULT: 0x%x\n", hr);
-		return;
-	}
+		Debug::ForceCrashWithHRESULTErrorMessageBox(L"IDXGISwapChain::SetFullscreenState()", hr);
+	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+	
+	// 스왑체인 크기 변경
+	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+	// m_pSwapChain->Resize_target();
+	hr = m_pSwapChain->ResizeBuffers(
+		0,							// Set this number to zero to preserve the existing number of buffers in the swap chain.
+		Window.GetWidthInteger(),
+		Window.GetHeightInteger(),
+		DXGI_FORMAT_UNKNOWN,		// Set this value to DXGI_FORMAT_UNKNOWN to preserve the existing format of the back buffer.
+		SWAP_CHAIN_FLAG
+	);
+	if (FAILED(hr))
+		Debug::ForceCrashWithHRESULTErrorMessageBox(L"IDXGISwapChain::ResizeBuffers()", hr);
 
-	const bool needResize =
-		descSwapChain.BufferDesc.Width != Window.GetWidth() ||
-		descSwapChain.BufferDesc.Height != Window.GetHeight();
-	const bool isSwapChainFullscreen = descSwapChain.Windowed == FALSE;
-	const bool needScreenModeChange = isSwapChainFullscreen != Window.IsFullscreen();
-
-	if (needResize)
-	{
-		/*
-		https://learn.microsoft.com/en-us/windows/win32/api/dxgi/nf-dxgi-idxgiswapchain-resizebuffers
-		[Remarks] MSDN 내용
-		You can't resize a swap chain unless you release all outstanding references to its back buffers. <- 중요
-
-		You must release all of its 'direct' and 'indirect' references on the back buffers in order for ResizeBuffers to succeed.
-		(직접 참조)
-		'Direct references' are held by the application after it calls AddRef on a resource.
-
-		(간접 참조)
-		'Indirect references' are held by views to a resource, binding a view of the resource to a device context,
-		a command list that used the resource, a command list that used a view to that resource,
-		a command list that executed another command list that used the resource, and so on.
-		*/
-
-		// 스왑 체인에 관한 리소스를 모두 해제
-		Helper::SafeReleaseCom(m_pSwapChainDSV);
-		Helper::SafeReleaseCom(m_pSwapChainRTV);
-
-		// m_pSwapChain->ResizeTarget();
-		hr = m_pSwapChain->ResizeBuffers(
-			0,							// Set this number to zero to preserve the existing number of buffers in the swap chain.
-			Window.GetWidth(),
-			Window.GetHeight(),
-			DXGI_FORMAT_UNKNOWN,		// Set this value to DXGI_FORMAT_UNKNOWN to preserve the existing format of the back buffer.
-			SWAP_CHAIN_FLAG
-		);
-		if (FAILED(hr))
-			Debug::ForceCrashWithHRESULTErrorMessageBox(L"IDXGISwapChain::ResizeBuffers()", hr);
-
-		// 스왑 체인의 백버퍼에 대한 렌더 타겟 뷰 재생성
-		ComPtr<ID3D11Texture2D> cpBackBuffer;
-		hr = m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(cpBackBuffer.GetAddressOf()));
-		if (FAILED(hr))
-			Debug::ForceCrashWithHRESULTErrorMessageBox(L"IDXGISwapChain::GetBuffer()", hr);
-
-		assert(m_pSwapChainRTV == nullptr);
-		hr = m_pDevice->CreateRenderTargetView(cpBackBuffer.Get(), nullptr, &m_pSwapChainRTV);
-		if (FAILED(hr))
-			Debug::ForceCrashWithHRESULTErrorMessageBox(L"ID3D11Device::CreateRenderTargetView()", hr);
-
-		// 스왑 체인에 대한 렌더링에 사용할 뎁스 스텐실 뷰 재생성
-		ComPtr<ID3D11Texture2D> cpDepthStencilBuffer;
-		hr = m_pDevice->CreateTexture2D(&m_descDepthStencil, nullptr, cpDepthStencilBuffer.GetAddressOf());
-		if (FAILED(hr))
-			Debug::ForceCrashWithHRESULTErrorMessageBox(L"ID3D11Device::CreateTexture2D()", hr);
-
-		assert(m_pSwapChainDSV == nullptr);
-		hr = m_pDevice->CreateDepthStencilView(cpDepthStencilBuffer.Get(), nullptr, &m_pSwapChainDSV);
-		if (FAILED(hr))
-			Debug::ForceCrashWithHRESULTErrorMessageBox(L"ID3D11Device::CreateDepthStencilView()", hr);
-	}
-
-	if (needScreenModeChange)
-	{
-		// 디스플레이가 지원하는 해상도여야만 한다. (사용자에게 열거하는 기능 구현 필요)
-
-		// MSDN
-		// 창 모드형 스왑 체인을 생성하고 최종 사용자가 SetFullscreenState를 통해 스왑 체인을 전체 화면으로 변경할 수 있도록 하는 것이 좋습니다.
-		// 즉, 스왑 체인을 전체 화면으로 강제로 설정하기 위해 DXGI_SWAP_CHAIN_DESC 의 Windowed 멤버를 FALSE로 설정하지 마십시오.
-		// 그러나 스왑 체인을 전체 화면으로 생성하는 경우 최종 사용자에게 지원되는 디스플레이 모드 목록도 제공해야 합니다.
-		// 지원되지 않는 디스플레이 모드로 생성된 스왑 체인은 디스플레이가 검게 변하고 최종 사용자가 아무것도 볼 수 없게 만들 수 있기 때문입니다. (중요!)
-		// 또한 최종 사용자가 디스플레이 모드를 변경할 수 있도록 허용할 때 시간 초과 확인 화면이나 기타 대체 메커니즘을 갖는 것이 좋습니다.
-
-		const BOOL fullscreen = Window.IsFullscreen() ? TRUE : FALSE;
-		hr = m_pSwapChain->SetFullscreenState(fullscreen, nullptr);	// Windowed -> Fullscreen
-		if (FAILED(hr))
-			Debug::ForceCrashWithHRESULTErrorMessageBox(L"IDXGISwapChain::SetFullscreenState()", hr);
-	}
-
-	// 스왑 체인 정보 갱신 (DXGI는 최종 사용자나 시스템 요청에 따라 스왑 체인의 표시 상태를 변경할 수 있습니다)
-	// 시스템 요청에 의해 변경되었을 수 있으니 임의로 m_descSwapChain 갱신하는 방법 보다는 다시 GetDesc 호출하는 식으로
-	hr = m_pSwapChain->GetDesc(&descSwapChain);
+	// 변경된 스왑 체인의 정보 획득
+	hr = m_pSwapChain->GetDesc(&m_descSwapChain);
 	if (FAILED(hr))
 		Debug::ForceCrashWithHRESULTErrorMessageBox(L"IDXGISwapChain::GetDesc()", hr);
+	// 뎁스스텐실 버퍼 크기 정보도 업데이트
+	m_descDepthStencil.Width = m_descSwapChain.BufferDesc.Width;
+	m_descDepthStencil.Height = m_descSwapChain.BufferDesc.Height;
+
+	// 스왑 체인의 백버퍼에 대한 렌더 타겟 뷰 재생성
+	ComPtr<ID3D11Texture2D> cpBackBuffer;
+	hr = m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(cpBackBuffer.GetAddressOf()));
+	if (FAILED(hr))
+		Debug::ForceCrashWithHRESULTErrorMessageBox(L"IDXGISwapChain::GetBuffer()", hr);
+
+	assert(m_pSwapChainRTV == nullptr);
+	hr = m_pDevice->CreateRenderTargetView(cpBackBuffer.Get(), nullptr, &m_pSwapChainRTV);
+	if (FAILED(hr))
+		Debug::ForceCrashWithHRESULTErrorMessageBox(L"ID3D11Device::CreateRenderTargetView()", hr);
+
+	// 스왑 체인에 대한 렌더링에 사용할 뎁스 스텐실 뷰 재생성
+	ComPtr<ID3D11Texture2D> cpDepthStencilBuffer;
+	hr = m_pDevice->CreateTexture2D(&m_descDepthStencil, nullptr, cpDepthStencilBuffer.GetAddressOf());
+	if (FAILED(hr))
+		Debug::ForceCrashWithHRESULTErrorMessageBox(L"ID3D11Device::CreateTexture2D()", hr);
+
+	assert(m_pSwapChainDSV == nullptr);
+	hr = m_pDevice->CreateDepthStencilView(cpDepthStencilBuffer.Get(), nullptr, &m_pSwapChainDSV);
+	if (FAILED(hr))
+		Debug::ForceCrashWithHRESULTErrorMessageBox(L"ID3D11Device::CreateDepthStencilView()", hr);
+	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+	
+
+	// 스왑 체인 정보 갱신 (DXGI는 최종 사용자나 시스템 요청에 따라 스왑 체인의 표시 상태를 변경할 수 있습니다)
+	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+	// 시스템 요청에 의해 변경되었을 수 있으니 임의로 m_descSwapChain를 수동 업데이트하는 방법 보다는 다시 GetDesc 호출하는 식으로
+	hr = m_pSwapChain->GetDesc(&m_descSwapChain);
+	if (FAILED(hr))
+		Debug::ForceCrashWithHRESULTErrorMessageBox(L"IDXGISwapChain::GetDesc()", hr);
+	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+	// 전체 스왑 체인 영역을 나타내는 뷰포트 구조체 업데이트
+	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+	m_fullSwapChainViewport.TopLeftX = 0.0f;
+	m_fullSwapChainViewport.TopLeftY = 0.0f;
+	m_fullSwapChainViewport.Width = static_cast<float>(m_descSwapChain.BufferDesc.Width);
+	m_fullSwapChainViewport.Height = static_cast<float>(m_descSwapChain.BufferDesc.Height);
+	m_fullSwapChainViewport.MinDepth = 0.0f;
+	m_fullSwapChainViewport.MaxDepth = 1.0f;
+	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 }
 
 HRESULT GraphicDeviceImpl::GetFullscreenState(BOOL* pFullscreen)

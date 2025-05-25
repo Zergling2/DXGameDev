@@ -4,46 +4,57 @@
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\DirectionalLightManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\PointLightManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\SpotLightManager.h>
-#include <ZergEngine\CoreSystem\Manager\ComponentManager\ScriptManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\MonoBehaviourManager.h>
+// #include <ZergEngine\CoreSystem\Manager\ComponentManager\RigidbodyManager.h>
+// #include <ZergEngine\CoreSystem\Manager\ComponentManager\BoxColliderManager.h>
+// #include <ZergEngine\CoreSystem\Manager\ComponentManager\MeshColliderManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\TerrainManager.h>
-#include <ZergEngine\CoreSystem\Debug.h>
 
 using namespace ze;
 
-IComponentManager* ComponentManagerMap::GetComponentManager(COMPONENT_TYPE type)
+IComponentManager* ComponentManagerMap::GetManager(COMPONENT_TYPE type)
 {
+	IComponentManager* pComponentManager;
+
 	switch (type)
 	{
 	case COMPONENT_TYPE::CAMERA:
-		return &CameraManager;
+		pComponentManager = &CameraManager;
+		break;
 	case COMPONENT_TYPE::MESH_RENDERER:
-		return &MeshRendererManager;
+		pComponentManager = &MeshRendererManager;
+		break;
 	case COMPONENT_TYPE::DIRECTIONAL_LIGHT:
-		return &DirectionalLightManager;
+		pComponentManager = &DirectionalLightManager;
+		break;
 	case COMPONENT_TYPE::POINT_LIGHT:
-		return &PointLightManager;
+		pComponentManager = &PointLightManager;
+		break;
 	case COMPONENT_TYPE::SPOT_LIGHT:
-		return &SpotLightManager;
-	case COMPONENT_TYPE::SCRIPT:
-		return &ScriptManager;
+		pComponentManager = &SpotLightManager;
+		break;
+	case COMPONENT_TYPE::MONOBEHAVIOUR:
+		pComponentManager = &MonoBehaviourManager;
+		break;
 	case COMPONENT_TYPE::RIGIDBODY:
-		Debug::ForceCrashWithMessageBox(L"Error", L"RIGIDBODY Component Manager is not implemented.");
-		return nullptr;
+		// pComponentManager = &RigidbodyManager;
+		pComponentManager = nullptr;
+		break;
 	case COMPONENT_TYPE::BOX_COLLIDER:
-		Debug::ForceCrashWithMessageBox(L"Error", L"BOX_COLLIDER Component Manager is not implemented.");
-		return nullptr;
-	case COMPONENT_TYPE::SPHERE_COLLIDER:
-		Debug::ForceCrashWithMessageBox(L"Error", L"SPHERE_COLLIDER Component Manager is not implemented.");
-		return nullptr;
+		// pComponentManager = &BoxColliderManager;
+		pComponentManager = nullptr;
+		break;
 	case COMPONENT_TYPE::MESH_COLLIDER:
-		Debug::ForceCrashWithMessageBox(L"Error", L"MESH_COLLIDER Component Manager is not implemented.");
-		return nullptr;
+		// pComponentManager = &MeshColliderManager;
+		pComponentManager = nullptr;
+		break;
 	case COMPONENT_TYPE::TERRAIN:
-		return &TerrainManager;
-	case COMPONENT_TYPE::UNKNOWN:
-		__fallthrough;
+		pComponentManager = &TerrainManager;
+		break;
 	default:
-		Debug::ForceCrashWithMessageBox(L"Error", L"ComponentManagerMap error.\nUnknown component.");
-		return nullptr;
+		pComponentManager = nullptr;
+		break;
 	}
+
+	return pComponentManager;
 }

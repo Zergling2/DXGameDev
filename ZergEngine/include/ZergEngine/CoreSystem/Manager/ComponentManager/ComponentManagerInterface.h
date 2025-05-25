@@ -13,19 +13,11 @@ namespace ze
 		friend class RuntimeImpl;
 		friend class SceneManagerImpl;
 		friend class RendererImpl;
-		friend class HandleHelper;
+		friend class ToPtrHelper;
 		friend class GameObject;
 		friend class IComponent;
 	public:
-		IComponentManager()
-			: m_uniqueId(0)
-			, m_lock()
-			, m_destroyed()
-			, m_activeComponents()
-			, m_table(128)
-		{
-			m_lock.Init();
-		}
+		IComponentManager();
 		virtual ~IComponentManager() = default;
 	protected:
 		void AddToDestroyQueue(IComponent* pComponent);

@@ -1,4 +1,4 @@
-#include <ZergEngine\CoreSystem\GamePlayBase\Component\Transform.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Transform.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 
 using namespace ze;
@@ -43,7 +43,7 @@ XMVECTOR XM_CALLCONV Transform::GetWorldPosition() const
         return this->GetLocalPosition();
 }
 
-void XM_CALLCONV Transform::RotateAround(XMVECTOR point, XMVECTOR axis, FLOAT angle)
+void XM_CALLCONV Transform::RotateAround(FXMVECTOR point, FXMVECTOR axis, FLOAT angle)
 {
     // 1. 회전 후의 새로운 world position 계산
     // 현재 Transform의 월드 위치와 회전 얻기
@@ -106,7 +106,7 @@ void XM_CALLCONV Transform::RotateAround(XMVECTOR point, XMVECTOR axis, FLOAT an
     }
 }
 
-void XM_CALLCONV Transform::SetWorldPosition(XMVECTOR position)
+void XM_CALLCONV Transform::SetWorldPosition(FXMVECTOR position)
 {
     assert(m_pGameObject != nullptr);
 
@@ -192,4 +192,12 @@ bool Transform::IsDescendantOf(Transform* pTransform) const
     }
 
     return false;
+}
+
+GameObjectHandle Transform::GetChild(uint32_t index)
+{
+    if (index >= static_cast<uint32_t>(m_children.size()))
+        return GameObjectHandle();
+    else
+        return m_children[index]->m_pGameObject->ToHandle();
 }

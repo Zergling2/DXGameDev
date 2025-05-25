@@ -6,6 +6,7 @@ namespace pubg
 {
 	class SceneChange : public ze::MonoBehaviour
 	{
+		DECLARE_MONOBEHAVIOUR_TYPE
 	public:
 		SceneChange() = default;
 		virtual ~SceneChange() = default;

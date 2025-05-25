@@ -1,20 +1,21 @@
 #pragma once
 
+#include <ZergEngine\Common\ThirdPartySDK.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\ComponentType.h>
 
 namespace ze
 {
 	class GameObject;
 	class IComponent;
-	class Canvas;
-	class ICanvasItem;
+	class IComponentManager;
+	class IUIObject;
 
 	constexpr uint64_t INVALID_ID = std::numeric_limits<uint64_t>::max();
 
-	class HandleHelper
+	class ToPtrHelper
 	{
 	public:
-		static IComponent* ToPtrImpl(COMPONENT_TYPE type, uint32_t tableIndex, uint64_t id);
+		static IComponent* ToComponentPtrImpl(COMPONENT_TYPE type, uint32_t tableIndex, uint64_t id);
 	};
 
 	class GameObjectHandle
@@ -68,6 +69,56 @@ namespace ze
 		uint64_t m_id;
 	};
 
+	class UIObjectHandle
+	{
+		friend class UIObjectManagerImpl;
+		friend class IUIObject;
+	public:
+		UIObjectHandle() noexcept
+			: m_tableIndex(0)
+			, m_id(INVALID_ID)
+		{
+		}
+	private:
+		UIObjectHandle(uint32_t index, uint64_t id) noexcept
+			: m_tableIndex(index)
+			, m_id(id)
+		{
+		}
+	public:
+		UIObjectHandle(const UIObjectHandle& other) noexcept
+			: m_tableIndex(other.m_tableIndex)
+			, m_id(other.m_id)
+		{
+		}
+		UIObjectHandle(UIObjectHandle&& other) noexcept
+			: m_tableIndex(other.m_tableIndex)
+			, m_id(other.m_id)
+		{
+			other.m_tableIndex = 0;
+			other.m_id = INVALID_ID;
+		}
+		UIObjectHandle& operator=(const UIObjectHandle& other) noexcept
+		{
+			m_tableIndex = other.m_tableIndex;
+			m_id = other.m_id;
+
+			return *this;
+		}
+		~UIObjectHandle() = default;
+
+		uint32_t GetIndex() const { return m_tableIndex; }
+		uint64_t GetId() const { return m_id; }
+
+		IUIObject* ToPtr() const;
+		bool IsDestroyed() const { return ToPtr() == nullptr; }
+		bool IsValid() const { return ToPtr() != nullptr; }
+	private:
+		uint32_t m_tableIndex;
+		// uint32_t m_reserved;
+		uint64_t m_id;
+	};
+
 	class ComponentHandleBase
 	{
 		friend class IComponentManager;
@@ -114,7 +165,7 @@ namespace ze
 		uint64_t m_id;
 	};
 
-	template<typename _T>
+	template<typename T>
 	class ComponentHandle : public ComponentHandleBase
 	{
 	public:
@@ -132,16 +183,22 @@ namespace ze
 		}
 		ComponentHandle& operator=(const ComponentHandleBase& other) noexcept
 		{
-			*static_cast<ComponentHandleBase*>(this) = other;
+			ComponentHandleBase::operator=(other);
 
 			return *this;
 		}
 		~ComponentHandle() = default;
 
-		_T* ToPtr() const;
+		T* ToPtr() const;
 		bool IsDestroyed() const { return ToPtr() == nullptr; }
 		bool IsValid() const { return ToPtr() != nullptr; }
 	};
+
+	template<typename T>
+	T* ComponentHandle<T>::ToPtr() const
+	{
+		return static_cast<T*>(ToPtrHelper::ToComponentPtrImpl(T::TYPE, m_tableIndex, m_id));
+	}
 
 	inline bool operator==(const GameObjectHandle& hA, const GameObjectHandle& hB)
 	{
@@ -150,17 +207,11 @@ namespace ze
 			hA.GetId() == hB.GetId();
 	}
 
-	template<typename _T>
-	inline bool operator==(const ComponentHandle<_T>& hA, const ComponentHandle<_T>& hB)
+	template<typename T>
+	inline bool operator==(const ComponentHandle<T>& hA, const ComponentHandle<T>& hB)
 	{
 		return
 			hA.GetIndex() == hB.GetIndex() &&
 			hA.GetId() == hB.GetId();
-	}
-
-	template<typename _T>
-	_T* ComponentHandle<_T>::ToPtr() const
-	{
-		return static_cast<_T*>(HandleHelper::ToPtrImpl(_T::TYPE, m_tableIndex, m_id));
 	}
 }

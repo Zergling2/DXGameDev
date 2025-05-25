@@ -43,28 +43,31 @@
     <ClInclude Include="include\ZergEngine\Common\EngineConstants.h" />
     <ClInclude Include="include\ZergEngine\Common\EngineHelper.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\COMInitializer.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Ray.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DeviceContext\EffectDeviceContext.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectP.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPC.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPN.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPNT.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPT.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\ButtonEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\MSCameraMergeEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DummyEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\EffectInterface.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\SkyboxEffect.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\CanvasItem\UIHitbox.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\UIHitbox.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\ViewportRect.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\CanvasItem\CanvasItemInterface.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\CanvasItem\Image.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\CanvasItem\RectTransform.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\RectTransform.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObjectInterface.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObjectType.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\Button.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\CameraManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\ComponentManagerInterface.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\ComponentManagerMap.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\DirectionalLightManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\MeshRendererManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\PointLightManager.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\ScriptManager.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\MonoBehaviourManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\SpotLightManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\TerrainManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Aabb.h" />
@@ -73,6 +76,7 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\EnvironmentManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Handle.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\ComponentType.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\UIObjectManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Renderer.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Math.h" />
     <ClInclude Include="include\ZergEngine\Common\ThirdPartySDK.h" />
@@ -80,7 +84,7 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\MonoBehaviour.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\Light.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\MeshRenderer.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\Transform.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Transform.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Debug.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\ComponentInterface.h" />
     <ClInclude Include="include\ZergEngine\Common\DirectXTex\DirectXTex.h" />
@@ -91,7 +95,7 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\TerrainData.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\SceneTable.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\ShaderResource\ConstantBuffer.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\ShaderResource\ShaderResourceSlotNumTable.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\ShaderResource\VertexBuffer.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\SlimRWLock.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\SubsystemInterface.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\SystemInfo.h" />
@@ -111,18 +115,20 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Time.h" />
     <ClInclude Include="include\ZergEngine\ZergEngine.h" />
     <ClCompile Include="source\CoreSystem\DataStructure\Aabb.cpp" />
+    <ClCompile Include="source\CoreSystem\DataStructure\Ray.cpp" />
     <ClCompile Include="source\CoreSystem\DeviceContext\EffectDeviceContext.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectP.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectPC.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectPN.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectPNT.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectPT.cpp" />
+    <ClCompile Include="source\CoreSystem\Effect\ButtonEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\MSCameraMergeEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\DummyEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\SkyboxEffect.cpp" />
-    <ClCompile Include="source\CoreSystem\GamePlayBase\CanvasItem\CanvasItemInterface.cpp" />
-    <ClCompile Include="source\CoreSystem\GamePlayBase\CanvasItem\Image.cpp" />
-    <ClCompile Include="source\CoreSystem\GamePlayBase\CanvasItem\RectTransform.cpp" />
+    <ClCompile Include="source\CoreSystem\GamePlayBase\RectTransform.cpp" />
+    <ClCompile Include="source\CoreSystem\GamePlayBase\UIObjectInterface.cpp" />
+    <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\Button.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\ComponentManagerMap.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\EnvironmentManager.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Handle.cpp" />
@@ -133,12 +139,13 @@
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\DirectionalLightManager.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\MeshRendererManager.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\PointLightManager.cpp" />
-    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\ScriptManager.cpp" />
+    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\MonoBehaviourManager.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\SpotLightManager.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\TerrainManager.cpp" />
     <ClCompile Include="source\CoreSystem\FileSystem.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\GameObjectManager.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\Light.cpp" />
+    <ClCompile Include="source\CoreSystem\Manager\UIObjectManager.cpp" />
     <ClCompile Include="source\CoreSystem\Renderer.cpp" />
     <ClCompile Include="source\CoreSystem\MemoryAllocator.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ResourceManager.cpp" />
@@ -146,6 +153,7 @@
     <ClCompile Include="source\CoreSystem\Resource\TerrainData.cpp" />
     <ClCompile Include="source\CoreSystem\SceneTable.cpp" />
     <ClCompile Include="source\CoreSystem\ShaderResource\ConstantBuffer.cpp" />
+    <ClCompile Include="source\CoreSystem\ShaderResource\VertexBuffer.cpp" />
     <ClCompile Include="source\CoreSystem\SlimRWLock.cpp" />
     <ClCompile Include="source\CoreSystem\SubsystemInterface.cpp" />
     <ClCompile Include="source\CoreSystem\SystemInfo.cpp" />
@@ -162,7 +170,7 @@
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\Camera.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\ComponentInterface.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\MeshRenderer.cpp" />
-    <ClCompile Include="source\CoreSystem\GamePlayBase\Component\Transform.cpp" />
+    <ClCompile Include="source\CoreSystem\GamePlayBase\Transform.cpp" />
     <ClCompile Include="source\CoreSystem\Debug.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\GameObject.cpp" />
     <ClCompile Include="source\CoreSystem\GraphicDevice.cpp" />
@@ -205,6 +213,16 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Hull</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Hull</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorButtonFragment.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="source\CoreSystem\ShaderCode\PSColorPTFragmentSingleMSTexture.hlsl">
@@ -282,6 +300,16 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformButtonToHCS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>

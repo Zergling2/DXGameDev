@@ -7,7 +7,7 @@ constexpr float SENSITIVITY = 0.16f;
 constexpr float SPEED = 0.1f;
 constexpr float WALK_SPEED = SPEED * 0.25f;
 
-void FirstPersonCamera::FixedUpdate()
+void FirstPersonCamera::Update()
 {
 	GameObject* pGameObject = this->GetGameObjectHandle().ToPtr();
 	if (!pGameObject)
@@ -36,7 +36,7 @@ void FirstPersonCamera::FixedUpdate()
 	}
 
 	const float speed = Input.GetKey(KEY_LSHIFT) ? WALK_SPEED : SPEED;
-	
+
 	if (Input.GetKey(KEY_W))
 		pGameObject->m_transform.Translate(worldForwardAxis * speed);
 
@@ -48,15 +48,18 @@ void FirstPersonCamera::FixedUpdate()
 
 	if (Input.GetKey(KEY_D))
 		pGameObject->m_transform.Translate(worldRightAxis * speed);
-}
 
-void FirstPersonCamera::Update()
-{
+
+
+
+
+
+
 	if (Input.GetKeyDown(KEY_APOSTROPHE))
-		Window.SetResolution(1600, 900, true);
+		Window.SetResolution(1280, 720, WINDOW_MODE::FULLSCREEN);
 
 	if (Input.GetKeyDown(KEY_SEMICOLON))
-		Window.SetResolution(1280, 720, false);
+		Window.SetResolution(1280, 720, WINDOW_MODE::WINDOWED);
 
 	if (Input.GetKeyDown(KEY_U))
 		this->Disable();

@@ -100,8 +100,8 @@ namespace ze
 			}
 		}
 
-		template<typename _T>
-		static void SafeReleaseCom(_T*& cp)
+		template<typename T>
+		static void SafeReleaseCom(T*& cp)
 		{
 			if (cp)
 			{

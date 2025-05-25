@@ -122,8 +122,8 @@ void InputImpl::Update()
 
 	m_cursorPos.x += m_currMouseState.lX;
 	m_cursorPos.y += m_currMouseState.lY;
-	Math::Clamp(m_cursorPos.x, 0L, static_cast<LONG>(Window.GetWidth()));
-	Math::Clamp(m_cursorPos.y, 0L, static_cast<LONG>(Window.GetHeight()));
+	Math::Clamp(m_cursorPos.x, 0L, static_cast<LONG>(Window.GetWidthInteger()));
+	Math::Clamp(m_cursorPos.y, 0L, static_cast<LONG>(Window.GetHeightInteger()));
 }
 
 bool InputImpl::GetKey(KEYCODE code) const

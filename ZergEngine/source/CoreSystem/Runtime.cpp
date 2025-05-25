@@ -10,19 +10,24 @@
 #include <ZergEngine\CoreSystem\GraphicDevice.h>
 #include <ZergEngine\CoreSystem\Renderer.h>
 #include <ZergEngine\CoreSystem\Manager\ResourceManager.h>
+#include <ZergEngine\CoreSystem\Manager\SceneManager.h>
 #include <ZergEngine\CoreSystem\Manager\GameObjectManager.h>
 #include <ZergEngine\CoreSystem\Manager\EnvironmentManager.h>
+#include <ZergEngine\CoreSystem\Manager\UIObjectManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\CameraManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\DirectionalLightManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\PointLightManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\SpotLightManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\MeshRendererManager.h>
-#include <ZergEngine\CoreSystem\Manager\ComponentManager\ScriptManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\MonoBehaviourManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\TerrainManager.h>
-#include <ZergEngine\CoreSystem\Manager\SceneManager.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\ComponentInterface.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\MonoBehaviour.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\Component\Transform.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObjectInterface.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Transform.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\RectTransform.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Button.h>
 
 namespace ze
 {
@@ -39,7 +44,7 @@ enum RUNTIME_FLAG : uint32_t
 RuntimeImpl::RuntimeImpl()
     : m_hInstance(NULL)
     , m_startScene()
-    , m_fixedUpdateTimer(0.0f)
+    , m_deltaPC(0)
     , m_flag(0)
 {
 }
@@ -48,14 +53,14 @@ RuntimeImpl::~RuntimeImpl()
 {
 }
 
-void RuntimeImpl::Run(HINSTANCE hInstance, int nShowCmd, PCWSTR wndTitle, PCSTR startScene, uint32_t width, uint32_t height, bool fullscreen)
+void RuntimeImpl::Run(HINSTANCE hInstance, int nShowCmd, PCWSTR wndTitle, PCSTR startScene, uint32_t width, uint32_t height, WINDOW_MODE mode)
 {
     m_hInstance = hInstance;
     m_startScene = startScene;
-    m_fixedUpdateTimer = 0.0f;
+    m_deltaPC = 0;
     m_flag = RTF_RENDER_ENABLED;
 
-    RuntimeImpl::InitAllSubsystem(wndTitle, width, height, fullscreen);
+    RuntimeImpl::InitAllSubsystem(wndTitle, width, height, mode);
 
     ShowWindow(Window.GetWindowHandle(), nShowCmd);
     // UpdateWindow(Runtime.GetMainWindowHandle());
@@ -81,11 +86,16 @@ void RuntimeImpl::Run(HINSTANCE hInstance, int nShowCmd, PCWSTR wndTitle, PCSTR 
     }
 
     // 모든 게임 오브젝트 및 컴포넌트를 제거
-    for (GameObject* pGameObject : GameObjectManager.m_inactiveGameObjects)
-        this->Destroy(pGameObject);
     for (GameObject* pGameObject : GameObjectManager.m_activeGameObjects)
-        this->Destroy(pGameObject);
-    Runtime.RemoveDestroyedComponentsAndGameObjects();
+        Runtime.Destroy(pGameObject);
+    for (GameObject* pGameObject : GameObjectManager.m_inactiveGameObjects)
+        Runtime.Destroy(pGameObject);
+    for (IUIObject* pUIObject : UIObjectManager.m_activeUIObjects)
+        Runtime.Destroy(pUIObject);
+    for (IUIObject* pUIObject : UIObjectManager.m_inactiveUIObjects)
+        Runtime.Destroy(pUIObject);
+
+    Runtime.RemoveDestroyedComponentsAndObjects();
 
     // 시스템 모듈들 해제
     RuntimeImpl::ReleaseAllSubsystem();
@@ -126,7 +136,7 @@ void RuntimeImpl::DisableRendering()
     m_flag &= ~RTF_RENDER_ENABLED;
 }
 
-void RuntimeImpl::InitAllSubsystem(PCWSTR wndTitle, uint32_t width, uint32_t height, bool fullscreen)
+void RuntimeImpl::InitAllSubsystem(PCWSTR wndTitle, uint32_t width, uint32_t height, WINDOW_MODE mode)
 {
     const time_t rawTime = time(nullptr);
     tm timeInfo;
@@ -156,15 +166,15 @@ void RuntimeImpl::InitAllSubsystem(PCWSTR wndTitle, uint32_t width, uint32_t hei
     SystemInfo.Init(nullptr);
     MemoryAllocator.Init(nullptr);
     FileSystem.Init(nullptr);
-    FileLog.Init(engineLogName);
+    // FileLog.Init(engineLogName);
     COMInitializer.Init(nullptr);
     Time.Init(nullptr);
 
     WindowImpl::InitDesc initDesc;
     initDesc.m_width = width;
     initDesc.m_height = height;
-    initDesc.m_fullscreen = fullscreen;
-    initDesc.m_title = wndTitle;
+    initDesc.m_mode = mode;
+    initDesc.mTitle = wndTitle;
     Window.Init(&initDesc);
 
     Input.Init(nullptr);
@@ -172,6 +182,7 @@ void RuntimeImpl::InitAllSubsystem(PCWSTR wndTitle, uint32_t width, uint32_t hei
     Resource.Init(nullptr);
     Renderer.Init(nullptr);
     GameObjectManager.Init(nullptr);
+    UIObjectManager.Init(nullptr);
     Environment.Init(nullptr);
     CameraManager.Init(nullptr);
     DirectionalLightManager.Init(nullptr);
@@ -179,7 +190,7 @@ void RuntimeImpl::InitAllSubsystem(PCWSTR wndTitle, uint32_t width, uint32_t hei
     SpotLightManager.Init(nullptr);
     MeshRendererManager.Init(nullptr);
     TerrainManager.Init(nullptr);
-    ScriptManager.Init(nullptr);
+    MonoBehaviourManager.Init(nullptr);
     SceneManager.Init(nullptr);
 }
 
@@ -187,13 +198,14 @@ void RuntimeImpl::ReleaseAllSubsystem()
 {
     SceneManager.Release();
     TerrainManager.Release();
-    ScriptManager.Release();
+    MonoBehaviourManager.Release();
     MeshRendererManager.Release();
     SpotLightManager.Release();
     PointLightManager.Release();
     DirectionalLightManager.Release();
     CameraManager.Release();
     Environment.Release();
+    UIObjectManager.Release();
     GameObjectManager.Release();
     Renderer.Release();
     Resource.Release();
@@ -214,37 +226,37 @@ void RuntimeImpl::OnIdle()
     Time.Update();
     Input.Update();
 
-    SceneManager.Update(&m_fixedUpdateTimer);
+    SceneManager.Update(&m_deltaPC);
 
     // Call IScript::Start() for all starting scripts.
-    ScriptManager.CallStart();
+    MonoBehaviourManager.CallStart();
 
     // For the FixedUpdate
-    m_fixedUpdateTimer += Time.GetUnscaledDeltaTime();
-    Time.ChangeDeltaTimeToFixedDeltaTime();
-    while (Time.GetFixedDeltaTime() <= m_fixedUpdateTimer)
+    m_deltaPC += Time.GetDeltaPerformanceCounter();
+    Time.ChangeDeltatime_toFixedDeltaTime(); // FixeUpdate에서의 GetDeltaTime() 함수와 GetFixedDeltaTime() 함수의 반환값 일관성 보장
+    while (Time.GetFixedDeltaPerformanceCounter() <= m_deltaPC)
     {
-        ScriptManager.FixedUpdateScripts();
-        m_fixedUpdateTimer -= Time.GetFixedDeltaTime();
+        MonoBehaviourManager.FixedUpdateScripts();
+        m_deltaPC -= Time.GetFixedDeltaPerformanceCounter();
     }
     Time.RecoverDeltaTime();
 
-    ScriptManager.UpdateScripts();
-    ScriptManager.LateUpdateScripts();
+    MonoBehaviourManager.UpdateScripts();
+    MonoBehaviourManager.LateUpdateScripts();
 
-    RemoveDestroyedComponentsAndGameObjects();
+    RemoveDestroyedComponentsAndObjects();
 
     // Render
     if (m_flag & RUNTIME_FLAG::RTF_RENDER_ENABLED)
         Renderer.RenderFrame();
 
-    Sleep(5);
+    Sleep(3);
 }
 
 GameObjectHandle RuntimeImpl::CreateGameObject(PCWSTR name)
 {
     // Not deferred game object.
-    GameObject* pGameObject = new GameObject(GOF_ACTIVE, name);
+    GameObject* pGameObject = new GameObject(GAMEOBJECT_FLAG::ACTIVE, name);
 
     GameObjectHandle hGameObject = GameObjectManager.RegisterToHandleTable(pGameObject);
 
@@ -253,13 +265,36 @@ GameObjectHandle RuntimeImpl::CreateGameObject(PCWSTR name)
     return hGameObject;
 }
 
+UIObjectHandle RuntimeImpl::CreateButton(PCWSTR name)
+{
+    // Not deferred ui object.
+    Button* pButton = new Button(UIOBJECT_FLAG::ACTIVE, name);
+
+    UIObjectHandle hButton = UIObjectManager.RegisterToHandleTable(pButton);
+    UIObjectManager.AddPtrToActiveVector(pButton);
+
+    pButton->OnFlag(UIOBJECT_FLAG::REAL_ROOT);
+    UIObjectManager.AddPtrToRootVector(pButton);
+
+    return hButton;
+}
+
 void RuntimeImpl::DontDestroyOnLoad(GameObjectHandle gameObject)
 {
     GameObject* pGameObject = gameObject.ToPtr();
     if (!pGameObject)
         return;
 
-    pGameObject->m_flag = static_cast<GAMEOBJECT_FLAG>(pGameObject->m_flag | GOF_DONT_DESTROY_ON_LOAD);
+    pGameObject->OnFlag(GAMEOBJECT_FLAG::DONT_DESTROY_ON_LOAD);
+}
+
+void RuntimeImpl::DontDestroyOnLoad(UIObjectHandle uiObject)
+{
+    IUIObject* pUIObject = uiObject.ToPtr();
+    if (!pUIObject)
+        return;
+
+    pUIObject->OnFlag(UIOBJECT_FLAG::DONT_DESTROY_ON_LOAD);
 }
 
 void RuntimeImpl::Destroy(GameObjectHandle hGameObject)
@@ -275,6 +310,26 @@ void RuntimeImpl::Destroy(GameObjectHandle hGameObject)
     this->Destroy(pGameObject);
 }
 
+void RuntimeImpl::Destroy(UIObjectHandle hUIObject)
+{
+    IUIObject* pUIObject = hUIObject.ToPtr();
+    if (!pUIObject)
+        return;
+
+    // 지연된 게임 오브젝트를 제거하는 경우는 OnLoadScene에서 Destroy를 한다는 의미인데 이것은 허용하지 않는다.
+    if (pUIObject->IsDeferred())
+        return;
+
+    this->Destroy(pUIObject);
+}
+
+void RuntimeImpl::Destroy(MonoBehaviour* pScript)
+{
+    assert(pScript != nullptr);
+
+    this->Destroy(static_cast<IComponent*>(pScript));
+}
+
 void RuntimeImpl::Destroy(GameObject* pGameObject)
 {
     assert(pGameObject->IsDeferred() == false);
@@ -288,6 +343,20 @@ void RuntimeImpl::Destroy(GameObject* pGameObject)
 
     this->DestroyAllComponents(pGameObject);
     GameObjectManager.AddToDestroyQueue(pGameObject);
+}
+
+void RuntimeImpl::Destroy(IUIObject* pUIObject)
+{
+    assert(pUIObject->IsDeferred() == false);
+
+    // 자식 게임 오브젝트까지 Destroy
+    for (RectTransform* pChildTransform : pUIObject->m_transform.m_children)
+        this->Destroy(pChildTransform->m_pUIObject);
+
+    if (pUIObject->IsOnTheDestroyQueue())
+        return;
+
+    UIObjectManager.AddToDestroyQueue(pUIObject);
 }
 
 void RuntimeImpl::Destroy(IComponent* pComponent)
@@ -317,10 +386,10 @@ void RuntimeImpl::DestroyAllComponents(GameObject* pGameObject)
     }
 }
 
-void RuntimeImpl::RemoveDestroyedComponentsAndGameObjects()
+void RuntimeImpl::RemoveDestroyedComponentsAndObjects()
 {
     // 컴포넌트 제거 작업
-    ScriptManager.RemoveDestroyedComponents();
+    MonoBehaviourManager.RemoveDestroyedComponents();
     CameraManager.RemoveDestroyedComponents();
     DirectionalLightManager.RemoveDestroyedComponents();
     PointLightManager.RemoveDestroyedComponents();
@@ -328,6 +397,7 @@ void RuntimeImpl::RemoveDestroyedComponentsAndGameObjects()
     MeshRendererManager.RemoveDestroyedComponents();
     TerrainManager.RemoveDestroyedComponents();
 
+    UIObjectManager.RemoveDestroyedUIObjects();
     // 반드시 컴포넌트 제거 작업 이후 실행
     GameObjectManager.RemoveDestroyedGameObjects();
 }

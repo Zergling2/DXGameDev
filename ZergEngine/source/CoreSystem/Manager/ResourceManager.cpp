@@ -429,6 +429,7 @@ bool ResourceManagerImpl::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, 
 		// descBuffer.CPUAccessFlags = 0;
 		// descBuffer.MiscFlags = 0;
 		descBuffer.StructureByteStride = sizeof(uint32_t);
+
 		sbrcBuffer.pSysMem = tempIB.data();
 		// sbrcBuffer.SysMemPitch = 0;		// unused
 		// sbrcBuffer.SysMemSlicePitch = 0;	// unused
@@ -1413,8 +1414,8 @@ std::vector<std::shared_ptr<Mesh>> Resource::LoadWavefrontOBJ(const wchar_t* pat
 std::shared_ptr<ShaderResourceTexture> Resource::LoadTexture_deprecated(PCWSTR path)
 {
 	bool useExistingContainer = false;
-	const auto iter = Resource::s_textureMap.find(path);
-	if (iter != Resource::s_textureMap.cend())
+	const auto iter = Resource::sTextureMap.find(path);
+	if (iter != Resource::sTextureMap.cend())
 	{
 		std::shared_ptr<ShaderResourceTexture> texture = iter->second.lock();
 
@@ -1492,7 +1493,7 @@ std::shared_ptr<ShaderResourceTexture> Resource::LoadTexture_deprecated(PCWSTR p
 	descTexture.BindFlags = D3D11_BIND_SHADER_RESOURCE;		// 렌더 타겟용은 아님, 셰이더 리소스 용도로 생성
 
 	// 텍스처 생성
-	hr = Graphics::GetDevice()->CreateTexture2D(&descTexture, nullptr, texture->m_texture.GetAddressOf());
+	hr = Graphics::GetDevice()->CreateTexture2D(&descTexture, nullptr, texture->mTexture.GetAddressOf());
 	if (FAILED(hr))
 	{
 		hrlog(THIS_FILE_NAME, __LINE__, hr);
@@ -1504,7 +1505,7 @@ std::shared_ptr<ShaderResourceTexture> Resource::LoadTexture_deprecated(PCWSTR p
 	{
 		const Image* pImg = mipChain.GetImage(i, 0, 0);
 		Graphics::GetImmediateContext()->UpdateSubresource(
-			texture->m_texture.Get(),
+			texture->mTexture.Get(),
 			D3D11CalcSubresource(i, 0, static_cast<UINT>(metadata.mipLevels)),
 			nullptr,
 			pImg->pixels,
@@ -1519,7 +1520,7 @@ std::shared_ptr<ShaderResourceTexture> Resource::LoadTexture_deprecated(PCWSTR p
 	descSRV.Format = descTexture.Format;
 	descSRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	descSRV.Texture2D.MipLevels = descTexture.MipLevels;
-	hr = Graphics::GetDevice()->CreateShaderResourceView(texture->m_texture.Get(), &descSRV, texture->m_srv.GetAddressOf());
+	hr = Graphics::GetDevice()->CreateShaderResourceView(texture->mTexture.Get(), &descSRV, texture->m_srv.GetAddressOf());
 	if (FAILED(hr))
 	{
 		hrlog(THIS_FILE_NAME, __LINE__, hr);
@@ -1529,20 +1530,20 @@ std::shared_ptr<ShaderResourceTexture> Resource::LoadTexture_deprecated(PCWSTR p
 	if (useExistingContainer)
 		iter->second = texture;
 	else
-		Resource::s_textureMap.emplace(path, texture);
+		Resource::sTextureMap.emplace(path, texture);
 
 	return texture;
 }
 
 void Resource::ReleaseExpiredContainer()
 {
-	auto iter = Resource::s_textureMap.begin();
-	auto end = Resource::s_textureMap.cend();
+	auto iter = Resource::sTextureMap.begin();
+	auto end = Resource::sTextureMap.cend();
 
 	while (iter != end)
 	{
 		if (iter->second.expired())
-			iter = Resource::s_textureMap.erase(iter);
+			iter = Resource::sTextureMap.erase(iter);
 		else
 			++iter;
 	}

@@ -3,7 +3,7 @@
 #include <ZergEngine\CoreSystem\Math.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Camera.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\Component\Transform.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Transform.h>
 
 using namespace ze;
 
@@ -58,7 +58,7 @@ void BasicEffectP::SetCamera(const Camera* pCamera) noexcept
 	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_CAMERA;
 }
 
-void XM_CALLCONV BasicEffectP::SetWorldMatrix(XMMATRIX w) noexcept
+void XM_CALLCONV BasicEffectP::SetWorldMatrix(FXMMATRIX w) noexcept
 {
 	XMStoreFloat4x4A(&m_cbPerMeshCache.w, ConvertToHLSLMatrix(w));			// HLSL 전치
 	XMStoreFloat4x4A(&m_cbPerMeshCache.wInvTr, XMMatrixInverse(nullptr, w));	// 역행렬의 전치의 HLSL 전치
@@ -99,7 +99,7 @@ void BasicEffectP::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
 	}
 }
 
-void BasicEffectP::KickedFromDeviceContext() noexcept
+void BasicEffectP::KickedOutOfDeviceContext() noexcept
 {
 	m_dirtyFlag = DIRTY_FLAG::ALL;
 }
@@ -116,19 +116,19 @@ void BasicEffectP::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
 void BasicEffectP::ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
 	m_cbPerCamera.Update(pDeviceContext, &m_cbPerCameraCache);
-	ID3D11Buffer* const cbArr[] = { m_cbPerCamera.GetComInterface() };
+	ID3D11Buffer* const cbs[] = { m_cbPerCamera.GetComInterface() };
 
 	// PerCamera 상수버퍼 사용 셰이더
 	constexpr UINT startSlot = 0;
-	pDeviceContext->VSSetConstantBuffers(startSlot, 1, cbArr);
+	pDeviceContext->VSSetConstantBuffers(startSlot, 1, cbs);
 }
 
 void BasicEffectP::ApplyPerMeshConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
 	m_cbPerMesh.Update(pDeviceContext, &m_cbPerMeshCache);
-	ID3D11Buffer* const cbArr[] = { m_cbPerMesh.GetComInterface() };
+	ID3D11Buffer* const cbs[] = { m_cbPerMesh.GetComInterface() };
 
 	// PerMesh 상수버퍼 사용 셰이더
 	constexpr UINT startSlot = 1;
-	pDeviceContext->VSSetConstantBuffers(startSlot, 1, cbArr);
+	pDeviceContext->VSSetConstantBuffers(startSlot, 1, cbs);
 }
