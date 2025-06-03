@@ -19,9 +19,17 @@ namespace ze
 		// DontDestroyOnLoad() 함수로 지정되지 않은 객체들에 한해서 자동으로 이루어집니다.
 		GameObjectHandle CreateGameObject(PCWSTR name = L"New Game Object");
 
-		// 루트 오브젝트로 버튼을 생성합니다.
+		// 루트 오브젝트로 패널 UI를 생성합니다.
+		UIObjectHandle CreatePanel(PCWSTR name = L"New Panel");
+
+		// 루트 오브젝트로 이미지 UI를 생성합니다.
+		UIObjectHandle CreateImage(PCWSTR name = L"New Image");
+
+		// 루트 오브젝트로 버튼 UI를 생성합니다.
 		UIObjectHandle CreateButton(PCWSTR name = L"New Button");
 	private:
+		UIObjectHandle AddDeferredRootUIObject(IUIObject* pUIObject);
+
 		// OnLoadScene 함수의 구현은 반드시 Runtime의 Create 함수들을 사용하지 말고 
 		// IScene 인터페이스에서 제공하는 Create 함수들을 사용하여 오브젝트를 생성해야 합니다.
 		virtual void OnLoadScene() = 0;

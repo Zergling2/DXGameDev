@@ -1,5 +1,7 @@
 #include <ZergEngine\CoreSystem\Manager\UIObjectManager.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\UIObjectInterface.h>
+#include <ZergEngine\CoreSystem\Input.h>
+#include <ZergEngine\CoreSystem\Window.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Button.h>
 
 namespace ze
 {
@@ -16,6 +18,7 @@ UIObjectManagerImpl::UIObjectManagerImpl()
 	, m_activeUIObjects()
 	, m_inactiveUIObjects()
 	, m_table(256, nullptr)
+	, m_pPressedObject(nullptr)
 {
 	m_lock.Init();
 }
@@ -105,6 +108,9 @@ void UIObjectManagerImpl::RemoveDestroyedUIObjects()
 
 	for (IUIObject* pUIObject : m_destroyed)
 	{
+		if (pUIObject == m_pPressedObject)
+			m_pPressedObject = nullptr;
+
 		assert(pUIObject->IsDeferred() == false);
 		assert(pUIObject->IsOnTheDestroyQueue() == true);
 
@@ -243,4 +249,74 @@ void UIObjectManagerImpl::RemovePtrFromVector(std::vector<IUIObject*>& vector, I
 
 	// 소속되어 있던 vector에서 제거
 	vector.pop_back();
+}
+
+void UIObjectManagerImpl::OnWinMsgLButtonDown(WPARAM wParam, LPARAM lParam)
+{
+	/*
+	* lParam
+	* The low-order word specifies the x-coordinate of the cursor. The coordinate is relative to the upper-left corner of the client area.
+	* The high-order word specifies the y-coordinate of the cursor. The coordinate is relative to the upper-left corner of the client area.
+	*/
+	POINT pt;
+	pt.x = GET_X_LPARAM(lParam);
+	pt.y = GET_Y_LPARAM(lParam);
+
+	// 유니티 스크린 좌표 시스템으로 변환
+	pt.y = Window.GetHeightInteger() - pt.y;	// y는 유니티 스크린 좌표 시스템과 동일하게 상하 반전
+
+	XMVECTOR mousePosition = XMVectorSet(static_cast<FLOAT>(pt.x), static_cast<FLOAT>(pt.y), 0.0f, 0.0f);
+
+	for (IUIObject* pUIObject : m_activeUIObjects)
+	{
+		if (pUIObject->HitTest(mousePosition))
+		{
+			pUIObject->OnLButtonDown();
+			m_pPressedObject = pUIObject;
+			break;
+		}
+	}
+}
+
+void UIObjectManagerImpl::OnWinMsgLButtonUp(WPARAM wParam, LPARAM lParam)
+{
+	// 눌려있던 UI오브젝트가 없던 경우에는 어떤 처리도 해줄 필요가 없다.
+	if (m_pPressedObject == nullptr)
+		return;
+
+	/*
+	* lParam
+	* The low-order word specifies the x-coordinate of the cursor. The coordinate is relative to the upper-left corner of the client area.
+	* The high-order word specifies the y-coordinate of the cursor. The coordinate is relative to the upper-left corner of the client area.
+	*/
+	POINT pt;
+	pt.x = GET_X_LPARAM(lParam);
+	pt.y = GET_Y_LPARAM(lParam);
+
+	// 유니티 스크린 좌표 시스템으로 변환
+	pt.y = Window.GetHeightInteger() - pt.y;	// y는 유니티 스크린 좌표 시스템과 동일하게 상하 반전
+
+	XMVECTOR mousePosition = XMVectorSet(static_cast<FLOAT>(pt.x), static_cast<FLOAT>(pt.y), 0.0f, 0.0f);
+
+	IUIObject* pLBtnUpObject = nullptr;
+	for (IUIObject* pUIObject : m_activeUIObjects)
+	{
+		if (pUIObject->HitTest(mousePosition))
+		{
+			pLBtnUpObject = pUIObject;
+			break;
+		}
+	}
+
+	if (m_pPressedObject == pLBtnUpObject)
+	{
+		m_pPressedObject->OnLButtonUp();
+		m_pPressedObject->OnClick();
+	}
+	else
+	{
+		m_pPressedObject->OnLButtonUp();
+	}
+
+	m_pPressedObject = nullptr;
 }

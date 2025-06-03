@@ -24,10 +24,12 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\ComponentInterface.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\MonoBehaviour.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\UIObjectInterface.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\UIObjectInterface.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Transform.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\RectTransform.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Panel.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Button.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Image.h>
 
 namespace ze
 {
@@ -228,7 +230,7 @@ void RuntimeImpl::OnIdle()
 
     SceneManager.Update(&m_deltaPC);
 
-    // Call IScript::Start() for all starting scripts.
+    // Call MonoBehaviour::Start() for all starting scripts.
     MonoBehaviourManager.CallStart();
 
     // For the FixedUpdate
@@ -265,18 +267,28 @@ GameObjectHandle RuntimeImpl::CreateGameObject(PCWSTR name)
     return hGameObject;
 }
 
+UIObjectHandle RuntimeImpl::CreatePanel(PCWSTR name)
+{
+    // Not deferred ui object.
+    Panel* pPanel = new Panel(UIOBJECT_FLAG::ACTIVE, name);
+
+    return this->RegisterRootUIObject(pPanel);
+}
+
+UIObjectHandle RuntimeImpl::CreateImage(PCWSTR name)
+{
+    // Not deferred ui object.
+    Image* pImage = new Image(UIOBJECT_FLAG::ACTIVE, name);
+
+    return this->RegisterRootUIObject(pImage);
+}
+
 UIObjectHandle RuntimeImpl::CreateButton(PCWSTR name)
 {
     // Not deferred ui object.
     Button* pButton = new Button(UIOBJECT_FLAG::ACTIVE, name);
 
-    UIObjectHandle hButton = UIObjectManager.RegisterToHandleTable(pButton);
-    UIObjectManager.AddPtrToActiveVector(pButton);
-
-    pButton->OnFlag(UIOBJECT_FLAG::REAL_ROOT);
-    UIObjectManager.AddPtrToRootVector(pButton);
-
-    return hButton;
+    return this->RegisterRootUIObject(pButton);
 }
 
 void RuntimeImpl::DontDestroyOnLoad(GameObjectHandle gameObject)
@@ -400,4 +412,15 @@ void RuntimeImpl::RemoveDestroyedComponentsAndObjects()
     UIObjectManager.RemoveDestroyedUIObjects();
     // 반드시 컴포넌트 제거 작업 이후 실행
     GameObjectManager.RemoveDestroyedGameObjects();
+}
+
+UIObjectHandle RuntimeImpl::RegisterRootUIObject(IUIObject* pUIObject)
+{
+    UIObjectHandle hUIObject = UIObjectManager.RegisterToHandleTable(pUIObject);
+    UIObjectManager.AddPtrToActiveVector(pUIObject);
+
+    pUIObject->OnFlag(UIOBJECT_FLAG::REAL_ROOT);
+    UIObjectManager.AddPtrToRootVector(pUIObject);
+
+    return hUIObject;
 }

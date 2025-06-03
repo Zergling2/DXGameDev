@@ -8,13 +8,14 @@ namespace ze
 	class UIObjectManagerImpl : public ISubsystem
 	{
 		friend class RuntimeImpl;
+		friend class InputImpl;
 		friend class SceneManagerImpl;
 		friend class RendererImpl;
+		friend class WindowImpl;
 		friend class IUIObject;
 		friend class UIObjectHandle;
 		friend class RectTransform;
 		friend class IScene;
-		friend class Button;
 		ZE_DECLARE_SINGLETON(UIObjectManagerImpl);
 	private:
 		virtual void Init(void* pDesc) override;
@@ -40,6 +41,15 @@ namespace ze
 		static void RemovePtrFromVector(std::vector<IUIObject*>& vector, IUIObject* pUIObject);
 
 		uint64_t AssignUniqueId() { return InterlockedIncrement64(reinterpret_cast<LONG64*>(&m_uniqueId)); }
+
+		// Windows Vista부터 Surrogate pair 전달 가능
+		void OnWinMsgChar(WPARAM wParam);
+		void OnWinMsgLButtonDown(WPARAM wParam, LPARAM lParam);
+		void OnWinMsgLButtonUp(WPARAM wParam, LPARAM lParam);
+		void OnWinMsgRButtonDown(WPARAM wParam, LPARAM lParam);
+		void OnWinMsgRButtonUp(WPARAM wParam, LPARAM lParam);
+		void OnWinMsgMButtonDown(WPARAM wParam, LPARAM lParam);
+		void OnWinMsgMButtonUp(WPARAM wParam, LPARAM lParam);
 	private:
 		uint64_t m_uniqueId;
 		SlimRWLock m_lock;
@@ -48,6 +58,8 @@ namespace ze
 		std::vector<IUIObject*> m_activeUIObjects;	// 검색 시 전체 테이블을 순회할 필요 제거
 		std::vector<IUIObject*> m_inactiveUIObjects;	// 비활성화된 오브젝트들 (검색 대상에서 제외)
 		std::vector<IUIObject*> m_table;
+
+		IUIObject* m_pPressedObject;
 	};
 
 	extern UIObjectManagerImpl UIObjectManager;

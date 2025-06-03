@@ -1,11 +1,11 @@
-#include <ZergEngine\CoreSystem\GamePlayBase\UIObjectInterface.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\UIObjectInterface.h>
 #include <ZergEngine\CoreSystem\Manager\UIObjectManager.h>
 
 using namespace ze;
 
-IUIObject::IUIObject(UIOBJECT_FLAG flag, PCWSTR name, uint64_t id, UIOBJECT_TYPE type)
+IUIObject::IUIObject(UIOBJECT_FLAG flag, PCWSTR name, UIOBJECT_TYPE type)
 	: m_transform(this)
-	, m_id(id)
+	, m_id(UIObjectManager.AssignUniqueId())
 	, m_tableIndex(std::numeric_limits<uint32_t>::max())
 	, m_activeIndex(std::numeric_limits<uint32_t>::max())
 	, m_flag(flag)

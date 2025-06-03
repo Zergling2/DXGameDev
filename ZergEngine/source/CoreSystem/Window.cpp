@@ -2,6 +2,7 @@
 #include <ZergEngine\CoreSystem\Runtime.h>
 #include <ZergEngine\CoreSystem\Debug.h>
 #include <ZergEngine\CoreSystem\GraphicDevice.h>
+#include <ZergEngine\CoreSystem\Manager\UIObjectManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\CameraManager.h>
 
 namespace ze
@@ -111,8 +112,8 @@ void WindowImpl::SetResolution(uint32_t width, uint32_t height, WINDOW_MODE mode
     GraphicDevice.OnResize();
     CameraManager.OnResize();    // 카메라 렌더버퍼 재생성, 투영 행렬, D3D11 뷰포트 구조체 업데이트
 
-    // 아래 MoveWindow로 윈도우 크기 조절은 GraphicDevice::OnResize() 에서 SetFullscreenState 처리 뒤 처리해야 한다.
-    if (m_mode == WINDOW_MODE::WINDOWED || m_mode == WINDOW_MODE::WINDOWED_FULLSCREEN)
+    // 아래 MoveWindow로 윈도우 크기 조절은 GraphicDevice::OnResize()에서 SetFullscreenState 처리 뒤 처리해야 한다.
+    if (m_mode != WINDOW_MODE::FULLSCREEN)
     {
         int wndFrameWidth;
         int wndFrameHeight;
@@ -130,13 +131,15 @@ void WindowImpl::SetResolution(uint32_t width, uint32_t height, WINDOW_MODE mode
 
 LRESULT WindowImpl::WinProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+    LRESULT ret = 0;
+
     switch (uMsg)
     {
     case WM_CREATE:
-        return 0;
+        break;
     case WM_DESTROY:
         PostQuitMessage(0);
-        return 0;
+        break;
     case WM_SIZE:
         switch (wParam)
         {
@@ -152,20 +155,44 @@ LRESULT WindowImpl::WinProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         default:
             break;
         }
-        return 0;
+        break;
     case WM_SHOWWINDOW:
-        if (wParam == TRUE)
-            Runtime.EnableRendering();
-        else
+        if (wParam == FALSE)
             Runtime.DisableRendering();
-        return 0;
+        else
+            Runtime.EnableRendering();
+        break;
+    case WM_CHAR:
+        //UIObjectManager.OnWinMsgChar(wParam);
+        break;
+    case WM_LBUTTONDOWN:
+        UIObjectManager.OnWinMsgLButtonDown(wParam, lParam);
+        break;
+    case WM_LBUTTONUP:
+        UIObjectManager.OnWinMsgLButtonUp(wParam, lParam);
+        break;
+    case WM_RBUTTONDOWN:
+        //UIObjectManager.OnWinMsgRButtonDown(wParam, lParam);
+        break;
+    case WM_RBUTTONUP:
+        //UIObjectManager.OnWinMsgRButtonUp(wParam, lParam);
+        break;
+    case WM_MBUTTONDOWN:
+        //UIObjectManager.OnWinMsgMButtonDown(wParam, lParam);
+        break;
+    case WM_MBUTTONUP:
+        //UIObjectManager.OnWinMsgMButtonUp(wParam, lParam);
+        break;
     case WM_ENTERSIZEMOVE:
         Runtime.DisableRendering();
-        return 0;
+        break;
     case WM_EXITSIZEMOVE:
         Runtime.EnableRendering();
-        return 0;
+        break;
     default:
-        return DefWindowProc(hwnd, uMsg, wParam, lParam);
+        ret = DefWindowProc(hwnd, uMsg, wParam, lParam);
+        break;
     }
+
+    return ret;
 }

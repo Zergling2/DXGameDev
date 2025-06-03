@@ -18,4 +18,6 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Light.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\MeshRenderer.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Terrain.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Panel.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Button.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Image.h>

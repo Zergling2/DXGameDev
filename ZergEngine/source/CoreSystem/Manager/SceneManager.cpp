@@ -1,7 +1,7 @@
 #include <ZergEngine\CoreSystem\Manager\SceneManager.h>
 #include <ZergEngine\CoreSystem\Manager\GameObjectManager.h>
 #include <ZergEngine\CoreSystem\Manager\UIObjectManager.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\UIObjectInterface.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\UIObjectInterface.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\CameraManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\MonoBehaviourManager.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>

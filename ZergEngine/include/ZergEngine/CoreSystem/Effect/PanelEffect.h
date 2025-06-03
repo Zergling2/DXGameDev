@@ -5,7 +5,7 @@
 
 namespace ze
 {
-	class ButtonEffect : public IEffect
+	class PanelEffect : public IEffect
 	{
 	private:
 		enum DIRTY_FLAG : DWORD
@@ -14,26 +14,25 @@ namespace ze
 			INPUT_LAYOUT					= 1 << 1,
 			SHADER							= 1 << 2,
 			CONSTANTBUFFER_PER_UI_RENDER	= 1 << 3,
-			CONSTANTBUFFER_PER_BUTTON		= 1 << 4,
+			CONSTANTBUFFER_PER_PANEL		= 1 << 4,
 
 			COUNT,
 
 			ALL = ((COUNT - 1) << 1) - 1
 		};
 	public:
-		ButtonEffect() noexcept
+		PanelEffect() noexcept
 			: m_dirtyFlag(ALL)
 			, m_pInputLayout(nullptr)
 			, m_pVertexShader(nullptr)
 			, m_pPixelShader(nullptr)
 			, m_cbPerUIRender()
-			, m_cbPerButton()
+			, m_cbPerPanel()
 			, m_cbPerUIRenderCache()
-			, m_cbPerButtonCache()
-			, mText()
+			, m_cbPerPanelCache()
 		{
 		}
-		virtual ~ButtonEffect() = default;
+		virtual ~PanelEffect() = default;
 
 		virtual void Init() override;
 		virtual void Release() override;
@@ -41,17 +40,15 @@ namespace ze
 		void SetScreenToNDCSpaceRatio(const XMFLOAT2& ratio) noexcept;
 
 		void XM_CALLCONV SetColor(FXMVECTOR color) noexcept;
-		void SetPressed(bool pressed) noexcept;
 		void XM_CALLCONV SetSize(FXMVECTOR size) noexcept;
 		void XM_CALLCONV SetPreNDCPosition(FXMVECTOR position) noexcept;	// 화면 중앙을 원점으로 하는 NDC 공간으로 변환 직전의 2D 위치 설정
-		void SetText(PCWSTR text) { mText = text; }
 	private:
 		virtual void ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept override;
 		virtual void KickedOutOfDeviceContext() noexcept override;
 
 		void ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept;
 		void ApplyPerUIRenderConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
-		void ApplyPerButtonConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
+		void ApplyPerPanelConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
 	private:
 		DWORD m_dirtyFlag;
 
@@ -60,9 +57,8 @@ namespace ze
 		ID3D11PixelShader* m_pPixelShader;
 
 		ConstantBuffer<CbPerUIRender> m_cbPerUIRender;
-		ConstantBuffer<CbPerButton> m_cbPerButton;
+		ConstantBuffer<CbPerPCQuad> m_cbPerPanel;
 		CbPerUIRender m_cbPerUIRenderCache;
-		CbPerButton m_cbPerButtonCache;
-		std::wstring mText;
+		CbPerPCQuad m_cbPerPanelCache;
 	};
 }

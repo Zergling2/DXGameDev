@@ -1,7 +1,7 @@
 #pragma once
 
 #include <ZergEngine\CoreSystem\GamePlayBase\RectTransform.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\UIObjectType.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\UIObjectType.h>
 
 namespace ze
 {
@@ -32,7 +32,7 @@ namespace ze
 		friend class RendererImpl;
 		friend class RectTransform;
 	protected:
-		IUIObject(UIOBJECT_FLAG flag, PCWSTR name, uint64_t id, UIOBJECT_TYPE type);
+		IUIObject(UIOBJECT_FLAG flag, PCWSTR name, UIOBJECT_TYPE type);
 		virtual ~IUIObject() = default;
 	public:
 		bool IsDontDestroyOnLoad() const { return static_cast<uioft>(m_flag) & static_cast<uioft>(UIOBJECT_FLAG::DONT_DESTROY_ON_LOAD); }
@@ -55,7 +55,10 @@ namespace ze
 		bool IsOnTheDestroyQueue() const { return static_cast<uioft>(m_flag) & static_cast<uioft>(UIOBJECT_FLAG::ON_DESTROY_QUEUE); }
 		bool IsRootObject() const {return static_cast<uioft>(m_flag) & static_cast<uioft>(UIOBJECT_FLAG::REAL_ROOT); }
 
-		virtual bool HitTest(const XMFLOAT2A mousePos) const = 0;
+		virtual bool XM_CALLCONV HitTest(FXMVECTOR mousePosition) const = 0;
+		virtual void OnLButtonDown() {}
+		virtual void OnLButtonUp() {}
+		virtual void OnClick() {}
 		static UIObjectHandle CreateChildUIObjectImpl(IUIObject* pUIObject);
 	public:
 		RectTransform m_transform;

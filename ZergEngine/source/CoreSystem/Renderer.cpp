@@ -15,7 +15,9 @@
 #include <ZergEngine\CoreSystem\Resource\Texture.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Transform.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Panel.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Button.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Image.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Camera.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Light.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\MeshRenderer.h>
@@ -48,7 +50,9 @@ RendererImpl::RendererImpl()
 	// , mTerrainEffect()
 	, m_skyboxEffect()
 	, m_msCameraMergeEffect()
+	, m_panelEffect()
 	, m_buttonEffect()
+	, m_imageEffect()
 	, m_uiRenderQueue()
 {
 	m_uiRenderQueue.reserve(256);
@@ -101,7 +105,9 @@ void RendererImpl::InitializeEffects()
 	m_skyboxEffect.Init();
 	// mTerrainEffect.Init();
 	m_msCameraMergeEffect.Init();
+	m_panelEffect.Init();
 	m_buttonEffect.Init();
+	m_imageEffect.Init();
 }
 
 void RendererImpl::ReleaseEffects()
@@ -114,7 +120,9 @@ void RendererImpl::ReleaseEffects()
 	m_skyboxEffect.Release();
 	// mTerrainEffect.Release();
 	m_msCameraMergeEffect.Release();
+	m_panelEffect.Release();
 	m_buttonEffect.Release();
+	m_imageEffect.Release();
 }
 
 void RendererImpl::Release()
@@ -422,9 +430,9 @@ void RendererImpl::RenderFrame()
 			2.0f / static_cast<float>(GraphicDevice.GetSwapChainDesc().BufferDesc.Width),
 			2.0f / static_cast<float>(GraphicDevice.GetSwapChainDesc().BufferDesc.Height)
 		);
-		// m_panelEffect.SetScreenToNDCSpaceRatio(screenToNDCSpaceRatio);
+		m_panelEffect.SetScreenToNDCSpaceRatio(screenToNDCSpaceRatio);
 		m_buttonEffect.SetScreenToNDCSpaceRatio(screenToNDCSpaceRatio);
-		// m_imageButtonEffect.SetScreenToNDCSpaceRatio(screenToNDCSpaceRatio);
+		m_imageEffect.SetScreenToNDCSpaceRatio(screenToNDCSpaceRatio);
 		// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
 
 		for (const IUIObject* pRootUIObject : UIObjectManager.m_rootUIObjects)
@@ -452,6 +460,7 @@ void RendererImpl::RenderFrame()
 				switch (pUIObject->GetType())
 				{
 				case UIOBJECT_TYPE::PANEL:
+					this->RenderPanel(static_cast<const Panel*>(pUIObject));
 					break;
 				case UIOBJECT_TYPE::BUTTON:
 					this->RenderButton(static_cast<const Button*>(pUIObject));
@@ -459,6 +468,7 @@ void RendererImpl::RenderFrame()
 				case UIOBJECT_TYPE::IMAGE_BUTTON:
 					break;
 				case UIOBJECT_TYPE::IMAGE:
+					this->RenderImage(static_cast<const Image*>(pUIObject));
 					break;
 				case UIOBJECT_TYPE::LABEL:
 					break;
@@ -695,6 +705,16 @@ void RendererImpl::RenderSkybox(ID3D11ShaderResourceView* pSkyboxCubeMapSRV)
 	m_effectImmediateContext.Draw(36, 0);
 }
 
+void RendererImpl::RenderPanel(const Panel* pPanel)
+{
+	m_panelEffect.SetColor(pPanel->GetColor());
+	m_panelEffect.SetPreNDCPosition(pPanel->m_transform.GetPreNDCPosition());
+	m_panelEffect.SetSize(pPanel->GetSize());
+
+	m_effectImmediateContext.Apply(&m_panelEffect);
+	m_effectImmediateContext.Draw(4, 0);
+}
+
 void RendererImpl::RenderButton(const Button* pButton)
 {
 	ID3D11Buffer* vbs[] = { m_pButtonVB };
@@ -705,11 +725,21 @@ void RendererImpl::RenderButton(const Button* pButton)
 
 	m_buttonEffect.SetPressed(pButton->IsPressed());
 	m_buttonEffect.SetColor(pButton->GetColor());
-	m_buttonEffect.SetScreenPosition(pButton->m_transform.GetScreenPosition());
+	m_buttonEffect.SetPreNDCPosition(pButton->m_transform.GetPreNDCPosition());
 	m_buttonEffect.SetSize(pButton->GetSize());
 
 	m_effectImmediateContext.Apply(&m_buttonEffect);
 	m_effectImmediateContext.Draw(30, 0);
+}
+
+void RendererImpl::RenderImage(const Image* pImage)
+{
+	m_imageEffect.SetPreNDCPosition(pImage->m_transform.GetPreNDCPosition());
+	m_imageEffect.SetSize(pImage->GetSize());
+	m_imageEffect.SetImageTexture(pImage->GetTexture());
+
+	m_effectImmediateContext.Apply(&m_imageEffect);
+	m_effectImmediateContext.Draw(4, 0);
 }
 
 /*

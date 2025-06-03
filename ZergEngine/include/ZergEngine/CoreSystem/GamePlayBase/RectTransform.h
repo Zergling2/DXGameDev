@@ -27,6 +27,7 @@ namespace ze
 		friend class UIObjectManagerImpl;
 		friend class SceneManagerImpl;
 		friend class RendererImpl;
+		friend class ISizeColorUIObject;
 	public:
 		RectTransform(IUIObject* pUIObject) noexcept
 			: m_pUIObject(pUIObject)
@@ -47,7 +48,6 @@ namespace ze
 		void SetHorizontalAnchor(HORIZONTAL_ANCHOR ha) { m_ha = ha; }
 		void SetVerticalAnchor(VERTICAL_ANCHOR va) { m_va = va; }
 		XMVECTOR XM_CALLCONV GetLocalPosition() const { return XMLoadFloat2(&m_position); }
-		XMVECTOR XM_CALLCONV GetScreenPosition() const;
 
 		void XM_CALLCONV Translate(FXMVECTOR translation) { XMStoreFloat2(&m_position, XMVectorAdd(XMLoadFloat2(&m_position), translation)); }
 		void XM_CALLCONV SetPosition(FXMVECTOR position) { XMStoreFloat2(&m_position, position); }
@@ -59,6 +59,9 @@ namespace ze
 		bool IsDescendantOf(RectTransform* pTransform) const;
 
 		// UIObjectHandle GetChild(uint32_t index);
+	private:
+		XMVECTOR XM_CALLCONV GetPreNDCPosition() const;
+		XMVECTOR XM_CALLCONV GetScreenPosition() const;
 	private:
 		IUIObject* m_pUIObject;
 		RectTransform* m_pParentTransform;

@@ -16,7 +16,19 @@ void SpaceTestScene::OnLoadScene()
 		auto pSceneChanger = hSceneChanger.ToPtr();
 		pSceneChanger->AddComponent<SceneChange>();
 	}
-	
+
+
+	{
+		auto hSun = CreateGameObject(L"Sun");
+		auto pSun = hSun.ToPtr();
+		ComponentHandle<DirectionalLight> hLight = pSun->AddComponent<DirectionalLight>();
+		auto pLight = hLight.ToPtr();
+		pLight->m_ambient = XMFLOAT4A(1.0f, 1.0f, 1.0f, 1.0f);
+		pLight->m_diffuse = XMFLOAT4A(1.0f, 1.0f, 1.0f, 1.0f);
+		pLight->m_specular = XMFLOAT4A(1.0f, 1.0f, 1.0f, 1.0f);
+		pSun->AddComponent<SunScript>();
+	}
+
 
 	{
 		auto hCamera = CreateGameObject(L"Camera");
@@ -48,6 +60,40 @@ void SpaceTestScene::OnLoadScene()
 		material->m_specular = XMFLOAT4A(0.2f, 0.2f, 0.2f, 16.0f);
 		material->m_diffuseMap = Resource.LoadTexture(L"Resource\\Model\\planet\\RinglessPlanetA_Diffuse.png");
 		pMeshRenderer->m_mesh->m_subsets[0].m_material = material;
+	}
+
+	{
+		auto meshes = Resource.LoadWavefrontOBJ(L"Resource\\Model\\weapons\\m762.obj");
+
+		{
+			auto hWeaponMagazine = CreateGameObject(L"Magazine");
+			auto* pWeaponMagazine = hWeaponMagazine.ToPtr();
+			pWeaponMagazine->m_transform.SetPosition(XMFLOAT3A(0.0f, 0.0f, 2.0f));
+			pWeaponMagazine->m_transform.SetRotation(XMFLOAT3A(0.0f, XMConvertToRadians(45.0f), 0.0f));
+			auto hMeshRenderer = pWeaponMagazine->AddComponent<MeshRenderer>();
+			auto pMeshRenderer = hMeshRenderer.ToPtr();
+			pMeshRenderer->m_mesh = meshes[0];
+			auto material = Resource.CreateMaterial();
+			material->m_ambient = XMFLOAT4A(0.25f, 0.25f, 0.25f, 1.0f);
+			material->m_diffuse = XMFLOAT4A(0.85f, 0.85f, 0.85f, 1.0f);
+			material->m_specular = XMFLOAT4A(0.5f, 0.5f, 0.5f, 55.0f);
+			pMeshRenderer->m_mesh->m_subsets[0].m_material = material;
+		}
+
+		{
+			auto hWeapon = CreateGameObject(L"Weapon");
+			auto* pWeapon = hWeapon.ToPtr();
+			pWeapon->m_transform.SetPosition(XMFLOAT3A(0.0f, 0.0f, 2.0f));
+			pWeapon->m_transform.SetRotation(XMFLOAT3A(0.0f, XMConvertToRadians(45.0f), 0.0f));
+			auto hMeshRenderer = pWeapon->AddComponent<MeshRenderer>();
+			auto pMeshRenderer = hMeshRenderer.ToPtr();
+			pMeshRenderer->m_mesh = meshes[1];
+			auto material = Resource.CreateMaterial();
+			material->m_ambient = XMFLOAT4A(0.25f, 0.25f, 0.25f, 1.0f);
+			material->m_diffuse = XMFLOAT4A(0.85f, 0.85f, 0.85f, 1.0f);
+			material->m_specular = XMFLOAT4A(0.5f, 0.5f, 0.5f, 55.0f);
+			pMeshRenderer->m_mesh->m_subsets[0].m_material = material;
+		}
 	}
 	
 

@@ -222,6 +222,19 @@ hlslstruct CbPerUIRender
     XMFLOAT2 toNDCSpaceRatio;
 };
 
+hlslstruct CbPerPCQuad
+{
+	XMFLOAT4A color;
+	XMFLOAT2 size;
+	XMFLOAT2 position;
+};
+
+hlslstruct CbPerPTQuad
+{
+	XMFLOAT2 size;
+	XMFLOAT2 position;
+};
+
 hlslstruct CbPerButton
 {
     XMFLOAT4A color;

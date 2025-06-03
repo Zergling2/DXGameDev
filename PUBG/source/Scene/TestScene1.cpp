@@ -16,13 +16,37 @@ void TestScene1::OnLoadScene()
 	std::shared_ptr<Material> parkinglotMat;
 
 	{
+		UIObjectHandle hGreenPanel = CreatePanel();
+		Panel* pGreenPanel = static_cast<Panel*>(hGreenPanel.ToPtr());
+		pGreenPanel->SetSize(XMFLOAT2(600, 600));
+		pGreenPanel->SetColor(XMVectorSet(0.25f, 0.75f, 0.25f, 0.5f));
+		pGreenPanel->m_transform.SetHorizontalAnchor(HORIZONTAL_ANCHOR::CENTER);
+		pGreenPanel->m_transform.SetVerticalAnchor(VERTICAL_ANCHOR::VCENTER);
+		pGreenPanel->m_transform.m_position.x = 0.0f;
+		pGreenPanel->m_transform.m_position.y = 0.0f;
+	}
+
+	{
+		UIObjectHandle hImage = CreateImage();
+		Image* pImage = static_cast<Image*>(hImage.ToPtr());
+		pImage->SetSize(XMFLOAT2(1280, 720));
+		Texture2D tex = Resource.LoadTexture(L"Resource\\test.png");
+		pImage->SetTexture(tex);
+		pImage->SetNativeSize(true);
+		pImage->m_transform.SetHorizontalAnchor(HORIZONTAL_ANCHOR::RIGHT);
+		pImage->m_transform.SetVerticalAnchor(VERTICAL_ANCHOR::TOP);
+		pImage->m_transform.m_position.x = -300;
+		pImage->m_transform.m_position.y = -100;
+	}
+
+	{
 		UIObjectHandle hButtonA = CreateButton();
 		Button* pButtonA = static_cast<Button*>(hButtonA.ToPtr());
 		pButtonA->SetSize(XMFLOAT2(200, 40));
 		pButtonA->SetColor(XMVectorSet(0.75f, 0.25f, 0.25f, 0.5f));
-		pButtonA->m_transform.SetHorizontalAnchor(HORIZONTAL_ANCHOR::LEFT);
+		pButtonA->m_transform.SetHorizontalAnchor(HORIZONTAL_ANCHOR::RIGHT);
 		pButtonA->m_transform.SetVerticalAnchor(VERTICAL_ANCHOR::BOTTOM);
-		pButtonA->m_transform.m_position.x = +110.0f;
+		pButtonA->m_transform.m_position.x = -110.0f;
 		pButtonA->m_transform.m_position.y = +30.0f;
 	}
 	

@@ -4,7 +4,7 @@
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\ComponentManagerMap.h>
 #include <ZergEngine\CoreSystem\Manager\UIObjectManager.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\UIObjectInterface.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\UIObjectInterface.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\ComponentInterface.h>
 
 using namespace ze;

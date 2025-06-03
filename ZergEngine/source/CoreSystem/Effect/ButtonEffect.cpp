@@ -54,7 +54,7 @@ void XM_CALLCONV ButtonEffect::SetSize(FXMVECTOR size) noexcept
 	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_BUTTON;
 }
 
-void XM_CALLCONV ButtonEffect::SetScreenPosition(FXMVECTOR position) noexcept
+void XM_CALLCONV ButtonEffect::SetPreNDCPosition(FXMVECTOR position) noexcept
 {
 	XMStoreFloat2(&m_cbPerButtonCache.position, position);
 

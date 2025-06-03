@@ -1,11 +1,11 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\RectTransform.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\UIObjectInterface.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\UIObjectInterface.h>
 #include <ZergEngine\CoreSystem\Window.h>
 #include <ZergEngine\CoreSystem\Manager\UIObjectManager.h>
 
 using namespace ze;
 
-XMVECTOR XM_CALLCONV RectTransform::GetScreenPosition() const
+XMVECTOR XM_CALLCONV RectTransform::GetPreNDCPosition() const
 {
     XMFLOAT2A basis;
 
@@ -32,6 +32,39 @@ XMVECTOR XM_CALLCONV RectTransform::GetScreenPosition() const
         break;
     case VERTICAL_ANCHOR::BOTTOM:
         basis.y = -Window.GetHalfHeightFloat();
+        break;
+    }
+
+    return XMVectorAdd(XMLoadFloat2A(&basis), XMLoadFloat2(&m_position));
+}
+
+XMVECTOR XM_CALLCONV RectTransform::GetScreenPosition() const
+{
+    XMFLOAT2A basis;
+
+    switch (m_ha)
+    {
+    case HORIZONTAL_ANCHOR::LEFT:
+        basis.x = 0.0f;
+        break;
+    case HORIZONTAL_ANCHOR::CENTER:
+        basis.x = Window.GetHalfWidthFloat();
+        break;
+    case HORIZONTAL_ANCHOR::RIGHT:
+        basis.x = Window.GetWidthFloat();
+        break;
+    }
+
+    switch (m_va)
+    {
+    case VERTICAL_ANCHOR::TOP:
+        basis.y = Window.GetHeightFloat();
+        break;
+    case VERTICAL_ANCHOR::VCENTER:
+        basis.y = Window.GetHalfHeightFloat();;
+        break;
+    case VERTICAL_ANCHOR::BOTTOM:
+        basis.y = 0.0f;
         break;
     }
 

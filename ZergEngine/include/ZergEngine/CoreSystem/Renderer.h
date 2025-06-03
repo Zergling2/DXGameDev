@@ -9,13 +9,17 @@
 #include <ZergEngine\CoreSystem\Effect\BasicEffectPNT.h>
 #include <ZergEngine\CoreSystem\Effect\SkyboxEffect.h>
 #include <ZergEngine\CoreSystem\Effect\MSCameraMergeEffect.h>
+#include <ZergEngine\CoreSystem\Effect\PanelEffect.h>
 #include <ZergEngine\CoreSystem\Effect\ButtonEffect.h>
+#include <ZergEngine\CoreSystem\Effect\ImageEffect.h>
 
 namespace ze
 {
 	class MeshRenderer;
 	class IUIObject;
+	class Panel;
 	class Button;
+	class Image;
 
 	class RendererImpl : public ISubsystem
 	{
@@ -36,7 +40,9 @@ namespace ze
 		void RenderVFPositionTexCoordMesh(const MeshRenderer* pMeshRenderer);
 		void RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshRenderer);
 		void RenderSkybox(ID3D11ShaderResourceView* pSkyboxCubeMapSRV);
+		void RenderPanel(const Panel* pPanel);
 		void RenderButton(const Button* pButton);
+		void RenderImage(const Image* pImage);
 	private:
 		ID3D11RasterizerState* m_pCullBackRS;
 		ID3D11RasterizerState* m_pCullNoneRS;
@@ -60,7 +66,9 @@ namespace ze
 		// TerrainEffect mTerrainEffect;
 		SkyboxEffect m_skyboxEffect;
 		MSCameraMergeEffect m_msCameraMergeEffect;
+		PanelEffect m_panelEffect;
 		ButtonEffect m_buttonEffect;
+		ImageEffect m_imageEffect;
 		std::vector<const IUIObject*> m_uiRenderQueue;
 	};
 

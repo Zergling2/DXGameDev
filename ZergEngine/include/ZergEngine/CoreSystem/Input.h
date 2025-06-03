@@ -160,24 +160,36 @@ namespace ze
 		KEY_MEDIASELECT		= 0xED		/* Media Select */
 	};
 
-	enum MOUSE_BUTTON
+	enum class MOUSE_BUTTON
 	{
-		MOUSE_LBUTTON = 0,
-		MOUSE_RBUTTON = 1,
-		MOUSE_MBUTTON = 2,
+		LBUTTON = 0,
+		RBUTTON = 1,
+		MBUTTON = 2,
 
 		COUNT
+	};
+
+	enum class INPUT_MODE
+	{
+		GAMEPLAY,
+		UI_INPUT_WAITING,
 	};
 
 	class InputImpl : public ISubsystem
 	{
 		friend class RuntimeImpl;
+		friend class UIObjectManagerImpl;
 		ZE_DECLARE_SINGLETON(InputImpl);
 	private:
 		virtual void Init(void* pDesc) override;
 		virtual void Release() override;
 
+		void SetMode(INPUT_MODE mode) { m_mode = mode; }
+		INPUT_MODE GetMode() const { return m_mode; }
 		void Update();
+
+		void ClearInput();
+		const POINT GetMousePositionInteger() const { return m_mousePosition; }
 	public:
 		bool GetKey(KEYCODE code) const;
 		bool GetKeyDown(KEYCODE code) const;
@@ -187,20 +199,22 @@ namespace ze
 		bool GetMouseButtonDown(MOUSE_BUTTON button) const;
 		bool GetMouseButtonUp(MOUSE_BUTTON button) const;
 
-		inline int32_t GetMouseAxisHorizontal() const { return m_currMouseState.lX; }
-		inline int32_t GetMouseAxisVertical() const { return m_currMouseState.lY; }
-		inline int32_t GetMouseWheel() const { return m_currMouseState.lZ; }
+		int32_t GetMouseAxisHorizontal() const { return m_currMouseState.lX; }
+		int32_t GetMouseAxisVertical() const { return m_currMouseState.lY; }
+		int32_t GetMouseWheel() const { return m_currMouseState.lZ; }
 
-		inline const POINT GetMouseCursorPosition() { return m_cursorPos; }
+		XMVECTOR XM_CALLCONV GetMousePosition() const { return XMLoadFloat3A(&m_mousePositionFlt); }
 	private:
+		INPUT_MODE m_mode;
 		ComPtr<IDirectInput8> m_cpDirectInput;
 		ComPtr<IDirectInputDevice8> m_cpDIKeyboard;
 		ComPtr<IDirectInputDevice8> m_cpDIMouse;
 		alignas(16) byte m_prevKeyState[256];
 		alignas(16) byte m_currKeyState[256];
-		BYTE m_prevMouseBtnState[_countof(DIMOUSESTATE2::rgbButtons)];
+		alignas(16) BYTE m_prevMouseBtnState[_countof(DIMOUSESTATE2::rgbButtons)];
 		alignas(16) DIMOUSESTATE2 m_currMouseState;
-		POINT m_cursorPos;
+		XMFLOAT3A m_mousePositionFlt;
+		POINT m_mousePosition;
 	};
 
 	extern InputImpl Input;

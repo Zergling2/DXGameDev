@@ -19,62 +19,62 @@ cbuffer Cb0 : register(b0)
 #define RIGHT_BOTTOM_BACK   float3(+1.0f, -1.0f, -1.0f)
 #define RIGHT_TOP_BACK      float3(+1.0f, +1.0f, -1.0f)
 
+// Inside facing box
+// TRIANGLELIST!
+static const float3 g_skyboxVertices[36] =
+{
+    LEFT_BOTTOM_FRONT,
+    LEFT_TOP_FRONT,
+    RIGHT_BOTTOM_FRONT,
+    
+    RIGHT_TOP_FRONT,
+    RIGHT_BOTTOM_FRONT,
+    LEFT_TOP_FRONT,
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    RIGHT_BOTTOM_FRONT,
+    RIGHT_TOP_FRONT,
+    RIGHT_BOTTOM_BACK,
+    
+    RIGHT_TOP_BACK,
+    RIGHT_BOTTOM_BACK,
+    RIGHT_TOP_FRONT,
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    RIGHT_BOTTOM_BACK,
+    RIGHT_TOP_BACK,
+    LEFT_BOTTOM_BACK,
+    
+    LEFT_TOP_BACK,
+    LEFT_BOTTOM_BACK,
+    RIGHT_TOP_BACK,
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    LEFT_BOTTOM_BACK,
+    LEFT_TOP_BACK,
+    LEFT_BOTTOM_FRONT,
+    
+    LEFT_TOP_FRONT,
+    LEFT_BOTTOM_FRONT,
+    LEFT_TOP_BACK,
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    LEFT_TOP_BACK,
+    RIGHT_TOP_BACK,
+    LEFT_TOP_FRONT,
+    
+    RIGHT_TOP_FRONT,
+    LEFT_TOP_FRONT,
+    RIGHT_TOP_BACK,
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    LEFT_BOTTOM_BACK,
+    LEFT_BOTTOM_FRONT,
+    RIGHT_BOTTOM_BACK,
+    
+    RIGHT_BOTTOM_FRONT,
+    RIGHT_BOTTOM_BACK,
+    LEFT_BOTTOM_FRONT
+};
+
 PSInputSkyboxFragment main(uint vertexId : SV_VertexID)
 {
     PSInputSkyboxFragment output;
-    
-    // Inside facing
-    // TRIANGLELIST
-    float3 skyboxVertices[36] =
-    {
-        LEFT_BOTTOM_FRONT,
-        LEFT_TOP_FRONT,
-        RIGHT_BOTTOM_FRONT,
-        
-        RIGHT_TOP_FRONT,
-        RIGHT_BOTTOM_FRONT,
-        LEFT_TOP_FRONT,
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        RIGHT_BOTTOM_FRONT,
-        RIGHT_TOP_FRONT,
-        RIGHT_BOTTOM_BACK,
-        
-        RIGHT_TOP_BACK,
-        RIGHT_BOTTOM_BACK,
-        RIGHT_TOP_FRONT,
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        RIGHT_BOTTOM_BACK,
-        RIGHT_TOP_BACK,
-        LEFT_BOTTOM_BACK,
-        
-        LEFT_TOP_BACK,
-        LEFT_BOTTOM_BACK,
-        RIGHT_TOP_BACK,
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        LEFT_BOTTOM_BACK,
-        LEFT_TOP_BACK,
-        LEFT_BOTTOM_FRONT,
-        
-        LEFT_TOP_FRONT,
-        LEFT_BOTTOM_FRONT,
-        LEFT_TOP_BACK,
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        LEFT_TOP_BACK,
-        RIGHT_TOP_BACK,
-        LEFT_TOP_FRONT,
-        
-        RIGHT_TOP_FRONT,
-        LEFT_TOP_FRONT,
-        RIGHT_TOP_BACK,
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        LEFT_BOTTOM_BACK,
-        LEFT_BOTTOM_FRONT,
-        RIGHT_BOTTOM_BACK,
-        
-        RIGHT_BOTTOM_FRONT,
-        RIGHT_BOTTOM_BACK,
-        LEFT_BOTTOM_FRONT
-    };
     
     float4x4 w = float4x4(
         float4(1.0f, 0.0f, 0.0f, 0.0f),
@@ -84,8 +84,8 @@ PSInputSkyboxFragment main(uint vertexId : SV_VertexID)
     );
     float4x4 wvp = mul(w, cb_perCamera.vp);
     
-    output.posH = mul(float4(skyboxVertices[vertexId], 1.0f), wvp).xyww; // z = w ==> z / w = 1.0f ==> far plane에 위치
-    output.posL = skyboxVertices[vertexId];
+    output.posH = mul(float4(g_skyboxVertices[vertexId], 1.0f), wvp).xyww; // z = w ==> z / w = 1.0f ==> far plane에 위치
+    output.posL = g_skyboxVertices[vertexId];
     
     return output;
 }
