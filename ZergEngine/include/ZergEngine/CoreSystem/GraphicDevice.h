@@ -12,6 +12,7 @@ namespace ze
 	{
 		friend class RuntimeImpl;
 		friend class WindowImpl;
+		friend class RendererImpl;
 		ZE_DECLARE_SINGLETON(GraphicDeviceImpl);
 	private:
 		virtual void Init(void* pDesc) override;
@@ -43,8 +44,11 @@ namespace ze
 		void CreateSupportedResolutionInfo();
 		void CreateSupportedMSAAQualityInfo();
 		void InitializeSwapChainAndDepthStencilBufferDesc();
+
+		void RequestRecreateTarget() {}
 	public:
 		// Return max quality level
+		DXGI_FORMAT GetBackBufferFormat() const { return m_backBufferFormat; }
 		UINT GetMSAAMaximumQuality(MSAA_SAMPLE_COUNT sampleCount);
 		const DXGI_SWAP_CHAIN_DESC& GetSwapChainDesc() { return m_descSwapChain; }
 		const D3D11_VIEWPORT& GetFullSwapChainViewport() const { return m_fullSwapChainViewport; }
@@ -54,6 +58,11 @@ namespace ze
 		IDXGISwapChain* GetSwapChainComInterface() const { return m_pSwapChain; }
 		ID3D11RenderTargetView* GetSwapChainRTVComInterface() const { return m_pSwapChainRTV; }
 		ID3D11DepthStencilView* GetSwapChainDSVComInterface() const { return m_pSwapChainDSV; }
+		ID3D11RenderTargetView* GetSwapChainRTV() const { return m_pSwapChainRTV; }
+		ID3D11DepthStencilView* GetSwapChainDSV() const { return m_pSwapChainDSV; }
+		ID2D1RenderTarget* GetD2DRenderTarget() const { return m_pD2DRenderTarget; }
+		ID2D1SolidColorBrush* GetD2DSolidColorBrush() const { return m_pD2DSolidColorBrush; }
+		IDWriteTextFormat* GetDefaultDWriteTextFormat() const { return m_pDefaultDWriteTextFormat; }
 
 		// Shaders getter
 		ID3D11VertexShader* GetVSComInterface(VERTEX_SHADER_TYPE type) { return m_vs[static_cast<size_t>(type)].GetComInterface(); }
@@ -88,18 +97,26 @@ namespace ze
 			return m_bs[static_cast<size_t>(bst)].GetComInterface();
 		}
 	private:
+		DXGI_FORMAT m_backBufferFormat;
 		DXGI_ADAPTER_DESC m_descAdapter;
 		DXGI_SWAP_CHAIN_DESC m_descSwapChain;
 		D3D11_TEXTURE2D_DESC m_descDepthStencil;
 		D3D11_VIEWPORT m_fullSwapChainViewport;
 		ID3D11Device* m_pDevice;
 		ID3D11DeviceContext* m_pImmediateContext;
+		ID2D1Factory* m_pD2DFactory;
+		IDWriteFactory* m_pDWriteFactory;
 		std::vector<DXGI_MODE_DESC> m_supportedResolution;
 		std::vector<std::pair<MSAA_SAMPLE_COUNT, UINT>> m_supportedMSAA;
 		IDXGISwapChain* m_pSwapChain;
 		// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
 		ID3D11RenderTargetView* m_pSwapChainRTV;
 		ID3D11DepthStencilView* m_pSwapChainDSV;
+		// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
+		ID2D1RenderTarget* m_pD2DRenderTarget;
+		ID2D1SolidColorBrush* m_pD2DSolidColorBrush;
+		IDWriteTextFormat* m_pDefaultDWriteTextFormat;
+		// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
 
 		VertexShader m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::COUNT)];
 		HullShader m_hs[static_cast<size_t>(HULL_SHADER_TYPE::COUNT)];

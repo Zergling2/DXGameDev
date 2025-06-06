@@ -38,7 +38,7 @@ XMVECTOR XM_CALLCONV RectTransform::GetPreNDCPosition() const
     return XMVectorAdd(XMLoadFloat2A(&basis), XMLoadFloat2(&m_position));
 }
 
-XMVECTOR XM_CALLCONV RectTransform::GetScreenPosition() const
+XMVECTOR XM_CALLCONV RectTransform::GetUnityScreenPosition() const
 {
     XMFLOAT2A basis;
 
@@ -69,6 +69,40 @@ XMVECTOR XM_CALLCONV RectTransform::GetScreenPosition() const
     }
 
     return XMVectorAdd(XMLoadFloat2A(&basis), XMLoadFloat2(&m_position));
+}
+
+XMVECTOR XM_CALLCONV RectTransform::GetWindowsScreenPosition() const
+{
+    XMFLOAT2A basis;
+    XMFLOAT2A windowsPosition(m_position.x, -m_position.y);
+
+    switch (m_ha)
+    {
+    case HORIZONTAL_ANCHOR::LEFT:
+        basis.x = 0.0f;
+        break;
+    case HORIZONTAL_ANCHOR::CENTER:
+        basis.x = Window.GetHalfWidthFloat();
+        break;
+    case HORIZONTAL_ANCHOR::RIGHT:
+        basis.x = Window.GetWidthFloat();
+        break;
+    }
+
+    switch (m_va)
+    {
+    case VERTICAL_ANCHOR::TOP:
+        basis.y = 0.0f;
+        break;
+    case VERTICAL_ANCHOR::VCENTER:
+        basis.y = Window.GetHalfHeightFloat();
+        break;
+    case VERTICAL_ANCHOR::BOTTOM:
+        basis.y = Window.GetHeightFloat();
+        break;
+    }
+
+    return XMVectorAdd(XMLoadFloat2A(&basis), XMLoadFloat2A(&windowsPosition));
 }
 
 bool RectTransform::SetParent(RectTransform* pTransform)

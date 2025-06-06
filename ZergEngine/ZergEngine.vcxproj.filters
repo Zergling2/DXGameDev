@@ -339,9 +339,6 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\Terrain.h">
       <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\Component</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\PanelEffect.h">
-      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
-    </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Transform.h">
       <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\GamePlayBase</Filter>
     </ClInclude>
@@ -554,9 +551,6 @@
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\Terrain.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\Component</Filter>
     </ClCompile>
-    <ClCompile Include="source\CoreSystem\Effect\PanelEffect.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
-    </ClCompile>
     <ClCompile Include="source\CoreSystem\GamePlayBase\Transform.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\GamePlayBase</Filter>
     </ClCompile>
@@ -645,13 +639,10 @@
     <FxCompile Include="source\CoreSystem\ShaderCode\PSColorButtonFragment.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformPCQuadToHCS.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorPTUIQuad.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
     <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformPTQuadToHCS.hlsl">
-      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
-    </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorPTUIQuad.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
   </ItemGroup>

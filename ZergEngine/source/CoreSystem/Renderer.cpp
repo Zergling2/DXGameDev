@@ -50,7 +50,6 @@ RendererImpl::RendererImpl()
 	// , mTerrainEffect()
 	, m_skyboxEffect()
 	, m_msCameraMergeEffect()
-	, m_panelEffect()
 	, m_buttonEffect()
 	, m_imageEffect()
 	, m_uiRenderQueue()
@@ -105,7 +104,6 @@ void RendererImpl::InitializeEffects()
 	m_skyboxEffect.Init();
 	// mTerrainEffect.Init();
 	m_msCameraMergeEffect.Init();
-	m_panelEffect.Init();
 	m_buttonEffect.Init();
 	m_imageEffect.Init();
 }
@@ -120,7 +118,6 @@ void RendererImpl::ReleaseEffects()
 	m_skyboxEffect.Release();
 	// mTerrainEffect.Release();
 	m_msCameraMergeEffect.Release();
-	m_panelEffect.Release();
 	m_buttonEffect.Release();
 	m_imageEffect.Release();
 }
@@ -430,11 +427,11 @@ void RendererImpl::RenderFrame()
 			2.0f / static_cast<float>(GraphicDevice.GetSwapChainDesc().BufferDesc.Width),
 			2.0f / static_cast<float>(GraphicDevice.GetSwapChainDesc().BufferDesc.Height)
 		);
-		m_panelEffect.SetScreenToNDCSpaceRatio(screenToNDCSpaceRatio);
 		m_buttonEffect.SetScreenToNDCSpaceRatio(screenToNDCSpaceRatio);
 		m_imageEffect.SetScreenToNDCSpaceRatio(screenToNDCSpaceRatio);
 		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+		// 모든 루트 UI오브젝트들부터 순회하며 자식 UI까지 렌더링
 		for (const IUIObject* pRootUIObject : UIObjectManager.m_rootUIObjects)
 		{
 			assert(pRootUIObject->IsRootObject());
@@ -460,7 +457,8 @@ void RendererImpl::RenderFrame()
 				switch (pUIObject->GetType())
 				{
 				case UIOBJECT_TYPE::PANEL:
-					this->RenderPanel(static_cast<const Panel*>(pUIObject));
+					if (this->RenderPanel(static_cast<const Panel*>(pUIObject)) == D2DERR_RECREATE_TARGET)
+						GraphicDevice.RequestRecreateTarget();
 					break;
 				case UIOBJECT_TYPE::BUTTON:
 					this->RenderButton(static_cast<const Button*>(pUIObject));
@@ -479,6 +477,8 @@ void RendererImpl::RenderFrame()
 				}
 				++index;
 			}
+
+			// 다음 프레임을 위해 큐 클리어
 			m_uiRenderQueue.clear();
 		}
 	}
@@ -705,18 +705,44 @@ void RendererImpl::RenderSkybox(ID3D11ShaderResourceView* pSkyboxCubeMapSRV)
 	m_effectImmediateContext.Draw(36, 0);
 }
 
-void RendererImpl::RenderPanel(const Panel* pPanel)
+HRESULT RendererImpl::RenderPanel(const Panel* pPanel)
 {
-	m_panelEffect.SetColor(pPanel->GetColor());
-	m_panelEffect.SetPreNDCPosition(pPanel->m_transform.GetPreNDCPosition());
-	m_panelEffect.SetSize(pPanel->GetSize());
+	ID2D1RenderTarget* pD2DRenderTarget = GraphicDevice.GetD2DRenderTarget();
+	ID2D1SolidColorBrush* pSolidColorBrush = GraphicDevice.GetD2DSolidColorBrush();
+	const RectTransform& transform = pPanel->m_transform;
+	XMFLOAT2A windowsRectCenter;
+	XMStoreFloat2A(&windowsRectCenter, transform.GetWindowsScreenPosition());
 
-	m_effectImmediateContext.Apply(&m_panelEffect);
-	m_effectImmediateContext.Draw(4, 0);
+	D2D1_ROUNDED_RECT shapeInfo;
+	shapeInfo.rect.left = windowsRectCenter.x - pPanel->m_halfSize.x;
+	shapeInfo.rect.right = shapeInfo.rect.left + pPanel->m_size.x;
+	shapeInfo.rect.top = windowsRectCenter.y - pPanel->m_halfSize.y;
+	shapeInfo.rect.bottom = shapeInfo.rect.top + pPanel->m_size.y;
+
+	pSolidColorBrush->SetColor(reinterpret_cast<const D2D1_COLOR_F&>(pPanel->GetColor()));
+
+	pD2DRenderTarget->BeginDraw();
+
+	switch (pPanel->GetShape())
+	{
+	case PANEL_SHAPE::RECTANGLE:
+		pD2DRenderTarget->FillRectangle(&shapeInfo.rect, pSolidColorBrush);
+		break;
+	case PANEL_SHAPE::ROUNDED_RECTANGLE:
+		shapeInfo.radiusX = pPanel->GetRadiusX();
+		shapeInfo.radiusY = pPanel->GetRadiusY();
+		pD2DRenderTarget->FillRoundedRectangle(&shapeInfo, pSolidColorBrush);
+		break;
+	default:
+		break;
+	}
+
+	return pD2DRenderTarget->EndDraw();
 }
 
-void RendererImpl::RenderButton(const Button* pButton)
+HRESULT RendererImpl::RenderButton(const Button* pButton)
 {
+	// 1. 버튼 프레임 렌더링
 	ID3D11Buffer* vbs[] = { m_pButtonVB };
 	UINT strides[] = { sizeof(VFButton) };
 	UINT offsets[] = { 0 };
@@ -724,12 +750,46 @@ void RendererImpl::RenderButton(const Button* pButton)
 	m_effectImmediateContext.IASetVertexBuffers(0, 1, vbs, strides, offsets);
 
 	m_buttonEffect.SetPressed(pButton->IsPressed());
-	m_buttonEffect.SetColor(pButton->GetColor());
+	m_buttonEffect.SetColor(pButton->GetColorVector());
 	m_buttonEffect.SetPreNDCPosition(pButton->m_transform.GetPreNDCPosition());
 	m_buttonEffect.SetSize(pButton->GetSize());
 
 	m_effectImmediateContext.Apply(&m_buttonEffect);
 	m_effectImmediateContext.Draw(30, 0);
+
+	// 2. 버튼 텍스트 렌더링
+	UINT32 textLength = static_cast<UINT32>(wcslen(pButton->GetText()));
+	if (textLength == 0)
+		return S_OK;
+
+	ID2D1RenderTarget* pD2DRenderTarget = GraphicDevice.GetD2DRenderTarget();
+	ID2D1SolidColorBrush* pSolidColorBrush = GraphicDevice.GetD2DSolidColorBrush();
+	const RectTransform& transform = pButton->m_transform;
+	D2D1_RECT_F layoutRect;
+	XMFLOAT2A windowsButtonCenter;
+	XMStoreFloat2A(&windowsButtonCenter, transform.GetWindowsScreenPosition());
+	if (pButton->IsPressed())
+	{
+		windowsButtonCenter.x += 1.0f;
+		windowsButtonCenter.y += 1.0f;
+	}
+
+	layoutRect.left = windowsButtonCenter.x - pButton->m_halfSize.x;
+	layoutRect.right = layoutRect.left + pButton->m_size.x;
+	layoutRect.top = windowsButtonCenter.y - pButton->m_halfSize.y;
+	layoutRect.bottom = layoutRect.top + pButton->m_size.y;
+
+	pSolidColorBrush->SetColor(reinterpret_cast<const D2D1_COLOR_F&>(pButton->GetTextColor()));
+	pD2DRenderTarget->BeginDraw();
+	pD2DRenderTarget->DrawTextW(
+		pButton->GetText(),
+		textLength,
+		GraphicDevice.GetDefaultDWriteTextFormat(),
+		layoutRect,
+		pSolidColorBrush
+	);
+
+	return pD2DRenderTarget->EndDraw();
 }
 
 void RendererImpl::RenderImage(const Image* pImage)

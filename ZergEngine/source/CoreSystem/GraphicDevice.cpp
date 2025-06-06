@@ -25,18 +25,20 @@ static PCWSTR VERTEX_SHADER_FILES[static_cast<size_t>(VERTEX_SHADER_TYPE::COUNT)
 	L"VSTransformPTToHCS.cso",
 	L"VSTransformCameraMergeQuad.cso",
 	L"VSTransformPNTToHCS.cso",
-	L"VSTransformPCQuadToHCS.cso",
-	L"VSTransformPTQuadToHCS.cso",
-	L"VSTransformButtonToHCS.cso"
+	L"VSTransformButtonToHCS.cso",
+	L"VSTransformPTQuadToHCS.cso"
 };
+
 static PCWSTR HULL_SHADER_FILES[static_cast<size_t>(HULL_SHADER_TYPE::COUNT)] =
 {
 	L"HSCalcTerrainTessFactor.cso"
 };
+
 static PCWSTR DOMAIN_SHADER_FILES[static_cast<size_t>(DOMAIN_SHADER_TYPE::COUNT)] =
 {
 	L"DSSampleTerrainHeightMap.cso"
 };
+
 static PCWSTR PIXEL_SHADER_FILES[static_cast<size_t>(PIXEL_SHADER_TYPE::COUNT)] =
 {
 	L"PSColorSkyboxFragment.cso",
@@ -53,21 +55,26 @@ static PCWSTR PIXEL_SHADER_FILES[static_cast<size_t>(PIXEL_SHADER_TYPE::COUNT)] 
 };
 
 // constexpr float allows only one floating point constant to exist in memory, even if it is not encoded in a x86 command.
-constexpr DXGI_FORMAT BACKBUFFER_FORMAT = DXGI_FORMAT_R8G8B8A8_UNORM;
 constexpr uint32_t SWAP_CHAIN_FLAG = 0;
 
 GraphicDeviceImpl::GraphicDeviceImpl()
-	: m_descAdapter()
+	: m_backBufferFormat(DXGI_FORMAT_B8G8R8A8_UNORM)
+	, m_descAdapter()
 	, m_descSwapChain()
 	, m_descDepthStencil()
 	, m_fullSwapChainViewport()
 	, m_pDevice(nullptr)
 	, m_pImmediateContext(nullptr)
+	, m_pD2DFactory(nullptr)
+	, m_pDWriteFactory(nullptr)
 	, m_supportedResolution()
 	, m_supportedMSAA()
 	, m_pSwapChain(nullptr)
 	, m_pSwapChainRTV(nullptr)
 	, m_pSwapChainDSV(nullptr)
+	, m_pD2DRenderTarget(nullptr)
+	, m_pD2DSolidColorBrush(nullptr)
+	, m_pDefaultDWriteTextFormat(nullptr)
 	, m_vs{}
 	, m_hs{}
 	, m_ds{}
@@ -91,10 +98,14 @@ void GraphicDeviceImpl::Init(void* pDesc)
 {
 	HRESULT hr;
 
+	// A. D3D11 蛤夥檜蝶 塽 鐘臢蝶お 儅撩
+	// https://learn.microsoft.com/en-us/windows/win32/api/d2d1/nf-d2d1-id2d1factory-createdxgisurfacerendertarget(idxgisurface_constd2d1_render_target_properties__id2d1rendertarget)?devlangs=cpp&f1url=%3FappId%3DDev17IDEF1%26l%3DEN-US%26k%3Dk(D2D1%2FID2D1Factory%3A%3ACreateDxgiSurfaceRenderTarget)%3Bk(ID2D1Factory%3A%3ACreateDxgiSurfaceRenderTarget)%3Bk(CreateDxgiSurfaceRenderTarget)%3Bk(DevLang-C%2B%2B)%3Bk(TargetOS-Windows)%26rd%3Dtrue
+	// To work with Direct2D, the Direct3D device that provides the IDXGISurface
+	// must be created with the D3D11_CREATE_DEVICE_BGRA_SUPPORT flag.
 #if defined(DEBUG) || defined(_DEBUG)
-	const UINT createDeviceFlag = D3D11_CREATE_DEVICE_DEBUG;
+	const UINT createDeviceFlag = D3D11_CREATE_DEVICE_DEBUG | D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 #else
-	const UINT createDeviceFlag = 0;
+	const UINT createDeviceFlag = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 #endif
 	const D3D_FEATURE_LEVEL featureLevels[] =
 	{
@@ -122,6 +133,34 @@ void GraphicDeviceImpl::Init(void* pDesc)
 	if (maxSupportedFeatureLevel < D3D_FEATURE_LEVEL_11_1)
 		Debug::ForceCrashWithMessageBox(L"Fail", L"Device does not support DirectX 11.1 feature level.");
 
+	// B. D2D Factory 儅撩
+	assert(m_pD2DFactory == nullptr);
+	hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, __uuidof(ID2D1Factory), reinterpret_cast<void**>(&m_pD2DFactory));
+	if (FAILED(hr))
+		Debug::ForceCrashWithHRESULTErrorMessageBox(L"D2D1CreateFactory()", hr);
+
+	// C. DWrite Factory 儅撩 塽 晦獄 臢蝶おん裝 儅撩
+	assert(m_pDWriteFactory == nullptr);
+	hr = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), reinterpret_cast<IUnknown**>(&m_pDWriteFactory));
+	if (FAILED(hr))
+		Debug::ForceCrashWithHRESULTErrorMessageBox(L"DWriteCreateFactory()", hr);
+
+	hr = m_pDWriteFactory->CreateTextFormat(
+		L"蜈擎堅蛐",
+		nullptr,
+		DWRITE_FONT_WEIGHT_REGULAR,
+		DWRITE_FONT_STYLE_NORMAL,
+		DWRITE_FONT_STRETCH_NORMAL,
+		20.0f,
+		L"en-us",
+		&m_pDefaultDWriteTextFormat
+	);
+	if (FAILED(hr))
+		Debug::ForceCrashWithHRESULTErrorMessageBox(L"IDWriteFactory::CreateTextFormat()", hr);
+	m_pDefaultDWriteTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	m_pDefaultDWriteTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+
+
 	// 雖錳腎朝 п鼻紫 跡煙 匐儀
 	this->CreateSupportedResolutionInfo();
 
@@ -130,6 +169,7 @@ void GraphicDeviceImpl::Init(void* pDesc)
 	// and 8x MSAA for all render target formats except R32G32B32A32 formats.
 	this->CreateSupportedMSAAQualityInfo();
 
+	// 蝶諜 羹檣 蛤蝶觼董攪 塽 答蝶蝶蘸褒 幗ぷ 蛤蝶觼董攪 蟾晦��
 	this->InitializeSwapChainAndDepthStencilBufferDesc();
 
 	// 蝶諜 羹檣 儅撩
@@ -140,8 +180,10 @@ void GraphicDeviceImpl::Init(void* pDesc)
 	ComPtr<IDXGIFactory> cpDXGIFactory;
 
 	// Use the IDXGIFactory instance that was used to create the device! (by COM queries)
+	// Device 偌羹諦 翱唸脹 IDXGIFactory 檣攪む檜蝶 偌羹蒂 �僱磈媦� 蝶諜 羹檣擊 儅撩п撿 и棻.
 	do
 	{
+		// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
 		hr = m_pDevice->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void**>(cpDXGIDevice.GetAddressOf()));
 		if (FAILED(hr))
 			break;
@@ -159,12 +201,15 @@ void GraphicDeviceImpl::Init(void* pDesc)
 		if (FAILED(hr))
 			break;
 
-		// Create a swap chain.
+		// 蝶諜 羹檣 儅撩
 		assert(m_pSwapChain == nullptr);
 		hr = cpDXGIFactory->CreateSwapChain(m_pDevice, &m_descSwapChain, &m_pSwapChain);
 		if (FAILED(hr))
 			break;
-
+		// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
+		
+		
+		// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
 		// 蝶諜 羹檣曖 寥幗ぷ縑 渠и 溶渦 顫啃 箔 營儅撩
 		ComPtr<ID3D11Texture2D> cpBackBuffer;
 		hr = m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(cpBackBuffer.GetAddressOf()));
@@ -175,7 +220,9 @@ void GraphicDeviceImpl::Init(void* pDesc)
 		hr = m_pDevice->CreateRenderTargetView(cpBackBuffer.Get(), nullptr, &m_pSwapChainRTV);
 		if (FAILED(hr))
 			break;
+		// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
 
+		// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
 		// 蝶諜 羹檣縑 渠и 溶渦葭縑 餌辨й 答蝶 蝶蘸褒 箔 營儅撩
 		ComPtr<ID3D11Texture2D> cpDepthStencilBuffer;
 		hr = m_pDevice->CreateTexture2D(&m_descDepthStencil, nullptr, cpDepthStencilBuffer.GetAddressOf());
@@ -186,8 +233,42 @@ void GraphicDeviceImpl::Init(void* pDesc)
 		hr = m_pDevice->CreateDepthStencilView(cpDepthStencilBuffer.Get(), nullptr, &m_pSwapChainDSV);
 		if (FAILED(hr))
 			break;
-	} while (false);
+		// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
+		
+		// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
+		// D2D 葬模蝶 儅撩
+		// 
+		// 蝶諜 羹檣曖 寥 幗ぷ縑 渠и Direct2D辨 DXGI Surface 溶渦 顫啃 儅撩
+		ComPtr<IDXGISurface> cpBackBufferSurface;
+		hr = m_pSwapChain->GetBuffer(0, IID_PPV_ARGS(cpBackBufferSurface.GetAddressOf()));
+		if (FAILED(hr))
+			break;
 
+		assert(m_pD2DRenderTarget == nullptr);
+		const D2D1_RENDER_TARGET_PROPERTIES props =
+			D2D1::RenderTargetProperties(
+				D2D1_RENDER_TARGET_TYPE_DEFAULT,
+				D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED)
+			);
+		// Create a Direct2D render target that can draw into the surface in the swap chain
+		hr = m_pD2DFactory->CreateDxgiSurfaceRenderTarget(
+			cpBackBufferSurface.Get(),
+			&props,
+			&m_pD2DRenderTarget
+		);
+		if (FAILED(hr))
+			break;
+
+		assert(m_pD2DSolidColorBrush == nullptr);
+		D2D1_BRUSH_PROPERTIES defaultProps;
+		defaultProps.opacity = 1.0f;
+		defaultProps.transform = D2D1::Matrix3x2F::Identity();
+		D2D1_COLOR_F defaultColor = D2D1_COLOR_F{ 1.0f, 1.0f, 1.0f, 1.0f };
+		hr = m_pD2DRenderTarget->CreateSolidColorBrush(&defaultColor, &defaultProps, &m_pD2DSolidColorBrush);
+		if (FAILED(hr))
+			break;
+	} while (false);
+	
 	if (FAILED(hr))
 		Debug::ForceCrashWithHRESULTErrorMessageBox(L"Failed to create a swap chain.", hr);
 
@@ -276,6 +357,14 @@ void GraphicDeviceImpl::Release()
 	}
 
 	m_supportedMSAA.clear();
+
+	Helper::SafeReleaseCom(m_pDefaultDWriteTextFormat);
+	Helper::SafeReleaseCom(m_pDWriteFactory);
+
+	Helper::SafeReleaseCom(m_pD2DSolidColorBrush);
+	Helper::SafeReleaseCom(m_pD2DRenderTarget);
+	Helper::SafeReleaseCom(m_pD2DFactory);
+
 	Helper::SafeReleaseCom(m_pSwapChain);
 	Helper::SafeReleaseCom(m_pImmediateContext);
 	Helper::SafeReleaseCom(m_pDevice);
@@ -439,25 +528,7 @@ void GraphicDeviceImpl::CreateShaderAndInputLayout()
 	);
 	delete[] pByteCode;
 
-	// 9. TRANSFORM_PC_QUAD_TO_HCS (POSITION, TEXCOORD0, COLOR0)
-	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
-	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_PC_QUAD_TO_HCS)]);
-	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
-		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
-	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_PC_QUAD_TO_HCS)].Init(pDevice, pByteCode, byteCodeSize);
-	// No input layout required.
-	delete[] pByteCode;
-
-	// 10. TRANSFORM_PT_QUAD_TO_HCS (POSITION, TEXCOORD0, COLOR0)
-	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
-	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_PT_QUAD_TO_HCS)]);
-	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
-		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
-	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_PT_QUAD_TO_HCS)].Init(pDevice, pByteCode, byteCodeSize);
-	// No input layout required.
-	delete[] pByteCode;
-
-	// 11. TRANSFORM_BUTTON_TO_HCS (POSITION, TEXCOORD0, COLOR0)
+	// 9. TRANSFORM_BUTTON_TO_HCS (POSITION, TEXCOORD0, COLOR0)
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
 	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_BUTTON_TO_HCS)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
@@ -471,6 +542,14 @@ void GraphicDeviceImpl::CreateShaderAndInputLayout()
 		pByteCode,
 		byteCodeSize
 	);
+	delete[] pByteCode;
+
+	// 10. TRANSFORM_PT_QUAD_TO_HCS
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_PT_QUAD_TO_HCS)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
+	m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_PT_QUAD_TO_HCS)].Init(pDevice, pByteCode, byteCodeSize);
 	delete[] pByteCode;
 
 	// HULL SHADERS
@@ -872,12 +951,12 @@ void GraphicDeviceImpl::CreateSupportedResolutionInfo()
 	// 雖錳腎朝 п鼻紫 跡煙 陛螳螃晦
 	// 試盪 偃熱 �僱�
 	UINT numModes = 0;
-	hr = cpOutput->GetDisplayModeList(BACKBUFFER_FORMAT, 0, &numModes, nullptr);
+	hr = cpOutput->GetDisplayModeList(this->GetBackBufferFormat(), 0, &numModes, nullptr);
 	if (FAILED(hr))
 		Debug::ForceCrashWithHRESULTErrorMessageBox(L"Failed to load display mode list.", hr);
 
 	m_supportedResolution.resize(numModes);
-	hr = cpOutput->GetDisplayModeList(BACKBUFFER_FORMAT, 0, &numModes, m_supportedResolution.data());
+	hr = cpOutput->GetDisplayModeList(this->GetBackBufferFormat(), 0, &numModes, m_supportedResolution.data());
 	if (FAILED(hr))
 		Debug::ForceCrashWithHRESULTErrorMessageBox(L"Failed to load display mode list.", hr);
 }
@@ -895,7 +974,7 @@ void GraphicDeviceImpl::CreateSupportedMSAAQualityInfo()
 	for (UINT i = 0; i < _countof(sc); ++i)
 	{
 		UINT quality;
-		hr = m_pDevice->CheckMultisampleQualityLevels(BACKBUFFER_FORMAT, static_cast<UINT>(sc[i]), &quality);
+		hr = m_pDevice->CheckMultisampleQualityLevels(this->GetBackBufferFormat(), static_cast<UINT>(sc[i]), &quality);
 
 		if (SUCCEEDED(hr) && quality != 0)
 			m_supportedMSAA.push_back(std::make_pair(sc[i], quality - 1));
@@ -909,7 +988,7 @@ void GraphicDeviceImpl::InitializeSwapChainAndDepthStencilBufferDesc()
 	m_descSwapChain.BufferDesc.Height = Window.GetHeightInteger();
 	m_descSwapChain.BufferDesc.RefreshRate.Numerator = 1;
 	m_descSwapChain.BufferDesc.RefreshRate.Denominator = 144;
-	m_descSwapChain.BufferDesc.Format = BACKBUFFER_FORMAT;
+	m_descSwapChain.BufferDesc.Format = this->GetBackBufferFormat();
 	m_descSwapChain.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 	m_descSwapChain.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 
@@ -1115,6 +1194,8 @@ void GraphicDeviceImpl::OnResize()
 	// a command list that executed another command list that used the resource, and so on.
 
 	// 蝶諜 羹檣縑 婦и 葬模蝶蒂 賅舒 п薯
+	Helper::SafeReleaseCom(m_pD2DSolidColorBrush);
+	Helper::SafeReleaseCom(m_pD2DRenderTarget);
 	Helper::SafeReleaseCom(m_pSwapChainDSV);
 	Helper::SafeReleaseCom(m_pSwapChainRTV);
 	// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
@@ -1155,27 +1236,67 @@ void GraphicDeviceImpl::OnResize()
 	m_descDepthStencil.Width = m_descSwapChain.BufferDesc.Width;
 	m_descDepthStencil.Height = m_descSwapChain.BufferDesc.Height;
 
-	// 蝶諜 羹檣曖 寥幗ぷ縑 渠и 溶渦 顫啃 箔 營儅撩
-	ComPtr<ID3D11Texture2D> cpBackBuffer;
-	hr = m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(cpBackBuffer.GetAddressOf()));
-	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"IDXGISwapChain::GetBuffer()", hr);
+	do
+	{
+		// 蝶諜 羹檣曖 寥幗ぷ縑 渠и 溶渦 顫啃 箔 營儅撩
+		ComPtr<ID3D11Texture2D> cpBackBuffer;
+		hr = m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(cpBackBuffer.GetAddressOf()));
+		if (FAILED(hr))
+			break;
 
-	assert(m_pSwapChainRTV == nullptr);
-	hr = m_pDevice->CreateRenderTargetView(cpBackBuffer.Get(), nullptr, &m_pSwapChainRTV);
-	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"ID3D11Device::CreateRenderTargetView()", hr);
+		assert(m_pSwapChainRTV == nullptr);
+		hr = m_pDevice->CreateRenderTargetView(cpBackBuffer.Get(), nullptr, &m_pSwapChainRTV);
+		if (FAILED(hr))
+			break;
 
-	// 蝶諜 羹檣縑 渠и 溶渦葭縑 餌辨й 答蝶 蝶蘸褒 箔 營儅撩
-	ComPtr<ID3D11Texture2D> cpDepthStencilBuffer;
-	hr = m_pDevice->CreateTexture2D(&m_descDepthStencil, nullptr, cpDepthStencilBuffer.GetAddressOf());
-	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"ID3D11Device::CreateTexture2D()", hr);
+		// 蝶諜 羹檣縑 渠и 溶渦葭縑 餌辨й 答蝶 蝶蘸褒 箔 營儅撩
+		ComPtr<ID3D11Texture2D> cpDepthStencilBuffer;
+		hr = m_pDevice->CreateTexture2D(&m_descDepthStencil, nullptr, cpDepthStencilBuffer.GetAddressOf());
+		if (FAILED(hr))
+			break;
 
-	assert(m_pSwapChainDSV == nullptr);
-	hr = m_pDevice->CreateDepthStencilView(cpDepthStencilBuffer.Get(), nullptr, &m_pSwapChainDSV);
+		assert(m_pSwapChainDSV == nullptr);
+		hr = m_pDevice->CreateDepthStencilView(cpDepthStencilBuffer.Get(), nullptr, &m_pSwapChainDSV);
+		if (FAILED(hr))
+			break;
+
+
+		// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
+		// D2D 葬模蝶 營儅撩
+		// 
+		// 蝶諜 羹檣曖 寥 幗ぷ縑 渠и Direct2D辨 DXGI Surface 溶渦 顫啃 儅撩
+		ComPtr<IDXGISurface> cpBackBufferSurface;
+		hr = m_pSwapChain->GetBuffer(0, IID_PPV_ARGS(cpBackBufferSurface.GetAddressOf()));
+		if (FAILED(hr))
+			break;
+
+		assert(m_pD2DRenderTarget == nullptr);
+		const D2D1_RENDER_TARGET_PROPERTIES props =
+			D2D1::RenderTargetProperties(
+				D2D1_RENDER_TARGET_TYPE_DEFAULT,
+				D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED)
+			);
+		// Create a Direct2D render target that can draw into the surface in the swap chain
+		hr = m_pD2DFactory->CreateDxgiSurfaceRenderTarget(
+			cpBackBufferSurface.Get(),
+			&props,
+			&m_pD2DRenderTarget
+		);
+		if (FAILED(hr))
+			break;
+		
+		assert(m_pD2DSolidColorBrush == nullptr);
+		D2D1_BRUSH_PROPERTIES defaultProps;
+		defaultProps.opacity = 1.0f;
+		defaultProps.transform = D2D1::Matrix3x2F::Identity();
+		D2D1_COLOR_F defaultColor = D2D1_COLOR_F{ 1.0f, 1.0f, 1.0f, 1.0f };
+		hr = m_pD2DRenderTarget->CreateSolidColorBrush(&defaultColor, &defaultProps, &m_pD2DSolidColorBrush);
+		if (FAILED(hr))
+			break;
+	} while (false);
+
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"ID3D11Device::CreateDepthStencilView()", hr);
+		Debug::ForceCrashWithHRESULTErrorMessageBox(L"Failed to resize back buffer!", hr);
 	// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
 	
 

@@ -55,7 +55,6 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\MSCameraMergeEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DummyEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\EffectInterface.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\PanelEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\SkyboxEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\UIHitbox.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\ViewportRect.h" />
@@ -131,7 +130,6 @@
     <ClCompile Include="source\CoreSystem\Effect\ImageEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\MSCameraMergeEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\DummyEffect.cpp" />
-    <ClCompile Include="source\CoreSystem\Effect\PanelEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\SkyboxEffect.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\RectTransform.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\UIObjectInterface.cpp" />
@@ -345,25 +343,15 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformPCQuadToHCS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
-    </FxCompile>
     <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformPTQuadToHCS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformSkyboxToHCS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
@@ -523,7 +511,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex_$(Platform)_$(Configuration).lib</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;d2d1.lib;dwrite.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex_$(Platform)_$(Configuration).lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\bullet3\;$(ProjectDir)extlib\lib\DirectXTex\</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
@@ -549,7 +537,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex_$(Platform).lib</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;d2d1.lib;dwrite.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex_$(Platform).lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\bullet3\;$(ProjectDir)extlib\lib\DirectXTex\</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
@@ -570,7 +558,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex_$(Platform)_$(Configuration).lib;BulletDynamics_vs2010_x64_debug.lib;BulletInverseDynamics_vs2010_x64_debug.lib;BulletCollision_vs2010_x64_debug.lib;BulletSoftBody_vs2010_x64_debug.lib;LinearMath_vs2010_x64_debug.lib</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;d2d1.lib;dwrite.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex_$(Platform)_$(Configuration).lib;BulletDynamics_vs2010_x64_debug.lib;BulletInverseDynamics_vs2010_x64_debug.lib;BulletCollision_vs2010_x64_debug.lib;BulletSoftBody_vs2010_x64_debug.lib;LinearMath_vs2010_x64_debug.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\bullet3\;$(ProjectDir)extlib\lib\DirectXTex\</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
@@ -596,7 +584,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex_$(Platform).lib;BulletDynamics_vs2010_x64_release.lib;BulletInverseDynamics_vs2010_x64_release.lib;BulletCollision_vs2010_x64_release.lib;BulletSoftBody_vs2010_x64_release.lib;LinearMath_vs2010_x64_release.lib</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;d2d1.lib;dwrite.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex_$(Platform).lib;BulletDynamics_vs2010_x64_release.lib;BulletInverseDynamics_vs2010_x64_release.lib;BulletCollision_vs2010_x64_release.lib;BulletSoftBody_vs2010_x64_release.lib;LinearMath_vs2010_x64_release.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\bullet3\;$(ProjectDir)extlib\lib\DirectXTex\</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>

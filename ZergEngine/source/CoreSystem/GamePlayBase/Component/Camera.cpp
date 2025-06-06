@@ -152,7 +152,7 @@ HRESULT Camera::CreateBufferAndView()
 		descColorBuffer.Height = static_cast<UINT>(this->CalcBufferHeight());
 		descColorBuffer.MipLevels = 1;
 		descColorBuffer.ArraySize = 1;
-		descColorBuffer.Format = BACKBUFFER_FORMAT;
+		descColorBuffer.Format = GraphicDevice.GetBackBufferFormat();
 		descColorBuffer.SampleDesc.Count = static_cast<UINT>(MSAA_SAMPLE_COUNT::X4);	// (테스트) 4X MSAA에 maximum quailty를 고정으로 사용
 		descColorBuffer.SampleDesc.Quality = GraphicDevice.GetMSAAMaximumQuality(MSAA_SAMPLE_COUNT::X4);	// Use max quality level
 		descColorBuffer.Usage = D3D11_USAGE_DEFAULT;
