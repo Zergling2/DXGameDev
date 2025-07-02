@@ -4,15 +4,20 @@
 
 namespace ze
 {
-	class SpotLightManagerImpl : public IComponentManager
+	class SpotLightManager : public IComponentManager
 	{
-		friend class RuntimeImpl;
+		friend class Runtime;
+		friend class Renderer;
 		friend class SpotLight;
-		ZE_DECLARE_SINGLETON(SpotLightManagerImpl);
+	public:
+		static SpotLightManager* GetInstance() { return s_pInstance; }
 	private:
-		virtual void Init(void* pDesc) override;
-		virtual void Release() override;
-	};
+		SpotLightManager() = default;
+		virtual ~SpotLightManager() = default;
 
-	extern SpotLightManagerImpl SpotLightManager;
+		static void CreateInstance();
+		static void DestroyInstance();
+	private:
+		static SpotLightManager* s_pInstance;
+	};
 }

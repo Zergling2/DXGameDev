@@ -10,7 +10,7 @@ namespace ze
 		BUTTON,
 		IMAGE_BUTTON,
 		IMAGE,
-		LABEL,
-		TEXT_BOX
+		INPUT_FIELD,
+		TEXT
 	};
 }

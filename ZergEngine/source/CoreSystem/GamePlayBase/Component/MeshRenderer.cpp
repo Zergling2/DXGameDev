@@ -4,7 +4,7 @@
 using namespace ze;
 
 MeshRenderer::MeshRenderer() noexcept
-	: IComponent(MeshRendererManager.AssignUniqueId())
+	: IComponent(MeshRendererManager::GetInstance()->AssignUniqueId())
 	, m_castShadows(false)
 	, m_receiveShadows(false)
 {
@@ -12,5 +12,5 @@ MeshRenderer::MeshRenderer() noexcept
 
 IComponentManager* MeshRenderer::GetComponentManager() const
 {
-	return &MeshRendererManager;
+	return MeshRendererManager::GetInstance();
 }

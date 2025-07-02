@@ -7,17 +7,17 @@
 using namespace ze;
 
 DirectionalLight::DirectionalLight() noexcept
-	: ILight(DirectionalLightManager.AssignUniqueId())
+	: ILight(DirectionalLightManager::GetInstance()->AssignUniqueId())
 {
 }
 
 IComponentManager* DirectionalLight::GetComponentManager() const
 {
-	return &DirectionalLightManager;
+	return DirectionalLightManager::GetInstance();
 }
 
 PointLight::PointLight() noexcept
-	: ILight(PointLightManager.AssignUniqueId())
+	: ILight(PointLightManager::GetInstance()->AssignUniqueId())
 	, m_range(1.0f)
 	, m_att(0.0f, 0.0f, 1.0f)
 {
@@ -25,7 +25,7 @@ PointLight::PointLight() noexcept
 
 IComponentManager* PointLight::GetComponentManager() const
 {
-	return &PointLightManager;
+	return PointLightManager::GetInstance();
 }
 
 void PointLight::SetRange(FLOAT range)
@@ -45,7 +45,7 @@ void PointLight::SetAtt(const XMFLOAT3* pAtt)
 }
 
 SpotLight::SpotLight() noexcept
-	: ILight(SpotLightManager.AssignUniqueId())
+	: ILight(SpotLightManager::GetInstance()->AssignUniqueId())
 	, m_range(1.0f)
 	, m_spotExp(4.0f)
 	, m_att(0.0f, 0.0f, 1.0f)
@@ -54,5 +54,5 @@ SpotLight::SpotLight() noexcept
 
 IComponentManager* SpotLight::GetComponentManager() const
 {
-	return &SpotLightManager;
+	return SpotLightManager::GetInstance();
 }

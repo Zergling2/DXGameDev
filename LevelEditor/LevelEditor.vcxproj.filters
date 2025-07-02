@@ -1,90 +1,100 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Files">
+      <UniqueIdentifier>{7f2c4f42-cd63-4aa8-b697-f09c155103ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Files\TransformEdit">
+      <UniqueIdentifier>{d0daf16a-765f-49c9-a294-1d4e70c1a1e7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BufferDC.h">
-      <Filter>Header Files</Filter>
+      <Filter>Files</Filter>
     </ClInclude>
     <ClInclude Include="ComponentListView.h">
-      <Filter>Header Files</Filter>
+      <Filter>Files</Filter>
     </ClInclude>
     <ClInclude Include="framework.h">
-      <Filter>Header Files</Filter>
+      <Filter>Files</Filter>
     </ClInclude>
     <ClInclude Include="Helper.h">
-      <Filter>Header Files</Filter>
+      <Filter>Files</Filter>
     </ClInclude>
     <ClInclude Include="HierarchyTreeView.h">
-      <Filter>Header Files</Filter>
+      <Filter>Files</Filter>
     </ClInclude>
     <ClInclude Include="LevelEditor.h">
-      <Filter>Header Files</Filter>
+      <Filter>Files</Filter>
     </ClInclude>
     <ClInclude Include="LevelEditorDoc.h">
-      <Filter>Header Files</Filter>
+      <Filter>Files</Filter>
     </ClInclude>
     <ClInclude Include="LevelEditorView.h">
-      <Filter>Header Files</Filter>
+      <Filter>Files</Filter>
     </ClInclude>
     <ClInclude Include="LogListView.h">
-      <Filter>Header Files</Filter>
+      <Filter>Files</Filter>
     </ClInclude>
     <ClInclude Include="MainFrm.h">
-      <Filter>Header Files</Filter>
+      <Filter>Files</Filter>
     </ClInclude>
     <ClInclude Include="Resource.h">
-      <Filter>Header Files</Filter>
+      <Filter>Files</Filter>
     </ClInclude>
     <ClInclude Include="Settings.h">
-      <Filter>Header Files</Filter>
+      <Filter>Files</Filter>
     </ClInclude>
     <ClInclude Include="targetver.h">
-      <Filter>Header Files</Filter>
+      <Filter>Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainGenerationDialog.h">
+      <Filter>Files</Filter>
     </ClInclude>
     <ClInclude Include="TransformInspectorFormView.h">
-      <Filter>Header Files</Filter>
+      <Filter>Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TransformEdit\TransformEdit.h">
+      <Filter>Files\TransformEdit</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="LevelEditor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MainFrm.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="LevelEditorDoc.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="LevelEditorView.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TransformInspectorFormView.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="HierarchyTreeView.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="LogListView.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="BufferDC.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Files</Filter>
     </ClCompile>
     <ClCompile Include="ComponentListView.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HierarchyTreeView.cpp">
+      <Filter>Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LevelEditor.cpp">
+      <Filter>Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LevelEditorDoc.cpp">
+      <Filter>Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LevelEditorView.cpp">
+      <Filter>Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LogListView.cpp">
+      <Filter>Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MainFrm.cpp">
+      <Filter>Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainGenerationDialog.cpp">
+      <Filter>Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TransformInspectorFormView.cpp">
+      <Filter>Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TransformEdit\TransformEdit.cpp">
+      <Filter>Files\TransformEdit</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -108,6 +118,9 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\ZEPackedIcon.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\ZergEngineLogoMedium.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

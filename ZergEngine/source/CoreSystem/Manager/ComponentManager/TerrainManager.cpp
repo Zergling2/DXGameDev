@@ -1,24 +1,20 @@
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\TerrainManager.h>
 
-namespace ze
-{
-	TerrainManagerImpl TerrainManager;
-}
-
 using namespace ze;
 
-TerrainManagerImpl::TerrainManagerImpl()
+TerrainManager* TerrainManager::s_pInstance = nullptr;
+
+void TerrainManager::CreateInstance()
 {
+	assert(s_pInstance == nullptr);
+
+	s_pInstance = new TerrainManager();
 }
 
-TerrainManagerImpl::~TerrainManagerImpl()
+void TerrainManager::DestroyInstance()
 {
-}
+	assert(s_pInstance != nullptr);
 
-void TerrainManagerImpl::Init(void* pDesc)
-{
-}
-
-void TerrainManagerImpl::Release()
-{
+	delete s_pInstance;
+	s_pInstance = nullptr;
 }

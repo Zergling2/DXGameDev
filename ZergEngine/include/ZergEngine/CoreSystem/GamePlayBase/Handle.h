@@ -20,12 +20,12 @@ namespace ze
 
 	class GameObjectHandle
 	{
-		friend class RuntimeImpl;
-		friend class GameObjectManagerImpl;
+		friend class Runtime;
+		friend class GameObjectManager;
 		friend class GameObject;
 	public:
 		GameObjectHandle() noexcept
-			: m_tableIndex(0)
+			: m_tableIndex(0)	// 커밋되지 않은 영역 접근을 방지하기 위해 0번 인덱스로 초기화
 			, m_id(INVALID_ID)
 		{
 		}
@@ -71,7 +71,7 @@ namespace ze
 
 	class UIObjectHandle
 	{
-		friend class UIObjectManagerImpl;
+		friend class UIObjectManager;
 		friend class IUIObject;
 	public:
 		UIObjectHandle() noexcept

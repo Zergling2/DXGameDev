@@ -184,7 +184,7 @@ namespace ze
 	hlslstruct CbPerMesh
 	{
 		XMFLOAT4X4A w;			// World
-		XMFLOAT4X4A wInvTr;	// Inversed world transform matrix (비균등 스케일링 시 올바른 노말 벡터 변환을 위해 필요)
+		XMFLOAT4X4A wInvTr;		// Inversed world transform matrix (비균등 스케일링 시 올바른 노말 벡터 변환을 위해 필요)
 	};
 
 	hlslstruct CbPerTerrain

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <ZergEngine\CoreSystem\SubsystemInterface.h>
 #include <ZergEngine\Common\EngineConstants.h>
 #include <ZergEngine\CoreSystem\Resource\Texture.h>
 
@@ -23,7 +22,7 @@ namespace ze
 	public:
 		struct Position
 		{
-			inline Position(uint32_t vi)
+			Position(uint32_t vi)
 				: m_vi(vi)
 			{
 			}
@@ -36,7 +35,7 @@ namespace ze
 
 		struct PositionNormal
 		{
-			inline PositionNormal(uint32_t vi, uint32_t vni)
+			PositionNormal(uint32_t vi, uint32_t vni)
 				: m_vi(vi)
 				, m_vni(vni)
 			{
@@ -54,7 +53,7 @@ namespace ze
 
 		struct PositionTexCoord
 		{
-			inline PositionTexCoord(uint32_t vi, uint32_t vti)
+			PositionTexCoord(uint32_t vi, uint32_t vti)
 				: m_vi(vi)
 				, m_vti(vti)
 			{
@@ -72,7 +71,7 @@ namespace ze
 
 		struct PositionNormalTexCoord
 		{
-			inline PositionNormalTexCoord(uint32_t vi, uint32_t vni, uint32_t vti)
+			PositionNormalTexCoord(uint32_t vi, uint32_t vni, uint32_t vti)
 				: m_vi(vi)
 				, m_vni(vni)
 				, m_vti(vti)
@@ -124,13 +123,20 @@ namespace ze
 		std::map<IndexSet::PositionNormalTexCoord, uint32_t> vvnvtIndexMap;
 	};
 
-	class ResourceManagerImpl : public ISubsystem
+	class ResourceLoader
 	{
-		friend class RuntimeImpl;
-		ZE_DECLARE_SINGLETON(ResourceManagerImpl);
+		friend class Runtime;
+	public:
+		static ResourceLoader* GetInstance() { return s_pInstance; }
 	private:
-		virtual void Init(void* pDesc) override;
-		virtual void Release() override;
+		ResourceLoader();
+		~ResourceLoader();
+
+		static void CreateInstance();
+		static void DestroyInstance();
+
+		void Init();
+		void UnInit();
 	public:
 		std::vector<std::shared_ptr<Mesh>> LoadWavefrontOBJ(PCWSTR path);
 		Texture2D LoadTexture(PCWSTR path);
@@ -150,8 +156,7 @@ namespace ze
 			std::vector<DeferredMtlLinkingData>& dml);
 		*/
 	private:
+		static ResourceLoader* s_pInstance;
 		Texture2D m_errTex;
 	};
-
-	extern ResourceManagerImpl Resource;
 }

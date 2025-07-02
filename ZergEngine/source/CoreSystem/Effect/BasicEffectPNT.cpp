@@ -14,18 +14,16 @@ using namespace ze;
 
 void BasicEffectPNT::Init()
 {
-	ID3D11Device* pDevice = GraphicDevice.GetDeviceComInterface();
-
 	m_dirtyFlag = DIRTY_FLAG::ALL;
 
-	m_pInputLayout = GraphicDevice.GetILComInterface(VERTEX_FORMAT_TYPE::POSITION_NORMAL_TEXCOORD);
-	m_pVertexShader = GraphicDevice.GetVSComInterface(VERTEX_SHADER_TYPE::TRANSFORM_PNT_TO_HCS);
-	m_pPixelShader = GraphicDevice.GetPSComInterface(PIXEL_SHADER_TYPE::COLOR_PNT_FRAGMENT);
+	m_pInputLayout = GraphicDevice::GetInstance()->GetILComInterface(VERTEX_FORMAT_TYPE::POSITION_NORMAL_TEXCOORD);
+	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VERTEX_SHADER_TYPE::TRANSFORM_PNT_TO_HCS);
+	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PIXEL_SHADER_TYPE::COLOR_PNT_FRAGMENT);
 
-	m_cbPerFrame.Init(pDevice);
-	m_cbPerCamera.Init(pDevice);
-	m_cbPerMesh.Init(pDevice);
-	m_cbPerSubset.Init(pDevice);
+	m_cbPerFrame.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
+	m_cbPerCamera.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
+	m_cbPerMesh.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
+	m_cbPerSubset.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
 
 	ClearTextureSRVArray();
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "framework.h"
+#include "TransformEdit\TransformEdit.h"
 
 // CTransformInspectorFormView form view
 
@@ -14,7 +15,7 @@ protected:
 
 public:
 #ifdef AFX_DESIGN_TIME
-	enum { IDD = IDD_CTransformInspectorFormView };
+	enum { IDD = IDD_TRANSFORM_INSPECTOR_FORMVIEW };
 #endif
 #ifdef _DEBUG
 	virtual void AssertValid() const;
@@ -27,6 +28,16 @@ protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
 	DECLARE_MESSAGE_MAP()
+public:
+	CTransformEdit m_positionX;
+	CTransformEdit m_positionY;
+	CTransformEdit m_positionZ;
+	CTransformEdit m_rotationX;
+	CTransformEdit m_rotationY;
+	CTransformEdit m_rotationZ;
+	CTransformEdit m_scaleX;
+	CTransformEdit m_scaleY;
+	CTransformEdit m_scaleZ;
 };
 
 

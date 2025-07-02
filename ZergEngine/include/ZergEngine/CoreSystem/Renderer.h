@@ -1,6 +1,5 @@
 #pragma once
 
-#include <ZergEngine\CoreSystem\SubsystemInterface.h>
 #include <ZergEngine\CoreSystem\DeviceContext\EffectDeviceContext.h>
 #include <ZergEngine\CoreSystem\Effect\BasicEffectP.h>
 #include <ZergEngine\CoreSystem\Effect\BasicEffectPC.h>
@@ -20,13 +19,20 @@ namespace ze
 	class Button;
 	class Image;
 
-	class RendererImpl : public ISubsystem
+	class Renderer
 	{
-		friend class RuntimeImpl;
-		ZE_DECLARE_SINGLETON(RendererImpl);
+		friend class Runtime;
+	public:
+		static Renderer* GetInstance() { return s_pInstance; }
 	private:
-		virtual void Init(void* pDesc) override;
-		virtual void Release() override;
+		Renderer();
+		~Renderer();
+
+		static void CreateInstance();
+		static void DestroyInstance();
+
+		void Init();
+		void UnInit();
 
 		void InitializeEffects();
 		void ReleaseEffects();
@@ -39,10 +45,12 @@ namespace ze
 		void RenderVFPositionTexCoordMesh(const MeshRenderer* pMeshRenderer);
 		void RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshRenderer);
 		void RenderSkybox(ID3D11ShaderResourceView* pSkyboxCubeMapSRV);
-		HRESULT RenderPanel(const Panel* pPanel);
-		HRESULT RenderButton(const Button* pButton);
+		void RenderPanel(const Panel* pPanel);
+		void RenderButton(const Button* pButton);
 		void RenderImage(const Image* pImage);
 	private:
+		static Renderer* s_pInstance;
+
 		ID3D11RasterizerState* m_pCullBackRS;
 		ID3D11RasterizerState* m_pCullNoneRS;
 		ID3D11RasterizerState* m_pWireFrameRS;
@@ -69,6 +77,4 @@ namespace ze
 		ImageEffect m_imageEffect;
 		std::vector<const IUIObject*> m_uiRenderQueue;
 	};
-
-	extern RendererImpl Renderer;
 }

@@ -1,24 +1,20 @@
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\PointLightManager.h>
 
-namespace ze
-{
-    PointLightManagerImpl PointLightManager;
-}
-
 using namespace ze;
 
-PointLightManagerImpl::PointLightManagerImpl()
+PointLightManager* PointLightManager::s_pInstance = nullptr;
+
+void PointLightManager::CreateInstance()
 {
+	assert(s_pInstance == nullptr);
+
+	s_pInstance = new PointLightManager();
 }
 
-PointLightManagerImpl::~PointLightManagerImpl()
+void PointLightManager::DestroyInstance()
 {
-}
+	assert(s_pInstance != nullptr);
 
-void PointLightManagerImpl::Init(void* pDesc)
-{
-}
-
-void PointLightManagerImpl::Release()
-{
+	delete s_pInstance;
+	s_pInstance = nullptr;
 }

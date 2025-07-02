@@ -1,36 +1,33 @@
 #include <ZergEngine\CoreSystem\Renderer.h>
 #include <ZergEngine\CoreSystem\GraphicDevice.h>
-#include <ZergEngine\CoreSystem\Debug.h>
-#include <ZergEngine\CoreSystem\Window.h>
-#include <ZergEngine\CoreSystem\Manager\EnvironmentManager.h>
-#include <ZergEngine\CoreSystem\Manager\UIObjectManager.h>
-#include <ZergEngine\CoreSystem\Manager\ComponentManager\CameraManager.h>
+#include <ZergEngine\CoreSystem\Math.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\DirectionalLightManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\PointLightManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\SpotLightManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\CameraManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\MeshRendererManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\TerrainManager.h>
-#include <ZergEngine\CoreSystem\Resource\Mesh.h>
-#include <ZergEngine\CoreSystem\Resource\Material.h>
-#include <ZergEngine\CoreSystem\Resource\Texture.h>
+#include <ZergEngine\CoreSystem\Manager\UIObjectManager.h>
+#include <ZergEngine\CoreSystem\Manager\EnvironmentManager.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\Transform.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Panel.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Button.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Image.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\Component\Camera.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\InputField.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Text.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Light.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\Camera.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\MeshRenderer.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Terrain.h>
+#include <ZergEngine\CoreSystem\Resource\Mesh.h>
+#include <ZergEngine\CoreSystem\Resource\Material.h>
 
-namespace ze
-{
-	RendererImpl Renderer;
-}
 
 using namespace ze;
 
-RendererImpl::RendererImpl()
+Renderer* Renderer::s_pInstance = nullptr;
+
+Renderer::Renderer()
 	: m_pCullBackRS(nullptr)
 	, m_pCullNoneRS(nullptr)
 	, m_pWireFrameRS(nullptr)
@@ -57,44 +54,65 @@ RendererImpl::RendererImpl()
 	m_uiRenderQueue.reserve(256);
 }
 
-RendererImpl::~RendererImpl()
+Renderer::~Renderer()
 {
 }
 
-void RendererImpl::Init(void* pDesc)
+void Renderer::CreateInstance()
 {
-	m_pCullBackRS = GraphicDevice.GetRSComInterface(RASTERIZER_FILL_MODE::SOLID, RASTERIZER_CULL_MODE::BACK);
-	m_pCullNoneRS = GraphicDevice.GetRSComInterface(RASTERIZER_FILL_MODE::SOLID, RASTERIZER_CULL_MODE::NONE);
-	m_pWireFrameRS = GraphicDevice.GetRSComInterface(RASTERIZER_FILL_MODE::WIREFRAME, RASTERIZER_CULL_MODE::NONE);
-	m_pDefaultDSS = GraphicDevice.GetDSSComInterface(DEPTH_STENCIL_STATETYPE::DEFAULT);
-	m_pSkyboxDSS = GraphicDevice.GetDSSComInterface(DEPTH_STENCIL_STATETYPE::SKYBOX);
-	m_pDepthReadOnlyDSS = GraphicDevice.GetDSSComInterface(DEPTH_STENCIL_STATETYPE::DEPTH_READ_ONLY);
-	m_pNoDepthStencilTestDSS = GraphicDevice.GetDSSComInterface(DEPTH_STENCIL_STATETYPE::NO_DEPTH_STENCILTEST);
-	m_pOpaqueBS = GraphicDevice.GetBSComInterface(BLEND_STATETYPE::OPAQUE_);
-	m_pAlphaBlendBS = GraphicDevice.GetBSComInterface(BLEND_STATETYPE::ALPHABLEND);
-	m_pNoColorWriteBS = GraphicDevice.GetBSComInterface(BLEND_STATETYPE::NO_COLOR_WRITE);
-	m_pButtonVB = GraphicDevice.GetVBComInterface(VERTEX_BUFFER_TYPE::BUTTON);	// Read only vertex buffer
+	assert(s_pInstance == nullptr);
+
+	s_pInstance = new Renderer();
+}
+
+void Renderer::DestroyInstance()
+{
+	assert(s_pInstance != nullptr);
+
+	delete s_pInstance;
+	s_pInstance = nullptr;
+}
+
+void Renderer::Init()
+{
+	m_pCullBackRS = GraphicDevice::GetInstance()->GetRSComInterface(RASTERIZER_FILL_MODE::SOLID, RASTERIZER_CULL_MODE::BACK);
+	m_pCullNoneRS = GraphicDevice::GetInstance()->GetRSComInterface(RASTERIZER_FILL_MODE::SOLID, RASTERIZER_CULL_MODE::NONE);
+	m_pWireFrameRS = GraphicDevice::GetInstance()->GetRSComInterface(RASTERIZER_FILL_MODE::WIREFRAME, RASTERIZER_CULL_MODE::NONE);
+	m_pDefaultDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DEPTH_STENCIL_STATETYPE::DEFAULT);
+	m_pSkyboxDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DEPTH_STENCIL_STATETYPE::SKYBOX);
+	m_pDepthReadOnlyDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DEPTH_STENCIL_STATETYPE::DEPTH_READ_ONLY);
+	m_pNoDepthStencilTestDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DEPTH_STENCIL_STATETYPE::NO_DEPTH_STENCILTEST);
+	m_pOpaqueBS = GraphicDevice::GetInstance()->GetBSComInterface(BLEND_STATETYPE::OPAQUE_);
+	m_pAlphaBlendBS = GraphicDevice::GetInstance()->GetBSComInterface(BLEND_STATETYPE::ALPHABLEND);
+	m_pNoColorWriteBS = GraphicDevice::GetInstance()->GetBSComInterface(BLEND_STATETYPE::NO_COLOR_WRITE);
+	m_pButtonVB = GraphicDevice::GetInstance()->GetVBComInterface(VERTEX_BUFFER_TYPE::BUTTON);	// Read only vertex buffer
 
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ INITIALIZE EFFECTS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	this->InitializeEffects();
 
 	// effect context 준비
-	assert(GraphicDevice.GetImmediateContextComInterface() != nullptr);
-	m_effectImmediateContext.AttachDeviceContext(GraphicDevice.GetImmediateContextComInterface());
+	assert(GraphicDevice::GetInstance()->GetImmediateContextComInterface() != nullptr);
+	m_effectImmediateContext.AttachDeviceContext(GraphicDevice::GetInstance()->GetImmediateContextComInterface());
 
 	/*
 	m_passTerrain.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST);
-	m_passTerrain.SetInputLayout(GraphicDevice.GetILComInterface(VERTEX_FORMAT_TYPE::TERRAIN_PATCH_CTRL_PT));
-	m_passTerrain.SetVertexShader(GraphicDevice.GetVSComInterface(VERTEX_SHADER_TYPE::TRANSFORM_TERRAIN_PATCH_CTRL_PT));
-	m_passTerrain.SetHullShader(GraphicDevice.GetHSComInterface(HULL_SHADER_TYPE::CALC_TERRAIN_TESS_FACTOR));
-	m_passTerrain.SetDomainShader(GraphicDevice.GetDSComInterface(DOMAIN_SHADER_TYPE::SAMPLE_TERRAIN_HEIGHT_MAP));
-	m_passTerrain.SetPixelShader(GraphicDevice.GetPSComInterface(PIXEL_SHADER_TYPE::COLOR_TERRAIN_FRAGMENT));
-	m_passTerrain.SetRasterizerState(GraphicDevice.GetRSComInterface(RASTERIZER_FILL_MODE::SOLID, RASTERIZER_CULL_MODE::BACK));
-	m_passTerrain.SetDepthStencilState(GraphicDevice.GetDSSComInterface(DEPTH_STENCIL_STATETYPE::DEFAULT), 0);
+	m_passTerrain.SetInputLayout(GraphicDevice::GetInstance()->GetILComInterface(VERTEX_FORMAT_TYPE::TERRAIN_PATCH_CTRL_PT));
+	m_passTerrain.SetVertexShader(GraphicDevice::GetInstance()->GetVSComInterface(VERTEX_SHADER_TYPE::TRANSFORM_TERRAIN_PATCH_CTRL_PT));
+	m_passTerrain.SetHullShader(GraphicDevice::GetInstance()->GetHSComInterface(HULL_SHADER_TYPE::CALC_TERRAIN_TESS_FACTOR));
+	m_passTerrain.SetDomainShader(GraphicDevice::GetInstance()->GetDSComInterface(DOMAIN_SHADER_TYPE::SAMPLE_TERRAIN_HEIGHT_MAP));
+	m_passTerrain.SetPixelShader(GraphicDevice::GetInstance()->GetPSComInterface(PIXEL_SHADER_TYPE::COLOR_TERRAIN_FRAGMENT));
+	m_passTerrain.SetRasterizerState(GraphicDevice::GetInstance()->GetRSComInterface(RASTERIZER_FILL_MODE::SOLID, RASTERIZER_CULL_MODE::BACK));
+	m_passTerrain.SetDepthStencilState(GraphicDevice::GetInstance()->GetDSSComInterface(DEPTH_STENCIL_STATETYPE::DEFAULT), 0);
 	*/
 }
 
-void RendererImpl::InitializeEffects()
+void Renderer::UnInit()
+{
+	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ RELEASE EFFECTS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+	this->ReleaseEffects();
+}
+
+void Renderer::InitializeEffects()
 {
 	m_basicEffectP.Init();
 	m_basicEffectPC.Init();
@@ -108,7 +126,7 @@ void RendererImpl::InitializeEffects()
 	m_imageEffect.Init();
 }
 
-void RendererImpl::ReleaseEffects()
+void Renderer::ReleaseEffects()
 {
 	m_basicEffectP.Release();
 	m_basicEffectPC.Release();
@@ -122,13 +140,7 @@ void RendererImpl::ReleaseEffects()
 	m_imageEffect.Release();
 }
 
-void RendererImpl::Release()
-{
-	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ RELEASE EFFECTS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-	this->ReleaseEffects();
-}
-
-void RendererImpl::RenderFrame()
+void Renderer::RenderFrame()
 {
 	ID3D11DeviceContext* pImmContext = m_effectImmediateContext.GetDeviceContextComInterface();
 
@@ -139,10 +151,10 @@ void RendererImpl::RenderFrame()
 	constexpr TEXTURE_FILTERING_OPTION terrainTexFilter = TEXTURE_FILTERING_OPTION::ANISOTROPIC_4X;
 	ID3D11SamplerState* const ssArr[] =
 	{
-		GraphicDevice.GetSSComInterface(meshTexFilter),		// (s0) mesh texture sampler
-		GraphicDevice.GetSkyboxSamplerComInterface(),		// (s1)
-		GraphicDevice.GetSSComInterface(terrainTexFilter),	// (s2) terrain color texture sampler
-		GraphicDevice.GetHeightmapSamplerComInterface()		// (s3)
+		GraphicDevice::GetInstance()->GetSSComInterface(meshTexFilter),		// (s0) mesh texture sampler
+		GraphicDevice::GetInstance()->GetSkyboxSamplerComInterface(),		// (s1)
+		GraphicDevice::GetInstance()->GetSSComInterface(terrainTexFilter),	// (s2) terrain color texture sampler
+		GraphicDevice::GetInstance()->GetHeightmapSamplerComInterface()		// (s3)
 	};
 
 	pImmContext->VSSetSamplers(0, _countof(ssArr), ssArr);	// 터레인 이펙트에서
@@ -161,10 +173,10 @@ void RendererImpl::RenderFrame()
 	// PerFrame 상수버퍼 업데이트 및 바인딩
 	{
 		DirectionalLightData light[MAX_GLOBAL_LIGHT_COUNT];
-		const uint32_t lightCount = static_cast<uint32_t>(DirectionalLightManager.m_activeComponents.size());
+		const uint32_t lightCount = static_cast<uint32_t>(DirectionalLightManager::GetInstance()->m_directAccessGroup.size());
 
 		uint32_t index = 0;
-		for (const IComponent* pLightComponent : DirectionalLightManager.m_activeComponents)
+		for (const IComponent* pLightComponent : DirectionalLightManager::GetInstance()->m_directAccessGroup)
 		{
 			if (index >= MAX_GLOBAL_LIGHT_COUNT)
 				break;
@@ -184,7 +196,7 @@ void RendererImpl::RenderFrame()
 			light[index].specular = pLight->m_specular;
 			XMStoreFloat3(
 				&light[index].directionW,
-				XMVector3Rotate(LIGHT_DIRECTION_LOCAL_AXIS, rotation)
+				XMVector3Rotate(Math::Vector3::FORWARD, rotation)
 			);
 
 			++index;
@@ -201,10 +213,10 @@ void RendererImpl::RenderFrame()
 
 	{
 		PointLightData light[MAX_GLOBAL_LIGHT_COUNT];
-		const uint32_t lightCount = static_cast<uint32_t>(PointLightManager.m_activeComponents.size());
+		const uint32_t lightCount = static_cast<uint32_t>(PointLightManager::GetInstance()->m_directAccessGroup.size());
 
 		uint32_t index = 0;
-		for (const IComponent* pLightComponent : PointLightManager.m_activeComponents)
+		for (const IComponent* pLightComponent : PointLightManager::GetInstance()->m_directAccessGroup)
 		{
 			if (index >= MAX_GLOBAL_LIGHT_COUNT)
 				break;
@@ -236,10 +248,10 @@ void RendererImpl::RenderFrame()
 
 	{
 		SpotLightData light[MAX_GLOBAL_LIGHT_COUNT];
-		const uint32_t lightCount = static_cast<uint32_t>(SpotLightManager.m_activeComponents.size());
+		const uint32_t lightCount = static_cast<uint32_t>(SpotLightManager::GetInstance()->m_directAccessGroup.size());
 
 		uint32_t index = 0;
-		for (const IComponent* pLightComponent : SpotLightManager.m_activeComponents)
+		for (const IComponent* pLightComponent : SpotLightManager::GetInstance()->m_directAccessGroup)
 		{
 			if (index >= MAX_GLOBAL_LIGHT_COUNT)
 				break;
@@ -263,7 +275,7 @@ void RendererImpl::RenderFrame()
 
 			XMStoreFloat3(
 				&light[index].directionW,
-				XMVector3Rotate(LIGHT_DIRECTION_LOCAL_AXIS, rotation)
+				XMVector3Rotate(Math::Vector3::FORWARD, rotation)
 			);
 			light[index].spotExp = pLight->m_spotExp;
 
@@ -282,32 +294,23 @@ void RendererImpl::RenderFrame()
 	}
 
 	// Camera마다 프레임 렌더링
-	for (IComponent* pComponent : CameraManager.m_activeComponents)
+	for (IComponent* pComponent : CameraManager::GetInstance()->m_directAccessGroup)
 	{
 		Camera* pCamera = static_cast<Camera*>(pComponent);
 
 		if (!pCamera->IsEnabled())
 			continue;
 
-		if (!pCamera->GetColorBufferRTVComInterface() ||
-			!pCamera->GetColorBufferSRVComInterface() ||
-			!pCamera->GetDepthStencilBufferDSVComInterface())
-		{
-			if (FAILED(pCamera->CreateBufferAndView()))
-				continue;
-
-			pCamera->UpdateProjectionMatrix();
-			pCamera->UpdateFullbufferViewport();
-		}
 		pCamera->UpdateViewMatrix();	// 뷰 변환 행렬 업데이트
 
 		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 		// 뷰포트 바인딩
-		pImmContext->RSSetViewports(1, &pCamera->GetFullBufferViewport());
+		pImmContext->RSSetViewports(1, &pCamera->GetEntireBufferViewport());
 		// 컬러 버퍼 및 뎁스스텐실 버퍼 바인딩
 		ID3D11RenderTargetView* pColorBufferRTV = pCamera->m_cpColorBufferRTV.Get();
 		ID3D11DepthStencilView* pDepthStencilBufferDSV = pCamera->m_cpDepthStencilBufferDSV.Get();
-		pImmContext->ClearRenderTargetView(pColorBufferRTV, reinterpret_cast<const FLOAT*>(&pCamera->GetBackgroundColor()));
+		// pImmContext->ClearRenderTargetView(pColorBufferRTV, reinterpret_cast<const FLOAT*>(&pCamera->GetBackgroundColor()));
+		pImmContext->ClearRenderTargetView(pColorBufferRTV, Colors::Red);
 		pImmContext->ClearDepthStencilView(pDepthStencilBufferDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 		ID3D11RenderTargetView* const rtvs[] = { pColorBufferRTV };
@@ -322,7 +325,7 @@ void RendererImpl::RenderFrame()
 		m_skyboxEffect.SetCamera(pCamera);
 		// mTerrainEffect.SetCamera(pCamera);
 
-		for (const IComponent* pComponent : MeshRendererManager.m_activeComponents)
+		for (const IComponent* pComponent : MeshRendererManager::GetInstance()->m_directAccessGroup)
 		{
 			const MeshRenderer* pMeshRenderer = static_cast<const MeshRenderer*>(pComponent);
 			if (!pMeshRenderer->IsEnabled() || pMeshRenderer->m_mesh == nullptr)
@@ -348,20 +351,20 @@ void RendererImpl::RenderFrame()
 			case VERTEX_FORMAT_TYPE::COUNT:
 				__fallthrough;
 			case VERTEX_FORMAT_TYPE::UNKNOWN:
-				Debug::ForceCrashWithMessageBox(L"RendererImpl error", L"Unknown vertex format type.");
+				*reinterpret_cast<int*>(0) = 0;
 				break;
 			}
 		}
 
 		// 지형 렌더링
-		for (const IComponent* pComponent : TerrainManager.m_activeComponents)
+		for (const IComponent* pComponent : TerrainManager::GetInstance()->m_directAccessGroup)
 		{
 			const Terrain* pTerrain = static_cast<const Terrain*>(pComponent);
 			// RenderTerrain(pTerrain);
 		}
 
 		// 스카이박스 렌더링
-		ID3D11ShaderResourceView* pSkyboxCubeMap = Environment.m_skyboxCubeMap.GetSRVComInterface();
+		ID3D11ShaderResourceView* pSkyboxCubeMap = Environment::GetInstance()->m_skyboxCubeMap.GetSRVComInterface();
 		if (pSkyboxCubeMap)
 		{
 			pImmContext->OMSetDepthStencilState(m_pSkyboxDSS, 0);
@@ -381,16 +384,16 @@ void RendererImpl::RenderFrame()
 	pImmContext->OMSetBlendState(m_pOpaqueBS, nullptr, 0xFFFFFFFF);
 	
 	// 전체 백버퍼에 대한 뷰포트 설정
-	pImmContext->RSSetViewports(1, &GraphicDevice.GetFullSwapChainViewport());
+	pImmContext->RSSetViewports(1, &GraphicDevice::GetInstance()->GetEntireSwapChainViewport());
 	// 렌더타겟 바인딩
-	ID3D11RenderTargetView* pColorBufferRTV = GraphicDevice.GetSwapChainRTVComInterface();
-	ID3D11DepthStencilView* pDepthStencilBufferDSV = GraphicDevice.GetSwapChainDSVComInterface();
-	pImmContext->ClearRenderTargetView(pColorBufferRTV, DirectX::Colors::Red);
+	ID3D11RenderTargetView* pColorBufferRTV = GraphicDevice::GetInstance()->GetSwapChainRTVComInterface();
+	ID3D11DepthStencilView* pDepthStencilBufferDSV = GraphicDevice::GetInstance()->GetSwapChainDSVComInterface();
+	pImmContext->ClearRenderTargetView(pColorBufferRTV, DirectX::Colors::Blue);
 	pImmContext->ClearDepthStencilView(pDepthStencilBufferDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 	ID3D11RenderTargetView* const rtvs[] = { pColorBufferRTV };
 	pImmContext->OMSetRenderTargets(_countof(rtvs), rtvs, pDepthStencilBufferDSV);
 	
-	for (const IComponent* pComponent : CameraManager.m_activeComponents)
+	for (const IComponent* pComponent : CameraManager::GetInstance()->m_directAccessGroup)
 	{
 		const Camera* pCamera = static_cast<const Camera*>(pComponent);
 		if (!pCamera->IsEnabled())
@@ -424,21 +427,21 @@ void RendererImpl::RenderFrame()
 		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 		// 모든 UI Effect들에 대한 ScreenToNDCSpaceRatio 설정
 		const XMFLOAT2 screenToNDCSpaceRatio = XMFLOAT2(
-			2.0f / static_cast<float>(GraphicDevice.GetSwapChainDesc().BufferDesc.Width),
-			2.0f / static_cast<float>(GraphicDevice.GetSwapChainDesc().BufferDesc.Height)
+			2.0f / static_cast<float>(GraphicDevice::GetInstance()->GetSwapChainDesc().BufferDesc.Width),
+			2.0f / static_cast<float>(GraphicDevice::GetInstance()->GetSwapChainDesc().BufferDesc.Height)
 		);
 		m_buttonEffect.SetScreenToNDCSpaceRatio(screenToNDCSpaceRatio);
 		m_imageEffect.SetScreenToNDCSpaceRatio(screenToNDCSpaceRatio);
 		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 		// 모든 루트 UI오브젝트들부터 순회하며 자식 UI까지 렌더링
-		for (const IUIObject* pRootUIObject : UIObjectManager.m_rootUIObjects)
+		for (const IUIObject* pRootUIObject : UIObjectManager::GetInstance()->m_roots)
 		{
-			assert(pRootUIObject->IsRootObject());
+			assert(pRootUIObject->IsRoot());
 
 			size_t index = 0;
 
-			// 큐는 노드 할당이 일어나므로 벡터를 사용
+			// 큐는 노드 할당이 일어나므로 배열을 사용
 			m_uiRenderQueue.push_back(pRootUIObject);
 
 			while (index < m_uiRenderQueue.size())
@@ -457,8 +460,7 @@ void RendererImpl::RenderFrame()
 				switch (pUIObject->GetType())
 				{
 				case UIOBJECT_TYPE::PANEL:
-					if (this->RenderPanel(static_cast<const Panel*>(pUIObject)) == D2DERR_RECREATE_TARGET)
-						GraphicDevice.RequestRecreateTarget();
+					this->RenderPanel(static_cast<const Panel*>(pUIObject));
 					break;
 				case UIOBJECT_TYPE::BUTTON:
 					this->RenderButton(static_cast<const Button*>(pUIObject));
@@ -468,9 +470,9 @@ void RendererImpl::RenderFrame()
 				case UIOBJECT_TYPE::IMAGE:
 					this->RenderImage(static_cast<const Image*>(pUIObject));
 					break;
-				case UIOBJECT_TYPE::LABEL:
+				case UIOBJECT_TYPE::INPUT_FIELD:
 					break;
-				case UIOBJECT_TYPE::TEXT_BOX:
+				case UIOBJECT_TYPE::TEXT:
 					break;
 				default:
 					break;
@@ -483,10 +485,10 @@ void RendererImpl::RenderFrame()
 		}
 	}
 
-	GraphicDevice.GetSwapChainComInterface()->Present(0, 0);
+	HRESULT hr = GraphicDevice::GetInstance()->GetSwapChainComInterface()->Present(0, 0);
 }
 
-void RendererImpl::RenderVFPositionMesh(const MeshRenderer* pMeshRenderer)
+void Renderer::RenderVFPositionMesh(const MeshRenderer* pMeshRenderer)
 {
 	const Mesh* pMesh = pMeshRenderer->m_mesh.get();
 	if (!pMesh)
@@ -519,7 +521,7 @@ void RendererImpl::RenderVFPositionMesh(const MeshRenderer* pMeshRenderer)
 	}
 }
 
-void RendererImpl::RenderVFPositionColorMesh(const MeshRenderer* pMeshRenderer)
+void Renderer::RenderVFPositionColorMesh(const MeshRenderer* pMeshRenderer)
 {
 	const Mesh* pMesh = pMeshRenderer->m_mesh.get();
 	if (!pMesh)
@@ -552,7 +554,7 @@ void RendererImpl::RenderVFPositionColorMesh(const MeshRenderer* pMeshRenderer)
 	}
 }
 
-void RendererImpl::RenderVFPositionNormalMesh(const MeshRenderer* pMeshRenderer)
+void Renderer::RenderVFPositionNormalMesh(const MeshRenderer* pMeshRenderer)
 {
 	const Mesh* pMesh = pMeshRenderer->m_mesh.get();
 	if (!pMesh)
@@ -597,7 +599,7 @@ void RendererImpl::RenderVFPositionNormalMesh(const MeshRenderer* pMeshRenderer)
 	}
 }
 
-void RendererImpl::RenderVFPositionTexCoordMesh(const MeshRenderer* pMeshRenderer)
+void Renderer::RenderVFPositionTexCoordMesh(const MeshRenderer* pMeshRenderer)
 {
 	const Mesh* pMesh = pMeshRenderer->m_mesh.get();
 	if (!pMesh)
@@ -643,7 +645,7 @@ void RendererImpl::RenderVFPositionTexCoordMesh(const MeshRenderer* pMeshRendere
 	}
 }
 
-void RendererImpl::RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshRenderer)
+void Renderer::RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshRenderer)
 {
 	const Mesh* pMesh = pMeshRenderer->m_mesh.get();
 	if (!pMesh)
@@ -692,7 +694,7 @@ void RendererImpl::RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshR
 	}
 }
 
-void RendererImpl::RenderSkybox(ID3D11ShaderResourceView* pSkyboxCubeMapSRV)
+void Renderer::RenderSkybox(ID3D11ShaderResourceView* pSkyboxCubeMapSRV)
 {
 	assert(pSkyboxCubeMapSRV != nullptr);
 
@@ -705,10 +707,10 @@ void RendererImpl::RenderSkybox(ID3D11ShaderResourceView* pSkyboxCubeMapSRV)
 	m_effectImmediateContext.Draw(36, 0);
 }
 
-HRESULT RendererImpl::RenderPanel(const Panel* pPanel)
+void Renderer::RenderPanel(const Panel* pPanel)
 {
-	ID2D1RenderTarget* pD2DRenderTarget = GraphicDevice.GetD2DRenderTarget();
-	ID2D1SolidColorBrush* pSolidColorBrush = GraphicDevice.GetD2DSolidColorBrush();
+	ID2D1RenderTarget* pD2DRenderTarget = GraphicDevice::GetInstance()->GetD2DRenderTarget();
+	ID2D1SolidColorBrush* pSolidColorBrush = GraphicDevice::GetInstance()->GetD2DSolidColorBrush();
 	const RectTransform& transform = pPanel->m_transform;
 	XMFLOAT2A windowsRectCenter;
 	XMStoreFloat2A(&windowsRectCenter, transform.GetWindowsScreenPosition());
@@ -737,10 +739,10 @@ HRESULT RendererImpl::RenderPanel(const Panel* pPanel)
 		break;
 	}
 
-	return pD2DRenderTarget->EndDraw();
+	HRESULT hr = pD2DRenderTarget->EndDraw();
 }
 
-HRESULT RendererImpl::RenderButton(const Button* pButton)
+void Renderer::RenderButton(const Button* pButton)
 {
 	// 1. 버튼 프레임 렌더링
 	ID3D11Buffer* vbs[] = { m_pButtonVB };
@@ -758,12 +760,12 @@ HRESULT RendererImpl::RenderButton(const Button* pButton)
 	m_effectImmediateContext.Draw(30, 0);
 
 	// 2. 버튼 텍스트 렌더링
-	UINT32 textLength = static_cast<UINT32>(wcslen(pButton->GetText()));
+	UINT32 textLength = static_cast<UINT32>(pButton->GetTextLength());
 	if (textLength == 0)
-		return S_OK;
+		return;
 
-	ID2D1RenderTarget* pD2DRenderTarget = GraphicDevice.GetD2DRenderTarget();
-	ID2D1SolidColorBrush* pSolidColorBrush = GraphicDevice.GetD2DSolidColorBrush();
+	ID2D1RenderTarget* pD2DRenderTarget = GraphicDevice::GetInstance()->GetD2DRenderTarget();
+	ID2D1SolidColorBrush* pSolidColorBrush = GraphicDevice::GetInstance()->GetD2DSolidColorBrush();
 	const RectTransform& transform = pButton->m_transform;
 	D2D1_RECT_F layoutRect;
 	XMFLOAT2A windowsButtonCenter;
@@ -784,15 +786,15 @@ HRESULT RendererImpl::RenderButton(const Button* pButton)
 	pD2DRenderTarget->DrawTextW(
 		pButton->GetText(),
 		textLength,
-		GraphicDevice.GetDefaultDWriteTextFormat(),
+		GraphicDevice::GetInstance()->GetDefaultDWriteTextFormat(),
 		layoutRect,
 		pSolidColorBrush
 	);
 
-	return pD2DRenderTarget->EndDraw();
+	HRESULT hr = pD2DRenderTarget->EndDraw();
 }
 
-void RendererImpl::RenderImage(const Image* pImage)
+void Renderer::RenderImage(const Image* pImage)
 {
 	m_imageEffect.SetPreNDCPosition(pImage->m_transform.GetPreNDCPosition());
 	m_imageEffect.SetSize(pImage->GetSize());
@@ -803,7 +805,7 @@ void RendererImpl::RenderImage(const Image* pImage)
 }
 
 /*
-void RendererImpl::RenderTerrain(ID3D11DeviceContext* pDeviceContext, const Terrain* pTerrain)
+void Renderer::RenderTerrain(ID3D11DeviceContext* pDeviceContext, const Terrain* pTerrain)
 {
 	assert(pDeviceContext != nullptr && pTerrain != nullptr);
 

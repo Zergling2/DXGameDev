@@ -4,7 +4,7 @@
 using namespace ze;
 
 MonoBehaviour::MonoBehaviour()
-	: IComponent(MonoBehaviourManager.AssignUniqueId())
+	: IComponent(MonoBehaviourManager::GetInstance()->AssignUniqueId())
 	, m_startingQueueIndex(std::numeric_limits<uint32_t>::max())
 {
 }
@@ -43,29 +43,15 @@ void MonoBehaviour::OnDestroy()
 
 IComponentManager* MonoBehaviour::GetComponentManager() const
 {
-	return &MonoBehaviourManager;
+	return MonoBehaviourManager::GetInstance();
 }
 
-bool MonoBehaviour::Enable()
+void MonoBehaviour::Enable()
 {
-	if (!IComponent::Enable())
-		return false;
-
-	this->OnEnable();
-
-	// Start() 함수가 호출된 적이 없고 Start() 함수 호출 대기열에 들어있지도 않은 경우
-	if (this->IsStartCalled() == false && this->IsOnTheStartingQueue() == false)
-		MonoBehaviourManager.AddToStartingQueue(this);
-
-	return true;
+	MonoBehaviourManager::GetInstance()->RequestEnable(this);
 }
 
-bool MonoBehaviour::Disable()
+void MonoBehaviour::Disable()
 {
-	if (!IComponent::Disable())
-		return false;
-
-	this->OnDisable();
-
-	return true;
+	MonoBehaviourManager::GetInstance()->RequestDisable(this);
 }

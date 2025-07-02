@@ -1,7 +1,6 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Camera.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\CameraManager.h>
 #include <ZergEngine\CoreSystem\GraphicDevice.h>
-#include <ZergEngine\CoreSystem\Window.h>
 #include <ZergEngine\CoreSystem\Math.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Transform.h>
@@ -23,7 +22,7 @@ constexpr float CAMERA_VIEWPORT_WIDTH_DEFAULT = 1.0f;
 constexpr float CAMERA_VIEWPORT_HEIGHT_DEFAULT = 1.0f;
 
 Camera::Camera() noexcept
-	: IComponent(CameraManager.AssignUniqueId())
+	: IComponent(CameraManager::GetInstance()->AssignUniqueId())
 	, m_cpColorBufferRTV(nullptr)
 	, m_cpColorBufferSRV(nullptr)
 	, m_cpDepthStencilBufferDSV(nullptr)
@@ -37,12 +36,16 @@ Camera::Camera() noexcept
 	, m_viewportRect(CAMERA_VIEWPORT_X_DEFAULT, CAMERA_VIEWPORT_Y_DEFAULT, CAMERA_VIEWPORT_WIDTH_DEFAULT, CAMERA_VIEWPORT_HEIGHT_DEFAULT)
 	, m_viewMatrix()
 	, m_projMatrix()
-	, m_fullbufferViewport()
+	, m_entireBufferViewport()
 	, mTessMinDist(50.0f)
 	, mTessMaxDist(400.0f)
 	, m_minTessExponent(0.0f)
 	, m_maxTessExponent(6.0f)
 {
+	this->CreateBuffer(
+		GraphicDevice::GetInstance()->GetSwapChainWidth(),
+		GraphicDevice::GetInstance()->GetSwapChainHeight()
+	);
 }
 
 void Camera::SetFieldOfView(uint8_t degree)
@@ -54,7 +57,10 @@ void Camera::SetFieldOfView(uint8_t degree)
 	Math::Clamp(degree, static_cast<uint8_t>(50), static_cast<uint8_t>(120));
 	m_fov = degree;
 
-	this->UpdateProjectionMatrix();
+	this->UpdateProjectionMatrix(
+		GraphicDevice::GetInstance()->GetSwapChainWidth(),
+		GraphicDevice::GetInstance()->GetSwapChainHeight()
+	);
 }
 
 void Camera::SetClippingPlanes(float nearPlane, float farPlane)
@@ -69,7 +75,10 @@ void Camera::SetClippingPlanes(float nearPlane, float farPlane)
 	m_nearPlane = nearPlane;
 	m_farPlane = farPlane;
 
-	this->UpdateProjectionMatrix();
+	this->UpdateProjectionMatrix(
+		GraphicDevice::GetInstance()->GetSwapChainWidth(),
+		GraphicDevice::GetInstance()->GetSwapChainHeight()
+	);
 }
 
 void Camera::SetViewportRect(float x, float y, float w, float h)
@@ -85,21 +94,19 @@ void Camera::SetViewportRect(float x, float y, float w, float h)
 		h <= 0.0f || h > 1.0f)
 		return;
 
-	if (m_viewportRect.m_x != x || m_viewportRect.m_y != y || m_viewportRect.m_width != w || m_viewportRect.m_height != h)
-	{
-		// 컬러버퍼 및 뎁스스텐실 버퍼를 재생성하게 한다. (비싼 작업이므로 설정이 실질적으로 변경된 경우에만 버퍼 재생성)
-		m_cpColorBufferRTV.Reset();
-		m_cpColorBufferSRV.Reset();
-		m_cpDepthStencilBufferDSV.Reset();
+	m_viewportRect.m_x = x;
+	m_viewportRect.m_y = y;
+	m_viewportRect.m_width = w;
+	m_viewportRect.m_height = h;
 
-		m_viewportRect.m_x = x;
-		m_viewportRect.m_y = y;
-		m_viewportRect.m_width = w;
-		m_viewportRect.m_height = h;
-
-		this->UpdateProjectionMatrix();
-		this->UpdateFullbufferViewport();
-	}
+	this->CreateBuffer(
+		GraphicDevice::GetInstance()->GetSwapChainWidth(),
+		GraphicDevice::GetInstance()->GetSwapChainHeight()
+	);
+	this->UpdateProjectionMatrix(
+		GraphicDevice::GetInstance()->GetSwapChainWidth(),
+		GraphicDevice::GetInstance()->GetSwapChainHeight()
+	);
 }
 
 void Camera::SetDepth(int8_t depth)
@@ -109,8 +116,8 @@ void Camera::SetDepth(int8_t depth)
 	assert(m_pGameObject != nullptr);
 
 	// 지연된 오브젝트인 경우에는 비동기 씬에서 생성되었을 수 있으므로 함부로 CameraManager.Update()를 호출하면 안된다.
-	if (!m_pGameObject->IsDeferred())
-		CameraManager.Update();	// 카메라 깊이값으로 정렬 다시
+	if (!m_pGameObject->IsPending())
+		CameraManager::GetInstance()->Update();	// 카메라 깊이값으로 정렬 다시
 }
 
 bool Camera::SetMinimumTessellationExponent(float exponent)
@@ -131,9 +138,11 @@ bool Camera::SetMaximumTessellationExponent(float exponent)
 	return true;
 }
 
-HRESULT Camera::CreateBufferAndView()
+HRESULT Camera::CreateBuffer(uint32_t width, uint32_t height)
 {
 	HRESULT hr = S_OK;
+	const float bufferWidth = static_cast<float>(width) * m_viewportRect.m_width;
+	const float bufferHeight = static_cast<float>(height) * m_viewportRect.m_height;
 
 	do
 	{
@@ -148,24 +157,24 @@ HRESULT Camera::CreateBufferAndView()
 		D3D11_TEXTURE2D_DESC descColorBuffer;
 		ZeroMemory(&descColorBuffer, sizeof(descColorBuffer));
 		// 컬러 버퍼 생성 및 컬러 버퍼에 대한 렌더 타겟 뷰 및 셰이더 리소스 뷰 생성
-		descColorBuffer.Width = static_cast<UINT>(this->CalcBufferWidth());
-		descColorBuffer.Height = static_cast<UINT>(this->CalcBufferHeight());
+		descColorBuffer.Width = static_cast<UINT>(bufferWidth);
+		descColorBuffer.Height = static_cast<UINT>(bufferHeight);
 		descColorBuffer.MipLevels = 1;
 		descColorBuffer.ArraySize = 1;
-		descColorBuffer.Format = GraphicDevice.GetBackBufferFormat();
+		descColorBuffer.Format = GraphicDevice::GetInstance()->GetBackBufferFormat();
 		descColorBuffer.SampleDesc.Count = static_cast<UINT>(MSAA_SAMPLE_COUNT::X4);	// (테스트) 4X MSAA에 maximum quailty를 고정으로 사용
-		descColorBuffer.SampleDesc.Quality = GraphicDevice.GetMSAAMaximumQuality(MSAA_SAMPLE_COUNT::X4);	// Use max quality level
+		descColorBuffer.SampleDesc.Quality = GraphicDevice::GetInstance()->GetMSAAMaximumQuality(MSAA_SAMPLE_COUNT::X4);	// Use max quality level
 		descColorBuffer.Usage = D3D11_USAGE_DEFAULT;
 		descColorBuffer.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;		// 렌더링 + 카메라병합셰이더 리소스
 		descColorBuffer.CPUAccessFlags = 0;
 		descColorBuffer.MiscFlags = 0;
 
 		ComPtr<ID3D11Texture2D> colorBuffer;
-		hr = GraphicDevice.GetDeviceComInterface()->CreateTexture2D(&descColorBuffer, nullptr, colorBuffer.GetAddressOf());
+		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateTexture2D(&descColorBuffer, nullptr, colorBuffer.GetAddressOf());
 		if (FAILED(hr))
 			break;
 
-		hr = GraphicDevice.GetDeviceComInterface()->CreateRenderTargetView(colorBuffer.Get(), nullptr, cpColorBufferRTV.GetAddressOf());
+		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateRenderTargetView(colorBuffer.Get(), nullptr, cpColorBufferRTV.GetAddressOf());
 		if (FAILED(hr))
 			break;
 
@@ -173,7 +182,7 @@ HRESULT Camera::CreateBufferAndView()
 		ZeroMemory(&descColorBufferSRV, sizeof(descColorBufferSRV));
 		descColorBufferSRV.Format = descColorBuffer.Format;
 		descColorBufferSRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMS;
-		hr = GraphicDevice.GetDeviceComInterface()->CreateShaderResourceView(colorBuffer.Get(), &descColorBufferSRV, cpColorBufferSRV.GetAddressOf());
+		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateShaderResourceView(colorBuffer.Get(), &descColorBufferSRV, cpColorBufferSRV.GetAddressOf());
 		if (FAILED(hr))
 			break;
 
@@ -192,11 +201,11 @@ HRESULT Camera::CreateBufferAndView()
 		descDepthStencilBuffer.MiscFlags = 0;
 
 		ComPtr<ID3D11Texture2D> depthStencilBuffer;
-		hr = GraphicDevice.GetDeviceComInterface()->CreateTexture2D(&descDepthStencilBuffer, nullptr, depthStencilBuffer.GetAddressOf());
+		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateTexture2D(&descDepthStencilBuffer, nullptr, depthStencilBuffer.GetAddressOf());
 		if (FAILED(hr))
 			break;
 
-		hr = GraphicDevice.GetDeviceComInterface()->CreateDepthStencilView(depthStencilBuffer.Get(), nullptr, cpDepthStencilBufferDSV.GetAddressOf());
+		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateDepthStencilView(depthStencilBuffer.Get(), nullptr, cpDepthStencilBufferDSV.GetAddressOf());
 		if (FAILED(hr))
 			break;
 
@@ -204,6 +213,8 @@ HRESULT Camera::CreateBufferAndView()
 		m_cpColorBufferRTV = std::move(cpColorBufferRTV);
 		m_cpColorBufferSRV = std::move(cpColorBufferSRV);
 		m_cpDepthStencilBufferDSV = std::move(cpDepthStencilBufferDSV);
+
+		this->UpdateEntireBufferViewport(width, height);
 	} while (false);
 
 	return hr;
@@ -211,17 +222,7 @@ HRESULT Camera::CreateBufferAndView()
 
 IComponentManager* Camera::GetComponentManager() const
 {
-	return &CameraManager;
-}
-
-float Camera::CalcBufferWidth()
-{
-	return Window.GetWidthFloat() * m_viewportRect.m_width;
-}
-
-float Camera::CalcBufferHeight()
-{
-	return Window.GetHeightFloat() * m_viewportRect.m_height;
+	return CameraManager::GetInstance();
 }
 
 void Camera::UpdateViewMatrix()
@@ -236,19 +237,19 @@ void Camera::UpdateViewMatrix()
 
 	XMMatrixDecompose(&scale, &rotation, &translation, w);
 
-	const XMVECTOR forward = XMVector3Rotate(LOCAL_FORWARD, rotation);
-	const XMVECTOR up = XMVector3Rotate(LOCAL_UP, rotation);
+	const XMVECTOR forward = XMVector3Rotate(Math::Vector3::FORWARD, rotation);
+	const XMVECTOR up = XMVector3Rotate(Math::Vector3::UP, rotation);
 	const XMVECTOR eye = translation;
 	const XMVECTOR at = eye + forward;
 
 	XMStoreFloat4x4A(&m_viewMatrix, XMMatrixLookAtLH(eye, at, up));
 }
 
-void Camera::UpdateProjectionMatrix()
+void Camera::UpdateProjectionMatrix(uint32_t width, uint32_t height)
 {
-	const float colorBufferWidth = this->CalcBufferWidth();
-	const float colorBufferHeight = this->CalcBufferHeight();
-	const float aspectRatio = colorBufferWidth / colorBufferHeight;
+	const float bufferWidth = static_cast<float>(width) * m_viewportRect.m_width;
+	const float bufferHeight = static_cast<float>(height) * m_viewportRect.m_height;
+	const float aspectRatio = bufferWidth / bufferHeight;
 
 	XMStoreFloat4x4A(&m_projMatrix, XMMatrixPerspectiveFovLH(
 		XMConvertToRadians(static_cast<float>(m_fov)),
@@ -258,15 +259,12 @@ void Camera::UpdateProjectionMatrix()
 	);
 }
 
-void Camera::UpdateFullbufferViewport()
+void Camera::UpdateEntireBufferViewport(uint32_t width, uint32_t height)
 {
-	const float colorBufferWidth = this->CalcBufferWidth();
-	const float colorBufferHeight = this->CalcBufferHeight();
-
-	m_fullbufferViewport.TopLeftX = 0;
-	m_fullbufferViewport.TopLeftY = 0;
-	m_fullbufferViewport.Width = colorBufferWidth;
-	m_fullbufferViewport.Height = colorBufferHeight;
-	m_fullbufferViewport.MinDepth = 0.0f;
-	m_fullbufferViewport.MaxDepth = 1.0f;
+	m_entireBufferViewport.TopLeftX = 0;
+	m_entireBufferViewport.TopLeftY = 0;
+	m_entireBufferViewport.Width = static_cast<FLOAT>(width) * m_viewportRect.m_width;
+	m_entireBufferViewport.Height = static_cast<FLOAT>(height) * m_viewportRect.m_height;
+	m_entireBufferViewport.MinDepth = 0.0f;
+	m_entireBufferViewport.MaxDepth = 1.0f;
 }

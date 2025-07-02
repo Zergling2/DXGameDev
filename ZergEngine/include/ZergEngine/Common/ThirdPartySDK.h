@@ -10,12 +10,18 @@
 #include <intrin.h>
 #include <wrl\client.h>
 #include <strsafe.h>
+#include <tchar.h>
 
+#include <cassert>
 #include <clocale>
 #include <cstdlib>
 #include <ctime>
 #include <limits>
 #include <memory>
+#include <random>
+#include <chrono>
+#include <cstdint>
+#include <type_traits>
 
 // C++ STL
 #include <utility>

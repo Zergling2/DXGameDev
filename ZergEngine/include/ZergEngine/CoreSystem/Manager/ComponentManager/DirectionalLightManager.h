@@ -4,15 +4,20 @@
 
 namespace ze
 {
-	class DirectionalLightManagerImpl : public IComponentManager
+	class DirectionalLightManager : public IComponentManager
 	{
-		friend class RuntimeImpl;
+		friend class Runtime;
+		friend class Renderer;
 		friend class DirectionalLight;
-		ZE_DECLARE_SINGLETON(DirectionalLightManagerImpl);
+	public:
+		static DirectionalLightManager* GetInstance() { return s_pInstance; }
 	private:
-		virtual void Init(void* pDesc) override;
-		virtual void Release() override;
-	};
+		DirectionalLightManager() = default;
+		virtual ~DirectionalLightManager() = default;
 
-	extern DirectionalLightManagerImpl DirectionalLightManager;
+		static void CreateInstance();
+		static void DestroyInstance();
+	private:
+		static DirectionalLightManager* s_pInstance;
+	};
 }

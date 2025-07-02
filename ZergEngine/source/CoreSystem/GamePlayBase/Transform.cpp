@@ -1,5 +1,6 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\Transform.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
+#include <ZergEngine\CoreSystem\Manager\GameObjectManager.h>
 
 using namespace ze;
 
@@ -133,50 +134,7 @@ void XM_CALLCONV Transform::SetWorldPosition(FXMVECTOR position)
 
 bool Transform::SetParent(Transform* pTransform)
 {
-    // 자기 자신을 부모로 설정하려는 경우
-    if (pTransform == this)
-        return false;
-
-    // 이미 부모인 경우
-    if (m_pParentTransform == pTransform)
-        return false;
-
-    // Check cycle
-    // pTransform이 이미 나를 조상으로 하고 있는 경우
-    if (pTransform != nullptr && pTransform->IsDescendantOf(this))
-        return false;
-
-    // 기존 부모에서 떠나기 위해 자신의 포인터를 찾아 제거
-    if (m_pParentTransform != nullptr)
-    {
-#if defined(DEBUG) || defined(_DEBUG)
-        bool find = false;
-#endif
-        std::vector<Transform*>::const_iterator end = m_pParentTransform->m_children.cend();
-        std::vector<Transform*>::const_iterator iter = m_pParentTransform->m_children.cbegin();
-        while (iter != end)
-        {
-            if ((*iter) == this)
-            {
-                m_pParentTransform->m_children.erase(iter);
-#if defined(DEBUG) || defined(_DEBUG)
-                find = true;
-#endif
-                break;
-            }
-            ++iter;
-        }
-        assert(find == true);
-    }
-
-    // 부모의 자식 목록을 업데이트
-    if (pTransform != nullptr)
-        pTransform->m_children.push_back(this);
-
-    // 자식의 부모 포인터를 업데이트
-    m_pParentTransform = pTransform;
-
-    return true;
+    return GameObjectManager::GetInstance()->SetParent(this, pTransform);
 }
 
 bool Transform::IsDescendantOf(Transform* pTransform) const

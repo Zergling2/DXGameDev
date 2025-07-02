@@ -123,4 +123,12 @@ namespace ze
 			return strcmp(lhs, rhs) < 0;
 		}
 	};
+
+	struct WideCharStringComparator
+	{
+		bool operator()(const PCWSTR lhs, const PCWSTR rhs) const
+		{
+			return wcscmp(lhs, rhs) < 0;
+		}
+	};
 }

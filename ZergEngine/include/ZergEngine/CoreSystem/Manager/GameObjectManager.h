@@ -1,49 +1,73 @@
 #pragma once
 
-#include <ZergEngine\CoreSystem\SubsystemInterface.h>
 #include <ZergEngine\CoreSystem\SlimRWLock.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Handle.h>
+
+#define THREADSAFE
 
 namespace ze
 {
 	class GameObject;
+	class Transform;
 
-	class GameObjectManagerImpl : public ISubsystem
+	class GameObjectManager
 	{
-		friend class RuntimeImpl;
+		friend class Runtime;
+		friend class IScene;
 		friend class GameObject;
 		friend class GameObjectHandle;
-		friend class SceneManagerImpl;
-		friend class IScene;
-		ZE_DECLARE_SINGLETON(GameObjectManagerImpl);
+		friend class Transform;
+	public:
+		static GameObjectManager* GetInstance() { return s_pInstance; }
 	private:
-		virtual void Init(void* pDesc) override;
-		virtual void Release() override;
+		GameObjectManager();
+		~GameObjectManager();
 
-		GameObjectHandle RegisterToHandleTable(GameObject* pGameObject);
-		void AddToDestroyQueue(GameObject* pGameObject);
+		static void CreateInstance();
+		static void DestroyInstance();
+
+		void Init();
+		void UnInit();
+
+		void Deploy(GameObject* pGameObject);
+
 		GameObjectHandle FindGameObject(PCWSTR name);
+		GameObjectHandle CreateObject(PCWSTR name);
+		GameObjectHandle CreatePendingObject(GameObject** ppNewGameObject, PCWSTR name);
+		void RequestDestroy(GameObject* pGameObject);
 
+		GameObject* ToPtr(uint32_t tableIndex, uint64_t id) const;
+
+		// 비동기 씬 로딩 스레드에 의해서 호출될 수 있음.
+		GameObjectHandle THREADSAFE RegisterToHandleTable(GameObject* pGameObject);
+		void AddToDestroyQueue(GameObject* pGameObject);
+
+		void MoveToActiveGroup(GameObject* pGameObject);
+		void MoveToInactiveGroup(GameObject* pGameObject);
+
+		void DeployToActiveGroup(GameObject* pGameObject);
+		void DeployToInactiveGroup(GameObject* pGameObject);
+		void AddToActiveGroup(GameObject* pGameObject);
+		void AddToInactiveGroup(GameObject* pGameObject);
+
+		void RemoveFromGroup(GameObject* pGameObject);	// Active/Inactive group에서 포인터 제거
 		void RemoveDestroyedGameObjects();
 
-		void MoveToInactiveVectorFromActiveVector(GameObject* pGameObject);
-		void MoveToActiveVectorFromInactiveVector(GameObject* pGameObject);
+		void SetActive(GameObject* pGameObject, bool active);
 
-		void AddPtrToActiveVector(GameObject* pGameObject) { AddPtrToVector(m_activeGameObjects, pGameObject); }
-		void AddPtrToInactiveVector(GameObject* pGameObject) { AddPtrToVector(m_inactiveGameObjects, pGameObject); }
-		static void AddPtrToVector(std::vector<GameObject*>& vector, GameObject* pGameObject);
-		void RemovePtrFromActiveVector(GameObject* pGameObject) { RemovePtrFromVector(m_activeGameObjects, pGameObject); }
-		void RemovePtrFromInactiveVector(GameObject* pGameObject) { RemovePtrFromVector(m_inactiveGameObjects, pGameObject); }
-		static void RemovePtrFromVector(std::vector<GameObject*>& vector, GameObject* pGameObject);
+		// pTransform은 항상 nullptr이 아닌 입력
+		// pNewTransform은 nullptr이 입력으로 들어올 수 있음.
+		bool SetParent(Transform* pTransform, Transform* pNewParentTransform);
 
 		uint64_t AssignUniqueId() { return InterlockedIncrement64(reinterpret_cast<LONG64*>(&m_uniqueId)); }
 	private:
+		static GameObjectManager* s_pInstance;
+
 		uint64_t m_uniqueId;
 		SlimRWLock m_lock;
+		std::vector<GameObject*> m_activeGroup;		// 검색 시 전체 테이블을 순회할 필요 제거
+		std::vector<GameObject*> m_inactiveGroup;	// 비활성화된 게임 오브젝트들 (검색 대상에서 제외)
+		std::vector<GameObject*> m_handleTable;
 		std::vector<GameObject*> m_destroyed;
-		std::vector<GameObject*> m_activeGameObjects;	// 검색 시 전체 테이블을 순회할 필요 제거
-		std::vector<GameObject*> m_inactiveGameObjects;	// 비활성화된 게임 오브젝트들 (검색 대상에서 제외)
-		std::vector<GameObject*> m_table;
 	};
-
-	extern GameObjectManagerImpl GameObjectManager;
 }

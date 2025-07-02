@@ -8,7 +8,7 @@ namespace ze
 
 	class Subset
 	{
-		friend class ResourceManagerImpl;
+		friend class ResourceLoader;
 	public:
 		Subset()
 			: m_material(nullptr)
@@ -28,7 +28,7 @@ namespace ze
 
 	class Mesh
 	{
-		friend class ResourceManagerImpl;
+		friend class ResourceLoader;
 	public:
 		Mesh(PCWSTR name)
 			: m_subsets()

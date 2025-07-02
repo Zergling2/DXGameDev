@@ -6,8 +6,8 @@
 #include <ZergEngine\CoreSystem\Window.h>
 #include <ZergEngine\CoreSystem\SceneInterface.h>
 #include <ZergEngine\CoreSystem\Input.h>
+#include <ZergEngine\CoreSystem\ResourceLoader.h>
 #include <ZergEngine\CoreSystem\Manager\SceneManager.h>
-#include <ZergEngine\CoreSystem\Manager\ResourceManager.h>
 #include <ZergEngine\CoreSystem\Manager\EnvironmentManager.h>
 #include <ZergEngine\CoreSystem\Resource\Mesh.h>
 #include <ZergEngine\CoreSystem\Resource\Material.h>

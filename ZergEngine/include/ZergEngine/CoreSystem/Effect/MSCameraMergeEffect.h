@@ -44,11 +44,7 @@ namespace ze
 		void ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept;
 		void ApplyPerMSCameraMergeConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
 
-		void ClearTextureSRVArray()
-		{
-			for (size_t i = 0; i < _countof(m_pTextureSRVArray); ++i)
-				m_pTextureSRVArray[i] = nullptr;
-		}
+		void ClearTextureSRVArray();
 	private:
 		DWORD m_dirtyFlag;
 

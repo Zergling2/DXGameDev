@@ -205,6 +205,8 @@
     <ClInclude Include="Settings.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="HierarchyTreeView.h" />
+    <ClInclude Include="TerrainGenerationDialog.h" />
+    <ClInclude Include="TransformEdit\TransformEdit.h" />
     <ClInclude Include="TransformInspectorFormView.h" />
     <ClInclude Include="LevelEditor.h" />
     <ClInclude Include="LevelEditorDoc.h" />
@@ -218,6 +220,8 @@
     <ClCompile Include="BufferDC.cpp" />
     <ClCompile Include="ComponentListView.cpp" />
     <ClCompile Include="HierarchyTreeView.cpp" />
+    <ClCompile Include="TerrainGenerationDialog.cpp" />
+    <ClCompile Include="TransformEdit\TransformEdit.cpp" />
     <ClCompile Include="TransformInspectorFormView.cpp" />
     <ClCompile Include="LevelEditor.cpp" />
     <ClCompile Include="LevelEditorDoc.cpp" />
@@ -236,6 +240,7 @@
     <Image Include="res\LevelEditorDoc.ico" />
     <Image Include="res\Toolbar.bmp" />
     <Image Include="res\ZEPackedIcon.bmp" />
+    <Image Include="res\ZergEngineLogoMedium.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

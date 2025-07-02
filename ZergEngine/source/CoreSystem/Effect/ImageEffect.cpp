@@ -6,16 +6,14 @@ using namespace ze;
 
 void ImageEffect::Init()
 {
-	ID3D11Device* pDevice = GraphicDevice.GetDeviceComInterface();
-
 	m_dirtyFlag = DIRTY_FLAG::ALL;
 
 	m_pInputLayout = nullptr;
-	m_pVertexShader = GraphicDevice.GetVSComInterface(VERTEX_SHADER_TYPE::TRANSFORM_PT_QUAD_TO_HCS);
-	m_pPixelShader = GraphicDevice.GetPSComInterface(PIXEL_SHADER_TYPE::COLOR_PT_UI_QUAD);
+	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VERTEX_SHADER_TYPE::TRANSFORM_PT_QUAD_TO_HCS);
+	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PIXEL_SHADER_TYPE::COLOR_PT_UI_QUAD);
 
-	m_cbPerUIRender.Init(pDevice);
-	m_cbPerImage.Init(pDevice);
+	m_cbPerUIRender.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
+	m_cbPerImage.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
 }
 
 void ImageEffect::Release()

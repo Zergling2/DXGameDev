@@ -11,16 +11,16 @@ namespace ze
 {
 	class MonoBehaviour : public IComponent
 	{
-		friend class MonoBehaviourManagerImpl;
 		DECLARE_MONOBEHAVIOUR_TYPE
+		friend class MonoBehaviourManager;
 	public:
 		static bool IsCreatable() { return true; }
 
 		MonoBehaviour();
 		virtual ~MonoBehaviour() = default;
 
-		virtual bool Enable() override;
-		virtual bool Disable() override;
+		virtual void Enable() override;
+		virtual void Disable() override;
 
 		virtual COMPONENT_TYPE GetType() const override { return COMPONENT_TYPE::MONOBEHAVIOUR; }
 		virtual void Awake();

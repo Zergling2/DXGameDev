@@ -13,15 +13,13 @@ using namespace ze;
 
 void SkyboxEffect::Init()
 {
-	ID3D11Device* pDevice = GraphicDevice.GetDeviceComInterface();
-
 	m_dirtyFlag = DIRTY_FLAG::ALL;
 
 	m_pInputLayout = nullptr;
-	m_pVertexShader = GraphicDevice.GetVSComInterface(VERTEX_SHADER_TYPE::TRANSFORM_SKYBOX_TO_HCS);
-	m_pPixelShader = GraphicDevice.GetPSComInterface(PIXEL_SHADER_TYPE::COLOR_SKYBOX_FRAGMENT);
+	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VERTEX_SHADER_TYPE::TRANSFORM_SKYBOX_TO_HCS);
+	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PIXEL_SHADER_TYPE::COLOR_SKYBOX_FRAGMENT);
 
-	m_cbPerCamera.Init(pDevice);
+	m_cbPerCamera.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
 
 	ClearTextureSRVArray();
 }
@@ -120,4 +118,10 @@ void SkyboxEffect::ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceCont
 	// PerCamera 상수버퍼 사용 셰이더
 	constexpr UINT startSlot = 0;
 	pDeviceContext->VSSetConstantBuffers(startSlot, 1, cbs);
+}
+
+void SkyboxEffect::ClearTextureSRVArray()
+{
+	for (size_t i = 0; i < _countof(m_pTextureSRVArray); ++i)
+		m_pTextureSRVArray[i] = nullptr;
 }

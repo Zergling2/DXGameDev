@@ -10,15 +10,13 @@ using namespace ze;
 
 void MSCameraMergeEffect::Init()
 {
-	ID3D11Device* pDevice = GraphicDevice.GetDeviceComInterface();
-
 	m_dirtyFlag = DIRTY_FLAG::ALL;
 
 	m_pInputLayout = nullptr;
-	m_pVertexShader = GraphicDevice.GetVSComInterface(VERTEX_SHADER_TYPE::TRANSFORM_CAMERA_MERGE_QUAD);
-	m_pPixelShader = GraphicDevice.GetPSComInterface(PIXEL_SHADER_TYPE::COLOR_PT_FRAGMENT_SINGLE_MSTEXTURE);
+	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VERTEX_SHADER_TYPE::TRANSFORM_CAMERA_MERGE_QUAD);
+	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PIXEL_SHADER_TYPE::COLOR_PT_FRAGMENT_SINGLE_MSTEXTURE);
 
-	m_cbPerMSCameraMerge.Init(pDevice);
+	m_cbPerMSCameraMerge.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
 
 	ClearTextureSRVArray();
 }
@@ -105,4 +103,10 @@ void MSCameraMergeEffect::ApplyPerMSCameraMergeConstantBuffer(ID3D11DeviceContex
 	// PerFrame 상수버퍼 사용 셰이더
 	constexpr UINT startSlot = 0;
 	pDeviceContext->VSSetConstantBuffers(startSlot, 1, cbs);
+}
+
+void MSCameraMergeEffect::ClearTextureSRVArray()
+{
+	for (size_t i = 0; i < _countof(m_pTextureSRVArray); ++i)
+		m_pTextureSRVArray[i] = nullptr;
 }

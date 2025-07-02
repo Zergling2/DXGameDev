@@ -7,14 +7,6 @@ namespace ze
 	// 旨收收收收收收收收收收收收收收收收收收收收收收收收收收收收收旬
 	// 早          Constants          早
 	// 曲收收收收收收收收收收收收收收收收收收收收收收收收收收收收收旭
-	XMGLOBALCONST XMVECTORF32 WORLD_RIGHT = { 1.0f, 0.0f, 0.0f, 0.0f };
-	XMGLOBALCONST XMVECTORF32 WORLD_UP = { 0.0f, 1.0f, 0.0f, 0.0f };
-	XMGLOBALCONST XMVECTORF32 WORLD_FORWARD = { 0.0f, 0.0f, 1.0f, 0.0f };
-	XMGLOBALCONST XMVECTORF32 LOCAL_RIGHT = WORLD_RIGHT;
-	XMGLOBALCONST XMVECTORF32 LOCAL_UP = WORLD_UP;
-	XMGLOBALCONST XMVECTORF32 LOCAL_FORWARD = WORLD_FORWARD;
-	XMGLOBALCONST XMVECTORF32 LIGHT_DIRECTION_LOCAL_AXIS = LOCAL_FORWARD;
-	
 	constexpr uint32_t MAX_GLOBAL_LIGHT_COUNT = 4;
 	constexpr uint16_t MAX_CAMERA_COUNT = 4;
 
@@ -137,17 +129,5 @@ namespace ze
 		// 收收收收收收收收收收收收收收收收收收收收收收
 		COUNT,
 		UNKNOWN
-	};
-
-	enum class WINDOW_MODE
-	{
-		// Windowed Mode
-		WINDOWED,
-
-		// Borderless Fullscreen Windowed Mode
-		WINDOWED_FULLSCREEN,
-
-		// Exclusive fullscreen Mode
-		FULLSCREEN
 	};
 }

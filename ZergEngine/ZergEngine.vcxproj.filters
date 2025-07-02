@@ -46,13 +46,13 @@
     <Filter Include="Files\ZergEngine\CoreSystem\DeviceContext">
       <UniqueIdentifier>{42897642-bd97-4a56-9cb8-a63142bf1766}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Files\ZergEngine\CoreSystem\Manager\ComponentManager\GamePlayBase">
+    <Filter Include="Files\ZergEngine\CoreSystem\GamePlayBase">
       <UniqueIdentifier>{e1ac729c-10c9-41ca-b6ad-feb8af528f69}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Files\ZergEngine\CoreSystem\Manager\ComponentManager\Component">
+    <Filter Include="Files\ZergEngine\CoreSystem\GamePlayBase\Component">
       <UniqueIdentifier>{622940e4-4558-4515-b222-4c76e85b77f6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Files\ZergEngine\CoreSystem\Manager\ComponentManager\UIObject">
+    <Filter Include="Files\ZergEngine\CoreSystem\GamePlayBase\UIObject">
       <UniqueIdentifier>{76db95bf-73ee-420f-8187-f914763a1df1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -144,9 +144,6 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Math.h">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\SystemInfo.h">
-      <Filter>Files\ZergEngine\CoreSystem</Filter>
-    </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\MemoryAllocator.h">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClInclude>
@@ -161,9 +158,6 @@
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Texture.h">
       <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\COMInitializer.h">
-      <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\Window.h">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
@@ -181,9 +175,6 @@
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\FileSystem.h">
-      <Filter>Files\ZergEngine\CoreSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\SubsystemInterface.h">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\SceneTable.h">
@@ -210,13 +201,7 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\SceneManager.h">
       <Filter>Files\ZergEngine\CoreSystem\Manager</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ResourceManager.h">
-      <Filter>Files\ZergEngine\CoreSystem\Manager</Filter>
-    </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\GameObjectManager.h">
-      <Filter>Files\ZergEngine\CoreSystem\Manager</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\EnvironmentManager.h">
       <Filter>Files\ZergEngine\CoreSystem\Manager</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\MeshRendererManager.h">
@@ -289,16 +274,16 @@
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\Button.h">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\UIObject</Filter>
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\Camera.h">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\Component</Filter>
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\CameraManager.h">
       <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\ComponentInterface.h">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\Component</Filter>
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\ComponentManagerInterface.h">
       <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
@@ -307,52 +292,79 @@
       <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\ComponentType.h">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\Component</Filter>
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\DirectionalLightManager.h">
       <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\GameObject.h">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\GamePlayBase</Filter>
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Handle.h">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\GamePlayBase</Filter>
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\Image.h">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\UIObject</Filter>
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\Light.h">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\Component</Filter>
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\Panel.h">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\UIObject</Filter>
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\SizeColorUIObjectInterface.h">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\UIObject</Filter>
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\MeshRenderer.h">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\Component</Filter>
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\MonoBehaviour.h">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\Component</Filter>
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\Terrain.h">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\Component</Filter>
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Transform.h">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\GamePlayBase</Filter>
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\RectTransform.h">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\GamePlayBase</Filter>
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\UIObjectInterface.h">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\UIObject</Filter>
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\UIObjectType.h">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\UIObject</Filter>
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\SkyboxEffect.h">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\SizeUIObjectInterface.h">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\AudioSource.h">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\InputField.h">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\Text.h">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\AudioSourceManager.h">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\Common\DisplayMode.h">
+      <Filter>Files\ZergEngine\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\ResourceLoader.h">
+      <Filter>Files\ZergEngine\CoreSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\EnvironmentManager.h">
+      <Filter>Files\ZergEngine\CoreSystem\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Random.h">
+      <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -368,9 +380,6 @@
     <ClCompile Include="source\CoreSystem\Math.cpp">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClCompile>
-    <ClCompile Include="source\CoreSystem\SystemInfo.cpp">
-      <Filter>Files\ZergEngine\CoreSystem</Filter>
-    </ClCompile>
     <ClCompile Include="source\CoreSystem\MemoryAllocator.cpp">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClCompile>
@@ -382,9 +391,6 @@
     </ClCompile>
     <ClCompile Include="source\CoreSystem\Resource\Texture.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\COMInitializer.cpp">
-      <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\Window.cpp">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
@@ -405,9 +411,6 @@
       <Filter>Files\ZergEngine\Common</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\FileSystem.cpp">
-      <Filter>Files\ZergEngine\CoreSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\SubsystemInterface.cpp">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\SceneTable.cpp">
@@ -434,13 +437,7 @@
     <ClCompile Include="source\CoreSystem\Manager\SceneManager.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Manager</Filter>
     </ClCompile>
-    <ClCompile Include="source\CoreSystem\Manager\ResourceManager.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\Manager</Filter>
-    </ClCompile>
     <ClCompile Include="source\CoreSystem\Manager\GameObjectManager.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\Manager</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\Manager\EnvironmentManager.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Manager</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\MeshRendererManager.cpp">
@@ -504,16 +501,16 @@
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\Button.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\UIObject</Filter>
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\Camera.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\Component</Filter>
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\CameraManager.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\ComponentInterface.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\Component</Filter>
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\ComponentManagerInterface.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
@@ -525,43 +522,67 @@
       <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\GamePlayBase\GameObject.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\GamePlayBase</Filter>
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\GamePlayBase\Handle.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\GamePlayBase</Filter>
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\Image.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\UIObject</Filter>
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\Light.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\Component</Filter>
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\Panel.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\UIObject</Filter>
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\SizeColorUIObjectInterface.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\UIObject</Filter>
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\MeshRenderer.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\Component</Filter>
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\MonoBehaviour.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\Component</Filter>
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\Terrain.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\Component</Filter>
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\GamePlayBase\Transform.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\GamePlayBase</Filter>
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\GamePlayBase\RectTransform.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\GamePlayBase</Filter>
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\UIObjectInterface.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager\UIObject</Filter>
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\Effect\SkyboxEffect.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\SizeUIObjectInterface.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\GamePlayBase\Component\AudioSource.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\InputField.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\Text.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\AudioSourceManager.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\ResourceLoader.cpp">
+      <Filter>Files\ZergEngine\CoreSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Manager\EnvironmentManager.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Random.cpp">
+      <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

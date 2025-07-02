@@ -5,12 +5,9 @@
 #include <ZergEngine\CoreSystem\InputLayout.h>
 #include <ZergEngine\CoreSystem\RenderState.h>
 
-namespace ze
-{
-	GraphicDeviceImpl GraphicDevice;
-}
-
 using namespace ze;
+
+GraphicDevice* GraphicDevice::s_pInstance = nullptr;
 
 PCWSTR SHADER_LOAD_FAIL_MSG_FMT = L"Failed to open compiled shader object.\n%s";
 PCWSTR SHADER_PATH = L"Engine\\Bin\\Shader\\";
@@ -57,12 +54,14 @@ static PCWSTR PIXEL_SHADER_FILES[static_cast<size_t>(PIXEL_SHADER_TYPE::COUNT)] 
 // constexpr float allows only one floating point constant to exist in memory, even if it is not encoded in a x86 command.
 constexpr uint32_t SWAP_CHAIN_FLAG = 0;
 
-GraphicDeviceImpl::GraphicDeviceImpl()
+GraphicDevice::GraphicDevice()
 	: m_backBufferFormat(DXGI_FORMAT_B8G8R8A8_UNORM)
 	, m_descAdapter()
 	, m_descSwapChain()
+	, m_swapChainSizeFlt(0.0f, 0.0f)
+	, m_swapChainHalfSizeFlt(0.0f, 0.0f)
 	, m_descDepthStencil()
-	, m_fullSwapChainViewport()
+	, m_entireSwapChainViewport()
 	, m_pDevice(nullptr)
 	, m_pImmediateContext(nullptr)
 	, m_pD2DFactory(nullptr)
@@ -90,11 +89,26 @@ GraphicDeviceImpl::GraphicDeviceImpl()
 {
 }
 
-GraphicDeviceImpl::~GraphicDeviceImpl()
+GraphicDevice::~GraphicDevice()
 {
 }
 
-void GraphicDeviceImpl::Init(void* pDesc)
+void GraphicDevice::CreateInstance()
+{
+	assert(s_pInstance == nullptr);
+
+	s_pInstance = new GraphicDevice();
+}
+
+void GraphicDevice::DestroyInstance()
+{
+	assert(s_pInstance != nullptr);
+
+	delete s_pInstance;
+	s_pInstance = nullptr;
+}
+
+void GraphicDevice::Init(HWND hWnd, uint32_t width, uint32_t height, bool fullscreen)
 {
 	HRESULT hr;
 
@@ -170,7 +184,39 @@ void GraphicDeviceImpl::Init(void* pDesc)
 	this->CreateSupportedMSAAQualityInfo();
 
 	// ½º¿Ò Ã¼ÀÎ µð½ºÅ©¸³ÅÍ ¹× µª½º½ºÅÙ½Ç ¹öÆÛ µð½ºÅ©¸³ÅÍ ÃÊ±âÈ­
-	this->InitializeSwapChainAndDepthStencilBufferDesc();
+	// Initialize SwapChain descriptor.
+	DXGI_SWAP_CHAIN_DESC descSwapChain;
+	ZeroMemory(&descSwapChain, sizeof(descSwapChain));
+	descSwapChain.BufferDesc.Width = width;
+	descSwapChain.BufferDesc.Height = height;
+	descSwapChain.BufferDesc.RefreshRate.Numerator = 1;
+	descSwapChain.BufferDesc.RefreshRate.Denominator = 144;
+	descSwapChain.BufferDesc.Format = this->GetBackBufferFormat();
+	descSwapChain.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+	descSwapChain.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+	descSwapChain.SampleDesc.Count = 1;
+	descSwapChain.SampleDesc.Quality = 0;
+	descSwapChain.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	descSwapChain.BufferCount = 2;
+	descSwapChain.OutputWindow = hWnd;
+	descSwapChain.Windowed = TRUE;		// ÃÖÃÊ¿¡´Â Ã¢ ¸ðµå ½º¿ÒÃ¼ÀÎÀ» »ý¼ºÇÏ´Â °ÍÀ¸·Î (MSDN ³»¿ë Âü°íÇØ¼­..)
+	descSwapChain.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;	// Windows 10ºÎÅÍ Áö¿ø (This flag cannot be used with multisampling and partial presentation.)
+	descSwapChain.Flags = SWAP_CHAIN_FLAG;
+
+	D3D11_TEXTURE2D_DESC descDepthStencil;
+	ZeroMemory(&descDepthStencil, sizeof(descDepthStencil));
+	// Depth/Stencil buffer (¹öÆÛ Å©±â´Â ¹Ýµå½Ã ½º¿Ò Ã¼ÀÎÀÇ ¹é ¹öÆÛ¿Í ÀÏÄ¡ÇØ¾ß ÇÔ)
+	descDepthStencil.Width = descSwapChain.BufferDesc.Width;
+	descDepthStencil.Height = descSwapChain.BufferDesc.Height;
+	descDepthStencil.MipLevels = 1;
+	descDepthStencil.ArraySize = 1;
+	descDepthStencil.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	// Must match with swap chain's MSAA setting!
+	descDepthStencil.SampleDesc = descSwapChain.SampleDesc;
+	descDepthStencil.Usage = D3D11_USAGE_DEFAULT;
+	descDepthStencil.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	descDepthStencil.CPUAccessFlags = 0;
+	descDepthStencil.MiscFlags = 0;
 
 	// ½º¿Ò Ã¼ÀÎ »ý¼º
 	// First, Get IDXGIFactory instance
@@ -203,9 +249,14 @@ void GraphicDeviceImpl::Init(void* pDesc)
 
 		// ½º¿Ò Ã¼ÀÎ »ý¼º
 		assert(m_pSwapChain == nullptr);
-		hr = cpDXGIFactory->CreateSwapChain(m_pDevice, &m_descSwapChain, &m_pSwapChain);
+		hr = cpDXGIFactory->CreateSwapChain(m_pDevice, &descSwapChain, &m_pSwapChain);
 		if (FAILED(hr))
 			break;
+
+		// ¸¸µé¾îÁø ½º¿Ò Ã¼ÀÎÀÇ Á¤º¸ ÀúÀå
+		m_pSwapChain->GetDesc(&m_descSwapChain);
+		m_swapChainSizeFlt = XMFLOAT2(static_cast<FLOAT>(m_descSwapChain.BufferDesc.Width), static_cast<FLOAT>(m_descSwapChain.BufferDesc.Height));
+		m_swapChainHalfSizeFlt = XMFLOAT2(m_swapChainSizeFlt.x * 0.5f, m_swapChainSizeFlt.y * 0.5f);
 		// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
 		
 		
@@ -225,9 +276,10 @@ void GraphicDeviceImpl::Init(void* pDesc)
 		// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
 		// ½º¿Ò Ã¼ÀÎ¿¡ ´ëÇÑ ·»´õ¸µ¿¡ »ç¿ëÇÒ µª½º ½ºÅÙ½Ç ºä Àç»ý¼º
 		ComPtr<ID3D11Texture2D> cpDepthStencilBuffer;
-		hr = m_pDevice->CreateTexture2D(&m_descDepthStencil, nullptr, cpDepthStencilBuffer.GetAddressOf());
+		hr = m_pDevice->CreateTexture2D(&descDepthStencil, nullptr, cpDepthStencilBuffer.GetAddressOf());
 		if (FAILED(hr))
 			break;
+		cpDepthStencilBuffer->GetDesc(&m_descDepthStencil);
 
 		assert(m_pSwapChainDSV == nullptr);
 		hr = m_pDevice->CreateDepthStencilView(cpDepthStencilBuffer.Get(), nullptr, &m_pSwapChainDSV);
@@ -268,36 +320,11 @@ void GraphicDeviceImpl::Init(void* pDesc)
 		if (FAILED(hr))
 			break;
 	} while (false);
-	
-	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"Failed to create a swap chain.", hr);
 
-	// Detect if newly created full-screen swap chain isn't actually full screen.
-	// https://learn.microsoft.com/en-us/windows/win32/api/dxgi/nf-dxgi-idxgifactory-createswapchain
-	// Remark Âü°í
-	// ÀüÃ¼È­¸éÀ¸·Î ½º¿Ò Ã¼ÀÎÀ» »ý¼ºÇÏ°í Present¸¦ È£ÃâÇÒ ¶§ ·±Å¸ÀÓÀÌ ¿¹±âÄ¡ ¾Ê°Ô ÀüÃ¼È­¸éÀ» Á¾·áÇÒ ¼ö ÀÖ´Â ¹®Á¦¸¦ ÇØ°áÇÏ´Â ÄÚµå.
-	if (m_descSwapChain.Windowed == FALSE)
-	{
-		BOOL isFullscreen;
-		hr = this->GetFullscreenState(&isFullscreen);
-		// If not full screen, enable full screen again.
-		if (SUCCEEDED(hr) && isFullscreen == FALSE)
-		{
-			ShowWindow(Window.GetWindowHandle(), SW_MINIMIZE);
-			ShowWindow(Window.GetWindowHandle(), SW_RESTORE);
-			m_pSwapChain->SetFullscreenState(TRUE, nullptr);
-		}
-	}
-
-	m_fullSwapChainViewport.TopLeftX = 0.0f;
-	m_fullSwapChainViewport.TopLeftY = 0.0f;
-	m_fullSwapChainViewport.Width = static_cast<float>(m_descSwapChain.BufferDesc.Width);
-	m_fullSwapChainViewport.Height = static_cast<float>(m_descSwapChain.BufferDesc.Height);
-	m_fullSwapChainViewport.MinDepth = 0.0f;
-	m_fullSwapChainViewport.MaxDepth = 1.0f;
+	this->UpdateEntireSwapChainViewport(m_descSwapChain.BufferDesc.Width, m_descSwapChain.BufferDesc.Height);
 
 	// DXGI ÆíÀÇ±â´É ºñÈ°¼ºÈ­
-	hr = cpDXGIFactory->MakeWindowAssociation(Window.GetWindowHandle(), DXGI_MWA_NO_WINDOW_CHANGES | DXGI_MWA_NO_ALT_ENTER);
+	hr = cpDXGIFactory->MakeWindowAssociation(hWnd, DXGI_MWA_NO_WINDOW_CHANGES | DXGI_MWA_NO_ALT_ENTER);
 	if (FAILED(hr))
 		Debug::ForceCrashWithHRESULTErrorMessageBox(L"MakeWindowAssociation()", hr);
 
@@ -320,7 +347,7 @@ void GraphicDeviceImpl::Init(void* pDesc)
 	this->CreateCommonVertexBuffers();
 }
 
-void GraphicDeviceImpl::Release()
+void GraphicDevice::UnInit()
 {
 	HRESULT hr;
 
@@ -370,14 +397,14 @@ void GraphicDeviceImpl::Release()
 	Helper::SafeReleaseCom(m_pDevice);
 }
 
-bool GraphicDeviceImpl::LoadShaderByteCode(PCWSTR path, byte** ppByteCode, size_t* pSize)
+bool GraphicDevice::LoadShaderByteCode(PCWSTR path, byte** ppByteCode, size_t* pSize)
 {
 	byte* pByteCode = nullptr;
 	FILE* pCSOFile = nullptr;
 	WCHAR filePath[MAX_PATH];
 
 	HRESULT hr;
-	hr = FileSystem.RelativePathToFullPath(path, filePath, sizeof(filePath));
+	hr = FileSystem::GetInstance()->RelativePathToFullPath(path, filePath, sizeof(filePath));
 	if (FAILED(hr))
 		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to create full file path.\n%s", path);
 
@@ -406,9 +433,9 @@ bool GraphicDeviceImpl::LoadShaderByteCode(PCWSTR path, byte** ppByteCode, size_
 	return true;
 }
 
-void GraphicDeviceImpl::CreateShaderAndInputLayout()
+void GraphicDevice::CreateShaderAndInputLayout()
 {
-	ID3D11Device* pDevice = GraphicDevice.GetDeviceComInterface();
+	ID3D11Device* pDevice = m_pDevice;
 
 	byte* pByteCode = nullptr;
 	size_t byteCodeSize = 0;
@@ -662,7 +689,7 @@ void GraphicDeviceImpl::CreateShaderAndInputLayout()
 	delete[] pByteCode;
 }
 
-void GraphicDeviceImpl::ReleaseShaderAndInputLayout()
+void GraphicDevice::ReleaseShaderAndInputLayout()
 {
 	for (size_t i = 0; i < _countof(m_vs); ++i)
 		m_vs[i].Release();
@@ -680,9 +707,9 @@ void GraphicDeviceImpl::ReleaseShaderAndInputLayout()
 		m_il[i].Release();
 }
 
-void GraphicDeviceImpl::CreateRasterizerStates()
+void GraphicDevice::CreateRasterizerStates()
 {
-	ID3D11Device* pDevice = GraphicDevice.GetDeviceComInterface();
+	ID3D11Device* pDevice = m_pDevice;
 
 	D3D11_RASTERIZER_DESC descRS;
 	ZeroMemory(&descRS, sizeof(descRS));
@@ -725,16 +752,16 @@ void GraphicDeviceImpl::CreateRasterizerStates()
 	);
 }
 
-void GraphicDeviceImpl::ReleaseRasterizerStates()
+void GraphicDevice::ReleaseRasterizerStates()
 {
 	for (size_t i = 0; i < static_cast<size_t>(RASTERIZER_FILL_MODE::COUNT); ++i)
 		for (size_t j = 0; j < static_cast<size_t>(RASTERIZER_CULL_MODE::COUNT); ++j)
 			m_rs[i][j].Release();
 }
 
-void GraphicDeviceImpl::CreateSamplerStates()
+void GraphicDevice::CreateSamplerStates()
 {
-	ID3D11Device* pDevice = GraphicDevice.GetDeviceComInterface();
+	ID3D11Device* pDevice = m_pDevice;
 
 	D3D11_SAMPLER_DESC descSampler;
 
@@ -809,7 +836,7 @@ void GraphicDeviceImpl::CreateSamplerStates()
 	m_ssHeightMap.Init(pDevice, &descSampler);
 }
 
-void GraphicDeviceImpl::ReleaseSamplerStates()
+void GraphicDevice::ReleaseSamplerStates()
 {
 	for (size_t i = 0; i < _countof(m_ss); ++i)
 		m_ss[i].Release();
@@ -818,9 +845,9 @@ void GraphicDeviceImpl::ReleaseSamplerStates()
 	m_ssHeightMap.Release();
 }
 
-void GraphicDeviceImpl::CreateDepthStencilStates()
+void GraphicDevice::CreateDepthStencilStates()
 {
-	ID3D11Device* pDevice = GraphicDevice.GetDeviceComInterface();
+	ID3D11Device* pDevice = m_pDevice;
 
 	D3D11_DEPTH_STENCIL_DESC descDepthStencil;
 	ZeroMemory(&descDepthStencil, sizeof(descDepthStencil));
@@ -854,13 +881,13 @@ void GraphicDeviceImpl::CreateDepthStencilStates()
 	m_dss[static_cast<size_t>(DEPTH_STENCIL_STATETYPE::NO_DEPTH_STENCILTEST)].Init(pDevice, &descDepthStencil);
 }
 
-void GraphicDeviceImpl::ReleaseDepthStencilStates()
+void GraphicDevice::ReleaseDepthStencilStates()
 {
 	for (size_t i = 0; i < _countof(m_dss); ++i)
 		m_dss[i].Release();
 }
 
-void GraphicDeviceImpl::CreateBlendStates()
+void GraphicDevice::CreateBlendStates()
 {
 	D3D11_BLEND_DESC descBlend;
 	ZeroMemory(&descBlend, sizeof(descBlend));
@@ -902,13 +929,13 @@ void GraphicDeviceImpl::CreateBlendStates()
 	m_bs[static_cast<size_t>(BLEND_STATETYPE::NO_COLOR_WRITE)].Init(m_pDevice, &descBlend);
 }
 
-void GraphicDeviceImpl::ReleaseBlendStates()
+void GraphicDevice::ReleaseBlendStates()
 {
 	for (size_t i = 0; i < static_cast<size_t>(BLEND_STATETYPE::COUNT); ++i)
 		m_bs[i].Release();
 }
 
-UINT GraphicDeviceImpl::GetMSAAMaximumQuality(MSAA_SAMPLE_COUNT sampleCount)
+UINT GraphicDevice::GetMSAAMaximumQuality(MSAA_SAMPLE_COUNT sampleCount)
 {
 	UINT quality = 0;
 
@@ -926,7 +953,17 @@ UINT GraphicDeviceImpl::GetMSAAMaximumQuality(MSAA_SAMPLE_COUNT sampleCount)
 	return quality;
 }
 
-void GraphicDeviceImpl::CreateSupportedResolutionInfo()
+void GraphicDevice::UpdateEntireSwapChainViewport(uint32_t width, uint32_t height)
+{
+	m_entireSwapChainViewport.TopLeftX = 0.0f;
+	m_entireSwapChainViewport.TopLeftY = 0.0f;
+	m_entireSwapChainViewport.Width = static_cast<FLOAT>(width);
+	m_entireSwapChainViewport.Height = static_cast<FLOAT>(height);
+	m_entireSwapChainViewport.MinDepth = 0.0f;
+	m_entireSwapChainViewport.MaxDepth = 1.0f;
+}
+
+void GraphicDevice::CreateSupportedResolutionInfo()
 {
 	// DirectX ¹× DXGI ÃÊ±âÈ­
 	ComPtr<IDXGIFactory> cpFactory;
@@ -961,7 +998,7 @@ void GraphicDeviceImpl::CreateSupportedResolutionInfo()
 		Debug::ForceCrashWithHRESULTErrorMessageBox(L"Failed to load display mode list.", hr);
 }
 
-void GraphicDeviceImpl::CreateSupportedMSAAQualityInfo()
+void GraphicDevice::CreateSupportedMSAAQualityInfo()
 {
 	HRESULT hr;
 
@@ -981,44 +1018,7 @@ void GraphicDeviceImpl::CreateSupportedMSAAQualityInfo()
 	}
 }
 
-void GraphicDeviceImpl::InitializeSwapChainAndDepthStencilBufferDesc()
-{
-	// Initialize SwapChain descriptor.
-	m_descSwapChain.BufferDesc.Width = Window.GetWidthInteger();
-	m_descSwapChain.BufferDesc.Height = Window.GetHeightInteger();
-	m_descSwapChain.BufferDesc.RefreshRate.Numerator = 1;
-	m_descSwapChain.BufferDesc.RefreshRate.Denominator = 144;
-	m_descSwapChain.BufferDesc.Format = this->GetBackBufferFormat();
-	m_descSwapChain.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-	m_descSwapChain.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-
-	m_descSwapChain.SampleDesc.Count = 1;
-	m_descSwapChain.SampleDesc.Quality = 0;
-
-	m_descSwapChain.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	m_descSwapChain.BufferCount = 2;
-	m_descSwapChain.OutputWindow = Window.GetWindowHandle();
-	m_descSwapChain.Windowed = TRUE;		// ÃÖÃÊ¿¡´Â Ã¢ ¸ðµå ½º¿ÒÃ¼ÀÎÀ» »ý¼ºÇÏ´Â °ÍÀ¸·Î (MSDN ³»¿ë Âü°íÇØ¼­..)
-	m_descSwapChain.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;	// Windows 10ºÎÅÍ Áö¿ø!
-	m_descSwapChain.Flags = SWAP_CHAIN_FLAG;
-
-	// Depth/Stencil buffer (¹öÆÛ Å©±â´Â ¹Ýµå½Ã ½º¿Ò Ã¼ÀÎÀÇ ¹é ¹öÆÛ¿Í ÀÏÄ¡ÇØ¾ß ÇÔ)
-	m_descDepthStencil.Width = m_descSwapChain.BufferDesc.Width;
-	m_descDepthStencil.Height = m_descSwapChain.BufferDesc.Height;
-	m_descDepthStencil.MipLevels = 1;
-	m_descDepthStencil.ArraySize = 1;
-	m_descDepthStencil.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-
-	// Must match with swap chain's MSAA setting!
-	m_descDepthStencil.SampleDesc = m_descSwapChain.SampleDesc;
-
-	m_descDepthStencil.Usage = D3D11_USAGE_DEFAULT;
-	m_descDepthStencil.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-	m_descDepthStencil.CPUAccessFlags = 0;
-	m_descDepthStencil.MiscFlags = 0;
-}
-
-void GraphicDeviceImpl::CreateCommonVertexBuffers()
+void GraphicDevice::CreateCommonVertexBuffers()
 {
 	// 1. Button VB
 	{
@@ -1148,13 +1148,13 @@ void GraphicDeviceImpl::CreateCommonVertexBuffers()
 	}
 }
 
-void GraphicDeviceImpl::ReleaseCommonVertexBuffers()
+void GraphicDevice::ReleaseCommonVertexBuffers()
 {
 	for (size_t i = 0; i < static_cast<size_t>(VERTEX_BUFFER_TYPE::COUNT); ++i)
 		m_vb[i].Release();
 }
 
-void GraphicDeviceImpl::OnResize()
+void GraphicDevice::ResizeBuffer(uint32_t width, uint32_t height)
 {
 	HRESULT hr;
 
@@ -1209,32 +1209,43 @@ void GraphicDeviceImpl::OnResize()
 	// ±×·¯³ª ½º¿Ò Ã¼ÀÎÀ» ÀüÃ¼ È­¸éÀ¸·Î »ý¼ºÇÏ´Â °æ¿ì ÃÖÁ¾ »ç¿ëÀÚ¿¡°Ô Áö¿øµÇ´Â µð½ºÇÃ·¹ÀÌ ¸ðµå ¸ñ·Ïµµ Á¦°øÇØ¾ß ÇÕ´Ï´Ù.
 	// Áö¿øµÇÁö ¾Ê´Â µð½ºÇÃ·¹ÀÌ ¸ðµå·Î »ý¼ºµÈ ½º¿Ò Ã¼ÀÎÀº µð½ºÇÃ·¹ÀÌ°¡ °Ë°Ô º¯ÇÏ°í ÃÖÁ¾ »ç¿ëÀÚ°¡ ¾Æ¹«°Íµµ º¼ ¼ö ¾ø°Ô ¸¸µé ¼ö ÀÖ±â ¶§¹®ÀÔ´Ï´Ù. (Áß¿ä!)
 	// ¶ÇÇÑ ÃÖÁ¾ »ç¿ëÀÚ°¡ µð½ºÇÃ·¹ÀÌ ¸ðµå¸¦ º¯°æÇÒ ¼ö ÀÖµµ·Ï Çã¿ëÇÒ ¶§ ½Ã°£ ÃÊ°ú È®ÀÎ È­¸éÀÌ³ª ±âÅ¸ ´ëÃ¼ ¸ÞÄ¿´ÏÁòÀ» °®´Â °ÍÀÌ ÁÁ½À´Ï´Ù.
-	const BOOL fullscreen = Window.IsFullscreen() ? TRUE : FALSE;
-	hr = m_pSwapChain->SetFullscreenState(fullscreen, nullptr);	// Windowed -> Fullscreen
-	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"IDXGISwapChain::SetFullscreenState()", hr);
 	// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
-	
+
 	// ½º¿ÒÃ¼ÀÎ Å©±â º¯°æ
 	// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
 	// m_pSwapChain->Resize_target();
 	hr = m_pSwapChain->ResizeBuffers(
 		0,							// Set this number to zero to preserve the existing number of buffers in the swap chain.
-		Window.GetWidthInteger(),
-		Window.GetHeightInteger(),
+		width,
+		height,
 		DXGI_FORMAT_UNKNOWN,		// Set this value to DXGI_FORMAT_UNKNOWN to preserve the existing format of the back buffer.
 		SWAP_CHAIN_FLAG
 	);
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"IDXGISwapChain::ResizeBuffers()", hr);
+		Debug::ForceCrashWithHRESULTErrorMessageBox(L"IDXGISwapChain::ResizeBuffers", hr);
 
 	// º¯°æµÈ ½º¿Ò Ã¼ÀÎÀÇ Á¤º¸ È¹µæ
 	hr = m_pSwapChain->GetDesc(&m_descSwapChain);
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"IDXGISwapChain::GetDesc()", hr);
-	// µª½º½ºÅÙ½Ç ¹öÆÛ Å©±â Á¤º¸µµ ¾÷µ¥ÀÌÆ®
-	m_descDepthStencil.Width = m_descSwapChain.BufferDesc.Width;
-	m_descDepthStencil.Height = m_descSwapChain.BufferDesc.Height;
+		Debug::ForceCrashWithHRESULTErrorMessageBox(L"IDXGISwapChain::GetDesc", hr);
+
+	m_swapChainSizeFlt = XMFLOAT2(static_cast<FLOAT>(m_descSwapChain.BufferDesc.Width), static_cast<FLOAT>(m_descSwapChain.BufferDesc.Height));
+	m_swapChainHalfSizeFlt = XMFLOAT2(m_swapChainSizeFlt.x * 0.5f, m_swapChainSizeFlt.y * 0.5f);
+
+	// µª½º½ºÅÙ½Ç ¹öÆÛ Àç»ý¼ºÀ» À§ÇØ µð½ºÅ©¸³ÅÍ ¼¼ÆÃ
+	D3D11_TEXTURE2D_DESC descDepthStencil;
+	ZeroMemory(&descDepthStencil, sizeof(descDepthStencil));
+	descDepthStencil.Width = m_descSwapChain.BufferDesc.Width;
+	descDepthStencil.Height = m_descSwapChain.BufferDesc.Height;
+	descDepthStencil.MipLevels = 1;
+	descDepthStencil.ArraySize = 1;
+	descDepthStencil.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	// Must match with swap chain's MSAA setting!
+	descDepthStencil.SampleDesc = m_descSwapChain.SampleDesc;
+	descDepthStencil.Usage = D3D11_USAGE_DEFAULT;
+	descDepthStencil.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	descDepthStencil.CPUAccessFlags = 0;
+	descDepthStencil.MiscFlags = 0;
 
 	do
 	{
@@ -1251,9 +1262,11 @@ void GraphicDeviceImpl::OnResize()
 
 		// ½º¿Ò Ã¼ÀÎ¿¡ ´ëÇÑ ·»´õ¸µ¿¡ »ç¿ëÇÒ µª½º ½ºÅÙ½Ç ºä Àç»ý¼º
 		ComPtr<ID3D11Texture2D> cpDepthStencilBuffer;
-		hr = m_pDevice->CreateTexture2D(&m_descDepthStencil, nullptr, cpDepthStencilBuffer.GetAddressOf());
+		hr = m_pDevice->CreateTexture2D(&descDepthStencil, nullptr, cpDepthStencilBuffer.GetAddressOf());
 		if (FAILED(hr))
 			break;
+
+		cpDepthStencilBuffer->GetDesc(&m_descDepthStencil);
 
 		assert(m_pSwapChainDSV == nullptr);
 		hr = m_pDevice->CreateDepthStencilView(cpDepthStencilBuffer.Get(), nullptr, &m_pSwapChainDSV);
@@ -1284,7 +1297,7 @@ void GraphicDeviceImpl::OnResize()
 		);
 		if (FAILED(hr))
 			break;
-		
+
 		assert(m_pD2DSolidColorBrush == nullptr);
 		D2D1_BRUSH_PROPERTIES defaultProps;
 		defaultProps.opacity = 1.0f;
@@ -1298,35 +1311,24 @@ void GraphicDeviceImpl::OnResize()
 	if (FAILED(hr))
 		Debug::ForceCrashWithHRESULTErrorMessageBox(L"Failed to resize back buffer!", hr);
 	// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
-	
-
-	// ½º¿Ò Ã¼ÀÎ Á¤º¸ °»½Å (DXGI´Â ÃÖÁ¾ »ç¿ëÀÚ³ª ½Ã½ºÅÛ ¿äÃ»¿¡ µû¶ó ½º¿Ò Ã¼ÀÎÀÇ Ç¥½Ã »óÅÂ¸¦ º¯°æÇÒ ¼ö ÀÖ½À´Ï´Ù)
-	// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
-	// ½Ã½ºÅÛ ¿äÃ»¿¡ ÀÇÇØ º¯°æµÇ¾úÀ» ¼ö ÀÖÀ¸´Ï ÀÓÀÇ·Î m_descSwapChain¸¦ ¼öµ¿ ¾÷µ¥ÀÌÆ®ÇÏ´Â ¹æ¹ý º¸´Ù´Â ´Ù½Ã GetDesc È£ÃâÇÏ´Â ½ÄÀ¸·Î
-	hr = m_pSwapChain->GetDesc(&m_descSwapChain);
-	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"IDXGISwapChain::GetDesc()", hr);
-	// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
 
 	// ÀüÃ¼ ½º¿Ò Ã¼ÀÎ ¿µ¿ªÀ» ³ªÅ¸³»´Â ºäÆ÷Æ® ±¸Á¶Ã¼ ¾÷µ¥ÀÌÆ®
-	// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
-	m_fullSwapChainViewport.TopLeftX = 0.0f;
-	m_fullSwapChainViewport.TopLeftY = 0.0f;
-	m_fullSwapChainViewport.Width = static_cast<float>(m_descSwapChain.BufferDesc.Width);
-	m_fullSwapChainViewport.Height = static_cast<float>(m_descSwapChain.BufferDesc.Height);
-	m_fullSwapChainViewport.MinDepth = 0.0f;
-	m_fullSwapChainViewport.MaxDepth = 1.0f;
-	// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
+	this->UpdateEntireSwapChainViewport(m_descSwapChain.BufferDesc.Width, m_descSwapChain.BufferDesc.Height);
 }
 
-HRESULT GraphicDeviceImpl::GetFullscreenState(BOOL* pFullscreen)
+HRESULT GraphicDevice::SetFullscreenState(BOOL fullscreen)
+{
+	// If you pass FALSE to Fullscreen, then you must set this parameter to NULL
+	HRESULT hr = m_pSwapChain->SetFullscreenState(fullscreen, nullptr);
+
+	return hr;
+}
+
+HRESULT GraphicDevice::GetFullscreenState(BOOL* pFullscreen)
 {
 	assert(pFullscreen != nullptr);
 
-	ComPtr<IDXGIOutput> cpTarget;
-	HRESULT hr = m_pSwapChain->GetFullscreenState(pFullscreen, cpTarget.GetAddressOf());
-	if (FAILED(hr))
-		wprintf(L"GraphicDeviceImpl::GetFullscreenState() > IDXGISwapChain::GetFullscreenState() failed. HRESULT: 0x%x", hr);
+	HRESULT hr = m_pSwapChain->GetFullscreenState(pFullscreen, nullptr);
 
 	return hr;
 }

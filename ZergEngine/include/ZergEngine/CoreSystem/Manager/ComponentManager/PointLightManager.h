@@ -4,15 +4,20 @@
 
 namespace ze
 {
-	class PointLightManagerImpl : public IComponentManager
+	class PointLightManager : public IComponentManager
 	{
-		friend class RuntimeImpl;
+		friend class Runtime;
+		friend class Renderer;
 		friend class PointLight;
-		ZE_DECLARE_SINGLETON(PointLightManagerImpl);
+	public:
+		static PointLightManager* GetInstance() { return s_pInstance; }
 	private:
-		virtual void Init(void* pDesc) override;
-		virtual void Release() override;
-	};
+		PointLightManager() = default;
+		virtual ~PointLightManager() = default;
 
-	extern PointLightManagerImpl PointLightManager;
+		static void CreateInstance();
+		static void DestroyInstance();
+	private:
+		static PointLightManager* s_pInstance;
+	};
 }

@@ -2,6 +2,10 @@
 
 using namespace ze;
 
+const XMVECTORF32 Math::Vector3::UP = XMVECTORF32{ 0.0f, 1.0f, 0.0f, 0.0f };
+const XMVECTORF32 Math::Vector3::RIGHT = XMVECTORF32{ 1.0f, 0.0f, 0.0f, 0.0f };
+const XMVECTORF32 Math::Vector3::FORWARD = XMVECTORF32{ 0.0f, 0.0f, 1.0f, 0.0f };
+
 XMVECTOR XM_CALLCONV Math::QuaternionToEulerNormal(FXMVECTOR quaternion) noexcept
 {
 	float qx = XMVectorGetX(quaternion);

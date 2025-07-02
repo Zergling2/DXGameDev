@@ -1,24 +1,30 @@
 #pragma once
 
-#include <ZergEngine\CoreSystem\SubsystemInterface.h>
+#include <ZergEngine\Common\ThirdPartySDK.h>
 
 namespace ze
 {
-	class FileSystemImpl : public ISubsystem
+	class FileSystem
 	{
-		friend class RuntimeImpl;
-		ZE_DECLARE_SINGLETON(FileSystemImpl);
+		friend class Runtime;
+	public:
+		static FileSystem* GetInstance() { return s_pInstance; }
 	private:
-		virtual void Init(void* pDesc) override;
-		virtual void Release() override;
+		FileSystem() = default;
+		~FileSystem() = default;
+
+		static void CreateInstance();
+		static void DestroyInstance();
+
+		void Init();
+		void UnInit();
 	public:
 		PCWSTR GetAppPath() { return m_appPath; }
 		PCWSTR GetAppFolderPath() { return m_appFolderPath; }
 		HRESULT RelativePathToFullPath(PCWSTR relativePath, PWSTR buffer, size_t cbBufSize);
 	private:
+		static FileSystem* s_pInstance;
 		WCHAR m_appPath[MAX_PATH];
 		WCHAR m_appFolderPath[MAX_PATH];
 	};
-
-	extern FileSystemImpl FileSystem;
 }

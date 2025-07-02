@@ -4,23 +4,27 @@
 
 namespace ze
 {
-	class CameraManagerImpl : public IComponentManager
+	class CameraManager : public IComponentManager
 	{
-		friend class RuntimeImpl;
-		friend class WindowImpl;
-		friend class SceneManagerImpl;
+		friend class Runtime;
+		friend class Renderer;
 		friend class Camera;
-		ZE_DECLARE_SINGLETON(CameraManagerImpl);
+	public:
+		static CameraManager* GetInstance() { return s_pInstance; }
 	private:
-		virtual void Init(void* pDesc) override;
-		virtual void Release() override;
+		CameraManager() = default;
+		virtual ~CameraManager() = default;
+
+		static void CreateInstance();
+		static void DestroyInstance();
+
+		virtual void AddToDirectAccessGroup(IComponent* pComponent) override;
+		virtual void RemoveDestroyedComponents() override;
 
 		void Update();
+		void ResizeBuffer(uint32_t width, uint32_t height);
 		void OnResize();
-
-		virtual void AddPtrToActiveVector(IComponent* pComponent) override;
-		virtual void RemoveDestroyedComponents() override;
+	private:
+		static CameraManager* s_pInstance;
 	};
-
-	extern CameraManagerImpl CameraManager;
 }

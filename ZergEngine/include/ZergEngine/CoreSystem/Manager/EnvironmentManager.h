@@ -1,25 +1,30 @@
 #pragma once
 
-#include <ZergEngine\CoreSystem\SubsystemInterface.h>
 #include <ZergEngine\CoreSystem\Resource\Texture.h>
 
 namespace ze
 {
-	class EnvironmentManagerImpl : ISubsystem
+	class Environment
 	{
-		ZE_DECLARE_SINGLETON(EnvironmentManagerImpl);
-		friend class RuntimeImpl;
-		friend class RendererImpl;
+		friend class Runtime;
+		friend class Renderer;
+	public:
+		static Environment* GetInstance() { return s_pInstance; }
 	private:
-		virtual void Init(void* pDesc) override;
-		virtual void Release() override;
+		Environment();
+		~Environment();
+
+		static void CreateInstance();
+		static void DestroyInstance();
+
+		void Init();
+		void UnInit();
 	public:
 		void SetSkyboxCubeMap(const Texture2D& cubeMapTexture) { m_skyboxCubeMap = cubeMapTexture; }
 		Texture2D GetSkyboxCubeMap() const { return m_skyboxCubeMap; }
 		void RemoveSkybox() { m_skyboxCubeMap.Reset(); }
 	private:
+		static Environment* s_pInstance;
 		Texture2D m_skyboxCubeMap;
 	};
-
-	extern EnvironmentManagerImpl Environment;
 }

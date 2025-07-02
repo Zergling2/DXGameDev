@@ -1,6 +1,5 @@
 #pragma once
 
-#include <ZergEngine\CoreSystem\SubsystemInterface.h>
 #include <ZergEngine\CoreSystem\SlimRWLock.h>
 
 namespace ze
@@ -22,25 +21,29 @@ namespace ze
 	private:
 	};
 
-	class SceneManagerImpl : public ISubsystem
+	class SceneManager
 	{
-		friend class RuntimeImpl;
-		ZE_DECLARE_SINGLETON(SceneManagerImpl);
-	private:
-		virtual void Init(void* pDesc) override;
-		virtual void Release() override;
-
-		void Update(LONGLONG* pLoopTime);
-		std::unique_ptr<IScene> CreateScene(PCSTR sceneName);
-
-		void AddPtrRecursively(IUIObject* pUIObject);
+		friend class Runtime;
 	public:
-		bool LoadScene(PCSTR sceneName);
-		AsyncOperationHandle LoadSceneAsync(PCSTR sceneName);
+		static SceneManager* GetInstance() { return s_pInstance; }
 	private:
-		SlimRWLock m_lock;
-		std::unique_ptr<IScene> m_upNextScene;
-	};
+		SceneManager();
+		~SceneManager();
 
-	extern SceneManagerImpl SceneManager;
+		static void CreateInstance();
+		static void DestroyInstance();
+
+		void Init(PCWSTR startScene);
+		void UnInit();
+
+		IScene* CreateScene(PCWSTR sceneName);
+		IScene* PopNextScene();
+	public:
+		bool LoadScene(PCWSTR sceneName);
+		AsyncOperationHandle LoadSceneAsync(PCWSTR sceneName);
+	private:
+		static SceneManager* s_pInstance;
+		SlimRWLock m_lock;
+		IScene* m_pNextScene;
+	};
 }

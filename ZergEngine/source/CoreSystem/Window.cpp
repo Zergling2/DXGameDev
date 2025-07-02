@@ -1,196 +1,186 @@
 #include <ZergEngine\CoreSystem\Window.h>
-#include <ZergEngine\CoreSystem\Runtime.h>
 #include <ZergEngine\CoreSystem\Debug.h>
-#include <ZergEngine\CoreSystem\GraphicDevice.h>
-#include <ZergEngine\CoreSystem\Manager\UIObjectManager.h>
-#include <ZergEngine\CoreSystem\Manager\ComponentManager\CameraManager.h>
-
-namespace ze
-{
-    WindowImpl Window;
-}
 
 using namespace ze;
 
-PCWSTR WNDCLASS_NAME = L"zemainframe";
+PCTSTR WNDCLASS_NAME = _T("ZEMAINFRM");
 
-WindowImpl::WindowImpl()
-    : m_hWnd(NULL)
-    // , m_style(WS_POPUP)  // 테두리 없음
-    , m_style(WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX)
-    , m_width(0)
-    , m_height(0)
-    , m_sizeFlt(0.0f, 0.0f)
-    , m_halfSizeFlt(0.0f, 0.0f)
-    , m_mode(WINDOW_MODE::WINDOWED)
+Window::Window()
+    : m_pHandler(nullptr)
+    , m_hInstance(NULL)
+    , m_hWnd(NULL)
+    , m_clientSize{ 0, 0 }
 {
 }
 
-WindowImpl::~WindowImpl()
+Window::~Window()
 {
 }
 
-void WindowImpl::Init(void* pDesc)
+void Window::Create(IWindowMessageHandler* pHandler, HINSTANCE hInstance, DWORD style, uint32_t width, uint32_t height, PCWSTR title)
 {
-    WindowImpl::InitDesc* pInitDesc = reinterpret_cast<WindowImpl::InitDesc*>(pDesc);
-
+    // 1. 초기값
+    m_pHandler = pHandler;
+    m_hInstance = hInstance;
     m_hWnd = NULL;
-    m_width = pInitDesc->m_width;
-    m_height = pInitDesc->m_height;
-    m_sizeFlt = XMFLOAT2(static_cast<FLOAT>(m_width), static_cast<FLOAT>(m_height));
-    m_halfSizeFlt = XMFLOAT2(m_sizeFlt.x * 0.5f, m_sizeFlt.y * 0.5f);
-    m_mode = pInitDesc->m_mode;
+    m_clientSize.cx = 0;
+    m_clientSize.cy = 0;
 
-    WNDCLASSEXW wcex;
+    WNDCLASSEX wcex;
     ZeroMemory(&wcex, sizeof(wcex));
-    wcex.cbSize = sizeof(WNDCLASSEX);
+    wcex.cbSize = sizeof(wcex);
     wcex.style = CS_HREDRAW | CS_VREDRAW;
-    wcex.lpfnWndProc = WindowImpl::WinProc;
+    wcex.lpfnWndProc = Window::WinProc;
     wcex.cbClsExtra = 0;
     wcex.cbWndExtra = sizeof(LONG_PTR);
-    wcex.hInstance = Runtime.GetInstanceHandle();
+    wcex.hInstance = hInstance;
     wcex.hbrBackground = NULL;
     wcex.lpszMenuName = NULL;
     wcex.hCursor = LoadCursor(NULL, IDI_APPLICATION);
     wcex.lpszClassName = WNDCLASS_NAME;
     wcex.hIconSm = NULL;
-    RegisterClassExW(&wcex);
+    RegisterClassEx(&wcex);
 
-    int wndFrameWidth;
-    int wndFrameHeight;
     RECT cr;
-
-    switch (m_mode)
-    {
-    case WINDOW_MODE::WINDOWED:
-        __fallthrough;
-    case WINDOW_MODE::WINDOWED_FULLSCREEN:
-        cr = RECT{ 0, 0, static_cast<LONG>(m_width), static_cast<LONG>(m_height) };
-        if (AdjustWindowRect(&cr, m_style, FALSE) == FALSE)
-            Debug::ForceCrashWithWin32ErrorMessageBox(L"AdjustWindowRect()", GetLastError());
-
-        wndFrameWidth = cr.right - cr.left;
-        wndFrameHeight = cr.bottom - cr.top;
-        break;
-    case WINDOW_MODE::FULLSCREEN:
-        wndFrameWidth = GetSystemMetrics(SM_CXSCREEN);
-        wndFrameHeight = GetSystemMetrics(SM_CYSCREEN);
-        break;
-    }
+    cr.left = 0;
+    cr.top = 0;
+    cr.right = static_cast<LONG>(width);
+    cr.bottom = static_cast<LONG>(height);
+    if (AdjustWindowRect(&cr, style, FALSE) == FALSE)
+        Debug::ForceCrashWithWin32ErrorMessageBox(L"AdjustWindowRect()", GetLastError());
 
     // Create the window.
     m_hWnd = CreateWindowW(
-        WNDCLASS_NAME,                                                  // Window class
-        pInitDesc->mTitle,                                             // Window title
-        m_style,       // Window style
-        CW_USEDEFAULT,                                                  // Pos X
-        CW_USEDEFAULT,                                                  // Pos Y
-        wndFrameWidth,                                                  // Width
-        wndFrameHeight,                                                 // Height
-        NULL,                                                           // Parent window    
-        NULL,                                                           // Menu
-        Runtime.GetInstanceHandle(),                                    // Instance handle
-        nullptr                                                         // Additional application data
+        WNDCLASS_NAME,          // Window class
+        title,                  // Window title
+        style,                  // Window style
+        CW_USEDEFAULT,          // Pos X
+        CW_USEDEFAULT,          // Pos Y
+        cr.right - cr.left,     // Width
+        cr.bottom - cr.top,     // Height
+        NULL,                   // Parent window    
+        NULL,                   // Menu
+        hInstance,              // Instance handle
+        this                // Additional application data
     );
-}
 
-void WindowImpl::Release()
-{
-}
-
-void WindowImpl::SetResolution(uint32_t width, uint32_t height, WINDOW_MODE mode)
-{
-    if (width == 0 || height == 0)
-        return;
-
-    m_width = width;
-    m_height = height;
-    m_sizeFlt = XMFLOAT2(static_cast<FLOAT>(m_width), static_cast<FLOAT>(m_height));
-    m_halfSizeFlt = XMFLOAT2(m_sizeFlt.x * 0.5f, m_sizeFlt.y * 0.5f);
-    m_mode = mode;
-
-    GraphicDevice.OnResize();
-    CameraManager.OnResize();    // 카메라 렌더버퍼 재생성, 투영 행렬, D3D11 뷰포트 구조체 업데이트
-
-    // 아래 MoveWindow로 윈도우 크기 조절은 GraphicDevice::OnResize()에서 SetFullscreenState 처리 뒤 처리해야 한다.
-    if (m_mode != WINDOW_MODE::FULLSCREEN)
+    if (m_hWnd)
     {
-        int wndFrameWidth;
-        int wndFrameHeight;
-        RECT cr;
-
-        cr = RECT{ 0, 0, static_cast<LONG>(m_width), static_cast<LONG>(m_height) };
-        if (AdjustWindowRect(&cr, m_style, FALSE) == FALSE)
-            Debug::ForceCrashWithWin32ErrorMessageBox(L"AdjustWindowRect()", GetLastError());
-
-        wndFrameWidth = cr.right - cr.left;
-        wndFrameHeight = cr.bottom - cr.top;
-        MoveWindow(Window.GetWindowHandle(), 0, 0, wndFrameWidth, wndFrameHeight, FALSE);
+        m_clientSize.cx = width;
+        m_clientSize.cy = height;
     }
 }
 
-LRESULT WindowImpl::WinProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+void Window::Destroy()
 {
+    DestroyWindow(m_hWnd);
+
+    UnregisterClass(WNDCLASS_NAME, m_hInstance);
+}
+
+DWORD Window::GetStyle() const
+{
+    DWORD currentStyle = static_cast<DWORD>(GetWindowLongPtr(m_hWnd, GWL_STYLE));
+
+    return currentStyle;
+}
+
+void Window::SetStyle(DWORD style)
+{
+    // MSDN (SetWindowLongPtr 호출 후에는 SetWindowPos 함수 호출 필요)
+    // https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowlongptra?redirectedfrom=MSDN
+    // Certain window data is cached, so changes you make using SetWindowLongPtr will not take
+    // effect until you call the SetWindowPos function.
+    SetWindowLongPtr(m_hWnd, GWL_STYLE, style);
+
+    // 새 스타일 적용을 위해서 호출 필요 (MSDN 해당 내용 Remark 섹션 내용에서 SWP_SHOWWINDOW 플래그 안 넣으니 오작동함)
+    SetWindowPos(m_hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+}
+
+BOOL Window::ShowWindow(int nCmdShow)
+{
+    return ::ShowWindow(m_hWnd, nCmdShow);
+}
+
+BOOL Window::Resize(uint32_t width, uint32_t height)
+{
+    const DWORD currentStyle = this->GetStyle();
+
+    RECT cr;
+    cr.left = 0;
+    cr.top = 0;
+    cr.right = static_cast<LONG>(width);
+    cr.bottom = static_cast<LONG>(height);
+
+    if (AdjustWindowRect(&cr, currentStyle, FALSE) == FALSE)
+        return FALSE;
+
+    BOOL ret = SetWindowPos(m_hWnd, NULL, 0, 0, cr.right - cr.left, cr.bottom - cr.top, 0);    // WM_SIZE 메시지 생성
+    if (ret)
+    {
+        m_clientSize.cx = width;
+        m_clientSize.cy = height;
+    }
+
+    return ret;
+}
+
+LRESULT Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    IWindowMessageHandler* pHandler = reinterpret_cast<IWindowMessageHandler*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+
     LRESULT ret = 0;
 
     switch (uMsg)
     {
     case WM_CREATE:
+        pHandler = reinterpret_cast<Window*>(reinterpret_cast<LPCREATESTRUCT>(lParam)->lpCreateParams)->m_pHandler;
+        SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pHandler));
+        pHandler->OnCreate(wParam, lParam);
         break;
     case WM_DESTROY:
+        pHandler->OnDestroy(wParam, lParam);
         PostQuitMessage(0);
         break;
     case WM_SIZE:
-        switch (wParam)
-        {
-        case SIZE_MINIMIZED:
-            Runtime.DisableRendering();
-            break;
-        case SIZE_MAXIMIZED:
-            Runtime.EnableRendering();
-            break;
-        case SIZE_RESTORED:
-            Runtime.EnableRendering();
-            break;
-        default:
-            break;
-        }
+        printf("Window::WinProc->WM_SIZE\n");
+        pHandler->OnSize(wParam, lParam);
         break;
     case WM_SHOWWINDOW:
-        if (wParam == FALSE)
-            Runtime.DisableRendering();
-        else
-            Runtime.EnableRendering();
+        pHandler->OnShowWindow(wParam, lParam);
         break;
     case WM_CHAR:
-        //UIObjectManager.OnWinMsgChar(wParam);
+        pHandler->OnChar(wParam, lParam);
+        break;
+    case WM_MOUSEMOVE:
+        pHandler->OnMouseMove(wParam, lParam);
         break;
     case WM_LBUTTONDOWN:
-        UIObjectManager.OnWinMsgLButtonDown(wParam, lParam);
+        pHandler->OnLButtonDown(wParam, lParam);
         break;
     case WM_LBUTTONUP:
-        UIObjectManager.OnWinMsgLButtonUp(wParam, lParam);
+        pHandler->OnLButtonUp(wParam, lParam);
         break;
     case WM_RBUTTONDOWN:
-        //UIObjectManager.OnWinMsgRButtonDown(wParam, lParam);
+        pHandler->OnRButtonDown(wParam, lParam);
         break;
     case WM_RBUTTONUP:
-        //UIObjectManager.OnWinMsgRButtonUp(wParam, lParam);
+        pHandler->OnRButtonUp(wParam, lParam);
         break;
     case WM_MBUTTONDOWN:
-        //UIObjectManager.OnWinMsgMButtonDown(wParam, lParam);
+        pHandler->OnMButtonDown(wParam, lParam);
         break;
     case WM_MBUTTONUP:
-        //UIObjectManager.OnWinMsgMButtonUp(wParam, lParam);
+        pHandler->OnMButtonUp(wParam, lParam);
         break;
     case WM_ENTERSIZEMOVE:
-        Runtime.DisableRendering();
+        pHandler->OnEnterSizeMove(wParam, lParam);
         break;
     case WM_EXITSIZEMOVE:
-        Runtime.EnableRendering();
+        pHandler->OnExitSizeMove(wParam, lParam);
         break;
     default:
-        ret = DefWindowProc(hwnd, uMsg, wParam, lParam);
+        ret = DefWindowProc(hWnd, uMsg, wParam, lParam);
         break;
     }
 

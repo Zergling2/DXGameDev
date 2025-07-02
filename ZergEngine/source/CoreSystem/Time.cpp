@@ -1,25 +1,29 @@
 #include <ZergEngine\CoreSystem\Time.h>
 #include <ZergEngine\CoreSystem\Debug.h>
 
-namespace ze
-{
-	TimeImpl ze::Time;
-}
-
 using namespace ze;
 
 static constexpr uint32_t FIXED_UPDATE_HZ = 50;
 static constexpr float FIXED_DELTA_TIME = 1.0f / static_cast<float>(FIXED_UPDATE_HZ);
 
-TimeImpl::TimeImpl()
+Time* Time::s_pInstance = nullptr;
+
+void Time::CreateInstance()
 {
+	assert(s_pInstance == nullptr);
+
+	s_pInstance = new Time();
 }
 
-TimeImpl::~TimeImpl()
+void Time::DestroyInstance()
 {
+	assert(s_pInstance != nullptr);
+
+	delete s_pInstance;
+	s_pInstance = nullptr;
 }
 
-void TimeImpl::Init(void* pDesc)
+void Time::Init()
 {
 	LARGE_INTEGER freq;
 
@@ -50,11 +54,11 @@ void TimeImpl::Init(void* pDesc)
 	m_pausedPC.QuadPart = 0;
 }
 
-void TimeImpl::Release()
+void Time::UnInit()
 {
 }
 
-void TimeImpl::SetTimeScale(float ts)
+void Time::SetTimeScale(float ts)
 {
 	if (ts < 0.0f)
 		return;
@@ -62,7 +66,7 @@ void TimeImpl::SetTimeScale(float ts)
 	mTs = ts;
 }
 
-bool TimeImpl::SetFixedDeltaTime(float fdt)
+bool Time::SetFixedDeltaTime(float fdt)
 {
 	if (fdt <= 0.0f)
 		return false;
@@ -71,7 +75,7 @@ bool TimeImpl::SetFixedDeltaTime(float fdt)
 	return true;
 }
 
-void TimeImpl::Update()
+void Time::Update()
 {
 	QueryPerformanceCounter(&m_currPC);
 	m_deltaPC.QuadPart = m_currPC.QuadPart - m_prevPC.QuadPart;
@@ -84,13 +88,13 @@ void TimeImpl::Update()
 	m_prevPC = m_currPC;
 }
 
-void TimeImpl::ChangeDeltatime_toFixedDeltaTime()
+void Time::ChangeDeltaTimeToFixedDeltaTime()
 {
 	m_dtBackup = m_dt;
 	m_dt = m_fdt;
 }
 
-void TimeImpl::RecoverDeltaTime()
+void Time::RecoverDeltaTime()
 {
 	m_dt = m_dtBackup;
 }

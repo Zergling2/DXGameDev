@@ -6,11 +6,11 @@ namespace ze
 {
 	class IScene;
 
-	using SceneFactory = std::unique_ptr<IScene>(*)();
+	using SceneFactory = IScene*(*)();
 
 	#define ZE_DECLARE_SCENE(ClassName)\
 	public:\
-		static std::unique_ptr<IScene> SF();\
+		static IScene* SF();\
 	private:\
 		class ClassName##Register\
 		{\
@@ -22,21 +22,21 @@ namespace ze
 	
 	
 	#define ZE_IMPLEMENT_SCENE(ClassName)\
-	std::unique_ptr<IScene> ClassName::SF() { return std::make_unique<ClassName>(); }\
+	IScene* ClassName::SF() { return new(std::nothrow) ClassName(); }\
 	ClassName::ClassName##Register::ClassName##Register()\
 	{\
-		SceneTable::AddItem(#ClassName, ClassName::SF);\
+		SceneTable::AddItem(L#ClassName, ClassName::SF);\
 	}\
 	ClassName::ClassName##Register ClassName::ClassName##Register::s_autoRegister;
 
 
 	class SceneTable
 	{
-		friend class SceneManagerImpl;
+		friend class SceneManager;
 	public:
-		static void AddItem(PCSTR sceneName, SceneFactory factory);
-		static SceneFactory GetItem(PCSTR sceneName);
+		static void AddItem(PCWSTR sceneName, SceneFactory factory);
+		static SceneFactory GetItem(PCWSTR sceneName);
 	private:
-		static std::map<PCSTR, SceneFactory, MultiByteStringComparator>* s_pSceneTable;
+		static std::map<PCWSTR, SceneFactory, WideCharStringComparator>* s_pSceneTable;
 	};
 }

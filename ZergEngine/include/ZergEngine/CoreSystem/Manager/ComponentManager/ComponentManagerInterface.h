@@ -1,6 +1,5 @@
 #pragma once
 
-#include <ZergEngine\CoreSystem\SubsystemInterface.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Handle.h>
 #include <ZergEngine\CoreSystem\SlimRWLock.h>
 
@@ -8,30 +7,36 @@ namespace ze
 {
 	class IComponent;
 
-	class IComponentManager : public ISubsystem
+	class IComponentManager
 	{
-		friend class RuntimeImpl;
-		friend class SceneManagerImpl;
-		friend class RendererImpl;
-		friend class ToPtrHelper;
-		friend class GameObject;
+		friend class Runtime;
 		friend class IComponent;
-	public:
+		friend class GameObject;
+		friend class ToPtrHelper;
+	protected:
 		IComponentManager();
 		virtual ~IComponentManager() = default;
-	protected:
-		void AddToDestroyQueue(IComponent* pComponent);
+
+		virtual void Init();
+		virtual void UnInit();
+
+		virtual void Deploy(IComponent* pComponent);
+
+		void RequestDestroy(IComponent* pComponent);
+		IComponent* ToPtr(uint32_t tableIndex, uint64_t id) const;
 
 		ComponentHandleBase RegisterToHandleTable(IComponent* pComponent);
-		virtual void AddPtrToActiveVector(IComponent* pComponent);
+
+		virtual void AddToDirectAccessGroup(IComponent* pComponent);
 		virtual void RemoveDestroyedComponents();
 
+		void AddToDestroyQueue(IComponent* pComponent);
 		uint64_t AssignUniqueId() { return InterlockedIncrement64(reinterpret_cast<LONG64*>(&m_uniqueId)); }
 	protected:
 		uint64_t m_uniqueId;
 		SlimRWLock m_lock;
 		std::vector<IComponent*> m_destroyed;
-		std::vector<IComponent*> m_activeComponents;
-		std::vector<IComponent*> m_table;
+		std::vector<IComponent*> m_directAccessGroup;
+		std::vector<IComponent*> m_handleTable;
 	};
 }

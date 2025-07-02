@@ -18,6 +18,7 @@ namespace ze
 		SPHERE_COLLIDER,
 		MESH_COLLIDER,
 		TERRAIN,
+		AUDIO_SOURCE,
 
 		UNKNOWN
 	};

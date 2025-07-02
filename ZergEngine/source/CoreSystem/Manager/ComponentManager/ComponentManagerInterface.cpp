@@ -8,25 +8,54 @@ IComponentManager::IComponentManager()
 	: m_uniqueId(0)
 	, m_lock()
 	, m_destroyed()
-	, m_activeComponents()
-	, m_table(128)
+	, m_directAccessGroup()
+	, m_handleTable(8192)
 {
 	m_lock.Init();
 }
 
-void IComponentManager::AddToDestroyQueue(IComponent* pComponent)
+void IComponentManager::Init()
 {
-	assert(pComponent->IsOnTheDestroyQueue() == false);
+}
 
-	pComponent->OnFlag(COMPONENT_FLAG::ON_DESTROY_QUEUE);
-	m_destroyed.push_back(pComponent);
+void IComponentManager::UnInit()
+{
+}
+
+void IComponentManager::Deploy(IComponent* pComponent)
+{
+	this->AddToDirectAccessGroup(pComponent);
+}
+
+void IComponentManager::RequestDestroy(IComponent* pComponent)
+{
+	GameObject* pOwner = pComponent->m_pGameObject;
+	assert(pOwner != nullptr);
+
+	// 지연된 오브젝트에서 컴포넌트를 제거하는 경우는 OnLoadScene에서 Destroy를 한다는 의미인데 이것은 허용하지 않는다.
+	if (pOwner->IsPending())
+		return;
+
+	this->AddToDestroyQueue(pComponent);
+}
+
+IComponent* IComponentManager::ToPtr(uint32_t tableIndex, uint64_t id) const
+{
+	assert(tableIndex < m_handleTable.size());
+	// 컴포넌트핸들 템플릿을 잘못 사용하면 엉뚱한 컴포넌트 관리자의 테이블에 Query를 할 수 있다. 이 경우 미정의 동작 발생 가능.
+
+	IComponent* pComponent = m_handleTable[tableIndex];
+	if (pComponent == nullptr || pComponent->GetId() != id)
+		return nullptr;
+	else
+		return pComponent;
 }
 
 ComponentHandleBase IComponentManager::RegisterToHandleTable(IComponent* pComponent)
 {
 	assert(pComponent != nullptr);
 	assert(pComponent->m_tableIndex == std::numeric_limits<uint32_t>::max());
-	assert(pComponent->m_activeIndex == std::numeric_limits<uint32_t>::max());
+	assert(pComponent->m_groupIndex == std::numeric_limits<uint32_t>::max());
 
 	ComponentHandleBase hComponent;
 
@@ -34,25 +63,27 @@ ComponentHandleBase IComponentManager::RegisterToHandleTable(IComponent* pCompon
 
 	// Table에 추가
 	// 빈 자리 검색
-	uint32_t emptyIndex = std::numeric_limits<uint32_t>::max();
-	const uint32_t tableSize = static_cast<uint32_t>(m_table.size());
+	uint32_t emptyIndex;
+	bool find = false;
+	const uint32_t tableSize = static_cast<uint32_t>(m_handleTable.size());
 	for (uint32_t i = 0; i < tableSize; ++i)
 	{
-		if (m_table[i] == nullptr)
+		if (m_handleTable[i] == nullptr)
 		{
 			emptyIndex = i;
+			find = true;
 			break;
 		}
 	}
 
 	// 만약 빈 자리를 찾지 못한 경우
-	if (emptyIndex == std::numeric_limits<uint32_t>::max())
+	if (!find)
 	{
 		emptyIndex = tableSize;
-		m_table.push_back(nullptr);	// 테이블 공간 확보
+		m_handleTable.push_back(nullptr);	// 테이블 공간 확보
 	}
 
-	m_table[emptyIndex] = pComponent;
+	m_handleTable[emptyIndex] = pComponent;
 	pComponent->m_tableIndex = emptyIndex;
 
 	hComponent = ComponentHandleBase(emptyIndex, pComponent->GetId());	// 유효한 핸들 준비
@@ -60,11 +91,11 @@ ComponentHandleBase IComponentManager::RegisterToHandleTable(IComponent* pCompon
 	return hComponent;
 }
 
-void IComponentManager::AddPtrToActiveVector(IComponent* pComponent)
+void IComponentManager::AddToDirectAccessGroup(IComponent* pComponent)
 {
 	// Active vector에 추가
-	m_activeComponents.push_back(pComponent);
-	pComponent->m_activeIndex = static_cast<uint32_t>(m_activeComponents.size() - 1);
+	m_directAccessGroup.push_back(pComponent);
+	pComponent->m_groupIndex = static_cast<uint32_t>(m_directAccessGroup.size() - 1);
 }
 
 void IComponentManager::RemoveDestroyedComponents()
@@ -107,35 +138,44 @@ void IComponentManager::RemoveDestroyedComponents()
 			assert(find == true);
 		}
 
-		// Step 2. Active 벡터에서 현재 파괴되는 컴포넌트 포인터를 제거
-		uint32_t activeVectorSize = static_cast<uint32_t>(m_activeComponents.size());
-		assert(activeVectorSize > 0);
+		// Step 2. Enabled group에서 현재 파괴되는 컴포넌트 포인터를 제거
+		uint32_t groupSize = static_cast<uint32_t>(m_directAccessGroup.size());
+		assert(groupSize > 0);
 
-		const uint32_t activeIndex = pComponent->m_activeIndex;
-		const uint32_t lastIndex = activeVectorSize - 1;
+		const uint32_t groupIndex = pComponent->m_groupIndex;
+		const uint32_t lastIndex = groupSize - 1;
 
-		assert(activeIndex < activeVectorSize);
-		// assert(activeIndex != std::numeric_limits<uint32_t>::max());
-		assert(m_activeComponents[activeIndex] == pComponent);	// 중요!
+		assert(groupIndex < groupSize);
+		// assert(groupIndex != std::numeric_limits<uint32_t>::max());
+		assert(m_directAccessGroup[groupIndex] == pComponent);	// 중요!
 
 		// 지우려는 컴포넌트 포인터가 맨 뒤에 있는것이 아닌경우
 		// 마지막에 위치한 포인터와 위치를 바꾼다.
-		if (activeIndex != lastIndex)
+		if (groupIndex != lastIndex)
 		{
-			std::swap(m_activeComponents[activeIndex], m_activeComponents[lastIndex]);
-			m_activeComponents[activeIndex]->m_activeIndex = activeIndex;	// 마지막에 있던 컴포넌트의 activeIndex를 올바르게 업데이트 해주어야 한다!
+			std::swap(m_directAccessGroup[groupIndex], m_directAccessGroup[lastIndex]);
+			m_directAccessGroup[groupIndex]->m_groupIndex = groupIndex;	// 마지막에 있던 컴포넌트의 groupIndex를 올바르게 업데이트 해주어야 한다!
 		}
 
 		// 가장 끝으로 이동된 포인터를 벡터에서 제거
-		m_activeComponents.pop_back();
+		m_directAccessGroup.pop_back();
 
 		// Step 3. 테이블에서 제거
-		assert(m_table[pComponent->m_tableIndex] == pComponent);
-		assert(pComponent->m_tableIndex != std::numeric_limits<uint32_t>::max());
-		m_table[pComponent->m_tableIndex] = nullptr;
+		assert(m_handleTable[pComponent->m_tableIndex] == pComponent);
+		m_handleTable[pComponent->m_tableIndex] = nullptr;
 
 		delete pComponent;
 	}
 
 	m_destroyed.clear();	// 파괴된 컴포넌트 포인터 목록 제거
+}
+
+
+void IComponentManager::AddToDestroyQueue(IComponent* pComponent)
+{
+	if (pComponent->IsOnTheDestroyQueue())
+		return;
+
+	pComponent->OnFlag(COMPONENT_FLAG::ON_DESTROY_QUEUE);		// 중복 삽입 방지!
+	m_destroyed.push_back(pComponent);
 }

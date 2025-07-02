@@ -9,8 +9,8 @@
 IMPLEMENT_DYNCREATE(CLogListView, CListView)
 
 CLogListView::CLogListView()
+	: m_initialized(false)
 {
-
 }
 
 CLogListView::~CLogListView()
@@ -48,39 +48,47 @@ void CLogListView::OnInitialUpdate()
 	// TODO: Add your specialized code here and/or call the base class
 	CListCtrl& list = this->GetListCtrl();
 
-	list.ModifyStyle(LVS_TYPEMASK, LVS_REPORT);
-	list.SetBkColor(LOG_LISTVIEW_BK_COLOR);
-	list.SetTextColor(LOG_LISTVIEW_TEXT_COLOR);
-	list.SetTextBkColor(LOG_LISTVIEW_BK_COLOR);
+	if (!m_initialized)
+	{
+		// 1. 리스트 속성 설정
+		list.ModifyStyle(LVS_TYPEMASK, LVS_REPORT);
+		list.SetBkColor(LOG_LISTVIEW_BK_COLOR);
+		list.SetTextColor(LOG_LISTVIEW_TEXT_COLOR);
+		list.SetTextBkColor(LOG_LISTVIEW_BK_COLOR);
 
-	CBitmap iconBitmap;
-	iconBitmap.LoadBitmap(IDB_ZEPACKEDICON);
+		// 2. 아이콘 리스트 로드 및 설정
+		CBitmap iconBitmap;
+		iconBitmap.LoadBitmap(IDB_ZEPACKEDICON);
 
-	CImageList iconList;
-	iconList.Create(
-		ZE_PACKED_ICON_SIZE_X,
-		ZE_PACKED_ICON_SIZE_Y,
-		ILC_COLOR24 | ILC_MASK,
-		ZE_PACKED_ICON_COUNT,
-		0
-	);
-	iconList.Add(&iconBitmap, ZE_PACKED_ICON_COLOR_MASK);
-	iconBitmap.Detach();
+		CImageList iconList;
+		iconList.Create(
+			ZE_PACKED_ICON_SIZE_X,
+			ZE_PACKED_ICON_SIZE_Y,
+			ILC_COLOR24 | ILC_MASK,
+			ZE_PACKED_ICON_COUNT,
+			0
+		);
+		iconList.Add(&iconBitmap, ZE_PACKED_ICON_COLOR_MASK);
+		iconBitmap.Detach();
 
-	list.SetImageList(&iconList, LVSIL_SMALL);
-	iconList.Detach();
+		list.SetImageList(&iconList, LVSIL_SMALL);
+		iconList.Detach();
 
-	CRect cr;
-	list.GetClientRect(&cr);
+		// 3. "Description", "Time" 열 추가
+		CRect cr;
+		list.GetClientRect(&cr);
 
-	constexpr float LOG_COLUMN_DESCRIPTION_WIDTH_RATIO = 0.8f;
-	const int descriptionWidth = static_cast<int>(static_cast<float>(cr.Width()) * LOG_COLUMN_DESCRIPTION_WIDTH_RATIO);
-	const int timeWidth = cr.Width() - descriptionWidth;
+		constexpr float LOG_COLUMN_DESCRIPTION_WIDTH_RATIO = 0.8f;
+		const int descriptionWidth = static_cast<int>(static_cast<float>(cr.Width()) * LOG_COLUMN_DESCRIPTION_WIDTH_RATIO);
+		const int timeWidth = cr.Width() - descriptionWidth;
 
-	int ret;
+		int ret;
 
-	ret = list.InsertColumn(0, _T("Description"), LVCFMT_LEFT, descriptionWidth);
-	ret = list.InsertColumn(1, _T("Time"), LVCFMT_LEFT, timeWidth);
+		ret = list.InsertColumn(0, _T("Description"), LVCFMT_LEFT, descriptionWidth);
+		ret = list.InsertColumn(1, _T("Time"), LVCFMT_LEFT, timeWidth);
+
+		m_initialized = true;
+	}
 
 	list.InsertItem(0, _T("This is a test log 0"), ZE_ICON_INDEX::INFO_ICON);
 	list.InsertItem(1, _T("This is a test log 1"), ZE_ICON_INDEX::INFO_ICON);
@@ -93,4 +101,3 @@ void CLogListView::OnInitialUpdate()
 	list.InsertItem(8, _T("This is a test log 8"), ZE_ICON_INDEX::WARNING_ICON);
 	list.InsertItem(9, _T("This is a test log 9"), ZE_ICON_INDEX::INFO_ICON);
 }
-

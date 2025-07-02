@@ -5,43 +5,40 @@
 
 using namespace ze;
 
+void IComponent::Enable()
+{
+	if (this->IsEnabled())
+		return;
+
+	this->OnFlag(COMPONENT_FLAG::ENABLED);
+}
+
+void IComponent::Disable()
+{
+	if (!this->IsEnabled())
+		return;
+
+	this->OffFlag(COMPONENT_FLAG::ENABLED);
+}
+
 const GameObjectHandle IComponent::GetGameObjectHandle() const
 {
-	if (m_pGameObject == nullptr)
-		Debug::ForceCrashWithMessageBox(L"Error", L"m_pGameObject was null in the IComponent::GetGameObjectHandle()");
+	assert(m_pGameObject != nullptr);
 
 	return m_pGameObject->ToHandle();
 }
 
-bool IComponent::Enable()
+void IComponent::Destroy()
 {
-	if (this->IsEnabled())
-		return false;
+	IComponentManager* pComponentManager = this->GetComponentManager();
 
-	this->OnFlag(COMPONENT_FLAG::ENABLED);
-
-	if (m_pGameObject->IsDeferred())	// 스크립트의 경우 deferred 상태에서 OnEnable이 호출되지 않도록 한다.
-		return false;
-
-	return true;
-}
-
-bool IComponent::Disable()
-{
-	if (!this->IsEnabled())
-		return false;
-
-	this->OffFlag(COMPONENT_FLAG::ENABLED);
-
-	if (m_pGameObject->IsDeferred())	// 스크립트의 경우 deferred 상태에서 OnDisable이 호출되지 않도록 한다.
-		return false;
-
-	return true;
+	pComponentManager->RequestDestroy(this);
 }
 
 const ComponentHandleBase IComponent::ToHandleBase() const
 {
-	assert(this->GetComponentManager()->m_table[m_tableIndex] == this);
+	IComponentManager* pComponentManager = this->GetComponentManager();
+	assert(pComponentManager->ToPtr(m_tableIndex, m_id) == this);
 
 	return ComponentHandleBase(m_tableIndex, m_id);
 }

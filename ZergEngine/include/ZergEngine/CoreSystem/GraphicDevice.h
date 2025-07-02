@@ -1,6 +1,5 @@
 #pragma once
 
-#include <ZergEngine\CoreSystem\SubsystemInterface.h>
 #include <ZergEngine\CoreSystem\Shader.h>
 #include <ZergEngine\CoreSystem\InputLayout.h>
 #include <ZergEngine\CoreSystem\RenderState.h>
@@ -8,15 +7,20 @@
 
 namespace ze
 {
-	class GraphicDeviceImpl : public ISubsystem
+	class GraphicDevice
 	{
-		friend class RuntimeImpl;
-		friend class WindowImpl;
-		friend class RendererImpl;
-		ZE_DECLARE_SINGLETON(GraphicDeviceImpl);
+		friend class Runtime;
+	public:
+		static GraphicDevice* GetInstance() { return s_pInstance; }
 	private:
-		virtual void Init(void* pDesc) override;
-		virtual void Release() override;
+		GraphicDevice();
+		~GraphicDevice();
+
+		static void CreateInstance();
+		static void DestroyInstance();
+
+		void Init(HWND hWnd, uint32_t width, uint32_t height, bool fullscreen);
+		void UnInit();
 
 		bool LoadShaderByteCode(PCWSTR path, byte** ppByteCode, size_t* pSize);
 
@@ -38,20 +42,25 @@ namespace ze
 		void CreateCommonVertexBuffers();
 		void ReleaseCommonVertexBuffers();
 
-		void OnResize();
+		void ResizeBuffer(uint32_t width, uint32_t height);
+		HRESULT SetFullscreenState(BOOL fullscreen);
 		HRESULT GetFullscreenState(BOOL* pFullscreen);
 
 		void CreateSupportedResolutionInfo();
 		void CreateSupportedMSAAQualityInfo();
-		void InitializeSwapChainAndDepthStencilBufferDesc();
-
-		void RequestRecreateTarget() {}
 	public:
 		// Return max quality level
 		DXGI_FORMAT GetBackBufferFormat() const { return m_backBufferFormat; }
 		UINT GetMSAAMaximumQuality(MSAA_SAMPLE_COUNT sampleCount);
 		const DXGI_SWAP_CHAIN_DESC& GetSwapChainDesc() { return m_descSwapChain; }
-		const D3D11_VIEWPORT& GetFullSwapChainViewport() const { return m_fullSwapChainViewport; }
+		const D3D11_VIEWPORT& GetEntireSwapChainViewport() const { return m_entireSwapChainViewport; }
+		void UpdateEntireSwapChainViewport(uint32_t width, uint32_t height);
+		uint32_t GetSwapChainWidth() const { return m_descSwapChain.BufferDesc.Width; }
+		uint32_t GetSwapChainHeight() const { return m_descSwapChain.BufferDesc.Height; }
+		float GetSwapChainWidthFlt() const { return m_swapChainSizeFlt.x; }
+		float GetSwapChainHeightFlt() const { return m_swapChainSizeFlt.y; }
+		float GetSwapChainHalfWidthFlt() const { return m_swapChainHalfSizeFlt.x; }
+		float GetSwapChainHalfHeightFlt() const { return m_swapChainHalfSizeFlt.y; }
 		ID3D11Device* GetDeviceComInterface() { return m_pDevice; }
 		ID3D11DeviceContext* GetImmediateContextComInterface() { return m_pImmediateContext; }
 
@@ -97,11 +106,14 @@ namespace ze
 			return m_bs[static_cast<size_t>(bst)].GetComInterface();
 		}
 	private:
+		static GraphicDevice* s_pInstance;
 		DXGI_FORMAT m_backBufferFormat;
 		DXGI_ADAPTER_DESC m_descAdapter;
 		DXGI_SWAP_CHAIN_DESC m_descSwapChain;
+		XMFLOAT2 m_swapChainSizeFlt;
+		XMFLOAT2 m_swapChainHalfSizeFlt;
 		D3D11_TEXTURE2D_DESC m_descDepthStencil;
-		D3D11_VIEWPORT m_fullSwapChainViewport;
+		D3D11_VIEWPORT m_entireSwapChainViewport;
 		ID3D11Device* m_pDevice;
 		ID3D11DeviceContext* m_pImmediateContext;
 		ID2D1Factory* m_pD2DFactory;
@@ -132,6 +144,4 @@ namespace ze
 		DepthStencilState m_dss[static_cast<size_t>(DEPTH_STENCIL_STATETYPE::COUNT)];
 		BlendState m_bs[static_cast<size_t>(BLEND_STATETYPE::COUNT)];
 	};
-
-	extern GraphicDeviceImpl GraphicDevice;
 }

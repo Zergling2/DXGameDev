@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ZergEngine\CoreSystem\SubsystemInterface.h>
+#include <ZergEngine\Common\ThirdPartySDK.h>
 
 namespace ze
 {
@@ -175,21 +175,26 @@ namespace ze
 		UI_INPUT_WAITING,
 	};
 
-	class InputImpl : public ISubsystem
+	class Input
 	{
-		friend class RuntimeImpl;
-		friend class UIObjectManagerImpl;
-		ZE_DECLARE_SINGLETON(InputImpl);
+		friend class Runtime;
+	public:
+		static Input* GetInstance() { return s_pInstance; }
 	private:
-		virtual void Init(void* pDesc) override;
-		virtual void Release() override;
+		Input();
+		~Input();
+
+		static void CreateInstance();
+		static void DestroyInstance();
+
+		void Init(HINSTANCE hInstance, HWND hWnd);
+		void UnInit();
 
 		void SetMode(INPUT_MODE mode) { m_mode = mode; }
 		INPUT_MODE GetMode() const { return m_mode; }
-		void Update();
+		void SetMousePos(POINT pt);
 
-		void ClearInput();
-		const POINT GetMousePositionInteger() const { return m_mousePosition; }
+		void Update();
 	public:
 		bool GetKey(KEYCODE code) const;
 		bool GetKeyDown(KEYCODE code) const;
@@ -203,8 +208,11 @@ namespace ze
 		int32_t GetMouseAxisVertical() const { return m_currMouseState.lY; }
 		int32_t GetMouseWheel() const { return m_currMouseState.lZ; }
 
-		XMVECTOR XM_CALLCONV GetMousePosition() const { return XMLoadFloat3A(&m_mousePositionFlt); }
+		const POINT GetMousePosition() const { return m_mousePosition; }
+		XMVECTOR XM_CALLCONV GetMousePositionVector() const { return XMLoadFloat3A(&m_mousePositionFlt); }
 	private:
+		static Input* s_pInstance;
+
 		INPUT_MODE m_mode;
 		ComPtr<IDirectInput8> m_cpDirectInput;
 		ComPtr<IDirectInputDevice8> m_cpDIKeyboard;
@@ -216,6 +224,4 @@ namespace ze
 		XMFLOAT3A m_mousePositionFlt;
 		POINT m_mousePosition;
 	};
-
-	extern InputImpl Input;
 }

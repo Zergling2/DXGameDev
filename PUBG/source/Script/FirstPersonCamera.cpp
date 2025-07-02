@@ -14,11 +14,11 @@ void FirstPersonCamera::Update()
 		return;
 
 	XMVECTOR localRotation = pGameObject->m_transform.GetLocalRotation();
-	XMVECTOR worldForwardAxis = XMVector3Rotate(LOCAL_FORWARD, localRotation);
-	XMVECTOR worldRightAxis = XMVector3Rotate(LOCAL_RIGHT, localRotation);
+	XMVECTOR worldForwardAxis = XMVector3Rotate(Math::Vector3::FORWARD, localRotation);
+	XMVECTOR worldRightAxis = XMVector3Rotate(Math::Vector3::RIGHT, localRotation);
 
-	const int32_t mx = Input.GetMouseAxisHorizontal();
-	const int32_t my = Input.GetMouseAxisVertical();
+	const int32_t mx = Input::GetInstance()->GetMouseAxisHorizontal();
+	const int32_t my = Input::GetInstance()->GetMouseAxisVertical();
 	if (mx != 0 || my != 0)
 	{
 		XMVECTOR temp = Math::QuaternionToEuler(localRotation);
@@ -35,35 +35,31 @@ void FirstPersonCamera::Update()
 		pGameObject->m_transform.SetRotation(temp);
 	}
 
-	const float speed = Input.GetKey(KEY_LSHIFT) ? WALK_SPEED : SPEED;
+	const float speed = Input::GetInstance()->GetKey(KEY_LSHIFT) ? WALK_SPEED : SPEED;
 
-	if (Input.GetKey(KEY_W))
+	if (Input::GetInstance()->GetKey(KEY_W))
 		pGameObject->m_transform.Translate(worldForwardAxis * speed);
 
-	if (Input.GetKey(KEY_S))
+	if (Input::GetInstance()->GetKey(KEY_S))
 		pGameObject->m_transform.Translate(worldForwardAxis * -speed);
 
-	if (Input.GetKey(KEY_A))
+	if (Input::GetInstance()->GetKey(KEY_A))
 		pGameObject->m_transform.Translate(worldRightAxis * -speed);
 
-	if (Input.GetKey(KEY_D))
+	if (Input::GetInstance()->GetKey(KEY_D))
 		pGameObject->m_transform.Translate(worldRightAxis * speed);
 
 
 
+	if (Input::GetInstance()->GetKeyDown(KEY_APOSTROPHE))
+		Runtime::GetInstance()->SetResolution(1600, 900, DISPLAY_MODE::WINDOWED);
 
+	if (Input::GetInstance()->GetKeyDown(KEY_SEMICOLON))
+		Runtime::GetInstance()->SetResolution(1280, 720, DISPLAY_MODE::BORDERLESS_WINDOWED);
 
-
-
-	if (Input.GetKeyDown(KEY_APOSTROPHE))
-		Window.SetResolution(1280, 720, WINDOW_MODE::FULLSCREEN);
-
-	if (Input.GetKeyDown(KEY_SEMICOLON))
-		Window.SetResolution(1280, 720, WINDOW_MODE::WINDOWED);
-
-	if (Input.GetKeyDown(KEY_U))
+	if (Input::GetInstance()->GetKeyDown(KEY_U))
 		this->Disable();
 
-	if (Input.GetKeyDown(KEY_Y))
+	if (Input::GetInstance()->GetKeyDown(KEY_Y))
 		this->Enable();
 }

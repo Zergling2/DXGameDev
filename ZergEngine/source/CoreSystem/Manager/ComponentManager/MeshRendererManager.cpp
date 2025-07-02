@@ -1,24 +1,22 @@
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\MeshRendererManager.h>
-
-namespace ze
-{
-    MeshRendererManagerImpl MeshRendererManager;
-}
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\MeshRenderer.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 
 using namespace ze;
 
-MeshRendererManagerImpl::MeshRendererManagerImpl()
+MeshRendererManager* MeshRendererManager::s_pInstance = nullptr;
+
+void MeshRendererManager::CreateInstance()
 {
+	assert(s_pInstance == nullptr);
+
+	s_pInstance = new MeshRendererManager();
 }
 
-MeshRendererManagerImpl::~MeshRendererManagerImpl()
+void MeshRendererManager::DestroyInstance()
 {
-}
+	assert(s_pInstance != nullptr);
 
-void MeshRendererManagerImpl::Init(void* pDesc)
-{
-}
-
-void MeshRendererManagerImpl::Release()
-{
+	delete s_pInstance;
+	s_pInstance = nullptr;
 }

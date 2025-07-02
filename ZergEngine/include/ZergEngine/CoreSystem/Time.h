@@ -1,31 +1,39 @@
 #pragma once
 
-#include <ZergEngine\CoreSystem\SubsystemInterface.h>
+#include <ZergEngine\Common\ThirdPartySDK.h>
 
 namespace ze
 {
-	class TimeImpl : public ISubsystem
+	class Time
 	{
-		friend class RuntimeImpl;
-		ZE_DECLARE_SINGLETON(TimeImpl);
+		friend class Runtime;
 	public:
-		virtual void Init(void* pDesc) override;
-		virtual void Release() override;
-
-		inline float GetTimeScale() const { return mTs; }
-		void SetTimeScale(float ts);
-		inline float GetFixedDeltaTime() const { return m_fdt; }
-		bool SetFixedDeltaTime(float fdt);
-		inline float GetDeltaTime() const { return m_dt; }
-		inline float GetUnscaledDeltaTime() const { return m_udt; }
+		static Time* GetInstance() { return s_pInstance; }
 	private:
+		Time() = default;
+		~Time() = default;
+
+		static void CreateInstance();
+		static void DestroyInstance();
+
+		void Init();
+		void UnInit();
+
 		void Update();							// 일시정지 상태일때는 cache paused time, 아닐때는 cache delta time
-		void ChangeDeltatime_toFixedDeltaTime();	// FixedUpdate 함수에서 GetDeltaTime을 사용해도 FIXED_DELTA_TIME을 반환해주기 위해 호출
+		void ChangeDeltaTimeToFixedDeltaTime();	// FixedUpdate 함수에서 GetDeltaTime을 사용해도 FIXED_DELTA_TIME을 반환해주기 위해 호출
 		void RecoverDeltaTime();
 
 		LONGLONG GetFixedDeltaPerformanceCounter() const { return m_fdtPC.QuadPart; }
 		LONGLONG GetDeltaPerformanceCounter() const { return m_deltaPC.QuadPart; }
+	public:
+		float GetTimeScale() const { return mTs; }
+		void SetTimeScale(float ts);
+		float GetFixedDeltaTime() const { return m_fdt; }
+		bool SetFixedDeltaTime(float fdt);
+		float GetDeltaTime() const { return m_dt; }
+		float GetUnscaledDeltaTime() const { return m_udt; }
 	private:
+		static Time* s_pInstance;
 		float m_spc;				// seconds per count
 		float mTs;					// time scale
 		float m_fdt;				// fixed delta time
@@ -39,6 +47,4 @@ namespace ze
 		LARGE_INTEGER m_currPC;		// current count
 		LARGE_INTEGER m_pausedPC;	// paused count
 	};
-
-	extern TimeImpl Time;
 }

@@ -2,19 +2,19 @@
 
 using namespace ze;
 
-std::map<PCSTR, SceneFactory, MultiByteStringComparator>* SceneTable::s_pSceneTable;
+std::map<PCWSTR, SceneFactory, WideCharStringComparator>* SceneTable::s_pSceneTable;
 
-void SceneTable::AddItem(PCSTR sceneName, SceneFactory factory)
+void SceneTable::AddItem(PCWSTR sceneName, SceneFactory factory)
 {
 	if (SceneTable::s_pSceneTable == nullptr)
-		SceneTable::s_pSceneTable = new std::map<PCSTR, SceneFactory, MultiByteStringComparator>();
+		SceneTable::s_pSceneTable = new std::map<PCWSTR, SceneFactory, WideCharStringComparator>();
 
 	const auto result = SceneTable::s_pSceneTable->insert(std::make_pair(sceneName, factory));
 
 	assert(result.second == true);
 }
 
-SceneFactory SceneTable::GetItem(PCSTR sceneName)
+SceneFactory SceneTable::GetItem(PCWSTR sceneName)
 {
 	assert(SceneTable::s_pSceneTable != nullptr);
 

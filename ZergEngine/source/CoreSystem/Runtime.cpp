@@ -1,107 +1,175 @@
 #include <ZergEngine\CoreSystem\Runtime.h>
-#include <ZergEngine\CoreSystem\SystemInfo.h>
+#include <ZergEngine\CoreSystem\Debug.h>
 #include <ZergEngine\CoreSystem\MemoryAllocator.h>
 #include <ZergEngine\CoreSystem\FileSystem.h>
-#include <ZergEngine\CoreSystem\Debug.h>
-#include <ZergEngine\CoreSystem\COMInitializer.h>
 #include <ZergEngine\CoreSystem\Time.h>
-#include <ZergEngine\CoreSystem\Window.h>
 #include <ZergEngine\CoreSystem\Input.h>
 #include <ZergEngine\CoreSystem\GraphicDevice.h>
+#include <ZergEngine\CoreSystem\ResourceLoader.h>
 #include <ZergEngine\CoreSystem\Renderer.h>
-#include <ZergEngine\CoreSystem\Manager\ResourceManager.h>
-#include <ZergEngine\CoreSystem\Manager\SceneManager.h>
-#include <ZergEngine\CoreSystem\Manager\GameObjectManager.h>
+#include <ZergEngine\CoreSystem\SceneInterface.h>
 #include <ZergEngine\CoreSystem\Manager\EnvironmentManager.h>
+#include <ZergEngine\CoreSystem\Manager\GameObjectManager.h>
 #include <ZergEngine\CoreSystem\Manager\UIObjectManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\AudioSourceManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\CameraManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\DirectionalLightManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\PointLightManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\SpotLightManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\MeshRendererManager.h>
-#include <ZergEngine\CoreSystem\Manager\ComponentManager\MonoBehaviourManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\TerrainManager.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\Component\ComponentInterface.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\Component\MonoBehaviour.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\MonoBehaviourManager.h>
+#include <ZergEngine\CoreSystem\Manager\SceneManager.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\UIObjectInterface.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\Transform.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\RectTransform.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Panel.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Button.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Image.h>
-
-namespace ze
-{
-    RuntimeImpl Runtime;
-}
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Button.h>
 
 using namespace ze;
 
-enum RUNTIME_FLAG : uint32_t
-{
-    RTF_RENDER_ENABLED = 0x00000001,
-};
+constexpr DWORD BORDERLESS_WINDOW_STYLE = WS_POPUP;
+constexpr DWORD TITLEBAR_WINDOW_STYLE = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
 
-RuntimeImpl::RuntimeImpl()
+Runtime* Runtime::s_pInstance = nullptr;
+
+Runtime::Runtime()
     : m_hInstance(NULL)
-    , m_startScene()
-    , m_deltaPC(0)
-    , m_flag(0)
+    , m_nCmdShow(0)
+    , m_window()
+    , m_deltaPerformanceCount(0)
+    , m_render(true)
 {
 }
 
-RuntimeImpl::~RuntimeImpl()
+Runtime::~Runtime()
 {
 }
 
-void RuntimeImpl::Run(HINSTANCE hInstance, int nShowCmd, PCWSTR wndTitle, PCSTR startScene, uint32_t width, uint32_t height, WINDOW_MODE mode)
+void Runtime::CreateInstance()
+{
+    assert(s_pInstance == nullptr);
+
+    s_pInstance = new Runtime();
+}
+
+void Runtime::DestroyInstance()
+{
+    assert(s_pInstance != nullptr);
+
+    delete s_pInstance;
+    s_pInstance = nullptr;
+}
+
+void Runtime::Init(HINSTANCE hInstance, int nCmdShow, uint32_t width, uint32_t height, PCWSTR title, PCWSTR startScene)
 {
     m_hInstance = hInstance;
-    m_startScene = startScene;
-    m_deltaPC = 0;
-    m_flag = RTF_RENDER_ENABLED;
+    m_nCmdShow = nCmdShow;
 
-    RuntimeImpl::InitAllSubsystem(wndTitle, width, height, mode);
-
-    ShowWindow(Window.GetWindowHandle(), nShowCmd);
-    // UpdateWindow(Runtime.GetMainWindowHandle());
-
-    // update initial time value
-    Time.Update();
-
-    MSG msg;
-    for (;;)
+    // 기타 초기화 작업...
+    if (!XMVerifyCPUSupport())
     {
-        if (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
-        {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-
-            if (msg.message == WM_QUIT)
-                break;
-        }
-        else
-        {
-            RuntimeImpl::OnIdle();
-        }
+        MessageBox(NULL, _T("DirectXMath Library does not supports a given platform."), _T("Unsupported platform"), MB_OK);
+        return;
     }
 
-    // 모든 게임 오브젝트 및 컴포넌트를 제거
-    for (GameObject* pGameObject : GameObjectManager.m_activeGameObjects)
-        Runtime.Destroy(pGameObject);
-    for (GameObject* pGameObject : GameObjectManager.m_inactiveGameObjects)
-        Runtime.Destroy(pGameObject);
-    for (IUIObject* pUIObject : UIObjectManager.m_activeUIObjects)
-        Runtime.Destroy(pUIObject);
-    for (IUIObject* pUIObject : UIObjectManager.m_inactiveUIObjects)
-        Runtime.Destroy(pUIObject);
+    // Enable run-time memory check for debug builds.
+#if defined(DEBUG) || defined(_DEBUG)
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+    // Perform automatic leak checking at program exit through a call to _CrtDumpMemoryLeaks 
+    // and generate an error report if the application failed to free all the memory it allocated.
+#endif
+    CoInitializeEx(NULL, COINIT_MULTITHREADED);
+    MemoryAllocator::CreateInstance();
+    FileSystem::CreateInstance();
+    Time::CreateInstance();
+    Input::CreateInstance();
+    GraphicDevice::CreateInstance();
+    ResourceLoader::CreateInstance();
+    Renderer::CreateInstance();
+    Environment::CreateInstance();
+    GameObjectManager::CreateInstance();
+    UIObjectManager::CreateInstance();
+    AudioSourceManager::CreateInstance();
+    CameraManager::CreateInstance();
+    DirectionalLightManager::CreateInstance();
+    PointLightManager::CreateInstance();
+    SpotLightManager::CreateInstance();
+    MeshRendererManager::CreateInstance();
+    TerrainManager::CreateInstance();
+    MonoBehaviourManager::CreateInstance();
+    SceneManager::CreateInstance();
 
-    Runtime.RemoveDestroyedComponentsAndObjects();
+    m_window.Create(this, hInstance, TITLEBAR_WINDOW_STYLE, width, height, title);
 
-    // 시스템 모듈들 해제
-    RuntimeImpl::ReleaseAllSubsystem();
+    MemoryAllocator::GetInstance()->Init();
+    FileSystem::GetInstance()->Init();
+    Time::GetInstance()->Init();
+    Input::GetInstance()->Init(this->GetInstanceHandle(), m_window.GetHandle());
+    GraphicDevice::GetInstance()->Init(m_window.GetHandle(), width, height, false);
+    ResourceLoader::GetInstance()->Init();
+    Renderer::GetInstance()->Init();
+    Environment::GetInstance()->Init();
+    GameObjectManager::GetInstance()->Init();
+    UIObjectManager::GetInstance()->Init();
+    AudioSourceManager::GetInstance()->Init();
+    CameraManager::GetInstance()->Init();
+    DirectionalLightManager::GetInstance()->Init();
+    PointLightManager::GetInstance()->Init();
+    SpotLightManager::GetInstance()->Init();
+    MeshRendererManager::GetInstance()->Init();
+    TerrainManager::GetInstance()->Init();
+    MonoBehaviourManager::GetInstance()->Init();
+    SceneManager::GetInstance()->Init(startScene);
+}
 
+void Runtime::UnInit()
+{
+    // 자원 해제 작업...
+    SceneManager::GetInstance()->UnInit();
+    MonoBehaviourManager::GetInstance()->UnInit();
+    TerrainManager::GetInstance()->UnInit();
+    MeshRendererManager::GetInstance()->UnInit();
+    SpotLightManager::GetInstance()->UnInit();
+    PointLightManager::GetInstance()->UnInit();
+    DirectionalLightManager::GetInstance()->UnInit();
+    CameraManager::GetInstance()->UnInit();
+    AudioSourceManager::GetInstance()->UnInit();
+    UIObjectManager::GetInstance()->UnInit();
+    GameObjectManager::GetInstance()->UnInit();
+    Environment::GetInstance()->UnInit();
+    Renderer::GetInstance()->UnInit();
+    ResourceLoader::GetInstance()->UnInit();
+    GraphicDevice::GetInstance()->UnInit();
+    Input::GetInstance()->UnInit();
+    Time::GetInstance()->UnInit();
+    FileSystem::GetInstance()->UnInit();
+    MemoryAllocator::GetInstance()->UnInit();
+
+    SceneManager::DestroyInstance();
+    MonoBehaviourManager::DestroyInstance();
+    TerrainManager::DestroyInstance();
+    MeshRendererManager::DestroyInstance();
+    SpotLightManager::DestroyInstance();
+    PointLightManager::DestroyInstance();
+    DirectionalLightManager::DestroyInstance();
+    CameraManager::DestroyInstance();
+    AudioSourceManager::DestroyInstance();
+    UIObjectManager::DestroyInstance();
+    GameObjectManager::DestroyInstance();
+    Environment::DestroyInstance();
+    Renderer::DestroyInstance();
+    ResourceLoader::DestroyInstance();
+    GraphicDevice::DestroyInstance();
+    Input::DestroyInstance();
+    Time::DestroyInstance();
+    FileSystem::DestroyInstance();
+    MemoryAllocator::DestroyInstance();
+    CoUninitialize();
+
+    m_hInstance = NULL;
+
+    // 디버그
 #if defined(DEBUG) || defined(_DEBUG)
     HMODULE hDXGIDebugDll = GetModuleHandleW(L"dxgidebug.dll");
     if (hDXGIDebugDll != NULL)
@@ -123,304 +191,316 @@ void RuntimeImpl::Run(HINSTANCE hInstance, int nShowCmd, PCWSTR wndTitle, PCSTR 
 #endif
 }
 
-void RuntimeImpl::Exit()
+void Runtime::Run()
 {
-    DestroyWindow(Window.GetWindowHandle());
+    ShowWindow(m_window.GetHandle(), m_nCmdShow);
+    // UpdateWindow(Runtime.GetMainWindowHandle());
+
+    // update initial time value
+    Time::GetInstance()->Update();
+
+    MSG msg;
+    for (;;)
+    {
+        if (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
+        {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+
+            if (msg.message == WM_QUIT)
+                break;
+        }
+        else
+        {
+            OnIdle();
+        }
+    }
+
+    printf("111111111\n");
+
+    this->DestroyAllObject();
 }
 
-void RuntimeImpl::EnableRendering()
+void Runtime::Exit()
 {
-    m_flag |= RTF_RENDER_ENABLED;
+    m_window.Destroy();	// 메시지 루프 종료를 유도
 }
 
-void RuntimeImpl::DisableRendering()
-{
-    m_flag &= ~RTF_RENDER_ENABLED;
-}
-
-void RuntimeImpl::InitAllSubsystem(PCWSTR wndTitle, uint32_t width, uint32_t height, WINDOW_MODE mode)
-{
-    const time_t rawTime = time(nullptr);
-    tm timeInfo;
-    localtime_s(&timeInfo, &rawTime);
-
-    WCHAR engineLogName[64];
-    StringCbPrintfW(engineLogName, sizeof(engineLogName),
-        L"Log%d%02d%02d-%02d%02d%02d.log",
-        1900 + timeInfo.tm_year,
-        1 + timeInfo.tm_mon,
-        timeInfo.tm_mday,
-        timeInfo.tm_hour,
-        timeInfo.tm_min,
-        timeInfo.tm_sec
-    );
-
-    if (!XMVerifyCPUSupport())
-        Debug::ForceCrashWithMessageBox(L"Error", L"DirectXMath Library does not supports a given platform.");
-
-    // Enable run-time memory check for debug builds.
-#if defined(DEBUG) || defined(_DEBUG)
-    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-    // Perform automatic leak checking at program exit through a call to _CrtDumpMemoryLeaks 
-    // and generate an error report if the application failed to free all the memory it allocated.
-#endif
-
-    SystemInfo.Init(nullptr);
-    MemoryAllocator.Init(nullptr);
-    FileSystem.Init(nullptr);
-    // FileLog.Init(engineLogName);
-    COMInitializer.Init(nullptr);
-    Time.Init(nullptr);
-
-    WindowImpl::InitDesc initDesc;
-    initDesc.m_width = width;
-    initDesc.m_height = height;
-    initDesc.m_mode = mode;
-    initDesc.mTitle = wndTitle;
-    Window.Init(&initDesc);
-
-    Input.Init(nullptr);
-    GraphicDevice.Init(nullptr);
-    Resource.Init(nullptr);
-    Renderer.Init(nullptr);
-    GameObjectManager.Init(nullptr);
-    UIObjectManager.Init(nullptr);
-    Environment.Init(nullptr);
-    CameraManager.Init(nullptr);
-    DirectionalLightManager.Init(nullptr);
-    PointLightManager.Init(nullptr);
-    SpotLightManager.Init(nullptr);
-    MeshRendererManager.Init(nullptr);
-    TerrainManager.Init(nullptr);
-    MonoBehaviourManager.Init(nullptr);
-    SceneManager.Init(nullptr);
-}
-
-void RuntimeImpl::ReleaseAllSubsystem()
-{
-    SceneManager.Release();
-    TerrainManager.Release();
-    MonoBehaviourManager.Release();
-    MeshRendererManager.Release();
-    SpotLightManager.Release();
-    PointLightManager.Release();
-    DirectionalLightManager.Release();
-    CameraManager.Release();
-    Environment.Release();
-    UIObjectManager.Release();
-    GameObjectManager.Release();
-    Renderer.Release();
-    Resource.Release();
-    GraphicDevice.Release();
-    Input.Release();
-    Window.Release();
-    Time.Release();
-    COMInitializer.Release();
-    FileLog.Release();
-    FileSystem.Release();
-    MemoryAllocator.Release();
-    SystemInfo.Release();
-}
-
-void RuntimeImpl::OnIdle()
+void Runtime::OnIdle()
 {
     // Update timer.
-    Time.Update();
-    Input.Update();
+    Time::GetInstance()->Update();
+    Input::GetInstance()->Update();
 
-    SceneManager.Update(&m_deltaPC);
+    IScene* pNextScene = SceneManager::GetInstance()->PopNextScene();
+    if (pNextScene)
+    {
+        this->LoadNextScene(pNextScene);
+        delete pNextScene;
 
+        m_deltaPerformanceCount = 0;
+    }
+    // 다른 종류의 컴포넌트들이 모두 초기화 된 후
     // Call MonoBehaviour::Start() for all starting scripts.
-    MonoBehaviourManager.CallStart();
+    MonoBehaviourManager::GetInstance()->CallStart();
 
     // For the FixedUpdate
-    m_deltaPC += Time.GetDeltaPerformanceCounter();
-    Time.ChangeDeltatime_toFixedDeltaTime(); // FixeUpdate에서의 GetDeltaTime() 함수와 GetFixedDeltaTime() 함수의 반환값 일관성 보장
-    while (Time.GetFixedDeltaPerformanceCounter() <= m_deltaPC)
+    m_deltaPerformanceCount += Time::GetInstance()->GetDeltaPerformanceCounter();
+    Time::GetInstance()->ChangeDeltaTimeToFixedDeltaTime(); // FixeUpdate에서의 GetDeltaTime() 함수와 GetFixedDeltaTime() 함수의 반환값 일관성 보장
+    while (Time::GetInstance()->GetFixedDeltaPerformanceCounter() <= m_deltaPerformanceCount)
     {
-        MonoBehaviourManager.FixedUpdateScripts();
-        m_deltaPC -= Time.GetFixedDeltaPerformanceCounter();
+        MonoBehaviourManager::GetInstance()->FixedUpdateScripts();
+        m_deltaPerformanceCount -= Time::GetInstance()->GetFixedDeltaPerformanceCounter();
     }
-    Time.RecoverDeltaTime();
+    Time::GetInstance()->RecoverDeltaTime();
 
-    MonoBehaviourManager.UpdateScripts();
-    MonoBehaviourManager.LateUpdateScripts();
+    MonoBehaviourManager::GetInstance()->UpdateScripts();
+    MonoBehaviourManager::GetInstance()->LateUpdateScripts();
 
     RemoveDestroyedComponentsAndObjects();
 
     // Render
-    if (m_flag & RUNTIME_FLAG::RTF_RENDER_ENABLED)
-        Renderer.RenderFrame();
+    if (m_render)
+        Renderer::GetInstance()->RenderFrame();
 
     Sleep(3);
 }
 
-GameObjectHandle RuntimeImpl::CreateGameObject(PCWSTR name)
+bool Runtime::SetResolution(uint32_t width, uint32_t height, DISPLAY_MODE mode)
 {
-    // Not deferred game object.
-    GameObject* pGameObject = new GameObject(GAMEOBJECT_FLAG::ACTIVE, name);
+    HMONITOR hMonitor;
+    MONITORINFO mi;
+    bool result;
 
-    GameObjectHandle hGameObject = GameObjectManager.RegisterToHandleTable(pGameObject);
-
-    GameObjectManager.AddPtrToActiveVector(pGameObject);
-
-    return hGameObject;
-}
-
-UIObjectHandle RuntimeImpl::CreatePanel(PCWSTR name)
-{
-    // Not deferred ui object.
-    Panel* pPanel = new Panel(UIOBJECT_FLAG::ACTIVE, name);
-
-    return this->RegisterRootUIObject(pPanel);
-}
-
-UIObjectHandle RuntimeImpl::CreateImage(PCWSTR name)
-{
-    // Not deferred ui object.
-    Image* pImage = new Image(UIOBJECT_FLAG::ACTIVE, name);
-
-    return this->RegisterRootUIObject(pImage);
-}
-
-UIObjectHandle RuntimeImpl::CreateButton(PCWSTR name)
-{
-    // Not deferred ui object.
-    Button* pButton = new Button(UIOBJECT_FLAG::ACTIVE, name);
-
-    return this->RegisterRootUIObject(pButton);
-}
-
-void RuntimeImpl::DontDestroyOnLoad(GameObjectHandle gameObject)
-{
-    GameObject* pGameObject = gameObject.ToPtr();
-    if (!pGameObject)
-        return;
-
-    pGameObject->OnFlag(GAMEOBJECT_FLAG::DONT_DESTROY_ON_LOAD);
-}
-
-void RuntimeImpl::DontDestroyOnLoad(UIObjectHandle uiObject)
-{
-    IUIObject* pUIObject = uiObject.ToPtr();
-    if (!pUIObject)
-        return;
-
-    pUIObject->OnFlag(UIOBJECT_FLAG::DONT_DESTROY_ON_LOAD);
-}
-
-void RuntimeImpl::Destroy(GameObjectHandle hGameObject)
-{
-    GameObject* pGameObject = hGameObject.ToPtr();
-    if (!pGameObject)
-        return;
-
-    // 지연된 게임 오브젝트를 제거하는 경우는 OnLoadScene에서 Destroy를 한다는 의미인데 이것은 허용하지 않는다.
-    if (pGameObject->IsDeferred())
-        return;
-
-    this->Destroy(pGameObject);
-}
-
-void RuntimeImpl::Destroy(UIObjectHandle hUIObject)
-{
-    IUIObject* pUIObject = hUIObject.ToPtr();
-    if (!pUIObject)
-        return;
-
-    // 지연된 게임 오브젝트를 제거하는 경우는 OnLoadScene에서 Destroy를 한다는 의미인데 이것은 허용하지 않는다.
-    if (pUIObject->IsDeferred())
-        return;
-
-    this->Destroy(pUIObject);
-}
-
-void RuntimeImpl::Destroy(MonoBehaviour* pScript)
-{
-    assert(pScript != nullptr);
-
-    this->Destroy(static_cast<IComponent*>(pScript));
-}
-
-void RuntimeImpl::Destroy(GameObject* pGameObject)
-{
-    assert(pGameObject->IsDeferred() == false);
-
-    // 자식 게임 오브젝트까지 Destroy
-    for (Transform* pChildTransform : pGameObject->m_transform.m_children)
-        this->Destroy(pChildTransform->m_pGameObject);
-
-    if (pGameObject->IsOnTheDestroyQueue())
-        return;
-
-    this->DestroyAllComponents(pGameObject);
-    GameObjectManager.AddToDestroyQueue(pGameObject);
-}
-
-void RuntimeImpl::Destroy(IUIObject* pUIObject)
-{
-    assert(pUIObject->IsDeferred() == false);
-
-    // 자식 게임 오브젝트까지 Destroy
-    for (RectTransform* pChildTransform : pUIObject->m_transform.m_children)
-        this->Destroy(pChildTransform->m_pUIObject);
-
-    if (pUIObject->IsOnTheDestroyQueue())
-        return;
-
-    UIObjectManager.AddToDestroyQueue(pUIObject);
-}
-
-void RuntimeImpl::Destroy(IComponent* pComponent)
-{
-    if (pComponent->IsOnTheDestroyQueue())  // 먼저 검사하면 IComponent::GetComponentManager() 가상함수 호출 비용 절약 가능
-        return;
-    
-    // OnLoadScene 함수에서 파괴는 허용하지 않는다.
-    if (pComponent->m_pGameObject->IsDeferred())
-        return;
-
-    IComponentManager* pComponentManager = pComponent->GetComponentManager();
-    pComponentManager->AddToDestroyQueue(pComponent);
-}
-
-void RuntimeImpl::DestroyAllComponents(GameObject* pGameObject)
-{
-    assert(pGameObject->IsDeferred() == false);
-
-    for (IComponent* pComponent : pGameObject->m_components)
+    switch (mode)
     {
-        if (pComponent->IsOnTheDestroyQueue())  // 먼저 검사하면 IComponent::GetComponentManager() 가상함수 호출 비용 절약 가능
-            continue;
+    case DISPLAY_MODE::WINDOWED:
+        m_window.SetStyle(TITLEBAR_WINDOW_STYLE);
+        printf("%d, %d\n", width, height);
+        result = m_window.Resize(width, height);
+        break;
+    case DISPLAY_MODE::BORDERLESS_WINDOWED:
+        m_window.SetStyle(BORDERLESS_WINDOW_STYLE);
+        ZeroMemory(&mi, sizeof(mi));
+        mi.cbSize = sizeof(mi);
+        hMonitor = MonitorFromWindow(m_window.GetHandle(), MONITOR_DEFAULTTONEAREST);
+        GetMonitorInfo(hMonitor, &mi);
+        width = static_cast<uint32_t>(mi.rcMonitor.right - mi.rcMonitor.left);
+        height = static_cast<uint32_t>(mi.rcMonitor.bottom - mi.rcMonitor.top);
+        printf("%d, %d\n", width, height);
+        result = m_window.Resize(width, height);
+        break;
+    case DISPLAY_MODE::FULLSCREEN:
+        result = false;
+        break;
+    default:
+        result = false;
+        break;
+    }
 
-        IComponentManager* pComponentManager = pComponent->GetComponentManager();
-        pComponentManager->AddToDestroyQueue(pComponent);
+    return result;
+}
+
+GameObjectHandle Runtime::CreateGameObject(PCWSTR name)
+{
+    return GameObjectManager::GetInstance()->CreateObject(name);
+}
+
+UIObjectHandle Runtime::CreatePanel(PCWSTR name)
+{
+    // Not deferred ui object.
+    return UIObjectManager::GetInstance()->CreateObject<Panel>(name);
+}
+
+UIObjectHandle Runtime::CreateImage(PCWSTR name)
+{
+    return UIObjectManager::GetInstance()->CreateObject<Image>(name);
+}
+
+UIObjectHandle Runtime::CreateButton(PCWSTR name)
+{
+    return UIObjectManager::GetInstance()->CreateObject<Button>(name);
+}
+
+void Runtime::LoadNextScene(IScene* pNextScene)
+{
+    this->DestroyAllObjectExceptDontDestroyOnLoad();
+
+    // 지연된 게임오브젝트들 및 컴포넌트들을 관리 시작
+    auto& pendingUIObjects = pNextScene->m_pendingUIObjects;
+    for (IUIObject* pUIObject : pendingUIObjects)
+        UIObjectManager::GetInstance()->Deploy(pUIObject);
+
+    auto& pendingGameObjects = pNextScene->m_pendingGameObjects;
+    for (GameObject* pGameObject : pendingGameObjects)
+    {
+        GameObjectManager::GetInstance()->Deploy(pGameObject);
+
+        // 컴포넌트들도 Deploy
+        for (IComponent* pComponent : pGameObject->m_components)
+        {
+            IComponentManager* pComponentManager = pComponent->GetComponentManager();
+            pComponentManager->Deploy(pComponent);
+        }
+    }
+
+    // 게임오브젝트, UI오브젝트와 컴포넌트들이 모두 전역 관리자에 등록된 이후에 Awake, OnEnable, Start큐잉 처리
+    MonoBehaviourManager::GetInstance()->AwakeDeployedComponents();
+}
+
+void Runtime::DestroyAllObjectExceptDontDestroyOnLoad()
+{
+    // DontDestroyOnLoad 오브젝트를 제외하고 모두 파괴
+    for (GameObject* pGameObject : GameObjectManager::GetInstance()->m_activeGroup)
+        if (!pGameObject->IsDontDestroyOnLoad())
+            pGameObject->Destroy();
+    for (GameObject* pGameObject : GameObjectManager::GetInstance()->m_inactiveGroup)
+        if (!pGameObject->IsDontDestroyOnLoad())
+            pGameObject->Destroy();
+    for (IUIObject* pUIObject : UIObjectManager::GetInstance()->m_activeGroup)
+        if (!pUIObject->IsDontDestroyOnLoad())
+            pUIObject->Destroy();
+    for (IUIObject* pUIObject : UIObjectManager::GetInstance()->m_inactiveGroup)
+        if (!pUIObject->IsDontDestroyOnLoad())
+            pUIObject->Destroy();
+
+    this->RemoveDestroyedComponentsAndObjects();
+}
+
+void Runtime::DestroyAllObject()
+{
+    // DontDestroyOnLoad 오브젝트를 제외하고 모두 파괴
+    for (GameObject* pGameObject : GameObjectManager::GetInstance()->m_activeGroup)
+        pGameObject->Destroy();
+    for (GameObject* pGameObject : GameObjectManager::GetInstance()->m_inactiveGroup)
+        pGameObject->Destroy();
+    for (IUIObject* pUIObject : UIObjectManager::GetInstance()->m_activeGroup)
+        pUIObject->Destroy();
+    for (IUIObject* pUIObject : UIObjectManager::GetInstance()->m_inactiveGroup)
+        pUIObject->Destroy();
+
+    this->RemoveDestroyedComponentsAndObjects();
+}
+
+void Runtime::RemoveDestroyedComponentsAndObjects()
+{
+    // 컴포넌트 제거 작업
+    MonoBehaviourManager::GetInstance()->RemoveDestroyedComponents();
+    CameraManager::GetInstance()->RemoveDestroyedComponents();
+    DirectionalLightManager::GetInstance()->RemoveDestroyedComponents();
+    PointLightManager::GetInstance()->RemoveDestroyedComponents();
+    SpotLightManager::GetInstance()->RemoveDestroyedComponents();
+    MeshRendererManager::GetInstance()->RemoveDestroyedComponents();
+    TerrainManager::GetInstance()->RemoveDestroyedComponents();
+
+    UIObjectManager::GetInstance()->RemoveDestroyedUIObjects();
+    // 반드시 컴포넌트 제거 작업 이후 실행
+    GameObjectManager::GetInstance()->RemoveDestroyedGameObjects();
+}
+
+void Runtime::OnSize(WPARAM wParam, LPARAM lParam)
+{
+    bool resize = false;
+
+    switch (wParam)
+    {
+    case SIZE_RESTORED:
+        resize = true;
+        m_render = true;
+        break;
+    case SIZE_MINIMIZED:
+        m_render = false;
+        break;
+    case SIZE_MAXIMIZED:
+        m_render = true;
+        break;
+    case SIZE_MAXSHOW:  // 다른 창이 최대화 상태에서 이전 크기로 돌아간 경우
+        m_render = true;
+        break;
+    case SIZE_MAXHIDE:  // 다른 창이 최대화된 경우
+        m_render = false;
+        break;
+    default:
+        m_render = true;
+        break;
+    }
+
+    if (resize)
+    {
+        const uint32_t newWidth = static_cast<uint32_t>(GET_X_LPARAM(lParam));
+        const uint32_t newHeight = static_cast<uint32_t>(GET_Y_LPARAM(lParam));
+        if (newWidth == 120)
+        {
+            printf("New Width: %d, New Height: %d\n", newWidth, newHeight);
+        }
+
+        // SwapChain Resize 및 Depth/Stencil Buffer Resize
+        GraphicDevice::GetInstance()->ResizeBuffer(newWidth, newHeight);
+
+        // Camera Color Buffer & Depth/Stencil Buffer Resize & Projection Matrix Update
+        CameraManager::GetInstance()->ResizeBuffer(newWidth, newHeight);
     }
 }
 
-void RuntimeImpl::RemoveDestroyedComponentsAndObjects()
+void Runtime::OnShowWindow(WPARAM wParam, LPARAM lParam)
 {
-    // 컴포넌트 제거 작업
-    MonoBehaviourManager.RemoveDestroyedComponents();
-    CameraManager.RemoveDestroyedComponents();
-    DirectionalLightManager.RemoveDestroyedComponents();
-    PointLightManager.RemoveDestroyedComponents();
-    SpotLightManager.RemoveDestroyedComponents();
-    MeshRendererManager.RemoveDestroyedComponents();
-    TerrainManager.RemoveDestroyedComponents();
-
-    UIObjectManager.RemoveDestroyedUIObjects();
-    // 반드시 컴포넌트 제거 작업 이후 실행
-    GameObjectManager.RemoveDestroyedGameObjects();
+    if (wParam == FALSE)
+        m_render = false;
+    else
+        m_render = true;
 }
 
-UIObjectHandle RuntimeImpl::RegisterRootUIObject(IUIObject* pUIObject)
+void Runtime::OnChar(WPARAM wParam, LPARAM lParam)
 {
-    UIObjectHandle hUIObject = UIObjectManager.RegisterToHandleTable(pUIObject);
-    UIObjectManager.AddPtrToActiveVector(pUIObject);
+    UIObjectManager::GetInstance()->OnChar(wParam, lParam);
+}
 
-    pUIObject->OnFlag(UIOBJECT_FLAG::REAL_ROOT);
-    UIObjectManager.AddPtrToRootVector(pUIObject);
+void Runtime::OnMouseMove(WPARAM wParam, LPARAM lParam)
+{
+    POINT pt;
+    pt.x = GET_X_LPARAM(lParam);
+    pt.y = GET_Y_LPARAM(lParam);
 
-    return hUIObject;
+    assert(m_window.GetHandle() != NULL);
+    ScreenToClient(m_window.GetHandle(), &pt);
+
+    // Y가 위쪽 방향으로 증가하는 좌표 시스템으로 변환
+    // 전체화면 모드에서는 다르게 구현해야 함!
+    pt.y = static_cast<LONG>(m_window.GetClientHeight()) - pt.y;
+
+    Input::GetInstance()->SetMousePos(pt);
+}
+
+void Runtime::OnLButtonDown(WPARAM wParam, LPARAM lParam)
+{
+    POINT pt;
+    pt.x = GET_X_LPARAM(lParam);
+    pt.y = GET_Y_LPARAM(lParam);
+
+    // 유니티 스크린 좌표 시스템으로 변환
+    pt.y = static_cast<LONG>(m_window.GetClientHeight()) - pt.y;	// y는 유니티 스크린 좌표 시스템과 동일하게 상하 반전
+
+    UIObjectManager::GetInstance()->OnLButtonDown(pt);
+}
+
+void Runtime::OnLButtonUp(WPARAM wParam, LPARAM lParam)
+{
+    POINT pt;
+    pt.x = GET_X_LPARAM(lParam);
+    pt.y = GET_Y_LPARAM(lParam);
+
+    // 유니티 스크린 좌표 시스템으로 변환
+    pt.y = static_cast<LONG>(m_window.GetClientHeight()) - pt.y;	// y는 유니티 스크린 좌표 시스템과 동일하게 상하 반전
+
+    UIObjectManager::GetInstance()->OnLButtonUp(pt);
+}
+
+void Runtime::OnEnterSizeMove(WPARAM wParam, LPARAM lParam)
+{
+    m_render = false;
+}
+
+void Runtime::OnExitSizeMove(WPARAM wParam, LPARAM lParam)
+{
+    m_render = true;
 }

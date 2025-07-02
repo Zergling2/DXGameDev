@@ -1,4 +1,4 @@
-#include <ZergEngine\CoreSystem\Manager\ResourceManager.h>
+#include <ZergEngine\CoreSystem\ResourceLoader.h>
 #include <ZergEngine\Common\EngineHelper.h>
 #include <ZergEngine\CoreSystem\Debug.h>
 #include <ZergEngine\CoreSystem\FileSystem.h>
@@ -8,36 +8,48 @@
 #include <ZergEngine\CoreSystem\Resource\Material.h>
 #include <DirectXTex\DirectXTex.h>
 
-namespace ze
-{
-	ResourceManagerImpl Resource;
-}
-
 using namespace ze;
+
+ResourceLoader* ResourceLoader::s_pInstance = nullptr;
 
 constexpr int MAX_LINE_LENGTH = 256;
 PCWSTR OBJ_MTL_DELIM = L" \t\n";
 
-ResourceManagerImpl::ResourceManagerImpl()
+ResourceLoader::ResourceLoader()
 	: m_errTex()
 {
 }
 
-ResourceManagerImpl::~ResourceManagerImpl()
+ResourceLoader::~ResourceLoader()
 {
 }
 
-void ResourceManagerImpl::Init(void* pDesc)
+void ResourceLoader::CreateInstance()
+{
+	assert(s_pInstance == nullptr);
+
+	s_pInstance = new ResourceLoader();
+}
+
+void ResourceLoader::DestroyInstance()
+{
+	assert(s_pInstance != nullptr);
+
+	delete s_pInstance;
+	s_pInstance = nullptr;
+}
+
+void ResourceLoader::Init()
 {
 	// 보라돌이 텍스처 생성
 	// m_errTex;
 }
 
-void ResourceManagerImpl::Release()
+void ResourceLoader::UnInit()
 {
 }
 
-std::vector<std::shared_ptr<Mesh>> ResourceManagerImpl::LoadWavefrontOBJ(PCWSTR path)
+std::vector<std::shared_ptr<Mesh>> ResourceLoader::LoadWavefrontOBJ(PCWSTR path)
 {
 	HRESULT hr;
 	FILE* pMeshFile = nullptr;
@@ -50,7 +62,7 @@ std::vector<std::shared_ptr<Mesh>> ResourceManagerImpl::LoadWavefrontOBJ(PCWSTR 
 		filePath[0] = L'\0';
 
 		// Open OBJ file
-		hr = FileSystem.RelativePathToFullPath(path, filePath, sizeof(filePath));
+		hr = FileSystem::GetInstance()->RelativePathToFullPath(path, filePath, sizeof(filePath));
 		if (FAILED(hr))
 			Debug::ForceCrashWithMessageBox(L"Error", L"Failed to create full file path.\n%s", path);
 
@@ -84,7 +96,7 @@ std::vector<std::shared_ptr<Mesh>> ResourceManagerImpl::LoadWavefrontOBJ(PCWSTR 
 					const size_t meshIndex = meshes.size() - 1;
 					Mesh& mesh = *meshes[meshIndex].get();
 					long ofpos;
-					if (ResourceManagerImpl::ParseWavefrontOBJObject(pMeshFile, &ofpos, vp, mesh, meshIndex))
+					if (ResourceLoader::ParseWavefrontOBJObject(pMeshFile, &ofpos, vp, mesh, meshIndex))
 						fseek(pMeshFile, ofpos, SEEK_SET);
 				}
 			}
@@ -94,12 +106,12 @@ std::vector<std::shared_ptr<Mesh>> ResourceManagerImpl::LoadWavefrontOBJ(PCWSTR 
 	return meshes;
 }
 
-Texture2D ResourceManagerImpl::LoadTexture(PCWSTR path)
+Texture2D ResourceLoader::LoadTexture(PCWSTR path)
 {
 	HRESULT hr;
 
 	WCHAR filePath[MAX_PATH];
-	hr = FileSystem.RelativePathToFullPath(path, filePath, sizeof(filePath));
+	hr = FileSystem::GetInstance()->RelativePathToFullPath(path, filePath, sizeof(filePath));
 	if (FAILED(hr))
 		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to create full file path.\n%s", path);
 
@@ -169,7 +181,7 @@ Texture2D ResourceManagerImpl::LoadTexture(PCWSTR path)
 			// sbrcTexels[i].SysMemSlicePitch = 0;	// 3D 텍스쳐에서만 의미 있음.
 		}
 
-		hr = GraphicDevice.GetDeviceComInterface()->CreateTexture2D(
+		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateTexture2D(
 			&descTexture, sbrcTexels.data(), cpTex2d.GetAddressOf()
 		);
 		if (FAILED(hr))
@@ -185,7 +197,7 @@ Texture2D ResourceManagerImpl::LoadTexture(PCWSTR path)
 		descSRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 		descSRV.Texture2D.MipLevels = descTexture.MipLevels;
 		descSRV.Texture2D.MostDetailedMip = 0;
-		hr = GraphicDevice.GetDeviceComInterface()->CreateShaderResourceView(
+		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateShaderResourceView(
 			cpTex2d.Get(), &descSRV, cpSRV.GetAddressOf()
 		);
 		if (FAILED(hr))
@@ -195,17 +207,17 @@ Texture2D ResourceManagerImpl::LoadTexture(PCWSTR path)
 	return Texture2D(cpTex2d, cpSRV);
 }
 
-std::shared_ptr<Material> ResourceManagerImpl::CreateMaterial()
+std::shared_ptr<Material> ResourceLoader::CreateMaterial()
 {
 	return std::make_shared<Material>();
 }
 
-Texture2D ResourceManagerImpl::LoadCubeMapTexture(PCWSTR path)
+Texture2D ResourceLoader::LoadCubeMapTexture(PCWSTR path)
 {
 	HRESULT hr;
 
 	WCHAR filePath[MAX_PATH];
-	hr = FileSystem.RelativePathToFullPath(path, filePath, sizeof(filePath));
+	hr = FileSystem::GetInstance()->RelativePathToFullPath(path, filePath, sizeof(filePath));
 	if (FAILED(hr))
 		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to create full file path.\n%s", path);
 
@@ -276,7 +288,7 @@ Texture2D ResourceManagerImpl::LoadCubeMapTexture(PCWSTR path)
 			}
 		}
 
-		hr = GraphicDevice.GetDeviceComInterface()->CreateTexture2D(
+		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateTexture2D(
 			&descTexture, sbrcTexels.data(), cpTex2D.GetAddressOf()
 		);
 		if (FAILED(hr))
@@ -291,7 +303,7 @@ Texture2D ResourceManagerImpl::LoadCubeMapTexture(PCWSTR path)
 	descSRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
 	descSRV.TextureCube.MostDetailedMip = 0;	// 사용할 가장 디테일한 밉 레벨
 	descSRV.TextureCube.MipLevels = -1;		// -1로 설정 시 MostDetailedMip에 설정한 밉 레벨부터 최소 퀄리티 밉맵까지 사용
-	hr = GraphicDevice.GetDeviceComInterface()->CreateShaderResourceView(
+	hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateShaderResourceView(
 		cpTex2D.Get(), &descSRV, cpSRV.GetAddressOf()
 	);
 	if (FAILED(hr))
@@ -300,7 +312,7 @@ Texture2D ResourceManagerImpl::LoadCubeMapTexture(PCWSTR path)
 	return Texture2D(cpTex2D, cpSRV);
 }
 
-bool ResourceManagerImpl::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, VertexPack& vp, Mesh& mesh, const size_t meshIndex)
+bool ResourceLoader::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, VertexPack& vp, Mesh& mesh, const size_t meshIndex)
 {
 	HRESULT hr;
 	// object 정보를 읽는다.
@@ -392,7 +404,7 @@ bool ResourceManagerImpl::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, 
 
 			fseek(pOBJFile, fpos, SEEK_SET);
 			long nffpos;
-			if (ResourceManagerImpl::ParseWavefrontOBJFaces(pOBJFile, &nffpos, vft, vp, imp, mesh, meshIndex, tempVB, tempIB))
+			if (ResourceLoader::ParseWavefrontOBJFaces(pOBJFile, &nffpos, vft, vp, imp, mesh, meshIndex, tempVB, tempIB))
 				fseek(pOBJFile, nffpos, SEEK_SET);
 		}
 
@@ -418,7 +430,7 @@ bool ResourceManagerImpl::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, 
 		// sbrcBuffer.SysMemSlicePitch = 0;	// unused
 
 		ID3D11Buffer* pVB;
-		hr = GraphicDevice.GetDeviceComInterface()->CreateBuffer(&descBuffer, &sbrcBuffer, &pVB);
+		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateBuffer(&descBuffer, &sbrcBuffer, &pVB);
 		if (FAILED(hr))
 			Debug::ForceCrashWithHRESULTErrorMessageBox(L"ID3D11Device::CreateBuffer()", hr);
 
@@ -435,7 +447,7 @@ bool ResourceManagerImpl::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, 
 		// sbrcBuffer.SysMemSlicePitch = 0;	// unused
 
 		ID3D11Buffer* pIB;
-		hr = GraphicDevice.GetDeviceComInterface()->CreateBuffer(&descBuffer, &sbrcBuffer, &pIB);
+		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateBuffer(&descBuffer, &sbrcBuffer, &pIB);
 		if (FAILED(hr))
 			Debug::ForceCrashWithHRESULTErrorMessageBox(L"ID3D11Device::CreateBuffer()", hr);
 
@@ -446,7 +458,7 @@ bool ResourceManagerImpl::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, 
 	return ret_o;
 }
 
-bool ResourceManagerImpl::ParseWavefrontOBJFaces(FILE* pOBJFile, long* pnffpos, VERTEX_FORMAT_TYPE vft, const VertexPack& vp,
+bool ResourceLoader::ParseWavefrontOBJFaces(FILE* pOBJFile, long* pnffpos, VERTEX_FORMAT_TYPE vft, const VertexPack& vp,
 	IndexMapPack& imp, Mesh& mesh, size_t meshIndex, RawVector& tempVB, std::vector<uint32_t>& tempIB)
 {
 	// f만 읽다가 아닌 경우 리턴
@@ -961,7 +973,7 @@ std::vector<std::shared_ptr<Mesh>> Resource::LoadWavefrontOBJ_deprecated(PCWSTR 
 	}
 
 	// Open OBJ file
-	e = wcscpy_s(filePath, FileSystemImpl::GetResourcePath());
+	e = wcscpy_s(filePath, FileSystem::GetInstance()->GetResourcePath());
 	if (e != 0)
 		return meshes;
 
@@ -1198,7 +1210,7 @@ std::vector<std::shared_ptr<Mesh>> Resource::LoadWavefrontOBJ(const wchar_t* pat
 	}
 
 	// Open OBJ file
-	e = wcscpy_s(filePath, FileSystemImpl::GetResourcePath());
+	e = wcscpy_s(filePath, FileSystem::GetInstance()->GetResourcePath());
 	if (e != 0)
 		return meshes;
 
@@ -1429,7 +1441,7 @@ std::shared_ptr<ShaderResourceTexture> Resource::LoadTexture_deprecated(PCWSTR p
 	}
 
 	wchar_t filePath[MAX_PATH];
-	StringCbCopyW(filePath, sizeof(filePath), FileSystemImpl::GetResourcePath());
+	StringCbCopyW(filePath, sizeof(filePath), FileSystem::GetInstance()->GetResourcePath());
 	StringCbCatW(filePath, sizeof(filePath), path);
 	const wchar_t* ext = wcsrchr(filePath, L'.');
 

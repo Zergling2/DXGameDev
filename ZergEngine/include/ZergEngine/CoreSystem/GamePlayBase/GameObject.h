@@ -15,20 +15,20 @@ namespace ze
 
 		STATIC					= 1 << 0,
 		DONT_DESTROY_ON_LOAD	= 1 << 1,
-		DEFERRED				= 1 << 2,
+		PENDING					= 1 << 2,
 		ACTIVE					= 1 << 3,
 		ON_DESTROY_QUEUE		= 1 << 4,
 	};
 
 	class GameObject
 	{
-		friend class RuntimeImpl;
-		friend class GameObjectManagerImpl;
-		friend class SceneManagerImpl;
+		friend class Runtime;
+		friend class GameObjectManager;
+		friend class SceneManager;
 		friend class IScene;
 		friend class IComponentManager;
 		friend class IComponent;
-		friend class RendererImpl;
+		friend class Renderer;
 		friend class Transform;
 		friend class Camera;
 		friend class BasicEffectP;
@@ -38,12 +38,15 @@ namespace ze
 		friend class BasicEffectPNT;
 		friend class SkyboxEffect;
 	private:
-		GameObject(GAMEOBJECT_FLAG flag, PCWSTR name);
+		GameObject(uint64_t id, GAMEOBJECT_FLAG flag, PCWSTR name);
 	public:
 		// 씬에 존재하는 활성화된 게임 오브젝트를 이름으로 검색하여 핸들을 반환합니다.
 		static GameObjectHandle Find(PCWSTR name);
 		static GameObjectHandle Find(const std::wstring& name) { GameObject::Find(name.c_str()); }
 	public:
+		void DontDestroyOnLoad();
+		void Destroy();
+		void Destroy(float delay);
 		bool IsDontDestroyOnLoad() const { return static_cast<goft>(m_flag) & static_cast<goft>(GAMEOBJECT_FLAG::DONT_DESTROY_ON_LOAD); }
 		bool IsActive() const { return static_cast<goft>(m_flag) & static_cast<goft>(GAMEOBJECT_FLAG::ACTIVE); }
 
@@ -69,11 +72,13 @@ namespace ze
 		uint32_t GetComponents(ComponentHandle<ComponentType> componentArr[], uint32_t len);
 
 		const GameObjectHandle ToHandle() const;
+		bool IsPending() const { return static_cast<goft>(m_flag) & static_cast<goft>(GAMEOBJECT_FLAG::PENDING); }
+		bool IsOnTheDestroyQueue() const { return static_cast<goft>(m_flag) & static_cast<goft>(GAMEOBJECT_FLAG::ON_DESTROY_QUEUE); }
 	private:
-		bool IsDeferred() const { return static_cast<goft>(m_flag) & static_cast<goft>(GAMEOBJECT_FLAG::DEFERRED); }
 		void OnFlag(GAMEOBJECT_FLAG flag) { m_flag = static_cast<GAMEOBJECT_FLAG>(static_cast<goft>(m_flag) | static_cast<goft>(flag)); }
 		void OffFlag(GAMEOBJECT_FLAG flag) { m_flag = static_cast<GAMEOBJECT_FLAG>(static_cast<goft>(m_flag) & ~static_cast<goft>(flag)); }
-		bool IsOnTheDestroyQueue() const { return static_cast<goft>(m_flag) & static_cast<goft>(GAMEOBJECT_FLAG::ON_DESTROY_QUEUE); }
+
+		ComponentHandleBase AddComponentImpl(IComponent* pComponent);
 	public:
 		Transform m_transform;
 	private:
@@ -81,7 +86,7 @@ namespace ze
 
 		uint64_t m_id;
 		uint32_t m_tableIndex;
-		uint32_t m_activeIndex;
+		uint32_t m_groupIndex;
 		GAMEOBJECT_FLAG m_flag;
 		WCHAR m_name[27];
 	};
@@ -96,21 +101,11 @@ namespace ze
 			if (!ComponentType::IsCreatable())
 				break;
 
+			if (this->IsOnTheDestroyQueue())
+				break;
+
 			IComponent* pComponent = new ComponentType(std::forward<Args>(args)...);
-			pComponent->m_pGameObject = this;
-			m_components.push_back(pComponent);
-
-			if (!this->IsActive())
-				pComponent->OffFlag(COMPONENT_FLAG::ENABLED);
-
-			IComponentManager* pComponentManager = pComponent->GetComponentManager();
-
-			hComponent = pComponentManager->RegisterToHandleTable(pComponent);
-			assert(hComponent.IsValid());
-
-			// 지연된 게임오브젝트가 아닌 경우에만 바로 포인터 활성화
-			if (!this->IsDeferred())
-				pComponentManager->AddPtrToActiveVector(pComponent);
+			return this->AddComponentImpl(pComponent);
 		} while (false);
 
 		return hComponent;
@@ -121,16 +116,23 @@ namespace ze
 	{
 		ComponentHandle<ComponentType> hComponent;
 
-		for (auto pComponent : m_components)
+		do
 		{
-			assert(pComponent != nullptr);
-			if (dynamic_cast<ComponentType*>(pComponent))
-			{
-				hComponent = pComponent->ToHandleBase();
-				assert(hComponent.IsValid() == true);
+			if (this->IsOnTheDestroyQueue())
 				break;
+
+			for (auto pComponent : m_components)
+			{
+				assert(pComponent != nullptr);
+				if (dynamic_cast<ComponentType*>(pComponent))
+				{
+					hComponent = pComponent->ToHandleBase();
+					assert(hComponent.IsValid() == true);
+					break;
+				}
 			}
-		}
+
+		} while (false);
 
 		return hComponent;
 	}
@@ -140,16 +142,22 @@ namespace ze
 	{
 		std::vector<ComponentHandle<ComponentType>> hv;
 
-		for (auto pComponent : m_components)
+		do
 		{
-			assert(pComponent != nullptr);
-			assert(pComponent->ToHandleBase().IsValid());
-			if (dynamic_cast<ComponentType*>(pComponent))
+			if (this->IsOnTheDestroyQueue())
+				break;
+
+			for (auto pComponent : m_components)
 			{
-				hv.emplace_back(pComponent->ToHandleBase());
-				assert(hv[hv.size() - 1].IsValid() == true);
+				assert(pComponent != nullptr);
+				assert(pComponent->ToHandleBase().IsValid());
+				if (dynamic_cast<ComponentType*>(pComponent))
+				{
+					hv.emplace_back(pComponent->ToHandleBase());
+					assert(hv[hv.size() - 1].IsValid() == true);
+				}
 			}
-		}
+		} while (false);
 
 		return hv;
 	}
@@ -158,7 +166,10 @@ namespace ze
 	uint32_t GameObject::GetComponents(ComponentHandle<ComponentType> componentArr[], uint32_t len)
 	{
 		if (len == 0)
-			break;
+			return;
+
+		if (this->IsOnTheDestroyQueue())
+			return;
 
 		uint32_t count = 0;
 

@@ -5,16 +5,14 @@ using namespace ze;
 
 void ButtonEffect::Init()
 {
-	ID3D11Device* pDevice = GraphicDevice.GetDeviceComInterface();
-
 	m_dirtyFlag = DIRTY_FLAG::ALL;
 
-	m_pInputLayout = GraphicDevice.GetILComInterface(VERTEX_FORMAT_TYPE::BUTTON);
-	m_pVertexShader = GraphicDevice.GetVSComInterface(VERTEX_SHADER_TYPE::TRANSFORM_BUTTON_TO_HCS);
-	m_pPixelShader = GraphicDevice.GetPSComInterface(PIXEL_SHADER_TYPE::COLOR_BUTTON_FRAGMENT);
+	m_pInputLayout = GraphicDevice::GetInstance()->GetILComInterface(VERTEX_FORMAT_TYPE::BUTTON);
+	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VERTEX_SHADER_TYPE::TRANSFORM_BUTTON_TO_HCS);
+	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PIXEL_SHADER_TYPE::COLOR_BUTTON_FRAGMENT);
 
-	m_cbPerUIRender.Init(pDevice);
-	m_cbPerButton.Init(pDevice);
+	m_cbPerUIRender.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
+	m_cbPerButton.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
 }
 
 void ButtonEffect::Release()

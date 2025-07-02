@@ -7,11 +7,9 @@
 class CHierarchyTreeView : public CTreeView
 {
 	DECLARE_DYNCREATE(CHierarchyTreeView)
-
 protected:
 	CHierarchyTreeView();           // protected constructor used by dynamic creation
 	virtual ~CHierarchyTreeView();
-
 public:
 #ifdef _DEBUG
 	virtual void AssertValid() const;
@@ -19,12 +17,16 @@ public:
 	virtual void Dump(CDumpContext& dc) const;
 #endif
 #endif
-
 protected:
 	DECLARE_MESSAGE_MAP()
+private:
+	bool m_initialized;
+	HTREEITEM m_hRoot;
 public:
 	virtual void OnInitialUpdate();
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
+	afx_msg void OnNMRClick(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void On3DObjectTerrain();
 };
 
 

@@ -7,6 +7,7 @@
 #include "TransformInspectorFormView.h"
 #include "HierarchyTreeView.h"
 #include "LogListView.h"
+#include "TerrainGenerationDialog.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -20,6 +21,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_WM_CREATE()
 	ON_WM_GETMINMAXINFO()
 	ON_WM_SIZE()
+	ON_COMMAND(ID_3DOBJECT_TERRAIN, &CMainFrame::On3DObjectTerrain)
 END_MESSAGE_MAP()
 
 static UINT indicators[] =
@@ -239,4 +241,11 @@ void CMainFrame::OnSize(UINT nType, int cx, int cy)
 		OutputDebugStringW(log);
 		break;
 	}
+}
+
+void CMainFrame::On3DObjectTerrain()
+{
+	// TODO: Add your command handler code here
+	CTerrainGenerationDialog dlg;
+	dlg.DoModal();
 }

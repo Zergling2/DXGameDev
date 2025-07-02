@@ -1,6 +1,5 @@
 #include <ZergEngine\CoreSystem\Debug.h>
 #include <ZergEngine\CoreSystem\MemoryAllocator.h>
-#include <ZergEngine\CoreSystem\SystemInfo.h>
 #include <ZergEngine\Common\EngineHelper.h>
 
 namespace ze
@@ -154,13 +153,15 @@ AsyncLogBuffer* AsyncConsoleLogger::GetLogBuffer()
 
 AsyncLogBuffer* AsyncConsoleLogger::AllocLogBufferList()
 {
+	assert(MemoryAllocator::GetInstance()->GetSystemAllocationGranularity() > sizeof(AsyncLogBuffer));
+
 	// Protected by SRWLOCK
-	LPVOID pages = MemoryAllocator.RequestSystemAllocGranularitySize();
+	LPVOID pages = MemoryAllocator::GetInstance()->RequestSystemAllocGranularitySize();
 	if (pages == nullptr)
-		Debug::ForceCrashWithWin32ErrorMessageBox(L"MemoryAllocatorImpl::RequestSystemAllocGranularitySize()", GetLastError());
+		Debug::ForceCrashWithWin32ErrorMessageBox(L"MemoryAllocator::RequestSystemAllocGranularitySize()", GetLastError());
 
 	// 할당한 페이지들 전체를 연결한다.
-	const size_t itercnt = SystemInfo.GetSystemInfo().dwAllocationGranularity / sizeof(AsyncLogBuffer) - 1;
+	const size_t itercnt = MemoryAllocator::GetInstance()->GetSystemAllocationGranularity() / sizeof(AsyncLogBuffer) - 1;
 	AsyncLogBuffer* cursor = reinterpret_cast<AsyncLogBuffer*>(pages);
 	for (size_t i = 0; i < itercnt; ++i)
 	{
@@ -413,13 +414,15 @@ AsyncLogBuffer* AsyncFileLogger::GetLogBuffer()
 
 AsyncLogBuffer* AsyncFileLogger::AllocLogBufferList()
 {
+	assert(MemoryAllocator::GetInstance()->GetSystemAllocationGranularity() > sizeof(AsyncLogBuffer));
+
 	// Protected by SRWLOCK
-	LPVOID pages = MemoryAllocator.RequestSystemAllocGranularitySize();
+	LPVOID pages = MemoryAllocator::GetInstance()->RequestSystemAllocGranularitySize();
 	if (pages == nullptr)
 		return nullptr;
 
 	// 할당한 페이지들 전체를 연결한다.
-	const size_t itercnt = SystemInfo.GetSystemInfo().dwAllocationGranularity / sizeof(AsyncLogBuffer) - 1;
+	const size_t itercnt = MemoryAllocator::GetInstance()->GetSystemAllocationGranularity() / sizeof(AsyncLogBuffer) - 1;
 	AsyncLogBuffer* cursor = reinterpret_cast<AsyncLogBuffer*>(pages);
 	for (size_t i = 0; i < itercnt; ++i)
 	{

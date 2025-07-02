@@ -12,7 +12,13 @@ using namespace ze;
 
 int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nShowCmd)
 {
-	Runtime.Run(hInstance, nShowCmd, L"PUBG", "TestScene1", 1600, 900, WINDOW_MODE::WINDOWED);
+	Runtime::CreateInstance();
+	Runtime::GetInstance()->Init(hInstance, nShowCmd, 1366, 768, L"BattleRoyale", L"TestScene1");
+
+	Runtime::GetInstance()->Run();
+
+	Runtime::GetInstance()->UnInit();
+	Runtime::DestroyInstance();
 
 	return 0;
 }

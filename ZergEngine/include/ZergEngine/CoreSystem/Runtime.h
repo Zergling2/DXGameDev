@@ -1,23 +1,33 @@
 #pragma once
 
-#include <ZergEngine\Common\EngineHelper.h>
-#include <ZergEngine\Common\EngineConstants.h>
+#include <ZergEngine\Common\DisplayMode.h>
+#include <ZergEngine\CoreSystem\Window.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Handle.h>
 
 namespace ze
 {
-	class MonoBehaviour;
+	class IScene;
 
-	class RuntimeImpl
+	class Runtime : public IWindowMessageHandler
 	{
-		friend class SceneManagerImpl;
-		ZE_DECLARE_SINGLETON(RuntimeImpl);
 	public:
-		void Run(HINSTANCE hInstance, int nShowCmd, PCWSTR wndTitle, PCSTR startScene, uint32_t width, uint32_t height, WINDOW_MODE mode);
-		void Exit();
+		Runtime();
+		virtual ~Runtime();
 
-		void EnableRendering();
-		void DisableRendering();
+		static void CreateInstance();
+		static void DestroyInstance();
+		static Runtime* GetInstance() { return s_pInstance; }
+
+		void Init(HINSTANCE hInstance, int nCmdShow, uint32_t width, uint32_t height, PCWSTR title, PCWSTR startScene);
+		void UnInit();
+
+		void Run();
+		void Exit();
+		void OnIdle();
+
+		// mode가 DISPLAY_MODE::BORDERLESS_WINDOWED일 경우 width, height는 무시됩니다.
+		// mode가 DISPLAY_MODE::FULLSCREEN일 경우 width, height는 각각 전체화면 해상도의 너비, 높이값이 됩니다.
+		bool SetResolution(uint32_t width, uint32_t height, DISPLAY_MODE mode);
 
 		// (이 함수는 스크립트에서만 호출해야 합니다.)
 		// 빈 게임 오브젝트를 생성합니다.
@@ -35,62 +45,40 @@ namespace ze
 		// 루트 오브젝트로 버튼 UI를 생성합니다.
 		UIObjectHandle CreateButton(PCWSTR name = L"New Button");
 
-
-		void DontDestroyOnLoad(GameObjectHandle gameObject);
-		void DontDestroyOnLoad(UIObjectHandle uiObject);
-
-		void Destroy(GameObjectHandle hGameObject);
-		void Destroy(GameObjectHandle hGameObject, float delay);
-
-		void Destroy(UIObjectHandle hUIObject);
-		void Destroy(UIObjectHandle hUIObject, float delay);
-
-		void Destroy(MonoBehaviour* pScript);
-
-		template<typename T>
-		void Destroy(ComponentHandle<T> hComponent);
-		template<typename T>
-		void Destroy(ComponentHandle<T> hComponent, float delay);
-
 		GameObjectHandle Instantiate(const GameObjectHandle source);
-		// GameObjectHandle Instantiate(const GameObjectHandle source, GameObjectHandle pParent);
+		// GameObjectHandle Instantiate(const GameObjectHandle source, GameObjectHandle parent);
 
-		inline HINSTANCE GetInstanceHandle() const { return m_hInstance; }
-		inline PCSTR GetStartSceneName() const { return m_startScene.c_str(); }
+		HINSTANCE GetInstanceHandle() const { return m_hInstance; }
 	private:
-		void InitAllSubsystem(PCWSTR wndTitle, uint32_t width, uint32_t height, WINDOW_MODE mode);
-		void ReleaseAllSubsystem();
-		void OnIdle();
-
-		void Destroy(GameObject* pGameObject);
-		void Destroy(GameObject* pGameObject, float delay);
-
-		void Destroy(IUIObject* pUIObject);
-		void Destroy(IUIObject* pUIObject, float delay);
-
-		void Destroy(IComponent* pComponent);
-		void Destroy(IComponent* pComponent, float delay);
-
-		void DestroyAllComponents(GameObject* pGameObject);
+		void LoadNextScene(IScene* pNextScene);
+		void DestroyAllObjectExceptDontDestroyOnLoad();
+		void DestroyAllObject();
 		void RemoveDestroyedComponentsAndObjects();
 
-		UIObjectHandle RegisterRootUIObject(IUIObject* pUIObject);
+		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+		// Window Message Handler
+		// virtual void OnCreate(WPARAM wParam, LPARAM lParam) override;
+		// virtual void OnDestroy(WPARAM wParam, LPARAM lParam) override;
+		virtual void OnSize(WPARAM wParam, LPARAM lParam) override;
+		virtual void OnShowWindow(WPARAM wParam, LPARAM lParam) override;
+		virtual void OnChar(WPARAM wParam, LPARAM lParam) override;
+		virtual void OnMouseMove(WPARAM wParam, LPARAM lParam) override;
+		virtual void OnLButtonDown(WPARAM wParam, LPARAM lParam) override;
+		virtual void OnLButtonUp(WPARAM wParam, LPARAM lParam) override;
+		virtual void OnRButtonDown(WPARAM wParam, LPARAM lParam) override {}
+		virtual void OnRButtonUp(WPARAM wParam, LPARAM lParam) override {}
+		virtual void OnMButtonDown(WPARAM wParam, LPARAM lParam) override {}
+		virtual void OnMButtonUp(WPARAM wParam, LPARAM lParam) override {}
+		virtual void OnEnterSizeMove(WPARAM wParam, LPARAM lParam) override;
+		virtual void OnExitSizeMove(WPARAM wParam, LPARAM lParam) override;
+		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+	protected:
+		static Runtime* s_pInstance;
 	private:
 		HINSTANCE m_hInstance;
-		std::string m_startScene;
-		LONGLONG m_deltaPC;
-		uint32_t m_flag;
+		int m_nCmdShow;
+		Window m_window;
+		LONGLONG m_deltaPerformanceCount;
+		bool m_render;
 	};
-
-	template<typename T>
-	void RuntimeImpl::Destroy(ComponentHandle<T> hComponent)
-	{
-		T* pComponent = hComponent.ToPtr();
-		if (!pComponent)
-			return;
-
-		this->Destroy(pComponent);
-	}
-
-	extern RuntimeImpl Runtime;
 }

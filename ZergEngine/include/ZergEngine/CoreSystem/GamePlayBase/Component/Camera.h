@@ -15,8 +15,8 @@ namespace ze
 	// 스레드 동기화가 필요해지는데 엔진 메인 루프 스레드에서도 항상 스레드 동기화가 필요해지므로 이게 더 페널티 요소이다. (자주 일어나는 일을 빠르게)
 	class Camera : public IComponent
 	{
-		friend class CameraManagerImpl;
-		friend class RendererImpl;
+		friend class CameraManager;
+		friend class Renderer;
 	public:
 		static constexpr COMPONENT_TYPE TYPE = COMPONENT_TYPE::CAMERA;
 		static constexpr bool IsCreatable() { return true; }
@@ -66,15 +66,15 @@ namespace ze
 	private:
 		virtual IComponentManager* GetComponentManager() const override;
 
-		float CalcBufferWidth();
-		float CalcBufferHeight();
+		const D3D11_VIEWPORT& GetEntireBufferViewport() const { return m_entireBufferViewport; }
 
-		const D3D11_VIEWPORT& GetFullBufferViewport() const { return m_fullbufferViewport; }
-
-		HRESULT CreateBufferAndView();			// 컬러 버퍼, 렌더 타겟 뷰, 셰이더 리소스 뷰, 뎁스 스텐실 버퍼, 뎁스 스텐실 뷰 생성
+		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+		// 매개변수로 전달되는 width, height 입력은 스왑 체인의 버퍼 크기. 따라서 카메라의 정규화뷰포트 크기를 바탕으로 만들어낼 버퍼 크기를 계산해야 함.
+		HRESULT CreateBuffer(uint32_t width, uint32_t height);			// 컬러 버퍼, 렌더 타겟 뷰, 셰이더 리소스 뷰, 뎁스 스텐실 버퍼, 뎁스 스텐실 뷰 생성
 		void UpdateViewMatrix();
-		void UpdateProjectionMatrix();			// FoV, 클리핑 평면(near, far plane)또는 창 크기 변경되었을 경우 호출 필요
-		void UpdateFullbufferViewport();		// 창 크기 변경되었을 경우 호출 필요
+		void UpdateProjectionMatrix(uint32_t width, uint32_t height);			// FoV, 클리핑 평면(near, far plane)또는 창 크기 변경되었을 경우 호출 필요
+		void UpdateEntireBufferViewport(uint32_t width, uint32_t height);
+		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	private:
 		ComPtr<ID3D11RenderTargetView> m_cpColorBufferRTV;
 		ComPtr<ID3D11ShaderResourceView> m_cpColorBufferSRV;		// 렌더링 결과 병합시 필요
@@ -89,7 +89,7 @@ namespace ze
 		ViewportRect m_viewportRect;
 		XMFLOAT4X4A m_viewMatrix;
 		XMFLOAT4X4A m_projMatrix;
-		D3D11_VIEWPORT m_fullbufferViewport;
+		D3D11_VIEWPORT m_entireBufferViewport;
 		float mTessMinDist;		// 최대한으로 테셀레이션 되는 최소 거리 정의 ┓
 									// (이 사이의 거리에서는 m_minTessFactor와 m_maxTessFactor에 설정한 값 사이로 보간된 Factor가 사용된다.
 		float mTessMaxDist;		// 최소한으로 테셀레이션 되는 최대 거리 정의 ┛

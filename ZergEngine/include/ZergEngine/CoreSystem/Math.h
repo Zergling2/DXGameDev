@@ -7,6 +7,14 @@ namespace ze
 	class Math
 	{
 	public:
+		class Vector3
+		{
+		public:
+			static const XMVECTORF32 UP;
+			static const XMVECTORF32 RIGHT;
+			static const XMVECTORF32 FORWARD;
+		};
+
 		template<typename T>
 		static inline void Clamp(T& val, T min, T max)
 		{

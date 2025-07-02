@@ -22,12 +22,12 @@ namespace ze
 
 	class RectTransform
 	{
-		friend class RuntimeImpl;
+		friend class Runtime;
 		friend class IUIObject;
-		friend class UIObjectManagerImpl;
-		friend class SceneManagerImpl;
-		friend class RendererImpl;
-		friend class ISizeColorUIObject;
+		friend class UIObjectManager;
+		friend class SceneManager;
+		friend class Renderer;
+		friend class ISizeUIObject;
 	public:
 		RectTransform(IUIObject* pUIObject) noexcept
 			: m_pUIObject(pUIObject)

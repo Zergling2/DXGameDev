@@ -8,8 +8,8 @@ namespace ze
 	
 	class Transform
 	{
-		friend class RuntimeImpl;
-		friend class GameObjectManagerImpl;
+		friend class Runtime;
+		friend class GameObjectManager;
 		friend class GameObject;
 	public:
 		Transform(GameObject* pGameObject) noexcept;

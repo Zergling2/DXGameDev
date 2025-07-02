@@ -1,24 +1,20 @@
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\DirectionalLightManager.h>
 
-namespace ze
-{
-    DirectionalLightManagerImpl DirectionalLightManager;
-}
-
 using namespace ze;
 
-DirectionalLightManagerImpl::DirectionalLightManagerImpl()
+DirectionalLightManager* DirectionalLightManager::s_pInstance = nullptr;
+
+void DirectionalLightManager::CreateInstance()
 {
+	assert(s_pInstance == nullptr);
+
+	s_pInstance = new DirectionalLightManager();
 }
 
-DirectionalLightManagerImpl::~DirectionalLightManagerImpl()
+void DirectionalLightManager::DestroyInstance()
 {
-}
+	assert(s_pInstance != nullptr);
 
-void DirectionalLightManagerImpl::Init(void* pDesc)
-{
-}
-
-void DirectionalLightManagerImpl::Release()
-{
+	delete s_pInstance;
+	s_pInstance = nullptr;
 }

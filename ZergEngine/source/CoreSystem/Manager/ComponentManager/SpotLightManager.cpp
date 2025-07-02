@@ -1,24 +1,20 @@
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\SpotLightManager.h>
 
-namespace ze
-{
-	SpotLightManagerImpl SpotLightManager;
-}
-
 using namespace ze;
 
-SpotLightManagerImpl::SpotLightManagerImpl()
+SpotLightManager* SpotLightManager::s_pInstance = nullptr;
+
+void SpotLightManager::CreateInstance()
 {
+	assert(s_pInstance == nullptr);
+
+	s_pInstance = new SpotLightManager();
 }
 
-SpotLightManagerImpl::~SpotLightManagerImpl()
+void SpotLightManager::DestroyInstance()
 {
-}
+	assert(s_pInstance != nullptr);
 
-void SpotLightManagerImpl::Init(void* pDesc)
-{
-}
-
-void SpotLightManagerImpl::Release()
-{
+	delete s_pInstance;
+	s_pInstance = nullptr;
 }

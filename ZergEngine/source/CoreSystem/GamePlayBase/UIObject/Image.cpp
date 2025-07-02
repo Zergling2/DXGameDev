@@ -2,8 +2,8 @@
 
 using namespace ze;
 
-Image::Image(UIOBJECT_FLAG flag, PCWSTR name)
-	: ISizeColorUIObject(flag, name, UIOBJECT_TYPE::IMAGE)
+Image::Image(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name)
+	: ISizeColorUIObject(id, flag, name, UIOBJECT_TYPE::IMAGE)
 	, m_nativeSize(false)
 	, m_texture()
 {

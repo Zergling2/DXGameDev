@@ -51,19 +51,19 @@ void SpaceTestScene::OnLoadScene()
 		auto hMeshRenderer = pAlienPlanet->AddComponent<MeshRenderer>();
 		// 메시 설정
 		auto pMeshRenderer = hMeshRenderer.ToPtr();
-		auto meshes = Resource.LoadWavefrontOBJ(L"Resource\\Model\\planet\\RinglessPlanet.obj");
+		auto meshes = ResourceLoader::GetInstance()->LoadWavefrontOBJ(L"Resource\\Model\\planet\\RinglessPlanet.obj");
 		pMeshRenderer->m_mesh = meshes[0];
 		// 재질 설정
-		auto material = Resource.CreateMaterial();
+		auto material = ResourceLoader::GetInstance()->CreateMaterial();
 		material->m_diffuse = XMFLOAT4A(1.0f, 1.0f, 1.0f, 1.0f);
 		material->m_ambient = XMFLOAT4A(0.2f, 0.2f, 0.2f, 1.0f);
 		material->m_specular = XMFLOAT4A(0.2f, 0.2f, 0.2f, 16.0f);
-		material->m_diffuseMap = Resource.LoadTexture(L"Resource\\Model\\planet\\RinglessPlanetA_Diffuse.png");
+		material->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture(L"Resource\\Model\\planet\\RinglessPlanetA_Diffuse.png");
 		pMeshRenderer->m_mesh->m_subsets[0].m_material = material;
 	}
 
 	{
-		auto meshes = Resource.LoadWavefrontOBJ(L"Resource\\Model\\weapons\\m762.obj");
+		auto meshes = ResourceLoader::GetInstance()->LoadWavefrontOBJ(L"Resource\\Model\\weapons\\m762.obj");
 
 		{
 			auto hWeaponMagazine = CreateGameObject(L"Magazine");
@@ -73,7 +73,7 @@ void SpaceTestScene::OnLoadScene()
 			auto hMeshRenderer = pWeaponMagazine->AddComponent<MeshRenderer>();
 			auto pMeshRenderer = hMeshRenderer.ToPtr();
 			pMeshRenderer->m_mesh = meshes[0];
-			auto material = Resource.CreateMaterial();
+			auto material = ResourceLoader::GetInstance()->CreateMaterial();
 			material->m_ambient = XMFLOAT4A(0.25f, 0.25f, 0.25f, 1.0f);
 			material->m_diffuse = XMFLOAT4A(0.85f, 0.85f, 0.85f, 1.0f);
 			material->m_specular = XMFLOAT4A(0.5f, 0.5f, 0.5f, 55.0f);
@@ -88,7 +88,7 @@ void SpaceTestScene::OnLoadScene()
 			auto hMeshRenderer = pWeapon->AddComponent<MeshRenderer>();
 			auto pMeshRenderer = hMeshRenderer.ToPtr();
 			pMeshRenderer->m_mesh = meshes[1];
-			auto material = Resource.CreateMaterial();
+			auto material = ResourceLoader::GetInstance()->CreateMaterial();
 			material->m_ambient = XMFLOAT4A(0.25f, 0.25f, 0.25f, 1.0f);
 			material->m_diffuse = XMFLOAT4A(0.85f, 0.85f, 0.85f, 1.0f);
 			material->m_specular = XMFLOAT4A(0.5f, 0.5f, 0.5f, 55.0f);
@@ -98,9 +98,9 @@ void SpaceTestScene::OnLoadScene()
 	
 
 
-	// Texture2D skyboxCubeMap = Resource.LoadCubeMapTexture(L"Resource\\Skybox\\cloudy_puresky.dds");
-	// Texture2D skyboxCubeMap = Resource.LoadCubeMapTexture(L"Resource\\Skybox\\warm_restaurant_night.dds");
-	Texture2D skyboxCubeMap = Resource.LoadCubeMapTexture(L"Resource\\Skybox\\snowcube.dds");
-	// Texture2D skyboxCubeMap = Resource.LoadCubeMapTexture(L"Resource\\Skybox\\sunsetcube.dds");
-	Environment.SetSkyboxCubeMap(skyboxCubeMap);
+	// Texture2D skyboxCubeMap = ResourceLoader::GetInstance()->LoadCubeMapTexture(L"Resource\\Skybox\\cloudy_puresky.dds");
+	// Texture2D skyboxCubeMap = ResourceLoader::GetInstance()->LoadCubeMapTexture(L"Resource\\Skybox\\warm_restaurant_night.dds");
+	Texture2D skyboxCubeMap = ResourceLoader::GetInstance()->LoadCubeMapTexture(L"Resource\\Skybox\\snowcube.dds");
+	// Texture2D skyboxCubeMap = ResourceLoader::GetInstance()->LoadCubeMapTexture(L"Resource\\Skybox\\sunsetcube.dds");
+	Environment::GetInstance()->SetSkyboxCubeMap(skyboxCubeMap);
 }

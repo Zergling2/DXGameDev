@@ -6,9 +6,9 @@ namespace ze
 {
 	class Button : public ISizeColorUIObject
 	{
-		friend class RendererImpl;
+		friend class Renderer;
 	public:
-		Button(UIOBJECT_FLAG flag, PCWSTR name);
+		Button(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name);
 		virtual ~Button() = default;
 
 		XMVECTOR GetTextColorVector() const { return XMLoadFloat4(&m_textColor); }
@@ -17,8 +17,9 @@ namespace ze
 		void SetTextColor(const XMFLOAT4A& color) { m_textColor = color; }
 		void SetTextColor(const XMFLOAT4& color) { m_textColor = color; }
 
-		void SetText(PCWSTR text) { StringCbCopyW(m_text, sizeof(m_text), text); }
+		void SetText(PCWSTR text);
 		PCWSTR GetText() const { return m_text; }
+		uint16_t GetTextLength() const { return m_textLength; }
 	private:
 		virtual void OnLButtonDown() override;
 		virtual void OnLButtonUp() override;
@@ -31,5 +32,6 @@ namespace ze
 		// uint8_t m_textThickness;
 		XMFLOAT4 m_textColor;
 		WCHAR m_text[20];
+		uint16_t m_textLength;
 	};
 }

@@ -84,15 +84,15 @@ void TestScene2::OnLoadScene()
 		GameObject* pPillar = hPillar.ToPtr();
 		ComponentHandle<MeshRenderer> hMeshRenderer = pPillar->AddComponent<MeshRenderer>();
 		// 메시 설정
-		auto meshes = Resource.LoadWavefrontOBJ(L"Resource\\maps\\mart\\pillar.obj");
+		auto meshes = ResourceLoader::GetInstance()->LoadWavefrontOBJ(L"Resource\\maps\\mart\\pillar.obj");
 		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 		pMeshRenderer->m_mesh = meshes[0];
 		// 재질 설정
-		parkinglotMaterial = Resource.CreateMaterial();
+		parkinglotMaterial = ResourceLoader::GetInstance()->CreateMaterial();
 		parkinglotMaterial->m_diffuse = XMFLOAT4A(1.0f, 1.0f, 1.0f, 1.0f);
 		parkinglotMaterial->m_ambient = XMFLOAT4A(0.25f, 0.25f, 0.25f, 1.0f);
 		parkinglotMaterial->m_specular = XMFLOAT4A(0.2f, 0.2f, 0.2f, 16.0f);
-		parkinglotMaterial->m_diffuseMap = Resource.LoadTexture(L"Resource\\maps\\mart\\ParkingLotInterior_Diffuse.png");
+		parkinglotMaterial->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture(L"Resource\\maps\\mart\\ParkingLotInterior_Diffuse.png");
 		pMeshRenderer->m_mesh->m_subsets[0].m_material = parkinglotMaterial;
 	}
 	
@@ -104,7 +104,7 @@ void TestScene2::OnLoadScene()
 		ComponentHandle<MeshRenderer> hMeshRenderer = pBollard->AddComponent<MeshRenderer>();
 		// 메시 설정
 		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		auto meshes = Resource.LoadWavefrontOBJ(L"Resource\\maps\\mart\\bollard.obj");
+		auto meshes = ResourceLoader::GetInstance()->LoadWavefrontOBJ(L"Resource\\maps\\mart\\bollard.obj");
 		pMeshRenderer->m_mesh = meshes[0];
 		// 재질 설정
 		pMeshRenderer->m_mesh->m_subsets[0].m_material = parkinglotMaterial;
@@ -116,23 +116,23 @@ void TestScene2::OnLoadScene()
 		GameObject* pKart = hKart.ToPtr();
 		pKart->m_transform.SetPosition(XMFLOAT3A(5.0f, 0.0f, 0.0f));
 		auto hMeshRenderer = pKart->AddComponent<MeshRenderer>();
-		auto meshes = Resource.LoadWavefrontOBJ(L"Resource\\Model\\newyorktourbus\\newyorktourbus_body.obj");
+		auto meshes = ResourceLoader::GetInstance()->LoadWavefrontOBJ(L"Resource\\Model\\newyorktourbus\\newyorktourbus_body.obj");
 		auto pMeshRenderer = hMeshRenderer.ToPtr();
 		pMeshRenderer->m_mesh = meshes[0];
-		auto material = Resource.CreateMaterial();
+		auto material = ResourceLoader::GetInstance()->CreateMaterial();
 		material->m_ambient = XMFLOAT4A(0.25f, 0.25f, 0.25f, 1.0f);
 		material->m_diffuse = XMFLOAT4A(0.85f, 0.85f, 0.85f, 1.0f);
 		material->m_specular = XMFLOAT4A(0.5f, 0.5f, 0.5f, 55.0f);
-		material->m_diffuseMap = Resource.LoadTexture(L"Resource\\Model\\newyorktourbus\\newyorktourbus_tex.png");
+		material->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture(L"Resource\\Model\\newyorktourbus\\newyorktourbus_tex.png");
 		pMeshRenderer->m_mesh->m_subsets[0].m_material = material;
 	}
 	
 
-	// Texture2D skyboxCubeMap = Resource.LoadCubeMapTexture(L"Resource\\Skybox\\cloudy_puresky.dds");
-	// Texture2D skyboxCubeMap = Resource.LoadCubeMapTexture(L"Resource\\Skybox\\warm_restaurant_night.dds");
-	// Texture2D skyboxCubeMap = Resource.LoadCubeMapTexture(L"Resource\\Skybox\\snowcube.dds");
-	Texture2D skyboxCubeMap = Resource.LoadCubeMapTexture(L"Resource\\Skybox\\sunsetcube.dds");
-	Environment.SetSkyboxCubeMap(skyboxCubeMap);
+	// Texture2D skyboxCubeMap = ResourceLoader::GetInstance()->LoadCubeMapTexture(L"Resource\\Skybox\\cloudy_puresky.dds");
+	// Texture2D skyboxCubeMap = ResourceLoader::GetInstance()->LoadCubeMapTexture(L"Resource\\Skybox\\warm_restaurant_night.dds");
+	// Texture2D skyboxCubeMap = ResourceLoader::GetInstance()->LoadCubeMapTexture(L"Resource\\Skybox\\snowcube.dds");
+	Texture2D skyboxCubeMap = ResourceLoader::GetInstance()->LoadCubeMapTexture(L"Resource\\Skybox\\sunsetcube.dds");
+	Environment::GetInstance()->SetSkyboxCubeMap(skyboxCubeMap);
 
 
 	// TerrainData tmd;
@@ -143,8 +143,8 @@ void TestScene2::OnLoadScene()
 	// tmd.heightScale = 100.0f;
 	// tmd.textureScale = 32.0f;
 	// tmd.elementFormat = HEIGHT_MAP_FORMAT::RAW_16BIT;
-	// std::shared_ptr<Terrain> terrain = Resource.LoadTerrain(L"Resource\\Terrain\\RidgeThrough.r16", tmd);
-	// std::shared_ptr<Terrain> terrain = Resource.LoadTerrain(L"Resource\\Terrain\\RollingHills.r16", tmd);
+	// std::shared_ptr<Terrain> terrain = ResourceLoader::GetInstance()->LoadTerrain(L"Resource\\Terrain\\RidgeThrough.r16", tmd);
+	// std::shared_ptr<Terrain> terrain = ResourceLoader::GetInstance()->LoadTerrain(L"Resource\\Terrain\\RollingHills.r16", tmd);
 
 	// TerrainData tmd;
 	// tmd.heightMapSize.row = 4097;
@@ -154,7 +154,7 @@ void TestScene2::OnLoadScene()
 	// tmd.heightScale = 200.0f;
 	// tmd.textureScale = 32.0f;
 	// tmd.elementFormat = HEIGHT_MAP_FORMAT::RAW_16BIT;
-	// std::shared_ptr<Terrain> terrain = Resource.LoadTerrain(L"Resource\\Terrain\\RockyPeaks.r16", tmd);
+	// std::shared_ptr<Terrain> terrain = ResourceLoader::GetInstance()->LoadTerrain(L"Resource\\Terrain\\RockyPeaks.r16", tmd);
 
 	// SetTerrain(terrain);
 }

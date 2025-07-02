@@ -1,20 +1,29 @@
 #pragma once
 
-#include <ZergEngine\CoreSystem\SubsystemInterface.h>
+#include <ZergEngine\Common\ThirdPartySDK.h>
 
 namespace ze
 {
-	class MemoryAllocatorImpl : public ISubsystem
+	class MemoryAllocator
 	{
-		friend class RuntimeImpl;
-		ZE_DECLARE_SINGLETON(MemoryAllocatorImpl);
+		friend class Runtime;
+	public:
+		static MemoryAllocator* GetInstance() { return s_pInstance; }
 	private:
-		virtual void Init(void* pDesc) override;
-		virtual void Release() override;
+		MemoryAllocator() = default;
+		~MemoryAllocator() = default;
+
+		static void CreateInstance();
+		static void DestroyInstance();
+
+		void Init();
+		void UnInit();
 	public:
 		LPVOID RequestSystemAllocPageSize(uint32_t page);
 		LPVOID RequestSystemAllocGranularitySize();
+		DWORD GetSystemAllocationGranularity() const { return m_si.dwAllocationGranularity; }
+	private:
+		static MemoryAllocator* s_pInstance;
+		SYSTEM_INFO m_si;
 	};
-
-	extern MemoryAllocatorImpl MemoryAllocator;
 }

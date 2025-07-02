@@ -6,7 +6,7 @@ namespace ze
 {
 	class Texture2D
 	{
-		friend class ResourceManagerImpl;
+		friend class ResourceLoader;
 	public:
 		Texture2D() noexcept
 			: m_cpTex2D(nullptr)

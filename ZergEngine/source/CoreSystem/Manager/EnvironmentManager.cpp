@@ -1,26 +1,38 @@
 #include <ZergEngine\CoreSystem\Manager\EnvironmentManager.h>
 
-namespace ze
-{
-	EnvironmentManagerImpl Environment;
-}
-
 using namespace ze;
 
-EnvironmentManagerImpl::EnvironmentManagerImpl()
+Environment* Environment::s_pInstance = nullptr;
+
+Environment::Environment()
 	: m_skyboxCubeMap()
 {
 }
 
-EnvironmentManagerImpl::~EnvironmentManagerImpl()
+Environment::~Environment()
 {
 }
 
-void EnvironmentManagerImpl::Init(void* pDesc)
+void Environment::CreateInstance()
+{
+	assert(s_pInstance == nullptr);
+
+	s_pInstance = new Environment();
+}
+
+void Environment::DestroyInstance()
+{
+	assert(s_pInstance != nullptr);
+
+	delete s_pInstance;
+	s_pInstance = nullptr;
+}
+
+void Environment::Init()
 {
 }
 
-void EnvironmentManagerImpl::Release()
+void Environment::UnInit()
 {
 	m_skyboxCubeMap.Reset();
 }

@@ -1,72 +1,50 @@
 #include <ZergEngine\CoreSystem\SceneInterface.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Panel.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Button.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Image.h>
 #include <ZergEngine\CoreSystem\Manager\GameObjectManager.h>
 #include <ZergEngine\CoreSystem\Manager\UIObjectManager.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Panel.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Image.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Button.h>
 
 using namespace ze;
 
 IScene::IScene()
-	: m_upDeferredGameObjects(std::make_unique<std::vector<GameObject*>>())
-	, m_upDeferredUIObjects(std::make_unique<std::vector<IUIObject*>>())
+	: m_pendingGameObjects()
+	, m_pendingUIObjects()
 {
 }
 
 GameObjectHandle IScene::CreateGameObject(PCWSTR name)
 {
-	// Deferred game object.
-	GameObject* pGameObject = new GameObject(
-		static_cast<GAMEOBJECT_FLAG>(static_cast<uint16_t>(GAMEOBJECT_FLAG::DEFERRED) | static_cast<uint16_t>(GAMEOBJECT_FLAG::ACTIVE)),
-		name
-	);
+	GameObject* pNewGameObject = nullptr;
+	GameObjectHandle hNewGameObject = GameObjectManager::GetInstance()->CreatePendingObject(&pNewGameObject, name);
+	m_pendingGameObjects.push_back(pNewGameObject);
 
-	GameObjectHandle hGameObject = GameObjectManager.RegisterToHandleTable(pGameObject);
-	m_upDeferredGameObjects->push_back(pGameObject);
-
-	return hGameObject;
+	return hNewGameObject;
 }
 
 UIObjectHandle IScene::CreatePanel(PCWSTR name)
 {
-	// Deferred UI object.
-	Panel* pPanel = new Panel(
-		static_cast<UIOBJECT_FLAG>(static_cast<uint16_t>(UIOBJECT_FLAG::DEFERRED) | static_cast<uint16_t>(UIOBJECT_FLAG::ACTIVE)),
-		name
-	);
+	Panel* pNewPanel = nullptr;
+	UIObjectHandle hNewPanel = UIObjectManager::GetInstance()->CreatePendingObject<Panel>(&pNewPanel, name);
+	m_pendingUIObjects.push_back(pNewPanel);
 
-	return this->AddDeferredRootUIObject(pPanel);
+	return hNewPanel;
 }
 
 UIObjectHandle IScene::CreateImage(PCWSTR name)
 {
-	// Deferred UI object.
-	Image* pImage = new Image(
-		static_cast<UIOBJECT_FLAG>(static_cast<uint16_t>(UIOBJECT_FLAG::DEFERRED) | static_cast<uint16_t>(UIOBJECT_FLAG::ACTIVE)),
-		name
-	);
+	Image* pNewImage = nullptr;
+	UIObjectHandle hNewImage = UIObjectManager::GetInstance()->CreatePendingObject<Image>(&pNewImage, name);
+	m_pendingUIObjects.push_back(pNewImage);
 
-	return this->AddDeferredRootUIObject(pImage);
+	return hNewImage;
 }
 
 UIObjectHandle IScene::CreateButton(PCWSTR name)
 {
-	// Deferred UI object.
-	Button* pButton = new Button(
-		static_cast<UIOBJECT_FLAG>(static_cast<uint16_t>(UIOBJECT_FLAG::DEFERRED) | static_cast<uint16_t>(UIOBJECT_FLAG::ACTIVE)),
-		name
-	);
+	Button* pNewButton = nullptr;
+	UIObjectHandle hNewButton = UIObjectManager::GetInstance()->CreatePendingObject<Button>(&pNewButton, name);
+	m_pendingUIObjects.push_back(pNewButton);
 
-	return this->AddDeferredRootUIObject(pButton);
-}
-
-UIObjectHandle IScene::AddDeferredRootUIObject(IUIObject* pUIObject)
-{
-	UIObjectHandle hUIObject = UIObjectManager.RegisterToHandleTable(pUIObject);
-	m_upDeferredUIObjects->push_back(pUIObject);
-
-	// REAL_ROOT 플래그 활성화 및 Root Vector에 추가는 SceneManager에서 씬 로드 시 수행한다.
-
-	return hUIObject;
+	return hNewButton;
 }

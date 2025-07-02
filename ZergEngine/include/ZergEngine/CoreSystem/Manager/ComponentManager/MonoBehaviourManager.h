@@ -6,27 +6,35 @@ namespace ze
 {
 	class MonoBehaviour;
 
-	class MonoBehaviourManagerImpl : public IComponentManager
+	class MonoBehaviourManager : public IComponentManager
 	{
-		friend class RuntimeImpl;
-		friend class SceneManagerImpl;
+		friend class Runtime;
 		friend class MonoBehaviour;
-		ZE_DECLARE_SINGLETON(MonoBehaviourManagerImpl);
+	public:
+		static MonoBehaviourManager* GetInstance() { return s_pInstance; }
 	private:
-		virtual void Init(void* pDesc) override;
-		virtual void Release() override;
+		MonoBehaviourManager();
+		virtual ~MonoBehaviourManager() = default;
 
-		void AddToStartingQueue(MonoBehaviour* pScript);
+		static void CreateInstance();
+		static void DestroyInstance();
+
+		void RequestEnable(MonoBehaviour* pMonoBehaviour);
+		void RequestDisable(MonoBehaviour* pMonoBehaviour);
+
+		virtual void Deploy(IComponent* pComponent) override;
+		void AddToStartQueue(MonoBehaviour* pMonoBehaviour);
+		void AwakeDeployedComponents();
 		void CallStart();
-
 		void FixedUpdateScripts();
 		void UpdateScripts();
 		void LateUpdateScripts();
 
 		virtual void RemoveDestroyedComponents() override;
-	private:
-		std::vector<MonoBehaviour*> m_startingScripts;
-	};
+	protected:
+		static MonoBehaviourManager* s_pInstance;
 
-	extern MonoBehaviourManagerImpl MonoBehaviourManager;
+		std::vector<MonoBehaviour*> m_awakeQueue;
+		std::vector<MonoBehaviour*> m_startQueue;
+	};
 }

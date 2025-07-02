@@ -7,10 +7,8 @@ namespace ze
 {
 	class Image : public ISizeColorUIObject
 	{
-		friend class RendererImpl;
-		friend class UIObjectManagerImpl;
 	public:
-		Image(UIOBJECT_FLAG flag, PCWSTR name);
+		Image(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name);
 		virtual ~Image() = default;
 
 		void SetTexture(const Texture2D& texture);
