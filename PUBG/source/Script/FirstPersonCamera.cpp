@@ -55,7 +55,7 @@ void FirstPersonCamera::Update()
 		Runtime::GetInstance()->SetResolution(1600, 900, DISPLAY_MODE::WINDOWED);
 
 	if (Input::GetInstance()->GetKeyDown(KEY_SEMICOLON))
-		Runtime::GetInstance()->SetResolution(1280, 720, DISPLAY_MODE::BORDERLESS_WINDOWED);
+		Runtime::GetInstance()->SetResolution(0, 0, DISPLAY_MODE::BORDERLESS_WINDOWED);
 
 	if (Input::GetInstance()->GetKeyDown(KEY_U))
 		this->Disable();

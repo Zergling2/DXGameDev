@@ -143,7 +143,6 @@ LRESULT Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         PostQuitMessage(0);
         break;
     case WM_SIZE:
-        printf("Window::WinProc->WM_SIZE\n");
         pHandler->OnSize(wParam, lParam);
         break;
     case WM_SHOWWINDOW:

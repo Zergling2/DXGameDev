@@ -2,11 +2,6 @@
 #include <ZergEngine\CoreSystem\MemoryAllocator.h>
 #include <ZergEngine\Common\EngineHelper.h>
 
-namespace ze
-{
-	SyncFileLogger FileLog;
-}
-
 using namespace ze;
 
 static VOID NTAPI WakeUpThread(ULONG_PTR parameter)

@@ -12,5 +12,6 @@ namespace pubg
 		virtual ~TestScript() = default;
 
 		virtual void FixedUpdate() override;
+		virtual void OnDestroy() override;
 	};
 }

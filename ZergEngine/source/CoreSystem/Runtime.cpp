@@ -63,6 +63,13 @@ void Runtime::DestroyInstance()
 
 void Runtime::Init(HINSTANCE hInstance, int nCmdShow, uint32_t width, uint32_t height, PCWSTR title, PCWSTR startScene)
 {
+    // Enable run-time memory check for debug builds.
+#if defined(DEBUG) || defined(_DEBUG)
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+    // Perform automatic leak checking at program exit through a call to _CrtDumpMemoryLeaks 
+    // and generate an error report if the application failed to free all the memory it allocated.
+#endif
+
     m_hInstance = hInstance;
     m_nCmdShow = nCmdShow;
 
@@ -73,12 +80,6 @@ void Runtime::Init(HINSTANCE hInstance, int nCmdShow, uint32_t width, uint32_t h
         return;
     }
 
-    // Enable run-time memory check for debug builds.
-#if defined(DEBUG) || defined(_DEBUG)
-    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-    // Perform automatic leak checking at program exit through a call to _CrtDumpMemoryLeaks 
-    // and generate an error report if the application failed to free all the memory it allocated.
-#endif
     CoInitializeEx(NULL, COINIT_MULTITHREADED);
     MemoryAllocator::CreateInstance();
     FileSystem::CreateInstance();
@@ -216,8 +217,6 @@ void Runtime::Run()
         }
     }
 
-    printf("111111111\n");
-
     this->DestroyAllObject();
 }
 
@@ -276,7 +275,6 @@ bool Runtime::SetResolution(uint32_t width, uint32_t height, DISPLAY_MODE mode)
     {
     case DISPLAY_MODE::WINDOWED:
         m_window.SetStyle(TITLEBAR_WINDOW_STYLE);
-        printf("%d, %d\n", width, height);
         result = m_window.Resize(width, height);
         break;
     case DISPLAY_MODE::BORDERLESS_WINDOWED:
@@ -287,7 +285,6 @@ bool Runtime::SetResolution(uint32_t width, uint32_t height, DISPLAY_MODE mode)
         GetMonitorInfo(hMonitor, &mi);
         width = static_cast<uint32_t>(mi.rcMonitor.right - mi.rcMonitor.left);
         height = static_cast<uint32_t>(mi.rcMonitor.bottom - mi.rcMonitor.top);
-        printf("%d, %d\n", width, height);
         result = m_window.Resize(width, height);
         break;
     case DISPLAY_MODE::FULLSCREEN:
@@ -429,10 +426,6 @@ void Runtime::OnSize(WPARAM wParam, LPARAM lParam)
     {
         const uint32_t newWidth = static_cast<uint32_t>(GET_X_LPARAM(lParam));
         const uint32_t newHeight = static_cast<uint32_t>(GET_Y_LPARAM(lParam));
-        if (newWidth == 120)
-        {
-            printf("New Width: %d, New Height: %d\n", newWidth, newHeight);
-        }
 
         // SwapChain Resize นื Depth/Stencil Buffer Resize
         GraphicDevice::GetInstance()->ResizeBuffer(newWidth, newHeight);

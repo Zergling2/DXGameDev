@@ -137,6 +137,4 @@ namespace ze
 		uint32_t m_flushTimer;
 		std::vector<LPVOID> m_bufferLargePages;
 	};
-
-	extern SyncFileLogger FileLog;
 }

@@ -3,6 +3,8 @@
 using namespace pubg;
 using namespace ze;
 
+Texture2D tex;
+
 void TestScript::FixedUpdate()
 {
 	GameObject* pGameObject = this->GetGameObjectHandle().ToPtr();
@@ -22,7 +24,6 @@ void TestScript::FixedUpdate()
 	static int i = 0;
 	i++;
 
-	static Texture2D tex;
 	if (i == 60)
 	{
 		if (pMeshRenderer->m_mesh->m_subsets[0].m_material->m_diffuseMap)
@@ -38,4 +39,9 @@ void TestScript::FixedUpdate()
 
 		i = 0;
 	}
+}
+
+void TestScript::OnDestroy()
+{
+	tex.Reset();
 }
