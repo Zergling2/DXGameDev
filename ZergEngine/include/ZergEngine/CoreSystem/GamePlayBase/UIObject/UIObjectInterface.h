@@ -58,7 +58,13 @@ namespace ze
 		virtual bool XM_CALLCONV HitTest(FXMVECTOR mousePosition) const = 0;
 		virtual void OnLButtonDown() {}
 		virtual void OnLButtonUp() {}
-		virtual void OnClick() {}
+		virtual void OnLClick() {}
+		virtual void OnRButtonDown() {}
+		virtual void OnRButtonUp() {}
+		virtual void OnRClick() {}
+		virtual void OnMButtonDown() {}
+		virtual void OnMButtonUp() {}
+		virtual void OnMClick() {}
 	public:
 		RectTransform m_transform;
 	private:

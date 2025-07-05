@@ -5,6 +5,7 @@
 #include "LevelEditorView.h"
 #include "ComponentListView.h"
 #include "TransformInspectorFormView.h"
+#include "MeshRendererInspectorFormView.h"
 #include "HierarchyTreeView.h"
 #include "LogListView.h"
 #include "TerrainGenerationDialog.h"
@@ -22,6 +23,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_WM_GETMINMAXINFO()
 	ON_WM_SIZE()
 	ON_COMMAND(ID_3DOBJECT_TERRAIN, &CMainFrame::On3DObjectTerrain)
+	ON_COMMAND(ID_GAMEOBJECT_CREATEEMPTY, &CMainFrame::OnGameObjectCreateEmpty)
 END_MESSAGE_MAP()
 
 static UINT indicators[] =
@@ -40,7 +42,7 @@ constexpr int FOURTH_UDSPLIT_TOP_HEIGHT = 256;		// ComponentListView ≥Ù¿Ã
 // CMainFrame construction/destruction
 
 CMainFrame::CMainFrame() noexcept
-	: m_splitterInitialized(false)
+	: m_splitterCreated(false)
 	, m_wndSplitter{}
 {
 	// TODO: add member initialization code here
@@ -156,7 +158,7 @@ BOOL CMainFrame::OnCreateClient(LPCREATESTRUCT /*lpcs*/,
 		if (!result)
 			break;
 
-		m_splitterInitialized = true;
+		m_splitterCreated = true;
 
 		m_wndSplitter[0].SetColumnInfo(0, cr.Width() - FIRST_LRSPLIT_RIGHT_WIDTH, 0);
 		m_wndSplitter[1].SetRowInfo(0, cr.Height() - SECOND_UDSPLIT_BOTTOM_HEIGHT, 0);
@@ -211,19 +213,16 @@ void CMainFrame::OnSize(UINT nType, int cx, int cy)
 	WCHAR log[64];
 	CRect cr;
 
-	if (!m_splitterInitialized)
+	if (!m_splitterCreated)
 		return;
 
 	switch (nType)
 	{
 	case SIZE_MINIMIZED:
-		OutputDebugStringW(L"CMainFrame::OnSize SIZE_MINIMIZED\n");
 		break;
 	case SIZE_MAXIMIZED:
-		OutputDebugStringW(L"CMainFrame::OnSize SIZE_MAXIMIZED\n");
-		break;
+		__fallthrough;
 	case SIZE_RESTORED:
-		OutputDebugStringW(L"CMainFrame::OnSize SIZE_RESTORED\n");
 		GetClientRect(&cr);
 
 		m_wndSplitter[0].SetColumnInfo(0, cr.Width() - FIRST_LRSPLIT_RIGHT_WIDTH, 0);
@@ -248,4 +247,11 @@ void CMainFrame::On3DObjectTerrain()
 	// TODO: Add your command handler code here
 	CTerrainGenerationDialog dlg;
 	dlg.DoModal();
+}
+
+void CMainFrame::OnGameObjectCreateEmpty()
+{
+	// TODO: Add your command handler code here
+
+	
 }

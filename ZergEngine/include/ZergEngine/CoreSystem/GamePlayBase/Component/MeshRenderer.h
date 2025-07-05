@@ -4,12 +4,11 @@
 
 namespace ze
 {
-	class GameObject;
 	class Mesh;
+	class Material;
 
 	class MeshRenderer : public IComponent
 	{
-		friend class Graphics;
 	public:
 		static constexpr COMPONENT_TYPE TYPE = COMPONENT_TYPE::MESH_RENDERER;
 		static constexpr bool IsCreatable() { return true; }

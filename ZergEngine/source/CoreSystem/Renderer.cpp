@@ -44,7 +44,7 @@ Renderer::Renderer()
 	, m_basicEffectPN()
 	, m_basicEffectPT()
 	, m_basicEffectPNT()
-	// , mTerrainEffect()
+	// , m_terrainEffect()
 	, m_skyboxEffect()
 	, m_msCameraMergeEffect()
 	, m_buttonEffect()
@@ -120,7 +120,7 @@ void Renderer::InitializeEffects()
 	m_basicEffectPT.Init();
 	m_basicEffectPNT.Init();
 	m_skyboxEffect.Init();
-	// mTerrainEffect.Init();
+	// m_terrainEffect.Init();
 	m_msCameraMergeEffect.Init();
 	m_buttonEffect.Init();
 	m_imageEffect.Init();
@@ -134,7 +134,7 @@ void Renderer::ReleaseEffects()
 	m_basicEffectPT.Release();
 	m_basicEffectPNT.Release();
 	m_skyboxEffect.Release();
-	// mTerrainEffect.Release();
+	// m_terrainEffect.Release();
 	m_msCameraMergeEffect.Release();
 	m_buttonEffect.Release();
 	m_imageEffect.Release();
@@ -208,7 +208,7 @@ void Renderer::RenderFrame()
 		// m_basicEffectPT.SetDirectionalLight(light, lightCount);
 		m_basicEffectPNT.SetDirectionalLight(light, lightCount);
 		// m_skyboxEffect.SetDirectionalLight(light, lightCount);
-		// mTerrainEffect.SetDirectionalLight(light, lightCount);
+		// m_terrainEffect.SetDirectionalLight(light, lightCount);
 	}
 
 	{
@@ -243,7 +243,7 @@ void Renderer::RenderFrame()
 		// m_basicEffectPT.SetPointLight(light, lightCount);
 		m_basicEffectPNT.SetPointLight(light, lightCount);
 		// m_skyboxEffect.SetPointLight(light, lightCount);
-		// mTerrainEffect.SetPointLight(light, lightCount);
+		// m_terrainEffect.SetPointLight(light, lightCount);
 	}
 
 	{
@@ -290,7 +290,7 @@ void Renderer::RenderFrame()
 		// m_basicEffectPT.SetSpotLight(light, lightCount);
 		m_basicEffectPNT.SetSpotLight(light, lightCount);
 		// m_skyboxEffect.SetSpotLight(light, lightCount);
-		// mTerrainEffect.SetSpotLight(light, lightCount);
+		// m_terrainEffect.SetSpotLight(light, lightCount);
 	}
 
 	// Camera마다 프레임 렌더링
@@ -314,6 +314,7 @@ void Renderer::RenderFrame()
 		pImmContext->ClearDepthStencilView(pDepthStencilBufferDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 		ID3D11RenderTargetView* const rtvs[] = { pColorBufferRTV };
+		OutputDebugString(_T("Scene Rendering OMSetRenderTargets\n"));
 		pImmContext->OMSetRenderTargets(_countof(rtvs), rtvs, pDepthStencilBufferDSV);
 		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 		// PerCamera 상수버퍼 업데이트 및 바인딩
@@ -323,7 +324,7 @@ void Renderer::RenderFrame()
 		m_basicEffectPT.SetCamera(pCamera);
 		m_basicEffectPNT.SetCamera(pCamera);
 		m_skyboxEffect.SetCamera(pCamera);
-		// mTerrainEffect.SetCamera(pCamera);
+		// m_terrainEffect.SetCamera(pCamera);
 
 		for (const IComponent* pComponent : MeshRendererManager::GetInstance()->m_directAccessGroup)
 		{
@@ -391,6 +392,7 @@ void Renderer::RenderFrame()
 	pImmContext->ClearRenderTargetView(pColorBufferRTV, DirectX::Colors::Blue);
 	pImmContext->ClearDepthStencilView(pDepthStencilBufferDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 	ID3D11RenderTargetView* const rtvs[] = { pColorBufferRTV };
+	OutputDebugString(_T("Camera Merge OMSetRenderTargets\n"));
 	pImmContext->OMSetRenderTargets(_countof(rtvs), rtvs, pDepthStencilBufferDSV);
 	
 	for (const IComponent* pComponent : CameraManager::GetInstance()->m_directAccessGroup)
@@ -410,6 +412,12 @@ void Renderer::RenderFrame()
 		m_effectImmediateContext.Apply(&m_msCameraMergeEffect);
 	
 		m_effectImmediateContext.Draw(4, 0);
+	}
+
+	{
+		// 단일 카메라 사용하는 씬에서 다음 프레임에 동일 카메라 버퍼가 Input/Output으로 동시에 바인딩 되는것을 방지
+		ID3D11ShaderResourceView* srvs[] = { nullptr };
+		m_effectImmediateContext.GetDeviceContextComInterface()->PSSetShaderResources(0, 1, srvs);
 	}
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -754,7 +762,7 @@ void Renderer::RenderButton(const Button* pButton)
 	m_buttonEffect.SetPressed(pButton->IsPressed());
 	m_buttonEffect.SetColor(pButton->GetColorVector());
 	m_buttonEffect.SetPreNDCPosition(pButton->m_transform.GetPreNDCPosition());
-	m_buttonEffect.SetSize(pButton->GetSize());
+	m_buttonEffect.SetSize(pButton->GetSizeVector());
 
 	m_effectImmediateContext.Apply(&m_buttonEffect);
 	m_effectImmediateContext.Draw(30, 0);
@@ -797,7 +805,7 @@ void Renderer::RenderButton(const Button* pButton)
 void Renderer::RenderImage(const Image* pImage)
 {
 	m_imageEffect.SetPreNDCPosition(pImage->m_transform.GetPreNDCPosition());
-	m_imageEffect.SetSize(pImage->GetSize());
+	m_imageEffect.SetSize(pImage->GetSizeVector());
 	m_imageEffect.SetImageTexture(pImage->GetTexture());
 
 	m_effectImmediateContext.Apply(&m_imageEffect);

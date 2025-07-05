@@ -82,11 +82,11 @@ void CComponentListView::OnInitialUpdate()
 		m_initialized = true;
 	}
 
-	list.InsertItem(0, _T("Transform"), ZE_ICON_INDEX::TRANSFORM_ICON);
-	list.InsertItem(1, _T("MeshFilter"), ZE_ICON_INDEX::MESH_FILTER_ICON);
-	list.InsertItem(2, _T("MeshRenderer"), ZE_ICON_INDEX::MESH_RENDERER_ICON);
-	list.InsertItem(3, _T("Audio Source"), ZE_ICON_INDEX::AUDIO_SOURCE_ICON);
-	list.InsertItem(4, _T("Script"), ZE_ICON_INDEX::SCRIPT_ICON);
-	list.InsertItem(5, _T("Rigidbody"), ZE_ICON_INDEX::RIGIDBODY_ICON);
-	list.InsertItem(6, _T("Camera"), ZE_ICON_INDEX::CAMERA_ICON);
+	list.InsertItem(list.GetItemCount(), _T("Transform"), ZE_ICON_INDEX::TRANSFORM_ICON);
+	list.InsertItem(list.GetItemCount(), _T("MeshFilter"), ZE_ICON_INDEX::MESH_FILTER_ICON);
+	list.InsertItem(list.GetItemCount(), _T("MeshRenderer"), ZE_ICON_INDEX::MESH_RENDERER_ICON);
+	list.InsertItem(list.GetItemCount(), _T("Audio Source"), ZE_ICON_INDEX::AUDIO_SOURCE_ICON);
+	list.InsertItem(list.GetItemCount(), _T("Script"), ZE_ICON_INDEX::SCRIPT_ICON);
+	list.InsertItem(list.GetItemCount(), _T("Rigidbody"), ZE_ICON_INDEX::RIGIDBODY_ICON);
+	list.InsertItem(list.GetItemCount(), _T("Camera"), ZE_ICON_INDEX::CAMERA_ICON);
 }

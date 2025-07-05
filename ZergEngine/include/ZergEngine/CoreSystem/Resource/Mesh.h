@@ -11,14 +11,14 @@ namespace ze
 		friend class ResourceLoader;
 	public:
 		Subset()
-			: m_material(nullptr)
+			: m_material()
 			, m_indexCount(0)
 			, m_startIndexLocation(0)
 		{
 		}
 		~Subset() = default;
-		inline uint32_t GetIndexCount() const { return m_indexCount; }
-		inline uint32_t GetStartIndexLocation() const { return m_startIndexLocation; }
+		uint32_t GetIndexCount() const { return m_indexCount; }
+		uint32_t GetStartIndexLocation() const { return m_startIndexLocation; }
 	public:
 		std::shared_ptr<Material> m_material;
 	private:

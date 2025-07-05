@@ -202,9 +202,12 @@
     <ClInclude Include="BufferDC.h" />
     <ClInclude Include="ComponentListView.h" />
     <ClInclude Include="Helper.h" />
+    <ClInclude Include="MeshRendererInspectorFormView.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="HierarchyTreeView.h" />
+    <ClInclude Include="TerrainData.h" />
+    <ClInclude Include="TerrainDataEditor.h" />
     <ClInclude Include="TerrainGenerationDialog.h" />
     <ClInclude Include="TransformEdit\TransformEdit.h" />
     <ClInclude Include="TransformInspectorFormView.h" />
@@ -220,6 +223,9 @@
     <ClCompile Include="BufferDC.cpp" />
     <ClCompile Include="ComponentListView.cpp" />
     <ClCompile Include="HierarchyTreeView.cpp" />
+    <ClCompile Include="MeshRendererInspectorFormView.cpp" />
+    <ClCompile Include="TerrainData.cpp" />
+    <ClCompile Include="TerrainDataEditor.cpp" />
     <ClCompile Include="TerrainGenerationDialog.cpp" />
     <ClCompile Include="TransformEdit\TransformEdit.cpp" />
     <ClCompile Include="TransformInspectorFormView.cpp" />

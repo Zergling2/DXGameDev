@@ -5,6 +5,7 @@ using namespace ze;
 
 MeshRenderer::MeshRenderer() noexcept
 	: IComponent(MeshRendererManager::GetInstance()->AssignUniqueId())
+	, m_mesh()
 	, m_castShadows(false)
 	, m_receiveShadows(false)
 {

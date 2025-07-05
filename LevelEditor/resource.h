@@ -7,6 +7,7 @@
 #define IDR_LevelEditorTYPE             130
 #define IDD_CTransformInspectorFormView 310
 #define IDD_TRANSFORM_INSPECTOR_FORMVIEW 310
+#define IDD_MESH_RENDERER_INSPECTOR_FORMVIEW 311
 #define IDB_ZEPACKEDICON                312
 #define IDD_TERRAIN_GENERATION_DIALOG   313
 #define IDI_ZELOGOMEDIUM                315
@@ -17,16 +18,23 @@
 #define IDC_EDIT_POSITIONZ              1002
 #define IDC_EDIT2                       1002
 #define IDC_EDIT_TERRAIN_GENERATION_PATCH_COUNT_COLUMN 1002
+#define IDC_CHECK1                      1002
 #define IDC_EDIT_ROTATIONX              1003
 #define IDC_EDIT3                       1003
 #define IDC_EDIT_TERRAIN_GENERATION_CELL_SIZE 1003
+#define IDC_CHECK2                      1003
 #define IDC_EDIT_ROTATIONY              1004
 #define IDC_EDIT4                       1004
 #define IDC_EDIT_TERRAIN_GENERATION_HEIGHT_SCALE 1004
+#define IDC_LIST1                       1004
 #define IDC_EDIT_ROTATIONZ              1005
+#define IDC_BUTTON1                     1005
 #define IDC_EDIT_SCALEX                 1006
+#define IDC_LIST2                       1006
 #define IDC_EDIT_SCALEY                 1007
+#define IDC_LIST3                       1007
 #define IDC_EDIT_SCALEZ                 1008
+#define IDC_BUTTON2                     1008
 #define ID_FILE_NEWSCENE                32771
 #define ID_FILE_OPENSCENE               32772
 #define ID_Menu                         32773
@@ -72,9 +80,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        317
+#define _APS_NEXT_RESOURCE_VALUE        318
 #define _APS_NEXT_COMMAND_VALUE         32811
-#define _APS_NEXT_CONTROL_VALUE         1002
-#define _APS_NEXT_SYMED_VALUE           311
+#define _APS_NEXT_CONTROL_VALUE         1007
+#define _APS_NEXT_SYMED_VALUE           312
 #endif
 #endif

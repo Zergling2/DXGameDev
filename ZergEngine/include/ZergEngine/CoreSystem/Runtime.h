@@ -65,10 +65,10 @@ namespace ze
 		virtual void OnMouseMove(WPARAM wParam, LPARAM lParam) override;
 		virtual void OnLButtonDown(WPARAM wParam, LPARAM lParam) override;
 		virtual void OnLButtonUp(WPARAM wParam, LPARAM lParam) override;
-		virtual void OnRButtonDown(WPARAM wParam, LPARAM lParam) override {}
-		virtual void OnRButtonUp(WPARAM wParam, LPARAM lParam) override {}
-		virtual void OnMButtonDown(WPARAM wParam, LPARAM lParam) override {}
-		virtual void OnMButtonUp(WPARAM wParam, LPARAM lParam) override {}
+		virtual void OnRButtonDown(WPARAM wParam, LPARAM lParam) override;
+		virtual void OnRButtonUp(WPARAM wParam, LPARAM lParam) override;
+		virtual void OnMButtonDown(WPARAM wParam, LPARAM lParam) override;
+		virtual void OnMButtonUp(WPARAM wParam, LPARAM lParam) override;
 		virtual void OnEnterSizeMove(WPARAM wParam, LPARAM lParam) override;
 		virtual void OnExitSizeMove(WPARAM wParam, LPARAM lParam) override;
 		// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收

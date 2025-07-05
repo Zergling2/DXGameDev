@@ -61,6 +61,13 @@
     <ClInclude Include="TransformEdit\TransformEdit.h">
       <Filter>Files\TransformEdit</Filter>
     </ClInclude>
+    <ClInclude Include="TerrainData.h">
+      <Filter>Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainDataEditor.h">
+      <Filter>Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshRendererInspectorFormView.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BufferDC.cpp">
@@ -96,6 +103,13 @@
     <ClCompile Include="TransformEdit\TransformEdit.cpp">
       <Filter>Files\TransformEdit</Filter>
     </ClCompile>
+    <ClCompile Include="TerrainData.cpp">
+      <Filter>Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainDataEditor.cpp">
+      <Filter>Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshRendererInspectorFormView.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="LevelEditor.rc">

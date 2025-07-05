@@ -14,12 +14,11 @@ protected: // create from serialization only
 
 // Attributes
 protected:
-	bool m_splitterInitialized;
+	bool m_splitterCreated;
 	CSplitterWnd m_wndSplitter[4];
 
 // Operations
 public:
-
 // Overrides
 public:
 	virtual BOOL OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext);
@@ -44,6 +43,5 @@ public:
 	afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg void On3DObjectTerrain();
+	afx_msg void OnGameObjectCreateEmpty();
 };
-
-

@@ -262,7 +262,7 @@ void Runtime::OnIdle()
     if (m_render)
         Renderer::GetInstance()->RenderFrame();
 
-    Sleep(3);
+    // Sleep(3);
 }
 
 bool Runtime::SetResolution(uint32_t width, uint32_t height, DISPLAY_MODE mode)
@@ -471,6 +471,7 @@ void Runtime::OnLButtonDown(WPARAM wParam, LPARAM lParam)
     pt.y = GET_Y_LPARAM(lParam);
 
     // 유니티 스크린 좌표 시스템으로 변환
+    // 전체화면 모드에서는 다르게 처리해야 함!
     pt.y = static_cast<LONG>(m_window.GetClientHeight()) - pt.y;	// y는 유니티 스크린 좌표 시스템과 동일하게 상하 반전
 
     UIObjectManager::GetInstance()->OnLButtonDown(pt);
@@ -483,9 +484,62 @@ void Runtime::OnLButtonUp(WPARAM wParam, LPARAM lParam)
     pt.y = GET_Y_LPARAM(lParam);
 
     // 유니티 스크린 좌표 시스템으로 변환
+    // 전체화면 모드에서는 다르게 처리해야 함!
     pt.y = static_cast<LONG>(m_window.GetClientHeight()) - pt.y;	// y는 유니티 스크린 좌표 시스템과 동일하게 상하 반전
 
     UIObjectManager::GetInstance()->OnLButtonUp(pt);
+}
+
+void Runtime::OnRButtonDown(WPARAM wParam, LPARAM lParam)
+{
+    POINT pt;
+    pt.x = GET_X_LPARAM(lParam);
+    pt.y = GET_Y_LPARAM(lParam);
+
+    // 유니티 스크린 좌표 시스템으로 변환
+    // 전체화면 모드에서는 다르게 처리해야 함!
+    pt.y = static_cast<LONG>(m_window.GetClientHeight()) - pt.y;	// y는 유니티 스크린 좌표 시스템과 동일하게 상하 반전
+
+    UIObjectManager::GetInstance()->OnRButtonDown(pt);
+}
+
+void Runtime::OnRButtonUp(WPARAM wParam, LPARAM lParam)
+{
+    POINT pt;
+    pt.x = GET_X_LPARAM(lParam);
+    pt.y = GET_Y_LPARAM(lParam);
+
+    // 유니티 스크린 좌표 시스템으로 변환
+    // 전체화면 모드에서는 다르게 처리해야 함!
+    pt.y = static_cast<LONG>(m_window.GetClientHeight()) - pt.y;	// y는 유니티 스크린 좌표 시스템과 동일하게 상하 반전
+
+    UIObjectManager::GetInstance()->OnRButtonUp(pt);
+}
+
+void Runtime::OnMButtonDown(WPARAM wParam, LPARAM lParam)
+{
+    POINT pt;
+    pt.x = GET_X_LPARAM(lParam);
+    pt.y = GET_Y_LPARAM(lParam);
+
+    // 유니티 스크린 좌표 시스템으로 변환
+    // 전체화면 모드에서는 다르게 처리해야 함!
+    pt.y = static_cast<LONG>(m_window.GetClientHeight()) - pt.y;	// y는 유니티 스크린 좌표 시스템과 동일하게 상하 반전
+
+    UIObjectManager::GetInstance()->OnMButtonDown(pt);
+}
+
+void Runtime::OnMButtonUp(WPARAM wParam, LPARAM lParam)
+{
+    POINT pt;
+    pt.x = GET_X_LPARAM(lParam);
+    pt.y = GET_Y_LPARAM(lParam);
+
+    // 유니티 스크린 좌표 시스템으로 변환
+    // 전체화면 모드에서는 다르게 처리해야 함!
+    pt.y = static_cast<LONG>(m_window.GetClientHeight()) - pt.y;	// y는 유니티 스크린 좌표 시스템과 동일하게 상하 반전
+
+    UIObjectManager::GetInstance()->OnMButtonUp(pt);
 }
 
 void Runtime::OnEnterSizeMove(WPARAM wParam, LPARAM lParam)

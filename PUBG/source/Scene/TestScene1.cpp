@@ -30,13 +30,14 @@ void TestScene1::OnLoadScene()
 	{
 		UIObjectHandle hImage = CreateImage();
 		Image* pImage = static_cast<Image*>(hImage.ToPtr());
-		pImage->SetSize(XMFLOAT2(200, 100));
 		Texture2D tex = ResourceLoader::GetInstance()->LoadTexture(L"Resource\\test.png");
 		pImage->SetTexture(tex);
+		pImage->SetNativeSize(true);
 		pImage->m_transform.SetHorizontalAnchor(HORIZONTAL_ANCHOR::RIGHT);
 		pImage->m_transform.SetVerticalAnchor(VERTICAL_ANCHOR::TOP);
-		pImage->m_transform.m_position.x = -300;
-		pImage->m_transform.m_position.y = -100;
+		pImage->m_transform.m_position = pImage->GetHalfSize();
+		pImage->m_transform.m_position.x *= -1.0f;
+		pImage->m_transform.m_position.y *= -1.0f;
 	}
 
 	{

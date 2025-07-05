@@ -4,7 +4,7 @@ using namespace pubg;
 using namespace ze;
 
 constexpr float SENSITIVITY = 0.16f;
-constexpr float SPEED = 0.1f;
+constexpr float SPEED = 5.0f;
 constexpr float WALK_SPEED = SPEED * 0.25f;
 
 void FirstPersonCamera::Update()
@@ -13,6 +13,7 @@ void FirstPersonCamera::Update()
 	if (!pGameObject)
 		return;
 
+	const float dt = Time::GetInstance()->GetDeltaTime();
 	XMVECTOR localRotation = pGameObject->m_transform.GetLocalRotation();
 	XMVECTOR worldForwardAxis = XMVector3Rotate(Math::Vector3::FORWARD, localRotation);
 	XMVECTOR worldRightAxis = XMVector3Rotate(Math::Vector3::RIGHT, localRotation);
@@ -35,7 +36,7 @@ void FirstPersonCamera::Update()
 		pGameObject->m_transform.SetRotation(temp);
 	}
 
-	const float speed = Input::GetInstance()->GetKey(KEY_LSHIFT) ? WALK_SPEED : SPEED;
+	const float speed = dt * (Input::GetInstance()->GetKey(KEY_LSHIFT) ? WALK_SPEED : SPEED);
 
 	if (Input::GetInstance()->GetKey(KEY_W))
 		pGameObject->m_transform.Translate(worldForwardAxis * speed);

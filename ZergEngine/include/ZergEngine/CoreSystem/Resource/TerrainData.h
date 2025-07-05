@@ -13,24 +13,24 @@ namespace ze
 		~TerrainData() = default;
 
 		// Number of pixels
-		inline uint32_t GetHeightmapWidth() const { return m_heightmapWidth; }
-		inline uint32_t GetHeightmapHeight() const { return m_heightmapHeight; }
+		uint32_t GetHeightmapWidth() const { return m_heightmapWidth; }
+		uint32_t GetHeightmapHeight() const { return m_heightmapHeight; }
 
 		// How much to tile the terrain texture
-		inline void SetUVScale(float scale) { m_uvScale = scale; }
+		void SetUVScale(float scale) { m_uvScale = scale; }
 
 		// Length along X axis
-		inline float GetTerrainSizeAlongX() const { return static_cast<float>(GetHeightmapWidth() - 1) * m_heightmapScale.x; }
+		float GetTerrainSizeAlongX() const { return static_cast<float>(GetHeightmapWidth() - 1) * m_heightmapScale.x; }
 
 		// Length along Z axis
-		inline float GetTerrainSizeAlongZ() const { return static_cast<float>(GetHeightmapHeight() - 1) * m_heightmapScale.z; }
+		float GetTerrainSizeAlongZ() const { return static_cast<float>(GetHeightmapHeight() - 1) * m_heightmapScale.z; }
 
-		inline float GetTexelSpacingU() const { return 1.0f / static_cast<float>(GetHeightmapWidth() - 1); }
-		inline float GetTexelSpacingV() const { return 1.0f / static_cast<float>(GetHeightmapHeight() - 1); }
+		float GetTexelSpacingU() const { return 1.0f / static_cast<float>(GetHeightmapWidth() - 1); }
+		float GetTexelSpacingV() const { return 1.0f / static_cast<float>(GetHeightmapHeight() - 1); }
 
-		inline ID3D11Buffer* GetPatchControlPointBufferInterface() const { return m_cpPatchCtrlPtBuffer.Get(); }
-		inline ID3D11Buffer* GetPatchControlPointIndexBufferInterface() const { return m_cpPatchCtrlPtIndexBuffer.Get(); }
-		inline uint32_t GetPatchControlPointIndexCount() const { return m_patchCtrlPtIndexCount; }
+		ID3D11Buffer* GetPatchControlPointBufferInterface() const { return m_cpPatchCtrlPtBuffer.Get(); }
+		ID3D11Buffer* GetPatchControlPointIndexBufferInterface() const { return m_cpPatchCtrlPtIndexBuffer.Get(); }
+		uint32_t GetPatchControlPointIndexCount() const { return m_patchCtrlPtIndexCount; }
 
 		bool SetHeightData(const std::vector<float>& heightData);
 		bool SetHeightData(std::vector<float>&& heightData);

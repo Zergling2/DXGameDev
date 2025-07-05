@@ -14,7 +14,9 @@ UIObjectManager::UIObjectManager()
 	, m_activeGroup()
 	, m_inactiveGroup()
 	, m_handleTable(256, nullptr)
-	, m_pLPressedObject(nullptr)
+	, m_pObjectPressedByLButton(nullptr)
+	, m_pObjectPressedByRButton(nullptr)
+	, m_pObjectPressedByMButton(nullptr)
 {
 	m_lock.Init();
 }
@@ -288,8 +290,8 @@ void UIObjectManager::RemoveDestroyedUIObjects()
 		assert(pUIObject->IsPending() == false);	// 로딩 씬 소속의 오브젝트는 파괴될 수 없다.
 		assert(pUIObject->IsOnTheDestroyQueue() == true);	// 파괴 큐에 들어온 경우에는 이 ON_DESTROY_QUEUE 플래그가 켜져 있어야만 한다.
 
-		if (pUIObject == m_pLPressedObject)
-			m_pLPressedObject = nullptr;
+		if (pUIObject == m_pObjectPressedByLButton)
+			m_pObjectPressedByLButton = nullptr;
 
 		// Step 1. Transform 자식 부모 연결 제거
 		RectTransform* pTransform = &pUIObject->m_transform;
@@ -455,7 +457,7 @@ void UIObjectManager::OnLButtonDown(POINT pt)
 		if (pUIObject->HitTest(mousePosition))
 		{
 			pUIObject->OnLButtonDown();
-			m_pLPressedObject = pUIObject;
+			m_pObjectPressedByLButton = pUIObject;
 			break;
 		}
 	}
@@ -464,7 +466,7 @@ void UIObjectManager::OnLButtonDown(POINT pt)
 void UIObjectManager::OnLButtonUp(POINT pt)
 {
 	// 눌려있던 UI오브젝트가 없던 경우에는 어떤 처리도 해줄 필요가 없다.
-	if (m_pLPressedObject == nullptr)
+	if (m_pObjectPressedByLButton == nullptr)
 		return;
 
 	XMVECTOR mousePosition = XMVectorSet(static_cast<FLOAT>(pt.x), static_cast<FLOAT>(pt.y), 0.0f, 0.0f);
@@ -479,15 +481,92 @@ void UIObjectManager::OnLButtonUp(POINT pt)
 		}
 	}
 
-	if (m_pLPressedObject == pLBtnUpObject)
+	m_pObjectPressedByLButton->OnLButtonUp();
+
+	if (m_pObjectPressedByLButton == pLBtnUpObject)
+		m_pObjectPressedByLButton->OnLClick();
+
+	m_pObjectPressedByLButton = nullptr;
+}
+
+void UIObjectManager::OnRButtonDown(POINT pt)
+{
+	XMVECTOR mousePosition = XMVectorSet(static_cast<FLOAT>(pt.x), static_cast<FLOAT>(pt.y), 0.0f, 0.0f);
+
+	for (IUIObject* pUIObject : m_activeGroup)
 	{
-		m_pLPressedObject->OnLButtonUp();
-		m_pLPressedObject->OnClick();
+		if (pUIObject->HitTest(mousePosition))
+		{
+			pUIObject->OnRButtonDown();
+			m_pObjectPressedByRButton = pUIObject;
+			break;
+		}
 	}
-	else
+}
+
+void UIObjectManager::OnRButtonUp(POINT pt)
+{
+	// 눌려있던 UI오브젝트가 없던 경우에는 어떤 처리도 해줄 필요가 없다.
+	if (m_pObjectPressedByRButton == nullptr)
+		return;
+
+	XMVECTOR mousePosition = XMVectorSet(static_cast<FLOAT>(pt.x), static_cast<FLOAT>(pt.y), 0.0f, 0.0f);
+
+	IUIObject* pRBtnUpObject = nullptr;
+	for (IUIObject* pUIObject : m_activeGroup)
 	{
-		m_pLPressedObject->OnLButtonUp();
+		if (pUIObject->HitTest(mousePosition))
+		{
+			pRBtnUpObject = pUIObject;
+			break;
+		}
 	}
 
-	m_pLPressedObject = nullptr;
+	m_pObjectPressedByRButton->OnRButtonUp();
+
+	if (m_pObjectPressedByRButton == pRBtnUpObject)
+		m_pObjectPressedByRButton->OnRClick();
+
+	m_pObjectPressedByRButton = nullptr;
+}
+
+void UIObjectManager::OnMButtonDown(POINT pt)
+{
+	XMVECTOR mousePosition = XMVectorSet(static_cast<FLOAT>(pt.x), static_cast<FLOAT>(pt.y), 0.0f, 0.0f);
+
+	for (IUIObject* pUIObject : m_activeGroup)
+	{
+		if (pUIObject->HitTest(mousePosition))
+		{
+			pUIObject->OnMButtonDown();
+			m_pObjectPressedByMButton = pUIObject;
+			break;
+		}
+	}
+}
+
+void UIObjectManager::OnMButtonUp(POINT pt)
+{
+	// 눌려있던 UI오브젝트가 없던 경우에는 어떤 처리도 해줄 필요가 없다.
+	if (m_pObjectPressedByMButton == nullptr)
+		return;
+
+	XMVECTOR mousePosition = XMVectorSet(static_cast<FLOAT>(pt.x), static_cast<FLOAT>(pt.y), 0.0f, 0.0f);
+
+	IUIObject* pMBtnUpObject = nullptr;
+	for (IUIObject* pUIObject : m_activeGroup)
+	{
+		if (pUIObject->HitTest(mousePosition))
+		{
+			pMBtnUpObject = pUIObject;
+			break;
+		}
+	}
+
+	m_pObjectPressedByMButton->OnMButtonUp();
+
+	if (m_pObjectPressedByMButton == pMBtnUpObject)
+		m_pObjectPressedByMButton->OnMClick();
+
+	m_pObjectPressedByMButton = nullptr;
 }

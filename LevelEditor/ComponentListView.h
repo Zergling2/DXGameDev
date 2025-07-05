@@ -17,6 +17,8 @@ public:
 	virtual void Dump(CDumpContext& dc) const;
 #endif
 #endif
+	void InsertFront(LPCTSTR lpszItem, int nImage);
+	void InsertBack(LPCTSTR lpszItem, int nImage);
 protected:
 	DECLARE_MESSAGE_MAP()
 private:

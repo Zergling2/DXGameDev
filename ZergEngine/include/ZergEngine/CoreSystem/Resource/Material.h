@@ -5,12 +5,8 @@
 
 namespace ze
 {
-
-
 	class Material
 	{
-		friend class Graphics;
-		friend class Resource;
 	public:
 		Material()
 			: m_ambient(0.0f, 0.0f, 0.0f, 0.0f)

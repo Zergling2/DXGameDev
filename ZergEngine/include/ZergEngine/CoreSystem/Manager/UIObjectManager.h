@@ -86,7 +86,9 @@ namespace ze
 		std::vector<IUIObject*> m_activeGroup;		// 검색 시 전체 테이블을 순회할 필요 제거
 		std::vector<IUIObject*> m_inactiveGroup;	// 비활성화된 오브젝트들 (검색 대상에서 제외)
 		std::vector<IUIObject*> m_handleTable;
-		IUIObject* m_pLPressedObject;
+		IUIObject* m_pObjectPressedByLButton;
+		IUIObject* m_pObjectPressedByRButton;
+		IUIObject* m_pObjectPressedByMButton;
 	};
 
 	template<typename T>
