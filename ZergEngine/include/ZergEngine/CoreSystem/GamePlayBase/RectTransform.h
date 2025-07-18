@@ -61,7 +61,6 @@ namespace ze
 		// UIObjectHandle GetChild(uint32_t index);
 	private:
 		XMVECTOR XM_CALLCONV GetPreNDCPosition() const;
-		XMVECTOR XM_CALLCONV GetUnityScreenPosition() const;
 		XMVECTOR XM_CALLCONV GetWindowsScreenPosition() const;
 	private:
 		IUIObject* m_pUIObject;

@@ -11,6 +11,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PUBG", "PUBG\PUBG.vcxproj",
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LevelEditor", "LevelEditor\LevelEditor.vcxproj", "{5EEB34B2-A191-4017-BE95-F899C92DDAF0}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4D0A0089-5969-4528-93C6-755CED8F3550} = {4D0A0089-5969-4528-93C6-755CED8F3550}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

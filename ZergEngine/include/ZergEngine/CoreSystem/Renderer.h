@@ -7,7 +7,7 @@
 #include <ZergEngine\CoreSystem\Effect\BasicEffectPT.h>
 #include <ZergEngine\CoreSystem\Effect\BasicEffectPNT.h>
 #include <ZergEngine\CoreSystem\Effect\SkyboxEffect.h>
-#include <ZergEngine\CoreSystem\Effect\MSCameraMergeEffect.h>
+#include <ZergEngine\CoreSystem\Effect\DrawQuadWithMSTextureEffect.h>
 #include <ZergEngine\CoreSystem\Effect\ButtonEffect.h>
 #include <ZergEngine\CoreSystem\Effect\ImageEffect.h>
 
@@ -26,18 +26,15 @@ namespace ze
 		static Renderer* GetInstance() { return s_pInstance; }
 	private:
 		Renderer();
-		~Renderer();
+		virtual ~Renderer();
 
 		static void CreateInstance();
 		static void DestroyInstance();
 
-		void Init();
-		void UnInit();
+		virtual void Init();
+		virtual void UnInit();
 
-		void InitializeEffects();
-		void ReleaseEffects();
-
-		void RenderFrame();
+		virtual void RenderFrame();
 
 		void RenderVFPositionMesh(const MeshRenderer* pMeshRenderer);
 		void RenderVFPositionColorMesh(const MeshRenderer* pMeshRenderer);
@@ -72,7 +69,7 @@ namespace ze
 		BasicEffectPNT m_basicEffectPNT;
 		// TerrainEffect mTerrainEffect;
 		SkyboxEffect m_skyboxEffect;
-		MSCameraMergeEffect m_msCameraMergeEffect;
+		DrawQuadWithMSTextureEffect m_drawQuadWithMSTextureEffect;
 		ButtonEffect m_buttonEffect;
 		ImageEffect m_imageEffect;
 		std::vector<const IUIObject*> m_uiRenderQueue;

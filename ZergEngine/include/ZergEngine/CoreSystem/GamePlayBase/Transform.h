@@ -8,7 +8,6 @@ namespace ze
 	
 	class Transform
 	{
-		friend class Runtime;
 		friend class GameObjectManager;
 		friend class GameObject;
 	public:

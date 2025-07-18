@@ -69,7 +69,7 @@ void Input::Init(HINSTANCE hInstance, HWND hWnd)
 	if (FAILED(hr))
 		Debug::ForceCrashWithHRESULTErrorMessageBox(L"Input::Init() > m_cpDIKeyboard->SetDataFormat() failed.", hr);
 
-	hr = m_cpDIKeyboard->SetCooperativeLevel(hWnd, DISCL_FOREGROUND | DISCL_EXCLUSIVE);	// DISCL_EXCLUSIVE
+	hr = m_cpDIKeyboard->SetCooperativeLevel(hWnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);	// DISCL_NONEXCLUSIVE
 	if (FAILED(hr))
 		Debug::ForceCrashWithHRESULTErrorMessageBox(L"Input::Init() > m_cpDIKeyboard->SetCooperativeLevel() failed.", hr);
 

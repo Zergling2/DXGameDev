@@ -2,6 +2,8 @@
 
 #include "framework.h"
 
+class CLVItemMeshRenderer;
+
 // CMeshRendererInspectorFormView form view
 
 class CMeshRendererInspectorFormView : public CFormView
@@ -23,6 +25,10 @@ public:
 #endif
 #endif
 
+	void SetCLVItemToModify(CLVItemMeshRenderer* pItem) { m_pItem = pItem; }
+	CLVItemMeshRenderer* GetCLVItemToModify() const { return m_pItem; }
+private:
+	CLVItemMeshRenderer* m_pItem;
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 

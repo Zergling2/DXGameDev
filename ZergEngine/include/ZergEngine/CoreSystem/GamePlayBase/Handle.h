@@ -10,7 +10,7 @@ namespace ze
 	class IComponentManager;
 	class IUIObject;
 
-	constexpr uint64_t INVALID_ID = std::numeric_limits<uint64_t>::max();
+	constexpr uint64_t INVALID_ID = (std::numeric_limits<uint64_t>::max)();
 
 	class ToPtrHelper
 	{
@@ -20,7 +20,6 @@ namespace ze
 
 	class GameObjectHandle
 	{
-		friend class Runtime;
 		friend class GameObjectManager;
 		friend class GameObject;
 	public:

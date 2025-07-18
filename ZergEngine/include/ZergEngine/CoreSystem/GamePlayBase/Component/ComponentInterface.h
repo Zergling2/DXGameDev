@@ -37,14 +37,7 @@ namespace ze
 		friend class BasicEffectPNT;
 		friend class SkyboxEffect;
 	public:
-		IComponent(uint64_t id) noexcept
-			: m_pGameObject(nullptr)
-			, m_id(id)
-			, m_tableIndex(std::numeric_limits<uint32_t>::max())
-			, m_groupIndex(std::numeric_limits<uint32_t>::max())
-			, m_flag(COMPONENT_FLAG::ENABLED)	// 기본 상태는 enable 상태
-		{
-		}
+		IComponent(uint64_t id) noexcept;
 		virtual ~IComponent() = default;
 
 		virtual COMPONENT_TYPE GetType() const = 0;

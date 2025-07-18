@@ -13,8 +13,45 @@
 #define new DEBUG_NEW
 #endif
 
+// CAboutDlg dialog used for App About
+
+class CAboutDlg : public CDialogEx
+{
+public:
+	CAboutDlg() noexcept;
+
+	// Dialog Data
+#ifdef AFX_DESIGN_TIME
+	enum { IDD = IDD_ABOUTBOX };
+#endif
+
+protected:
+	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+
+	// Implementation
+protected:
+	DECLARE_MESSAGE_MAP()
+};
+
+CAboutDlg::CAboutDlg() noexcept : CDialogEx(IDD_ABOUTBOX)
+{
+}
+
+void CAboutDlg::DoDataExchange(CDataExchange* pDX)
+{
+	CDialogEx::DoDataExchange(pDX);
+}
+
+BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
+END_MESSAGE_MAP()
+
 
 // CLevelEditorApp
+
+// The one and only CLevelEditorApp object
+
+CLevelEditorApp theApp;
+
 
 BEGIN_MESSAGE_MAP(CLevelEditorApp, CWinApp)
 	ON_COMMAND(ID_APP_ABOUT, &CLevelEditorApp::OnAppAbout)
@@ -27,7 +64,7 @@ END_MESSAGE_MAP()
 // CLevelEditorApp construction
 
 CLevelEditorApp::CLevelEditorApp() noexcept
-	: m_pLevelEditorView(nullptr)
+	: m_hEditorCameraObject()
 {
 
 	// TODO: replace application ID string below with unique ID string; recommended
@@ -37,10 +74,6 @@ CLevelEditorApp::CLevelEditorApp() noexcept
 	// TODO: add construction code here,
 	// Place all significant initialization in InitInstance
 }
-
-// The one and only CLevelEditorApp object
-
-CLevelEditorApp theApp;
 
 
 // CLevelEditorApp initialization
@@ -110,43 +143,45 @@ BOOL CLevelEditorApp::InitInstance()
 	// The one and only window has been initialized, so show and update it
 	m_pMainWnd->ShowWindow(SW_SHOW);
 	m_pMainWnd->UpdateWindow();
+
+
+
+
+	ze::Runtime::CreateInstance();
+	CMainFrame* pMainFrame = static_cast<CMainFrame*>(AfxGetMainWnd());
+	ze::Runtime::GetInstance()->InitEditor(
+		AfxGetApp()->m_hInstance,
+		pMainFrame->m_hWnd,
+		pMainFrame->GetLevelEditorView()->m_hWnd,
+		800, 600
+	);
+	
+	// 메인 카메라용 게임오브젝트 생성
+	m_hEditorCameraObject = ze::Runtime::GetInstance()->CreateGameObject();
+	ze::GameObject* pEditorCameraObject = m_hEditorCameraObject.ToPtr();
+	ze::ComponentHandle<ze::Camera> hCamera = pEditorCameraObject->AddComponent<ze::Camera>();
+	ze::Camera* pCamera = hCamera.ToPtr();
+	pCamera->SetBackgroundColor(DirectX::Colors::ForestGreen);
+
+	ze::Texture2D skyboxCubeMap = ze::ResourceLoader::GetInstance()->LoadCubeMapTexture(L"Resource\\Skybox\\cloudy_puresky.dds");
+	ze::Environment::GetInstance()->SetSkyboxCubeMap(skyboxCubeMap);
+
 	return TRUE;
 }
 
-// CLevelEditorApp message handlers
-
-
-// CAboutDlg dialog used for App About
-
-class CAboutDlg : public CDialogEx
+int CLevelEditorApp::ExitInstance()
 {
-public:
-	CAboutDlg() noexcept;
+	// TODO: Add your specialized code here and/or call the base class
+	ze::Runtime::GetInstance()->DestroyAllObject();
+	ze::Runtime::GetInstance()->RemoveDestroyedComponentsAndObjects();
 
-// Dialog Data
-#ifdef AFX_DESIGN_TIME
-	enum { IDD = IDD_ABOUTBOX };
-#endif
+	ze::Runtime::GetInstance()->UnInit();
+	ze::Runtime::GetInstance()->DestroyInstance();
 
-protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
-// Implementation
-protected:
-	DECLARE_MESSAGE_MAP()
-};
 
-CAboutDlg::CAboutDlg() noexcept : CDialogEx(IDD_ABOUTBOX)
-{
+	return CWinApp::ExitInstance();
 }
-
-void CAboutDlg::DoDataExchange(CDataExchange* pDX)
-{
-	CDialogEx::DoDataExchange(pDX);
-}
-
-BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
-END_MESSAGE_MAP()
 
 // App command to run the dialog
 void CLevelEditorApp::OnAppAbout()
@@ -155,23 +190,17 @@ void CLevelEditorApp::OnAppAbout()
 	aboutDlg.DoModal();
 }
 
-// CLevelEditorApp message handlers
-
-
-
 BOOL CLevelEditorApp::OnIdle(LONG lCount)
 {
 	// TODO: Add your specialized code here and/or call the base class
-	do
-	{
-		if (!m_pMainWnd)
-			break;
+	if (!m_pMainWnd)
+		return TRUE;
 
-		if (m_pMainWnd->IsIconic())
-			break;
+	if (m_pMainWnd->IsIconic())
+		return TRUE;
 
-		m_pLevelEditorView->Render();
-	} while (false);
+	ze::Runtime::GetInstance()->OnIdle();
 
 	return TRUE;
 }
+

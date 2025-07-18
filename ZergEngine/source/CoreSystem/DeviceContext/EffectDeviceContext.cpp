@@ -27,11 +27,11 @@ void EffectDeviceContext::Apply(IEffect* pEffect) noexcept
 	assert(pEffect != nullptr);
 	assert(m_pDeviceContext != nullptr);
 
-	if (m_pCurrentEffect != pEffect)
-	{
-		m_pCurrentEffect->KickedOutOfDeviceContext();
-		m_pCurrentEffect = pEffect;
-	}
+	IEffect* pOldEffect = m_pCurrentEffect;
+	m_pCurrentEffect = pEffect;
+
+	if (pOldEffect != pEffect)
+		pOldEffect->KickedOutOfDeviceContext();
 
 	m_pCurrentEffect->ApplyImpl(m_pDeviceContext);
 }

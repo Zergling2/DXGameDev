@@ -47,7 +47,7 @@ void ComputePointLight(PointLightData pl, MaterialData mtl, float3 pos, float3 n
     
     oA = pl.ambient * mtl.ambient;
     
-    const float kd = max(dot(toLight, normal), 0.0f);
+    const float kd = dot(toLight, normal);
     
     [flatten]
     if (kd > 0.0f)
@@ -81,7 +81,7 @@ void ComputeSpotLight(SpotLightData sl, MaterialData mtl, float3 pos, float3 nor
     // Normalize
     toLight /= d;
     
-    const float kd = max(dot(toLight, normal), 0.0f);
+    const float kd = dot(toLight, normal);
     const float kspot = pow(max(dot(-toLight, sl.directionW), 0.0f), sl.spotExp);
     
     oA = kspot * sl.ambient * mtl.ambient;

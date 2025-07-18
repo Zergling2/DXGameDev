@@ -11,6 +11,15 @@
     <Filter Include="Files\TransformEdit">
       <UniqueIdentifier>{d0daf16a-765f-49c9-a294-1d4e70c1a1e7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Files\HTVItem">
+      <UniqueIdentifier>{ea522cb2-781e-4bcf-9663-bf2ca693b184}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Files\CLVItem">
+      <UniqueIdentifier>{11319133-4dff-46f2-aa9b-b8c6ea3457ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Files\CommandHandler">
+      <UniqueIdentifier>{e5d77495-7166-4837-8384-28750b9bf338}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BufferDC.h">
@@ -67,7 +76,39 @@
     <ClInclude Include="TerrainDataEditor.h">
       <Filter>Files</Filter>
     </ClInclude>
-    <ClInclude Include="MeshRendererInspectorFormView.h" />
+    <ClInclude Include="MeshRendererInspectorFormView.h">
+      <Filter>Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HTVItem\HTVItemInterface.h">
+      <Filter>Files\HTVItem</Filter>
+    </ClInclude>
+    <ClInclude Include="CLVItem\CLVItemInterface.h">
+      <Filter>Files\CLVItem</Filter>
+    </ClInclude>
+    <ClInclude Include="HTVItem\HTVItemGameObject.h">
+      <Filter>Files\HTVItem</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandHandler\CommandHandler.h">
+      <Filter>Files\CommandHandler</Filter>
+    </ClInclude>
+    <ClInclude Include="HTVItem\HTVItemRoot.h">
+      <Filter>Files\HTVItem</Filter>
+    </ClInclude>
+    <ClInclude Include="HTVItem\HTVItemEmpty.h">
+      <Filter>Files\HTVItem</Filter>
+    </ClInclude>
+    <ClInclude Include="CLVItem\CLVItemTransform.h">
+      <Filter>Files\CLVItem</Filter>
+    </ClInclude>
+    <ClInclude Include="EmptyInspectorFormView.h">
+      <Filter>Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CLVItem\CLVItemMeshRenderer.h">
+      <Filter>Files\CLVItem</Filter>
+    </ClInclude>
+    <ClInclude Include="CLVItem\CLVItemEmpty.h">
+      <Filter>Files\CLVItem</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BufferDC.cpp">
@@ -109,7 +150,39 @@
     <ClCompile Include="TerrainDataEditor.cpp">
       <Filter>Files</Filter>
     </ClCompile>
-    <ClCompile Include="MeshRendererInspectorFormView.cpp" />
+    <ClCompile Include="MeshRendererInspectorFormView.cpp">
+      <Filter>Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HTVItem\HTVItemInterface.cpp">
+      <Filter>Files\HTVItem</Filter>
+    </ClCompile>
+    <ClCompile Include="CLVItem\CLVItemInterface.cpp">
+      <Filter>Files\CLVItem</Filter>
+    </ClCompile>
+    <ClCompile Include="HTVItem\HTVItemGameObject.cpp">
+      <Filter>Files\HTVItem</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandHandler\CommandHandler.cpp">
+      <Filter>Files\CommandHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="HTVItem\HTVItemRoot.cpp">
+      <Filter>Files\HTVItem</Filter>
+    </ClCompile>
+    <ClCompile Include="HTVItem\HTVItemEmpty.cpp">
+      <Filter>Files\HTVItem</Filter>
+    </ClCompile>
+    <ClCompile Include="CLVItem\CLVItemTransform.cpp">
+      <Filter>Files\CLVItem</Filter>
+    </ClCompile>
+    <ClCompile Include="EmptyInspectorFormView.cpp">
+      <Filter>Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CLVItem\CLVItemMeshRenderer.cpp">
+      <Filter>Files\CLVItem</Filter>
+    </ClCompile>
+    <ClCompile Include="CLVItem\CLVItemEmpty.cpp">
+      <Filter>Files\CLVItem</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="LevelEditor.rc">

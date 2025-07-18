@@ -1,4 +1,4 @@
-#include <ZergEngine\CoreSystem\Effect\MSCameraMergeEffect.h>
+#include <ZergEngine\CoreSystem\Effect\DrawQuadWithMSTextureEffect.h>
 #include <ZergEngine\CoreSystem\GraphicDevice.h>
 #include <ZergEngine\CoreSystem\Math.h>
 
@@ -8,7 +8,7 @@ using namespace ze;
 // 1. VertexShader: VSTransformCameraMergeQuad
 // 2. PixelShader: PSColorPTFragmentSingleMSTexture
 
-void MSCameraMergeEffect::Init()
+void DrawQuadWithMSTextureEffect::Init()
 {
 	m_dirtyFlag = DIRTY_FLAG::ALL;
 
@@ -16,32 +16,32 @@ void MSCameraMergeEffect::Init()
 	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VERTEX_SHADER_TYPE::TRANSFORM_CAMERA_MERGE_QUAD);
 	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PIXEL_SHADER_TYPE::COLOR_PT_FRAGMENT_SINGLE_MSTEXTURE);
 
-	m_cbPerMSCameraMerge.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
+	m_cbPerDrawQuad.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
 
 	ClearTextureSRVArray();
 }
 
-void MSCameraMergeEffect::Release()
+void DrawQuadWithMSTextureEffect::Release()
 {
-	m_cbPerMSCameraMerge.Release();
+	m_cbPerDrawQuad.Release();
 }
 
-void MSCameraMergeEffect::SetMergeParameters(float width, float height, float topLeftX, float topLeftY) noexcept
+void DrawQuadWithMSTextureEffect::SetQuadParameters(float width, float height, float topLeftX, float topLeftY) noexcept
 {
-	m_cbPerMSCameraMergeCache.width = width;
-	m_cbPerMSCameraMergeCache.height = height;
-	m_cbPerMSCameraMergeCache.topLeftX = topLeftX;
-	m_cbPerMSCameraMergeCache.topLeftY = topLeftY;
+	m_cbPerDrawQuadCache.width = width;
+	m_cbPerDrawQuadCache.height = height;
+	m_cbPerDrawQuadCache.topLeftX = topLeftX;
+	m_cbPerDrawQuadCache.topLeftY = topLeftY;
 
-	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_MSCAMERA_MERGE;
+	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_DRAW_QUAD;
 }
 
-void MSCameraMergeEffect::SetMergeTexture(ID3D11ShaderResourceView* pMergeTextureSRV)
+void DrawQuadWithMSTextureEffect::SetTexture(ID3D11ShaderResourceView* pTextureSRV)
 {
-	m_pTextureSRVArray[0] = pMergeTextureSRV;
+	m_pTextureSRVArray[0] = pTextureSRV;
 }
 
-void MSCameraMergeEffect::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
+void DrawQuadWithMSTextureEffect::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
 {
 	DWORD index;
 
@@ -58,8 +58,8 @@ void MSCameraMergeEffect::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcep
 		case DIRTY_FLAG::SHADER:
 			ApplyShader(pDeviceContext);
 			break;
-		case DIRTY_FLAG::CONSTANTBUFFER_PER_MSCAMERA_MERGE:
-			ApplyPerMSCameraMergeConstantBuffer(pDeviceContext);
+		case DIRTY_FLAG::CONSTANTBUFFER_PER_DRAW_QUAD:
+			ApplyPerDrawQuadConstantBuffer(pDeviceContext);
 			break;
 		default:
 			assert(false);
@@ -79,14 +79,14 @@ void MSCameraMergeEffect::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcep
 	ClearTextureSRVArray();
 }
 
-void MSCameraMergeEffect::KickedOutOfDeviceContext() noexcept
+void DrawQuadWithMSTextureEffect::KickedOutOfDeviceContext() noexcept
 {
 	ClearTextureSRVArray();
 
 	m_dirtyFlag = DIRTY_FLAG::ALL;
 }
 
-void MSCameraMergeEffect::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
+void DrawQuadWithMSTextureEffect::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
 {
 	pDeviceContext->VSSetShader(m_pVertexShader, nullptr, 0);
 	pDeviceContext->HSSetShader(nullptr, nullptr, 0);
@@ -95,17 +95,17 @@ void MSCameraMergeEffect::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexc
 	pDeviceContext->PSSetShader(m_pPixelShader, nullptr, 0);
 }
 
-void MSCameraMergeEffect::ApplyPerMSCameraMergeConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
+void DrawQuadWithMSTextureEffect::ApplyPerDrawQuadConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	m_cbPerMSCameraMerge.Update(pDeviceContext, &m_cbPerMSCameraMergeCache);
-	ID3D11Buffer* const cbs[] = { m_cbPerMSCameraMerge.GetComInterface() };
+	m_cbPerDrawQuad.Update(pDeviceContext, &m_cbPerDrawQuadCache);
+	ID3D11Buffer* const cbs[] = { m_cbPerDrawQuad.GetComInterface() };
 
 	// PerFrame 상수버퍼 사용 셰이더
 	constexpr UINT startSlot = 0;
 	pDeviceContext->VSSetConstantBuffers(startSlot, 1, cbs);
 }
 
-void MSCameraMergeEffect::ClearTextureSRVArray()
+void DrawQuadWithMSTextureEffect::ClearTextureSRVArray()
 {
 	for (size_t i = 0; i < _countof(m_pTextureSRVArray); ++i)
 		m_pTextureSRVArray[i] = nullptr;

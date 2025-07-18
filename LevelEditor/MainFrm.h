@@ -5,6 +5,10 @@
 
 #include "framework.h"
 
+class CHierarchyTreeView;
+class CComponentListView;
+class CLevelEditorView;
+
 class CMainFrame : public CFrameWnd
 {
 	
@@ -16,11 +20,16 @@ protected: // create from serialization only
 protected:
 	bool m_splitterCreated;
 	CSplitterWnd m_wndSplitter[4];
-
 // Operations
 public:
 // Overrides
 public:
+	CHierarchyTreeView* GetHierarchyTreeView() const;
+	CComponentListView* GetComponentListView() const;
+	CLevelEditorView* GetLevelEditorView() const;
+	CFormView* GetComponentInspectorFormView() const;
+	CFormView* SwitchComponentInspectorFormView(CRuntimeClass* pRtClass);
+
 	virtual BOOL OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext);
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
 
@@ -34,7 +43,6 @@ public:
 protected:  // control bar embedded members
 	CToolBar          m_wndToolBar;
 	CStatusBar        m_wndStatusBar;
-
 // Generated message map functions
 protected:
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
@@ -44,4 +52,6 @@ public:
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg void On3DObjectTerrain();
 	afx_msg void OnGameObjectCreateEmpty();
+	afx_msg void OnGameObjectRename();
+	afx_msg void OnComponentMeshRenderer();
 };

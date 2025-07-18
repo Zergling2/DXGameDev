@@ -201,7 +201,7 @@ namespace ze
 		MaterialData terrainMtl[5];
 	};
 
-	hlslstruct CbPerCameraMerge
+	hlslstruct CbPerDrawQuad
 	{
 		FLOAT width;
 		FLOAT height;
@@ -239,6 +239,4 @@ namespace ze
 		XMFLOAT2 position;
 		uint32_t shadeIndex;	// [0] not pressed, [1] pressed
 	};
-
-	using CbPerMSCameraMerge = CbPerCameraMerge;
 }

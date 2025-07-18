@@ -9,7 +9,7 @@ IComponentManager::IComponentManager()
 	, m_lock()
 	, m_destroyed()
 	, m_directAccessGroup()
-	, m_handleTable(8192)
+	, m_handleTable(128)
 {
 	m_lock.Init();
 }

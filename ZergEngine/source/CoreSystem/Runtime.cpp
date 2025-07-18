@@ -34,15 +34,11 @@ constexpr DWORD TITLEBAR_WINDOW_STYLE = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU 
 Runtime* Runtime::s_pInstance = nullptr;
 
 Runtime::Runtime()
-    : m_hInstance(NULL)
+    : m_deltaPerformanceCount(0)
+    , m_isEditor(false)
+    , m_render(true)
     , m_nCmdShow(0)
     , m_window()
-    , m_deltaPerformanceCount(0)
-    , m_render(true)
-{
-}
-
-Runtime::~Runtime()
 {
 }
 
@@ -69,14 +65,13 @@ void Runtime::Init(HINSTANCE hInstance, int nCmdShow, uint32_t width, uint32_t h
     // Perform automatic leak checking at program exit through a call to _CrtDumpMemoryLeaks 
     // and generate an error report if the application failed to free all the memory it allocated.
 #endif
-
-    m_hInstance = hInstance;
+    m_isEditor = false;
     m_nCmdShow = nCmdShow;
 
     // 기타 초기화 작업...
     if (!XMVerifyCPUSupport())
     {
-        MessageBox(NULL, _T("DirectXMath Library does not supports a given platform."), _T("Unsupported platform"), MB_OK);
+        Debug::ForceCrashWithMessageBox(L"Unsupported platform", L"DirectXMath library does not supports a given platform.");
         return;
     }
 
@@ -106,7 +101,7 @@ void Runtime::Init(HINSTANCE hInstance, int nCmdShow, uint32_t width, uint32_t h
     MemoryAllocator::GetInstance()->Init();
     FileSystem::GetInstance()->Init();
     Time::GetInstance()->Init();
-    Input::GetInstance()->Init(this->GetInstanceHandle(), m_window.GetHandle());
+    Input::GetInstance()->Init(hInstance, m_window.GetHandle());
     GraphicDevice::GetInstance()->Init(m_window.GetHandle(), width, height, false);
     ResourceLoader::GetInstance()->Init();
     Renderer::GetInstance()->Init();
@@ -122,6 +117,66 @@ void Runtime::Init(HINSTANCE hInstance, int nCmdShow, uint32_t width, uint32_t h
     TerrainManager::GetInstance()->Init();
     MonoBehaviourManager::GetInstance()->Init();
     SceneManager::GetInstance()->Init(startScene);
+}
+
+void Runtime::InitEditor(HINSTANCE hInstance, HWND hMainFrameWnd, HWND hViewWnd, uint32_t width, uint32_t height)
+{
+    // Enable run-time memory check for debug builds.
+#if defined(DEBUG) || defined(_DEBUG)
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+    // Perform automatic leak checking at program exit through a call to _CrtDumpMemoryLeaks 
+    // and generate an error report if the application failed to free all the memory it allocated.
+#endif
+
+    m_isEditor = true;
+
+    // 기타 초기화 작업...
+    if (!XMVerifyCPUSupport())
+    {
+        Debug::ForceCrashWithMessageBox(L"Unsupported platform", L"DirectXMath library does not supports a given platform.");
+        return;
+    }
+
+    CoInitializeEx(NULL, COINIT_MULTITHREADED);
+    MemoryAllocator::CreateInstance();
+    FileSystem::CreateInstance();
+    Time::CreateInstance();
+    Input::CreateInstance();
+    GraphicDevice::CreateInstance();
+    ResourceLoader::CreateInstance();
+    Renderer::CreateInstance();
+    Environment::CreateInstance();
+    GameObjectManager::CreateInstance();
+    UIObjectManager::CreateInstance();
+    AudioSourceManager::CreateInstance();
+    CameraManager::CreateInstance();
+    DirectionalLightManager::CreateInstance();
+    PointLightManager::CreateInstance();
+    SpotLightManager::CreateInstance();
+    MeshRendererManager::CreateInstance();
+    TerrainManager::CreateInstance();
+    MonoBehaviourManager::CreateInstance();
+    SceneManager::CreateInstance();
+
+    MemoryAllocator::GetInstance()->Init();
+    FileSystem::GetInstance()->Init();
+    Time::GetInstance()->Init();
+    Input::GetInstance()->Init(hInstance, hMainFrameWnd);
+    GraphicDevice::GetInstance()->Init(hViewWnd, width, height, false);
+    ResourceLoader::GetInstance()->Init();
+    Renderer::GetInstance()->Init();
+    Environment::GetInstance()->Init();
+    GameObjectManager::GetInstance()->Init();
+    UIObjectManager::GetInstance()->Init();
+    AudioSourceManager::GetInstance()->Init();
+    CameraManager::GetInstance()->Init();
+    DirectionalLightManager::GetInstance()->Init();
+    PointLightManager::GetInstance()->Init();
+    SpotLightManager::GetInstance()->Init();
+    MeshRendererManager::GetInstance()->Init();
+    TerrainManager::GetInstance()->Init();
+    MonoBehaviourManager::GetInstance()->Init();
+    SceneManager::GetInstance()->Init(nullptr);
 }
 
 void Runtime::UnInit()
@@ -168,34 +223,14 @@ void Runtime::UnInit()
     MemoryAllocator::DestroyInstance();
     CoUninitialize();
 
-    m_hInstance = NULL;
-
     // 디버그
-#if defined(DEBUG) || defined(_DEBUG)
-    HMODULE hDXGIDebugDll = GetModuleHandleW(L"dxgidebug.dll");
-    if (hDXGIDebugDll != NULL)
-    {
-        decltype(&DXGIGetDebugInterface) DebugInterface =
-            reinterpret_cast<decltype(&DXGIGetDebugInterface)>(GetProcAddress(hDXGIDebugDll, "DXGIGetDebugInterface"));
-
-        ComPtr<IDXGIDebug> cpDXGIDebug;
-        DebugInterface(IID_PPV_ARGS(&cpDXGIDebug));
-
-        OutputDebugStringW(L"##### DXGI DEBUG INFO START #####\n");
-        cpDXGIDebug->ReportLiveObjects(DXGI_DEBUG_D3D11, DXGI_DEBUG_RLO_DETAIL);
-        OutputDebugStringW(L"##### DXGI DEBUG INFO END #####\n");
-    }
-    else
-    {
-        OutputDebugStringW(L"Failed to get dxgidebug.dll module handle.\n");
-    }
-#endif
+    this->OutputDXGIDebugLog();
 }
 
 void Runtime::Run()
 {
     ShowWindow(m_window.GetHandle(), m_nCmdShow);
-    // UpdateWindow(Runtime.GetMainWindowHandle());
+    // UpdateWindow(m_window.GetHandle());
 
     // update initial time value
     Time::GetInstance()->Update();
@@ -218,6 +253,7 @@ void Runtime::Run()
     }
 
     this->DestroyAllObject();
+    this->RemoveDestroyedComponentsAndObjects();
 }
 
 void Runtime::Exit()
@@ -265,8 +301,192 @@ void Runtime::OnIdle()
     // Sleep(3);
 }
 
+GameObjectHandle Runtime::CreateGameObject(PCWSTR name)
+{
+    return GameObjectManager::GetInstance()->CreateObject(name);
+}
+
+UIObjectHandle Runtime::CreatePanel(PCWSTR name)
+{
+    // Not deferred ui object.
+    return UIObjectManager::GetInstance()->CreateObject<Panel>(name);
+}
+
+UIObjectHandle Runtime::CreateImage(PCWSTR name)
+{
+    return UIObjectManager::GetInstance()->CreateObject<Image>(name);
+}
+
+UIObjectHandle Runtime::CreateButton(PCWSTR name)
+{
+    return UIObjectManager::GetInstance()->CreateObject<Button>(name);
+}
+
+void Runtime::OnSize(UINT nType, int cx, int cy)
+{
+    bool resize = false;
+
+    switch (nType)
+    {
+    case SIZE_RESTORED:
+        resize = true;
+        m_render = true;
+        break;
+    case SIZE_MINIMIZED:
+        m_render = false;
+        break;
+    case SIZE_MAXIMIZED:
+        m_render = true;
+        break;
+    case SIZE_MAXSHOW:  // 다른 창이 최대화 상태에서 이전 크기로 돌아간 경우
+        m_render = true;
+        break;
+    case SIZE_MAXHIDE:  // 다른 창이 최대화된 경우
+        m_render = false;
+        break;
+    default:
+        m_render = true;
+        break;
+    }
+
+    if (resize)
+    {
+        const uint32_t newWidth = static_cast<uint32_t>(cx);
+        const uint32_t newHeight = static_cast<uint32_t>(cy);
+
+        // SwapChain Resize 및 Depth/Stencil Buffer Resize
+        GraphicDevice::GetInstance()->ResizeBuffer(newWidth, newHeight);
+
+        // Camera Color Buffer & Depth/Stencil Buffer Resize & Projection Matrix Update
+        CameraManager::GetInstance()->ResizeBuffer(newWidth, newHeight);
+    }
+}
+
+void Runtime::OnChar(WPARAM wParam, LPARAM lParam)
+{
+    UIObjectManager::GetInstance()->OnChar(wParam, lParam);
+}
+
+void Runtime::OnMouseMove(UINT flags, POINT pt)
+{
+    Input::GetInstance()->SetMousePos(pt);
+}
+
+void Runtime::OnLButtonDown(UINT flags, POINT pt)
+{
+    UIObjectManager::GetInstance()->OnLButtonDown(pt);
+}
+
+void Runtime::OnLButtonUp(UINT flags, POINT pt)
+{
+    UIObjectManager::GetInstance()->OnLButtonUp(pt);
+}
+
+void Runtime::OnRButtonDown(UINT flags, POINT pt)
+{
+    UIObjectManager::GetInstance()->OnRButtonDown(pt);
+}
+
+void Runtime::OnRButtonUp(UINT flags, POINT pt)
+{
+    UIObjectManager::GetInstance()->OnRButtonUp(pt);
+}
+
+void Runtime::OnMButtonDown(UINT flags, POINT pt)
+{
+    UIObjectManager::GetInstance()->OnMButtonDown(pt);
+}
+
+void Runtime::OnMButtonUp(UINT flags, POINT pt)
+{
+    UIObjectManager::GetInstance()->OnMButtonUp(pt);
+}
+
+void Runtime::OnEnterSizeMove(WPARAM wParam, LPARAM lParam)
+{
+    m_render = false;
+}
+
+void Runtime::OnExitSizeMove(WPARAM wParam, LPARAM lParam)
+{
+    m_render = true;
+}
+
+void Runtime::DestroyAllObjectExceptDontDestroyOnLoad()
+{
+    // DontDestroyOnLoad 오브젝트를 제외하고 모두 파괴
+    for (GameObject* pGameObject : GameObjectManager::GetInstance()->m_activeGroup)
+        if (!pGameObject->IsDontDestroyOnLoad())
+            pGameObject->Destroy();
+    for (GameObject* pGameObject : GameObjectManager::GetInstance()->m_inactiveGroup)
+        if (!pGameObject->IsDontDestroyOnLoad())
+            pGameObject->Destroy();
+    for (IUIObject* pUIObject : UIObjectManager::GetInstance()->m_activeGroup)
+        if (!pUIObject->IsDontDestroyOnLoad())
+            pUIObject->Destroy();
+    for (IUIObject* pUIObject : UIObjectManager::GetInstance()->m_inactiveGroup)
+        if (!pUIObject->IsDontDestroyOnLoad())
+            pUIObject->Destroy();
+}
+
+void Runtime::DestroyAllObject()
+{
+    // DontDestroyOnLoad 오브젝트를 제외하고 모두 파괴
+    for (GameObject* pGameObject : GameObjectManager::GetInstance()->m_activeGroup)
+        pGameObject->Destroy();
+    for (GameObject* pGameObject : GameObjectManager::GetInstance()->m_inactiveGroup)
+        pGameObject->Destroy();
+    for (IUIObject* pUIObject : UIObjectManager::GetInstance()->m_activeGroup)
+        pUIObject->Destroy();
+    for (IUIObject* pUIObject : UIObjectManager::GetInstance()->m_inactiveGroup)
+        pUIObject->Destroy();
+}
+
+void Runtime::RemoveDestroyedComponentsAndObjects()
+{
+    // 컴포넌트 제거 작업
+    MonoBehaviourManager::GetInstance()->RemoveDestroyedComponents();
+    CameraManager::GetInstance()->RemoveDestroyedComponents();
+    DirectionalLightManager::GetInstance()->RemoveDestroyedComponents();
+    PointLightManager::GetInstance()->RemoveDestroyedComponents();
+    SpotLightManager::GetInstance()->RemoveDestroyedComponents();
+    MeshRendererManager::GetInstance()->RemoveDestroyedComponents();
+    TerrainManager::GetInstance()->RemoveDestroyedComponents();
+
+    UIObjectManager::GetInstance()->RemoveDestroyedUIObjects();
+    // 반드시 컴포넌트 제거 작업 이후 실행
+    GameObjectManager::GetInstance()->RemoveDestroyedGameObjects();
+}
+
+void Runtime::OutputDXGIDebugLog() const
+{
+    // 디버그
+#if defined(DEBUG) || defined(_DEBUG)
+    HMODULE hDXGIDebugDll = GetModuleHandleW(L"dxgidebug.dll");
+    if (hDXGIDebugDll != NULL)
+    {
+        decltype(&DXGIGetDebugInterface) DebugInterface =
+            reinterpret_cast<decltype(&DXGIGetDebugInterface)>(GetProcAddress(hDXGIDebugDll, "DXGIGetDebugInterface"));
+
+        ComPtr<IDXGIDebug> cpDXGIDebug;
+        DebugInterface(IID_PPV_ARGS(&cpDXGIDebug));
+
+        OutputDebugStringW(L"##### DXGI DEBUG INFO START #####\n");
+        cpDXGIDebug->ReportLiveObjects(DXGI_DEBUG_D3D11, DXGI_DEBUG_RLO_DETAIL);
+        OutputDebugStringW(L"##### DXGI DEBUG INFO END #####\n");
+    }
+    else
+    {
+        OutputDebugStringW(L"Failed to get dxgidebug.dll module handle.\n");
+    }
+#endif
+}
+
 bool Runtime::SetResolution(uint32_t width, uint32_t height, DISPLAY_MODE mode)
 {
+    if (m_isEditor)
+        return false;
+
     HMONITOR hMonitor;
     MONITORINFO mi;
     bool result;
@@ -298,30 +518,10 @@ bool Runtime::SetResolution(uint32_t width, uint32_t height, DISPLAY_MODE mode)
     return result;
 }
 
-GameObjectHandle Runtime::CreateGameObject(PCWSTR name)
-{
-    return GameObjectManager::GetInstance()->CreateObject(name);
-}
-
-UIObjectHandle Runtime::CreatePanel(PCWSTR name)
-{
-    // Not deferred ui object.
-    return UIObjectManager::GetInstance()->CreateObject<Panel>(name);
-}
-
-UIObjectHandle Runtime::CreateImage(PCWSTR name)
-{
-    return UIObjectManager::GetInstance()->CreateObject<Image>(name);
-}
-
-UIObjectHandle Runtime::CreateButton(PCWSTR name)
-{
-    return UIObjectManager::GetInstance()->CreateObject<Button>(name);
-}
-
 void Runtime::LoadNextScene(IScene* pNextScene)
 {
     this->DestroyAllObjectExceptDontDestroyOnLoad();
+    this->RemoveDestroyedComponentsAndObjects();
 
     // 지연된 게임오브젝트들 및 컴포넌트들을 관리 시작
     auto& pendingUIObjects = pNextScene->m_pendingUIObjects;
@@ -343,211 +543,4 @@ void Runtime::LoadNextScene(IScene* pNextScene)
 
     // 게임오브젝트, UI오브젝트와 컴포넌트들이 모두 전역 관리자에 등록된 이후에 Awake, OnEnable, Start큐잉 처리
     MonoBehaviourManager::GetInstance()->AwakeDeployedComponents();
-}
-
-void Runtime::DestroyAllObjectExceptDontDestroyOnLoad()
-{
-    // DontDestroyOnLoad 오브젝트를 제외하고 모두 파괴
-    for (GameObject* pGameObject : GameObjectManager::GetInstance()->m_activeGroup)
-        if (!pGameObject->IsDontDestroyOnLoad())
-            pGameObject->Destroy();
-    for (GameObject* pGameObject : GameObjectManager::GetInstance()->m_inactiveGroup)
-        if (!pGameObject->IsDontDestroyOnLoad())
-            pGameObject->Destroy();
-    for (IUIObject* pUIObject : UIObjectManager::GetInstance()->m_activeGroup)
-        if (!pUIObject->IsDontDestroyOnLoad())
-            pUIObject->Destroy();
-    for (IUIObject* pUIObject : UIObjectManager::GetInstance()->m_inactiveGroup)
-        if (!pUIObject->IsDontDestroyOnLoad())
-            pUIObject->Destroy();
-
-    this->RemoveDestroyedComponentsAndObjects();
-}
-
-void Runtime::DestroyAllObject()
-{
-    // DontDestroyOnLoad 오브젝트를 제외하고 모두 파괴
-    for (GameObject* pGameObject : GameObjectManager::GetInstance()->m_activeGroup)
-        pGameObject->Destroy();
-    for (GameObject* pGameObject : GameObjectManager::GetInstance()->m_inactiveGroup)
-        pGameObject->Destroy();
-    for (IUIObject* pUIObject : UIObjectManager::GetInstance()->m_activeGroup)
-        pUIObject->Destroy();
-    for (IUIObject* pUIObject : UIObjectManager::GetInstance()->m_inactiveGroup)
-        pUIObject->Destroy();
-
-    this->RemoveDestroyedComponentsAndObjects();
-}
-
-void Runtime::RemoveDestroyedComponentsAndObjects()
-{
-    // 컴포넌트 제거 작업
-    MonoBehaviourManager::GetInstance()->RemoveDestroyedComponents();
-    CameraManager::GetInstance()->RemoveDestroyedComponents();
-    DirectionalLightManager::GetInstance()->RemoveDestroyedComponents();
-    PointLightManager::GetInstance()->RemoveDestroyedComponents();
-    SpotLightManager::GetInstance()->RemoveDestroyedComponents();
-    MeshRendererManager::GetInstance()->RemoveDestroyedComponents();
-    TerrainManager::GetInstance()->RemoveDestroyedComponents();
-
-    UIObjectManager::GetInstance()->RemoveDestroyedUIObjects();
-    // 반드시 컴포넌트 제거 작업 이후 실행
-    GameObjectManager::GetInstance()->RemoveDestroyedGameObjects();
-}
-
-void Runtime::OnSize(WPARAM wParam, LPARAM lParam)
-{
-    bool resize = false;
-
-    switch (wParam)
-    {
-    case SIZE_RESTORED:
-        resize = true;
-        m_render = true;
-        break;
-    case SIZE_MINIMIZED:
-        m_render = false;
-        break;
-    case SIZE_MAXIMIZED:
-        m_render = true;
-        break;
-    case SIZE_MAXSHOW:  // 다른 창이 최대화 상태에서 이전 크기로 돌아간 경우
-        m_render = true;
-        break;
-    case SIZE_MAXHIDE:  // 다른 창이 최대화된 경우
-        m_render = false;
-        break;
-    default:
-        m_render = true;
-        break;
-    }
-
-    if (resize)
-    {
-        const uint32_t newWidth = static_cast<uint32_t>(GET_X_LPARAM(lParam));
-        const uint32_t newHeight = static_cast<uint32_t>(GET_Y_LPARAM(lParam));
-
-        // SwapChain Resize 및 Depth/Stencil Buffer Resize
-        GraphicDevice::GetInstance()->ResizeBuffer(newWidth, newHeight);
-
-        // Camera Color Buffer & Depth/Stencil Buffer Resize & Projection Matrix Update
-        CameraManager::GetInstance()->ResizeBuffer(newWidth, newHeight);
-    }
-}
-
-void Runtime::OnShowWindow(WPARAM wParam, LPARAM lParam)
-{
-    if (wParam == FALSE)
-        m_render = false;
-    else
-        m_render = true;
-}
-
-void Runtime::OnChar(WPARAM wParam, LPARAM lParam)
-{
-    UIObjectManager::GetInstance()->OnChar(wParam, lParam);
-}
-
-void Runtime::OnMouseMove(WPARAM wParam, LPARAM lParam)
-{
-    POINT pt;
-    pt.x = GET_X_LPARAM(lParam);
-    pt.y = GET_Y_LPARAM(lParam);
-
-    assert(m_window.GetHandle() != NULL);
-    ScreenToClient(m_window.GetHandle(), &pt);
-
-    // Y가 위쪽 방향으로 증가하는 좌표 시스템으로 변환
-    // 전체화면 모드에서는 다르게 구현해야 함!
-    pt.y = static_cast<LONG>(m_window.GetClientHeight()) - pt.y;
-
-    Input::GetInstance()->SetMousePos(pt);
-}
-
-void Runtime::OnLButtonDown(WPARAM wParam, LPARAM lParam)
-{
-    POINT pt;
-    pt.x = GET_X_LPARAM(lParam);
-    pt.y = GET_Y_LPARAM(lParam);
-
-    // 유니티 스크린 좌표 시스템으로 변환
-    // 전체화면 모드에서는 다르게 처리해야 함!
-    pt.y = static_cast<LONG>(m_window.GetClientHeight()) - pt.y;	// y는 유니티 스크린 좌표 시스템과 동일하게 상하 반전
-
-    UIObjectManager::GetInstance()->OnLButtonDown(pt);
-}
-
-void Runtime::OnLButtonUp(WPARAM wParam, LPARAM lParam)
-{
-    POINT pt;
-    pt.x = GET_X_LPARAM(lParam);
-    pt.y = GET_Y_LPARAM(lParam);
-
-    // 유니티 스크린 좌표 시스템으로 변환
-    // 전체화면 모드에서는 다르게 처리해야 함!
-    pt.y = static_cast<LONG>(m_window.GetClientHeight()) - pt.y;	// y는 유니티 스크린 좌표 시스템과 동일하게 상하 반전
-
-    UIObjectManager::GetInstance()->OnLButtonUp(pt);
-}
-
-void Runtime::OnRButtonDown(WPARAM wParam, LPARAM lParam)
-{
-    POINT pt;
-    pt.x = GET_X_LPARAM(lParam);
-    pt.y = GET_Y_LPARAM(lParam);
-
-    // 유니티 스크린 좌표 시스템으로 변환
-    // 전체화면 모드에서는 다르게 처리해야 함!
-    pt.y = static_cast<LONG>(m_window.GetClientHeight()) - pt.y;	// y는 유니티 스크린 좌표 시스템과 동일하게 상하 반전
-
-    UIObjectManager::GetInstance()->OnRButtonDown(pt);
-}
-
-void Runtime::OnRButtonUp(WPARAM wParam, LPARAM lParam)
-{
-    POINT pt;
-    pt.x = GET_X_LPARAM(lParam);
-    pt.y = GET_Y_LPARAM(lParam);
-
-    // 유니티 스크린 좌표 시스템으로 변환
-    // 전체화면 모드에서는 다르게 처리해야 함!
-    pt.y = static_cast<LONG>(m_window.GetClientHeight()) - pt.y;	// y는 유니티 스크린 좌표 시스템과 동일하게 상하 반전
-
-    UIObjectManager::GetInstance()->OnRButtonUp(pt);
-}
-
-void Runtime::OnMButtonDown(WPARAM wParam, LPARAM lParam)
-{
-    POINT pt;
-    pt.x = GET_X_LPARAM(lParam);
-    pt.y = GET_Y_LPARAM(lParam);
-
-    // 유니티 스크린 좌표 시스템으로 변환
-    // 전체화면 모드에서는 다르게 처리해야 함!
-    pt.y = static_cast<LONG>(m_window.GetClientHeight()) - pt.y;	// y는 유니티 스크린 좌표 시스템과 동일하게 상하 반전
-
-    UIObjectManager::GetInstance()->OnMButtonDown(pt);
-}
-
-void Runtime::OnMButtonUp(WPARAM wParam, LPARAM lParam)
-{
-    POINT pt;
-    pt.x = GET_X_LPARAM(lParam);
-    pt.y = GET_Y_LPARAM(lParam);
-
-    // 유니티 스크린 좌표 시스템으로 변환
-    // 전체화면 모드에서는 다르게 처리해야 함!
-    pt.y = static_cast<LONG>(m_window.GetClientHeight()) - pt.y;	// y는 유니티 스크린 좌표 시스템과 동일하게 상하 반전
-
-    UIObjectManager::GetInstance()->OnMButtonUp(pt);
-}
-
-void Runtime::OnEnterSizeMove(WPARAM wParam, LPARAM lParam)
-{
-    m_render = false;
-}
-
-void Runtime::OnExitSizeMove(WPARAM wParam, LPARAM lParam)
-{
-    m_render = true;
 }

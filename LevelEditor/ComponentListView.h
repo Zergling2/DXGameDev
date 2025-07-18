@@ -17,14 +17,13 @@ public:
 	virtual void Dump(CDumpContext& dc) const;
 #endif
 #endif
-	void InsertFront(LPCTSTR lpszItem, int nImage);
-	void InsertBack(LPCTSTR lpszItem, int nImage);
 protected:
 	DECLARE_MESSAGE_MAP()
 private:
 	bool m_initialized;
 public:
+	void ClearListCtrl();
 	virtual void OnInitialUpdate();
+	afx_msg void OnDestroy();
+	afx_msg void OnNMClick(NMHDR* pNMHDR, LRESULT* pResult);
 };
-
-

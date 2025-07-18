@@ -12,16 +12,16 @@ namespace ze
 
 		virtual void OnCreate(WPARAM wParam, LPARAM lParam) {}
 		virtual void OnDestroy(WPARAM wParam, LPARAM lParam) {}
-		virtual void OnSize(WPARAM wParam, LPARAM lParam) {}
+		virtual void OnSize(UINT nType, int cx, int cy) {}
 		virtual void OnShowWindow(WPARAM wParam, LPARAM lParam) {}
 		virtual void OnChar(WPARAM wParam, LPARAM lParam) {}
-		virtual void OnMouseMove(WPARAM wParam, LPARAM lParam) {}
-		virtual void OnLButtonDown(WPARAM wParam, LPARAM lParam) {}
-		virtual void OnLButtonUp(WPARAM wParam, LPARAM lParam) {}
-		virtual void OnRButtonDown(WPARAM wParam, LPARAM lParam) {}
-		virtual void OnRButtonUp(WPARAM wParam, LPARAM lParam) {}
-		virtual void OnMButtonDown(WPARAM wParam, LPARAM lParam) {}
-		virtual void OnMButtonUp(WPARAM wParam, LPARAM lParam) {}
+		virtual void OnMouseMove(UINT flags, POINT pt) {}
+		virtual void OnLButtonDown(UINT flags, POINT pt) {}
+		virtual void OnLButtonUp(UINT flags, POINT pt) {}
+		virtual void OnRButtonDown(UINT flags, POINT pt) {}
+		virtual void OnRButtonUp(UINT flags, POINT pt) {}
+		virtual void OnMButtonDown(UINT flags, POINT pt) {}
+		virtual void OnMButtonUp(UINT flags, POINT pt) {}
 		virtual void OnEnterSizeMove(WPARAM wParam, LPARAM lParam) {}
 		virtual void OnExitSizeMove(WPARAM wParam, LPARAM lParam) {}
 	};

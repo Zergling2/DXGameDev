@@ -25,7 +25,7 @@ bool XM_CALLCONV ISizeUIObject::HitTest(FXMVECTOR mousePosition) const
 	// 스케일링이 일어나는 전체화면 모드에서는 아직 제대로 동작 X
 
 	// 마우스 포인터를 UI의 로컬 스페이스 공간으로 이동시킨 뒤 인바운드 검사를 한다
-	XMVECTOR mousePosInButtonLocalSpace = XMVectorSubtract(mousePosition, m_transform.GetUnityScreenPosition());
+	XMVECTOR mousePosInButtonLocalSpace = XMVectorSubtract(mousePosition, m_transform.GetWindowsScreenPosition());
 
 	XMVECTOR bound = XMLoadFloat2(&m_halfSize);
 

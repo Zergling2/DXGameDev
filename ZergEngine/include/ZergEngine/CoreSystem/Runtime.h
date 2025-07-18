@@ -12,13 +12,14 @@ namespace ze
 	{
 	public:
 		Runtime();
-		virtual ~Runtime();
+		virtual ~Runtime() = default;
 
 		static void CreateInstance();
 		static void DestroyInstance();
 		static Runtime* GetInstance() { return s_pInstance; }
 
 		void Init(HINSTANCE hInstance, int nCmdShow, uint32_t width, uint32_t height, PCWSTR title, PCWSTR startScene);
+		void InitEditor(HINSTANCE hInstance, HWND hMainFrameWnd, HWND hViewWnd, uint32_t width, uint32_t height);
 		void UnInit();
 
 		void Run();
@@ -48,37 +49,36 @@ namespace ze
 		GameObjectHandle Instantiate(const GameObjectHandle source);
 		// GameObjectHandle Instantiate(const GameObjectHandle source, GameObjectHandle parent);
 
-		HINSTANCE GetInstanceHandle() const { return m_hInstance; }
-	private:
-		void LoadNextScene(IScene* pNextScene);
-		void DestroyAllObjectExceptDontDestroyOnLoad();
-		void DestroyAllObject();
-		void RemoveDestroyedComponentsAndObjects();
-
 		// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
 		// Window Message Handler
 		// virtual void OnCreate(WPARAM wParam, LPARAM lParam) override;
 		// virtual void OnDestroy(WPARAM wParam, LPARAM lParam) override;
-		virtual void OnSize(WPARAM wParam, LPARAM lParam) override;
-		virtual void OnShowWindow(WPARAM wParam, LPARAM lParam) override;
+		virtual void OnSize(UINT nType, int cx, int cy) override;
 		virtual void OnChar(WPARAM wParam, LPARAM lParam) override;
-		virtual void OnMouseMove(WPARAM wParam, LPARAM lParam) override;
-		virtual void OnLButtonDown(WPARAM wParam, LPARAM lParam) override;
-		virtual void OnLButtonUp(WPARAM wParam, LPARAM lParam) override;
-		virtual void OnRButtonDown(WPARAM wParam, LPARAM lParam) override;
-		virtual void OnRButtonUp(WPARAM wParam, LPARAM lParam) override;
-		virtual void OnMButtonDown(WPARAM wParam, LPARAM lParam) override;
-		virtual void OnMButtonUp(WPARAM wParam, LPARAM lParam) override;
+		virtual void OnMouseMove(UINT flags, POINT pt) override;
+		virtual void OnLButtonDown(UINT flags, POINT pt) override;
+		virtual void OnLButtonUp(UINT flags, POINT pt) override;
+		virtual void OnRButtonDown(UINT flags, POINT pt) override;
+		virtual void OnRButtonUp(UINT flags, POINT pt) override;
+		virtual void OnMButtonDown(UINT flags, POINT pt) override;
+		virtual void OnMButtonUp(UINT flags, POINT pt) override;
 		virtual void OnEnterSizeMove(WPARAM wParam, LPARAM lParam) override;
 		virtual void OnExitSizeMove(WPARAM wParam, LPARAM lParam) override;
 		// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
+
+		void DestroyAllObjectExceptDontDestroyOnLoad();
+		void DestroyAllObject();
+		void RemoveDestroyedComponentsAndObjects();
 	protected:
-		static Runtime* s_pInstance;
+		void OutputDXGIDebugLog() const;
 	private:
-		HINSTANCE m_hInstance;
+		void LoadNextScene(IScene* pNextScene);
+	private:
+		static Runtime* s_pInstance;
+		LONGLONG m_deltaPerformanceCount;
+		bool m_isEditor;
+		bool m_render;
 		int m_nCmdShow;
 		Window m_window;
-		LONGLONG m_deltaPerformanceCount;
-		bool m_render;
 	};
 }

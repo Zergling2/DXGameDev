@@ -40,19 +40,44 @@ void TestScene1::OnLoadScene()
 		pImage->m_transform.m_position.y *= -1.0f;
 	}
 
+
 	{
-		UIObjectHandle hButtonA = CreateButton();
-		Button* pButtonA = static_cast<Button*>(hButtonA.ToPtr());
-		pButtonA->SetSize(XMFLOAT2(80, 40));
-		pButtonA->SetColor(XMVectorSet(0.75f, 0.25f, 0.25f, 0.5f));
-		pButtonA->m_transform.SetHorizontalAnchor(HORIZONTAL_ANCHOR::RIGHT);
-		pButtonA->m_transform.SetVerticalAnchor(VERTICAL_ANCHOR::BOTTOM);
-		pButtonA->m_transform.m_position.x = -110.0f;
-		pButtonA->m_transform.m_position.y = +30.0f;
-		pButtonA->SetText(L"V3");
-		pButtonA->SetTextColor(XMFLOAT4(0.0f, 1.0f, 0.0f, 0.5f));
+		UIObjectHandle hButton = CreateButton();
+		Button* pButton = static_cast<Button*>(hButton.ToPtr());
+		pButton->SetSize(XMFLOAT2(80, 40));
+		pButton->SetColor(XMVectorSet(0.25f, 0.25f, 0.75f, 0.5f));
+		pButton->m_transform.SetHorizontalAnchor(HORIZONTAL_ANCHOR::LEFT);
+		pButton->m_transform.SetVerticalAnchor(VERTICAL_ANCHOR::BOTTOM);
+		pButton->m_transform.m_position.x = +90.0f;
+		pButton->m_transform.m_position.y = +30.0f;
+		pButton->SetText(L"Blue 버튼");
+		pButton->SetTextColor(XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
 	}
-	
+	{
+		UIObjectHandle hButton = CreateButton();
+		Button* pButton = static_cast<Button*>(hButton.ToPtr());
+		pButton->SetSize(XMFLOAT2(80, 40));
+		pButton->SetColor(XMVectorSet(0.25f, 0.75f, 0.25f, 0.5f));
+		pButton->m_transform.SetHorizontalAnchor(HORIZONTAL_ANCHOR::RIGHT);
+		pButton->m_transform.SetVerticalAnchor(VERTICAL_ANCHOR::BOTTOM);
+		pButton->m_transform.m_position.x = -200.0f;
+		pButton->m_transform.m_position.y = +30.0f;
+		pButton->SetText(L"Green 버튼");
+		pButton->SetTextColor(XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f));
+	}
+	{
+		UIObjectHandle hButton = CreateButton();
+		Button* pButton = static_cast<Button*>(hButton.ToPtr());
+		pButton->SetSize(XMFLOAT2(80, 40));
+		pButton->SetColor(XMVectorSet(0.75f, 0.25f, 0.25f, 0.5f));
+		pButton->m_transform.SetHorizontalAnchor(HORIZONTAL_ANCHOR::RIGHT);
+		pButton->m_transform.SetVerticalAnchor(VERTICAL_ANCHOR::TOP);
+		pButton->m_transform.m_position.x = -110.0f;
+		pButton->m_transform.m_position.y = -230.0f;
+		pButton->SetText(L"Red 버튼");
+		pButton->SetTextColor(XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f));
+	}
+
 
 	{
 		GameObjectHandle hSceneChanger = CreateGameObject(L"Scene Changer");

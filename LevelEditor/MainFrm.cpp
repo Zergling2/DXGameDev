@@ -4,11 +4,12 @@
 #include "MainFrm.h"
 #include "LevelEditorView.h"
 #include "ComponentListView.h"
+#include "EmptyInspectorFormView.h"
 #include "TransformInspectorFormView.h"
 #include "MeshRendererInspectorFormView.h"
 #include "HierarchyTreeView.h"
 #include "LogListView.h"
-#include "TerrainGenerationDialog.h"
+#include "CommandHandler\CommandHandler.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -24,6 +25,8 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_WM_SIZE()
 	ON_COMMAND(ID_3DOBJECT_TERRAIN, &CMainFrame::On3DObjectTerrain)
 	ON_COMMAND(ID_GAMEOBJECT_CREATEEMPTY, &CMainFrame::OnGameObjectCreateEmpty)
+	ON_COMMAND(ID_GAMEOBJECT_RENAME, &CMainFrame::OnGameObjectRename)
+	ON_COMMAND(ID_COMPONENT_MESHRENDERER, &CMainFrame::OnComponentMeshRenderer)
 END_MESSAGE_MAP()
 
 static UINT indicators[] =
@@ -79,8 +82,74 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	return 0;
 }
 
-BOOL CMainFrame::OnCreateClient(LPCREATESTRUCT /*lpcs*/,
-	CCreateContext* pContext)
+CHierarchyTreeView* CMainFrame::GetHierarchyTreeView() const
+{
+	if (!m_splitterCreated)
+		return nullptr;
+
+	return static_cast<CHierarchyTreeView*>(m_wndSplitter[2].GetPane(0, 0));
+}
+
+CComponentListView* CMainFrame::GetComponentListView() const
+{
+	if (!m_splitterCreated)
+		return nullptr;
+
+	return static_cast<CComponentListView*>(m_wndSplitter[3].GetPane(0, 0));
+}
+
+CLevelEditorView* CMainFrame::GetLevelEditorView() const
+{
+	if (!m_splitterCreated)
+		return nullptr;
+
+	return static_cast<CLevelEditorView*>(m_wndSplitter[2].GetPane(0, 1));
+}
+
+CFormView* CMainFrame::GetComponentInspectorFormView() const
+{
+	if (!m_splitterCreated)
+		return nullptr;
+
+	return static_cast<CFormView*>(m_wndSplitter[3].GetPane(1, 0));
+}
+
+CFormView* CMainFrame::SwitchComponentInspectorFormView(CRuntimeClass* pRtClass)
+{
+	CCreateContext context;
+	CView* pOldView = static_cast<CView*>(m_wndSplitter[3].GetPane(1, 0));
+	
+	if (!pOldView)
+		return nullptr;
+
+	if (pOldView->IsKindOf(pRtClass))
+		return static_cast<CFormView*>(pOldView);
+
+	// CCreateContext 세팅
+	context.m_pCurrentDoc = pOldView->GetDocument();	// pOldView가 파괴되기 전에 도큐먼트 포인터 값 얻어오기
+	context.m_pNewViewClass = pRtClass;
+	context.m_pNewDocTemplate = NULL;
+	context.m_pLastView = NULL;
+	context.m_pCurrentFrame = this;
+
+	// 기존 뷰 제거
+	pOldView->DestroyWindow();
+	
+	// 새 뷰 생성
+	if (!m_wndSplitter[3].CreateView(1, 0, pRtClass, CSize(0, 0), &context))
+		return nullptr;
+	
+	// 새 뷰 활성화
+	CView* pNewView = static_cast<CView*>(m_wndSplitter[3].GetPane(1, 0));
+	
+	pNewView->SendMessage(WM_INITIALUPDATE);
+
+	m_wndSplitter[3].RecalcLayout();
+	
+	return static_cast<CFormView*>(pNewView);
+}
+
+BOOL CMainFrame::OnCreateClient(LPCREATESTRUCT /*lpcs*/, CCreateContext* pContext)
 {
 	BOOL result = TRUE;
 
@@ -122,7 +191,7 @@ BOOL CMainFrame::OnCreateClient(LPCREATESTRUCT /*lpcs*/,
 		if (!result)
 			break;
 
-		// 6. DirectXRenderingView 생성
+		// 6. DirectX 렌더링 뷰 생성
 		result = m_wndSplitter[2].CreateView(0, 1,
 			RUNTIME_CLASS(CLevelEditorView),
 			CSize(0, 0),
@@ -149,14 +218,16 @@ BOOL CMainFrame::OnCreateClient(LPCREATESTRUCT /*lpcs*/,
 		if (!result)
 			break;
 
-		// 9. ComponentInspectorFormView 생성
+		// 9. 컴포넌트 인스펙터 폼 뷰들 생성
 		result = m_wndSplitter[3].CreateView(1, 0,
-			RUNTIME_CLASS(CTransformInspectorFormView),
+			RUNTIME_CLASS(CEmptyInspectorFormView),
 			CSize(0, 0),
 			pContext
 		);
 		if (!result)
 			break;
+
+
 
 		m_splitterCreated = true;
 
@@ -245,13 +316,23 @@ void CMainFrame::OnSize(UINT nType, int cx, int cy)
 void CMainFrame::On3DObjectTerrain()
 {
 	// TODO: Add your command handler code here
-	CTerrainGenerationDialog dlg;
-	dlg.DoModal();
+	::On3DObjectTerrain();
 }
 
 void CMainFrame::OnGameObjectCreateEmpty()
 {
 	// TODO: Add your command handler code here
+	::OnGameObjectCreateEmpty();
+}
 
-	
+void CMainFrame::OnGameObjectRename()
+{
+	// TODO: Add your command handler code here
+	::OnGameObjectRename();
+}
+
+void CMainFrame::OnComponentMeshRenderer()
+{
+	// TODO: Add your command handler code here
+	::OnComponentMeshRenderer();
 }

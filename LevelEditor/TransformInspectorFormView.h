@@ -3,6 +3,8 @@
 #include "framework.h"
 #include "TransformEdit\TransformEdit.h"
 
+class CLVItemTransform;
+
 // CTransformInspectorFormView form view
 
 class CTransformInspectorFormView : public CFormView
@@ -24,10 +26,14 @@ public:
 #endif
 #endif
 
+	void SetCLVItemToModify(CLVItemTransform* pItem) { m_pItem = pItem; }
+	CLVItemTransform* GetCLVItemToModify() const { return m_pItem; }
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
 	DECLARE_MESSAGE_MAP()
+private:
+	CLVItemTransform* m_pItem;
 public:
 	CTransformEdit m_positionX;
 	CTransformEdit m_positionY;

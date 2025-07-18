@@ -73,8 +73,7 @@ void TestScene2::OnLoadScene()
 		pPointLightComponent->m_ambient = XMFLOAT4A(0.0f, 0.0f, 0.0f, 1.0f);
 		pPointLightComponent->m_diffuse = XMFLOAT4A(0.0f, 1.0f, 0.0f, 1.0f);
 		pPointLightComponent->m_specular = XMFLOAT4A(0.0f, 1.0f, 0.0f, 1.0f);
-		pPointLightComponent->SetAtt(XMFLOAT3(0.0f, 5.0f, 0.0f));
-		pPointLightComponent->SetRange(10.0f);
+		pPointLightComponent->SetRange(3.0f);
 	}
 
 

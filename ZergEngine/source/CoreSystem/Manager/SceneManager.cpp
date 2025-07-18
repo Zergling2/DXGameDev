@@ -36,12 +36,7 @@ void SceneManager::DestroyInstance()
 
 void SceneManager::Init(PCWSTR startScene)
 {
-	m_pNextScene = this->CreateScene(startScene);
-
-	if (m_pNextScene == nullptr)
-		Debug::ForceCrashWithMessageBox(L"Error", L"Can't find the start scene.");
-
-	m_pNextScene->OnLoadScene();
+	this->LoadScene(startScene);
 }
 
 void SceneManager::UnInit()
@@ -56,7 +51,7 @@ bool SceneManager::LoadScene(PCWSTR sceneName)
 
 	do
 	{
-		if (sceneName == nullptr || sceneName[0] == L'\0')
+		if (sceneName == nullptr)
 			break;
 
 		if (m_pNextScene != nullptr)		// 이미 대기중인 씬이 있는 경우
@@ -80,7 +75,7 @@ IScene* SceneManager::CreateScene(PCWSTR sceneName)
 
 	SceneFactory sf = SceneTable::GetItem(sceneName);
 	if (sf == nullptr)
-		wprintf(L"'%s' scene name does not exist!\n", sceneName);
+		Debug::ForceCrashWithMessageBox(L"Error", L"The scene name '%s' does not exist!");
 	else
 		pNewScene = sf();
 

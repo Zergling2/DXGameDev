@@ -26,7 +26,6 @@ namespace ze
 	*/
 	class IUIObject
 	{
-		friend class Runtime;
 		friend class UIObjectManager;
 		friend class SceneManager;
 		friend class Renderer;

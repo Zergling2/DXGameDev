@@ -38,39 +38,6 @@ XMVECTOR XM_CALLCONV RectTransform::GetPreNDCPosition() const
     return XMVectorAdd(XMLoadFloat2A(&basis), XMLoadFloat2(&m_position));
 }
 
-XMVECTOR XM_CALLCONV RectTransform::GetUnityScreenPosition() const
-{
-    XMFLOAT2A basis;
-
-    switch (m_ha)
-    {
-    case HORIZONTAL_ANCHOR::LEFT:
-        basis.x = 0.0f;
-        break;
-    case HORIZONTAL_ANCHOR::CENTER:
-        basis.x = GraphicDevice::GetInstance()->GetSwapChainHalfWidthFlt();
-        break;
-    case HORIZONTAL_ANCHOR::RIGHT:
-        basis.x = GraphicDevice::GetInstance()->GetSwapChainWidthFlt();
-        break;
-    }
-
-    switch (m_va)
-    {
-    case VERTICAL_ANCHOR::TOP:
-        basis.y = GraphicDevice::GetInstance()->GetSwapChainHeightFlt();
-        break;
-    case VERTICAL_ANCHOR::VCENTER:
-        basis.y = GraphicDevice::GetInstance()->GetSwapChainHalfHeightFlt();
-        break;
-    case VERTICAL_ANCHOR::BOTTOM:
-        basis.y = 0.0f;
-        break;
-    }
-
-    return XMVectorAdd(XMLoadFloat2A(&basis), XMLoadFloat2(&m_position));
-}
-
 XMVECTOR XM_CALLCONV RectTransform::GetWindowsScreenPosition() const
 {
     XMFLOAT2A basis;

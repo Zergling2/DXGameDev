@@ -12,24 +12,22 @@
 // See LevelEditor.cpp for the implementation of this class
 //
 
-class CLevelEditorView;
-
 class CLevelEditorApp : public CWinApp
 {
+private:
+	ze::GameObjectHandle m_hEditorCameraObject;
 public:
 	CLevelEditorApp() noexcept;
 
-
 // Overrides
 public:
-	virtual BOOL InitInstance();
-
-// Implementation
-	afx_msg void OnAppAbout();
 	DECLARE_MESSAGE_MAP()
-	virtual BOOL OnIdle(LONG lCount);
 public:
-	CLevelEditorView* m_pLevelEditorView;
+	// Implementation
+	virtual BOOL InitInstance();
+	virtual int ExitInstance();
+	afx_msg void OnAppAbout();
+	virtual BOOL OnIdle(LONG lCount);
 };
 
 extern CLevelEditorApp theApp;

@@ -52,7 +52,7 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPT.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\ButtonEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\ImageEffect.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\MSCameraMergeEffect.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DrawQuadWithMSTextureEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DummyEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\EffectInterface.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\SkyboxEffect.h" />
@@ -132,7 +132,7 @@
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectPT.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\ButtonEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\ImageEffect.cpp" />
-    <ClCompile Include="source\CoreSystem\Effect\MSCameraMergeEffect.cpp" />
+    <ClCompile Include="source\CoreSystem\Effect\DrawQuadWithMSTextureEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\DummyEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\SkyboxEffect.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\AudioSource.cpp" />

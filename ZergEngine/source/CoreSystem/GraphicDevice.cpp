@@ -62,18 +62,18 @@ GraphicDevice::GraphicDevice()
 	, m_swapChainHalfSizeFlt(0.0f, 0.0f)
 	, m_descDepthStencil()
 	, m_entireSwapChainViewport()
-	, m_pDevice(nullptr)
-	, m_pImmediateContext(nullptr)
-	, m_pD2DFactory(nullptr)
-	, m_pDWriteFactory(nullptr)
 	, m_supportedResolution()
 	, m_supportedMSAA()
-	, m_pSwapChain(nullptr)
-	, m_pSwapChainRTV(nullptr)
-	, m_pSwapChainDSV(nullptr)
-	, m_pD2DRenderTarget(nullptr)
-	, m_pD2DSolidColorBrush(nullptr)
-	, m_pDefaultDWriteTextFormat(nullptr)
+	, m_cpDevice()
+	, m_cpImmediateContext()
+	, m_cpD2DFactory()
+	, m_cpDWriteFactory()
+	, m_cpSwapChain()
+	, m_cpSwapChainRTV()
+	, m_cpSwapChainDSV()
+	, m_cpD2DRenderTarget()
+	, m_cpD2DSolidColorBrush()
+	, m_cpDefaultDWriteTextFormat()
 	, m_vs{}
 	, m_hs{}
 	, m_ds{}
@@ -127,8 +127,8 @@ void GraphicDevice::Init(HWND hWnd, uint32_t width, uint32_t height, bool fullsc
 	};
 	D3D_FEATURE_LEVEL maxSupportedFeatureLevel;
 
-	assert(m_pDevice == nullptr);
-	assert(m_pImmediateContext == nullptr);
+	assert(m_cpDevice == nullptr);
+	assert(m_cpImmediateContext == nullptr);
 	hr = D3D11CreateDevice(
 		nullptr,
 		D3D_DRIVER_TYPE_HARDWARE,
@@ -137,9 +137,9 @@ void GraphicDevice::Init(HWND hWnd, uint32_t width, uint32_t height, bool fullsc
 		featureLevels,
 		_countof(featureLevels),
 		D3D11_SDK_VERSION,
-		&m_pDevice,
+		m_cpDevice.GetAddressOf(),
 		&maxSupportedFeatureLevel,
-		&m_pImmediateContext
+		m_cpImmediateContext.GetAddressOf()
 	);
 	if (FAILED(hr))
 		Debug::ForceCrashWithHRESULTErrorMessageBox(L"D3D11CreateDevice()", hr);
@@ -148,31 +148,31 @@ void GraphicDevice::Init(HWND hWnd, uint32_t width, uint32_t height, bool fullsc
 		Debug::ForceCrashWithMessageBox(L"Fail", L"Device does not support DirectX 11.1 feature level.");
 
 	// B. D2D Factory 儅撩
-	assert(m_pD2DFactory == nullptr);
-	hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, __uuidof(ID2D1Factory), reinterpret_cast<void**>(&m_pD2DFactory));
+	assert(m_cpD2DFactory == nullptr);
+	hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, __uuidof(ID2D1Factory), reinterpret_cast<void**>(m_cpD2DFactory.GetAddressOf()));
 	if (FAILED(hr))
 		Debug::ForceCrashWithHRESULTErrorMessageBox(L"D2D1CreateFactory()", hr);
 
 	// C. DWrite Factory 儅撩 塽 晦獄 臢蝶おん裝 儅撩
-	assert(m_pDWriteFactory == nullptr);
-	hr = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), reinterpret_cast<IUnknown**>(&m_pDWriteFactory));
+	assert(m_cpDWriteFactory == nullptr);
+	hr = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), reinterpret_cast<IUnknown**>(m_cpDWriteFactory.GetAddressOf()));
 	if (FAILED(hr))
 		Debug::ForceCrashWithHRESULTErrorMessageBox(L"DWriteCreateFactory()", hr);
-
-	hr = m_pDWriteFactory->CreateTextFormat(
-		L"蜈擎堅蛐",
+	
+	hr = m_cpDWriteFactory->CreateTextFormat(
+		L"",
 		nullptr,
-		DWRITE_FONT_WEIGHT_REGULAR,
+		DWRITE_FONT_WEIGHT_NORMAL,
 		DWRITE_FONT_STYLE_NORMAL,
 		DWRITE_FONT_STRETCH_NORMAL,
-		20.0f,
-		L"en-us",
-		&m_pDefaultDWriteTextFormat
+		14.0f,
+		L"ko-kr",
+		m_cpDefaultDWriteTextFormat.GetAddressOf()
 	);
 	if (FAILED(hr))
 		Debug::ForceCrashWithHRESULTErrorMessageBox(L"IDWriteFactory::CreateTextFormat()", hr);
-	m_pDefaultDWriteTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-	m_pDefaultDWriteTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	m_cpDefaultDWriteTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	m_cpDefaultDWriteTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 
 
 	// 雖錳腎朝 п鼻紫 跡煙 匐儀
@@ -230,7 +230,7 @@ void GraphicDevice::Init(HWND hWnd, uint32_t width, uint32_t height, bool fullsc
 	do
 	{
 		// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
-		hr = m_pDevice->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void**>(cpDXGIDevice.GetAddressOf()));
+		hr = m_cpDevice->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void**>(cpDXGIDevice.GetAddressOf()));
 		if (FAILED(hr))
 			break;
 
@@ -248,13 +248,13 @@ void GraphicDevice::Init(HWND hWnd, uint32_t width, uint32_t height, bool fullsc
 			break;
 
 		// 蝶諜 羹檣 儅撩
-		assert(m_pSwapChain == nullptr);
-		hr = cpDXGIFactory->CreateSwapChain(m_pDevice, &descSwapChain, &m_pSwapChain);
+		assert(m_cpSwapChain == nullptr);
+		hr = cpDXGIFactory->CreateSwapChain(m_cpDevice.Get(), &descSwapChain, m_cpSwapChain.GetAddressOf());
 		if (FAILED(hr))
 			break;
 
 		// 虜菟橫霞 蝶諜 羹檣曖 薑爾 盪濰
-		m_pSwapChain->GetDesc(&m_descSwapChain);
+		m_cpSwapChain->GetDesc(&m_descSwapChain);
 		m_swapChainSizeFlt = XMFLOAT2(static_cast<FLOAT>(m_descSwapChain.BufferDesc.Width), static_cast<FLOAT>(m_descSwapChain.BufferDesc.Height));
 		m_swapChainHalfSizeFlt = XMFLOAT2(m_swapChainSizeFlt.x * 0.5f, m_swapChainSizeFlt.y * 0.5f);
 		// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
@@ -263,12 +263,12 @@ void GraphicDevice::Init(HWND hWnd, uint32_t width, uint32_t height, bool fullsc
 		// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
 		// 蝶諜 羹檣曖 寥幗ぷ縑 渠и 溶渦 顫啃 箔 營儅撩
 		ComPtr<ID3D11Texture2D> cpBackBuffer;
-		hr = m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(cpBackBuffer.GetAddressOf()));
+		hr = m_cpSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(cpBackBuffer.GetAddressOf()));
 		if (FAILED(hr))
 			break;
 
-		assert(m_pSwapChainRTV == nullptr);
-		hr = m_pDevice->CreateRenderTargetView(cpBackBuffer.Get(), nullptr, &m_pSwapChainRTV);
+		assert(m_cpSwapChainRTV == nullptr);
+		hr = m_cpDevice->CreateRenderTargetView(cpBackBuffer.Get(), nullptr, m_cpSwapChainRTV.GetAddressOf());
 		if (FAILED(hr))
 			break;
 		// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
@@ -276,13 +276,13 @@ void GraphicDevice::Init(HWND hWnd, uint32_t width, uint32_t height, bool fullsc
 		// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
 		// 蝶諜 羹檣縑 渠и 溶渦葭縑 餌辨й 答蝶 蝶蘸褒 箔 營儅撩
 		ComPtr<ID3D11Texture2D> cpDepthStencilBuffer;
-		hr = m_pDevice->CreateTexture2D(&descDepthStencil, nullptr, cpDepthStencilBuffer.GetAddressOf());
+		hr = m_cpDevice->CreateTexture2D(&descDepthStencil, nullptr, cpDepthStencilBuffer.GetAddressOf());
 		if (FAILED(hr))
 			break;
 		cpDepthStencilBuffer->GetDesc(&m_descDepthStencil);
 
-		assert(m_pSwapChainDSV == nullptr);
-		hr = m_pDevice->CreateDepthStencilView(cpDepthStencilBuffer.Get(), nullptr, &m_pSwapChainDSV);
+		assert(m_cpSwapChainDSV == nullptr);
+		hr = m_cpDevice->CreateDepthStencilView(cpDepthStencilBuffer.Get(), nullptr, m_cpSwapChainDSV.GetAddressOf());
 		if (FAILED(hr))
 			break;
 		// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
@@ -292,31 +292,31 @@ void GraphicDevice::Init(HWND hWnd, uint32_t width, uint32_t height, bool fullsc
 		// 
 		// 蝶諜 羹檣曖 寥 幗ぷ縑 渠и Direct2D辨 DXGI Surface 溶渦 顫啃 儅撩
 		ComPtr<IDXGISurface> cpBackBufferSurface;
-		hr = m_pSwapChain->GetBuffer(0, IID_PPV_ARGS(cpBackBufferSurface.GetAddressOf()));
+		hr = m_cpSwapChain->GetBuffer(0, IID_PPV_ARGS(cpBackBufferSurface.GetAddressOf()));
 		if (FAILED(hr))
 			break;
 
-		assert(m_pD2DRenderTarget == nullptr);
+		assert(m_cpD2DRenderTarget == nullptr);
 		const D2D1_RENDER_TARGET_PROPERTIES props =
 			D2D1::RenderTargetProperties(
 				D2D1_RENDER_TARGET_TYPE_DEFAULT,
 				D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED)
 			);
 		// Create a Direct2D render target that can draw into the surface in the swap chain
-		hr = m_pD2DFactory->CreateDxgiSurfaceRenderTarget(
+		hr = m_cpD2DFactory->CreateDxgiSurfaceRenderTarget(
 			cpBackBufferSurface.Get(),
 			&props,
-			&m_pD2DRenderTarget
+			m_cpD2DRenderTarget.GetAddressOf()
 		);
 		if (FAILED(hr))
 			break;
 
-		assert(m_pD2DSolidColorBrush == nullptr);
+		assert(m_cpD2DSolidColorBrush == nullptr);
 		D2D1_BRUSH_PROPERTIES defaultProps;
 		defaultProps.opacity = 1.0f;
 		defaultProps.transform = D2D1::Matrix3x2F::Identity();
 		D2D1_COLOR_F defaultColor = D2D1_COLOR_F{ 1.0f, 1.0f, 1.0f, 1.0f };
-		hr = m_pD2DRenderTarget->CreateSolidColorBrush(&defaultColor, &defaultProps, &m_pD2DSolidColorBrush);
+		hr = m_cpD2DRenderTarget->CreateSolidColorBrush(&defaultColor, &defaultProps, m_cpD2DSolidColorBrush.GetAddressOf());
 		if (FAILED(hr))
 			break;
 	} while (false);
@@ -369,32 +369,31 @@ void GraphicDevice::UnInit()
 	// 收收收收收收收收收收收收收收收收收收收收收收收收 RELEASE SHADERS AND INPUT LAYOUTS 收收收收收收收收收收收收收收收收收收收收收收收收收
 	this->ReleaseShaderAndInputLayout();
 
-	Helper::SafeReleaseCom(m_pSwapChainDSV);
-	Helper::SafeReleaseCom(m_pSwapChainRTV);
+	// m_supportedMSAA.clear();		// в熱 X
 
 	// 瞪羹�飛� 賅萄艘棻賊 蝶諜 羹檣 п薯 瞪縑 璽賅萄煎 滲唳п醜撿 觼楚衛 寞雖 陛棟
 	// https://learn.microsoft.com/ko-kr/windows/win32/direct3ddxgi/d3d10-graphics-programming-guide-dxgi#destroying-a-swap-chain
 	// '蝶諜 羹檣 餉薯' о跡 霤堅
-	if (m_pSwapChain != nullptr)
+	if (m_cpSwapChain != nullptr)
 	{
 		BOOL isFullscreen;
 		hr = this->GetFullscreenState(&isFullscreen);
 		if (SUCCEEDED(hr) && isFullscreen != FALSE)
-			m_pSwapChain->SetFullscreenState(FALSE, nullptr);
+			m_cpSwapChain->SetFullscreenState(FALSE, nullptr);
 	}
 
-	m_supportedMSAA.clear();
+	m_cpDefaultDWriteTextFormat.Reset();
+	m_cpD2DSolidColorBrush.Reset();
+	m_cpD2DRenderTarget.Reset();
 
-	Helper::SafeReleaseCom(m_pDefaultDWriteTextFormat);
-	Helper::SafeReleaseCom(m_pDWriteFactory);
+	m_cpSwapChainDSV.Reset();
+	m_cpSwapChainRTV.Reset();
 
-	Helper::SafeReleaseCom(m_pD2DSolidColorBrush);
-	Helper::SafeReleaseCom(m_pD2DRenderTarget);
-	Helper::SafeReleaseCom(m_pD2DFactory);
-
-	Helper::SafeReleaseCom(m_pSwapChain);
-	Helper::SafeReleaseCom(m_pImmediateContext);
-	Helper::SafeReleaseCom(m_pDevice);
+	m_cpSwapChain.Reset();
+	m_cpDWriteFactory.Reset();
+	m_cpD2DFactory.Reset();
+	m_cpImmediateContext.Reset();
+	m_cpDevice.Reset();
 }
 
 bool GraphicDevice::LoadShaderByteCode(PCWSTR path, byte** ppByteCode, size_t* pSize)
@@ -435,7 +434,7 @@ bool GraphicDevice::LoadShaderByteCode(PCWSTR path, byte** ppByteCode, size_t* p
 
 void GraphicDevice::CreateShaderAndInputLayout()
 {
-	ID3D11Device* pDevice = m_pDevice;
+	ID3D11Device* pDevice = m_cpDevice.Get();
 
 	byte* pByteCode = nullptr;
 	size_t byteCodeSize = 0;
@@ -709,7 +708,7 @@ void GraphicDevice::ReleaseShaderAndInputLayout()
 
 void GraphicDevice::CreateRasterizerStates()
 {
-	ID3D11Device* pDevice = m_pDevice;
+	ID3D11Device* pDevice = m_cpDevice.Get();
 
 	D3D11_RASTERIZER_DESC descRS;
 	ZeroMemory(&descRS, sizeof(descRS));
@@ -761,7 +760,7 @@ void GraphicDevice::ReleaseRasterizerStates()
 
 void GraphicDevice::CreateSamplerStates()
 {
-	ID3D11Device* pDevice = m_pDevice;
+	ID3D11Device* pDevice = m_cpDevice.Get();
 
 	D3D11_SAMPLER_DESC descSampler;
 
@@ -847,7 +846,7 @@ void GraphicDevice::ReleaseSamplerStates()
 
 void GraphicDevice::CreateDepthStencilStates()
 {
-	ID3D11Device* pDevice = m_pDevice;
+	ID3D11Device* pDevice = m_cpDevice.Get();
 
 	D3D11_DEPTH_STENCIL_DESC descDepthStencil;
 	ZeroMemory(&descDepthStencil, sizeof(descDepthStencil));
@@ -889,6 +888,8 @@ void GraphicDevice::ReleaseDepthStencilStates()
 
 void GraphicDevice::CreateBlendStates()
 {
+	ID3D11Device* pDevice = m_cpDevice.Get();
+
 	D3D11_BLEND_DESC descBlend;
 	ZeroMemory(&descBlend, sizeof(descBlend));
 	descBlend.AlphaToCoverageEnable = FALSE;
@@ -904,7 +905,7 @@ void GraphicDevice::CreateBlendStates()
 	descRenderTargetBlend.DestBlendAlpha = D3D11_BLEND_ZERO;
 	descRenderTargetBlend.BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	descRenderTargetBlend.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-	m_bs[static_cast<size_t>(BLEND_STATETYPE::OPAQUE_)].Init(m_pDevice, &descBlend);
+	m_bs[static_cast<size_t>(BLEND_STATETYPE::OPAQUE_)].Init(pDevice, &descBlend);
 
 	// 2. AlphaBlend
 	descRenderTargetBlend.BlendEnable = TRUE;
@@ -915,7 +916,7 @@ void GraphicDevice::CreateBlendStates()
 	descRenderTargetBlend.DestBlendAlpha = D3D11_BLEND_ZERO;
 	descRenderTargetBlend.BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	descRenderTargetBlend.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-	m_bs[static_cast<size_t>(BLEND_STATETYPE::ALPHABLEND)].Init(m_pDevice, &descBlend);
+	m_bs[static_cast<size_t>(BLEND_STATETYPE::ALPHABLEND)].Init(pDevice, &descBlend);
 
 	// 3. No color write
 	descRenderTargetBlend.BlendEnable = TRUE;
@@ -926,7 +927,7 @@ void GraphicDevice::CreateBlendStates()
 	descRenderTargetBlend.DestBlendAlpha = D3D11_BLEND_ONE;
 	descRenderTargetBlend.BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	descRenderTargetBlend.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-	m_bs[static_cast<size_t>(BLEND_STATETYPE::NO_COLOR_WRITE)].Init(m_pDevice, &descBlend);
+	m_bs[static_cast<size_t>(BLEND_STATETYPE::NO_COLOR_WRITE)].Init(pDevice, &descBlend);
 }
 
 void GraphicDevice::ReleaseBlendStates()
@@ -1011,7 +1012,7 @@ void GraphicDevice::CreateSupportedMSAAQualityInfo()
 	for (UINT i = 0; i < _countof(sc); ++i)
 	{
 		UINT quality;
-		hr = m_pDevice->CheckMultisampleQualityLevels(this->GetBackBufferFormat(), static_cast<UINT>(sc[i]), &quality);
+		hr = m_cpDevice->CheckMultisampleQualityLevels(this->GetBackBufferFormat(), static_cast<UINT>(sc[i]), &quality);
 
 		if (SUCCEEDED(hr) && quality != 0)
 			m_supportedMSAA.push_back(std::make_pair(sc[i], quality - 1));
@@ -1020,6 +1021,8 @@ void GraphicDevice::CreateSupportedMSAAQualityInfo()
 
 void GraphicDevice::CreateCommonVertexBuffers()
 {
+	ID3D11Device* pDevice = m_cpDevice.Get();
+
 	// 1. Button VB
 	{
 		const XMFLOAT2 ltShade = XMFLOAT2(+0.5f, -0.5f);
@@ -1144,7 +1147,7 @@ void GraphicDevice::CreateCommonVertexBuffers()
 		// sbrcBuffer.SysMemPitch = 0;		// unused
 		// sbrcBuffer.SysMemSlicePitch = 0;	// unused
 
-		m_vb[static_cast<size_t>(VERTEX_BUFFER_TYPE::BUTTON)].Init(m_pDevice, &descBuffer, &sbrcBuffer);
+		m_vb[static_cast<size_t>(VERTEX_BUFFER_TYPE::BUTTON)].Init(pDevice, &descBuffer, &sbrcBuffer);
 	}
 }
 
@@ -1194,10 +1197,10 @@ void GraphicDevice::ResizeBuffer(uint32_t width, uint32_t height)
 	// a command list that executed another command list that used the resource, and so on.
 
 	// 蝶諜 羹檣縑 婦и 葬模蝶蒂 賅舒 п薯
-	Helper::SafeReleaseCom(m_pD2DSolidColorBrush);
-	Helper::SafeReleaseCom(m_pD2DRenderTarget);
-	Helper::SafeReleaseCom(m_pSwapChainDSV);
-	Helper::SafeReleaseCom(m_pSwapChainRTV);
+	m_cpD2DSolidColorBrush.Reset();
+	m_cpD2DRenderTarget.Reset();
+	m_cpSwapChainDSV.Reset();
+	m_cpSwapChainRTV.Reset();
 	// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
 
 	// 賅萄 滲唳
@@ -1214,7 +1217,7 @@ void GraphicDevice::ResizeBuffer(uint32_t width, uint32_t height)
 	// 蝶諜羹檣 觼晦 滲唳
 	// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
 	// m_pSwapChain->Resize_target();
-	hr = m_pSwapChain->ResizeBuffers(
+	hr = m_cpSwapChain->ResizeBuffers(
 		0,							// Set this number to zero to preserve the existing number of buffers in the swap chain.
 		width,
 		height,
@@ -1225,7 +1228,7 @@ void GraphicDevice::ResizeBuffer(uint32_t width, uint32_t height)
 		Debug::ForceCrashWithHRESULTErrorMessageBox(L"IDXGISwapChain::ResizeBuffers", hr);
 
 	// 滲唳脹 蝶諜 羹檣曖 薑爾 �僱�
-	hr = m_pSwapChain->GetDesc(&m_descSwapChain);
+	hr = m_cpSwapChain->GetDesc(&m_descSwapChain);
 	if (FAILED(hr))
 		Debug::ForceCrashWithHRESULTErrorMessageBox(L"IDXGISwapChain::GetDesc", hr);
 
@@ -1251,25 +1254,24 @@ void GraphicDevice::ResizeBuffer(uint32_t width, uint32_t height)
 	{
 		// 蝶諜 羹檣曖 寥幗ぷ縑 渠и 溶渦 顫啃 箔 營儅撩
 		ComPtr<ID3D11Texture2D> cpBackBuffer;
-		hr = m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(cpBackBuffer.GetAddressOf()));
+		hr = m_cpSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(cpBackBuffer.GetAddressOf()));
 		if (FAILED(hr))
 			break;
 
-		assert(m_pSwapChainRTV == nullptr);
-		hr = m_pDevice->CreateRenderTargetView(cpBackBuffer.Get(), nullptr, &m_pSwapChainRTV);
+		assert(m_cpSwapChainRTV == nullptr);
+		hr = m_cpDevice->CreateRenderTargetView(cpBackBuffer.Get(), nullptr, m_cpSwapChainRTV.GetAddressOf());
 		if (FAILED(hr))
 			break;
 
-		// 蝶諜 羹檣縑 渠и 溶渦葭縑 餌辨й 答蝶 蝶蘸褒 箔 營儅撩
-		ComPtr<ID3D11Texture2D> cpDepthStencilBuffer;
-		hr = m_pDevice->CreateTexture2D(&descDepthStencil, nullptr, cpDepthStencilBuffer.GetAddressOf());
+		// 蝶諜 羹檣縑 渠и 溶渦葭縑 餌辨й 答蝶 蝶蘸褒 幗ぷ 塽 箔 營儅撩
+		ComPtr<ID3D11Texture2D> cpDepthStencilBuffer;	// DSV陛 答蝶 蝶蘸褒 幗ぷ蒂 除蕾 霤褻ж嘎煎 雖羲 ComPtr煎 舒橫紫 脾
+		hr = m_cpDevice->CreateTexture2D(&descDepthStencil, nullptr, cpDepthStencilBuffer.GetAddressOf());
 		if (FAILED(hr))
 			break;
 
+		assert(m_cpSwapChainDSV == nullptr);
 		cpDepthStencilBuffer->GetDesc(&m_descDepthStencil);
-
-		assert(m_pSwapChainDSV == nullptr);
-		hr = m_pDevice->CreateDepthStencilView(cpDepthStencilBuffer.Get(), nullptr, &m_pSwapChainDSV);
+		hr = m_cpDevice->CreateDepthStencilView(cpDepthStencilBuffer.Get(), nullptr, m_cpSwapChainDSV.GetAddressOf());
 		if (FAILED(hr))
 			break;
 
@@ -1279,31 +1281,31 @@ void GraphicDevice::ResizeBuffer(uint32_t width, uint32_t height)
 		// 
 		// 蝶諜 羹檣曖 寥 幗ぷ縑 渠и Direct2D辨 DXGI Surface 溶渦 顫啃 儅撩
 		ComPtr<IDXGISurface> cpBackBufferSurface;
-		hr = m_pSwapChain->GetBuffer(0, IID_PPV_ARGS(cpBackBufferSurface.GetAddressOf()));
+		hr = m_cpSwapChain->GetBuffer(0, IID_PPV_ARGS(cpBackBufferSurface.GetAddressOf()));
 		if (FAILED(hr))
 			break;
 
-		assert(m_pD2DRenderTarget == nullptr);
+		assert(m_cpD2DRenderTarget == nullptr);
 		const D2D1_RENDER_TARGET_PROPERTIES props =
 			D2D1::RenderTargetProperties(
 				D2D1_RENDER_TARGET_TYPE_DEFAULT,
 				D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED)
 			);
 		// Create a Direct2D render target that can draw into the surface in the swap chain
-		hr = m_pD2DFactory->CreateDxgiSurfaceRenderTarget(
+		hr = m_cpD2DFactory->CreateDxgiSurfaceRenderTarget(
 			cpBackBufferSurface.Get(),
 			&props,
-			&m_pD2DRenderTarget
+			m_cpD2DRenderTarget.GetAddressOf()
 		);
 		if (FAILED(hr))
 			break;
 
-		assert(m_pD2DSolidColorBrush == nullptr);
+		assert(m_cpD2DSolidColorBrush == nullptr);
 		D2D1_BRUSH_PROPERTIES defaultProps;
 		defaultProps.opacity = 1.0f;
 		defaultProps.transform = D2D1::Matrix3x2F::Identity();
 		D2D1_COLOR_F defaultColor = D2D1_COLOR_F{ 1.0f, 1.0f, 1.0f, 1.0f };
-		hr = m_pD2DRenderTarget->CreateSolidColorBrush(&defaultColor, &defaultProps, &m_pD2DSolidColorBrush);
+		hr = m_cpD2DRenderTarget->CreateSolidColorBrush(&defaultColor, &defaultProps, m_cpD2DSolidColorBrush.GetAddressOf());
 		if (FAILED(hr))
 			break;
 	} while (false);
@@ -1319,7 +1321,7 @@ void GraphicDevice::ResizeBuffer(uint32_t width, uint32_t height)
 HRESULT GraphicDevice::SetFullscreenState(BOOL fullscreen)
 {
 	// If you pass FALSE to Fullscreen, then you must set this parameter to NULL
-	HRESULT hr = m_pSwapChain->SetFullscreenState(fullscreen, nullptr);
+	HRESULT hr = m_cpSwapChain->SetFullscreenState(fullscreen, nullptr);
 
 	return hr;
 }
@@ -1328,7 +1330,7 @@ HRESULT GraphicDevice::GetFullscreenState(BOOL* pFullscreen)
 {
 	assert(pFullscreen != nullptr);
 
-	HRESULT hr = m_pSwapChain->GetFullscreenState(pFullscreen, nullptr);
+	HRESULT hr = m_cpSwapChain->GetFullscreenState(pFullscreen, nullptr);
 
 	return hr;
 }

@@ -46,7 +46,7 @@ Renderer::Renderer()
 	, m_basicEffectPNT()
 	// , m_terrainEffect()
 	, m_skyboxEffect()
-	, m_msCameraMergeEffect()
+	, m_drawQuadWithMSTextureEffect()
 	, m_buttonEffect()
 	, m_imageEffect()
 	, m_uiRenderQueue()
@@ -88,7 +88,16 @@ void Renderer::Init()
 	m_pButtonVB = GraphicDevice::GetInstance()->GetVBComInterface(VERTEX_BUFFER_TYPE::BUTTON);	// Read only vertex buffer
 
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ INITIALIZE EFFECTS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-	this->InitializeEffects();
+	m_basicEffectP.Init();
+	m_basicEffectPC.Init();
+	m_basicEffectPN.Init();
+	m_basicEffectPT.Init();
+	m_basicEffectPNT.Init();
+	m_skyboxEffect.Init();
+	// m_terrainEffect.Init();
+	m_drawQuadWithMSTextureEffect.Init();
+	m_buttonEffect.Init();
+	m_imageEffect.Init();
 
 	// effect context 준비
 	assert(GraphicDevice::GetInstance()->GetImmediateContextComInterface() != nullptr);
@@ -109,25 +118,6 @@ void Renderer::Init()
 void Renderer::UnInit()
 {
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ RELEASE EFFECTS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-	this->ReleaseEffects();
-}
-
-void Renderer::InitializeEffects()
-{
-	m_basicEffectP.Init();
-	m_basicEffectPC.Init();
-	m_basicEffectPN.Init();
-	m_basicEffectPT.Init();
-	m_basicEffectPNT.Init();
-	m_skyboxEffect.Init();
-	// m_terrainEffect.Init();
-	m_msCameraMergeEffect.Init();
-	m_buttonEffect.Init();
-	m_imageEffect.Init();
-}
-
-void Renderer::ReleaseEffects()
-{
 	m_basicEffectP.Release();
 	m_basicEffectPC.Release();
 	m_basicEffectPN.Release();
@@ -135,7 +125,7 @@ void Renderer::ReleaseEffects()
 	m_basicEffectPNT.Release();
 	m_skyboxEffect.Release();
 	// m_terrainEffect.Release();
-	m_msCameraMergeEffect.Release();
+	m_drawQuadWithMSTextureEffect.Release();
 	m_buttonEffect.Release();
 	m_imageEffect.Release();
 }
@@ -309,12 +299,10 @@ void Renderer::RenderFrame()
 		// 컬러 버퍼 및 뎁스스텐실 버퍼 바인딩
 		ID3D11RenderTargetView* pColorBufferRTV = pCamera->m_cpColorBufferRTV.Get();
 		ID3D11DepthStencilView* pDepthStencilBufferDSV = pCamera->m_cpDepthStencilBufferDSV.Get();
-		// pImmContext->ClearRenderTargetView(pColorBufferRTV, reinterpret_cast<const FLOAT*>(&pCamera->GetBackgroundColor()));
-		pImmContext->ClearRenderTargetView(pColorBufferRTV, Colors::Red);
+		pImmContext->ClearRenderTargetView(pColorBufferRTV, reinterpret_cast<const FLOAT*>(&pCamera->GetBackgroundColor()));
 		pImmContext->ClearDepthStencilView(pDepthStencilBufferDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 		ID3D11RenderTargetView* const rtvs[] = { pColorBufferRTV };
-		OutputDebugString(_T("Scene Rendering OMSetRenderTargets\n"));
 		pImmContext->OMSetRenderTargets(_countof(rtvs), rtvs, pDepthStencilBufferDSV);
 		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 		// PerCamera 상수버퍼 업데이트 및 바인딩
@@ -392,7 +380,6 @@ void Renderer::RenderFrame()
 	pImmContext->ClearRenderTargetView(pColorBufferRTV, DirectX::Colors::Blue);
 	pImmContext->ClearDepthStencilView(pDepthStencilBufferDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 	ID3D11RenderTargetView* const rtvs[] = { pColorBufferRTV };
-	OutputDebugString(_T("Camera Merge OMSetRenderTargets\n"));
 	pImmContext->OMSetRenderTargets(_countof(rtvs), rtvs, pDepthStencilBufferDSV);
 	
 	for (const IComponent* pComponent : CameraManager::GetInstance()->m_directAccessGroup)
@@ -401,15 +388,15 @@ void Renderer::RenderFrame()
 		if (!pCamera->IsEnabled())
 			continue;
 	
-		m_msCameraMergeEffect.SetMergeParameters(
+		m_drawQuadWithMSTextureEffect.SetQuadParameters(
 			pCamera->m_viewportRect.m_width,
 			pCamera->m_viewportRect.m_height,
 			pCamera->m_viewportRect.m_x,
 			pCamera->m_viewportRect.m_y
 		);
-		m_msCameraMergeEffect.SetMergeTexture(pCamera->GetColorBufferSRVComInterface());
+		m_drawQuadWithMSTextureEffect.SetTexture(pCamera->GetColorBufferSRVComInterface());
 	
-		m_effectImmediateContext.Apply(&m_msCameraMergeEffect);
+		m_effectImmediateContext.Apply(&m_drawQuadWithMSTextureEffect);
 	
 		m_effectImmediateContext.Draw(4, 0);
 	}

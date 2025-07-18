@@ -5,11 +5,11 @@
 #define IDD_ABOUTBOX                    100
 #define IDR_MAINFRAME                   128
 #define IDR_LevelEditorTYPE             130
-#define IDD_CTransformInspectorFormView 310
 #define IDD_TRANSFORM_INSPECTOR_FORMVIEW 310
 #define IDD_MESH_RENDERER_INSPECTOR_FORMVIEW 311
 #define IDB_ZEPACKEDICON                312
 #define IDD_TERRAIN_GENERATION_DIALOG   313
+#define IDD_EMPTY_INSPECTOR_FORMVIEW    314
 #define IDI_ZELOGOMEDIUM                315
 #define IDC_EDIT_POSITIONX              1000
 #define IDC_EDIT_POSITIONY              1001
@@ -75,14 +75,17 @@
 #define ID_EDIT_DELETE                  32808
 #define ID_EDIT_PROJECTSETTINGS         32809
 #define ID_EDIT_PREFERENCES             32810
+#define ID_GAMEOBJECT_RENAME            32811
+#define ID_COMPONENT                    32812
+#define ID_COMPONENT_MESHRENDERER       32813
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        318
-#define _APS_NEXT_COMMAND_VALUE         32811
+#define _APS_NEXT_COMMAND_VALUE         32814
 #define _APS_NEXT_CONTROL_VALUE         1007
-#define _APS_NEXT_SYMED_VALUE           312
+#define _APS_NEXT_SYMED_VALUE           315
 #endif
 #endif

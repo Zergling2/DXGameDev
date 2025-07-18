@@ -143,7 +143,7 @@ LRESULT Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         PostQuitMessage(0);
         break;
     case WM_SIZE:
-        pHandler->OnSize(wParam, lParam);
+        pHandler->OnSize(static_cast<UINT>(wParam), GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
         break;
     case WM_SHOWWINDOW:
         pHandler->OnShowWindow(wParam, lParam);
@@ -152,25 +152,25 @@ LRESULT Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         pHandler->OnChar(wParam, lParam);
         break;
     case WM_MOUSEMOVE:
-        pHandler->OnMouseMove(wParam, lParam);
+        pHandler->OnMouseMove(static_cast<UINT>(wParam), POINT{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) });
         break;
     case WM_LBUTTONDOWN:
-        pHandler->OnLButtonDown(wParam, lParam);
+        pHandler->OnLButtonDown(static_cast<UINT>(wParam), POINT{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) });
         break;
     case WM_LBUTTONUP:
-        pHandler->OnLButtonUp(wParam, lParam);
+        pHandler->OnLButtonUp(static_cast<UINT>(wParam), POINT{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) });
         break;
     case WM_RBUTTONDOWN:
-        pHandler->OnRButtonDown(wParam, lParam);
+        pHandler->OnRButtonDown(static_cast<UINT>(wParam), POINT{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) });
         break;
     case WM_RBUTTONUP:
-        pHandler->OnRButtonUp(wParam, lParam);
+        pHandler->OnRButtonUp(static_cast<UINT>(wParam), POINT{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) });
         break;
     case WM_MBUTTONDOWN:
-        pHandler->OnMButtonDown(wParam, lParam);
+        pHandler->OnMButtonDown(static_cast<UINT>(wParam), POINT{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) });
         break;
     case WM_MBUTTONUP:
-        pHandler->OnMButtonUp(wParam, lParam);
+        pHandler->OnMButtonUp(static_cast<UINT>(wParam), POINT{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) });
         break;
     case WM_ENTERSIZEMOVE:
         pHandler->OnEnterSizeMove(wParam, lParam);

@@ -383,7 +383,7 @@ bool UIObjectManager::SetParent(RectTransform* pTransform, RectTransform* pNewPa
 
 	// 사이클 검사
 	// pTransform이 이미 나를 조상으로 하고 있는 경우 or 파괴 예정인 오브젝트를 부모로 설정하려는 경우
-	// 예외처리 해주지 않으면 Runtime::Destroy()에서 자식 오브젝트들까지 모두 Destroy 큐에 넣어주는 정책과 일관성이 맞지 않는다.
+	// 예외처리 해주지 않으면 자식 오브젝트들까지 모두 Destroy 큐에 넣어주는 정책과 일관성이 맞지 않는다.
 	// (부모는 파괴되는데 자식은 파괴되지 않는 모순 발생)
 	if (pNewParentTransform != nullptr)
 		if (pNewParentTransform->IsDescendantOf(pTransform) || pNewParentTransform->m_pUIObject->IsOnTheDestroyQueue())

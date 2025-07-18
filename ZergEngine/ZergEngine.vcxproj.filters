@@ -255,7 +255,7 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPT.h">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\MSCameraMergeEffect.h">
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DrawQuadWithMSTextureEffect.h">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\ButtonEffect.h">
@@ -482,7 +482,7 @@
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectPT.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClCompile>
-    <ClCompile Include="source\CoreSystem\Effect\MSCameraMergeEffect.cpp">
+    <ClCompile Include="source\CoreSystem\Effect\DrawQuadWithMSTextureEffect.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\Effect\ButtonEffect.cpp">

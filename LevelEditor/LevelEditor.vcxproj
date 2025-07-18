@@ -96,14 +96,14 @@
       <PreprocessorDefinitions>_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(ProjectDir)\extlib\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)extlib\include\;$(SolutionDir)ZergEngine\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex_$(Platform).lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\DirectXTex\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;dinput8.lib;dxguid.lib;ze.lib;DirectXTex_$(Platform).lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\DirectXTex\;$(SolutionDir)ZergEngine\lib\x64\Release\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -124,11 +124,11 @@
       <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(ProjectDir)\extlib\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)extlib\include\;$(SolutionDir)ZergEngine\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex_$(Platform)_$(Configuration).lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;dinput8.lib;dxguid.lib;ze.lib;DirectXTex_$(Platform)_$(Configuration).lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\DirectXTex\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Midl>
@@ -150,12 +150,12 @@
       <PreprocessorDefinitions>_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(ProjectDir)\extlib\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)extlib\include\;$(SolutionDir)ZergEngine\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex_$(Platform)_$(Configuration).lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\DirectXTex\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;dinput8.lib;dxguid.lib;ze.lib;DirectXTex_$(Platform)_$(Configuration).lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\DirectXTex\;$(SolutionDir)ZergEngine\lib\x64\Debug\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -178,13 +178,13 @@
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(ProjectDir)\extlib\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)extlib\include\;$(SolutionDir)ZergEngine\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex_$(Platform).lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;dinput8.lib;dxguid.lib;ze.lib;DirectXTex_$(Platform).lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\DirectXTex\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Midl>
@@ -200,8 +200,18 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BufferDC.h" />
+    <ClInclude Include="CLVItem\CLVItemEmpty.h" />
+    <ClInclude Include="CLVItem\CLVItemInterface.h" />
+    <ClInclude Include="CLVItem\CLVItemMeshRenderer.h" />
+    <ClInclude Include="CLVItem\CLVItemTransform.h" />
+    <ClInclude Include="CommandHandler\CommandHandler.h" />
     <ClInclude Include="ComponentListView.h" />
+    <ClInclude Include="EmptyInspectorFormView.h" />
     <ClInclude Include="Helper.h" />
+    <ClInclude Include="HTVItem\HTVItemEmpty.h" />
+    <ClInclude Include="HTVItem\HTVItemGameObject.h" />
+    <ClInclude Include="HTVItem\HTVItemInterface.h" />
+    <ClInclude Include="HTVItem\HTVItemRoot.h" />
     <ClInclude Include="MeshRendererInspectorFormView.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="framework.h" />
@@ -221,8 +231,18 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BufferDC.cpp" />
+    <ClCompile Include="CLVItem\CLVItemEmpty.cpp" />
+    <ClCompile Include="CLVItem\CLVItemInterface.cpp" />
+    <ClCompile Include="CLVItem\CLVItemMeshRenderer.cpp" />
+    <ClCompile Include="CLVItem\CLVItemTransform.cpp" />
+    <ClCompile Include="CommandHandler\CommandHandler.cpp" />
     <ClCompile Include="ComponentListView.cpp" />
+    <ClCompile Include="EmptyInspectorFormView.cpp" />
     <ClCompile Include="HierarchyTreeView.cpp" />
+    <ClCompile Include="HTVItem\HTVItemEmpty.cpp" />
+    <ClCompile Include="HTVItem\HTVItemGameObject.cpp" />
+    <ClCompile Include="HTVItem\HTVItemInterface.cpp" />
+    <ClCompile Include="HTVItem\HTVItemRoot.cpp" />
     <ClCompile Include="MeshRendererInspectorFormView.cpp" />
     <ClCompile Include="TerrainData.cpp" />
     <ClCompile Include="TerrainDataEditor.cpp" />
