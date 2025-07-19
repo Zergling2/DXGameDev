@@ -2,9 +2,6 @@
 //
 
 #include "TransformEdit.h"
-#include "..\MainFrm.h"
-#include "..\TransformInspectorFormView.h"
-#include "..\CLVItem\CLVItemTransform.h"
 
 // CTransformEdit
 
@@ -21,7 +18,6 @@ CTransformEdit::~CTransformEdit()
 
 BEGIN_MESSAGE_MAP(CTransformEdit, CEdit)
 	ON_WM_CHAR()
-    ON_WM_KILLFOCUS()
 END_MESSAGE_MAP()
 
 
@@ -88,77 +84,4 @@ void CTransformEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
         CEdit::OnChar(nChar, nRepCnt, nFlags);
     else
         MessageBeep(MB_ICONWARNING);
-}
-
-
-void CTransformEdit::OnKillFocus(CWnd* pNewWnd)
-{
-    CEdit::OnKillFocus(pNewWnd);
-
-    // TODO: Add your message handler code here
-
-    // 소수점 표현 정규화
-    TCHAR str[32];
-    this->GetWindowTextW(str, _countof(str));
-    float val = _tcstof(str, nullptr);
-
-    // 에디트 컨트롤에 정규화된 수 설정
-    CString result;
-    result.Format(_T("%lf"), val);
-    this->SetWindowTextW(result.GetString());
-    
-    // 값을 객체로 업데이트
-    CMainFrame* pMainFrame = static_cast<CMainFrame*>(AfxGetMainWnd());
-    CFormView* pFormView = pMainFrame->GetComponentInspectorFormView();
-    BOOL isInspectorValid = pFormView->IsKindOf(RUNTIME_CLASS(CTransformInspectorFormView));
-    assert(isInspectorValid);
-    if (isInspectorValid)
-    {
-        CTransformInspectorFormView* pInspector = static_cast<CTransformInspectorFormView*>(pFormView);
-
-        // 1. 컨트롤 -> 변수로 업데이트
-        pInspector->UpdateData(TRUE);
-
-        // 2. 업데이트된 변수롤 Transform에 세팅
-        float val;
-
-        CLVItemTransform* pItem = pInspector->GetCLVItemToModify();
-        ze::Transform* pTransform = pItem->GetTransform();
-
-        XMFLOAT3A pos;
-        pInspector->m_positionX.GetWindowText(str, _countof(str));
-        val = _tcstof(str, nullptr);
-        pos.x = val;
-        pInspector->m_positionY.GetWindowText(str, _countof(str));
-        val = _tcstof(str, nullptr);
-        pos.y = val;
-        pInspector->m_positionZ.GetWindowText(str, _countof(str));
-        val = _tcstof(str, nullptr);
-        pos.z = val;
-        pTransform->SetPosition(pos);
-
-        XMFLOAT3A rot;
-        pInspector->m_rotationX.GetWindowText(str, _countof(str));
-        val = _tcstof(str, nullptr);
-        rot.x = XMConvertToRadians(val);
-        pInspector->m_rotationY.GetWindowText(str, _countof(str));
-        val = _tcstof(str, nullptr);
-        rot.y = XMConvertToRadians(val);
-        pInspector->m_rotationZ.GetWindowText(str, _countof(str));
-        val = _tcstof(str, nullptr);
-        rot.z = XMConvertToRadians(val);
-        pTransform->SetRotation(rot);
-
-        XMFLOAT3A scale;
-        pInspector->m_scaleX.GetWindowText(str, _countof(str));
-        val = _tcstof(str, nullptr);
-        scale.x = val;
-        pInspector->m_scaleY.GetWindowText(str, _countof(str));
-        val = _tcstof(str, nullptr);
-        scale.y = val;
-        pInspector->m_scaleZ.GetWindowText(str, _countof(str));
-        val = _tcstof(str, nullptr);
-        scale.z = val;
-        pTransform->SetScale(scale);
-    }
 }

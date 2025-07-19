@@ -203,6 +203,7 @@
     <ClInclude Include="CLVItem\CLVItemEmpty.h" />
     <ClInclude Include="CLVItem\CLVItemInterface.h" />
     <ClInclude Include="CLVItem\CLVItemMeshRenderer.h" />
+    <ClInclude Include="CLVItem\CLVItemTerrain.h" />
     <ClInclude Include="CLVItem\CLVItemTransform.h" />
     <ClInclude Include="CommandHandler\CommandHandler.h" />
     <ClInclude Include="ComponentListView.h" />
@@ -234,6 +235,7 @@
     <ClCompile Include="CLVItem\CLVItemEmpty.cpp" />
     <ClCompile Include="CLVItem\CLVItemInterface.cpp" />
     <ClCompile Include="CLVItem\CLVItemMeshRenderer.cpp" />
+    <ClCompile Include="CLVItem\CLVItemTerrain.cpp" />
     <ClCompile Include="CLVItem\CLVItemTransform.cpp" />
     <ClCompile Include="CommandHandler\CommandHandler.cpp" />
     <ClCompile Include="ComponentListView.cpp" />

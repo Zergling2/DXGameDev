@@ -31,6 +31,7 @@ protected:
 	// Implementation
 protected:
 	DECLARE_MESSAGE_MAP()
+public:
 };
 
 CAboutDlg::CAboutDlg() noexcept : CDialogEx(IDD_ABOUTBOX)
@@ -203,4 +204,3 @@ BOOL CLevelEditorApp::OnIdle(LONG lCount)
 
 	return TRUE;
 }
-

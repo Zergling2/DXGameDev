@@ -109,6 +109,9 @@
     <ClInclude Include="CLVItem\CLVItemEmpty.h">
       <Filter>Files\CLVItem</Filter>
     </ClInclude>
+    <ClInclude Include="CLVItem\CLVItemTerrain.h">
+      <Filter>Files\CLVItem</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BufferDC.cpp">
@@ -181,6 +184,9 @@
       <Filter>Files\CLVItem</Filter>
     </ClCompile>
     <ClCompile Include="CLVItem\CLVItemEmpty.cpp">
+      <Filter>Files\CLVItem</Filter>
+    </ClCompile>
+    <ClCompile Include="CLVItem\CLVItemTerrain.cpp">
       <Filter>Files\CLVItem</Filter>
     </ClCompile>
   </ItemGroup>

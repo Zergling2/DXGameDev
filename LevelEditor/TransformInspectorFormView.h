@@ -44,6 +44,15 @@ public:
 	CTransformEdit m_scaleX;
 	CTransformEdit m_scaleY;
 	CTransformEdit m_scaleZ;
+	afx_msg void OnEnChangeEditPositionX();
+	afx_msg void OnEnChangeEditPositionY();
+	afx_msg void OnEnChangeEditPositionZ();
+	afx_msg void OnEnChangeEditRotationX();
+	afx_msg void OnEnChangeEditRotationY();
+	afx_msg void OnEnChangeEditRotationZ();
+	afx_msg void OnEnChangeEditScaleX();
+	afx_msg void OnEnChangeEditScaleY();
+	afx_msg void OnEnChangeEditScaleZ();
 };
 
 

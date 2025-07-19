@@ -17,6 +17,11 @@ namespace ze
 		virtual ~MeshRenderer() = default;
 
 		virtual COMPONENT_TYPE GetType() const override { return COMPONENT_TYPE::MESH_RENDERER; }
+
+		bool GetCastShadows() const { return m_castShadows; }
+		void SetCastShadows(bool b) { m_castShadows = b; }
+		bool GetReceiveShadows() const { return m_receiveShadows; }
+		void SetReceiveShadows(bool b) { m_receiveShadows = b; }
 	private:
 		virtual IComponentManager* GetComponentManager() const override;
 	public:

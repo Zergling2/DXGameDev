@@ -11,15 +11,16 @@ void On3DObjectTerrain()
 	CTerrainGenerationDialog dlg;
 	INT_PTR ret = dlg.DoModal();
 
-	switch (ret)
-	{
-	case IDOK:
-		break;
-	case IDCANCEL:
-		__fallthrough;
-	default:
-		break;
-	}
+	if (ret != IDOK)
+		return;
+
+	TCHAR buf[64];
+	StringCbPrintfW(buf,
+		sizeof(buf),
+		L"Cell Size: %lf, Height Scale: %lf, Row: %u, Col: %u\n",
+		dlg.m_cellSize, dlg.m_heightScale, dlg.m_patchCountRow, dlg.m_patchCountColumn
+	);
+	OutputDebugStringW(buf);
 }
 
 void OnGameObjectCreateEmpty()

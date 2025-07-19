@@ -12,6 +12,7 @@ public:
 	virtual ~CLVItemMeshRenderer() = default;
 
 	virtual void OnSelect() override;
+	ze::MeshRenderer* GetMeshRenderer() const { return m_pMeshRenderer; }
 private:
 	ze::MeshRenderer* m_pMeshRenderer;
 };

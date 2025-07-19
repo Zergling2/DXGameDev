@@ -27,12 +27,18 @@ public:
 
 	void SetCLVItemToModify(CLVItemMeshRenderer* pItem) { m_pItem = pItem; }
 	CLVItemMeshRenderer* GetCLVItemToModify() const { return m_pItem; }
+public:
+	CButton m_castShadows;
+	CButton m_receiveShadows;
 private:
 	CLVItemMeshRenderer* m_pItem;
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
 	DECLARE_MESSAGE_MAP()
+public:
+	afx_msg void OnBnClickedMeshRendererCastShadows();
+	afx_msg void OnBnClickedMeshRendererReceiveShadows();
 };
 
 

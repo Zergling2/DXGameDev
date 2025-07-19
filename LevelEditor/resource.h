@@ -19,10 +19,12 @@
 #define IDC_EDIT2                       1002
 #define IDC_EDIT_TERRAIN_GENERATION_PATCH_COUNT_COLUMN 1002
 #define IDC_CHECK1                      1002
+#define IDC_MESH_RENDERER_CAST_SHADOWS  1002
 #define IDC_EDIT_ROTATIONX              1003
 #define IDC_EDIT3                       1003
 #define IDC_EDIT_TERRAIN_GENERATION_CELL_SIZE 1003
 #define IDC_CHECK2                      1003
+#define IDC_MESH_RENDERER_RECEIVE_SHADOWS 1003
 #define IDC_EDIT_ROTATIONY              1004
 #define IDC_EDIT4                       1004
 #define IDC_EDIT_TERRAIN_GENERATION_HEIGHT_SCALE 1004
@@ -83,7 +85,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        318
+#define _APS_NEXT_RESOURCE_VALUE        319
 #define _APS_NEXT_COMMAND_VALUE         32814
 #define _APS_NEXT_CONTROL_VALUE         1007
 #define _APS_NEXT_SYMED_VALUE           315
