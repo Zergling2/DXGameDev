@@ -1,7 +1,5 @@
-// ComponentListView.cpp : implementation file
-//
-
 #include "ComponentListView.h"
+#include "LevelEditor.h"
 #include "Settings.h"
 #include "CLVItem\CLVItemEmpty.h"
 
@@ -81,22 +79,9 @@ void CComponentListView::OnInitialUpdate()
 		lc.SetTextBkColor(COMPONENT_LISTVIEW_BK_COLOR);
 
 		// 2. 아이콘 리스트 로드 및 설정
-		CBitmap iconBitmap;
-		iconBitmap.LoadBitmap(IDB_ZEPACKEDICON);
-
-		CImageList iconList;
-		iconList.Create(
-			ZE_PACKED_ICON_SIZE_X,
-			ZE_PACKED_ICON_SIZE_Y,
-			ILC_COLOR24 | ILC_MASK,
-			ZE_PACKED_ICON_COUNT,
-			0
-		);
-		iconList.Add(&iconBitmap, ZE_PACKED_ICON_COLOR_MASK);
-		iconBitmap.Detach();
-
+		CLevelEditorApp* pApp = static_cast<CLevelEditorApp*>(AfxGetApp());
+		CImageList& iconList = pApp->GetZEIconList();
 		lc.SetImageList(&iconList, LVSIL_SMALL);
-		iconList.Detach();
 
 		// 3. "Component List"열 추가
 		CRect cr;

@@ -8,5 +8,5 @@ public:
 	IHTVItem() = default;
 	virtual ~IHTVItem() = default;
 
-	virtual void OnSelect() {}
+	virtual void OnSelect() = 0;
 };

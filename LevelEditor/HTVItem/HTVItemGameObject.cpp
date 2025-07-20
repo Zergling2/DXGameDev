@@ -4,6 +4,7 @@
 #include "..\ComponentListView.h"
 #include "..\CLVItem\CLVItemTransform.h"
 #include "..\CLVItem\CLVItemMeshRenderer.h"
+#include "..\CLVItem\CLVItemTerrain.h"
 #include "..\CLVItem\CLVItemEmpty.h"
 #include "..\TransformInspectorFormView.h"
 #include "..\MeshRendererInspectorFormView.h"
@@ -37,14 +38,16 @@ void HTVItemGameObject::OnSelect()
 	// 나머지 컴포넌트들도 CLV Item 추가
 	for (ze::IComponent* pComponent : pGameObject->GetComponentList())
 	{
+		int index;
 		switch (pComponent->GetType())
 		{
 		case ze::COMPONENT_TYPE::MESH_RENDERER:
-		{
-			CLVItemMeshRenderer* pCLVItemMeshRenderer = new CLVItemMeshRenderer(static_cast<ze::MeshRenderer*>(pComponent));
-			int index = lc.InsertItem(lc.GetItemCount(), _T("Mesh Renderer"), ZE_ICON_INDEX::MESH_RENDERER_ICON);
-			lc.SetItemData(index, reinterpret_cast<DWORD_PTR>(pCLVItemMeshRenderer));
-		}
+			index = lc.InsertItem(lc.GetItemCount(), _T("Mesh Renderer"), ZE_ICON_INDEX::MESH_RENDERER_ICON);
+			lc.SetItemData(index, reinterpret_cast<DWORD_PTR>(new CLVItemMeshRenderer(static_cast<ze::MeshRenderer*>(pComponent))));
+			break;
+		case ze::COMPONENT_TYPE::TERRAIN:
+			index = lc.InsertItem(lc.GetItemCount(), _T("Terrain"), ZE_ICON_INDEX::TERRAIN_ICON);
+			lc.SetItemData(index, reinterpret_cast<DWORD_PTR>(new CLVItemTerrain(static_cast<ze::Terrain*>(pComponent))));
 			break;
 		default:
 			// 나머지는 컴포넌트는 보류

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "framework.h"
-#include "TransformEdit\TransformEdit.h"
+#include "Edit\FloatEdit.h"
 
 class CLVItemTransform;
 
@@ -35,15 +35,15 @@ protected:
 private:
 	CLVItemTransform* m_pItem;
 public:
-	CTransformEdit m_positionX;
-	CTransformEdit m_positionY;
-	CTransformEdit m_positionZ;
-	CTransformEdit m_rotationX;
-	CTransformEdit m_rotationY;
-	CTransformEdit m_rotationZ;
-	CTransformEdit m_scaleX;
-	CTransformEdit m_scaleY;
-	CTransformEdit m_scaleZ;
+	CFloatEdit m_positionX;
+	CFloatEdit m_positionY;
+	CFloatEdit m_positionZ;
+	CFloatEdit m_rotationX;
+	CFloatEdit m_rotationY;
+	CFloatEdit m_rotationZ;
+	CFloatEdit m_scaleX;
+	CFloatEdit m_scaleY;
+	CFloatEdit m_scaleZ;
 	afx_msg void OnEnChangeEditPositionX();
 	afx_msg void OnEnChangeEditPositionY();
 	afx_msg void OnEnChangeEditPositionZ();

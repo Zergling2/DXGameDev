@@ -1,7 +1,5 @@
-// LogListView.cpp : implementation file
-//
-
 #include "LogListView.h"
+#include "LevelEditor.h"
 #include "Settings.h"
 
 // CLogListView
@@ -41,42 +39,64 @@ void CLogListView::Dump(CDumpContext& dc) const
 // CLogListView message handlers
 
 
+void CLogListView::AddLog(LPTSTR msg, LOG_TYPE type)
+{
+	CTime time = CTime::GetCurrentTime();
+	TCHAR timeString[32];
+
+	StringCbPrintf(timeString, sizeof(timeString), _T("%02d:%02d:%02d"), time.GetHour(), time.GetMinute(), time.GetSecond());
+
+	CListCtrl& lc = this->GetListCtrl();
+	int imageIndex;
+	switch (type)
+	{
+	case LOG_TYPE::LT_INFO:
+		imageIndex = ZE_ICON_INDEX::INFO_ICON;
+		break;
+	case LOG_TYPE::LT_WARNING:
+		imageIndex = ZE_ICON_INDEX::WARNING_ICON;
+		break;
+	case LOG_TYPE::LT_ERROR:
+		imageIndex = ZE_ICON_INDEX::ERROR_ICON;
+		break;
+	default:
+		imageIndex = 0;
+		break;
+	}
+
+	int newItemIndex = lc.GetItemCount();
+
+	// 로그 아이템 삽입
+	lc.InsertItem(newItemIndex, msg, imageIndex);
+	constexpr int LOG_TIME_COLUMN_INDEX = 1;
+
+	// 로그 시간 추가
+	lc.SetItemText(newItemIndex, LOG_TIME_COLUMN_INDEX, timeString);
+}
+
 void CLogListView::OnInitialUpdate()
 {
 	CListView::OnInitialUpdate();
 
 	// TODO: Add your specialized code here and/or call the base class
-	CListCtrl& list = this->GetListCtrl();
+	CListCtrl& lc = this->GetListCtrl();
 
 	if (!m_initialized)
 	{
 		// 1. 리스트 속성 설정
-		list.ModifyStyle(LVS_TYPEMASK, LVS_REPORT);
-		list.SetBkColor(LOG_LISTVIEW_BK_COLOR);
-		list.SetTextColor(LOG_LISTVIEW_TEXT_COLOR);
-		list.SetTextBkColor(LOG_LISTVIEW_BK_COLOR);
+		lc.ModifyStyle(LVS_TYPEMASK, LVS_REPORT);
+		lc.SetBkColor(LOG_LISTVIEW_BK_COLOR);
+		lc.SetTextColor(LOG_LISTVIEW_TEXT_COLOR);
+		lc.SetTextBkColor(LOG_LISTVIEW_BK_COLOR);
 
 		// 2. 아이콘 리스트 로드 및 설정
-		CBitmap iconBitmap;
-		iconBitmap.LoadBitmap(IDB_ZEPACKEDICON);
-
-		CImageList iconList;
-		iconList.Create(
-			ZE_PACKED_ICON_SIZE_X,
-			ZE_PACKED_ICON_SIZE_Y,
-			ILC_COLOR24 | ILC_MASK,
-			ZE_PACKED_ICON_COUNT,
-			0
-		);
-		iconList.Add(&iconBitmap, ZE_PACKED_ICON_COLOR_MASK);
-		iconBitmap.Detach();
-
-		list.SetImageList(&iconList, LVSIL_SMALL);
-		iconList.Detach();
+		CLevelEditorApp* pApp = static_cast<CLevelEditorApp*>(AfxGetApp());
+		CImageList& iconList = pApp->GetZEIconList();
+		lc.SetImageList(&iconList, LVSIL_SMALL);
 
 		// 3. "Description", "Time" 열 추가
 		CRect cr;
-		list.GetClientRect(&cr);
+		lc.GetClientRect(&cr);
 
 		constexpr float LOG_COLUMN_DESCRIPTION_WIDTH_RATIO = 0.8f;
 		const int descriptionWidth = static_cast<int>(static_cast<float>(cr.Width()) * LOG_COLUMN_DESCRIPTION_WIDTH_RATIO);
@@ -84,20 +104,13 @@ void CLogListView::OnInitialUpdate()
 
 		int ret;
 
-		ret = list.InsertColumn(0, _T("Description"), LVCFMT_LEFT, descriptionWidth);
-		ret = list.InsertColumn(1, _T("Time"), LVCFMT_LEFT, timeWidth);
+		ret = lc.InsertColumn(0, _T("Description"), LVCFMT_LEFT, descriptionWidth);
+		ret = lc.InsertColumn(1, _T("Time"), LVCFMT_LEFT, timeWidth);
 
 		m_initialized = true;
 	}
 
-	list.InsertItem(0, _T("This is a test log 0"), ZE_ICON_INDEX::INFO_ICON);
-	list.InsertItem(1, _T("This is a test log 1"), ZE_ICON_INDEX::INFO_ICON);
-	list.InsertItem(2, _T("This is a test log 2"), ZE_ICON_INDEX::WARNING_ICON);
-	list.InsertItem(3, _T("This is a test log 3"), ZE_ICON_INDEX::INFO_ICON);
-	list.InsertItem(4, _T("This is a test log 4"), ZE_ICON_INDEX::ERROR_ICON);
-	list.InsertItem(5, _T("This is a test log 5"), ZE_ICON_INDEX::ERROR_ICON);
-	list.InsertItem(6, _T("This is a test log 6"), ZE_ICON_INDEX::INFO_ICON);
-	list.InsertItem(7, _T("This is a test log 7"), ZE_ICON_INDEX::INFO_ICON);
-	list.InsertItem(8, _T("This is a test log 8"), ZE_ICON_INDEX::WARNING_ICON);
-	list.InsertItem(9, _T("This is a test log 9"), ZE_ICON_INDEX::INFO_ICON);
+	this->AddLog(_T("TEST LOG┼"), LOG_TYPE::LT_WARNING);
+	this->AddLog(_T("테스트 Log★"), LOG_TYPE::LT_INFO);
+	this->AddLog(_T("TEST 로그§"), LOG_TYPE::LT_ERROR);
 }

@@ -1,6 +1,3 @@
-// C:\Users\admin\source\repos\DXGameDev\LevelEditor\TerrainGenerationDialog.cpp : implementation file
-//
-
 #include "LevelEditor.h"
 #include "afxdialogex.h"
 #include "TerrainGenerationDialog.h"

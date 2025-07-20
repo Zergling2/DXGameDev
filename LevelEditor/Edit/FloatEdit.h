@@ -2,14 +2,14 @@
 
 #include "..\framework.h"
 
-// CTransformEdit
+// CFloatEdit
 
-class CTransformEdit : public CEdit
+class CFloatEdit : public CEdit
 {
-	DECLARE_DYNAMIC(CTransformEdit)
+	DECLARE_DYNAMIC(CFloatEdit)
 public:
-	CTransformEdit();
-	virtual ~CTransformEdit();
+	CFloatEdit();
+	virtual ~CFloatEdit();
 protected:
 	DECLARE_MESSAGE_MAP()
 public:

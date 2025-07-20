@@ -1,29 +1,29 @@
 // TransformEdit.cpp : implementation file
 //
 
-#include "TransformEdit.h"
+#include "FloatEdit.h"
 
-// CTransformEdit
+// CFloatEdit
 
-IMPLEMENT_DYNAMIC(CTransformEdit, CEdit)
+IMPLEMENT_DYNAMIC(CFloatEdit, CEdit)
 
-CTransformEdit::CTransformEdit()
+CFloatEdit::CFloatEdit()
 {
 }
 
-CTransformEdit::~CTransformEdit()
+CFloatEdit::~CFloatEdit()
 {
 }
 
 
-BEGIN_MESSAGE_MAP(CTransformEdit, CEdit)
+BEGIN_MESSAGE_MAP(CFloatEdit, CEdit)
 	ON_WM_CHAR()
 END_MESSAGE_MAP()
 
 
-// CTransformEdit message handlers
+// CFloatEdit message handlers
 
-void CTransformEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
+void CFloatEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
 	// TODO: Add your message handler code here and/or call default
     bool pass = false;

@@ -8,6 +8,7 @@
 
 #include "LevelEditorDoc.h"
 #include "LevelEditorView.h"
+#include "Settings.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -110,6 +111,23 @@ BOOL CLevelEditorApp::InitInstance()
 	LoadStdProfileSettings(4);  // Load standard INI file options (including MRU)
 
 
+	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+	// 아이콘 로드
+	CBitmap iconBitmap;
+	iconBitmap.LoadBitmap(IDB_ZEPACKEDICON);
+
+	if (!m_iconList.Create(
+		ZE_PACKED_ICON_SIZE_X,
+		ZE_PACKED_ICON_SIZE_Y,
+		ILC_COLOR24 | ILC_MASK,
+		ZE_PACKED_ICON_COUNT,
+		0
+	))
+		return FALSE;
+	m_iconList.Add(&iconBitmap, ZE_PACKED_ICON_COLOR_MASK);
+	// iconBitmap.Detach();
+	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 	// Register the application's document templates.  Document templates
 	//  serve as the connection between documents, frame windows and views
 	CSingleDocTemplate* pDocTemplate;
@@ -147,7 +165,8 @@ BOOL CLevelEditorApp::InitInstance()
 
 
 
-
+	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+	// Zerg Engine 런타임 초기화
 	ze::Runtime::CreateInstance();
 	CMainFrame* pMainFrame = static_cast<CMainFrame*>(AfxGetMainWnd());
 	ze::Runtime::GetInstance()->InitEditor(
@@ -166,6 +185,7 @@ BOOL CLevelEditorApp::InitInstance()
 
 	ze::Texture2D skyboxCubeMap = ze::ResourceLoader::GetInstance()->LoadCubeMapTexture(L"Resource\\Skybox\\cloudy_puresky.dds");
 	ze::Environment::GetInstance()->SetSkyboxCubeMap(skyboxCubeMap);
+	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 	return TRUE;
 }

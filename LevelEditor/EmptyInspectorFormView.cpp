@@ -1,6 +1,3 @@
-// C:\Users\admin\source\repos\DXGameDev\LevelEditor\EmptyInspectorFormView.cpp : implementation file
-//
-
 #include "LevelEditor.h"
 #include "EmptyInspectorFormView.h"
 

@@ -1,7 +1,5 @@
-// HierarchyTreeView.cpp : implementation file
-//
-
 #include "HierarchyTreeView.h"
+#include "LevelEditor.h"
 #include "Settings.h"
 #include "HTVItem\HTVItemRoot.h"
 #include "HTVItem\HTVItemEmpty.h"
@@ -87,22 +85,9 @@ void CHierarchyTreeView::OnInitialUpdate()
 		tc.SetTextColor(HIERARCHY_TREEVIEW_TEXT_COLOR);
 
 		// 2. 아이콘 리스트 로드 및 설정
-		CBitmap iconBitmap;
-		iconBitmap.LoadBitmap(IDB_ZEPACKEDICON);
-
-		CImageList iconList;
-		iconList.Create(
-			ZE_PACKED_ICON_SIZE_X,
-			ZE_PACKED_ICON_SIZE_Y,
-			ILC_COLOR24 | ILC_MASK,
-			ZE_PACKED_ICON_COUNT,
-			0
-		);
-		iconList.Add(&iconBitmap, ZE_PACKED_ICON_COLOR_MASK);
-		iconBitmap.Detach();
-
+		CLevelEditorApp* pApp = static_cast<CLevelEditorApp*>(AfxGetApp());
+		CImageList& iconList = pApp->GetZEIconList();
 		tc.SetImageList(&iconList, TVSIL_NORMAL);
-		iconList.Detach();
 
 		// Scene 루트 노드 추가
 		HTVItemRoot* pHTVItemRoot = new HTVItemRoot();

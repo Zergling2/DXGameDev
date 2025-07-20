@@ -1,6 +1,3 @@
-// C:\Users\admin\source\repos\DXGameDev\LevelEditor\MeshRendererInspectorFormView.cpp : implementation file
-//
-
 #include "LevelEditor.h"
 #include "CLVItem\CLVItemMeshRenderer.h"
 #include "MeshRendererInspectorFormView.h"

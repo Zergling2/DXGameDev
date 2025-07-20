@@ -1,6 +1,3 @@
-// InspectorFormView.cpp : implementation file
-//
-
 #include "TransformInspectorFormView.h"
 #include "CLVItem\CLVItemTransform.h"
 
@@ -10,6 +7,7 @@ IMPLEMENT_DYNCREATE(CTransformInspectorFormView, CFormView)
 
 CTransformInspectorFormView::CTransformInspectorFormView()
 	: CFormView(IDD_TRANSFORM_INSPECTOR_FORMVIEW)
+	, m_pItem(nullptr)
 	, m_positionX()
 	, m_positionY()
 	, m_positionZ()

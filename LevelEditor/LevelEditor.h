@@ -22,7 +22,10 @@ public:
 // Overrides
 public:
 	DECLARE_MESSAGE_MAP()
+private:
+	CImageList m_iconList;
 public:
+	CImageList& GetZEIconList() { return m_iconList; }
 	// Implementation
 	virtual BOOL InitInstance();
 	virtual int ExitInstance();

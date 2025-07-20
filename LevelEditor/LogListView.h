@@ -4,6 +4,13 @@
 
 // CLogListView view
 
+enum class LOG_TYPE
+{
+	LT_INFO,
+	LT_WARNING,
+	LT_ERROR
+};
+
 class CLogListView : public CListView
 {
 	DECLARE_DYNCREATE(CLogListView)
@@ -22,7 +29,8 @@ protected:
 private:
 	bool m_initialized;
 public:
+	void AddLog(const CString& msg, LOG_TYPE type) { this->AddLog(msg.GetString(), type); }
+	void AddLog(LPTSTR msg, LOG_TYPE type);
+
 	virtual void OnInitialUpdate();
 };
-
-

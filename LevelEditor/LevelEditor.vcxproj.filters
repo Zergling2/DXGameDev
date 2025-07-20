@@ -8,9 +8,6 @@
     <Filter Include="Files">
       <UniqueIdentifier>{7f2c4f42-cd63-4aa8-b697-f09c155103ca}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Files\TransformEdit">
-      <UniqueIdentifier>{d0daf16a-765f-49c9-a294-1d4e70c1a1e7}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Files\HTVItem">
       <UniqueIdentifier>{ea522cb2-781e-4bcf-9663-bf2ca693b184}</UniqueIdentifier>
     </Filter>
@@ -19,6 +16,12 @@
     </Filter>
     <Filter Include="Files\CommandHandler">
       <UniqueIdentifier>{e5d77495-7166-4837-8384-28750b9bf338}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Files\Edit">
+      <UniqueIdentifier>{d0daf16a-765f-49c9-a294-1d4e70c1a1e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Files\ALVItem">
+      <UniqueIdentifier>{35fc3486-8e19-4845-abef-e2a1c4004b89}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -67,11 +70,8 @@
     <ClInclude Include="TransformInspectorFormView.h">
       <Filter>Files</Filter>
     </ClInclude>
-    <ClInclude Include="TransformEdit\TransformEdit.h">
-      <Filter>Files\TransformEdit</Filter>
-    </ClInclude>
-    <ClInclude Include="TerrainData.h">
-      <Filter>Files</Filter>
+    <ClInclude Include="Edit\FloatEdit.h">
+      <Filter>Files\Edit</Filter>
     </ClInclude>
     <ClInclude Include="TerrainDataEditor.h">
       <Filter>Files</Filter>
@@ -112,6 +112,18 @@
     <ClInclude Include="CLVItem\CLVItemTerrain.h">
       <Filter>Files\CLVItem</Filter>
     </ClInclude>
+    <ClInclude Include="TerrainInspectorFormView.h">
+      <Filter>Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MaterialInspectorFormView.h">
+      <Filter>Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ALVItem\ALVItemInterface.h">
+      <Filter>Files\ALVItem</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetTreeView.h">
+      <Filter>Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BufferDC.cpp">
@@ -144,11 +156,8 @@
     <ClCompile Include="TransformInspectorFormView.cpp">
       <Filter>Files</Filter>
     </ClCompile>
-    <ClCompile Include="TransformEdit\TransformEdit.cpp">
-      <Filter>Files\TransformEdit</Filter>
-    </ClCompile>
-    <ClCompile Include="TerrainData.cpp">
-      <Filter>Files</Filter>
+    <ClCompile Include="Edit\FloatEdit.cpp">
+      <Filter>Files\Edit</Filter>
     </ClCompile>
     <ClCompile Include="TerrainDataEditor.cpp">
       <Filter>Files</Filter>
@@ -188,6 +197,18 @@
     </ClCompile>
     <ClCompile Include="CLVItem\CLVItemTerrain.cpp">
       <Filter>Files\CLVItem</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainInspectorFormView.cpp">
+      <Filter>Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MaterialInspectorFormView.cpp">
+      <Filter>Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ALVItem\ALVItemInterface.cpp">
+      <Filter>Files\ALVItem</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetTreeView.cpp">
+      <Filter>Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

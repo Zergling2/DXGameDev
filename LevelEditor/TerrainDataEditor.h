@@ -1,18 +1,18 @@
 #pragma once
 
-class TerrainData;
+#include "framework.h"
 
 class TerrainEditor
 {
 public:
 	TerrainEditor()
-		: m_pTerrainData(nullptr)
+		: m_pTerrain(nullptr)
 	{
 	}
 	~TerrainEditor() = default;
 
-	void SetDataToModify(TerrainData* pTerrainData) { m_pTerrainData; }
-	TerrainData* GetData() const { return m_pTerrainData; }
+	void SetDataToModify(ze::Terrain* pTerrain) { m_pTerrain = pTerrain; }
+	ze::Terrain* GetData() const { return m_pTerrain; }
 
 	void IncreaseHeight(size_t row, size_t column, float radius);
 	void DecreaseHeight(size_t row, size_t column, float radius);
@@ -20,5 +20,5 @@ public:
 	// 선택 한 좌표로부터 범위 내 정점들의 높이를 일치시킵니다.
 	void Flatten(size_t row, size_t column, float radius);
 private:
-	TerrainData* m_pTerrainData;
+	ze::Terrain* m_pTerrain;
 };

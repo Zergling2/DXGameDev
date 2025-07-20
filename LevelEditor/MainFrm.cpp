@@ -9,6 +9,7 @@
 #include "MeshRendererInspectorFormView.h"
 #include "HierarchyTreeView.h"
 #include "LogListView.h"
+#include "AssetTreeView.h"
 #include "CommandHandler\CommandHandler.h"
 
 #ifdef _DEBUG
@@ -37,16 +38,17 @@ static UINT indicators[] =
 	ID_INDICATOR_SCRL,
 };
 
-constexpr int FIRST_LRSPLIT_RIGHT_WIDTH = 332;		// ComponentListView, ComponentInspectorFormView 너비
-constexpr int SECOND_UDSPLIT_BOTTOM_HEIGHT = 256;	// LogListView 높이
-constexpr int THIRD_LRSPLIT_LEFT_WIDTH = 256;		// HierarchyTreeView 너비
-constexpr int FOURTH_UDSPLIT_TOP_HEIGHT = 256;		// ComponentListView 높이
+constexpr int LOG_LIST_VIEW_WIDTH = 512;			// LogListView 높이
+constexpr int LOG_LIST_VIEW_HEIGHT = 256;			// LogListView 높이
+constexpr int HIERARCHY_TREE_VIEW_WIDTH = 256;		// HierarchyTreeView 너비
+constexpr int HIERARCHY_TREE_VIEW_HEIGHT = 600;		// HierarchyTreeView 높이
+constexpr int COMPONENT_LIST_VIEW_WIDTH = 332;		// ComponentListView, ComponentInspectorFormView 너비
+constexpr int COMPONENT_LIST_VIEW_HEIGHT = 256;		// ComponentListView 높이
 
 // CMainFrame construction/destruction
 
 CMainFrame::CMainFrame() noexcept
 	: m_splitterCreated(false)
-	, m_wndSplitter{}
 {
 	// TODO: add member initialization code here
 }
@@ -95,7 +97,7 @@ CComponentListView* CMainFrame::GetComponentListView() const
 	if (!m_splitterCreated)
 		return nullptr;
 
-	return static_cast<CComponentListView*>(m_wndSplitter[3].GetPane(0, 0));
+	return static_cast<CComponentListView*>(m_wndSplitter[4].GetPane(0, 0));
 }
 
 CLevelEditorView* CMainFrame::GetLevelEditorView() const
@@ -111,13 +113,13 @@ CFormView* CMainFrame::GetComponentInspectorFormView() const
 	if (!m_splitterCreated)
 		return nullptr;
 
-	return static_cast<CFormView*>(m_wndSplitter[3].GetPane(1, 0));
+	return static_cast<CFormView*>(m_wndSplitter[4].GetPane(1, 0));
 }
 
 CFormView* CMainFrame::SwitchComponentInspectorFormView(CRuntimeClass* pRtClass)
 {
 	CCreateContext context;
-	CView* pOldView = static_cast<CView*>(m_wndSplitter[3].GetPane(1, 0));
+	CView* pOldView = static_cast<CView*>(m_wndSplitter[4].GetPane(1, 0));
 	
 	if (!pOldView)
 		return nullptr;
@@ -136,15 +138,15 @@ CFormView* CMainFrame::SwitchComponentInspectorFormView(CRuntimeClass* pRtClass)
 	pOldView->DestroyWindow();
 	
 	// 새 뷰 생성
-	if (!m_wndSplitter[3].CreateView(1, 0, pRtClass, CSize(0, 0), &context))
+	if (!m_wndSplitter[4].CreateView(1, 0, pRtClass, CSize(0, 0), &context))
 		return nullptr;
 	
 	// 새 뷰 활성화
-	CView* pNewView = static_cast<CView*>(m_wndSplitter[3].GetPane(1, 0));
+	CView* pNewView = static_cast<CView*>(m_wndSplitter[4].GetPane(1, 0));
 	
 	pNewView->SendMessage(WM_INITIALUPDATE);
 
-	m_wndSplitter[3].RecalcLayout();
+	m_wndSplitter[4].RecalcLayout();
 	
 	return static_cast<CFormView*>(pNewView);
 }
@@ -170,28 +172,36 @@ BOOL CMainFrame::OnCreateClient(LPCREATESTRUCT /*lpcs*/, CCreateContext* pContex
 		if (!result)
 			break;
 
-		// 3. 좌측 상단 좌우 분할 (HierarchyTreeView | DirectXRenderingView)
+		// 3. 좌측 상단 좌우 분할 (HierarchyTreeView | LevelEditorView)
 		result = m_wndSplitter[2].CreateStatic(&m_wndSplitter[1], 1, 2,
 			WS_CHILD | WS_VISIBLE, m_wndSplitter[1].IdFromRowCol(0, 0));
 		if (!result)
 			break;
 
+		// 5. 좌측 하단 좌우 분할 (LogListView | AssetListView)
+		result = m_wndSplitter[3].CreateStatic(&m_wndSplitter[1], 1, 2,
+			WS_CHILD | WS_VISIBLE, m_wndSplitter[1].IdFromRowCol(1, 0));
+		if (!result)
+			break;
+
 		// 4. 우측 상하 분할 (ComponentListView | ComponentInspectorFormView)
-		result = m_wndSplitter[3].CreateStatic(&m_wndSplitter[0], 2, 1,
+		result = m_wndSplitter[4].CreateStatic(&m_wndSplitter[0], 2, 1,
 			WS_CHILD | WS_VISIBLE, m_wndSplitter[0].IdFromRowCol(0, 1));
 		if (!result)
 			break;
 
-		// 5. HierarchyTreeView 생성
+		
+
+		// HierarchyTreeView 생성
 		result = m_wndSplitter[2].CreateView(0, 0,
 			RUNTIME_CLASS(CHierarchyTreeView),
-			CSize(THIRD_LRSPLIT_LEFT_WIDTH, 0),
+			CSize(HIERARCHY_TREE_VIEW_WIDTH, HIERARCHY_TREE_VIEW_HEIGHT),
 			pContext
 		);
 		if (!result)
 			break;
 
-		// 6. DirectX 렌더링 뷰 생성
+		// LevelEditorView 생성
 		result = m_wndSplitter[2].CreateView(0, 1,
 			RUNTIME_CLASS(CLevelEditorView),
 			CSize(0, 0),
@@ -200,26 +210,35 @@ BOOL CMainFrame::OnCreateClient(LPCREATESTRUCT /*lpcs*/, CCreateContext* pContex
 		if (!result)
 			break;
 
-		// 7. LogListView 생성
-		result = m_wndSplitter[1].CreateView(1, 0,
-			RUNTIME_CLASS(CLogListView),
-			CSize(0, SECOND_UDSPLIT_BOTTOM_HEIGHT),
-			pContext
-		);
-		if (!result)
-			break;
-
-		// 8. ComponentListView 생성
+		// LogListView 생성
 		result = m_wndSplitter[3].CreateView(0, 0,
-			RUNTIME_CLASS(CComponentListView),
-			CSize(0, FIRST_LRSPLIT_RIGHT_WIDTH),
+			RUNTIME_CLASS(CLogListView),
+			CSize(LOG_LIST_VIEW_WIDTH, LOG_LIST_VIEW_HEIGHT),
 			pContext
 		);
 		if (!result)
 			break;
 
-		// 9. 컴포넌트 인스펙터 폼 뷰들 생성
-		result = m_wndSplitter[3].CreateView(1, 0,
+		// AssetListView 생성
+		result = m_wndSplitter[3].CreateView(0, 1,
+			RUNTIME_CLASS(CAssetTreeView),
+			CSize(0, 0),
+			pContext
+		);
+		if (!result)
+			break;
+
+		// ComponentListView 생성
+		result = m_wndSplitter[4].CreateView(0, 0,
+			RUNTIME_CLASS(CComponentListView),
+			CSize(COMPONENT_LIST_VIEW_WIDTH, COMPONENT_LIST_VIEW_HEIGHT),
+			pContext
+		);
+		if (!result)
+			break;
+
+		// EmptyInspectorFormView 생성
+		result = m_wndSplitter[4].CreateView(1, 0,
 			RUNTIME_CLASS(CEmptyInspectorFormView),
 			CSize(0, 0),
 			pContext
@@ -227,14 +246,16 @@ BOOL CMainFrame::OnCreateClient(LPCREATESTRUCT /*lpcs*/, CCreateContext* pContex
 		if (!result)
 			break;
 
+		m_wndSplitter[0].SetColumnInfo(0, cr.Width() - COMPONENT_LIST_VIEW_WIDTH, 0);
+		m_wndSplitter[1].SetRowInfo(0, cr.Height() - LOG_LIST_VIEW_HEIGHT, 0);
+		m_wndSplitter[2].SetColumnInfo(0, HIERARCHY_TREE_VIEW_WIDTH, 0);
+		m_wndSplitter[3].SetColumnInfo(0, LOG_LIST_VIEW_WIDTH, 0);
+		m_wndSplitter[4].SetRowInfo(0, COMPONENT_LIST_VIEW_HEIGHT, 0);
 
+		for (size_t i = 0; i < _countof(m_wndSplitter); ++i)
+			m_wndSplitter[i].RecalcLayout();
 
 		m_splitterCreated = true;
-
-		m_wndSplitter[0].SetColumnInfo(0, cr.Width() - FIRST_LRSPLIT_RIGHT_WIDTH, 0);
-		m_wndSplitter[1].SetRowInfo(0, cr.Height() - SECOND_UDSPLIT_BOTTOM_HEIGHT, 0);
-		m_wndSplitter[2].SetColumnInfo(0, THIRD_LRSPLIT_LEFT_WIDTH, 0);
-		m_wndSplitter[3].SetRowInfo(0, FOURTH_UDSPLIT_TOP_HEIGHT, 0);
 	} while (false);
 
 	return result;
@@ -296,15 +317,14 @@ void CMainFrame::OnSize(UINT nType, int cx, int cy)
 	case SIZE_RESTORED:
 		GetClientRect(&cr);
 
-		m_wndSplitter[0].SetColumnInfo(0, cr.Width() - FIRST_LRSPLIT_RIGHT_WIDTH, 0);
-		m_wndSplitter[1].SetRowInfo(0, cr.Height() - SECOND_UDSPLIT_BOTTOM_HEIGHT, 0);
-		m_wndSplitter[2].SetColumnInfo(0, THIRD_LRSPLIT_LEFT_WIDTH, 0);
-		m_wndSplitter[3].SetRowInfo(0, FOURTH_UDSPLIT_TOP_HEIGHT, 0);
+		m_wndSplitter[0].SetColumnInfo(0, cr.Width() - COMPONENT_LIST_VIEW_WIDTH, 0);
+		m_wndSplitter[1].SetRowInfo(0, cr.Height() - LOG_LIST_VIEW_HEIGHT, 0);
+		m_wndSplitter[2].SetColumnInfo(0, HIERARCHY_TREE_VIEW_WIDTH, 0);
+		m_wndSplitter[3].SetColumnInfo(0, LOG_LIST_VIEW_WIDTH, 0);
+		m_wndSplitter[4].SetRowInfo(0, COMPONENT_LIST_VIEW_HEIGHT, 0);
 
-		m_wndSplitter[0].RecalcLayout();
-		m_wndSplitter[1].RecalcLayout();
-		m_wndSplitter[2].RecalcLayout();
-		m_wndSplitter[3].RecalcLayout();
+		for (size_t i = 0; i < _countof(m_wndSplitter); ++i)
+			m_wndSplitter[i].RecalcLayout();
 		break;
 	default:
 		StringCbPrintfW(log, sizeof(log), L"CMainFrame::OnSize() Parameter nType was %u\n", nType);

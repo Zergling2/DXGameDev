@@ -199,6 +199,8 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="ALVItem\ALVItemInterface.h" />
+    <ClInclude Include="AssetTreeView.h" />
     <ClInclude Include="BufferDC.h" />
     <ClInclude Include="CLVItem\CLVItemEmpty.h" />
     <ClInclude Include="CLVItem\CLVItemInterface.h" />
@@ -213,14 +215,15 @@
     <ClInclude Include="HTVItem\HTVItemGameObject.h" />
     <ClInclude Include="HTVItem\HTVItemInterface.h" />
     <ClInclude Include="HTVItem\HTVItemRoot.h" />
+    <ClInclude Include="MaterialInspectorFormView.h" />
     <ClInclude Include="MeshRendererInspectorFormView.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="HierarchyTreeView.h" />
-    <ClInclude Include="TerrainData.h" />
     <ClInclude Include="TerrainDataEditor.h" />
     <ClInclude Include="TerrainGenerationDialog.h" />
-    <ClInclude Include="TransformEdit\TransformEdit.h" />
+    <ClInclude Include="TerrainInspectorFormView.h" />
+    <ClInclude Include="Edit\FloatEdit.h" />
     <ClInclude Include="TransformInspectorFormView.h" />
     <ClInclude Include="LevelEditor.h" />
     <ClInclude Include="LevelEditorDoc.h" />
@@ -231,6 +234,8 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ALVItem\ALVItemInterface.cpp" />
+    <ClCompile Include="AssetTreeView.cpp" />
     <ClCompile Include="BufferDC.cpp" />
     <ClCompile Include="CLVItem\CLVItemEmpty.cpp" />
     <ClCompile Include="CLVItem\CLVItemInterface.cpp" />
@@ -245,11 +250,12 @@
     <ClCompile Include="HTVItem\HTVItemGameObject.cpp" />
     <ClCompile Include="HTVItem\HTVItemInterface.cpp" />
     <ClCompile Include="HTVItem\HTVItemRoot.cpp" />
+    <ClCompile Include="MaterialInspectorFormView.cpp" />
     <ClCompile Include="MeshRendererInspectorFormView.cpp" />
-    <ClCompile Include="TerrainData.cpp" />
     <ClCompile Include="TerrainDataEditor.cpp" />
     <ClCompile Include="TerrainGenerationDialog.cpp" />
-    <ClCompile Include="TransformEdit\TransformEdit.cpp" />
+    <ClCompile Include="TerrainInspectorFormView.cpp" />
+    <ClCompile Include="Edit\FloatEdit.cpp" />
     <ClCompile Include="TransformInspectorFormView.cpp" />
     <ClCompile Include="LevelEditor.cpp" />
     <ClCompile Include="LevelEditorDoc.cpp" />

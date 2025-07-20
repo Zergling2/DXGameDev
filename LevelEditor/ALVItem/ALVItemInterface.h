@@ -2,11 +2,11 @@
 
 #include "..\framework.h"
 
-class ICLVItem abstract
+class IALVItem abstract
 {
 public:
-	ICLVItem() = default;
-	virtual ~ICLVItem() = default;
+	IALVItem() = default;
+	virtual ~IALVItem() = default;
 
 	virtual void OnSelect() = 0;
 };

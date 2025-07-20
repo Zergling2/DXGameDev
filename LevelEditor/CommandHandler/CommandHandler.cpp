@@ -14,13 +14,49 @@ void On3DObjectTerrain()
 	if (ret != IDOK)
 		return;
 
-	TCHAR buf[64];
-	StringCbPrintfW(buf,
-		sizeof(buf),
-		L"Cell Size: %lf, Height Scale: %lf, Row: %u, Col: %u\n",
-		dlg.m_cellSize, dlg.m_heightScale, dlg.m_patchCountRow, dlg.m_patchCountColumn
+	// Create Terrain Object
+	CMainFrame* pMainFrame = static_cast<CMainFrame*>(AfxGetMainWnd());
+	auto pHTV = pMainFrame->GetHierarchyTreeView();
+
+	auto& tc = pHTV->GetTreeCtrl();
+	const HTREEITEM hSelectedItem = tc.GetSelectedItem();
+	HTREEITEM hParent;
+	if (hSelectedItem)
+		hParent = hSelectedItem;
+	else
+		hParent = tc.GetRootItem();
+
+	ze::GameObjectHandle hGameObject = ze::Runtime::GetInstance()->CreateGameObject(L"New Terrain Object");
+	ze::GameObject* pGameObject = hGameObject.ToPtr();
+	if (hParent != tc.GetRootItem())	// 새로 만들어지는 게임 오브젝트가 다른 게임 오브젝트를 부모로 삼는다면
+	{
+		// 런타임 게임 오브젝트 계층 구조 설정 (SetParent)
+		HTVItemGameObject* pHTVItemGameObject = reinterpret_cast<HTVItemGameObject*>(tc.GetItemData(hParent));
+		ze::GameObjectHandle hParentGameObject = pHTVItemGameObject->GetGameObjectHandle();
+		pGameObject->m_transform.SetParent(&hParentGameObject.ToPtr()->m_transform);
+	}
+
+	// Terrain 컴포넌트 추가
+	pGameObject->AddComponent<ze::Terrain>(
+		dlg.m_patchCountRow,
+		dlg.m_patchCountColumn,
+		dlg.m_cellSize,
+		dlg.m_heightScale
 	);
-	OutputDebugStringW(buf);
+
+	HTVItemGameObject* pHTVItemGameObject = new HTVItemGameObject(hGameObject);
+	const HTREEITEM hNewItem = tc.InsertItem(L"New Terrain Object",
+		ZE_ICON_INDEX::GAMEOBJECT_ICON,
+		ZE_ICON_INDEX::GAMEOBJECT_ICON,
+		hParent
+	);
+	tc.SetItemData(hNewItem, reinterpret_cast<DWORD_PTR>(pHTVItemGameObject));
+	tc.SelectItem(hNewItem);
+
+	// 컴포넌트 리스트 뷰 업데이트
+	pHTVItemGameObject->OnSelect();
+
+	tc.EditLabel(hNewItem);
 }
 
 void OnGameObjectCreateEmpty()
@@ -36,10 +72,10 @@ void OnGameObjectCreateEmpty()
 	else
 		hParent = tc.GetRootItem();
 
-	PCWSTR gameObjectName = L"New Game Object";
-	ze::GameObjectHandle hGameObject = ze::Runtime::GetInstance()->CreateGameObject(gameObjectName);
+	ze::GameObjectHandle hGameObject = ze::Runtime::GetInstance()->CreateGameObject(L"New Game Object");
 	if (hParent != tc.GetRootItem())	// 새로 만들어지는 게임 오브젝트가 다른 게임 오브젝트를 부모로 삼는다면
 	{
+		// 런타임 게임 오브젝트 계층 구조 설정 (SetParent)
 		HTVItemGameObject* pHTVItemGameObject = reinterpret_cast<HTVItemGameObject*>(tc.GetItemData(hParent));
 		ze::GameObjectHandle hParentGameObject = pHTVItemGameObject->GetGameObjectHandle();
 		ze::GameObject* pGameObject = hGameObject.ToPtr();
@@ -47,7 +83,7 @@ void OnGameObjectCreateEmpty()
 	}
 
 	HTVItemGameObject* pHTVItemGameObject = new HTVItemGameObject(hGameObject);
-	const HTREEITEM hNewItem = tc.InsertItem(gameObjectName,
+	const HTREEITEM hNewItem = tc.InsertItem(L"New Game Object",
 		ZE_ICON_INDEX::GAMEOBJECT_ICON,
 		ZE_ICON_INDEX::GAMEOBJECT_ICON,
 		hParent
@@ -94,5 +130,6 @@ void OnComponentMeshRenderer()
 
 	pGameObject->AddComponent<ze::MeshRenderer>();
 
+	// 컴포넌트 리스트 갱신
 	pHTVItemGameObject->OnSelect();
 }

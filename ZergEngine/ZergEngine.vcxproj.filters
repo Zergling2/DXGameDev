@@ -186,9 +186,6 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\RenderState.h">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\TerrainData.h">
-      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
-    </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\Runtime.h">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClInclude>
@@ -421,9 +418,6 @@
     </ClCompile>
     <ClCompile Include="source\CoreSystem\RenderState.cpp">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\Resource\TerrainData.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\Runtime.cpp">
       <Filter>Files\ZergEngine\CoreSystem</Filter>

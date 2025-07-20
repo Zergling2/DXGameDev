@@ -19,7 +19,7 @@ protected: // create from serialization only
 // Attributes
 protected:
 	bool m_splitterCreated;
-	CSplitterWnd m_wndSplitter[4];
+	CSplitterWnd m_wndSplitter[5];
 // Operations
 public:
 // Overrides

@@ -24,7 +24,6 @@ public:
 	virtual void Dump(CDumpContext& dc) const;
 #endif
 #endif
-
 	void SetCLVItemToModify(CLVItemMeshRenderer* pItem) { m_pItem = pItem; }
 	CLVItemMeshRenderer* GetCLVItemToModify() const { return m_pItem; }
 public:
