@@ -199,6 +199,7 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AssetManager.h" />
     <ClInclude Include="ATVItem\ATVItemFolder.h" />
     <ClInclude Include="ATVItem\ATVItemInterface.h" />
     <ClInclude Include="AssetTreeView.h" />
@@ -237,6 +238,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AssetManager.cpp" />
     <ClCompile Include="ATVItem\ATVItemFolder.cpp" />
     <ClCompile Include="ATVItem\ATVItemInterface.cpp" />
     <ClCompile Include="AssetTreeView.cpp" />

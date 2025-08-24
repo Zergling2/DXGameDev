@@ -153,8 +153,9 @@ bool Math::TestFrustumAabbCollision(const Frustum& frustum, const Aabb& aabb)
 
 bool Math::TestAabbBehindPlane(const Aabb& aabb, const Plane& plane)
 {
-	// XMVECTOR n = XMVectorAbs(XMVectorSetW(XMLoadFloat4A(&plane.m_equation), 0.0f));  // XMVector3Dot 함수를 사용하면 XMVectorSetW 불필요
-	XMVECTOR n = XMVectorAbs(XMLoadFloat4A(&plane.m_equation));  // plane은 정규화되어있는 평면
+	XMVECTOR planeEquation = XMLoadFloat4A(&plane.m_equation);
+	// XMVECTOR n = XMVectorAbs(XMVectorSetW(planeEquation, 0.0f));  // XMVector3Dot 함수를 사용하면 XMVectorSetW 불필요
+	XMVECTOR n = XMVectorAbs(planeEquation);  // plane은 정규화되어있는 평면
 
 	XMVECTOR center = XMVectorSetW(XMLoadFloat3A(&aabb.m_center), 1.0f);
 	XMVECTOR extent = XMLoadFloat3A(&aabb.m_extent);
@@ -162,7 +163,7 @@ bool Math::TestAabbBehindPlane(const Aabb& aabb, const Plane& plane)
 	const float r = XMVectorGetX(XMVector3Dot(extent, n));  // n 역시 정규화 벡터이므로 extent를 n과 내적하면 extent가 벡터 n에 투영된 길이를 얻을 수 있음
 
 	// 평면의 법선 벡터와 Aabb center 좌표의 내적 + 원점으로부터 평면까지의 거리
-	const float s = XMVectorGetX(XMPlaneDot(center, XMLoadFloat4A(&plane.m_equation)));
+	const float s = XMVectorGetX(XMPlaneDot(center, planeEquation));
 
 	return s + r < 0.0f;
 }
@@ -170,7 +171,7 @@ bool Math::TestAabbBehindPlane(const Aabb& aabb, const Plane& plane)
 // https://gist.github.com/cmf028/81e8d3907035640ee0e3fdd69ada543f 참고
 // Second Optimized implementation
 // transform_aabb_optimized_abs_center_extents 함수를 DirectXMath 버전으로 변환
-const Aabb XM_CALLCONV Math::TransformAabb(FXMMATRIX m, const Aabb& aabb)
+const Aabb XM_CALLCONV Math::TransformAabb(const Aabb& aabb, FXMMATRIX m)
 {
 	// Transform center
 	XMVECTOR tCenter = XMVector3TransformCoord(XMLoadFloat3A(&aabb.m_center), m);

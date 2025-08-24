@@ -304,7 +304,7 @@ void Renderer::RenderFrame()
 				continue;
 
 			// 프러스텀 컬링
-			Aabb aabbW = Math::TransformAabb(pMeshRenderer->m_pGameObject->m_transform.GetWorldTransformMatrix(), pMeshRenderer->m_mesh->GetAabb());
+			Aabb aabbW = Math::TransformAabb(pMeshRenderer->m_mesh->GetAabb(), pMeshRenderer->m_pGameObject->m_transform.GetWorldTransformMatrix());
 			if (!Math::TestFrustumAabbCollision(cameraFrustumW, aabbW))
 				continue;
 

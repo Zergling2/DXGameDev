@@ -133,6 +133,9 @@
     <ClInclude Include="ATVItem\ATVItemFolder.h">
       <Filter>Files\ATVItem</Filter>
     </ClInclude>
+    <ClInclude Include="AssetManager.h">
+      <Filter>Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BufferDC.cpp">
@@ -227,6 +230,9 @@
     </ClCompile>
     <ClCompile Include="ATVItem\ATVItemFolder.cpp">
       <Filter>Files\ATVItem</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetManager.cpp">
+      <Filter>Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

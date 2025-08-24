@@ -4,7 +4,6 @@
 #include "..\HierarchyTreeView.h"
 #include "..\HTVItem\HTVItemGameObject.h"
 #include "..\Settings.h"
-#include <ZergEngine\CoreSystem\Runtime.h>
 
 void On3DObjectTerrain()
 {
