@@ -189,6 +189,12 @@ BOOL CLevelEditorApp::InitInstance()
 
 	ze::Texture2D skyboxCubeMap = ze::ResourceLoader::GetInstance()->LoadCubeMapTexture(L"Resource\\Skybox\\cloudy_puresky.dds");
 	ze::Environment::GetInstance()->SetSkyboxCubeMap(skyboxCubeMap);
+
+	CRect editorViewRect;
+	pMainFrame->GetLevelEditorView()->GetWindowRect(&editorViewRect);
+	// 위에서 EditorView 창이 생성되고 WM_SIZE 메시지가 발생하는 시점에서는 Runtime이 아직 생성되기 전이므로
+	// Runtime 인스턴스가 생성되고 나서 직접 최초 1회 호출해주어야 한다.
+	ze::Runtime::GetInstance()->OnSize(SIZE_RESTORED, editorViewRect.Width(), editorViewRect.Height());
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 	return TRUE;

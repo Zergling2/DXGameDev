@@ -113,7 +113,7 @@ void CLevelEditorView::OnSize(UINT nType, int cx, int cy)
     }
 
     ze::Runtime* pRuntime = ze::Runtime::GetInstance();
-    if (pRuntime)
+    if (pRuntime && cx > 0 && cy > 0)
         pRuntime->OnSize(nType, cx, cy);
 }
 
