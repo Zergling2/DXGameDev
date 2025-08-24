@@ -204,12 +204,14 @@ void GameObjectManager::MoveToInactiveGroup(GameObject* pGameObject)
 void GameObjectManager::DeployToActiveGroup(GameObject* pGameObject)
 {
 	assert(pGameObject->IsActive());
+
 	AddToActiveGroup(pGameObject);
 }
 
 void GameObjectManager::DeployToInactiveGroup(GameObject* pGameObject)
 {
 	assert(!pGameObject->IsActive());
+
 	AddToInactiveGroup(pGameObject);
 }
 

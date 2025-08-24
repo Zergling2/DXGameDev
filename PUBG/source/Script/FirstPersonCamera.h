@@ -8,7 +8,11 @@ namespace pubg
 	{
 		DECLARE_MONOBEHAVIOUR_TYPE
 	public:
-		FirstPersonCamera() = default;
+		FirstPersonCamera()
+			: m_onUI(false)
+			, m_hPanel()
+		{
+		}
 		virtual ~FirstPersonCamera() = default;
 
 		virtual void Awake() override { printf("FirstPersonCamera::Awake()\n"); }
@@ -17,5 +21,8 @@ namespace pubg
 		virtual void Update() override;
 		virtual void OnDisable() override { printf("FirstPersonCamera::OnDisable()\n"); }
 		virtual void OnDestroy() override { printf("FirstPersonCamera::OnDestroy()\n"); }
+	public:
+		bool m_onUI;
+		ze::UIObjectHandle m_hPanel;
 	};
 }

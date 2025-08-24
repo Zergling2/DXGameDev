@@ -16,7 +16,7 @@ void TestScene1::OnLoadScene()
 	std::shared_ptr<Material> parkinglotMat;
 
 	{
-		GameObjectHandle hTerrainObject = CreateGameObject(L"TerrainObject");
+		GameObjectHandle hTerrainObject = CreateGameObject(L"Terrain Object");
 		GameObject* pTerrainObject = hTerrainObject.ToPtr();
 		ComponentHandle<Terrain> hTerrain = pTerrainObject->AddComponent<Terrain>();
 		uint16_t* pTempData = new uint16_t[129 * 129];
@@ -41,16 +41,54 @@ void TestScene1::OnLoadScene()
 
 	
 
+	UIObjectHandle hPanel = CreatePanel();
+	Panel* pPanel = static_cast<Panel*>(hPanel.ToPtr());
+	pPanel->SetSize(XMFLOAT2(600, 400));
+	pPanel->SetColor(XMVectorSet(0.0f, 0.5f, 0.25f, 0.5f));
+	pPanel->m_transform.SetHorizontalAnchor(HORIZONTAL_ANCHOR::CENTER);
+	pPanel->m_transform.SetVerticalAnchor(VERTICAL_ANCHOR::VCENTER);
+	pPanel->m_transform.m_position.x = 0.0f;
+	pPanel->m_transform.m_position.y = 0.0f;
+	pPanel->SetShape(PANEL_SHAPE::ROUNDED_RECTANGLE);
+	pPanel->SetActive(false);
 	{
-		UIObjectHandle hPanel = CreatePanel();
-		Panel* pPanel = static_cast<Panel*>(hPanel.ToPtr());
-		pPanel->SetSize(XMFLOAT2(100, 100));
-		pPanel->SetColor(XMVectorSet(0.0f, 0.5f, 0.25f, 0.5f));
-		pPanel->m_transform.SetHorizontalAnchor(HORIZONTAL_ANCHOR::CENTER);
-		pPanel->m_transform.SetVerticalAnchor(VERTICAL_ANCHOR::VCENTER);
-		pPanel->m_transform.m_position.x = 0.0f;
-		pPanel->m_transform.m_position.y = 0.0f;
-		pPanel->SetShape(PANEL_SHAPE::ROUNDED_RECTANGLE);
+		UIObjectHandle hButton = CreateButton();
+		Button* pButton = static_cast<Button*>(hButton.ToPtr());
+		pButton->SetSize(XMFLOAT2(80, 40));
+		pButton->SetColor(XMVectorSet(0.25f, 0.25f, 0.75f, 0.5f));
+		pButton->m_transform.SetHorizontalAnchor(HORIZONTAL_ANCHOR::CENTER);
+		pButton->m_transform.SetVerticalAnchor(VERTICAL_ANCHOR::VCENTER);
+		pButton->m_transform.m_position.x = +90.0f;
+		pButton->m_transform.m_position.y = +30.0f;
+		pButton->SetText(L"Blue 버튼");
+		pButton->SetTextColor(XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
+		pButton->m_transform.SetParent(&pPanel->m_transform);
+	}
+	{
+		UIObjectHandle hButton = CreateButton();
+		Button* pButton = static_cast<Button*>(hButton.ToPtr());
+		pButton->SetSize(XMFLOAT2(80, 40));
+		pButton->SetColor(XMVectorSet(0.25f, 0.75f, 0.25f, 0.5f));
+		pButton->m_transform.SetHorizontalAnchor(HORIZONTAL_ANCHOR::CENTER);
+		pButton->m_transform.SetVerticalAnchor(VERTICAL_ANCHOR::VCENTER);
+		pButton->m_transform.m_position.x = -200.0f;
+		pButton->m_transform.m_position.y = +30.0f;
+		pButton->SetText(L"Green 버튼");
+		pButton->SetTextColor(XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f));
+		pButton->m_transform.SetParent(&pPanel->m_transform);
+	}
+	{
+		UIObjectHandle hButton = CreateButton();
+		Button* pButton = static_cast<Button*>(hButton.ToPtr());
+		pButton->SetSize(XMFLOAT2(80, 40));
+		pButton->SetColor(XMVectorSet(0.75f, 0.25f, 0.25f, 0.5f));
+		pButton->m_transform.SetHorizontalAnchor(HORIZONTAL_ANCHOR::CENTER);
+		pButton->m_transform.SetVerticalAnchor(VERTICAL_ANCHOR::VCENTER);
+		pButton->m_transform.m_position.x = -110.0f;
+		pButton->m_transform.m_position.y = -230.0f;
+		pButton->SetText(L"Red 버튼");
+		pButton->SetTextColor(XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f));
+		pButton->m_transform.SetParent(&pPanel->m_transform);
 	}
 
 	{
@@ -64,44 +102,6 @@ void TestScene1::OnLoadScene()
 		pImage->m_transform.m_position = pImage->GetHalfSize();
 		pImage->m_transform.m_position.x *= -1.0f;
 		pImage->m_transform.m_position.y *= -1.0f;
-	}
-
-
-	{
-		UIObjectHandle hButton = CreateButton();
-		Button* pButton = static_cast<Button*>(hButton.ToPtr());
-		pButton->SetSize(XMFLOAT2(80, 40));
-		pButton->SetColor(XMVectorSet(0.25f, 0.25f, 0.75f, 0.5f));
-		pButton->m_transform.SetHorizontalAnchor(HORIZONTAL_ANCHOR::LEFT);
-		pButton->m_transform.SetVerticalAnchor(VERTICAL_ANCHOR::BOTTOM);
-		pButton->m_transform.m_position.x = +90.0f;
-		pButton->m_transform.m_position.y = +30.0f;
-		pButton->SetText(L"Blue 버튼");
-		pButton->SetTextColor(XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
-	}
-	{
-		UIObjectHandle hButton = CreateButton();
-		Button* pButton = static_cast<Button*>(hButton.ToPtr());
-		pButton->SetSize(XMFLOAT2(80, 40));
-		pButton->SetColor(XMVectorSet(0.25f, 0.75f, 0.25f, 0.5f));
-		pButton->m_transform.SetHorizontalAnchor(HORIZONTAL_ANCHOR::RIGHT);
-		pButton->m_transform.SetVerticalAnchor(VERTICAL_ANCHOR::BOTTOM);
-		pButton->m_transform.m_position.x = -200.0f;
-		pButton->m_transform.m_position.y = +30.0f;
-		pButton->SetText(L"Green 버튼");
-		pButton->SetTextColor(XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f));
-	}
-	{
-		UIObjectHandle hButton = CreateButton();
-		Button* pButton = static_cast<Button*>(hButton.ToPtr());
-		pButton->SetSize(XMFLOAT2(80, 40));
-		pButton->SetColor(XMVectorSet(0.75f, 0.25f, 0.25f, 0.5f));
-		pButton->m_transform.SetHorizontalAnchor(HORIZONTAL_ANCHOR::RIGHT);
-		pButton->m_transform.SetVerticalAnchor(VERTICAL_ANCHOR::TOP);
-		pButton->m_transform.m_position.x = -110.0f;
-		pButton->m_transform.m_position.y = -230.0f;
-		pButton->SetText(L"Red 버튼");
-		pButton->SetTextColor(XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f));
 	}
 
 
@@ -133,7 +133,8 @@ void TestScene1::OnLoadScene()
 		pCamera1CamComponent->SetDepth(0);
 		pCamera1CamComponent->SetFieldOfView(92);
 		pCamera1CamComponent->SetClippingPlanes(0.1f, 500.0f);
-		pCamera1->AddComponent<FirstPersonCamera>();		// 1인칭 카메라 조작
+		ComponentHandle<FirstPersonCamera> hFPSCam = pCamera1->AddComponent<FirstPersonCamera>();		// 1인칭 카메라 조작
+		hFPSCam.ToPtr()->m_hPanel = hPanel;
 	}
 	
 

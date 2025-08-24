@@ -14,6 +14,25 @@ void FirstPersonCamera::Update()
 	if (!pGameObject)
 		return;
 
+
+	if (Input::GetInstance()->GetKeyDown(KEY_TAB))
+	{
+		Panel* pPanel = static_cast<Panel*>(m_hPanel.ToPtr());
+		if (pPanel->IsActive())
+		{
+			pPanel->SetActive(false);
+			m_onUI = false;
+		}
+		else
+		{
+			pPanel->SetActive(true);
+			m_onUI = true;
+		}
+	}
+
+	if (m_onUI)
+		return;
+
 	const float dt = Time::GetInstance()->GetDeltaTime();
 	XMVECTOR localRotation = pGameObject->m_transform.GetLocalRotation();
 	XMVECTOR worldForwardAxis = XMVector3Rotate(Math::Vector3::FORWARD, localRotation);
@@ -50,7 +69,6 @@ void FirstPersonCamera::Update()
 
 	if (Input::GetInstance()->GetKey(KEY_D))
 		pGameObject->m_transform.Translate(worldRightAxis * speed);
-
 
 
 	if (Input::GetInstance()->GetKeyDown(KEY_APOSTROPHE))

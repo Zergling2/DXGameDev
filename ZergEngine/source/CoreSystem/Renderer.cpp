@@ -425,8 +425,10 @@ void Renderer::RenderFrame()
 
 			size_t index = 0;
 
-			// 큐는 노드 할당이 일어나므로 배열을 사용
-			m_uiRenderQueue.push_back(pRootUIObject);
+			// 큐는 노드 할당이 일어나므로 배열을 사용.
+
+			if (pRootUIObject->IsActive())
+				m_uiRenderQueue.push_back(pRootUIObject);
 
 			while (index < m_uiRenderQueue.size())
 			{
@@ -438,7 +440,8 @@ void Renderer::RenderFrame()
 					const IUIObject* pChildUIObject = pChildTransform->m_pUIObject;
 					assert(pChildUIObject != nullptr);
 
-					m_uiRenderQueue.push_back(pChildUIObject);
+					if (pChildUIObject->IsActive())
+						m_uiRenderQueue.push_back(pChildUIObject);
 				}
 
 				switch (pUIObject->GetType())
@@ -461,10 +464,11 @@ void Renderer::RenderFrame()
 				default:
 					break;
 				}
+
 				++index;
 			}
 
-			// 다음 프레임을 위해 큐 클리어
+			// 렌더링이 완료된 후 큐 클리어
 			m_uiRenderQueue.clear();
 		}
 	}

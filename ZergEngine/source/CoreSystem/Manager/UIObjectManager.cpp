@@ -169,6 +169,9 @@ void UIObjectManager::MoveToActiveGroup(IUIObject* pUIObject)
 
 void UIObjectManager::MoveToInactiveGroup(IUIObject* pUIObject)
 {
+	// 0. UI 상호작용 중(클릭되거나 포커싱된 경우)이었다면 해제
+	this->DetachFromUIInteraction(pUIObject);
+
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	// 1. Active group에서 제거
 	assert(pUIObject->IsActive());	// Active 상태였어야 한다.
@@ -192,18 +195,20 @@ void UIObjectManager::AddToRootArray(IUIObject* pUIObject)
 
 void UIObjectManager::DeployToActiveGroup(IUIObject* pUIObject)
 {
-	assert(pUIObject->IsActive()); AddToActiveGroup(pUIObject);
+	assert(pUIObject->IsActive());
+
+	AddToActiveGroup(pUIObject);
 }
 
 void UIObjectManager::DeployToInactiveGroup(IUIObject* pUIObject)
 {
-	assert(!pUIObject->IsActive()); AddToInactiveGroup(pUIObject);
+	assert(!pUIObject->IsActive());
+
+	AddToInactiveGroup(pUIObject);
 }
 
 void UIObjectManager::AddToActiveGroup(IUIObject* pUIObject)
 {
-	assert(pUIObject->IsActive());	// 이 함수는 씬에서 로드된 오브젝트가 전역 관리자로 투입될 때 호출되므로 ACTIVE 플래그가 켜져있어야 한다.
-
 	m_activeGroup.push_back(pUIObject);
 	pUIObject->m_groupIndex = static_cast<uint32_t>(m_activeGroup.size() - 1);
 
@@ -212,8 +217,6 @@ void UIObjectManager::AddToActiveGroup(IUIObject* pUIObject)
 
 void UIObjectManager::AddToInactiveGroup(IUIObject* pUIObject)
 {
-	assert(!pUIObject->IsActive());	// 이 함수는 씬에서 로드된 오브젝트가 전역 관리자로 투입될 때 호출되므로 ACTIVE 플래그가 꺼져있어야 한다.
-
 	m_inactiveGroup.push_back(pUIObject);
 	pUIObject->m_groupIndex = static_cast<uint32_t>(m_inactiveGroup.size() - 1);
 
@@ -363,13 +366,32 @@ void UIObjectManager::SetActive(IUIObject* pUIObject, bool active)
 		// PENDING 상태가 아닌 경우에만 포인터 이동 (PENDING 상태에서는 Active/Inactive 벡터에 포인터가 존재하지 않는다.)
 		if (!pUIObject->IsPending())
 			this->MoveToActiveGroup(pUIObject);
+		else
+			pUIObject->OnFlag(UIOBJECT_FLAG::ACTIVE);
 	}
 	else
 	{
 		// PENDING 상태가 아닌 경우에만 포인터 이동 (PENDING 상태에서는 Active/Inactive 벡터에 포인터가 존재하지 않는다.)
 		if (!pUIObject->IsPending())
 			this->MoveToInactiveGroup(pUIObject);
+		else
+			pUIObject->OffFlag(UIOBJECT_FLAG::ACTIVE);
 	}
+}
+
+void UIObjectManager::DetachFromUIInteraction(IUIObject* pUIObject)
+{
+	// 마우스 클릭된 상태이거나 포커싱된 상태이거나 등...
+	if (m_pObjectPressedByLButton == pUIObject)
+		m_pObjectPressedByLButton = nullptr;
+
+	if (m_pObjectPressedByMButton == pUIObject)
+		m_pObjectPressedByMButton = nullptr;
+
+	if (m_pObjectPressedByRButton == pUIObject)
+		m_pObjectPressedByRButton = nullptr;
+
+	pUIObject->OnDetachUIInteraction();
 }
 
 bool UIObjectManager::SetParent(RectTransform* pTransform, RectTransform* pNewParentTransform)
@@ -421,13 +443,19 @@ bool UIObjectManager::SetParent(RectTransform* pTransform, RectTransform* pNewPa
 		assert(find == true);	// 자식으로 존재했었어야 함
 	}
 
-	// 부모의 자식 목록을 업데이트
+	// 만약 부모가 nullptr이 아니라면
 	if (pNewParentTransform != nullptr)
+	{
+		// 부모의 자식 목록을 업데이트
 		pNewParentTransform->m_children.push_back(pTransform);
+
+		// 부모와의 IsActive 상태 일치화시키기
+		if (pTransform->m_pUIObject->IsActive() != pNewParentTransform->m_pUIObject->IsActive())
+			pTransform->m_pUIObject->SetActive(pNewParentTransform->m_pUIObject->IsActive());
+	}
 
 	// 부모 포인터를 새로운 부모로 업데이트
 	pTransform->m_pParentTransform = pNewParentTransform;
-
 
 	// 로딩 중이 아닌 오브젝트는 Root 그룹에서 존재할지 여부를 업데이트해야함.
 	if (!pUIObject->IsPending())

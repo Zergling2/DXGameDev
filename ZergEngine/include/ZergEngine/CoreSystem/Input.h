@@ -28,12 +28,12 @@ namespace ze
 		KEY_MINUS			= 0x0C,		/* - on main keyboard */
 		KEY_EQUALS			= 0x0D,		
 		KEY_BACK			= 0x0E,		/* backspace */
-		KEYTAB				= 0x0F,		
+		KEY_TAB				= 0x0F,		
 		KEY_Q				= 0x10,		
 		KEY_W				= 0x11,		
 		KEY_E				= 0x12,		
 		KEY_R				= 0x13,		
-		KEYT				= 0x14,		
+		KEY_T				= 0x14,		
 		KEY_Y				= 0x15,		
 		KEY_U				= 0x16,		
 		KEY_I				= 0x17,		

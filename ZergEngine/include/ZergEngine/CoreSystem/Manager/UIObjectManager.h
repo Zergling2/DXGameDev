@@ -61,6 +61,7 @@ namespace ze
 		void RemoveDestroyedUIObjects();
 
 		void SetActive(IUIObject* pUIObject, bool active);
+		void DetachFromUIInteraction(IUIObject* pUIObject);
 
 		// pTransform은 항상 nullptr이 아닌 입력
 		// pNewTransform은 nullptr이 입력으로 들어올 수 있음.

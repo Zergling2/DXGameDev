@@ -54,7 +54,10 @@ namespace ze
 		bool IsOnTheDestroyQueue() const { return static_cast<uioft>(m_flag) & static_cast<uioft>(UIOBJECT_FLAG::ON_DESTROY_QUEUE); }
 		bool IsRoot() const {return static_cast<uioft>(m_flag) & static_cast<uioft>(UIOBJECT_FLAG::REAL_ROOT); }
 
+		// UI 상호작용이 취소되는경우 할 일 구현
+		virtual void OnDetachUIInteraction() {}
 		virtual bool XM_CALLCONV HitTest(FXMVECTOR mousePosition) const = 0;
+
 		virtual void OnLButtonDown() {}
 		virtual void OnLButtonUp() {}
 		virtual void OnLClick() {}

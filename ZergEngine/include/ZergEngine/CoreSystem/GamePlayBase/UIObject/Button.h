@@ -21,6 +21,8 @@ namespace ze
 		PCWSTR GetText() const { return m_text; }
 		uint16_t GetTextLength() const { return m_textLength; }
 	private:
+		virtual void OnDetachUIInteraction() override;	// 시각적으로 눌린 상태를 해제한다.
+
 		virtual void OnLButtonDown() override;
 		virtual void OnLButtonUp() override;
 

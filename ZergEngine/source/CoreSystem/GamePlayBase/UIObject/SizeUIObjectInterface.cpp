@@ -16,7 +16,7 @@ ISizeUIObject::ISizeUIObject(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name, UIOBJ
 void XM_CALLCONV ISizeUIObject::SetSize(FXMVECTOR size)
 {
 	XMStoreFloat2(&m_size, size);
-	XMStoreFloat2(&m_halfSize, XMVectorMultiply(size, XMVectorReplicate(0.5f)));
+	XMStoreFloat2(&m_halfSize, XMVectorMultiply(size, g_XMOneHalf));
 }
 
 bool XM_CALLCONV ISizeUIObject::HitTest(FXMVECTOR mousePosition) const

@@ -500,8 +500,8 @@ bool ResourceLoader::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, Verte
 		// Center, Extent 계산
 		XMFLOAT3A center;
 		XMFLOAT3A extent;
-		XMStoreFloat3A(&center, XMVectorMultiply(XMVectorAdd(min, max), XMVectorReplicate(0.5f)));
-		XMStoreFloat3A(&extent, XMVectorAbs(XMVectorMultiply(XMVectorSubtract(max, min), XMVectorReplicate(0.5f))));
+		XMStoreFloat3A(&center, XMVectorMultiply(XMVectorAdd(min, max), g_XMOneHalf));
+		XMStoreFloat3A(&extent, XMVectorAbs(XMVectorMultiply(XMVectorSubtract(max, min), g_XMOneHalf)));
 
 		// extent의 성분 중 너무 작은 값이 있으면 프러스텀 컬링에 실패할 수 있으므로 약간의 크기를 보장한다.
 		XMVECTOR minExtent = XMVectorReplicate(0.05f);

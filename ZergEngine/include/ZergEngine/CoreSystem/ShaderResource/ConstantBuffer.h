@@ -92,7 +92,7 @@ namespace ze
 			XMStoreFloat4A(&diffuse, XMVectorZero());
 			XMStoreFloat4A(&specular, XMVectorZero());
 
-			XMStoreFloat3(&directionW, XMVector3Normalize(XMVectorReplicate(1.0f)));
+			XMStoreFloat3(&directionW, XMVector3Normalize(g_XMOne3));
 #endif
 		}
 		XMFLOAT4A ambient;
@@ -115,7 +115,7 @@ namespace ze
 			XMStoreFloat3(&positionW, XMVectorZero());
 			range = 10.0f;
 
-			XMStoreFloat3(&att, XMVectorReplicate(1.0f));
+			XMStoreFloat3(&att, g_XMIdentityR2);	// 0, 0, 1, 0
 #endif
 		}
 		XMFLOAT4A ambient;
@@ -141,10 +141,10 @@ namespace ze
 			XMStoreFloat3(&positionW, XMVectorZero());
 			range = 10.0f;
 
-			XMStoreFloat3(&directionW, XMVector3Normalize(XMVectorReplicate(1.0f)));
+			XMStoreFloat3(&directionW, XMVector3Normalize(g_XMOne));
 			spotExp = 10.0f;
 
-			XMStoreFloat3(&att, XMVectorReplicate(1.0f));
+			XMStoreFloat3(&att, g_XMIdentityR2);	// 0, 0, 1, 0
 #endif
 		}
 		XMFLOAT4A ambient;

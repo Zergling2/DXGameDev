@@ -17,6 +17,11 @@ void Button::SetText(PCWSTR text)
 	m_textLength = static_cast<uint16_t>(wcslen(m_text));
 }
 
+void Button::OnDetachUIInteraction()
+{
+	m_pressed = false;
+}
+
 void Button::OnLButtonDown()
 {
 	this->SetPressed(true);
