@@ -67,7 +67,7 @@ std::vector<std::shared_ptr<Mesh>> ResourceLoader::LoadWavefrontOBJ(PCWSTR path)
 			Debug::ForceCrashWithMessageBox(L"Error", L"Failed to create full file path.\n%s", path);
 
 		// UTF-8 -> UTF-16 자동 인코딩 변환하는 것으로 확인
-		// HexEditor로 열었을 때와 이 함수로 메모리로 불러들였을 때 값이 다름. (변환이 됨)
+		// HexEditor로 열었을 때와 이 함수로 읽어들였을 때 값이 다름. (변환이 됨)
 		errno_t e;
 		e = _wfopen_s(&pMeshFile, filePath, L"rt, ccs=UTF-8");
 		if (e != 0)
@@ -92,11 +92,11 @@ std::vector<std::shared_ptr<Mesh>> ResourceLoader::LoadWavefrontOBJ(PCWSTR path)
 				token = wcstok_s(nullptr, OBJ_MTL_DELIM, &nextToken);		// token = object name
 				if (token != nullptr)
 				{
-					meshes.emplace_back(std::make_shared<Mesh>(token));
-					const size_t meshIndex = meshes.size() - 1;
-					Mesh& mesh = *meshes[meshIndex].get();
+					std::shared_ptr<Mesh> spMesh = std::make_shared<Mesh>(token);
+					Mesh* pMesh = spMesh.get();
+					meshes.push_back(std::move(spMesh));
 					long ofpos;
-					if (ResourceLoader::ParseWavefrontOBJObject(pMeshFile, &ofpos, vp, mesh, meshIndex))
+					if (ResourceLoader::ParseWavefrontOBJObject(pMeshFile, &ofpos, vp, pMesh))
 						fseek(pMeshFile, ofpos, SEEK_SET);
 				}
 			}
@@ -141,11 +141,11 @@ Texture2D ResourceLoader::LoadTexture(PCWSTR path)
 		}
 		else
 		{
-			// gif 등 여러 이미지 포함 가능 포맷은 현재 고려하지 않음
-			// 파일에 한 장의 이미지만 있다고 가정하고 해당 이미지에 대한 밉맵 생성
-			hr = GenerateMipMaps(image.GetImages(), 1, image.GetMetadata(), TEX_FILTER_DEFAULT, 0, mipChain);
+			hr = GenerateMipMaps(image.GetImages(), image.GetImageCount(), image.GetMetadata(), TEX_FILTER_DEFAULT, 0, mipChain);
 			if (FAILED(hr))
 			{
+				// 
+				Debug::ForceCrashWithHRESULTErrorMessageBox(L"DirectX::GenerateMipMaps failed", hr);
 				// Block compressed (BC) 포맷일 경우 Decompress 후 밉맵 생성 및 다시 Compress 필요
 				// https://github.com/microsoft/DirectXTex/wiki/GenerateMipMaps
 				// https://github.com/microsoft/DirectXTex/wiki/Decompress
@@ -162,47 +162,42 @@ Texture2D ResourceLoader::LoadTexture(PCWSTR path)
 	descTexture.Width = static_cast<UINT>(metadata.width);
 	descTexture.Height = static_cast<UINT>(metadata.height);
 	descTexture.MipLevels = static_cast<UINT>(metadata.mipLevels);
-	descTexture.ArraySize = 1;
-	descTexture.Format = static_cast<DXGI_FORMAT>(metadata.format);
-	descTexture.SampleDesc.Count = 1;
-	descTexture.SampleDesc.Quality = 0;
+	descTexture.ArraySize = static_cast<UINT>(metadata.arraySize);
+	descTexture.Format = metadata.format;
+	descTexture.SampleDesc.Count = 1;	// 렌더 타겟이 아니므로 안티앨리어싱 X
+	descTexture.SampleDesc.Quality = 0;	// 렌더 타겟이 아니므로 안티앨리어싱 X
 	descTexture.Usage = D3D11_USAGE_DEFAULT;
 	descTexture.BindFlags = D3D11_BIND_SHADER_RESOURCE;		// 메시 텍스처링 목적의 셰이더 리소스 생성
+	descTexture.MiscFlags = 0;
 
 	// 텍스처 생성 및 초기화
 	ComPtr<ID3D11Texture2D> cpTex2d;
+	std::vector<D3D11_SUBRESOURCE_DATA> initialData(metadata.arraySize * metadata.mipLevels);
+	for (size_t i = 0; i < metadata.arraySize; ++i)
 	{
-		std::vector<D3D11_SUBRESOURCE_DATA> sbrcTexels(metadata.mipLevels);
-		for (size_t i = 0; i < metadata.mipLevels; ++i)
+		for (size_t j = 0; j < metadata.mipLevels; ++j)
 		{
-			const Image* pImg = mipChain.GetImage(i, 0, 0);
-			sbrcTexels[i].pSysMem = pImg->pixels;
-			sbrcTexels[i].SysMemPitch = static_cast<UINT>(pImg->rowPitch);
-			// sbrcTexels[i].SysMemSlicePitch = 0;	// 3D 텍스쳐에서만 의미 있음.
-		}
+			const size_t index = i * metadata.mipLevels + j;
+			const Image* pImg = mipChain.GetImage(j, i, 0);
 
-		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateTexture2D(
-			&descTexture, sbrcTexels.data(), cpTex2d.GetAddressOf()
-		);
-		if (FAILED(hr))
-			Debug::ForceCrashWithHRESULTErrorMessageBox(L"ID3D11Device::CreateTexture2D()", hr);
+			initialData[index].pSysMem = pImg->pixels;
+			initialData[index].SysMemPitch = static_cast<UINT>(pImg->rowPitch);
+			// initialData[index].SysMemSlicePitch = 0;		// 3D 텍스쳐에서만 의미 있음
+		}
 	}
+	hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateTexture2D(
+		&descTexture, initialData.data(), cpTex2d.GetAddressOf()
+	);
+	if (FAILED(hr))
+		Debug::ForceCrashWithHRESULTErrorMessageBox(L"ID3D11Device::CreateTexture2D()", hr);
 
 	// 셰이더 리소스 뷰 생성
 	ComPtr<ID3D11ShaderResourceView> cpSRV;
-	{
-		D3D11_SHADER_RESOURCE_VIEW_DESC descSRV;
-		ZeroMemory(&descSRV, sizeof(descSRV));
-		descSRV.Format = descTexture.Format;
-		descSRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-		descSRV.Texture2D.MipLevels = descTexture.MipLevels;
-		descSRV.Texture2D.MostDetailedMip = 0;
-		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateShaderResourceView(
-			cpTex2d.Get(), &descSRV, cpSRV.GetAddressOf()
-		);
-		if (FAILED(hr))
-			Debug::ForceCrashWithHRESULTErrorMessageBox(L"ID3D11Device::CreateShaderResourceView()", hr);
-	}
+	hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateShaderResourceView(
+		cpTex2d.Get(), nullptr, cpSRV.GetAddressOf()
+	);
+	if (FAILED(hr))
+		Debug::ForceCrashWithHRESULTErrorMessageBox(L"ID3D11Device::CreateShaderResourceView()", hr);
 
 	return Texture2D(cpTex2d, cpSRV);
 }
@@ -247,8 +242,8 @@ Texture2D ResourceLoader::LoadCubeMapTexture(PCWSTR path)
 	descTexture.MipLevels = static_cast<UINT>(metadata.mipLevels);
 	descTexture.ArraySize = static_cast<UINT>(metadata.arraySize);
 	descTexture.Format = metadata.format;
-	descTexture.SampleDesc.Count = 1;
-	descTexture.SampleDesc.Quality = 0;
+	descTexture.SampleDesc.Count = 1;		// 렌더타겟용 큐브맵이 아니므로 안티앨리어싱 X
+	descTexture.SampleDesc.Quality = 0;		// 렌더타겟용 큐브맵이 아니므로 안티앨리어싱 X
 	descTexture.Usage = D3D11_USAGE_IMMUTABLE;
 	descTexture.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 	descTexture.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;		// 스카이박스 큐브 텍스쳐
@@ -312,7 +307,56 @@ Texture2D ResourceLoader::LoadCubeMapTexture(PCWSTR path)
 	return Texture2D(cpTex2D, cpSRV);
 }
 
-bool ResourceLoader::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, VertexPack& vp, Mesh& mesh, const size_t meshIndex)
+bool ResourceLoader::CreateHeightMapFromRawData(Texture2D& heightMap, const uint16_t* pData, SIZE resolution)
+{
+	if (!pData)
+		return false;
+
+	// 너비와 높이가 64의 배수 + 1인지 확인
+	if (resolution.cx < CELLS_PER_TERRAIN_PATCH + 1 || resolution.cx % CELLS_PER_TERRAIN_PATCH != 1 ||
+		resolution.cy < CELLS_PER_TERRAIN_PATCH + 1 || resolution.cy % CELLS_PER_TERRAIN_PATCH != 1)
+		return false;
+
+	D3D11_TEXTURE2D_DESC heightMapDesc;
+	// ZeroMemory(&heightMapDesc, sizeof(heightMapDesc));
+	heightMapDesc.Width = resolution.cx;
+	heightMapDesc.Height = resolution.cy;
+	heightMapDesc.MipLevels = 1;
+	heightMapDesc.ArraySize = 1;
+	heightMapDesc.Format = DXGI_FORMAT_R16_UNORM;
+	heightMapDesc.SampleDesc.Count = 1;
+	heightMapDesc.SampleDesc.Quality = 0;
+	heightMapDesc.Usage = D3D11_USAGE_DEFAULT;
+	heightMapDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	heightMapDesc.CPUAccessFlags = 0;
+	heightMapDesc.MiscFlags = 0;
+
+	D3D11_SUBRESOURCE_DATA initialData;
+	initialData.pSysMem = pData;
+	initialData.SysMemPitch = resolution.cx * sizeof(uint16_t);
+	initialData.SysMemSlicePitch = 0;
+
+	HRESULT hr;
+	ID3D11Device* pDevice = GraphicDevice::GetInstance()->GetDeviceComInterface();
+	
+
+	ComPtr<ID3D11Texture2D> cpTex2D;
+	hr = pDevice->CreateTexture2D(&heightMapDesc, &initialData, cpTex2D.GetAddressOf());
+	if (FAILED(hr))
+		return false;
+
+	ComPtr<ID3D11ShaderResourceView> cpSRV;
+	hr = pDevice->CreateShaderResourceView(cpTex2D.Get(), nullptr, cpSRV.GetAddressOf());
+	if (FAILED(hr))
+		return false;
+
+	heightMap.m_cpTex2D = std::move(cpTex2D);
+	heightMap.m_cpSRV = std::move(cpSRV);
+
+	return true;
+}
+
+bool ResourceLoader::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, VertexPack& vp, Mesh* pMesh)
 {
 	HRESULT hr;
 	// object 정보를 읽는다.
@@ -340,7 +384,7 @@ bool ResourceLoader::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, Verte
 		}
 		else if (firstChar == L'o' && !wcscmp(token, L"o"))
 		{
-			ret_o = true;
+			ret_o = true;		// 또 다른 Mesh 스타트 심볼 등장
 			*pofpos = fpos;
 			break;
 		}
@@ -399,67 +443,121 @@ bool ResourceLoader::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, Verte
 				else										// v/vt/vn
 					vft = VERTEX_FORMAT_TYPE::POSITION_NORMAL_TEXCOORD;
 
-				mesh.m_vft = vft;
+				pMesh->m_vft = vft;
 			}
 
 			fseek(pOBJFile, fpos, SEEK_SET);
 			long nffpos;
-			if (ResourceLoader::ParseWavefrontOBJFaces(pOBJFile, &nffpos, vft, vp, imp, mesh, meshIndex, tempVB, tempIB))
+			if (ResourceLoader::ParseWavefrontOBJFaces(pOBJFile, &nffpos, vft, vp, imp, pMesh, tempVB, tempIB))
 				fseek(pOBJFile, nffpos, SEEK_SET);
 		}
 
 		fpos = ftell(pOBJFile);	// save file stream pointer
 	}
 
-	assert(mesh.m_vft != VERTEX_FORMAT_TYPE::UNKNOWN);
+	assert(pMesh->m_vft != VERTEX_FORMAT_TYPE::UNKNOWN);
+
+	{
+		// AABB 정보 생성
+		ptrdiff_t stride;
+
+		// Alignment: 4바이트
+		switch (pMesh->m_vft)
+		{
+		case VERTEX_FORMAT_TYPE::POSITION:
+			stride = sizeof(VFPosition);
+			break;
+		case VERTEX_FORMAT_TYPE::POSITION_NORMAL:
+			stride = sizeof(VFPositionNormal);
+			break;
+		case VERTEX_FORMAT_TYPE::POSITION_TEXCOORD:
+			stride = sizeof(VFPositionTexCoord);
+			break;
+		case VERTEX_FORMAT_TYPE::POSITION_NORMAL_TEXCOORD:
+			stride = sizeof(VFPositionNormalTexCoord);
+			break;
+		default:
+			stride = 0;
+			break;
+		}
+		assert(stride != 0);
+
+		XMVECTOR min = XMVectorReplicate(std::numeric_limits<FLOAT>::max());
+		XMVECTOR max = XMVectorReplicate(std::numeric_limits<FLOAT>::min());
+
+		intptr_t cursor = reinterpret_cast<intptr_t>(tempVB.Data());
+		const size_t count = tempVB.ByteSize() / stride;
+		for (size_t i = 0; i < count; ++i)
+		{
+			XMFLOAT3* pPosition = reinterpret_cast<XMFLOAT3*>(cursor);
+			XMVECTOR position = XMLoadFloat3(pPosition);
+			min = XMVectorMin(min, position);
+			max = XMVectorMax(max, position);
+
+			cursor += stride;
+		}
+
+		// Center, Extent 계산
+		XMFLOAT3A center;
+		XMFLOAT3A extent;
+		XMStoreFloat3A(&center, XMVectorMultiply(XMVectorAdd(min, max), XMVectorReplicate(0.5f)));
+		XMStoreFloat3A(&extent, XMVectorAbs(XMVectorMultiply(XMVectorSubtract(max, min), XMVectorReplicate(0.5f))));
+
+		// extent의 성분 중 너무 작은 값이 있으면 프러스텀 컬링에 실패할 수 있으므로 약간의 크기를 보장한다.
+		XMVECTOR minExtent = XMVectorReplicate(0.05f);
+		XMStoreFloat3A(&extent, XMVectorMax(XMLoadFloat3A(&extent), minExtent));
+
+		pMesh->m_aabb.m_center = center;
+		pMesh->m_aabb.m_extent = extent;
+	}
 
 	{
 		// Create a vertex buffer
-		D3D11_BUFFER_DESC descBuffer;
-		D3D11_SUBRESOURCE_DATA sbrcBuffer;
+		D3D11_BUFFER_DESC bufferDesc;
+		D3D11_SUBRESOURCE_DATA initialData;
 
-		descBuffer.ByteWidth = static_cast<UINT>(tempVB.ByteSize());
-		descBuffer.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;
-		descBuffer.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER;
-		descBuffer.CPUAccessFlags = 0;
-		descBuffer.MiscFlags = 0;
-		descBuffer.StructureByteStride = InputLayoutHelper::GetStructureByteStride(vft);
+		bufferDesc.ByteWidth = static_cast<UINT>(tempVB.ByteSize());
+		bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+		bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+		bufferDesc.CPUAccessFlags = 0;
+		bufferDesc.MiscFlags = 0;
+		bufferDesc.StructureByteStride = InputLayoutHelper::GetStructureByteStride(vft);
 
-		sbrcBuffer.pSysMem = tempVB.Data();
-		// sbrcBuffer.SysMemPitch = 0;		// unused
-		// sbrcBuffer.SysMemSlicePitch = 0;	// unused
+		initialData.pSysMem = tempVB.Data();
+		// initialData.SysMemPitch = 0;		// unused
+		// initialData.SysMemSlicePitch = 0;	// unused
 
-		ID3D11Buffer* pVB;
-		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateBuffer(&descBuffer, &sbrcBuffer, &pVB);
+		ComPtr<ID3D11Buffer> cpVB;
+		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateBuffer(&bufferDesc, &initialData, cpVB.GetAddressOf());
 		if (FAILED(hr))
 			Debug::ForceCrashWithHRESULTErrorMessageBox(L"ID3D11Device::CreateBuffer()", hr);
 
 		// Create an index buffer
-		descBuffer.ByteWidth = static_cast<UINT>(tempIB.size() * sizeof(uint32_t));
-		descBuffer.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;
-		descBuffer.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_INDEX_BUFFER;
-		// descBuffer.CPUAccessFlags = 0;
-		// descBuffer.MiscFlags = 0;
-		descBuffer.StructureByteStride = sizeof(uint32_t);
+		bufferDesc.ByteWidth = static_cast<UINT>(tempIB.size() * sizeof(uint32_t));
+		bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+		bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+		// bufferDesc.CPUAccessFlags = 0;
+		// bufferDesc.MiscFlags = 0;
+		bufferDesc.StructureByteStride = sizeof(uint32_t);
 
-		sbrcBuffer.pSysMem = tempIB.data();
-		// sbrcBuffer.SysMemPitch = 0;		// unused
-		// sbrcBuffer.SysMemSlicePitch = 0;	// unused
+		initialData.pSysMem = tempIB.data();
+		// initialData.SysMemPitch = 0;			// unused
+		// initialData.SysMemSlicePitch = 0;	// unused
 
-		ID3D11Buffer* pIB;
-		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateBuffer(&descBuffer, &sbrcBuffer, &pIB);
+		ComPtr<ID3D11Buffer> cpIB;
+		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateBuffer(&bufferDesc, &initialData, cpIB.GetAddressOf());
 		if (FAILED(hr))
 			Debug::ForceCrashWithHRESULTErrorMessageBox(L"ID3D11Device::CreateBuffer()", hr);
 
-		mesh.m_pVB = pVB;
-		mesh.m_pIB = pIB;
+		pMesh->m_cpVB = std::move(cpVB);
+		pMesh->m_cpIB = std::move(cpIB);
 	}
 
 	return ret_o;
 }
 
 bool ResourceLoader::ParseWavefrontOBJFaces(FILE* pOBJFile, long* pnffpos, VERTEX_FORMAT_TYPE vft, const VertexPack& vp,
-	IndexMapPack& imp, Mesh& mesh, size_t meshIndex, RawVector& tempVB, std::vector<uint32_t>& tempIB)
+	IndexMapPack& imp, Mesh* pMesh, RawVector& tempVB, std::vector<uint32_t>& tempIB)
 {
 	// f만 읽다가 아닌 경우 리턴
 
@@ -470,9 +568,9 @@ bool ResourceLoader::ParseWavefrontOBJFaces(FILE* pOBJFile, long* pnffpos, VERTE
 	bool ret_nf = false;		// not f
 
 	// Create a subset
-	mesh.m_subsets.emplace_back();
-	const size_t currentSubsetIndex = mesh.m_subsets.size() - 1;
-	Subset& currentSubset = mesh.m_subsets[currentSubsetIndex];
+	pMesh->m_subsets.push_back(Subset());
+	const size_t currentSubsetIndex = pMesh->m_subsets.size() - 1;
+	Subset& currentSubset = pMesh->m_subsets[currentSubsetIndex];
 	currentSubset.m_startIndexLocation = static_cast<uint32_t>(tempIB.size());		// Set index base
 
 	long fpos = ftell(pOBJFile);
@@ -907,21 +1005,21 @@ bool Resource::ReadObject_deprecated(FILE* pOBJFile, long* pofpos, VertexPack& v
 	assert(mesh.m_vft != VERTEX_FORMAT_TYPE::UNKNOWN);
 
 	// Create a vertex buffer
-	D3D11_BUFFER_DESC descBuffer;
-	D3D11_SUBRESOURCE_DATA sbrcBuffer;
+	D3D11_BUFFER_DESC bufferDesc;
+	D3D11_SUBRESOURCE_DATA initialData;
 
-	descBuffer.ByteWidth = static_cast<UINT>(tempVB.bytesize());
-	descBuffer.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;
-	descBuffer.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER;
-	descBuffer.CPUAccessFlags = 0;
-	descBuffer.MiscFlags = 0;
-	descBuffer.StructureByteStride = InputLayoutHelper::GetStructureByteStride(vft);
+	bufferDesc.ByteWidth = static_cast<UINT>(tempVB.bytesize());
+	bufferDesc.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;
+	bufferDesc.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	bufferDesc.MiscFlags = 0;
+	bufferDesc.StructureByteStride = InputLayoutHelper::GetStructureByteStride(vft);
 
-	sbrcBuffer.pSysMem = tempVB.data();
-	// sbrcBuffer.SysMemPitch = 0;		// unused
-	// sbrcBuffer.SysMemSlicePitch = 0;	// unused
+	initialData.pSysMem = tempVB.data();
+	// initialData.SysMemPitch = 0;		// unused
+	// initialData.SysMemSlicePitch = 0;	// unused
 
-	if (FAILED(Graphics::GetDevice()->CreateBuffer(&descBuffer, &sbrcBuffer, mesh.m_vb.GetAddressOf())))
+	if (FAILED(Graphics::GetDevice()->CreateBuffer(&bufferDesc, &initialData, mesh.m_vb.GetAddressOf())))
 	{
 		AsyncLogBuffer* pLogBuffer = AsyncFileLogger::GetLogBuffer();
 		StringCbPrintfW(pLogBuffer->buffer, AsyncLogBuffer::BUFFER_SIZE, L"Failed to create a vertex buffer!\n");
@@ -929,17 +1027,17 @@ bool Resource::ReadObject_deprecated(FILE* pOBJFile, long* pofpos, VertexPack& v
 	}
 
 	// Create an index buffer
-	descBuffer.ByteWidth = static_cast<UINT>(tempIB.size() * sizeof(uint32_t));
-	descBuffer.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;
-	descBuffer.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_INDEX_BUFFER;
-	// descBuffer.CPUAccessFlags = 0;
-	// descBuffer.MiscFlags = 0;
-	descBuffer.StructureByteStride = sizeof(uint32_t);
-	sbrcBuffer.pSysMem = tempIB.data();
-	// sbrcBuffer.SysMemPitch = 0;		// unused
-	// sbrcBuffer.SysMemSlicePitch = 0;	// unused
+	bufferDesc.ByteWidth = static_cast<UINT>(tempIB.size() * sizeof(uint32_t));
+	bufferDesc.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;
+	bufferDesc.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_INDEX_BUFFER;
+	// bufferDesc.CPUAccessFlags = 0;
+	// bufferDesc.MiscFlags = 0;
+	bufferDesc.StructureByteStride = sizeof(uint32_t);
+	initialData.pSysMem = tempIB.data();
+	// initialData.SysMemPitch = 0;		// unused
+	// initialData.SysMemSlicePitch = 0;	// unused
 
-	if (FAILED(Graphics::GetDevice()->CreateBuffer(&descBuffer, &sbrcBuffer, mesh.m_ib.GetAddressOf())))
+	if (FAILED(Graphics::GetDevice()->CreateBuffer(&bufferDesc, &initialData, mesh.m_ib.GetAddressOf())))
 	{
 		AsyncLogBuffer* pLogBuffer = AsyncFileLogger::GetLogBuffer();
 		StringCbPrintfW(pLogBuffer->buffer, AsyncLogBuffer::BUFFER_SIZE, L"Failed to create an index buffer!\n");

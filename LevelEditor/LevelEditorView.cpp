@@ -22,14 +22,15 @@ IMPLEMENT_DYNCREATE(CLevelEditorView, CView)
 BEGIN_MESSAGE_MAP(CLevelEditorView, CView)
 	ON_WM_ERASEBKGND()
     ON_WM_SIZE()
-    ON_WM_LBUTTONDOWN()
-    ON_WM_LBUTTONUP()
     ON_WM_MOUSEMOVE()
+    ON_WM_SETFOCUS()
+    ON_WM_KILLFOCUS()
 END_MESSAGE_MAP()
 
 // CLevelEditorView construction/destruction
 
 CLevelEditorView::CLevelEditorView() noexcept
+    : m_focused(false)
 {
 	// TODO: add construction code here
 }
@@ -93,11 +94,6 @@ void CLevelEditorView::OnSize(UINT nType, int cx, int cy)
 
     // TODO: Add your message handler code here
     WCHAR log[64];
-    CRect cr;
-
-    GetClientRect(&cr);
-    StringCbPrintfW(log, sizeof(log), L"CLevelEditorView::OnSize() cr: %d %d %d %d\n", cr.left, cr.top, cr.right, cr.bottom);
-    OutputDebugStringW(log);
 
     switch (nType)
     {
@@ -121,36 +117,28 @@ void CLevelEditorView::OnSize(UINT nType, int cx, int cy)
         pRuntime->OnSize(nType, cx, cy);
 }
 
-void CLevelEditorView::OnLButtonDown(UINT nFlags, CPoint point)
-{
-    // TODO: Add your message handler code here and/or call default
-    WCHAR log[64];
-
-    StringCbPrintfW(log, sizeof(log), L"CLevelEditorView::OnLButtonDown() CPoint: %d %d\n", point.x, point.y);
-    OutputDebugStringW(log);
-
-    ze::Runtime::GetInstance()->OnLButtonDown(nFlags, point);
-
-    CView::OnLButtonDown(nFlags, point);
-}
-
-void CLevelEditorView::OnLButtonUp(UINT nFlags, CPoint point)
-{
-    // TODO: Add your message handler code here and/or call default
-    WCHAR log[64];
-
-    StringCbPrintfW(log, sizeof(log), L"CLevelEditorView::OnLButtonUp() CPoint: %d %d\n", point.x, point.y);
-    OutputDebugStringW(log);
-
-    ze::Runtime::GetInstance()->OnLButtonUp(nFlags, point);
-
-    CView::OnLButtonUp(nFlags, point);
-}
-
 void CLevelEditorView::OnMouseMove(UINT nFlags, CPoint point)
 {
     // TODO: Add your message handler code here and/or call default
     ze::Runtime::GetInstance()->OnMouseMove(nFlags, point);
 
     CView::OnMouseMove(nFlags, point);
+}
+
+void CLevelEditorView::OnSetFocus(CWnd* pOldWnd)
+{
+    CView::OnSetFocus(pOldWnd);
+
+    // TODO: Add your message handler code here
+    m_focused = true;
+    OutputDebugString(_T("OnSetFocus\n"));
+}
+
+void CLevelEditorView::OnKillFocus(CWnd* pNewWnd)
+{
+    CView::OnKillFocus(pNewWnd);
+
+    // TODO: Add your message handler code here
+    m_focused = false;
+    OutputDebugString(_T("OnKillFocus\n"));
 }

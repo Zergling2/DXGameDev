@@ -155,7 +155,7 @@ namespace ze
 				assert(pComponent->ToHandleBase().IsValid());
 				if (dynamic_cast<ComponentType*>(pComponent))
 				{
-					hv.emplace_back(pComponent->ToHandleBase());
+					hv.push_back(pComponent->ToHandleBase());
 					assert(hv[hv.size() - 1].IsValid() == true);
 				}
 			}

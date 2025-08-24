@@ -36,13 +36,19 @@ void On3DObjectTerrain()
 		pGameObject->m_transform.SetParent(&hParentGameObject.ToPtr()->m_transform);
 	}
 
-	// Terrain 컴포넌트 추가
-	pGameObject->AddComponent<ze::Terrain>(
-		dlg.m_patchCountRow,
-		dlg.m_patchCountColumn,
-		dlg.m_cellSize,
-		dlg.m_heightScale
+	// Terrain 컴포넌트 추가 및 지형 생성
+	ze::ComponentHandle<ze::Terrain> hTerrain = pGameObject->AddComponent<ze::Terrain>();
+	ze::Texture2D heightMap;
+	const size_t cellCount = (dlg.m_patchCountRow * ze::CELLS_PER_TERRAIN_PATCH + 1) * (dlg.m_patchCountColumn * ze::CELLS_PER_TERRAIN_PATCH + 1);
+	uint16_t* pHeightData = new uint16_t[cellCount];
+	ZeroMemory(pHeightData, sizeof(uint16_t) * cellCount);
+	ze::ResourceLoader::GetInstance()->CreateHeightMapFromRawData(
+		heightMap,
+		pHeightData,
+		SIZE{ static_cast<LONG>(dlg.m_patchCountColumn * ze::CELLS_PER_TERRAIN_PATCH + 1), static_cast<LONG>(dlg.m_patchCountRow * ze::CELLS_PER_TERRAIN_PATCH + 1) }
 	);
+	delete[] pHeightData;
+	hTerrain.ToPtr()->SetHeightMap(heightMap, dlg.m_cellSize, dlg.m_heightScale);
 
 	HTVItemGameObject* pHTVItemGameObject = new HTVItemGameObject(hGameObject);
 	const HTREEITEM hNewItem = tc.InsertItem(L"New Terrain Object",

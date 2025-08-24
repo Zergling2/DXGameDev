@@ -47,15 +47,15 @@ static PCWSTR PIXEL_SHADER_FILES[static_cast<size_t>(PIXEL_SHADER_TYPE::COUNT)] 
 	L"PSColorPNTFragment.cso",
 	L"PSColorPTFragmentSingleTexture.cso",		// unimplemented
 	L"PSColorPTFragmentSingleMSTexture.cso",
-	L"PSColorButtonFragment.cso",
-	L"PSColorPTUIQuad.cso"
+	L"PSTexturePTFragment.cso"
 };
 
 // constexpr float allows only one floating point constant to exist in memory, even if it is not encoded in a x86 command.
 constexpr uint32_t SWAP_CHAIN_FLAG = 0;
+constexpr DXGI_FORMAT BACK_BUFFER_FORMAT = DXGI_FORMAT_B8G8R8A8_UNORM;
 
 GraphicDevice::GraphicDevice()
-	: m_backBufferFormat(DXGI_FORMAT_B8G8R8A8_UNORM)
+	: m_backBufferFormat(BACK_BUFFER_FORMAT)
 	, m_descAdapter()
 	, m_descSwapChain()
 	, m_swapChainSizeFlt(0.0f, 0.0f)
@@ -82,8 +82,6 @@ GraphicDevice::GraphicDevice()
 	, m_vb{}
 	, m_rs{}
 	, m_ss{}
-	, m_ssSkybox()
-	, m_ssHeightMap()
 	, m_dss{}
 	, m_bs{}
 {
@@ -297,11 +295,10 @@ void GraphicDevice::Init(HWND hWnd, uint32_t width, uint32_t height, bool fullsc
 			break;
 
 		assert(m_cpD2DRenderTarget == nullptr);
-		const D2D1_RENDER_TARGET_PROPERTIES props =
-			D2D1::RenderTargetProperties(
-				D2D1_RENDER_TARGET_TYPE_DEFAULT,
-				D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED)
-			);
+		const D2D1_RENDER_TARGET_PROPERTIES props =	D2D1::RenderTargetProperties(
+			D2D1_RENDER_TARGET_TYPE_DEFAULT,
+			D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED)
+		);
 		// Create a Direct2D render target that can draw into the surface in the swap chain
 		hr = m_cpD2DFactory->CreateDxgiSurfaceRenderTarget(
 			cpBackBufferSurface.Get(),
@@ -312,11 +309,7 @@ void GraphicDevice::Init(HWND hWnd, uint32_t width, uint32_t height, bool fullsc
 			break;
 
 		assert(m_cpD2DSolidColorBrush == nullptr);
-		D2D1_BRUSH_PROPERTIES defaultProps;
-		defaultProps.opacity = 1.0f;
-		defaultProps.transform = D2D1::Matrix3x2F::Identity();
-		D2D1_COLOR_F defaultColor = D2D1_COLOR_F{ 1.0f, 1.0f, 1.0f, 1.0f };
-		hr = m_cpD2DRenderTarget->CreateSolidColorBrush(&defaultColor, &defaultProps, m_cpD2DSolidColorBrush.GetAddressOf());
+		hr = m_cpD2DRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White, 1.0f), m_cpD2DSolidColorBrush.GetAddressOf());
 		if (FAILED(hr))
 			break;
 	} while (false);
@@ -529,7 +522,7 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	);
 	delete[] pByteCode;
 
-	// 7.TRANSFORM_CAMERA_MERGE_QUAD (No Input Layout required)
+	// 7. TRANSFORM_CAMERA_MERGE_QUAD (No Input Layout required)
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
 	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VERTEX_SHADER_TYPE::TRANSFORM_CAMERA_MERGE_QUAD)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
@@ -671,20 +664,12 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_PT_FRAGMENT_SINGLE_MSTEXTURE)].Init(pDevice, pByteCode, byteCodeSize);
 	delete[] pByteCode;
 
-	// 10. COLOR_BUTTON_FRAGMENT
+	// 10. TEXTURE_PT_FRAGMENT
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
-	StringCbCatW(targetPath, sizeof(targetPath), PIXEL_SHADER_FILES[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_BUTTON_FRAGMENT)]);
+	StringCbCatW(targetPath, sizeof(targetPath), PIXEL_SHADER_FILES[static_cast<size_t>(PIXEL_SHADER_TYPE::TEXTURE_PT_FRAGMENT)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
 		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
-	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_BUTTON_FRAGMENT)].Init(pDevice, pByteCode, byteCodeSize);
-	delete[] pByteCode;
-
-	// 11. COLOR_BUTTON_FRAGMENT
-	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
-	StringCbCatW(targetPath, sizeof(targetPath), PIXEL_SHADER_FILES[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_PT_UI_QUAD)]);
-	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
-		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
-	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::COLOR_PT_UI_QUAD)].Init(pDevice, pByteCode, byteCodeSize);
+	m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::TEXTURE_PT_FRAGMENT)].Init(pDevice, pByteCode, byteCodeSize);
 	delete[] pByteCode;
 }
 
@@ -762,86 +747,64 @@ void GraphicDevice::CreateSamplerStates()
 {
 	ID3D11Device* pDevice = m_cpDevice.Get();
 
-	D3D11_SAMPLER_DESC descSampler;
+	D3D11_SAMPLER_DESC samplerDesc;
 
-	ZeroMemory(&descSampler, sizeof(descSampler));
-	descSampler.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_POINT;
-	descSampler.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	descSampler.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	descSampler.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	descSampler.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-	descSampler.MinLOD = 0.0f;
-	descSampler.MaxLOD = D3D11_FLOAT32_MAX;
-	m_ss[static_cast<size_t>(TEXTURE_FILTERING_OPTION::POINT)].Init(pDevice, &descSampler);
+	ZeroMemory(&samplerDesc, sizeof(samplerDesc));
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;		// 포인트 샘플링
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	samplerDesc.MinLOD = 0.0f;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	m_ss[static_cast<size_t>(TEXTURE_FILTERING_OPTION::POINT)].Init(pDevice, &samplerDesc);
 
-	ZeroMemory(&descSampler, sizeof(descSampler));
-	descSampler.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT; // 쌍선형 (Bilinear)
-	descSampler.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	descSampler.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	descSampler.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	descSampler.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-	descSampler.MinLOD = 0.0f;
-	descSampler.MaxLOD = D3D11_FLOAT32_MAX;
-	m_ss[static_cast<size_t>(TEXTURE_FILTERING_OPTION::BILINEAR)].Init(pDevice, &descSampler);
+	ZeroMemory(&samplerDesc, sizeof(samplerDesc));
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT; // 쌍선형 (Bilinear)
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	samplerDesc.MinLOD = 0.0f;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	m_ss[static_cast<size_t>(TEXTURE_FILTERING_OPTION::BILINEAR)].Init(pDevice, &samplerDesc);
 
-	ZeroMemory(&descSampler, sizeof(descSampler));
-	descSampler.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR; // 삼선형 (Trilinear)
-	descSampler.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	descSampler.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	descSampler.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	descSampler.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-	descSampler.MinLOD = 0.0f;
-	descSampler.MaxLOD = D3D11_FLOAT32_MAX;
-	m_ss[static_cast<size_t>(TEXTURE_FILTERING_OPTION::TRILINEAR)].Init(pDevice, &descSampler);
+	ZeroMemory(&samplerDesc, sizeof(samplerDesc));
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR; // 삼선형 (Trilinear)
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	samplerDesc.MinLOD = 0.0f;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	m_ss[static_cast<size_t>(TEXTURE_FILTERING_OPTION::TRILINEAR)].Init(pDevice, &samplerDesc);
 
-	ZeroMemory(&descSampler, sizeof(descSampler));
-	descSampler.Filter = D3D11_FILTER_ANISOTROPIC;
-	descSampler.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	descSampler.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	descSampler.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	descSampler.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-	descSampler.MaxAnisotropy = 2;
-	descSampler.MinLOD = 0.0f;
-	descSampler.MaxLOD = D3D11_FLOAT32_MAX;
-	m_ss[static_cast<size_t>(TEXTURE_FILTERING_OPTION::ANISOTROPIC_2X)].Init(pDevice, &descSampler);
+	ZeroMemory(&samplerDesc, sizeof(samplerDesc));
+	samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	samplerDesc.MinLOD = 0.0f;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-	descSampler.MaxAnisotropy = 4;
-	m_ss[static_cast<size_t>(TEXTURE_FILTERING_OPTION::ANISOTROPIC_4X)].Init(pDevice, &descSampler);
+	samplerDesc.MaxAnisotropy = 2;
+	m_ss[static_cast<size_t>(TEXTURE_FILTERING_OPTION::ANISOTROPIC_2X)].Init(pDevice, &samplerDesc);
 
-	descSampler.MaxAnisotropy = 8;
-	m_ss[static_cast<size_t>(TEXTURE_FILTERING_OPTION::ANISOTROPIC_8X)].Init(pDevice, &descSampler);
+	samplerDesc.MaxAnisotropy = 4;
+	m_ss[static_cast<size_t>(TEXTURE_FILTERING_OPTION::ANISOTROPIC_4X)].Init(pDevice, &samplerDesc);
 
-	descSampler.MaxAnisotropy = 16;
-	m_ss[static_cast<size_t>(TEXTURE_FILTERING_OPTION::ANISOTROPIC_16X)].Init(pDevice, &descSampler);
+	samplerDesc.MaxAnisotropy = 8;
+	m_ss[static_cast<size_t>(TEXTURE_FILTERING_OPTION::ANISOTROPIC_8X)].Init(pDevice, &samplerDesc);
 
-	ZeroMemory(&descSampler, sizeof(descSampler));
-	descSampler.Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
-	descSampler.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	descSampler.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	descSampler.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	descSampler.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-	descSampler.MinLOD = 0.0f;
-	descSampler.MaxLOD = D3D11_FLOAT32_MAX;
-	m_ssSkybox.Init(pDevice, &descSampler);
-
-	ZeroMemory(&descSampler, sizeof(descSampler));
-	descSampler.Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
-	descSampler.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-	descSampler.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-	descSampler.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-	descSampler.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-	descSampler.MinLOD = 0.0f;
-	descSampler.MaxLOD = D3D11_FLOAT32_MAX;
-	m_ssHeightMap.Init(pDevice, &descSampler);
+	samplerDesc.MaxAnisotropy = 16;
+	m_ss[static_cast<size_t>(TEXTURE_FILTERING_OPTION::ANISOTROPIC_16X)].Init(pDevice, &samplerDesc);
 }
 
 void GraphicDevice::ReleaseSamplerStates()
 {
 	for (size_t i = 0; i < _countof(m_ss); ++i)
 		m_ss[i].Release();
-
-	m_ssSkybox.Release();
-	m_ssHeightMap.Release();
 }
 
 void GraphicDevice::CreateDepthStencilStates()
@@ -852,14 +815,14 @@ void GraphicDevice::CreateDepthStencilStates()
 	ZeroMemory(&descDepthStencil, sizeof(descDepthStencil));
 
 	// 1. Default
-	// m_dss[static_cast<size_t>(DEPTH_STENCIL_STATETYPE::DEFAULT)].Init();
+	// m_dss[static_cast<size_t>(DEPTH_STENCIL_STATE_TYPE::DEFAULT)].Init();
 
 	// 2. 스카이박스 렌더링
 	descDepthStencil.DepthEnable = TRUE;
 	descDepthStencil.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 	descDepthStencil.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;	// 스카이박스 렌더링 시 중요
 	descDepthStencil.StencilEnable = FALSE;
-	m_dss[static_cast<size_t>(DEPTH_STENCIL_STATETYPE::SKYBOX)].Init(pDevice, &descDepthStencil);
+	m_dss[static_cast<size_t>(DEPTH_STENCIL_STATE_TYPE::SKYBOX)].Init(pDevice, &descDepthStencil);
 
 	// 3. 거울 렌더링용
 	// ...
@@ -871,13 +834,13 @@ void GraphicDevice::CreateDepthStencilStates()
 	descDepthStencil.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
 	descDepthStencil.DepthFunc = D3D11_COMPARISON_LESS;
 	descDepthStencil.StencilEnable = FALSE;
-	m_dss[static_cast<size_t>(DEPTH_STENCIL_STATETYPE::DEPTH_READ_ONLY)].Init(pDevice, &descDepthStencil);
+	m_dss[static_cast<size_t>(DEPTH_STENCIL_STATE_TYPE::DEPTH_READ_ONLY)].Init(pDevice, &descDepthStencil);
 
 	// 5. No Depth/Stencil test (카메라 병합 등...)
 	ZeroMemory(&descDepthStencil, sizeof(descDepthStencil));
 	descDepthStencil.DepthEnable = FALSE;
 	descDepthStencil.StencilEnable = FALSE;
-	m_dss[static_cast<size_t>(DEPTH_STENCIL_STATETYPE::NO_DEPTH_STENCILTEST)].Init(pDevice, &descDepthStencil);
+	m_dss[static_cast<size_t>(DEPTH_STENCIL_STATE_TYPE::NO_DEPTH_STENCILTEST)].Init(pDevice, &descDepthStencil);
 }
 
 void GraphicDevice::ReleaseDepthStencilStates()
@@ -905,7 +868,7 @@ void GraphicDevice::CreateBlendStates()
 	descRenderTargetBlend.DestBlendAlpha = D3D11_BLEND_ZERO;
 	descRenderTargetBlend.BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	descRenderTargetBlend.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-	m_bs[static_cast<size_t>(BLEND_STATETYPE::OPAQUE_)].Init(pDevice, &descBlend);
+	m_bs[static_cast<size_t>(BLEND_STATE_TYPE::OPAQUE_)].Init(pDevice, &descBlend);
 
 	// 2. AlphaBlend
 	descRenderTargetBlend.BlendEnable = TRUE;
@@ -916,7 +879,7 @@ void GraphicDevice::CreateBlendStates()
 	descRenderTargetBlend.DestBlendAlpha = D3D11_BLEND_ZERO;
 	descRenderTargetBlend.BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	descRenderTargetBlend.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-	m_bs[static_cast<size_t>(BLEND_STATETYPE::ALPHABLEND)].Init(pDevice, &descBlend);
+	m_bs[static_cast<size_t>(BLEND_STATE_TYPE::ALPHABLEND)].Init(pDevice, &descBlend);
 
 	// 3. No color write
 	descRenderTargetBlend.BlendEnable = TRUE;
@@ -927,12 +890,12 @@ void GraphicDevice::CreateBlendStates()
 	descRenderTargetBlend.DestBlendAlpha = D3D11_BLEND_ONE;
 	descRenderTargetBlend.BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	descRenderTargetBlend.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-	m_bs[static_cast<size_t>(BLEND_STATETYPE::NO_COLOR_WRITE)].Init(pDevice, &descBlend);
+	m_bs[static_cast<size_t>(BLEND_STATE_TYPE::NO_COLOR_WRITE)].Init(pDevice, &descBlend);
 }
 
 void GraphicDevice::ReleaseBlendStates()
 {
-	for (size_t i = 0; i < static_cast<size_t>(BLEND_STATETYPE::COUNT); ++i)
+	for (size_t i = 0; i < static_cast<size_t>(BLEND_STATE_TYPE::COUNT); ++i)
 		m_bs[i].Release();
 }
 
@@ -1025,10 +988,10 @@ void GraphicDevice::CreateCommonVertexBuffers()
 
 	// 1. Button VB
 	{
-		const XMFLOAT2 ltShade = XMFLOAT2(+0.5f, -0.5f);
-		const XMFLOAT2 rbShade = XMFLOAT2(ltShade.y, ltShade.x);
+		const XMFLOAT2 ltShade = XMFLOAT2(+0.5f, -0.5f);			// 음영 처리값
+		const XMFLOAT2 rbShade = XMFLOAT2(ltShade.y, ltShade.x);	// 음영 처리값
 		const XMFLOAT2 centerShade = XMFLOAT2(0.0f, 0.0f);
-		const float offsetValue = 2.0f;
+		const float offsetValue = 2.0f;		// 버튼 입체감 모서리 오프셋
 		VFButton v[30];
 
 		// Top shaded
@@ -1136,7 +1099,7 @@ void GraphicDevice::CreateCommonVertexBuffers()
 		ZeroMemory(&descBuffer, sizeof(descBuffer));
 		descBuffer.ByteWidth = sizeof(v);
 		descBuffer.Usage = D3D11_USAGE_IMMUTABLE;
-		descBuffer.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER;
+		descBuffer.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 		descBuffer.CPUAccessFlags = 0;
 		descBuffer.MiscFlags = 0;
 		descBuffer.StructureByteStride = sizeof(VFButton);
@@ -1197,8 +1160,10 @@ void GraphicDevice::ResizeBuffer(uint32_t width, uint32_t height)
 	// a command list that executed another command list that used the resource, and so on.
 
 	// 스왑 체인에 관한 리소스를 모두 해제
+	// D2D 리소스들
 	m_cpD2DSolidColorBrush.Reset();
 	m_cpD2DRenderTarget.Reset();
+	// D3D 리소스들
 	m_cpSwapChainDSV.Reset();
 	m_cpSwapChainRTV.Reset();
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1252,6 +1217,8 @@ void GraphicDevice::ResizeBuffer(uint32_t width, uint32_t height)
 
 	do
 	{
+		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+		// D3D 리소스 재생성
 		// 스왑 체인의 백버퍼에 대한 렌더 타겟 뷰 재생성
 		ComPtr<ID3D11Texture2D> cpBackBuffer;
 		hr = m_cpSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(cpBackBuffer.GetAddressOf()));
@@ -1274,11 +1241,10 @@ void GraphicDevice::ResizeBuffer(uint32_t width, uint32_t height)
 		hr = m_cpDevice->CreateDepthStencilView(cpDepthStencilBuffer.Get(), nullptr, m_cpSwapChainDSV.GetAddressOf());
 		if (FAILED(hr))
 			break;
-
+		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 		// D2D 리소스 재생성
-		// 
 		// 스왑 체인의 백 버퍼에 대한 Direct2D용 DXGI Surface 렌더 타겟 생성
 		ComPtr<IDXGISurface> cpBackBufferSurface;
 		hr = m_cpSwapChain->GetBuffer(0, IID_PPV_ARGS(cpBackBufferSurface.GetAddressOf()));
@@ -1286,11 +1252,10 @@ void GraphicDevice::ResizeBuffer(uint32_t width, uint32_t height)
 			break;
 
 		assert(m_cpD2DRenderTarget == nullptr);
-		const D2D1_RENDER_TARGET_PROPERTIES props =
-			D2D1::RenderTargetProperties(
-				D2D1_RENDER_TARGET_TYPE_DEFAULT,
-				D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED)
-			);
+		const D2D1_RENDER_TARGET_PROPERTIES props =	D2D1::RenderTargetProperties(
+			D2D1_RENDER_TARGET_TYPE_DEFAULT,
+			D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED)
+		);
 		// Create a Direct2D render target that can draw into the surface in the swap chain
 		hr = m_cpD2DFactory->CreateDxgiSurfaceRenderTarget(
 			cpBackBufferSurface.Get(),
@@ -1301,13 +1266,10 @@ void GraphicDevice::ResizeBuffer(uint32_t width, uint32_t height)
 			break;
 
 		assert(m_cpD2DSolidColorBrush == nullptr);
-		D2D1_BRUSH_PROPERTIES defaultProps;
-		defaultProps.opacity = 1.0f;
-		defaultProps.transform = D2D1::Matrix3x2F::Identity();
-		D2D1_COLOR_F defaultColor = D2D1_COLOR_F{ 1.0f, 1.0f, 1.0f, 1.0f };
-		hr = m_cpD2DRenderTarget->CreateSolidColorBrush(&defaultColor, &defaultProps, m_cpD2DSolidColorBrush.GetAddressOf());
+		hr = m_cpD2DRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White, 1.0f), m_cpD2DSolidColorBrush.GetAddressOf());
 		if (FAILED(hr))
 			break;
+		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	} while (false);
 
 	if (FAILED(hr))

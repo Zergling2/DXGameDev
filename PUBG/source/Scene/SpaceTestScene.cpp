@@ -129,7 +129,8 @@ void SpaceTestScene::OnLoadScene()
 
 	// Texture2D skyboxCubeMap = ResourceLoader::GetInstance()->LoadCubeMapTexture(L"Resource\\Skybox\\cloudy_puresky.dds");
 	// Texture2D skyboxCubeMap = ResourceLoader::GetInstance()->LoadCubeMapTexture(L"Resource\\Skybox\\warm_restaurant_night.dds");
-	Texture2D skyboxCubeMap = ResourceLoader::GetInstance()->LoadCubeMapTexture(L"Resource\\Skybox\\snowcube.dds");
+	// Texture2D skyboxCubeMap = ResourceLoader::GetInstance()->LoadCubeMapTexture(L"Resource\\Skybox\\snowcube.dds");
 	// Texture2D skyboxCubeMap = ResourceLoader::GetInstance()->LoadCubeMapTexture(L"Resource\\Skybox\\sunsetcube.dds");
+	Texture2D skyboxCubeMap = ResourceLoader::GetInstance()->LoadCubeMapTexture(L"Resource\\Skybox\\sky27.dds");
 	Environment::GetInstance()->SetSkyboxCubeMap(skyboxCubeMap);
 }

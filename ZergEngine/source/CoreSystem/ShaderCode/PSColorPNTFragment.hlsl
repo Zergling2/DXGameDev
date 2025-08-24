@@ -1,22 +1,10 @@
 #include "ShaderCommon.hlsli"
-#include "SubsetLighting.hlsli"
+#include "Lighting.hlsli"
 
-/*
-[Sampler State]
-Mesh Texture Sampler
+// [Sampler State]
+// ss_mesh
 
-[Texture]
-LightMap t0
-DiffuseMap t1
-NormalMap t2
-SpecularMap t3
-
-[Constant Buffer]
-PerFrame
-PerCamera
-PerSubset
-*/
-
+// [Constant Buffer]
 cbuffer Cb0 : register(b0)
 {
     CbPerFrame cb_perFrame;
@@ -32,6 +20,7 @@ cbuffer Cb2 : register(b2)
     CbPerSubset cb_perSubset;
 }
 
+// [Texture]
 Texture2D tex2d_lightMap : register(t0);
 Texture2D tex2d_diffuseMap : register(t1);
 Texture2D tex2d_normalMap : register(t2);
@@ -79,7 +68,7 @@ PSOutput main(PSInputPNTFragment input)
         }
         
         if (IsUsingDiffuseMap(cb_perSubset.mtl.mtlFlag))
-            output.color = tex2d_diffuseMap.Sample(ss_meshTexSampler, input.texCoord) * (ambient + diffuse) + specular;
+            output.color = tex2d_diffuseMap.Sample(ss_mesh, input.texCoord) * (ambient + diffuse) + specular;
         else
             output.color = (ambient + diffuse) + specular;
     

@@ -1,27 +1,32 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Terrain.h>
+#include <ZergEngine\CoreSystem\GraphicDevice.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\TerrainManager.h>
+#include <ZergEngine\CoreSystem\InputLayout.h>
 
 using namespace ze;
 
-constexpr uint32_t CELLS_PER_TERRAIN_PATCH = 64;
+constexpr float DEFAULT_TILING_SCALE = 64.0f;
 
-Terrain::Terrain(uint8_t patchCountRow, uint8_t patchCountCol, float cellSize, float heightScale)
+Terrain::Terrain()
 	: IComponent(TerrainManager::GetInstance()->AssignUniqueId())
-	, m_heightMapScale(1.0f, 1.0f, 1.0f)
-	, m_tilingScale(64.0f)
-	, m_diffuseMap{}
-	, m_normalMap{}
-	, m_blendMap()
-	, m_heightMapWidth(0)
-	, m_heightMapHeight(0)
-	, m_patchCtrlPtCountRow(0)
-	, m_patchCtrlPtCountCol(0)
+	, m_cellSize(0.0f)
+	, m_heightScale(0.0f)
+	, m_tilingScale(DEFAULT_TILING_SCALE)
 	, m_patchCtrlPtIndexCount(0)
-	, m_heightData()
-	, m_cpHeightMapSRV(nullptr)
+	, m_heightMap()
+	, m_normalMap()
+	, m_diffuseMapLayer()
+	, m_normalMapLayer()
+	, m_blendMap()
 	, m_cpPatchCtrlPtBuffer(nullptr)
 	, m_cpPatchCtrlPtIndexBuffer(nullptr)
+	, m_heightData()
 {
+}
+
+float Terrain::GetMaxHeight() const
+{
+	return m_heightScale * static_cast<float>(std::numeric_limits<uint16_t>::max());
 }
 
 IComponentManager* Terrain::GetComponentManager() const
@@ -29,349 +34,436 @@ IComponentManager* Terrain::GetComponentManager() const
 	return TerrainManager::GetInstance();
 }
 
-/*
-bool Terrain::SetHeightmap(const std::shared_ptr<Texture2D> heightmap)
+bool Terrain::SetHeightMap(Texture2D heightMap, float cellSize, float heightScale)
 {
-	if (m_spHeightmap == nullptr)
+	ID3D11Texture2D* pTex2D = heightMap.GetTex2DComInterface();
+	if (!pTex2D)
 		return false;
 
-	if (m_spHeightmap == heightmap)
-		return true;
-
-	// ÅØ½ºÃÄ°¡ ³ôÀÌ¸ÊÀ¸·Î ¾²ÀÏ ¼ö ÀÖ´ÂÁö °ËÁõ
-	D3D11_TEXTURE2D_DESC descHeightmap;
-	heightmap->GetTexDesc(&descHeightmap);
-
-	if (descHeightmap.Format != DXGI_FORMAT_R16_FLOAT ||
-		descHeightmap.BindFlags != D3D11_BIND_SHADER_RESOURCE ||
-		descHeightmap.Usage != D3D11_USAGE_IMMUTABLE)		// Á¤Àû ¿ëµµ·Î »ý¼ºµÈ ÅØ½ºÃÄ¸¸ Áö¿ø
+	if (cellSize < 0.1f || cellSize > 1.0f)
 		return false;
 
-	// °¡·Î ¼¼·Î°¡ °¢°¢ 64ÀÇ ¹è¼ö + 1ÀÎÁö Ã¼Å©
-	if (descHeightmap.Width < 65 || (descHeightmap.Width & 0b111111) != 1 ||
-		descHeightmap.Height < 65 || (descHeightmap.Height & 0b111111) != 1)
+	if (heightScale < 0.01f || heightScale > 1.0f)
 		return false;
 
-	// ³ôÀÌ¸ÊÀ¸·Î »ç¿ë °¡´ÉÇÏ¸é ÅØ½ºÃÄ ¹× µð½ºÅ©¸³ÅÍ ÀúÀå
-	m_spHeightmap = heightmap;
-	m_descHeightmap = descHeightmap;
+	// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
+	// ¿äÃ»µÈ ÅØ½ºÃÄ°¡ ³ôÀÌ¸ÊÀ¸·Î »ç¿ëµÉ ¼ö ÀÖ´ÂÁö °Ë»ç
+	D3D11_TEXTURE2D_DESC heightMapDesc;
+	pTex2D->GetDesc(&heightMapDesc);
+	// ÅØ½ºÃÄ Æ÷¸ËÀÌ DXGI_FORMAT_R16_UNORM Å¸ÀÔÀÎÁö È®ÀÎ
+	if (heightMapDesc.Format != DXGI_FORMAT_R16_UNORM)	// => UNORM Å¸ÀÔ (Á¤¼ö¸¦ ÀúÀåÇÏÁö¸¸ ¼ÎÀÌ´õ¿¡¼­ Sample ½Ã 0.0 ~ 1.0À¸·Î Á¤±ÔÈ­ Á¢±Ù °¡´ÉÇÑ Æ÷¸Ë)
+		return false;
 
-	m_patchCtrlPtCountRow = (m_descHeightmap.Height - 1) / CELLS_PER_TERRAIN_PATCH + 1;
-	m_patchCtrlPtCountCol = (m_descHeightmap.Width - 1) / CELLS_PER_TERRAIN_PATCH + 1;
-	m_patchCtrlPtIndexCount = (m_patchCtrlPtCountRow - 1) * (m_patchCtrlPtCountCol - 1) * 4;	// ÆÐÄ¡´ç ÀÎµ¦½º 4°³ (»ç°¢ ÆÐÄ¡)
+	// D3D11_BIND_SHADER_RESOURCE ÇÃ·¡±×·Î »ý¼ºµÇ¾ú´ÂÁö È®ÀÎ
+	if (!(heightMapDesc.BindFlags & D3D11_BIND_SHADER_RESOURCE))
+		return false;
 
-	// ³ôÀÌ¸Ê µ¥ÀÌÅÍ¸¦ ½Ã½ºÅÛ ¸Þ¸ð¸®¿¡ »ý¼º
-	D3D11_TEXTURE2D_DESC descSysMemHeightmap = descHeightmap;
-	descSysMemHeightmap.Usage = D3D11_USAGE_STAGING;
-	descSysMemHeightmap.BindFlags = 0;
-	descSysMemHeightmap.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+	// Usage È®ÀÎ
+	if (heightMapDesc.Usage != D3D11_USAGE_DEFAULT)
+		return false;
 
-	ComPtr<ID3D11Texture2D> cpSysMemHeightmap;
-	HRESULT hr = GraphicDevice.GetDeviceComInterface()->CreateTexture2D(&descSysMemHeightmap, nullptr, cpSysMemHeightmap.GetAddressOf());
+	if (heightMapDesc.CPUAccessFlags != 0)
+		return false;
+
+	if (heightMapDesc.SampleDesc.Count != 1)
+		return false;
+
+	// ³ôÀÌ¸Ê ³Êºñ¿Í ³ôÀÌ°¡ 64ÀÇ ¹è¼ö + 1ÀÎÁö È®ÀÎ
+	if (heightMapDesc.Width < CELLS_PER_TERRAIN_PATCH + 1 || heightMapDesc.Width % CELLS_PER_TERRAIN_PATCH != 1 ||
+		heightMapDesc.Height < CELLS_PER_TERRAIN_PATCH + 1 || heightMapDesc.Height % CELLS_PER_TERRAIN_PATCH != 1)
+		return false;
+	// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
+
+
+
+
+	// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
+	// ¸â¹ö ¾÷µ¥ÀÌÆ®
+	uint32_t patchCtrlPtCountRow = (heightMapDesc.Height - 1) / CELLS_PER_TERRAIN_PATCH + 1;
+	uint32_t patchCtrlPtCountCol = (heightMapDesc.Width - 1) / CELLS_PER_TERRAIN_PATCH + 1;
+	uint32_t patchCtrlPtIndexCount = (patchCtrlPtCountRow - 1) * (patchCtrlPtCountCol - 1) * 4;	// ÆÐÄ¡´ç ÀÎµ¦½º 4°³ (»ç°¢ ÆÐÄ¡)
+	std::vector<float> heightData(heightMapDesc.Width * heightMapDesc.Height);
+
+	const float terrainSizeAlongX = static_cast<float>((patchCtrlPtCountCol - 1) * CELLS_PER_TERRAIN_PATCH) * cellSize;
+	const float terrainSizeAlongZ = static_cast<float>((patchCtrlPtCountRow - 1) * CELLS_PER_TERRAIN_PATCH) * cellSize;
+	const float maxHeight = heightScale * static_cast<float>(std::numeric_limits<uint16_t>::max());
+
+	ID3D11Device* pDevice = GraphicDevice::GetInstance()->GetDeviceComInterface();
+	ID3D11DeviceContext* pImmediateContext = GraphicDevice::GetInstance()->GetImmediateContextComInterface();
+	// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
+	// Step 1. ÁöÇü Á¦¾îÁ¡ ¹öÆÛ Àç»ý¼º & ³ôÀÌ µ¥ÀÌÅÍ ½Ã½ºÅÛ ¸Þ¸ð¸®¿¡ ÀúÀå
+	IndexConverter2DTo1D aic;
+	D3D11_BUFFER_DESC bufferDesc;
+	D3D11_SUBRESOURCE_DATA initialData;
+	HRESULT hr = S_OK;
+	std::vector<VFTerrainPatchControlPoint> patchCtrlPts(patchCtrlPtCountRow * patchCtrlPtCountCol);
+	ComPtr<ID3D11Texture2D> cpHeightMapForCPURead;
+
+	D3D11_TEXTURE2D_DESC heightMapForCPUReadDesc = heightMapDesc;
+	heightMapForCPUReadDesc.Usage = D3D11_USAGE_STAGING;	// CPU¿¡¼­ ÀÐ±â À§ÇØ¼­ STAGING ÅØ½ºÃÄ »ý¼º
+	heightMapForCPUReadDesc.BindFlags = 0;
+	heightMapForCPUReadDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+	hr = pDevice->CreateTexture2D(&heightMapForCPUReadDesc, nullptr, cpHeightMapForCPURead.GetAddressOf());
 	if (FAILED(hr))
 		return false;
 
-	// ½ºÅ×ÀÌÂ¡ ÅØ½ºÃ³·Î ³ôÀÌ¸Ê º¹»ç
-	GraphicDevice.GetImmContextComInterface()->CopyResource(cpSysMemHeightmap.Get(), m_spHeightmap->GetTex2DComInterface());
+	// ³ôÀÌ¸Ê ÅØ½ºÃÄ µ¥ÀÌÅÍ¸¦ ÀÐ±â À§ÇØ ½ºÅ×ÀÌÂ¡ ÅØ½ºÃÄ·Î º¹»ç
+	pImmediateContext->CopyResource(cpHeightMapForCPURead.Get(), heightMap.GetTex2DComInterface());
+
+	// º¹»çµÈ ½ºÅ×ÀÌÂ¡ ÅØ½ºÃÄ¸¦ ÀÐ±â
 	D3D11_MAPPED_SUBRESOURCE mapped;
-	hr = GraphicDevice.GetImmContextComInterface()->Map(cpSysMemHeightmap.Get(), D3D11CalcSubresource(0, 0, 0), D3D11_MAP_READ,
-		0, &mapped);
+	hr = pImmediateContext->Map(cpHeightMapForCPURead.Get(), D3D11CalcSubresource(0, 0, 0), D3D11_MAP_READ, 0, &mapped);
 	if (FAILED(hr))
 		return false;
 
-	switch (descHeightmap.Format)
+	const float tuc = (1.0f / static_cast<float>(heightMapDesc.Width)) / 2.0f;	// ÅØ½ºÃÄ ÁÂÇ¥ ¿ÀÂ÷ º¸Á¤¿ë (ÅØ¼¿ÀÇ Áß¾Ó °¡¸®Å°±â À§ÇØ¼­)
+	const float tvc = (1.0f / static_cast<float>(heightMapDesc.Height)) / 2.0f;	// ÅØ½ºÃÄ ÁÂÇ¥ ¿ÀÂ÷ º¸Á¤¿ë (ÅØ¼¿ÀÇ Áß¾Ó °¡¸®Å°±â À§ÇØ¼­)
+	const float terrainHalfSizeX = static_cast<float>(heightMapDesc.Width - 1) * cellSize / 2.0f;
+	const float terrainHalfSizeZ = static_cast<float>(heightMapDesc.Height - 1) * cellSize / 2.0f;
+	const uint16_t* pHeightMapData = reinterpret_cast<uint16_t*>(mapped.pData);
+	for (uint32_t i = 0; i < patchCtrlPtCountRow; ++i)
 	{
-	case DXGI_FORMAT_R16_FLOAT:
+		for (uint32_t j = 0; j < patchCtrlPtCountCol; ++j)
 		{
-			// ÅØ½ºÃ³ µ¥ÀÌÅÍ¸¦ ÀÐ±â (16ºñÆ® ºÎµ¿¼Ò¼öÁ¡ -> 32ºñÆ® ºÎµ¿¼Ò¼öÁ¡À¸·Î º¯È¯)
-			const size_t itemCount = descHeightmap.Width * descHeightmap.Height;
-			m_heightData.clear();
-			m_heightData.resize(itemCount);
-			const PackedVector::HALF* pHalf = reinterpret_cast<PackedVector::HALF*>(mapped.pData);
-			PackedVector::XMConvertHalfToFloatStream(m_heightData.data(), sizeof(float), pHalf, sizeof(PackedVector::HALF), itemCount);
-			for (size_t i = 0; i < itemCount; ++i)
-				m_heightData[i] *= m_heightmapScale.y;
+			VFTerrainPatchControlPoint& v = patchCtrlPts[i * patchCtrlPtCountCol + j];
+			const uint16_t data = pHeightMapData[(i * CELLS_PER_TERRAIN_PATCH) * heightMapDesc.Width + (j * CELLS_PER_TERRAIN_PATCH)];
+			v.m_position.x = static_cast<float>(j * CELLS_PER_TERRAIN_PATCH) * cellSize - terrainHalfSizeX;
+			v.m_position.y = static_cast<float>(data) / static_cast<float>(std::numeric_limits<uint16_t>::max()) * maxHeight;
+			v.m_position.z = -static_cast<float>(i * CELLS_PER_TERRAIN_PATCH) * cellSize + terrainHalfSizeZ;
+
+			v.m_texCoord.x = static_cast<float>(j * CELLS_PER_TERRAIN_PATCH) / static_cast<float>(heightMapDesc.Width) + tuc;
+			v.m_texCoord.y = static_cast<float>(i * CELLS_PER_TERRAIN_PATCH) / static_cast<float>(heightMapDesc.Height) + tvc;
+
+			// i¿Í j°¡ °¡Àå ¾Æ·¡, °¡Àå ¿À¸¥ÂÊ ¿§Áö À§Ä¡¸¦ °¡¸®Å°´Â °æ¿ì¿¡´Â ¹Ù¿îµå °è»êÀ» ÇÏ¸é ¾ÈµÈ´Ù. (Index out of range)
+			if (i < patchCtrlPtCountRow - 1 && j < patchCtrlPtCountCol - 1)
+			{
+				// ¹Ù¿îµå °è»ê (65 x 65 °Ë»ö) ¹× ³ôÀÌ µ¥ÀÌÅÍ ½Ã½ºÅÛ ¸Þ¸ð¸®¿¡ ÀúÀå
+				const uint32_t ke = i * CELLS_PER_TERRAIN_PATCH + 65;
+				const uint32_t le = j * CELLS_PER_TERRAIN_PATCH + 65;
+				uint16_t min = std::numeric_limits<uint16_t>::max();
+				uint16_t max = std::numeric_limits<uint16_t>::min();
+				aic.SetColumnSize(heightMapDesc.Width);
+				for (uint32_t k = i * CELLS_PER_TERRAIN_PATCH; k < ke; ++k)
+				{
+					for (uint32_t l = j * CELLS_PER_TERRAIN_PATCH; l < le; ++l)
+					{
+						const size_t index = aic.GetIndex(k, l);
+						const uint16_t data = pHeightMapData[index];
+
+						// 1. ½Ã½ºÅÛ ¸Þ¸ð¸®¿¡ ³ôÀÌ µ¥ÀÌÅÍ ÀúÀå
+						const float normalizedHeight = static_cast<float>(data) / static_cast<float>(std::numeric_limits<uint16_t>::max());
+						const float realHeight = normalizedHeight * maxHeight;
+						heightData[index] = realHeight;
+
+						// 2. ¹Ù¿îµå °è»ê
+						if (data < min)
+							min = data;
+						if (data > max)
+							max = data;
+					}
+				}
+
+				v.m_boundsY.x = static_cast<float>(min) / static_cast<float>(std::numeric_limits<uint16_t>::max()) * maxHeight;
+				v.m_boundsY.y = static_cast<float>(max) / static_cast<float>(std::numeric_limits<uint16_t>::max()) * maxHeight;
+				if (v.m_boundsY.y - v.m_boundsY.x < 1.0f)	// ÆÐÄ¡°¡ Æò¸é¿¡ °¡±î¿ï °æ¿ì ÇÁ·¯½ºÅÒ ÄÃ¸µÀÌ ¾î·Á¿ï ¼ö ÀÖÀ¸¹Ç·Î ¹Ù¿îµù º¼·ýÀÇ µÎ²²¸¦ Áõ°¡½ÃÅ²´Ù.
+				{
+					v.m_boundsY.x -= 0.5f;
+					v.m_boundsY.y += 0.5f;
+				}
+			}
+			else
+			{
+				v.m_boundsY = XMFLOAT2(0.0f, 0.0f);
+			}
 		}
-		break;
-	case DXGI_FORMAT_R16_UNORM:
-		break;
-	case DXGI_FORMAT_R16_UINT:
-		break;
-	default:
-		break;
 	}
 
-	GraphicDevice.GetImmContextComInterface()->Unmap(cpSysMemHeightmap.Get(), D3D11CalcSubresource(0, 0, 0));
+	// ´Ù ÀÐ¾úÀ¸¸é ÇØÁ¦
+	pImmediateContext->Unmap(cpHeightMapForCPURead.Get(), D3D11CalcSubresource(0, 0, 0));
 
-	// ¹°¸® ÄÝ¶óÀÌ´õ »ý¼º
-	// ...
-}
-*/
+	// ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+	bufferDesc.ByteWidth = static_cast<UINT>(sizeof(VFTerrainPatchControlPoint) * patchCtrlPts.size());
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	bufferDesc.MiscFlags = 0;
+	bufferDesc.StructureByteStride = static_cast<UINT>(sizeof(VFTerrainPatchControlPoint));
 
-/*
-std::shared_ptr<Terrain> Terrain::LoadTerrain(PCWSTR path, const TerrainData& td)
-{
-	HRESULT hr;
-	std::shared_ptr<Terrain> terrain;
+	// ZeroMemory(&initialData, sizeof(initialData));
+	initialData.pSysMem = patchCtrlPts.data();
+	initialData.SysMemPitch = 0;	// ÅØ½ºÃÄ ¸®¼Ò½º¿¡¼­¸¸ À¯È¿ÇÑ °ª
+	initialData.SysMemSlicePitch = 0;
 
-	FILE* file = nullptr;
-	do
+	ComPtr<ID3D11Buffer> cpPatchCtrlPtBuffer;
+	hr = pDevice->CreateBuffer(&bufferDesc, &initialData, cpPatchCtrlPtBuffer.GetAddressOf());
+	if (FAILED(hr))
+		return false;
+	// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
+
+	// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
+	// Step 2. ÁöÇü Á¦¾îÁ¡ ÀÎµ¦½º ¹öÆÛ »ý¼º
+	std::vector<uint32_t> indexBuffer(patchCtrlPtIndexCount);
+
+	uint32_t k = 0;
+	// ÆÐÄ¡ °³¼ö¸¸Å­ ¹Ýº¹
+	const uint32_t patchCountRow = patchCtrlPtCountRow - 1;
+	const uint32_t patchCountCol = patchCtrlPtCountCol - 1;
+	aic.SetColumnSize(patchCtrlPtCountCol);
+	for (uint32_t i = 0; i < patchCountRow; ++i)
 	{
-		wchar_t filePath[MAX_PATH];
-		StringCbCopyW(filePath, sizeof(filePath), FileSystem::GetResourcePath());
-		StringCbCatW(filePath, sizeof(filePath), path);
-		const wchar_t* ext = wcsrchr(filePath, L'.');
-
-		if (!ext || (wcscmp(L".r8", ext) != 0 && wcscmp(L".r16", ext) != 0 && wcscmp(L".R8", ext) != 0 && wcscmp(L".R16", ext) != 0))
+		for (uint32_t j = 0; j < patchCountCol; ++j)
 		{
-			AsyncLogBuffer* pLogBuffer = AsyncConsoleLogger::GetLogBuffer();
-			StringCbPrintfW(pLogBuffer->buffer, AsyncLogBuffer::BUFFER_SIZE, L"[Resource::LoadTerrain] Invalid file extension. %s\n", path);
-			AsyncConsoleLogger::Write(pLogBuffer);
-			break;
+			// [0]  [1]
+			//
+			// [2]  [3]
+			indexBuffer[k] = static_cast<uint32_t>(aic.GetIndex(i, j));
+			indexBuffer[k + 1] = static_cast<uint32_t>(aic.GetIndex(i, j + 1));
+			indexBuffer[k + 2] = static_cast<uint32_t>(aic.GetIndex(i + 1, j));
+			indexBuffer[k + 3] = static_cast<uint32_t>(aic.GetIndex(i + 1, j + 1));
+			k += 4;
 		}
+	}
 
-		errno_t e = _wfopen_s(&file, filePath, L"rb");
-		if (e != 0)
-			break;
+	// ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+	bufferDesc.ByteWidth = static_cast<UINT>(sizeof(uint32_t) * patchCtrlPtIndexCount);
+	bufferDesc.Usage = D3D11_USAGE_IMMUTABLE;	// ÀÎµ¦½º ¹öÆÛ´Â º¯°æµÉ ÀÏÀÌ ¾øÀ½
+	bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	bufferDesc.MiscFlags = 0;
+	bufferDesc.StructureByteStride = 0;
 
-		// ÆÄÀÏ Å©±â°¡ ¸Å°³º¯¼ö·Î Àü´ÞµÈ µð½ºÅ©¸³ÅÍ¿Í ÀÏÄ¡ÇÏ´ÂÁö °Ë»ç
-		_fseeki64(file, 0, SEEK_END);
-		const uint32_t fileSize = static_cast<uint32_t>(_ftelli64(file));
-		_fseeki64(file, 0, SEEK_SET);
-		if (static_cast<uint32_t>(tmd.heightMapSize.row) *		// max: 32769
-			static_cast<uint32_t>(tmd.heightMapSize.column) *	// max: 32769
-			static_cast<uint32_t>(tmd.elementFormat) != fileSize)
+	// ZeroMemory(&initialData, sizeof(initialData));
+	initialData.pSysMem = indexBuffer.data();
+	initialData.SysMemPitch = 0;
+	initialData.SysMemSlicePitch = 0;
+
+	ComPtr<ID3D11Buffer> cpPatchCtrlPtIndexBuffer;
+	hr = pDevice->CreateBuffer(&bufferDesc, &initialData, cpPatchCtrlPtIndexBuffer.GetAddressOf());
+	if (FAILED(hr))
+		return false;
+	// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
+
+	// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
+	// Step 3. ³ë¸» ¸Ê »ý¼º (¿ÜÀû ¼ø¼­ ÁÖÀÇÇÏ¸ç °è»ê)
+	aic.SetColumnSize(heightMapDesc.Width);
+	const float* pHeightData = heightData.data();
+	XMFLOAT3A tangent;
+	XMFLOAT3A bitangent;
+	std::vector<XMHALF4> normal(heightMapDesc.Width * heightMapDesc.Height);	// R16G16B16A16_FLOAT
+	// 1. LEFT TOP ¡æ x ¡é
+	tangent.x = cellSize;
+	tangent.y = pHeightData[aic.GetIndex(0, 1)] - pHeightData[aic.GetIndex(0, 0)];
+	tangent.z = 0.0f;
+	bitangent.x = 0.0f;
+	bitangent.y = pHeightData[aic.GetIndex(1, 0)] - pHeightData[aic.GetIndex(0, 0)];
+	bitangent.z = -cellSize;
+	XMStoreHalf4(&normal[aic.GetIndex(0, 0)], XMVector3Cross(XMLoadFloat3A(&tangent), XMLoadFloat3A(&bitangent)));
+	// 2. RIGHT TOP ¡é x ¡ç
+	tangent.x = -cellSize;
+	tangent.y = pHeightData[aic.GetIndex(0, heightMapDesc.Width - 2)] - pHeightData[aic.GetIndex(0, heightMapDesc.Width - 1)];
+	tangent.z = 0.0f;
+	bitangent.x = 0.0f;
+	bitangent.y = pHeightData[aic.GetIndex(1, heightMapDesc.Width - 1)] - pHeightData[aic.GetIndex(0, heightMapDesc.Width - 1)];
+	bitangent.z = -cellSize;
+	XMStoreHalf4(&normal[aic.GetIndex(0, heightMapDesc.Width - 1)], XMVector3Cross(XMLoadFloat3A(&bitangent), XMLoadFloat3A(&tangent)));
+	// 3. LEFT BOTTOM ¡è x ¡æ
+	tangent.x = cellSize;
+	tangent.y = pHeightData[aic.GetIndex(heightMapDesc.Height - 1, 1)] - pHeightData[aic.GetIndex(heightMapDesc.Height - 1, 0)];
+	tangent.z = 0.0f;
+	bitangent.x = 0.0f;
+	bitangent.y = pHeightData[aic.GetIndex(heightMapDesc.Height - 2, 0)] - pHeightData[aic.GetIndex(heightMapDesc.Height - 1, 0)];
+	bitangent.z = cellSize;
+	XMStoreHalf4(&normal[aic.GetIndex(heightMapDesc.Height - 1, 0)], XMVector3Cross(XMLoadFloat3A(&bitangent), XMLoadFloat3A(&tangent)));
+	// 4. RIGHT BOTTOM ¡ç x ¡è
+	tangent.x = -cellSize;
+	tangent.y = pHeightData[aic.GetIndex(heightMapDesc.Height - 1, heightMapDesc.Width - 2)] - pHeightData[aic.GetIndex(heightMapDesc.Height - 1, heightMapDesc.Width - 1)];
+	tangent.z = 0.0f;
+	bitangent.x = 0.0f;
+	bitangent.y = pHeightData[aic.GetIndex(heightMapDesc.Height - 2, heightMapDesc.Width - 1)] - pHeightData[aic.GetIndex(heightMapDesc.Height - 1, heightMapDesc.Width - 1)];
+	bitangent.z = cellSize;
+	XMStoreHalf4(&normal[aic.GetIndex(heightMapDesc.Height - 1, heightMapDesc.Width - 1)], XMVector3Cross(XMLoadFloat3A(&tangent), XMLoadFloat3A(&bitangent)));
+	// 5. LEFT EDGE ¡æ x ¡é2
+	tangent.x = cellSize;
+	tangent.z = 0.0f;
+	bitangent.x = 0.0f;
+	bitangent.z = cellSize * -2.0f;
+	for (uint32_t i = 1; i < static_cast<uint32_t>(heightMapDesc.Height - 1); ++i)
+	{
+		tangent.y = pHeightData[aic.GetIndex(i, 1)] - pHeightData[aic.GetIndex(i, 0)];
+		bitangent.y = pHeightData[aic.GetIndex(i + 1, 0)] - pHeightData[aic.GetIndex(i - 1, 0)];
+		XMStoreHalf4(&normal[aic.GetIndex(i, 0)], XMVector3Cross(XMLoadFloat3A(&tangent), XMLoadFloat3A(&bitangent)));
+	}
+	// 6. TOP EDGE ¡æ2 x ¡é
+	tangent.x = cellSize * 2.0f;
+	tangent.z = 0.0f;
+	bitangent.x = 0.0f;
+	bitangent.z = -cellSize;
+	for (uint32_t i = 1; i < static_cast<uint32_t>(heightMapDesc.Width - 1); ++i)
+	{
+		tangent.y = pHeightData[aic.GetIndex(0, i + 1)] - pHeightData[aic.GetIndex(0, i - 1)];
+		bitangent.y = pHeightData[aic.GetIndex(1, i)] - pHeightData[aic.GetIndex(0, i)];
+		XMStoreHalf4(&normal[aic.GetIndex(0, i)], XMVector3Cross(XMLoadFloat3A(&tangent), XMLoadFloat3A(&bitangent)));
+	}
+	// 7. RIGHT EDGE ¡ç x ¡è2
+	tangent.x = -cellSize;
+	tangent.z = 0.0f;
+	bitangent.x = 0.0f;
+	bitangent.z = cellSize * 2.0f;
+	for (uint32_t i = 1; i < static_cast<uint32_t>(heightMapDesc.Height - 1); ++i)
+	{
+		tangent.y = pHeightData[aic.GetIndex(i, heightMapDesc.Width - 2)] - pHeightData[aic.GetIndex(i, heightMapDesc.Width - 1)];
+		bitangent.y = pHeightData[aic.GetIndex(i - 1, heightMapDesc.Width - 1)] - pHeightData[aic.GetIndex(i + 1, heightMapDesc.Width - 1)];
+		XMStoreHalf4(&normal[aic.GetIndex(i, heightMapDesc.Width - 1)], XMVector3Cross(XMLoadFloat3A(&tangent), XMLoadFloat3A(&bitangent)));
+	}
+	// 8. BOTTOM EDGE ¡ç2 x ¡è
+	tangent.x = cellSize * -2.0f;
+	tangent.z = 0.0f;
+	bitangent.x = 0.0f;
+	bitangent.z = cellSize;
+	for (uint32_t i = 1; i < static_cast<uint32_t>(heightMapDesc.Width - 1); ++i)
+	{
+		tangent.y = pHeightData[aic.GetIndex(heightMapDesc.Height - 1, i - 1)] - pHeightData[aic.GetIndex(heightMapDesc.Height - 1, i + 1)];
+		bitangent.y = pHeightData[aic.GetIndex(heightMapDesc.Height - 2, i)] - pHeightData[aic.GetIndex(heightMapDesc.Height - 1, i)];
+		XMStoreHalf4(&normal[aic.GetIndex(heightMapDesc.Height - 1, i)], XMVector3Cross(XMLoadFloat3A(&tangent), XMLoadFloat3A(&bitangent)));
+	}
+	// 9. ELSE ¡æ2 x ¡é2
+	tangent.x = cellSize * 2.0f;
+	tangent.z = 0.0f;
+	bitangent.x = 0.0f;
+	bitangent.z = cellSize * -2.0f;
+	for (uint32_t i = 1; i < static_cast<uint32_t>(heightMapDesc.Height - 1); ++i)
+	{
+		for (uint32_t j = 1; j < static_cast<uint32_t>(heightMapDesc.Width - 1); ++j)
 		{
-			AsyncLogBuffer* pLogBuffer = AsyncConsoleLogger::GetLogBuffer();
-			StringCbPrintfW(pLogBuffer->buffer, AsyncLogBuffer::BUFFER_SIZE, L"[Resource::LoadTerrain] File size does not match the size specified in the descriptor. %s\n", path);
-			AsyncConsoleLogger::Write(pLogBuffer);
-			break;
+			tangent.y = pHeightData[aic.GetIndex(i, j + 1)] - pHeightData[aic.GetIndex(i, j - 1)];
+			bitangent.y = pHeightData[aic.GetIndex(i + 1, j)] - pHeightData[aic.GetIndex(i - 1, j)];
+			XMStoreHalf4(&normal[aic.GetIndex(i, j)], XMVector3Cross(XMLoadFloat3A(&tangent), XMLoadFloat3A(&bitangent)));
 		}
+	}
 
-		// ¿¹¿Ü °Ë»ç ÈÄ terrain °´Ã¼ »ý¼º
-		terrain = std::make_shared<Terrain>(tmd);
+	// ¸¶Áö¸·À¸·Î ³ë¸»À» ¸ðµÎ Á¤±ÔÈ­
+	for (size_t i = 0; i < normal.size(); ++i)
+	{
+		// XMStoreHalf4(&normal[i], XMVector3NormalizeEst(XMLoadHalf4(&normal[i])));
+		XMStoreHalf4(&normal[i], XMVector3Normalize(XMLoadHalf4(&normal[i])));
+	}
 
-		// Height Map ·Îµå
-		{
-			constexpr float base8bit = static_cast<float>(255);
-			constexpr float base16bit = static_cast<float>(65535);
-			byte buffer[2048];
-			const size_t elementSize = static_cast<size_t>(tmd.elementFormat);
-			const size_t elementCountToRead = sizeof(buffer) / elementSize;
+	D3D11_TEXTURE2D_DESC normalMapDesc;
+	normalMapDesc.Width = heightMapDesc.Width;
+	normalMapDesc.Height = heightMapDesc.Height;
+	normalMapDesc.MipLevels = 1;
+	normalMapDesc.ArraySize = 1;
+	normalMapDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;	// Sample °¡´ÉÇÑ Æ÷¸Ë (R32G32B32_FLOAT´Â Æ÷ÀÎÆ® »ùÇÃ¸µ¸¸ °¡´É)
+	normalMapDesc.SampleDesc.Count = 1;
+	normalMapDesc.SampleDesc.Quality = 0;
+	normalMapDesc.Usage = D3D11_USAGE_DEFAULT;
+	normalMapDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	normalMapDesc.CPUAccessFlags = 0;
+	normalMapDesc.MiscFlags = 0;
 
-			const uint32_t readElementGoal = static_cast<uint32_t>(tmd.heightMapSize.row) * static_cast<uint32_t>(tmd.heightMapSize.column);
-			uint32_t currentReadElement = 0;
-			uint32_t heightMapIndexCursor = 0;
-			switch (tmd.elementFormat)
-			{
-			case HEIGHT_MAP_FORMAT::RAW_8BIT:
-				while (currentReadElement < readElementGoal)
-				{
-					uint32_t readElement = static_cast<uint32_t>(fread_s(buffer, sizeof(buffer), elementSize, elementCountToRead, file));
-					if (readElement == 0)
-						FATAL_ERROR;
+	// ZeroMemory(&initialData, sizeof(initialData));
+	initialData.pSysMem = normal.data();
+	initialData.SysMemPitch = heightMapDesc.Width * sizeof(XMHALF4);
+	initialData.SysMemSlicePitch = 0;
 
-					for (uint32_t i = 0; i < readElement; ++i)
-					{
-						terrain->m_pHeightData[heightMapIndexCursor] =
-							(static_cast<float>(reinterpret_cast<uint8_t*>(buffer)[i]) / base8bit) * tmd.heightScale + tmd.heightBase;
+	ComPtr<ID3D11Texture2D> cpNormalMapTex2D;
+	hr = pDevice->CreateTexture2D(&normalMapDesc, &initialData, cpNormalMapTex2D.GetAddressOf());
+	if (FAILED(hr))
+		return false;
 
-						++heightMapIndexCursor;
-					}
+	ComPtr<ID3D11ShaderResourceView> cpNormalMapSRV;
+	hr = pDevice->CreateShaderResourceView(cpNormalMapTex2D.Get(), nullptr, cpNormalMapSRV.GetAddressOf());
+	if (FAILED(hr))
+		return false;
 
-					currentReadElement += readElement;
-				}
-				break;
-			case HEIGHT_MAP_FORMAT::RAW_16BIT:
-				while (currentReadElement < readElementGoal)
-				{
-					uint32_t readElement = static_cast<uint32_t>(fread_s(buffer, sizeof(buffer), elementSize, elementCountToRead, file));
-					if (readElement == 0)
-						FATAL_ERROR;
+	Texture2D normalMap(cpNormalMapTex2D, cpNormalMapSRV);
+	// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
 
-					for (uint32_t i = 0; i < readElement; ++i)
-					{
-						terrain->m_pHeightData[heightMapIndexCursor] =
-							(static_cast<float>(reinterpret_cast<uint16_t*>(buffer)[i]) / base16bit) * tmd.heightScale + tmd.heightBase;
+	// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
+	// Step 4. 0À¸·Î ÃÊ±âÈ­µÈ ºí·»µå ¸Ê »ý¼º
+	D3D11_TEXTURE2D_DESC blendMapDesc;
+	blendMapDesc.Width = heightMapDesc.Width;
+	blendMapDesc.Height = heightMapDesc.Height;
+	blendMapDesc.MipLevels = 1;
+	blendMapDesc.ArraySize = 1;
+	blendMapDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	blendMapDesc.SampleDesc.Count = 1;
+	blendMapDesc.SampleDesc.Quality = 0;
+	blendMapDesc.Usage = D3D11_USAGE_DEFAULT;
+	blendMapDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	blendMapDesc.CPUAccessFlags = 0;
+	blendMapDesc.MiscFlags = 0;
 
-						++heightMapIndexCursor;
-					}
+	const size_t blendMapByteSize = 4 * blendMapDesc.Width * blendMapDesc.Height;
+	std::vector<uint8_t> blendMapData(blendMapByteSize);
+	// ZeroMemory(blendMapData.data(), blendMapByteSize);
+	D3D11_SUBRESOURCE_DATA blendMapInitialData;
+	blendMapInitialData.pSysMem = blendMapData.data();
+	blendMapInitialData.SysMemPitch = sizeof(uint8_t) * 4 * blendMapDesc.Width;
+	blendMapInitialData.SysMemSlicePitch = 0;
+	ComPtr<ID3D11Texture2D> cpBlendMap;
+	hr = pDevice->CreateTexture2D(&blendMapDesc, &blendMapInitialData, cpBlendMap.GetAddressOf());
+	if (FAILED(hr))
+		return false;
 
-					currentReadElement += readElement;
-				}
-				break;
-			default:
-				FATAL_ERROR;
-				break;
-			}
-		}
+	ComPtr<ID3D11ShaderResourceView> cpBlendMapSRV;
+	hr = pDevice->CreateShaderResourceView(cpBlendMap.Get(), nullptr, cpBlendMapSRV.GetAddressOf());
+	if (FAILED(hr))
+		return false;
 
-		D3D11_BUFFER_DESC descBuffer;
-		descBuffer.Usage = D3D11_USAGE::D3D11_USAGE_IMMUTABLE;
-		descBuffer.CPUAccessFlags = 0;
-		descBuffer.MiscFlags = 0;
-		// ¹öÅØ½º ¹öÆÛ(ÄÁÆ®·Ñ Æ÷ÀÎÆ® ¹öÆÛ) »ý¼º
-		{
-			D3D11_SUBRESOURCE_DATA sbrcControlPoints;
-			std::vector<VertexFormat::Terrain> controlPoints(terrain->m_numPatchVertexRow * terrain->m_numPatchVertexCol);
-			uint32_t patchVertexIndexCursor = 0;
-			const float ltX = terrain->GetTerrainWidth() * -0.5f;
-			const float ltZ = terrain->GetTerrainDepth() * 0.5f;
-			const float fltRowTexelCoordBase = static_cast<float>(tmd.heightMapSize.row);
-			const float fltColTexelCoordBase = static_cast<float>(tmd.heightMapSize.column);
-			const float texelHalfSpacingU = (1.0f / fltColTexelCoordBase) * 0.5f;
-			const float texelHalfSpacingV = (1.0f / fltRowTexelCoordBase) * 0.5f;
-			for (uint16_t row = 0; row < tmd.heightMapSize.row; row += CELLS_PER_TERRAIN_PATCH)
-			{
-				const float z = ltZ - static_cast<float>(row) * terrain->GetCellSpacing();
-				for (uint16_t col = 0; col < tmd.heightMapSize.column; col += CELLS_PER_TERRAIN_PATCH)
-				{
-					const float x = ltX + static_cast<float>(col) * terrain->GetCellSpacing();
-					controlPoints[patchVertexIndexCursor].m_position = XMFLOAT3(x, 0.0f, z);
-					// °¡¸¸ »ý°¢ÇØº¸¸é ¾ç ³¡ ÁÂÇ¥´Â 0.0°ú 1.0ÀÌ ¾Æ´Ï´Ù! (Âø¿À°¡ ÀÖ¾úÀ½)
-					controlPoints[patchVertexIndexCursor].mTexCoord = XMFLOAT2(
-						static_cast<float>(col + 1) / fltColTexelCoordBase - texelHalfSpacingU,
-						static_cast<float>(row + 1) / fltRowTexelCoordBase - texelHalfSpacingV
-					);
+	Texture2D blendMap(cpBlendMap, cpBlendMapSRV);
+	// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
 
-					// Y ¹Ù¿îµå °è»ê (65 x 65 °Ë»ö)
-					if (row != tmd.heightMapSize.row - 1 && col != tmd.heightMapSize.column - 1)
-					{
-						float minY = std::numeric_limits<float>::max();
-						float maxY = std::numeric_limits<float>::lowest();
-						for (uint16_t rowOffset = 0; rowOffset <= CELLS_PER_TERRAIN_PATCH; ++rowOffset)
-						{
-							for (uint16_t colOffset = 0; colOffset <= CELLS_PER_TERRAIN_PATCH; ++colOffset)
-							{
-								const uint32_t texelIndex =
-									static_cast<uint32_t>(row + rowOffset) * static_cast<uint32_t>(tmd.heightMapSize.column) + (col + colOffset);
-								const float height = terrain->m_pHeightData[texelIndex];
-								if (height < minY)
-									minY = height;
-								if (height > maxY)
-									maxY = height;
-							}
-						}
+	m_cellSize = cellSize;
+	m_heightScale = heightScale;
+	m_patchCtrlPtIndexCount = patchCtrlPtIndexCount;
+	m_heightMap = std::move(heightMap);
+	m_normalMap = std::move(normalMap);
+	m_blendMap = std::move(blendMap);
+	m_heightData = std::move(heightData);
+	m_cpPatchCtrlPtBuffer = std::move(cpPatchCtrlPtBuffer);
+	m_cpPatchCtrlPtIndexBuffer = std::move(cpPatchCtrlPtIndexBuffer);
 
-						// ¹Ù¿îµù ¹Ú½ºÈ­
-						if (std::abs(maxY - minY) < 0.1f)
-						{
-							maxY += 0.05f;
-							minY -= 0.05f;
-						}
-
-						controlPoints[patchVertexIndexCursor].m_boundsY = XMFLOAT2(minY, maxY);
-					}
-					else
-					{
-						controlPoints[patchVertexIndexCursor].m_boundsY = XMFLOAT2(0.0f, 0.0f);
-					}
-
-					++patchVertexIndexCursor;
-				}
-			}
-
-			descBuffer.ByteWidth = static_cast<UINT>(sizeof(VertexFormat::Terrain) * controlPoints.size());
-			descBuffer.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER;
-			descBuffer.StructureByteStride = static_cast<UINT>(sizeof(VertexFormat::Terrain));
-
-			sbrcControlPoints.pSysMem = controlPoints.data();
-			// sbrcControlPoints.SysMemPitch = 0;
-			// sbrcControlPoints.SysMemSlicePitch = 0;
-			hr = Graphics::GetDevice()->CreateBuffer(&descBuffer, &sbrcControlPoints, terrain->m_patchCtrlPtBuffer.GetAddressOf());
-			if (FAILED(hr))
-			{
-				hrlog(THIS_FILE_NAME, __LINE__, hr);
-				break;
-			}
-		}
-
-		// ÀÎµ¦½º ¹öÆÛ »ý¼º
-		{
-			D3D11_SUBRESOURCE_DATA sbrcControlPointIndices;
-
-			descBuffer.ByteWidth = static_cast<UINT>(sizeof(uint32_t) * terrain->m_patchCtrlPtIndexCount);
-			descBuffer.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_INDEX_BUFFER;
-			descBuffer.StructureByteStride = 0;
-			std::vector<uint32_t> tempIB(terrain->m_patchCtrlPtIndexCount);
-
-			uint32_t k = 0;
-			// ÆÐÄ¡ °³¼ö¸¸Å­ ¹Ýº¹
-			for (uint16_t row = 0; row < terrain->m_numPatchVertexRow - 1; ++row)
-			{
-				for (uint16_t col = 0; col < terrain->m_numPatchVertexCol - 1; ++col)
-				{
-					// [0]  [1]
-					//
-					// [2]  [3]
-					tempIB[k] = (row)*terrain->m_numPatchVertexCol + (col);
-					tempIB[k + 1] = (row)*terrain->m_numPatchVertexCol + (col + 1);
-					tempIB[k + 2] = (row + 1) * terrain->m_numPatchVertexCol + (col);
-					tempIB[k + 3] = (row + 1) * terrain->m_numPatchVertexCol + (col + 1);
-					k += 4;
-				}
-			}
-
-			sbrcControlPointIndices.pSysMem = tempIB.data();
-			// sbrcControlPointIndices.SysMemPitch = 0;
-			// sbrcControlPointIndices.SysMemSlicePitch = 0;
-			hr = Graphics::GetDevice()->CreateBuffer(&descBuffer, &sbrcControlPointIndices, terrain->m_patchCtrlPtIndexBuffer.GetAddressOf());
-			if (FAILED(hr))
-			{
-				hrlog(THIS_FILE_NAME, __LINE__, hr);
-				break;
-			}
-		}
-
-		// ¼ÎÀÌ´õ ¸®¼Ò½º ºä »ý¼º
-		{
-			D3D11_TEXTURE2D_DESC descHeightMap;
-			D3D11_SUBRESOURCE_DATA sbrcHeightMap;
-
-			descHeightMap.Width = tmd.heightMapSize.column;
-			descHeightMap.Height = tmd.heightMapSize.row;
-			descHeightMap.MipLevels = 1;
-			descHeightMap.ArraySize = 1;
-			descHeightMap.Format = DXGI_FORMAT_R16_FLOAT;	// 16bit float (PackedVector::HALF)
-			descHeightMap.SampleDesc.Count = 1;
-			descHeightMap.SampleDesc.Quality = 0;
-			descHeightMap.Usage = D3D11_USAGE_IMMUTABLE;
-			descHeightMap.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-			descHeightMap.CPUAccessFlags = 0;
-			descHeightMap.MiscFlags = 0;
-
-			const uint32_t texelCount = static_cast<uint32_t>(tmd.heightMapSize.row) * static_cast<uint32_t>(tmd.heightMapSize.column);
-			std::vector<PackedVector::HALF> halfFPHeightMap(texelCount);
-			PackedVector::XMConvertFloatToHalfStream(halfFPHeightMap.data(), sizeof(PackedVector::HALF),
-				terrain->m_pHeightData, sizeof(float), texelCount);
-			sbrcHeightMap.pSysMem = halfFPHeightMap.data();
-			sbrcHeightMap.SysMemPitch = descHeightMap.Width * sizeof(PackedVector::HALF);
-			sbrcHeightMap.SysMemSlicePitch = 0;
-			ComPtr<ID3D11Texture2D> cpHeightmap;
-			hr = Graphics::GetDevice()->CreateTexture2D(&descHeightMap, &sbrcHeightMap, cpHeightmap.GetAddressOf());
-			if (FAILED(hr))
-			{
-				hrlog(THIS_FILE_NAME, __LINE__, hr);
-				break;
-			}
-
-			D3D11_SHADER_RESOURCE_VIEW_DESC descHeightMapSRV;
-			descHeightMapSRV.Format = descHeightMap.Format;
-			descHeightMapSRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-			descHeightMapSRV.Texture2D.MostDetailedMip = 0;
-			descHeightMapSRV.Texture2D.MipLevels = -1;
-			hr = Graphics::GetDevice()->CreateShaderResourceView(cpHeightmap.Get(), &descHeightMapSRV, terrain->m_srvHeightMap.GetAddressOf());
-			if (FAILED(hr))
-			{
-				hrlog(THIS_FILE_NAME, __LINE__, hr);
-				break;
-			}
-		}
-	} while (false);
-
-	if (file)
-		fclose(file);
-
-	return terrain;
+	return true;
 }
-*/
+
+bool Terrain::SetTextureLayer(Texture2D diffuseMapLayer, Texture2D normalMapLayer)
+{
+	D3D11_TEXTURE2D_DESC diffuseMapLayerDesc;
+	D3D11_TEXTURE2D_DESC normalMapLayerDesc;
+
+	m_diffuseMapLayer = std::move(diffuseMapLayer);
+	m_normalMapLayer = std::move(normalMapLayer);
+
+	return true;
+}
+
+bool Terrain::SetBlendMap(Texture2D blendMap)
+{
+	if (blendMap == m_blendMap)
+		return true;
+
+	ID3D11Texture2D* pBlendMapTex2D = blendMap.GetTex2DComInterface();
+	ID3D11Texture2D* pHeightMapTex2D = m_heightMap.GetTex2DComInterface();
+
+	if (!pBlendMapTex2D || !pHeightMapTex2D)
+		return false;
+
+	// blendMapÀÌ Height Map°ú µ¿ÀÏÇÑ ÇØ»óµµÀÎÁö °Ë»ç
+	D3D11_TEXTURE2D_DESC blendMapDesc;
+	pBlendMapTex2D->GetDesc(&blendMapDesc);
+
+	D3D11_TEXTURE2D_DESC heightMapDesc;
+	pHeightMapTex2D->GetDesc(&heightMapDesc);
+
+	if ((blendMapDesc.Width != heightMapDesc.Width) || (blendMapDesc.Height != heightMapDesc.Height))
+		return false;
+
+	// blendMapÀÇ Æ÷¸Ë °Ë»ç
+	if (blendMapDesc.Format != DXGI_FORMAT_R8G8B8A8_UNORM)
+		return false;
+
+	m_blendMap = std::move(blendMap);
+
+	return true;
+}

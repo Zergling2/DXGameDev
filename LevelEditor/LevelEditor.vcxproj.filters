@@ -20,7 +20,7 @@
     <Filter Include="Files\Edit">
       <UniqueIdentifier>{d0daf16a-765f-49c9-a294-1d4e70c1a1e7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Files\ALVItem">
+    <Filter Include="Files\ATVItem">
       <UniqueIdentifier>{35fc3486-8e19-4845-abef-e2a1c4004b89}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -118,11 +118,20 @@
     <ClInclude Include="MaterialInspectorFormView.h">
       <Filter>Files</Filter>
     </ClInclude>
-    <ClInclude Include="ALVItem\ALVItemInterface.h">
-      <Filter>Files\ALVItem</Filter>
+    <ClInclude Include="ATVItem\ATVItemInterface.h">
+      <Filter>Files\ATVItem</Filter>
     </ClInclude>
     <ClInclude Include="AssetTreeView.h">
       <Filter>Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorCameraScript.h">
+      <Filter>Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Edit\RangeIntEdit.h">
+      <Filter>Files\Edit</Filter>
+    </ClInclude>
+    <ClInclude Include="ATVItem\ATVItemFolder.h">
+      <Filter>Files\ATVItem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -204,11 +213,20 @@
     <ClCompile Include="MaterialInspectorFormView.cpp">
       <Filter>Files</Filter>
     </ClCompile>
-    <ClCompile Include="ALVItem\ALVItemInterface.cpp">
-      <Filter>Files\ALVItem</Filter>
+    <ClCompile Include="ATVItem\ATVItemInterface.cpp">
+      <Filter>Files\ATVItem</Filter>
     </ClCompile>
     <ClCompile Include="AssetTreeView.cpp">
       <Filter>Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorCameraScript.cpp">
+      <Filter>Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Edit\RangeIntEdit.cpp">
+      <Filter>Files\Edit</Filter>
+    </ClCompile>
+    <ClCompile Include="ATVItem\ATVItemFolder.cpp">
+      <Filter>Files\ATVItem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

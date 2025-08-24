@@ -48,19 +48,17 @@ void CHierarchyTreeView::Dump(CDumpContext& dc) const
 
 // CHierarchyTreeView message handlers
 
-void CHierarchyTreeView::DeleteTreeItemDataRecursive(HTREEITEM hItem)
+void CHierarchyTreeView::DeleteTreeItemDataRecursive(CTreeCtrl& tc, HTREEITEM hItem)
 {
-	CTreeCtrl& tc = this->GetTreeCtrl();
-
 	while (hItem)
 	{
 		// 자식 먼저 처리
 		HTREEITEM hChildItem = tc.GetChildItem(hItem);
 		if (hChildItem)
-			DeleteTreeItemDataRecursive(hChildItem);
+			DeleteTreeItemDataRecursive(tc, hChildItem);
 
 		DWORD_PTR data = tc.GetItemData(hItem);
-		IHTVItem* pHTVItem = reinterpret_cast<HTVItemRoot*>(data);
+		IHTVItem* pHTVItem = reinterpret_cast<IHTVItem*>(data);
 		assert(pHTVItem != nullptr);
 
 		delete pHTVItem;
@@ -227,8 +225,8 @@ void CHierarchyTreeView::OnDestroy()
 	// CTreeView::OnDestroy가 호출되면 트리 컨트롤이 파괴되므로 그 전에 트리 아이템에 부착된 동적할당 Data를 해제한다.
 	CTreeCtrl& tc = this->GetTreeCtrl();
 	HTREEITEM hRootItem = tc.GetRootItem();
-	this->DeleteTreeItemDataRecursive(hRootItem);
-
+	this->DeleteTreeItemDataRecursive(tc, hRootItem);
+	// tc.DeleteAllItems();	// 객체 파괴시 자동 수행
 
 	CTreeView::OnDestroy();
 	// TODO: Add your message handler code here

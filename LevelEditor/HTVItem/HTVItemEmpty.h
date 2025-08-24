@@ -9,5 +9,5 @@ public:
 	HTVItemEmpty() = default;
 	virtual ~HTVItemEmpty() = default;
 
-	virtual void OnSelect();
+	virtual void OnSelect() override;
 };

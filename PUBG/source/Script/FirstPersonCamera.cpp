@@ -6,6 +6,7 @@ using namespace ze;
 constexpr float SENSITIVITY = 0.16f;
 constexpr float SPEED = 5.0f;
 constexpr float WALK_SPEED = SPEED * 0.25f;
+constexpr float HEAD_CLAMP_ANGLE = 89.0f;
 
 void FirstPersonCamera::Update()
 {
@@ -27,7 +28,7 @@ void FirstPersonCamera::Update()
 		XMStoreFloat3A(&rotationEuler, temp);
 
 		rotationEuler.x += XMConvertToRadians(static_cast<float>(my) * SENSITIVITY);
-		Math::Clamp(rotationEuler.x, XMConvertToRadians(-85.0f), XMConvertToRadians(+85.0f));
+		Math::Clamp(rotationEuler.x, XMConvertToRadians(-HEAD_CLAMP_ANGLE), XMConvertToRadians(+HEAD_CLAMP_ANGLE));
 		rotationEuler.y += XMConvertToRadians(static_cast<float>(mx) * SENSITIVITY);
 		rotationEuler.z = 0.0f;
 
@@ -57,10 +58,4 @@ void FirstPersonCamera::Update()
 
 	if (Input::GetInstance()->GetKeyDown(KEY_SEMICOLON))
 		Runtime::GetInstance()->SetResolution(0, 0, DISPLAY_MODE::BORDERLESS_WINDOWED);
-
-	if (Input::GetInstance()->GetKeyDown(KEY_U))
-		this->Disable();
-
-	if (Input::GetInstance()->GetKeyDown(KEY_Y))
-		this->Enable();
 }

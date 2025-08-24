@@ -131,4 +131,36 @@ namespace ze
 			return wcscmp(lhs, rhs) < 0;
 		}
 	};
+
+	class IndexConverter2DTo1D
+	{
+	public:
+		IndexConverter2DTo1D(size_t columnSize = 1)
+			: m_columnSize(columnSize)
+		{
+		}
+		void SetColumnSize(size_t size) { m_columnSize = size; }
+		size_t GetColumnSize() const { return m_columnSize; }
+		size_t GetIndex(size_t row, size_t col) { return row * m_columnSize + col; }
+	private:
+		size_t m_columnSize;
+	};
+
+	class IndexConverter3DTo1D
+	{
+	public:
+		IndexConverter3DTo1D(size_t rowSize = 1, size_t columnSize = 1)
+			: m_rowSize(rowSize)
+			, m_2t1(columnSize)
+		{
+		}
+		void SetRowSize(size_t size) { m_rowSize = size; }
+		size_t GetRowSize() const { return m_rowSize; }
+		void SetColumnSize(size_t size) { m_2t1.SetColumnSize(size); }
+		size_t GetColumnSize() const { return m_2t1.GetColumnSize(); }
+		size_t GetIndex(size_t depth, size_t row, size_t col) { return depth * m_rowSize * m_2t1.GetColumnSize() + m_2t1.GetIndex(row, col); }
+	private:
+		size_t m_rowSize;
+		IndexConverter2DTo1D m_2t1;
+	};
 }

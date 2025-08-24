@@ -14,18 +14,17 @@
 
 class CLevelEditorApp : public CWinApp
 {
-private:
-	ze::GameObjectHandle m_hEditorCameraObject;
 public:
 	CLevelEditorApp() noexcept;
-
 // Overrides
 public:
 	DECLARE_MESSAGE_MAP()
 private:
+	ze::GameObjectHandle m_hEditorCameraObject;
 	CImageList m_iconList;
 public:
 	CImageList& GetZEIconList() { return m_iconList; }
+
 	// Implementation
 	virtual BOOL InitInstance();
 	virtual int ExitInstance();

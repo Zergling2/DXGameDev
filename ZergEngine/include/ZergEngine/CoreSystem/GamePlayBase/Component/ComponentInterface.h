@@ -36,6 +36,7 @@ namespace ze
 		friend class BasicEffectPT;
 		friend class BasicEffectPNT;
 		friend class SkyboxEffect;
+		friend class TerrainEffect;
 	public:
 		IComponent(uint64_t id) noexcept;
 		virtual ~IComponent() = default;

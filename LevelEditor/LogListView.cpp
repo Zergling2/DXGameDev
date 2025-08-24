@@ -110,7 +110,7 @@ void CLogListView::OnInitialUpdate()
 		m_initialized = true;
 	}
 
-	this->AddLog(_T("TEST LOG┼"), LOG_TYPE::LT_WARNING);
-	this->AddLog(_T("테스트 Log★"), LOG_TYPE::LT_INFO);
-	this->AddLog(_T("TEST 로그§"), LOG_TYPE::LT_ERROR);
+	this->AddLog(_T("Level Editor 초기화 중..."), LOG_TYPE::LT_INFO);
+	this->AddLog(_T("Level Editor 초기화 완료"), LOG_TYPE::LT_INFO);
+	this->AddLog(_T("씬을 로드하는데 실패하였습니다."), LOG_TYPE::LT_WARNING);
 }

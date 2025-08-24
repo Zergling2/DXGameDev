@@ -10,14 +10,24 @@ namespace ze
 	class Aabb
 	{
 	public:
-		Aabb(FXMVECTOR lowerBound, FXMVECTOR upperBound)
+		Aabb() noexcept
 		{
-			XMStoreFloat3A(&m_lowerBound, lowerBound);
-			XMStoreFloat3A(&m_upperBound, upperBound);
+			XMStoreFloat3A(&m_center, XMVectorZero());
+			XMStoreFloat3A(&m_extent, XMVectorZero());
+		}
+		Aabb(FXMVECTOR center, FXMVECTOR extent) noexcept
+		{
+			XMStoreFloat3A(&m_center, center);
+			XMStoreFloat3A(&m_extent, extent);
+		}
+		Aabb(const XMFLOAT3A& center, const XMFLOAT3A& extent) noexcept
+			: m_center(center)
+			, m_extent(extent)
+		{
 		}
 		~Aabb() = default;
 	public:
-		XMFLOAT3A m_lowerBound;
-		XMFLOAT3A m_upperBound;
+		XMFLOAT3A m_center;
+		XMFLOAT3A m_extent;	// Half size (Always positive)
 	};
 }

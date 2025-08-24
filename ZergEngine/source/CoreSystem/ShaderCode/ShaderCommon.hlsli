@@ -26,6 +26,9 @@
 #define IsUsingNormalMap(mtlFlag)   ((mtlFlag) & 0x00000004)
 #define IsUsingSpecularMap(mtlFlag) ((mtlFlag) & 0x00000008)
 
+#define IsUsingDiffuseLayer(layerFlag) ((layerFlag) & 0x00000001)
+#define IsUsingNormalLayer(layerFlag) ((layerFlag) & 0x00000002)
+
 hlslstruct MaterialData
 {
     uint32_t mtlFlag;
@@ -77,6 +80,22 @@ hlslstruct SpotLightData
 
 	XMFLOAT3 att; // a0/a1/a2     a0 + a1d + a2d^2
 	HLSLPad pad;
+};
+
+hlslstruct Plane
+{
+	XMFLOAT4A m_equation;
+};
+
+hlslstruct Frustum
+{
+    Plane plane[6];
+};
+
+hlslstruct Aabb
+{
+	float3 center;
+	float3 extent;
 };
 
 struct HSInputTerrainPatchCtrlPt
@@ -140,6 +159,7 @@ struct PSInputTerrainFragment
 {
     float4 posH : SV_POSITION;
     float3 posW : POSITION;
+    float3 normalW : NORMAL;
     float2 texCoord : TEXCOORD0;
     float2 tiledTexCoord : TEXCOORD1;
 };
@@ -163,7 +183,8 @@ hlslstruct CbPerFrame
 	uint32_t dlCount;
 	uint32_t plCount;
 	uint32_t slCount;
-
+	HLSLPad pad0;
+	
     DirectionalLightData dl[MAX_GLOBAL_LIGHT_COUNT];
     PointLightData pl[MAX_GLOBAL_LIGHT_COUNT];
     SpotLightData sl[MAX_GLOBAL_LIGHT_COUNT];
@@ -179,7 +200,7 @@ hlslstruct CbPerCamera
 	FLOAT minTessExponent;
 	FLOAT maxTessExponent;
 
-	XMFLOAT4A frustumPlane[6];
+    Frustum frustumW;
 
     XMFLOAT4X4A vp; // View * Proj
 };
@@ -192,16 +213,10 @@ hlslstruct CbPerMesh
 
 hlslstruct CbPerTerrain
 {
-	XMFLOAT4X4A w; // World
-	XMFLOAT4X4A wInvTr; // Inversed world transform matrix (비균등 스케일링 시 올바른 노말 벡터 변환을 위해 필요)
-
-	FLOAT terrainTextureTiling; // 도메인 셰이더에서 Tiled 텍스쳐 좌표 계산 시 필요
-	FLOAT terrainCellSpacing; // 픽셀 셰이더에서 노말 계산 시 필요
-	FLOAT terrainTexelSpacingU; // 픽셀 셰이더에서 노말 계산 시 필요
-	FLOAT terrainTexelSpacingV; // 픽셀 셰이더에서 노말 계산 시 필요
-
-	uint32_t terrainMtlCount;
-    MaterialData terrainMtl[5];
+	FLOAT maxHeight;
+	FLOAT tilingScale;
+	uint32_t layerArraySize;
+	uint32_t layerFlag;
 };
 
 hlslstruct CbPerCameraMerge
@@ -246,9 +261,8 @@ hlslstruct CbPerButton
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Sampler States
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-SamplerState ss_meshTexSampler : register(s0);
-SamplerState ss_skyboxSampler : register(s1);
-SamplerState ss_terrainTexSampler : register(s2);
-SamplerState ss_heightmapSampler : register(s3);
+SamplerState ss_mesh : register(s0);
+SamplerState ss_bilinear : register(s1);
+SamplerState ss_trilinear : register(s2);
 
 #endif

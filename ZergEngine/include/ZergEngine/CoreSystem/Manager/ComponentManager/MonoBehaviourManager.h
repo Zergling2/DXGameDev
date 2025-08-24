@@ -10,6 +10,7 @@ namespace ze
 	{
 		friend class Runtime;
 		friend class MonoBehaviour;
+		friend class GameObject;
 	public:
 		static MonoBehaviourManager* GetInstance() { return s_pInstance; }
 	private:
@@ -26,9 +27,9 @@ namespace ze
 		void AddToStartQueue(MonoBehaviour* pMonoBehaviour);
 		void AwakeDeployedComponents();
 		void CallStart();
-		void FixedUpdateScripts();
-		void UpdateScripts();
-		void LateUpdateScripts();
+		void FixedUpdate();
+		void Update();
+		void LateUpdate();
 
 		virtual void RemoveDestroyedComponents() override;
 	protected:

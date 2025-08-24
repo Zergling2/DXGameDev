@@ -53,4 +53,5 @@
 #include <DirectXCollision.h>
 
 using namespace DirectX;
+using namespace DirectX::PackedVector;
 using Microsoft::WRL::ComPtr;

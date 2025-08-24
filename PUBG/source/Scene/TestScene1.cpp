@@ -16,15 +16,41 @@ void TestScene1::OnLoadScene()
 	std::shared_ptr<Material> parkinglotMat;
 
 	{
-		UIObjectHandle hGreenPanel = CreatePanel();
-		Panel* pGreenPanel = static_cast<Panel*>(hGreenPanel.ToPtr());
-		pGreenPanel->SetSize(XMFLOAT2(600, 600));
-		pGreenPanel->SetColor(XMVectorSet(0.0f, 0.0f, 0.25f, 0.5f));
-		pGreenPanel->m_transform.SetHorizontalAnchor(HORIZONTAL_ANCHOR::CENTER);
-		pGreenPanel->m_transform.SetVerticalAnchor(VERTICAL_ANCHOR::VCENTER);
-		pGreenPanel->m_transform.m_position.x = 0.0f;
-		pGreenPanel->m_transform.m_position.y = 0.0f;
-		pGreenPanel->SetShape(PANEL_SHAPE::ROUNDED_RECTANGLE);
+		GameObjectHandle hTerrainObject = CreateGameObject(L"TerrainObject");
+		GameObject* pTerrainObject = hTerrainObject.ToPtr();
+		ComponentHandle<Terrain> hTerrain = pTerrainObject->AddComponent<Terrain>();
+		uint16_t* pTempData = new uint16_t[129 * 129];
+		// ZeroMemory(pTempData, sizeof(uint16_t) * 129 * 129);
+		for (int i = 0; i < 129; ++i)
+		{
+			for (int j = 0; j < 129; ++j)
+			{
+				pTempData[i * 129 + j] = rand() % 32;
+			}
+		}
+		Texture2D heightMap;
+		if (!ResourceLoader::GetInstance()->CreateHeightMapFromRawData(heightMap, pTempData, SIZE{ 129, 129 }))
+			*reinterpret_cast<int*>(0) = 0;
+		if (!hTerrain.ToPtr()->SetHeightMap(heightMap, 0.5f, 0.01f))
+			*reinterpret_cast<int*>(0) = 0;
+		Texture2D diffuseMapLayer = ResourceLoader::GetInstance()->LoadTexture(L"Resource\\Terrain\\vikenditerrain_d.dds");
+		Texture2D normalMapLayer;
+		hTerrain.ToPtr()->SetTextureLayer(diffuseMapLayer, normalMapLayer);
+		delete[] pTempData;
+	}
+
+	
+
+	{
+		UIObjectHandle hPanel = CreatePanel();
+		Panel* pPanel = static_cast<Panel*>(hPanel.ToPtr());
+		pPanel->SetSize(XMFLOAT2(100, 100));
+		pPanel->SetColor(XMVectorSet(0.0f, 0.5f, 0.25f, 0.5f));
+		pPanel->m_transform.SetHorizontalAnchor(HORIZONTAL_ANCHOR::CENTER);
+		pPanel->m_transform.SetVerticalAnchor(VERTICAL_ANCHOR::VCENTER);
+		pPanel->m_transform.m_position.x = 0.0f;
+		pPanel->m_transform.m_position.y = 0.0f;
+		pPanel->SetShape(PANEL_SHAPE::ROUNDED_RECTANGLE);
 	}
 
 	{
@@ -106,7 +132,7 @@ void TestScene1::OnLoadScene()
 		pCamera1CamComponent->SetBackgroundColor(Colors::Gray);
 		pCamera1CamComponent->SetDepth(0);
 		pCamera1CamComponent->SetFieldOfView(92);
-		pCamera1CamComponent->SetClippingPlanes(0.01f, 500.0f);
+		pCamera1CamComponent->SetClippingPlanes(0.1f, 500.0f);
 		pCamera1->AddComponent<FirstPersonCamera>();		// 1인칭 카메라 조작
 	}
 	
@@ -203,6 +229,7 @@ void TestScene1::OnLoadScene()
 		// 재질 설정
 		pBollardMeshRenderer->m_mesh->m_subsets[0].m_material = parkinglotMat;
 	}
+
 
 
 	Texture2D skyboxCubeMap = ResourceLoader::GetInstance()->LoadCubeMapTexture(L"Resource\\Skybox\\cloudy_puresky.dds");

@@ -2,6 +2,7 @@
 
 #include <ZergEngine\Common\EngineConstants.h>
 #include <ZergEngine\CoreSystem\DataStructure\ViewportRect.h>
+#include <ZergEngine\CoreSystem\DataStructure\Ray.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\ComponentInterface.h>
 
 namespace ze
@@ -27,7 +28,7 @@ namespace ze
 		virtual COMPONENT_TYPE GetType() const override { return COMPONENT_TYPE::CAMERA; }
 		const XMFLOAT4A& GetBackgroundColor() const { return m_backgroundColor; }
 		void SetBackgroundColor(const XMFLOAT4A color) { m_backgroundColor = color; }
-		void SetBackgroundColor(FXMVECTOR color) { XMStoreFloat4A(&m_backgroundColor, color); }
+		void XM_CALLCONV SetBackgroundColor(FXMVECTOR color) { XMStoreFloat4A(&m_backgroundColor, color); }
 		PROJECTION_METHOD GetProjectionMethod() const { return m_projMethod; }
 		void SetProjectionMethod(PROJECTION_METHOD method);
 		uint32_t GetFieldOfView() const { return m_fov; }
@@ -43,8 +44,8 @@ namespace ze
 		int8_t GetDepth() const { return m_depth; }
 		void SetDepth(int8_t depth);
 
-		void SetMinimumDistanceStartTessellation(float distance) { mTessMinDist = distance; }
-		void SetMaximumDistanceEndTessellation(float distance) { mTessMaxDist = distance; }
+		void SetMinimumDistanceStartTessellation(float distance) { m_tessMinDist = distance; }
+		void SetMaximumDistanceEndTessellation(float distance) { m_tessMaxDist = distance; }
 
 		// Only the range of 0.0 to 6.0 is allowed. Other ranges are ignored.
 		bool SetMinimumTessellationExponent(float exponent);
@@ -52,8 +53,8 @@ namespace ze
 		// Only the range of 0.0 to 6.0 is allowed. Other ranges are ignored.
 		bool SetMaximumTessellationExponent(float exponent);
 
-		float GetMinimumDistanceForTessellationToStart() const { return mTessMinDist; }
-		float GetMaximumDistanceForTessellationToStart() const { return mTessMaxDist; }
+		float GetMinDistanceTessellationToStart() const { return m_tessMinDist; }
+		float GetMaxDistanceTessellationToStart() const { return m_tessMaxDist; }
 		float GetMinimumTessellationExponent() const { return m_minTessExponent; }
 		float GetMaximumTessellationExponent() const { return m_maxTessExponent; }
 
@@ -61,8 +62,12 @@ namespace ze
 		ID3D11ShaderResourceView* GetColorBufferSRVComInterface() const { return m_cpColorBufferSRV.Get(); }
 		ID3D11DepthStencilView* GetDepthStencilBufferDSVComInterface() const { return m_cpDepthStencilBufferDSV.Get(); }
 
-		XMMATRIX GetViewMatrix() const { return XMLoadFloat4x4A(&m_viewMatrix); }
-		XMMATRIX GetProjMatrix() const { return XMLoadFloat4x4A(&m_projMatrix); }
+		XMMATRIX XM_CALLCONV GetViewMatrix() const { return XMLoadFloat4x4A(&m_viewMatrix); }
+		XMMATRIX XM_CALLCONV GetProjMatrix() const { return XMLoadFloat4x4A(&m_projMatrix); }
+		XMMATRIX XM_CALLCONV GetViewportMatrix();
+
+		POINT ScreenPointToCameraPoint(POINT pt) const;
+		Ray ScreenPointToRay(POINT pt);	// 월드 공간 기준 Ray를 반환합니다.
 	private:
 		virtual IComponentManager* GetComponentManager() const override;
 
@@ -90,9 +95,9 @@ namespace ze
 		XMFLOAT4X4A m_viewMatrix;
 		XMFLOAT4X4A m_projMatrix;
 		D3D11_VIEWPORT m_entireBufferViewport;
-		float mTessMinDist;		// 최대한으로 테셀레이션 되는 최소 거리 정의 ┓
+		float m_tessMinDist;		// 최대한으로 테셀레이션 되는 최소 거리 정의 ┓
 									// (이 사이의 거리에서는 m_minTessFactor와 m_maxTessFactor에 설정한 값 사이로 보간된 Factor가 사용된다.
-		float mTessMaxDist;		// 최소한으로 테셀레이션 되는 최대 거리 정의 ┛
+		float m_tessMaxDist;		// 최소한으로 테셀레이션 되는 최대 거리 정의 ┛
 		float m_minTessExponent;
 		float m_maxTessExponent;
 	};

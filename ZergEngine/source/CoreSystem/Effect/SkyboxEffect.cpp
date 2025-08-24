@@ -34,24 +34,16 @@ void SkyboxEffect::SetCamera(const Camera* pCamera) noexcept
 	const GameObject* pCameraOwner = pCamera->m_pGameObject;
 	assert(pCameraOwner != nullptr);
 
-	XMFLOAT4A frustumPlanes[6];
-	XMFLOAT4X4A vp;
-	XMStoreFloat4x4A(&vp, pCamera->GetViewMatrix() * pCamera->GetProjMatrix());
-	Math::ExtractFrustumPlanesInWorldSpace(&vp, frustumPlanes);
+	XMMATRIX vp = pCamera->GetViewMatrix() * pCamera->GetProjMatrix();
+	Math::CalcWorldFrustumFromViewProjMatrix(vp, m_cbPerCameraCache.frustumW);
 
 	XMStoreFloat3(&m_cbPerCameraCache.cameraPosW, pCameraOwner->m_transform.GetWorldPosition());
-	m_cbPerCameraCache.tessMinDist = pCamera->GetMinimumDistanceForTessellationToStart();
-	m_cbPerCameraCache.tessMaxDist = pCamera->GetMaximumDistanceForTessellationToStart();
+	m_cbPerCameraCache.tessMinDist = pCamera->GetMinDistanceTessellationToStart();
+	m_cbPerCameraCache.tessMaxDist = pCamera->GetMaxDistanceTessellationToStart();
 	m_cbPerCameraCache.minTessExponent = pCamera->GetMinimumTessellationExponent();
 	m_cbPerCameraCache.maxTessExponent = pCamera->GetMaximumTessellationExponent();
-	m_cbPerCameraCache.frustumPlane[0] = frustumPlanes[0];
-	m_cbPerCameraCache.frustumPlane[1] = frustumPlanes[1];
-	m_cbPerCameraCache.frustumPlane[2] = frustumPlanes[2];
-	m_cbPerCameraCache.frustumPlane[3] = frustumPlanes[3];
-	m_cbPerCameraCache.frustumPlane[4] = frustumPlanes[4];
-	m_cbPerCameraCache.frustumPlane[5] = frustumPlanes[5];
 
-	XMStoreFloat4x4A(&m_cbPerCameraCache.vp, XMMatrixTranspose(XMLoadFloat4x4A(&vp)));
+	XMStoreFloat4x4A(&m_cbPerCameraCache.vp, ConvertToHLSLMatrix(vp));
 
 	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_CAMERA;
 }

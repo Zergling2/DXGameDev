@@ -17,25 +17,25 @@ float CalcTessFactor(const float3 v)
     const float d = distance(v, cb_perCamera.cameraPosW);
     const float s = saturate((d - cb_perCamera.tessMinDist) / (cb_perCamera.tessMaxDist - cb_perCamera.tessMinDist));
     
-    return pow(2, lerp(cb_perCamera.maxTessExponent, cb_perCamera.minTessExponent, s));
+    return pow(2.0f, round(lerp(cb_perCamera.maxTessExponent, cb_perCamera.minTessExponent, s)));
 }
 
-bool IsAabbBehindPlane(float3 aabbCenter, float3 aabbExtents, float4 plane)
+bool IsAabbBehindPlane(Aabb aabb, float4 plane)
 {
-    const float3 n = abs(plane.xyz);  // plane은 정규화되어있는 평면
+    const float3 n = abs(plane.xyz);  // plane의 법선 벡터의 절댓값을 구하고
     
-    const float r = dot(aabbExtents, n);  // n 역시 정규화 벡터이므로 extents를 n과 내적하면 extent가 벡터 n에 투영된 길이를 얻을 수 있음
+    const float r = dot(aabb.extent, n);  // n 역시 정규화 벡터이므로 extent를 n과 내적하면 extent의 plane의 법선 상에서의 투영 길이를 얻을 수 있음
     
     // 평면의 법선 벡터와 Aabb center 좌표의 내적 + 원점으로부터 평면까지의 거리
-    const float s = dot(float4(aabbCenter, 1.0f), plane);
+    const float s = dot(float4(aabb.center, 1.0f), plane);
     
     return s + r < 0.0f;
 }
 
-bool IsAabbOutsideFrustum(float3 aabbCenter, float3 aabbExtents, float4 frustumPlane[6])
+bool IsAabbOutsideFrustum(Aabb aabb, Frustum frustumW)
 {
     for (uint i = 0; i < 6; ++i)
-        if (IsAabbBehindPlane(aabbCenter, aabbExtents, frustumPlane[i]))
+        if (IsAabbBehindPlane(aabb, frustumW.plane[i].m_equation))
             return true;
     
     return false;
@@ -53,10 +53,11 @@ DSInputQuadPatchTess CHSTerrainRendering(InputPatch<HSInputTerrainPatchCtrlPt, N
     // [2]최소 [3]
     const float3 patchMinCoord = float3(patch[2].posW.x, patch[0].boundsY.x, patch[2].posW.z);
     const float3 patchMaxCoord = float3(patch[1].posW.x, patch[0].boundsY.y, patch[1].posW.z);
-    const float3 aabbCenter = (patchMinCoord + patchMaxCoord) * 0.5f;
-    const float3 aabbExtents = (patchMaxCoord - patchMinCoord) * 0.5f;
+    Aabb aabb;
+    aabb.center = (patchMinCoord + patchMaxCoord) * 0.5f;
+    aabb.extent = (patchMaxCoord - patchMinCoord) * 0.5f;
     
-    if (IsAabbOutsideFrustum(aabbCenter, aabbExtents, cb_perCamera.frustumPlane))
+    if (IsAabbOutsideFrustum(aabb, cb_perCamera.frustumW))
     {
         // 패치를 파이프라인에서 제거
         output.edgeTessFactor[0] = 0.0f;

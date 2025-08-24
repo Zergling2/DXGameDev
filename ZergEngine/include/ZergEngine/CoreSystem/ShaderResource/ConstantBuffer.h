@@ -2,6 +2,7 @@
 
 #include <ZergEngine\Common\ThirdPartySDK.h>
 #include <ZergEngine\Common\EngineConstants.h>
+#include <ZergEngine\CoreSystem\DataStructure\Frustum.h>
 
 #define hlslstruct struct alignas(16)
 #define HLSLPad float
@@ -40,7 +41,7 @@ namespace ze
 	// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 	// ┃                CONSTANT BUFFER                ┃
 	// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-	enum MATERIAL_FLAG : uint32_t
+	enum class MATERIAL_FLAG : uint32_t
 	{
 		NONE				= 0,
 		USE_MATERIAL		= 0x80000000,
@@ -50,12 +51,18 @@ namespace ze
 		USE_SPECULAR_MAP	= 1 << 3,
 	};
 
+	enum class TERRAIN_LAYER_FLAG : uint32_t
+	{
+		NONE				= 0,
+		USE_DIFFUSE_LAYER	= 0x00000001,
+		USE_NORMAL_LAYER	= 0x00000002
+	};
+
 	hlslstruct MaterialData
 	{
 		MaterialData() noexcept
-			: mtlFlag(MATERIAL_FLAG::NONE)
+			: mtlFlag(static_cast<uint32_t>(MATERIAL_FLAG::NONE))
 		{
-			InitMtlFlag();
 #if defined(DEBUG) || defined(_DEBUG)
 			XMStoreFloat4A(&ambient, XMVectorZero());
 			XMStoreFloat4A(&diffuse, XMVectorZero());
@@ -63,7 +70,6 @@ namespace ze
 			XMStoreFloat4A(&reflect, XMVectorZero());
 #endif
 		}
-		void InitMtlFlag() { mtlFlag = MATERIAL_FLAG::NONE; }
 	public:
 		uint32_t mtlFlag;
 		HLSLPad pad0;
@@ -160,6 +166,7 @@ namespace ze
 		uint32_t dlCount;
 		uint32_t plCount;
 		uint32_t slCount;
+		HLSLPad pad;
 
 		DirectionalLightData dl[MAX_GLOBAL_LIGHT_COUNT];
 		PointLightData pl[MAX_GLOBAL_LIGHT_COUNT];
@@ -176,7 +183,7 @@ namespace ze
 		FLOAT minTessExponent;
 		FLOAT maxTessExponent;
 
-		XMFLOAT4A frustumPlane[6];
+		Frustum frustumW;
 
 		XMFLOAT4X4A vp;		// View * Proj
 	};
@@ -189,16 +196,10 @@ namespace ze
 
 	hlslstruct CbPerTerrain
 	{
-		XMFLOAT4X4A w;			// World
-		XMFLOAT4X4A wInvTr;	// Inversed world transform matrix (비균등 스케일링 시 올바른 노말 벡터 변환을 위해 필요)
-
-		FLOAT terrainTextureTiling;	// 도메인 셰이더에서 Tiled 텍스쳐 좌표 계산 시 필요
-		FLOAT terrainCellSpacing;		// 픽셀 셰이더에서 노말 계산 시 필요
-		FLOAT terrainTexelSpacingU;	// 픽셀 셰이더에서 노말 계산 시 필요
-		FLOAT terrainTexelSpacingV;	// 픽셀 셰이더에서 노말 계산 시 필요
-
-		uint32_t terrainMtlCount;
-		MaterialData terrainMtl[5];
+		FLOAT maxHeight;
+		FLOAT tilingScale;
+		uint32_t layerArraySize;
+		uint32_t layerFlag;
 	};
 
 	hlslstruct CbPerDrawQuad

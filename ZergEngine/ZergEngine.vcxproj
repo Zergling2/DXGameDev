@@ -43,6 +43,8 @@
     <ClInclude Include="include\ZergEngine\Common\DisplayMode.h" />
     <ClInclude Include="include\ZergEngine\Common\EngineConstants.h" />
     <ClInclude Include="include\ZergEngine\Common\EngineHelper.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Frustum.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Plane.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Ray.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DeviceContext\EffectDeviceContext.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectP.h" />
@@ -58,6 +60,7 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\SkyboxEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\UIHitbox.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\ViewportRect.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\TerrainEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\AudioSource.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\RectTransform.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\InputField.h" />
@@ -122,6 +125,8 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Time.h" />
     <ClInclude Include="include\ZergEngine\ZergEngine.h" />
     <ClCompile Include="source\CoreSystem\DataStructure\Aabb.cpp" />
+    <ClCompile Include="source\CoreSystem\DataStructure\Frustum.cpp" />
+    <ClCompile Include="source\CoreSystem\DataStructure\Plane.cpp" />
     <ClCompile Include="source\CoreSystem\DataStructure\Ray.cpp" />
     <ClCompile Include="source\CoreSystem\DeviceContext\EffectDeviceContext.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectP.cpp" />
@@ -134,6 +139,7 @@
     <ClCompile Include="source\CoreSystem\Effect\DrawQuadWithMSTextureEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\DummyEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\SkyboxEffect.cpp" />
+    <ClCompile Include="source\CoreSystem\Effect\TerrainEffect.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\AudioSource.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\RectTransform.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\InputField.cpp" />
@@ -205,7 +211,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <FileType>Document</FileType>
     </None>
-    <None Include="source\CoreSystem\ShaderCode\SubsetLighting.hlsli" />
+    <None Include="source\CoreSystem\ShaderCode\Lighting.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="source\CoreSystem\ShaderCode\DSSampleTerrainHeightMap.hlsl">
@@ -226,16 +232,6 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Hull</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Hull</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
-    </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorButtonFragment.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="source\CoreSystem\ShaderCode\PSColorPTFragmentSingleMSTexture.hlsl">
@@ -288,7 +284,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorPTUIQuad.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSTexturePTFragment.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>

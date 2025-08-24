@@ -208,7 +208,7 @@ namespace ze
 		int32_t GetMouseAxisVertical() const { return m_currMouseState.lY; }
 		int32_t GetMouseWheel() const { return m_currMouseState.lZ; }
 
-		const POINT GetMousePosition() const { return m_mousePosition; }
+		POINT GetMousePosition() const { return m_mousePosition; }
 		XMVECTOR XM_CALLCONV GetMousePositionVector() const { return XMLoadFloat3A(&m_mousePositionFlt); }
 	private:
 		static Input* s_pInstance;
@@ -221,7 +221,7 @@ namespace ze
 		alignas(16) byte m_currKeyState[256];
 		alignas(16) BYTE m_prevMouseBtnState[_countof(DIMOUSESTATE2::rgbButtons)];
 		alignas(16) DIMOUSESTATE2 m_currMouseState;
-		XMFLOAT3A m_mousePositionFlt;
-		POINT m_mousePosition;
+		POINT m_mousePosition;	// Client 영역 기준 좌표
+		XMFLOAT3A m_mousePositionFlt;	// Client 영역 기준 좌표
 	};
 }

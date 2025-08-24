@@ -89,19 +89,11 @@ namespace ze
 		{
 			return m_ss[static_cast<size_t>(tfo)].GetComInterface();
 		}
-		ID3D11SamplerState* GetSkyboxSamplerComInterface() const
-		{
-			return m_ssSkybox.GetComInterface();
-		}
-		ID3D11SamplerState* GetHeightmapSamplerComInterface() const
-		{
-			return m_ssHeightMap.GetComInterface();
-		}
-		ID3D11DepthStencilState* GetDSSComInterface(DEPTH_STENCIL_STATETYPE dst) const
+		ID3D11DepthStencilState* GetDSSComInterface(DEPTH_STENCIL_STATE_TYPE dst) const
 		{
 			return m_dss[static_cast<size_t>(dst)].GetComInterface();
 		}
-		ID3D11BlendState* GetBSComInterface(BLEND_STATETYPE bst) const
+		ID3D11BlendState* GetBSComInterface(BLEND_STATE_TYPE bst) const
 		{
 			return m_bs[static_cast<size_t>(bst)].GetComInterface();
 		}
@@ -139,9 +131,7 @@ namespace ze
 
 		RasterizerState m_rs[static_cast<size_t>(RASTERIZER_FILL_MODE::COUNT)][static_cast<size_t>(RASTERIZER_CULL_MODE::COUNT)];
 		SamplerState m_ss[static_cast<size_t>(TEXTURE_FILTERING_OPTION::COUNT)];
-		SamplerState m_ssSkybox;
-		SamplerState m_ssHeightMap;
-		DepthStencilState m_dss[static_cast<size_t>(DEPTH_STENCIL_STATETYPE::COUNT)];
-		BlendState m_bs[static_cast<size_t>(BLEND_STATETYPE::COUNT)];
+		DepthStencilState m_dss[static_cast<size_t>(DEPTH_STENCIL_STATE_TYPE::COUNT)];
+		BlendState m_bs[static_cast<size_t>(BLEND_STATE_TYPE::COUNT)];
 	};
 }

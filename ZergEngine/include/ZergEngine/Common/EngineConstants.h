@@ -7,6 +7,7 @@ namespace ze
 	// 旨收收收收收收收收收收收收收收收收收收收收收收收收收收收收收旬
 	// 早          Constants          早
 	// 曲收收收收收收收收收收收收收收收收收收收收收收收收收收收收收旭
+	constexpr uint32_t CELLS_PER_TERRAIN_PATCH = 64;
 	constexpr uint32_t MAX_GLOBAL_LIGHT_COUNT = 4;
 	constexpr uint16_t MAX_CAMERA_COUNT = 4;
 
@@ -78,8 +79,7 @@ namespace ze
 		COLOR_PNT_FRAGMENT,
 		COLOR_PT_FRAGMENT_SINGLE_TEXTURE,
 		COLOR_PT_FRAGMENT_SINGLE_MSTEXTURE,
-		COLOR_BUTTON_FRAGMENT,
-		COLOR_PT_UI_QUAD,
+		TEXTURE_PT_FRAGMENT,
 
 		COUNT
 	};

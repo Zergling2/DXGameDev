@@ -6,7 +6,6 @@ namespace ze
 {
 	class Texture2D
 	{
-		friend class ResourceLoader;
 	public:
 		Texture2D() noexcept
 			: m_cpTex2D(nullptr)
@@ -43,6 +42,10 @@ namespace ze
 
 			return *this;
 		}
+		bool operator==(const Texture2D& other) noexcept
+		{
+			return (m_cpTex2D == other.m_cpTex2D) && (m_cpSRV == other.m_cpSRV);
+		}
 		virtual ~Texture2D() = default;
 		operator bool() const
 		{
@@ -60,7 +63,8 @@ namespace ze
 
 		void GetTexture2DDesc(D3D11_TEXTURE2D_DESC* pDesc) { m_cpTex2D->GetDesc(pDesc); }
 		void GetShaderResourceViewDesc(D3D11_SHADER_RESOURCE_VIEW_DESC* pDesc) { m_cpSRV->GetDesc(pDesc); }
-	private:
+		SIZE GetResolution() const;
+	public:
 		ComPtr<ID3D11Texture2D> m_cpTex2D;
 		ComPtr<ID3D11ShaderResourceView> m_cpSRV;
 	};

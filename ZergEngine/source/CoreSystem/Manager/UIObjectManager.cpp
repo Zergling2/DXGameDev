@@ -286,12 +286,15 @@ void UIObjectManager::RemoveDestroyedUIObjects()
 
 	for (IUIObject* pUIObject : m_destroyed)
 	{
-		/* 검증 */
 		assert(pUIObject->IsPending() == false);	// 로딩 씬 소속의 오브젝트는 파괴될 수 없다.
 		assert(pUIObject->IsOnTheDestroyQueue() == true);	// 파괴 큐에 들어온 경우에는 이 ON_DESTROY_QUEUE 플래그가 켜져 있어야만 한다.
 
 		if (pUIObject == m_pObjectPressedByLButton)
 			m_pObjectPressedByLButton = nullptr;
+		if (pUIObject == m_pObjectPressedByRButton)
+			m_pObjectPressedByRButton = nullptr;
+		if (pUIObject == m_pObjectPressedByMButton)
+			m_pObjectPressedByMButton = nullptr;
 
 		// Step 1. Transform 자식 부모 연결 제거
 		RectTransform* pTransform = &pUIObject->m_transform;

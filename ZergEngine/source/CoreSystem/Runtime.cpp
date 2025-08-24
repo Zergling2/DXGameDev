@@ -284,13 +284,13 @@ void Runtime::OnIdle()
     Time::GetInstance()->ChangeDeltaTimeToFixedDeltaTime(); // FixeUpdate에서의 GetDeltaTime() 함수와 GetFixedDeltaTime() 함수의 반환값 일관성 보장
     while (Time::GetInstance()->GetFixedDeltaPerformanceCounter() <= m_deltaPerformanceCount)
     {
-        MonoBehaviourManager::GetInstance()->FixedUpdateScripts();
+        MonoBehaviourManager::GetInstance()->FixedUpdate();
         m_deltaPerformanceCount -= Time::GetInstance()->GetFixedDeltaPerformanceCounter();
     }
     Time::GetInstance()->RecoverDeltaTime();
 
-    MonoBehaviourManager::GetInstance()->UpdateScripts();
-    MonoBehaviourManager::GetInstance()->LateUpdateScripts();
+    MonoBehaviourManager::GetInstance()->Update();
+    MonoBehaviourManager::GetInstance()->LateUpdate();
 
     RemoveDestroyedComponentsAndObjects();
 

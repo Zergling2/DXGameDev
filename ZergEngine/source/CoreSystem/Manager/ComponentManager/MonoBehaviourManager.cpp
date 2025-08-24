@@ -109,7 +109,7 @@ void MonoBehaviourManager::CallStart()
     m_startQueue.clear();
 }
 
-void MonoBehaviourManager::FixedUpdateScripts()
+void MonoBehaviourManager::FixedUpdate()
 {
     // Deferred Remove 방식으로 구현.
     // 즉시 삭제 방법은 외부 이터레이터 손상을 막기 위해 인덱스로 접근한다던가 해야하고
@@ -127,7 +127,7 @@ void MonoBehaviourManager::FixedUpdateScripts()
     }
 }
 
-void MonoBehaviourManager::UpdateScripts()
+void MonoBehaviourManager::Update()
 {
     for (size_t i = 0; i < m_directAccessGroup.size(); ++i)
     {
@@ -137,7 +137,7 @@ void MonoBehaviourManager::UpdateScripts()
     }
 }
 
-void MonoBehaviourManager::LateUpdateScripts()
+void MonoBehaviourManager::LateUpdate()
 {
     for (size_t i = 0; i < m_directAccessGroup.size(); ++i)
     {

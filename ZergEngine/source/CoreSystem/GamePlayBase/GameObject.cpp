@@ -59,12 +59,24 @@ ComponentHandleBase GameObject::AddComponentImpl(IComponent* pComponent)
 		pComponent->OffFlag(COMPONENT_FLAG::ENABLED);
 
 	IComponentManager* pComponentManager = pComponent->GetComponentManager();
-
 	ComponentHandleBase hComponent = pComponentManager->RegisterToHandleTable(pComponent);
 
 	// 지연된 게임오브젝트가 아닌 경우에만 바로 포인터 활성화
 	if (!this->IsPending())
+	{
 		pComponentManager->AddToDirectAccessGroup(pComponent);
+
+		if (pComponent->GetType() == COMPONENT_TYPE::MONOBEHAVIOUR)
+		{
+			MonoBehaviour* pMonoBehaviour = static_cast<MonoBehaviour*>(pComponent);
+			pMonoBehaviour->Awake();	// Awake는 활성화 여부와 관계 없이 호출
+			if (pMonoBehaviour->IsEnabled())
+			{
+				pMonoBehaviour->OnEnable();
+				static_cast<MonoBehaviourManager*>(pComponentManager)->AddToStartQueue(pMonoBehaviour);
+			}
+		}
+	}
 
 	return hComponent;
 }

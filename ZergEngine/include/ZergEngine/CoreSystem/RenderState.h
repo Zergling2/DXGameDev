@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ZergEngine\Common\EngineHelper.h>
+#include <ZergEngine\Common\ThirdPartySDK.h>
 
 namespace ze
 {
@@ -37,7 +37,7 @@ namespace ze
 		ID3D11SamplerState* m_pSamplerState;
 	};
 
-	enum class DEPTH_STENCIL_STATETYPE
+	enum class DEPTH_STENCIL_STATE_TYPE
 	{
 		DEFAULT,
 
@@ -77,7 +77,7 @@ namespace ze
 		ID3D11DepthStencilState* m_pDepthStencilState;
 	};
 
-	enum class BLEND_STATETYPE
+	enum class BLEND_STATE_TYPE
 	{
 		OPAQUE_,
 		ALPHABLEND,

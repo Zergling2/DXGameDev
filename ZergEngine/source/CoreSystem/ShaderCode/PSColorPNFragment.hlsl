@@ -1,13 +1,7 @@
 #include "ShaderCommon.hlsli"
-#include "SubsetLighting.hlsli"
+#include "Lighting.hlsli"
 
-/*
-[Constant Buffer]
-PerFrame
-PerCamera
-PerSubset
-*/
-
+// [Constant Buffer]
 cbuffer Cb0 : register(b0)
 {
     CbPerFrame cb_perFrame;

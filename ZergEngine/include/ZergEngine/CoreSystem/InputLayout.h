@@ -1,6 +1,5 @@
 #pragma once
 
-#include <ZergEngine\Common\EngineHelper.h>
 #include <ZergEngine\Common\EngineConstants.h>
 
 namespace ze
@@ -18,9 +17,9 @@ namespace ze
 
 		void Init(ID3D11Device* pDevice, const D3D11_INPUT_ELEMENT_DESC* pDesc, UINT elementCount,
 			const byte* pShaderByteCode, size_t shaderByteCodeSize);
-		inline void Release() { m_cpInputLayout.Reset(); }
+		void Release() { m_cpInputLayout.Reset(); }
 
-		inline ID3D11InputLayout* GetComInterface() const { return m_cpInputLayout.Get(); }
+		ID3D11InputLayout* GetComInterface() const { return m_cpInputLayout.Get(); }
 	private:
 		ComPtr<ID3D11InputLayout> m_cpInputLayout;
 	};
@@ -116,20 +115,20 @@ namespace ze
 		VFPositionTexCoord& operator=(const VFPositionTexCoord&) = default;
 		VFPositionTexCoord(const XMFLOAT3& position, const XMFLOAT2& texCoord) noexcept
 			: m_position(position)
-			, mTexCoord(texCoord)
+			, m_texCoord(texCoord)
 		{
 		}
 		VFPositionTexCoord(FXMVECTOR position, FXMVECTOR texCoord) noexcept
 		{
 			XMStoreFloat3(&m_position, position);
-			XMStoreFloat2(&mTexCoord, texCoord);
+			XMStoreFloat2(&m_texCoord, texCoord);
 		}
 	private:
 		static constexpr size_t INPUT_ELEMENT_COUNT = 2;
 		static const D3D11_INPUT_ELEMENT_DESC s_ied[INPUT_ELEMENT_COUNT];
 	public:
 		XMFLOAT3 m_position;
-		XMFLOAT2 mTexCoord;
+		XMFLOAT2 m_texCoord;
 	};
 
 	struct VFPositionNormalTexCoord
@@ -144,14 +143,14 @@ namespace ze
 		VFPositionNormalTexCoord(const XMFLOAT3& position, const XMFLOAT3& normal, const XMFLOAT2& texCoord) noexcept
 			: m_position(position)
 			, m_normal(normal)
-			, mTexCoord(texCoord)
+			, m_texCoord(texCoord)
 		{
 		}
 		VFPositionNormalTexCoord(FXMVECTOR position, FXMVECTOR normal, FXMVECTOR texCoord) noexcept
 		{
 			XMStoreFloat3(&m_position, position);
 			XMStoreFloat3(&m_normal, normal);
-			XMStoreFloat2(&mTexCoord, texCoord);
+			XMStoreFloat2(&m_texCoord, texCoord);
 		}
 	private:
 		static constexpr size_t INPUT_ELEMENT_COUNT = 3;
@@ -159,7 +158,7 @@ namespace ze
 	public:
 		XMFLOAT3 m_position;
 		XMFLOAT3 m_normal;
-		XMFLOAT2 mTexCoord;
+		XMFLOAT2 m_texCoord;
 	};
 
 	struct VFTerrainPatchControlPoint
@@ -173,14 +172,14 @@ namespace ze
 		VFTerrainPatchControlPoint& operator=(const VFTerrainPatchControlPoint&) = default;
 		VFTerrainPatchControlPoint(const XMFLOAT3& position, const XMFLOAT2& texCoord, const XMFLOAT2& boundsY) noexcept
 			: m_position(position)
-			, mTexCoord(texCoord)
+			, m_texCoord(texCoord)
 			, m_boundsY(boundsY)
 		{
 		}
 		VFTerrainPatchControlPoint(FXMVECTOR position, FXMVECTOR texCoord, FXMVECTOR boundsY) noexcept
 		{
 			XMStoreFloat3(&m_position, position);
-			XMStoreFloat2(&mTexCoord, texCoord);
+			XMStoreFloat2(&m_texCoord, texCoord);
 			XMStoreFloat2(&m_boundsY, boundsY);
 		}
 	private:
@@ -188,8 +187,8 @@ namespace ze
 		static const D3D11_INPUT_ELEMENT_DESC s_ied[INPUT_ELEMENT_COUNT];
 	public:
 		XMFLOAT3 m_position;	// POSITION
-		XMFLOAT2 mTexCoord;	// TEXCOORD0
-		XMFLOAT2 m_boundsY;		// TEXCOORD1	(Min Y, Max Y)
+		XMFLOAT2 m_texCoord;	// TEXCOORD0
+		XMFLOAT2 m_boundsY;		// TEXCOORD1	(x: 지형 패치의 최소 높이값, y: 지형 패치의 최대 높이값)
 	};
 
 	class VFButton
@@ -220,10 +219,5 @@ namespace ze
 		XMFLOAT2 m_position;	// POSITION
 		XMFLOAT2 m_offset;		// 버튼 정점 변환 오프셋
 		XMFLOAT2 m_shade;		// 버튼 음영 가중치 [0] 눌리지 않았을 때, [1] 눌렸을 때
-	};
-
-	class VFImageButton
-	{
-
 	};
 }

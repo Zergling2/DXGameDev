@@ -18,7 +18,6 @@ namespace ze
 			SHADER						= 1 << 2,
 			CONSTANTBUFFER_PER_CAMERA	= 1 << 3,
 			CONSTANTBUFFER_PER_MESH		= 1 << 4,
-			CONSTANTBUFFER_PER_SUBSET	= 1 << 5,
 
 			COUNT,
 
@@ -32,11 +31,9 @@ namespace ze
 			, m_pPixelShader(nullptr)
 			, m_cbPerCamera()
 			, m_cbPerMesh()
-			, m_cbPerSubset()
 			, m_cbPerCameraCache()
 			, m_cbPerMeshCache()
-			, m_cbPerSubsetCache()
-			, m_pTextureSRVArray{ nullptr, nullptr, nullptr, nullptr }
+			, m_pTextureSRVArray{ nullptr }
 		{
 		}
 		virtual ~BasicEffectPT() = default;
@@ -46,15 +43,8 @@ namespace ze
 
 		// View Matrix, Projection Matrix가 업데이트 된 상태로 전달되어야 함. (=> 엔진 런타임에서 자동으로 처리중)
 		void SetCamera(const Camera* pCamera) noexcept;
-
 		void XM_CALLCONV SetWorldMatrix(FXMMATRIX w) noexcept;
-
-		void UseMaterial(bool b) noexcept;
-
-		void SetLightMap(const Texture2D& lightMap) noexcept;
-		void SetDiffuseMap(const Texture2D& diffuseMap) noexcept;
-		void SetNormalMap(const Texture2D& normalMap) noexcept;
-		void SetSpecularMap(const Texture2D& specularMap) noexcept;
+		void SetTexture(ID3D11ShaderResourceView* pTexture) noexcept;
 	private:
 		virtual void ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept override;
 		virtual void KickedOutOfDeviceContext() noexcept override;
@@ -74,12 +64,10 @@ namespace ze
 
 		ConstantBuffer<CbPerCamera> m_cbPerCamera;
 		ConstantBuffer<CbPerMesh> m_cbPerMesh;
-		ConstantBuffer<CbPerSubset> m_cbPerSubset;
 		CbPerCamera m_cbPerCameraCache;
 		CbPerMesh m_cbPerMeshCache;
-		CbPerSubset m_cbPerSubsetCache;
 
-		// [0] LIGHT_MAP, [1] DIFFUSE_MAP, [2] NORMAL_MAP, [3] SPECULAR_MAP
-		ID3D11ShaderResourceView* m_pTextureSRVArray[4];
+		// [0] DIFFUSE_MAP
+		ID3D11ShaderResourceView* m_pTextureSRVArray[1];
 	};
 }

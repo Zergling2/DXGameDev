@@ -1,20 +1,17 @@
 #include "ShaderCommon.hlsli"
 
-/*
-[Sampler State]
-Mesh Texture Sampler
+// [Sampler State]
+// ss_bilinear
 
-[Texture]
-SkyboxCubeMap t0
-*/
 
+// [Texture]
 TextureCube texcube_skyboxCubeMap : register(t0);
 
 PSOutput main(PSInputSkyboxFragment input)
 {
     PSOutput output;
     
-    output.color = texcube_skyboxCubeMap.Sample(ss_skyboxSampler, input.posL);
+    output.color = texcube_skyboxCubeMap.Sample(ss_bilinear, input.posL);
     
     return output;
 }

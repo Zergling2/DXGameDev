@@ -1,20 +1,16 @@
 #include "ShaderCommon.hlsli"
 
-/*
-[Sampler State]
-Mesh Texture Sampler
+// [Sampler State]
+// ss_mesh
 
-[Texture]
-Image Texture
-*/
-
+// [Texture]
 Texture2D tex2d_image : register(t0);
 
 PSOutput main(PSInputPTFragment input)
 {
     PSOutput output;
     
-    output.color = tex2d_image.Sample(ss_meshTexSampler, input.texCoord);
+    output.color = tex2d_image.Sample(ss_mesh, input.texCoord);
     
     return output;
 }

@@ -1,6 +1,7 @@
 #pragma once
 
-#include <ZergEngine\CoreSystem\InputLayout.h>
+#include <ZergEngine\Common\EngineConstants.h>
+#include <ZergEngine\CoreSystem\DataStructure\Aabb.h>
 
 namespace ze
 {
@@ -33,22 +34,24 @@ namespace ze
 		Mesh(PCWSTR name)
 			: m_subsets()
 			, m_name(name)
-			, m_pVB(nullptr)
-			, m_pIB(nullptr)
+			, m_aabb()
+			, m_cpVB()
+			, m_cpIB()
 			, m_vft(VERTEX_FORMAT_TYPE::UNKNOWN)
 		{
 		}
-		~Mesh();
 		PCWSTR GetName() const { return m_name.c_str(); }
-		ID3D11Buffer* GetVBComInterface() const { return m_pVB; }
-		ID3D11Buffer* GetIBComInterface() const { return m_pIB; }
+		const Aabb& GetAabb() const { return m_aabb; }
+		ID3D11Buffer* GetVBComInterface() const { return m_cpVB.Get(); }
+		ID3D11Buffer* GetIBComInterface() const { return m_cpIB.Get(); }
 		VERTEX_FORMAT_TYPE GetVertexFormatType() const { return m_vft; }
 	public:
 		std::vector<Subset> m_subsets;
 	private:
 		std::wstring m_name;
-		ID3D11Buffer* m_pVB;
-		ID3D11Buffer* m_pIB;
+		Aabb m_aabb;
+		ComPtr<ID3D11Buffer> m_cpVB;
+		ComPtr<ID3D11Buffer> m_cpIB;
 		VERTEX_FORMAT_TYPE m_vft;
 	};
 }

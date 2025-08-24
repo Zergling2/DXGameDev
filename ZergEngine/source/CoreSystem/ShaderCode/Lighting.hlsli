@@ -1,13 +1,8 @@
-#ifndef __SUBSET_LIGHTING__
-#define __SUBSET_LIGHTING__
+#ifndef __LIGHTING__
+#define __LIGHTING__
 
 #include "ShaderCommon.hlsli"
 
-// cbpf
-// cbps
-
-// 재질이 없으면 조명 처리도 없다.
-// 따라서 조명 계산은 항상 재질 상수버퍼를 참조하도록 한다.
 void ComputeDirectionalLight(DirectionalLightData dl, MaterialData mtl, float3 normal, float3 toEye,
     out float4 oA, out float4 oD, out float4 oS)
 {

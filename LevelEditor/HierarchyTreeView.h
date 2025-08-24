@@ -22,7 +22,7 @@ protected:
 private:
 	bool m_initialized;
 private:
-	void DeleteTreeItemDataRecursive(HTREEITEM hItem);
+	void DeleteTreeItemDataRecursive(CTreeCtrl& tc, HTREEITEM hItem);
 public:
 	virtual void OnInitialUpdate();
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);

@@ -74,24 +74,16 @@ void BasicEffectPNT::SetCamera(const Camera* pCamera) noexcept
 	const GameObject* pCameraOwner = pCamera->m_pGameObject;
 	assert(pCameraOwner != nullptr);
 
-	XMFLOAT4A frustumPlanes[6];
-	XMFLOAT4X4A vp;
-	XMStoreFloat4x4A(&vp, pCamera->GetViewMatrix() * pCamera->GetProjMatrix());
-	Math::ExtractFrustumPlanesInWorldSpace(&vp, frustumPlanes);
+	XMMATRIX vp = pCamera->GetViewMatrix() * pCamera->GetProjMatrix();
+	Math::CalcWorldFrustumFromViewProjMatrix(vp, m_cbPerCameraCache.frustumW);
 
 	XMStoreFloat3(&m_cbPerCameraCache.cameraPosW, pCameraOwner->m_transform.GetWorldPosition());
-	m_cbPerCameraCache.tessMinDist = pCamera->GetMinimumDistanceForTessellationToStart();
-	m_cbPerCameraCache.tessMaxDist = pCamera->GetMaximumDistanceForTessellationToStart();
+	m_cbPerCameraCache.tessMinDist = pCamera->GetMinDistanceTessellationToStart();
+	m_cbPerCameraCache.tessMaxDist = pCamera->GetMaxDistanceTessellationToStart();
 	m_cbPerCameraCache.minTessExponent = pCamera->GetMinimumTessellationExponent();
 	m_cbPerCameraCache.maxTessExponent = pCamera->GetMaximumTessellationExponent();
-	m_cbPerCameraCache.frustumPlane[0] = frustumPlanes[0];
-	m_cbPerCameraCache.frustumPlane[1] = frustumPlanes[1];
-	m_cbPerCameraCache.frustumPlane[2] = frustumPlanes[2];
-	m_cbPerCameraCache.frustumPlane[3] = frustumPlanes[3];
-	m_cbPerCameraCache.frustumPlane[4] = frustumPlanes[4];
-	m_cbPerCameraCache.frustumPlane[5] = frustumPlanes[5];
 
-	XMStoreFloat4x4A(&m_cbPerCameraCache.vp, XMMatrixTranspose(XMLoadFloat4x4A(&vp)));
+	XMStoreFloat4x4A(&m_cbPerCameraCache.vp, ConvertToHLSLMatrix(vp));
 
 	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_CAMERA;
 }
@@ -107,9 +99,9 @@ void XM_CALLCONV BasicEffectPNT::SetWorldMatrix(FXMMATRIX w) noexcept
 void BasicEffectPNT::UseMaterial(bool b) noexcept
 {
 	if (b)
-		m_cbPerSubsetCache.mtl.mtlFlag |= MATERIAL_FLAG::USE_MATERIAL;
+		m_cbPerSubsetCache.mtl.mtlFlag |= static_cast<uint32_t>(MATERIAL_FLAG::USE_MATERIAL);
 	else
-		m_cbPerSubsetCache.mtl.mtlFlag = MATERIAL_FLAG::NONE;
+		m_cbPerSubsetCache.mtl.mtlFlag = static_cast<uint32_t>(MATERIAL_FLAG::NONE);
 
 	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_SUBSET;
 }
@@ -142,46 +134,45 @@ void XM_CALLCONV BasicEffectPNT::SetReflection(FXMVECTOR reflect) noexcept
 	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_SUBSET;
 }
 
-void BasicEffectPNT::SetLightMap(const Texture2D& lightMap) noexcept
+void BasicEffectPNT::SetLightMap(ID3D11ShaderResourceView* pLightMap) noexcept
 {
-	m_pTextureSRVArray[0] = lightMap.GetSRVComInterface();
+	m_pTextureSRVArray[0] = pLightMap;
 
-	if (lightMap.GetSRVComInterface())
-		m_cbPerSubsetCache.mtl.mtlFlag |= MATERIAL_FLAG::USE_LIGHT_MAP;
+	if (pLightMap)
+		m_cbPerSubsetCache.mtl.mtlFlag |= static_cast<uint32_t>(MATERIAL_FLAG::USE_LIGHT_MAP);
 	else
-		m_cbPerSubsetCache.mtl.mtlFlag &= ~MATERIAL_FLAG::USE_LIGHT_MAP;
+		m_cbPerSubsetCache.mtl.mtlFlag &= ~static_cast<uint32_t>(MATERIAL_FLAG::USE_LIGHT_MAP);
 }
 
-void BasicEffectPNT::SetDiffuseMap(const Texture2D& diffuseMap) noexcept
+void BasicEffectPNT::SetDiffuseMap(ID3D11ShaderResourceView* pDiffuseMap) noexcept
 {
-	m_pTextureSRVArray[1] = diffuseMap.GetSRVComInterface();
+	m_pTextureSRVArray[1] = pDiffuseMap;
 
-	if (diffuseMap.GetSRVComInterface())
-		m_cbPerSubsetCache.mtl.mtlFlag |= MATERIAL_FLAG::USE_DIFFUSE_MAP;
+	if (pDiffuseMap)
+		m_cbPerSubsetCache.mtl.mtlFlag |= static_cast<uint32_t>(MATERIAL_FLAG::USE_DIFFUSE_MAP);
 	else
-		m_cbPerSubsetCache.mtl.mtlFlag &= ~MATERIAL_FLAG::USE_DIFFUSE_MAP;
+		m_cbPerSubsetCache.mtl.mtlFlag &= ~static_cast<uint32_t>(MATERIAL_FLAG::USE_DIFFUSE_MAP);
 }
 
-void BasicEffectPNT::SetNormalMap(const Texture2D& normalMap) noexcept
+void BasicEffectPNT::SetNormalMap(ID3D11ShaderResourceView* pNormalMap) noexcept
 {
-	m_pTextureSRVArray[2] = normalMap.GetSRVComInterface();
+	m_pTextureSRVArray[2] = pNormalMap;
 
-	if (normalMap.GetSRVComInterface())
-		m_cbPerSubsetCache.mtl.mtlFlag |= MATERIAL_FLAG::USE_NORMAL_MAP;
+	if (pNormalMap)
+		m_cbPerSubsetCache.mtl.mtlFlag |= static_cast<uint32_t>(MATERIAL_FLAG::USE_NORMAL_MAP);
 	else
-		m_cbPerSubsetCache.mtl.mtlFlag &= ~MATERIAL_FLAG::USE_NORMAL_MAP;
+		m_cbPerSubsetCache.mtl.mtlFlag &= ~static_cast<uint32_t>(MATERIAL_FLAG::USE_NORMAL_MAP);
 }
 
-void BasicEffectPNT::SetSpecularMap(const Texture2D& specularMap) noexcept
+void BasicEffectPNT::SetSpecularMap(ID3D11ShaderResourceView* pSpecularMap) noexcept
 {
-	m_pTextureSRVArray[3] = specularMap.GetSRVComInterface();
+	m_pTextureSRVArray[3] = pSpecularMap;
 
-	if (specularMap.GetSRVComInterface())
-		m_cbPerSubsetCache.mtl.mtlFlag |= MATERIAL_FLAG::USE_SPECULAR_MAP;
+	if (pSpecularMap)
+		m_cbPerSubsetCache.mtl.mtlFlag |= static_cast<uint32_t>(MATERIAL_FLAG::USE_SPECULAR_MAP);
 	else
-		m_cbPerSubsetCache.mtl.mtlFlag &= ~MATERIAL_FLAG::USE_SPECULAR_MAP;
+		m_cbPerSubsetCache.mtl.mtlFlag &= ~static_cast<uint32_t>(MATERIAL_FLAG::USE_SPECULAR_MAP);
 }
-
 
 void BasicEffectPNT::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
 {

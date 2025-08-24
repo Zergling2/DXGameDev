@@ -9,6 +9,7 @@
 #include "LevelEditorDoc.h"
 #include "LevelEditorView.h"
 #include "Settings.h"
+#include "EditorCameraScript.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -32,7 +33,6 @@ protected:
 	// Implementation
 protected:
 	DECLARE_MESSAGE_MAP()
-public:
 };
 
 CAboutDlg::CAboutDlg() noexcept : CDialogEx(IDD_ABOUTBOX)
@@ -67,6 +67,7 @@ END_MESSAGE_MAP()
 
 CLevelEditorApp::CLevelEditorApp() noexcept
 	: m_hEditorCameraObject()
+	, m_iconList()
 {
 
 	// TODO: replace application ID string below with unique ID string; recommended
@@ -179,9 +180,12 @@ BOOL CLevelEditorApp::InitInstance()
 	// 메인 카메라용 게임오브젝트 생성
 	m_hEditorCameraObject = ze::Runtime::GetInstance()->CreateGameObject();
 	ze::GameObject* pEditorCameraObject = m_hEditorCameraObject.ToPtr();
+	// 카메라 컴포넌트 추가
 	ze::ComponentHandle<ze::Camera> hCamera = pEditorCameraObject->AddComponent<ze::Camera>();
 	ze::Camera* pCamera = hCamera.ToPtr();
 	pCamera->SetBackgroundColor(DirectX::Colors::ForestGreen);
+	// 카메라 제어 스크립트 추가
+	ze::ComponentHandle<EditorCameraScript> hEditorCameraScript = pEditorCameraObject->AddComponent<EditorCameraScript>();
 
 	ze::Texture2D skyboxCubeMap = ze::ResourceLoader::GetInstance()->LoadCubeMapTexture(L"Resource\\Skybox\\cloudy_puresky.dds");
 	ze::Environment::GetInstance()->SetSkyboxCubeMap(skyboxCubeMap);

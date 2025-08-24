@@ -4,6 +4,11 @@
 
 namespace ze
 {
+	class Frustum;
+	class Plane;
+	class Ray;
+	class Aabb;
+
 	class Math
 	{
 	public:
@@ -48,6 +53,10 @@ namespace ze
 		// Graphics math
 		
 		// 월드 공간에서의 절두체 평면 6개 계산 및 반환
-		static void ExtractFrustumPlanesInWorldSpace(const XMFLOAT4X4A* pViewProjMatrix, XMFLOAT4A planes[6]) noexcept;
+		static void XM_CALLCONV CalcWorldFrustumFromViewProjMatrix(FXMMATRIX viewProj, Frustum& frustum) noexcept;
+		static bool TestRayAabbCollision(const Ray& ray, const Aabb& aabb);
+		static bool TestFrustumAabbCollision(const Frustum& frustum, const Aabb& aabb);
+		static bool TestAabbBehindPlane(const Aabb& aabb, const Plane& plane);
+		static const Aabb XM_CALLCONV TransformAabb(FXMMATRIX m, const Aabb& aabb);
 	};
 }

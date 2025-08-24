@@ -24,8 +24,9 @@ protected:
 	DECLARE_MESSAGE_MAP()
 private:
 	bool m_initialized;
+private:
+	void DeleteTreeItemDataRecursive(CTreeCtrl& tc, HTREEITEM hItem);
 public:
 	virtual void OnInitialUpdate();
+	afx_msg void OnDestroy();
 };
-
-

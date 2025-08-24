@@ -6,6 +6,7 @@
 #include <ZergEngine\CoreSystem\Effect\BasicEffectPN.h>
 #include <ZergEngine\CoreSystem\Effect\BasicEffectPT.h>
 #include <ZergEngine\CoreSystem\Effect\BasicEffectPNT.h>
+#include <ZergEngine\CoreSystem\Effect\TerrainEffect.h>
 #include <ZergEngine\CoreSystem\Effect\SkyboxEffect.h>
 #include <ZergEngine\CoreSystem\Effect\DrawQuadWithMSTextureEffect.h>
 #include <ZergEngine\CoreSystem\Effect\ButtonEffect.h>
@@ -14,10 +15,12 @@
 namespace ze
 {
 	class MeshRenderer;
+	class Terrain;
 	class IUIObject;
 	class Panel;
 	class Button;
 	class Image;
+	class Text;
 
 	class Renderer
 	{
@@ -31,20 +34,22 @@ namespace ze
 		static void CreateInstance();
 		static void DestroyInstance();
 
-		virtual void Init();
-		virtual void UnInit();
+		void Init();
+		void UnInit();
 
-		virtual void RenderFrame();
+		void RenderFrame();
 
 		void RenderVFPositionMesh(const MeshRenderer* pMeshRenderer);
 		void RenderVFPositionColorMesh(const MeshRenderer* pMeshRenderer);
 		void RenderVFPositionNormalMesh(const MeshRenderer* pMeshRenderer);
 		void RenderVFPositionTexCoordMesh(const MeshRenderer* pMeshRenderer);
 		void RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshRenderer);
+		void RenderTerrain(const Terrain* pTerrain);
 		void RenderSkybox(ID3D11ShaderResourceView* pSkyboxCubeMapSRV);
 		void RenderPanel(const Panel* pPanel);
 		void RenderButton(const Button* pButton);
 		void RenderImage(const Image* pImage);
+		void RenderText(const Text* pText);
 	private:
 		static Renderer* s_pInstance;
 
@@ -67,7 +72,7 @@ namespace ze
 		BasicEffectPN m_basicEffectPN;
 		BasicEffectPT m_basicEffectPT;
 		BasicEffectPNT m_basicEffectPNT;
-		// TerrainEffect mTerrainEffect;
+		TerrainEffect m_terrainEffect;
 		SkyboxEffect m_skyboxEffect;
 		DrawQuadWithMSTextureEffect m_drawQuadWithMSTextureEffect;
 		ButtonEffect m_buttonEffect;

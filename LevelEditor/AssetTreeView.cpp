@@ -1,6 +1,7 @@
 #include "AssetTreeView.h"
 #include "LevelEditor.h"
 #include "Settings.h"
+#include "ATVItem\ATVItemFolder.h"
 
 // CAssetTreeView
 
@@ -16,6 +17,7 @@ CAssetTreeView::~CAssetTreeView()
 }
 
 BEGIN_MESSAGE_MAP(CAssetTreeView, CTreeView)
+	ON_WM_DESTROY()
 END_MESSAGE_MAP()
 
 
@@ -35,6 +37,25 @@ void CAssetTreeView::Dump(CDumpContext& dc) const
 #endif
 #endif //_DEBUG
 
+void CAssetTreeView::DeleteTreeItemDataRecursive(CTreeCtrl& tc, HTREEITEM hItem)
+{
+	while (hItem)
+	{
+		// 자식 먼저 처리
+		HTREEITEM hChildItem = tc.GetChildItem(hItem);
+		if (hChildItem)
+			this->DeleteTreeItemDataRecursive(tc, hChildItem);
+
+		DWORD_PTR data = tc.GetItemData(hItem);
+		IATVItem* pATVItem = reinterpret_cast<IATVItem*>(data);
+		assert(pATVItem != nullptr);
+
+		delete pATVItem;
+
+		// 다음 형제 항목
+		hItem = tc.GetNextSiblingItem(hItem);
+	}
+}
 
 // CAssetTreeView message handlers
 
@@ -58,6 +79,7 @@ void CAssetTreeView::OnInitialUpdate()
 		tc.SetImageList(&iconList, TVSIL_NORMAL);
 
 		// 루트 노드 추가
+		ATVItemFolder* pATVItemFolder = new ATVItemFolder();
 		tc.InsertItem(
 			TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_PARAM | TVIF_STATE,
 			_T("Asset"),
@@ -65,11 +87,30 @@ void CAssetTreeView::OnInitialUpdate()
 			ZE_ICON_INDEX::FOLDER_OPENED_ICON,
 			0,
 			0,
-			NULL,
+			reinterpret_cast<LPARAM>(pATVItemFolder),
 			TVI_ROOT,
 			TVI_LAST
 		);
 
 		m_initialized = true;
 	}
+}
+
+void CAssetTreeView::OnDestroy()
+{
+	// CTreeView::OnDestroy가 호출되면 트리 컨트롤이 파괴되므로 그 전에 트리 아이템에 부착된 동적할당 Data를 해제한다.
+	CTreeCtrl& tc = this->GetTreeCtrl();
+	HTREEITEM hRootItem = tc.GetRootItem();
+	while (hRootItem)
+	{
+		this->DeleteTreeItemDataRecursive(tc, hRootItem);
+
+		hRootItem = tc.GetNextItem(hRootItem, TVGN_NEXT);
+	}
+	// tc.DeleteAllItems();	// 객체 파괴시 자동 수행
+
+	CTreeView::OnDestroy();
+
+	// TODO: Add your message handler code here
+	// ...
 }

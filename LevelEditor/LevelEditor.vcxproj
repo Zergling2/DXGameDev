@@ -199,7 +199,8 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="ALVItem\ALVItemInterface.h" />
+    <ClInclude Include="ATVItem\ATVItemFolder.h" />
+    <ClInclude Include="ATVItem\ATVItemInterface.h" />
     <ClInclude Include="AssetTreeView.h" />
     <ClInclude Include="BufferDC.h" />
     <ClInclude Include="CLVItem\CLVItemEmpty.h" />
@@ -209,6 +210,8 @@
     <ClInclude Include="CLVItem\CLVItemTransform.h" />
     <ClInclude Include="CommandHandler\CommandHandler.h" />
     <ClInclude Include="ComponentListView.h" />
+    <ClInclude Include="EditorCameraScript.h" />
+    <ClInclude Include="Edit\RangeIntEdit.h" />
     <ClInclude Include="EmptyInspectorFormView.h" />
     <ClInclude Include="Helper.h" />
     <ClInclude Include="HTVItem\HTVItemEmpty.h" />
@@ -234,7 +237,8 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ALVItem\ALVItemInterface.cpp" />
+    <ClCompile Include="ATVItem\ATVItemFolder.cpp" />
+    <ClCompile Include="ATVItem\ATVItemInterface.cpp" />
     <ClCompile Include="AssetTreeView.cpp" />
     <ClCompile Include="BufferDC.cpp" />
     <ClCompile Include="CLVItem\CLVItemEmpty.cpp" />
@@ -244,6 +248,8 @@
     <ClCompile Include="CLVItem\CLVItemTransform.cpp" />
     <ClCompile Include="CommandHandler\CommandHandler.cpp" />
     <ClCompile Include="ComponentListView.cpp" />
+    <ClCompile Include="EditorCameraScript.cpp" />
+    <ClCompile Include="Edit\RangeIntEdit.cpp" />
     <ClCompile Include="EmptyInspectorFormView.cpp" />
     <ClCompile Include="HierarchyTreeView.cpp" />
     <ClCompile Include="HTVItem\HTVItemEmpty.cpp" />

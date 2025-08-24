@@ -141,12 +141,13 @@ namespace ze
 		std::vector<std::shared_ptr<Mesh>> LoadWavefrontOBJ(PCWSTR path);
 		Texture2D LoadTexture(PCWSTR path);
 		std::shared_ptr<Material> CreateMaterial();
-		Texture2D LoadCubeMapTexture(PCWSTR path);
+		Texture2D LoadCubeMapTexture(PCWSTR path);		// dds 포맷만 지원
+		bool CreateHeightMapFromRawData(Texture2D& heightMap, const uint16_t* pData, SIZE resolution);
 		// std::vector<std::shared_ptr<Mesh>> LoadWavefrontOBJ_deprecated(PCWSTR path, bool importTexture);
 	private:
-		bool ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, VertexPack& vp, Mesh& mesh, const size_t meshIndex);
+		bool ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, VertexPack& vp, Mesh* pMesh);
 		bool ParseWavefrontOBJFaces(FILE* pOBJFile, long* pnffpos, VERTEX_FORMAT_TYPE vft, const VertexPack& vp,
-			IndexMapPack& imp, Mesh& mesh, size_t meshIndex, RawVector& tempVB, std::vector<uint32_t>& tempIB);
+			IndexMapPack& imp, Mesh* pMesh, RawVector& tempVB, std::vector<uint32_t>& tempIB);
 		/*
 		Texture2D LoadTexture_deprecated(PCWSTR path);
 		bool ReadFaces_deprecated(FILE* pOBJFile, long* pnffpos, const VERTEX_FORMAT_TYPE vft, const VertexPack& vp,

@@ -20,6 +20,10 @@ constexpr float CAMERA_VIEWPORT_X_DEFAULT = 0.0f;
 constexpr float CAMERA_VIEWPORT_Y_DEFAULT = 0.0f;
 constexpr float CAMERA_VIEWPORT_WIDTH_DEFAULT = 1.0f;
 constexpr float CAMERA_VIEWPORT_HEIGHT_DEFAULT = 1.0f;
+constexpr float CAMERA_TESSELLATION_MIN_DIST_DEFAULT = 50.0f;
+constexpr float CAMERA_TESSELLATION_MAX_DIST_DEFAULT = 400.0f;
+constexpr float CAMERA_MIN_TESSELLATION_EXP_DEFAULT = 0.0f;
+constexpr float CAMERA_MAX_TESSELLATION_EXP_DEFAULT = 6.0f;	// 2 ^ 6 = 64 (최대 테셀레이션)
 
 Camera::Camera() noexcept
 	: IComponent(CameraManager::GetInstance()->AssignUniqueId())
@@ -37,10 +41,10 @@ Camera::Camera() noexcept
 	, m_viewMatrix()
 	, m_projMatrix()
 	, m_entireBufferViewport()
-	, mTessMinDist(50.0f)
-	, mTessMaxDist(400.0f)
-	, m_minTessExponent(0.0f)
-	, m_maxTessExponent(6.0f)
+	, m_tessMinDist(CAMERA_TESSELLATION_MIN_DIST_DEFAULT)
+	, m_tessMaxDist(CAMERA_TESSELLATION_MAX_DIST_DEFAULT)
+	, m_minTessExponent(CAMERA_MIN_TESSELLATION_EXP_DEFAULT)
+	, m_maxTessExponent(CAMERA_MAX_TESSELLATION_EXP_DEFAULT)
 {
 	this->CreateBuffer(
 		GraphicDevice::GetInstance()->GetSwapChainWidth(),
@@ -165,7 +169,7 @@ HRESULT Camera::CreateBuffer(uint32_t width, uint32_t height)
 		descColorBuffer.SampleDesc.Count = static_cast<UINT>(MSAA_SAMPLE_COUNT::X4);	// (테스트) 4X MSAA에 maximum quailty를 고정으로 사용
 		descColorBuffer.SampleDesc.Quality = GraphicDevice::GetInstance()->GetMSAAMaximumQuality(MSAA_SAMPLE_COUNT::X4);	// Use max quality level
 		descColorBuffer.Usage = D3D11_USAGE_DEFAULT;
-		descColorBuffer.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;		// 렌더링 + 카메라병합셰이더 리소스
+		descColorBuffer.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;		// 렌더링 + 카메라 병합 셰이더 리소스
 		descColorBuffer.CPUAccessFlags = 0;
 		descColorBuffer.MiscFlags = 0;
 
@@ -218,6 +222,66 @@ HRESULT Camera::CreateBuffer(uint32_t width, uint32_t height)
 	} while (false);
 
 	return hr;
+}
+
+XMMATRIX XM_CALLCONV Camera::GetViewportMatrix()
+{
+	const float dwHalfWidth = m_entireBufferViewport.Width * 0.5f;
+	const float dwHalfHeight = m_entireBufferViewport.Height * 0.5f;
+	const float dwX = m_entireBufferViewport.TopLeftX;
+	const float dwY = m_entireBufferViewport.TopLeftY;
+	const float dvMinZ = m_entireBufferViewport.MinDepth;
+	const float dvMaxZ = m_entireBufferViewport.MaxDepth;
+
+	return XMMatrixSet(
+		dwHalfWidth, 0.0f, 0.0f, 0.0f,
+		0.0f, -dwHalfHeight, 0.0f, 0.0f,
+		0.0f, 0.0f, dvMaxZ - dvMinZ, 0.0f,
+		dwX + dwHalfWidth, dwY + dwHalfHeight, dvMinZ, 1.0f
+	);
+}
+
+POINT Camera::ScreenPointToCameraPoint(POINT pt) const
+{
+	// 카메라 렌더링 쿼드의 스크린 영역
+	RECT camera;
+
+	camera.left = static_cast<LONG>(m_entireBufferViewport.TopLeftX);
+	camera.top = static_cast<LONG>(m_entireBufferViewport.TopLeftY);
+	// camera.right = camera.left + static_cast<LONG>(m_entireBufferViewport.Width);
+	// camera.bottom = camera.top + static_cast<LONG>(m_entireBufferViewport.Height);
+
+	return POINT{ pt.x - camera.left, pt.y - camera.top };
+}
+
+Ray Camera::ScreenPointToRay(POINT pt)
+{
+	// 스크린 공간 좌표를 Projection Plane (x = 1.0)에 위치한 정점(xv, yv, 1.0f)으로 변환한다.
+	const float w = m_entireBufferViewport.Width;
+	const float h = m_entireBufferViewport.Height;
+	const float xs = static_cast<float>(pt.x);
+	const float ys = static_cast<float>(pt.y);
+
+	const float xndc = 2.0f * xs / w - 1.0f;
+	const float yndc = -2.0f * ys / h + 1.0f;
+
+	const float xv = xndc / m_projMatrix(0, 0);
+	const float yv = yndc / m_projMatrix(1, 1);
+
+	const float zRatio = m_nearPlane / 1.0f;	// near plane과 projection plane의 z거리 비율
+	XMVECTOR direction = XMVectorSet(xv, yv, 1.0f, 0.0f);	// Ray의 방향은 원점으로부터 Projection Plane에 위치한 점으로의 방향으로 간단히 구할 수 있다.
+	XMVECTOR origin = XMVectorMultiply(direction, XMVectorReplicate(zRatio));	// 원점이 아닌 near plane 평면상의 정점을 시작점으로 해야하므로
+
+	// View space에서의 Ray
+	Ray ray(origin, direction);		// direction은 Transform 함수에서 정규화되므로 지금 정규화할 필요 없음
+	
+	// ray를 World space ray로 변환
+	this->UpdateViewMatrix();
+	XMMATRIX invView = XMMatrixInverse(nullptr, this->GetViewMatrix());
+
+	ray.Transform(invView);
+
+	return ray;
 }
 
 IComponentManager* Camera::GetComponentManager() const

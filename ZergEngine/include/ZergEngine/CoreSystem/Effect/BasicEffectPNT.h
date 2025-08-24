@@ -63,10 +63,10 @@ namespace ze
 		void XM_CALLCONV SetSpecularColor(FXMVECTOR specular) noexcept;
 		void XM_CALLCONV SetReflection(FXMVECTOR reflect) noexcept;
 
-		void SetLightMap(const Texture2D& lightMap) noexcept;
-		void SetDiffuseMap(const Texture2D& diffuseMap) noexcept;
-		void SetNormalMap(const Texture2D& normalMap) noexcept;
-		void SetSpecularMap(const Texture2D& specularMap) noexcept;
+		void SetLightMap(ID3D11ShaderResourceView* pLightMap) noexcept;
+		void SetDiffuseMap(ID3D11ShaderResourceView* pDiffuseMap) noexcept;
+		void SetNormalMap(ID3D11ShaderResourceView* pNormalMap) noexcept;
+		void SetSpecularMap(ID3D11ShaderResourceView* pSpecularMap) noexcept;
 	private:
 		virtual void ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept override;
 		virtual void KickedOutOfDeviceContext() noexcept override;

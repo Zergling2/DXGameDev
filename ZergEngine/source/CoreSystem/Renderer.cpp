@@ -44,7 +44,7 @@ Renderer::Renderer()
 	, m_basicEffectPN()
 	, m_basicEffectPT()
 	, m_basicEffectPNT()
-	// , m_terrainEffect()
+	, m_terrainEffect()
 	, m_skyboxEffect()
 	, m_drawQuadWithMSTextureEffect()
 	, m_buttonEffect()
@@ -78,13 +78,13 @@ void Renderer::Init()
 	m_pCullBackRS = GraphicDevice::GetInstance()->GetRSComInterface(RASTERIZER_FILL_MODE::SOLID, RASTERIZER_CULL_MODE::BACK);
 	m_pCullNoneRS = GraphicDevice::GetInstance()->GetRSComInterface(RASTERIZER_FILL_MODE::SOLID, RASTERIZER_CULL_MODE::NONE);
 	m_pWireFrameRS = GraphicDevice::GetInstance()->GetRSComInterface(RASTERIZER_FILL_MODE::WIREFRAME, RASTERIZER_CULL_MODE::NONE);
-	m_pDefaultDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DEPTH_STENCIL_STATETYPE::DEFAULT);
-	m_pSkyboxDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DEPTH_STENCIL_STATETYPE::SKYBOX);
-	m_pDepthReadOnlyDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DEPTH_STENCIL_STATETYPE::DEPTH_READ_ONLY);
-	m_pNoDepthStencilTestDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DEPTH_STENCIL_STATETYPE::NO_DEPTH_STENCILTEST);
-	m_pOpaqueBS = GraphicDevice::GetInstance()->GetBSComInterface(BLEND_STATETYPE::OPAQUE_);
-	m_pAlphaBlendBS = GraphicDevice::GetInstance()->GetBSComInterface(BLEND_STATETYPE::ALPHABLEND);
-	m_pNoColorWriteBS = GraphicDevice::GetInstance()->GetBSComInterface(BLEND_STATETYPE::NO_COLOR_WRITE);
+	m_pDefaultDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DEPTH_STENCIL_STATE_TYPE::DEFAULT);
+	m_pSkyboxDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DEPTH_STENCIL_STATE_TYPE::SKYBOX);
+	m_pDepthReadOnlyDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DEPTH_STENCIL_STATE_TYPE::DEPTH_READ_ONLY);
+	m_pNoDepthStencilTestDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DEPTH_STENCIL_STATE_TYPE::NO_DEPTH_STENCILTEST);
+	m_pOpaqueBS = GraphicDevice::GetInstance()->GetBSComInterface(BLEND_STATE_TYPE::OPAQUE_);
+	m_pAlphaBlendBS = GraphicDevice::GetInstance()->GetBSComInterface(BLEND_STATE_TYPE::ALPHABLEND);
+	m_pNoColorWriteBS = GraphicDevice::GetInstance()->GetBSComInterface(BLEND_STATE_TYPE::NO_COLOR_WRITE);
 	m_pButtonVB = GraphicDevice::GetInstance()->GetVBComInterface(VERTEX_BUFFER_TYPE::BUTTON);	// Read only vertex buffer
 
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ INITIALIZE EFFECTS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -93,8 +93,8 @@ void Renderer::Init()
 	m_basicEffectPN.Init();
 	m_basicEffectPT.Init();
 	m_basicEffectPNT.Init();
+	m_terrainEffect.Init();
 	m_skyboxEffect.Init();
-	// m_terrainEffect.Init();
 	m_drawQuadWithMSTextureEffect.Init();
 	m_buttonEffect.Init();
 	m_imageEffect.Init();
@@ -102,17 +102,6 @@ void Renderer::Init()
 	// effect context 준비
 	assert(GraphicDevice::GetInstance()->GetImmediateContextComInterface() != nullptr);
 	m_effectImmediateContext.AttachDeviceContext(GraphicDevice::GetInstance()->GetImmediateContextComInterface());
-
-	/*
-	m_passTerrain.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST);
-	m_passTerrain.SetInputLayout(GraphicDevice::GetInstance()->GetILComInterface(VERTEX_FORMAT_TYPE::TERRAIN_PATCH_CTRL_PT));
-	m_passTerrain.SetVertexShader(GraphicDevice::GetInstance()->GetVSComInterface(VERTEX_SHADER_TYPE::TRANSFORM_TERRAIN_PATCH_CTRL_PT));
-	m_passTerrain.SetHullShader(GraphicDevice::GetInstance()->GetHSComInterface(HULL_SHADER_TYPE::CALC_TERRAIN_TESS_FACTOR));
-	m_passTerrain.SetDomainShader(GraphicDevice::GetInstance()->GetDSComInterface(DOMAIN_SHADER_TYPE::SAMPLE_TERRAIN_HEIGHT_MAP));
-	m_passTerrain.SetPixelShader(GraphicDevice::GetInstance()->GetPSComInterface(PIXEL_SHADER_TYPE::COLOR_TERRAIN_FRAGMENT));
-	m_passTerrain.SetRasterizerState(GraphicDevice::GetInstance()->GetRSComInterface(RASTERIZER_FILL_MODE::SOLID, RASTERIZER_CULL_MODE::BACK));
-	m_passTerrain.SetDepthStencilState(GraphicDevice::GetInstance()->GetDSSComInterface(DEPTH_STENCIL_STATETYPE::DEFAULT), 0);
-	*/
 }
 
 void Renderer::UnInit()
@@ -123,8 +112,8 @@ void Renderer::UnInit()
 	m_basicEffectPN.Release();
 	m_basicEffectPT.Release();
 	m_basicEffectPNT.Release();
+	m_terrainEffect.Release();
 	m_skyboxEffect.Release();
-	// m_terrainEffect.Release();
 	m_drawQuadWithMSTextureEffect.Release();
 	m_buttonEffect.Release();
 	m_imageEffect.Release();
@@ -134,26 +123,18 @@ void Renderer::RenderFrame()
 {
 	ID3D11DeviceContext* pImmContext = m_effectImmediateContext.GetDeviceContextComInterface();
 
-	// BasicEffect에서 사용하는 렌더 상태 설정
-	// 추후 런타임에 변경 가능하게 수정
-	// Sampler State
-	constexpr TEXTURE_FILTERING_OPTION meshTexFilter = TEXTURE_FILTERING_OPTION::ANISOTROPIC_4X;
-	constexpr TEXTURE_FILTERING_OPTION terrainTexFilter = TEXTURE_FILTERING_OPTION::ANISOTROPIC_4X;
 	ID3D11SamplerState* const ssArr[] =
 	{
-		GraphicDevice::GetInstance()->GetSSComInterface(meshTexFilter),		// (s0) mesh texture sampler
-		GraphicDevice::GetInstance()->GetSkyboxSamplerComInterface(),		// (s1)
-		GraphicDevice::GetInstance()->GetSSComInterface(terrainTexFilter),	// (s2) terrain color texture sampler
-		GraphicDevice::GetInstance()->GetHeightmapSamplerComInterface()		// (s3)
+		GraphicDevice::GetInstance()->GetSSComInterface(TEXTURE_FILTERING_OPTION::ANISOTROPIC_4X),	// s0 mesh texture sampler
+		GraphicDevice::GetInstance()->GetSSComInterface(TEXTURE_FILTERING_OPTION::BILINEAR),		// s1
+		GraphicDevice::GetInstance()->GetSSComInterface(TEXTURE_FILTERING_OPTION::TRILINEAR),		// s2
 	};
-
-	pImmContext->VSSetSamplers(0, _countof(ssArr), ssArr);	// 터레인 이펙트에서
-	pImmContext->DSSetSamplers(0, _countof(ssArr), ssArr);	// 터레인 이펙트에서
-	pImmContext->PSSetSamplers(0, _countof(ssArr), ssArr);	// 대부분 이펙트에서
+	pImmContext->DSSetSamplers(0, _countof(ssArr), ssArr);
+	pImmContext->PSSetSamplers(0, _countof(ssArr), ssArr);
 
 	// Rasterizer State
-	pImmContext->RSSetState(m_pCullBackRS);					// 후면 컬링 설정
-	
+	pImmContext->RSSetState(m_pCullBackRS);		// 후면 컬링 설정
+
 	// DepthStencil State
 	pImmContext->OMSetDepthStencilState(m_pDefaultDSS, 0);
 
@@ -198,7 +179,7 @@ void Renderer::RenderFrame()
 		// m_basicEffectPT.SetDirectionalLight(light, lightCount);
 		m_basicEffectPNT.SetDirectionalLight(light, lightCount);
 		// m_skyboxEffect.SetDirectionalLight(light, lightCount);
-		// m_terrainEffect.SetDirectionalLight(light, lightCount);
+		m_terrainEffect.SetDirectionalLight(light, lightCount);
 	}
 
 	{
@@ -233,7 +214,7 @@ void Renderer::RenderFrame()
 		// m_basicEffectPT.SetPointLight(light, lightCount);
 		m_basicEffectPNT.SetPointLight(light, lightCount);
 		// m_skyboxEffect.SetPointLight(light, lightCount);
-		// m_terrainEffect.SetPointLight(light, lightCount);
+		m_terrainEffect.SetPointLight(light, lightCount);
 	}
 
 	{
@@ -280,7 +261,7 @@ void Renderer::RenderFrame()
 		// m_basicEffectPT.SetSpotLight(light, lightCount);
 		m_basicEffectPNT.SetSpotLight(light, lightCount);
 		// m_skyboxEffect.SetSpotLight(light, lightCount);
-		// m_terrainEffect.SetSpotLight(light, lightCount);
+		m_terrainEffect.SetSpotLight(light, lightCount);
 	}
 
 	// Camera마다 프레임 렌더링
@@ -292,6 +273,8 @@ void Renderer::RenderFrame()
 			continue;
 
 		pCamera->UpdateViewMatrix();	// 뷰 변환 행렬 업데이트
+		Frustum cameraFrustumW;			// 프러스텀 컬링용
+		Math::CalcWorldFrustumFromViewProjMatrix(pCamera->GetViewMatrix()* pCamera->GetProjMatrix(), cameraFrustumW);
 
 		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 		// 뷰포트 바인딩
@@ -312,12 +295,17 @@ void Renderer::RenderFrame()
 		m_basicEffectPT.SetCamera(pCamera);
 		m_basicEffectPNT.SetCamera(pCamera);
 		m_skyboxEffect.SetCamera(pCamera);
-		// m_terrainEffect.SetCamera(pCamera);
+		m_terrainEffect.SetCamera(pCamera);
 
 		for (const IComponent* pComponent : MeshRendererManager::GetInstance()->m_directAccessGroup)
 		{
 			const MeshRenderer* pMeshRenderer = static_cast<const MeshRenderer*>(pComponent);
 			if (!pMeshRenderer->IsEnabled() || pMeshRenderer->m_mesh == nullptr)
+				continue;
+
+			// 프러스텀 컬링
+			Aabb aabbW = Math::TransformAabb(pMeshRenderer->m_pGameObject->m_transform.GetWorldTransformMatrix(), pMeshRenderer->m_mesh->GetAabb());
+			if (!Math::TestFrustumAabbCollision(cameraFrustumW, aabbW))
 				continue;
 
 			switch (pMeshRenderer->m_mesh->GetVertexFormatType())
@@ -349,16 +337,17 @@ void Renderer::RenderFrame()
 		for (const IComponent* pComponent : TerrainManager::GetInstance()->m_directAccessGroup)
 		{
 			const Terrain* pTerrain = static_cast<const Terrain*>(pComponent);
-			// RenderTerrain(pTerrain);
+			RenderTerrain(pTerrain);
 		}
 
 		// 스카이박스 렌더링
+		pImmContext->OMSetDepthStencilState(m_pSkyboxDSS, 0);
 		ID3D11ShaderResourceView* pSkyboxCubeMap = Environment::GetInstance()->m_skyboxCubeMap.GetSRVComInterface();
 		if (pSkyboxCubeMap)
 		{
-			pImmContext->OMSetDepthStencilState(m_pSkyboxDSS, 0);
 			RenderSkybox(pSkyboxCubeMap);
 		}
+		pImmContext->OMSetDepthStencilState(m_pDefaultDSS, 0);
 	}
 
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -480,7 +469,7 @@ void Renderer::RenderFrame()
 		}
 	}
 
-	HRESULT hr = GraphicDevice::GetInstance()->GetSwapChainComInterface()->Present(0, 0);
+	HRESULT hr = GraphicDevice::GetInstance()->GetSwapChainComInterface()->Present(1, 0);
 }
 
 void Renderer::RenderVFPositionMesh(const MeshRenderer* pMeshRenderer)
@@ -621,17 +610,9 @@ void Renderer::RenderVFPositionTexCoordMesh(const MeshRenderer* pMeshRenderer)
 	{
 		const Material* pMaterial = subset.m_material.get();
 		if (pMaterial != nullptr)
-		{
-			m_basicEffectPT.UseMaterial(true);
-			m_basicEffectPT.SetLightMap(pMaterial->m_lightMap);
-			m_basicEffectPT.SetDiffuseMap(pMaterial->m_diffuseMap);
-			m_basicEffectPT.SetNormalMap(pMaterial->m_normalMap);
-			m_basicEffectPT.SetSpecularMap(pMaterial->m_specularMap);
-		}
+			m_basicEffectPT.SetTexture(pMaterial->m_diffuseMap.GetSRVComInterface());
 		else
-		{
-			m_basicEffectPT.UseMaterial(false);
-		}
+			m_basicEffectPT.SetTexture(nullptr);
 
 		m_effectImmediateContext.Apply(&m_basicEffectPT);
 
@@ -672,10 +653,10 @@ void Renderer::RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshRende
 			m_basicEffectPNT.SetAmbientColor(XMLoadFloat4A(&pMaterial->m_ambient));
 			m_basicEffectPNT.SetDiffuseColor(XMLoadFloat4A(&pMaterial->m_diffuse));
 			m_basicEffectPNT.SetSpecularColor(XMLoadFloat4A(&pMaterial->m_specular));
-			m_basicEffectPNT.SetLightMap(pMaterial->m_lightMap);
-			m_basicEffectPNT.SetDiffuseMap(pMaterial->m_diffuseMap);
-			m_basicEffectPNT.SetNormalMap(pMaterial->m_normalMap);
-			m_basicEffectPNT.SetSpecularMap(pMaterial->m_specularMap);
+			m_basicEffectPNT.SetLightMap(pMaterial->m_lightMap.GetSRVComInterface());
+			m_basicEffectPNT.SetDiffuseMap(pMaterial->m_diffuseMap.GetSRVComInterface());
+			m_basicEffectPNT.SetNormalMap(pMaterial->m_normalMap.GetSRVComInterface());
+			m_basicEffectPNT.SetSpecularMap(pMaterial->m_specularMap.GetSRVComInterface());
 		}
 		else
 		{
@@ -687,6 +668,30 @@ void Renderer::RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshRende
 		// 드로우
 		m_effectImmediateContext.DrawIndexed(subset.GetIndexCount(), subset.GetStartIndexLocation(), 0);
 	}
+}
+
+void Renderer::RenderTerrain(const Terrain* pTerrain)
+{
+	m_terrainEffect.SetMaxHeight(pTerrain->GetMaxHeight());
+	m_terrainEffect.SetTilingScale(pTerrain->GetTilingScale());
+	m_terrainEffect.SetFieldMap(pTerrain->m_heightMap.GetSRVComInterface(), pTerrain->m_normalMap.GetSRVComInterface());
+	m_terrainEffect.SetLayerTexture(
+		pTerrain->m_diffuseMapLayer.GetSRVComInterface(),
+		pTerrain->m_normalMapLayer.GetSRVComInterface(),
+		pTerrain->m_blendMap.GetSRVComInterface()
+	);
+
+	// 버텍스 버퍼 설정
+	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(VERTEX_FORMAT_TYPE::TERRAIN_PATCH_CTRL_PT) };
+	const UINT offsets[] = { 0 };
+	ID3D11Buffer* const vbs[] = { pTerrain->GetPatchControlPointBufferComInterface() };
+	m_effectImmediateContext.IASetVertexBuffers(0, _countof(vbs), vbs, strides, offsets);
+
+	// 인덱스 버퍼 설정
+	m_effectImmediateContext.IASetIndexBuffer(pTerrain->GetPatchControlPointIndexBufferComInterface(), DXGI_FORMAT_R32_UINT, 0);
+
+	m_effectImmediateContext.Apply(&m_terrainEffect);
+	m_effectImmediateContext.DrawIndexed(pTerrain->GetPatchControlPointIndexCount(), 0, 0);
 }
 
 void Renderer::RenderSkybox(ID3D11ShaderResourceView* pSkyboxCubeMapSRV)
@@ -812,11 +817,11 @@ void Renderer::RenderTerrain(ID3D11DeviceContext* pDeviceContext, const Terrain*
 	// 버텍스 버퍼 설정
 	const UINT strides[] = { sizeof(VertexFormat::TerrainControlPoint) };
 	const UINT offsets[] = { 0 };
-	ID3D11Buffer* const vb[] = { pTerrain->GetPatchControlPointBufferInterface() };
+	ID3D11Buffer* const vb[] = { pTerrain->GetPatchControlPointBufferComInterface() };
 	this->GetDeviceContext()->IASetVertexBuffers(0, 1, vb, stride, offset);
 
 	// 인덱스 버퍼 설정
-	this->GetDeviceContext()->IASetIndexBuffer(pTerrain->GetPatchControlPointIndexBufferInterface(), DXGI_FORMAT_R32_UINT, 0);
+	this->GetDeviceContext()->IASetIndexBuffer(pTerrain->GetPatchControlPointIndexBufferComInterface(), DXGI_FORMAT_R32_UINT, 0);
 
 	// PerTerrain 상수버퍼 업데이트 및 바인딩
 	ConstantBuffer::PerTerrain cbPerTerrain;

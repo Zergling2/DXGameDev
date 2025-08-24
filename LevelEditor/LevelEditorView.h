@@ -6,13 +6,16 @@ class CLevelEditorDoc;
 
 class CLevelEditorView : public CView
 {
+private:
+	bool m_focused;
 protected: // create from serialization only
 	CLevelEditorView() noexcept;
 	DECLARE_DYNCREATE(CLevelEditorView)
 // Attributes
 public:
-	CLevelEditorDoc* GetDocument() const;
+	bool IsFocused() const { return m_focused; }
 
+	CLevelEditorDoc* GetDocument() const;
 // Operations
 public:
 
@@ -33,9 +36,9 @@ protected:
 public:
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
-	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
-	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
+	afx_msg void OnSetFocus(CWnd* pOldWnd);
+	afx_msg void OnKillFocus(CWnd* pNewWnd);
 };
 
 #ifndef _DEBUG  // debug version in LevelEditorView.cpp
