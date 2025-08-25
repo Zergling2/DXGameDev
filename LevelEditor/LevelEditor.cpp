@@ -8,6 +8,7 @@
 
 #include "LevelEditorDoc.h"
 #include "LevelEditorView.h"
+#include "LogListView.h"
 #include "Settings.h"
 #include "EditorCameraScript.h"
 
@@ -95,7 +96,6 @@ BOOL CLevelEditorApp::InitInstance()
 
 	CWinApp::InitInstance();
 
-
 	EnableTaskbarInteraction(FALSE);
 
 	// AfxInitRichEdit2() is required to use RichEdit control
@@ -165,17 +165,21 @@ BOOL CLevelEditorApp::InitInstance()
 	m_pMainWnd->UpdateWindow();
 
 
-
+	CMainFrame* pMainFrame = static_cast<CMainFrame*>(AfxGetMainWnd());
+	CLogListView* pLogListView = pMainFrame->GetLogListView();
+	pLogListView->AddLog(_T("런타임 초기화 중..."), LOG_TYPE::LT_INFO);
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	// Zerg Engine 런타임 초기화
 	ze::Runtime::CreateInstance();
-	CMainFrame* pMainFrame = static_cast<CMainFrame*>(AfxGetMainWnd());
+	
 	ze::Runtime::GetInstance()->InitEditor(
 		AfxGetApp()->m_hInstance,
 		pMainFrame->m_hWnd,
 		pMainFrame->GetLevelEditorView()->m_hWnd,
 		800, 600
 	);
+
+	pLogListView->AddLog(_T("런타임 초기화 완료."), LOG_TYPE::LT_INFO);
 	
 	// 메인 카메라용 게임오브젝트 생성
 	m_hEditorCameraObject = ze::Runtime::GetInstance()->CreateGameObject();
@@ -196,6 +200,8 @@ BOOL CLevelEditorApp::InitInstance()
 	// Runtime 인스턴스가 생성되고 나서 직접 최초 1회 호출해주어야 한다.
 	ze::Runtime::GetInstance()->OnSize(SIZE_RESTORED, editorViewRect.Width(), editorViewRect.Height());
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+	pLogListView->AddLog(_T("비어있는 씬으로 시작합니다."), LOG_TYPE::LT_WARNING);
 
 	return TRUE;
 }

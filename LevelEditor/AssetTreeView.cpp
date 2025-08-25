@@ -1,7 +1,9 @@
 #include "AssetTreeView.h"
 #include "LevelEditor.h"
 #include "Settings.h"
+#include "ATVItem\ATVItemEmpty.h"
 #include "ATVItem\ATVItemFolder.h"
+#include "CommandHandler\CommandHandler.h"
 
 // CAssetTreeView
 
@@ -17,7 +19,13 @@ CAssetTreeView::~CAssetTreeView()
 }
 
 BEGIN_MESSAGE_MAP(CAssetTreeView, CTreeView)
+	ON_WM_LBUTTONDOWN()
+	ON_NOTIFY_REFLECT(NM_RCLICK, &CAssetTreeView::OnNMRClick)
+	ON_NOTIFY_REFLECT(TVN_ENDLABELEDIT, &CAssetTreeView::OnTvnEndlabeledit)
+	ON_NOTIFY_REFLECT(TVN_ITEMEXPANDED, &CAssetTreeView::OnTvnItemexpanded)
+	ON_COMMAND(ID_CREATE_FOLDER, &CAssetTreeView::OnCreateAssetFolder)
 	ON_WM_DESTROY()
+	ON_COMMAND(ID_CREATE_MATERIAL, &CAssetTreeView::OnCreateAssetMaterial)
 END_MESSAGE_MAP()
 
 
@@ -57,7 +65,15 @@ void CAssetTreeView::DeleteTreeItemDataRecursive(CTreeCtrl& tc, HTREEITEM hItem)
 	}
 }
 
-// CAssetTreeView message handlers
+
+BOOL CAssetTreeView::PreCreateWindow(CREATESTRUCT& cs)
+{
+	// TODO: Add your specialized code here and/or call the base class
+	cs.style |= TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_EDITLABELS | TVS_TRACKSELECT;
+
+	return CTreeView::PreCreateWindow(cs);
+}
+
 
 void CAssetTreeView::OnInitialUpdate()
 {
@@ -69,7 +85,6 @@ void CAssetTreeView::OnInitialUpdate()
 	if (!m_initialized)
 	{
 		// 1. 스타일 및 배경, 텍스트 색상 설정
-		tc.ModifyStyle(0, TVS_EDITLABELS);
 		tc.SetBkColor(ASSET_TREEVIEW_BK_COLOR);
 		tc.SetTextColor(ASSET_TREEVIEW_TEXT_COLOR);
 
@@ -83,8 +98,8 @@ void CAssetTreeView::OnInitialUpdate()
 		tc.InsertItem(
 			TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_PARAM | TVIF_STATE,
 			_T("Asset"),
-			ZE_ICON_INDEX::FOLDER_OPENED_ICON,
-			ZE_ICON_INDEX::FOLDER_OPENED_ICON,
+			ZE_ICON_INDEX::FOLDER_CLOSED_ICON,
+			ZE_ICON_INDEX::FOLDER_CLOSED_ICON,
 			0,
 			0,
 			reinterpret_cast<LPARAM>(pATVItemFolder),
@@ -95,6 +110,131 @@ void CAssetTreeView::OnInitialUpdate()
 		m_initialized = true;
 	}
 }
+
+// CAssetTreeView message handlers
+void CAssetTreeView::OnLButtonDown(UINT nFlags, CPoint point)
+{
+	// TODO: Add your message handler code here and/or call default
+	CTreeCtrl& tc = this->GetTreeCtrl();
+
+	UINT flags;
+	HTREEITEM hItem = tc.HitTest(point, &flags);
+	if (hItem != NULL)
+	{
+		tc.SelectItem(hItem);
+		DWORD_PTR data = tc.GetItemData(hItem);
+		IATVItem* pATVItem = reinterpret_cast<IATVItem*>(data);
+		assert(pATVItem != nullptr);
+
+		pATVItem->OnSelect();
+	}
+	else
+	{
+		tc.SelectItem(NULL);
+		ATVItemEmpty e;
+		e.OnSelect();
+	}
+
+	CTreeView::OnLButtonDown(nFlags, point);
+}
+
+
+void CAssetTreeView::OnNMRClick(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	// TODO: Add your control notification handler code here
+	CTreeCtrl& tc = this->GetTreeCtrl();
+
+	CPoint pt;
+	GetCursorPos(&pt);
+
+	CPoint clientPt = pt;
+	tc.ScreenToClient(&clientPt);
+
+	UINT flags;
+	HTREEITEM hItem = tc.HitTest(clientPt, &flags);
+	if (hItem != NULL)
+	{
+		tc.SelectItem(hItem);
+		DWORD_PTR data = tc.GetItemData(hItem);
+		IATVItem* pATVItem = reinterpret_cast<IATVItem*>(data);
+		assert(pATVItem != nullptr);
+
+		pATVItem->OnSelect();
+	}
+	else
+	{
+		tc.SelectItem(NULL);
+		ATVItemEmpty e;
+		e.OnSelect();
+	}
+
+	// 메뉴 출력
+	CMenu menu;
+	if (menu.LoadMenu(IDR_MAINFRAME))
+	{
+		CMenu* pSubMenu = menu.GetSubMenu(ASSET_MENU_INDEX);
+		if (pSubMenu)
+			pSubMenu->TrackPopupMenu(TPM_LEFTALIGN, pt.x, pt.y, this);
+	}
+
+
+	*pResult = 0;
+}
+
+
+void CAssetTreeView::OnTvnEndlabeledit(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	LPNMTVDISPINFO pTVDispInfo = reinterpret_cast<LPNMTVDISPINFO>(pNMHDR);
+	// TODO: Add your control notification handler code here
+
+	if (pTVDispInfo->item.pszText != nullptr)
+	{
+		// 문자열 교체
+		this->GetTreeCtrl().SetItemText(pTVDispInfo->item.hItem, pTVDispInfo->item.pszText);
+	}
+
+	*pResult = 0;
+}
+
+
+void CAssetTreeView::OnTvnItemexpanded(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	LPNMTREEVIEW pNMTreeView = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
+	// TODO: Add your control notification handler code here
+
+	CTreeCtrl& tc = this->GetTreeCtrl();
+	const HTREEITEM hItem = pNMTreeView->itemNew.hItem;
+	const UINT action = pNMTreeView->action;
+
+	switch (action)
+	{
+	case TVE_COLLAPSE:
+		tc.SetItemImage(hItem, ZE_ICON_INDEX::FOLDER_CLOSED_ICON, ZE_ICON_INDEX::FOLDER_CLOSED_ICON);
+		break;
+	case TVE_EXPAND:
+		tc.SetItemImage(hItem, ZE_ICON_INDEX::FOLDER_OPENED_ICON, ZE_ICON_INDEX::FOLDER_OPENED_ICON);
+		break;
+	default:
+		break;
+	}
+
+	*pResult = 0;
+}
+
+
+void CAssetTreeView::OnCreateAssetFolder()
+{
+	// TODO: Add your command handler code here
+	::OnCreateAssetFolder();
+}
+
+
+void CAssetTreeView::OnCreateAssetMaterial()
+{
+	// TODO: Add your command handler code here
+	::OnCreateAssetMaterial();
+}
+
 
 void CAssetTreeView::OnDestroy()
 {
@@ -114,3 +254,4 @@ void CAssetTreeView::OnDestroy()
 	// TODO: Add your message handler code here
 	// ...
 }
+

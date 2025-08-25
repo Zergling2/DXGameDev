@@ -8,6 +8,8 @@
 class CHierarchyTreeView;
 class CComponentListView;
 class CLevelEditorView;
+class CLogListView;
+class CAssetTreeView;
 
 class CMainFrame : public CFrameWnd
 {
@@ -27,8 +29,11 @@ public:
 	CHierarchyTreeView* GetHierarchyTreeView() const;
 	CComponentListView* GetComponentListView() const;
 	CLevelEditorView* GetLevelEditorView() const;
-	CFormView* GetComponentInspectorFormView() const;
-	CFormView* SwitchComponentInspectorFormView(CRuntimeClass* pRtClass);
+	CLogListView* GetLogListView() const;
+	CAssetTreeView* GetAssetTreeView() const;
+	CFormView* GetInspectorFormView() const;
+
+	CFormView* SwitchInspectorFormView(CRuntimeClass* pRtClass);
 
 	virtual BOOL OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext);
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
@@ -54,4 +59,6 @@ public:
 	afx_msg void OnGameObjectCreateEmpty();
 	afx_msg void OnGameObjectRename();
 	afx_msg void OnComponentMeshRenderer();
+	afx_msg void OnCreateAssetFolder();
+	afx_msg void OnCreateAssetMaterial();
 };

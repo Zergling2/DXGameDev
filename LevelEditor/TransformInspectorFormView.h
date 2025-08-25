@@ -44,6 +44,7 @@ public:
 	CFloatEdit m_scaleX;
 	CFloatEdit m_scaleY;
 	CFloatEdit m_scaleZ;
+public:
 	afx_msg void OnEnChangeEditPositionX();
 	afx_msg void OnEnChangeEditPositionY();
 	afx_msg void OnEnChangeEditPositionZ();

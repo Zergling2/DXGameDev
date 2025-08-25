@@ -21,6 +21,14 @@ BEGIN_MESSAGE_MAP(CFloatEdit, CEdit)
 END_MESSAGE_MAP()
 
 
+float CFloatEdit::GetValue() const
+{
+    TCHAR buf[32];
+    this->GetWindowText(buf, _countof(buf));
+
+    return _tcstof(buf, nullptr);
+}
+
 // CFloatEdit message handlers
 
 void CFloatEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)

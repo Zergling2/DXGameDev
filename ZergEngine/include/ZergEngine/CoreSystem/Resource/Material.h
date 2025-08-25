@@ -9,14 +9,14 @@ namespace ze
 	{
 	public:
 		Material()
-			: m_ambient(0.0f, 0.0f, 0.0f, 0.0f)
-			, m_diffuse(1.0f, 1.0f, 1.0f, 1.0f)
-			, m_specular(0.0f, 0.0f, 0.0f, 0.0f)
-			, m_lightMap()
+			: m_lightMap()
 			, m_diffuseMap()
 			, m_normalMap()
 			, m_specularMap()
 		{
+			XMStoreFloat4A(&m_ambient, XMVectorZero());
+			XMStoreFloat4A(&m_diffuse, XMVectorSplatOne());
+			XMStoreFloat4A(&m_specular, XMVectorZero());
 		}
 		~Material() = default;
 	public:

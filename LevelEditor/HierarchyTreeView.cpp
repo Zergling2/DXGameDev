@@ -19,7 +19,7 @@ CHierarchyTreeView::~CHierarchyTreeView()
 }
 
 BEGIN_MESSAGE_MAP(CHierarchyTreeView, CTreeView)
-	ON_NOTIFY_REFLECT(NM_CLICK, &CHierarchyTreeView::OnNMClick)
+	ON_WM_LBUTTONDOWN()
 	ON_NOTIFY_REFLECT(NM_RCLICK, &CHierarchyTreeView::OnNMRClick)
 	ON_NOTIFY_REFLECT(TVN_ENDLABELEDIT, &CHierarchyTreeView::OnTvnEndlabeledit)
 	ON_COMMAND(ID_3DOBJECT_TERRAIN, &CHierarchyTreeView::On3DObjectTerrain)
@@ -46,8 +46,6 @@ void CHierarchyTreeView::Dump(CDumpContext& dc) const
 #endif //_DEBUG
 
 
-// CHierarchyTreeView message handlers
-
 void CHierarchyTreeView::DeleteTreeItemDataRecursive(CTreeCtrl& tc, HTREEITEM hItem)
 {
 	while (hItem)
@@ -68,6 +66,16 @@ void CHierarchyTreeView::DeleteTreeItemDataRecursive(CTreeCtrl& tc, HTREEITEM hI
 	}
 }
 
+
+BOOL CHierarchyTreeView::PreCreateWindow(CREATESTRUCT& cs)
+{
+	// TODO: Add your specialized code here and/or call the base class
+	cs.style |= TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_EDITLABELS | TVS_TRACKSELECT;
+
+	return CTreeView::PreCreateWindow(cs);
+}
+
+
 void CHierarchyTreeView::OnInitialUpdate()
 {
 	CTreeView::OnInitialUpdate();
@@ -78,7 +86,6 @@ void CHierarchyTreeView::OnInitialUpdate()
 	if (!m_initialized)
 	{
 		// 1. 스타일 및 배경, 텍스트 색상 설정
-		tc.ModifyStyle(0, TVS_EDITLABELS);
 		tc.SetBkColor(HIERARCHY_TREEVIEW_BK_COLOR);
 		tc.SetTextColor(HIERARCHY_TREEVIEW_TEXT_COLOR);
 
@@ -106,27 +113,14 @@ void CHierarchyTreeView::OnInitialUpdate()
 }
 
 
-BOOL CHierarchyTreeView::PreCreateWindow(CREATESTRUCT& cs)
+// CHierarchyTreeView message handlers
+void CHierarchyTreeView::OnLButtonDown(UINT nFlags, CPoint point)
 {
-	// TODO: Add your specialized code here and/or call the base class
-	cs.style |= TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_TRACKSELECT;
-
-	return CTreeView::PreCreateWindow(cs);
-}
-
-void CHierarchyTreeView::OnNMClick(NMHDR* pNMHDR, LRESULT* pResult)
-{
-	// TODO: Add your control notification handler code here
+	// TODO: Add your message handler code here and/or call default
 	CTreeCtrl& tc = this->GetTreeCtrl();
 
-	CPoint pt;
-	GetCursorPos(&pt);
-
-	CPoint clientPt = pt;
-	tc.ScreenToClient(&clientPt);
-
 	UINT flags;
-	HTREEITEM hItem = tc.HitTest(clientPt, &flags);
+	HTREEITEM hItem = tc.HitTest(point, &flags);
 	if (hItem != NULL)
 	{
 		tc.SelectItem(hItem);
@@ -143,7 +137,7 @@ void CHierarchyTreeView::OnNMClick(NMHDR* pNMHDR, LRESULT* pResult)
 		e.OnSelect();
 	}
 
-	*pResult = 0;
+	CTreeView::OnLButtonDown(nFlags, point);
 }
 
 
@@ -151,7 +145,7 @@ void CHierarchyTreeView::OnNMRClick(NMHDR* pNMHDR, LRESULT* pResult)
 {
 	// TODO: Add your control notification handler code here
 	CTreeCtrl& tc = this->GetTreeCtrl();
-
+	
 	CPoint pt;
 	GetCursorPos(&pt);
 
@@ -233,3 +227,4 @@ void CHierarchyTreeView::OnDestroy()
 	// ...
 
 }
+

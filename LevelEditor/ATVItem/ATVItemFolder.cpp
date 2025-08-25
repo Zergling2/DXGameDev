@@ -11,5 +11,5 @@ void ATVItemFolder::OnSelect()
 	pMainFrame->GetComponentListView()->ClearListCtrl();
 
 	// CIFV¿¡ ºó Æû ºä ¼³Á¤
-	pMainFrame->SwitchComponentInspectorFormView(RUNTIME_CLASS(CEmptyInspectorFormView));
+	pMainFrame->SwitchInspectorFormView(RUNTIME_CLASS(CEmptyInspectorFormView));
 }

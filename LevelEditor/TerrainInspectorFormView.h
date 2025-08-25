@@ -41,7 +41,7 @@ public:
 #endif
 #endif
 	void SetCLVItemToModify(CLVItemTerrain* pItem);
-	CLVItemTerrain* GetCLVItem() const { return m_pItem; }
+	CLVItemTerrain* GetCLVItemToModify() const { return m_pItem; }
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 

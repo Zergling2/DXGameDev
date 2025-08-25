@@ -200,9 +200,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AssetManager.h" />
+    <ClInclude Include="ATVItem\ATVItemCubeMap.h" />
+    <ClInclude Include="ATVItem\ATVItemEmpty.h" />
     <ClInclude Include="ATVItem\ATVItemFolder.h" />
     <ClInclude Include="ATVItem\ATVItemInterface.h" />
     <ClInclude Include="AssetTreeView.h" />
+    <ClInclude Include="ATVItem\ATVItemMaterial.h" />
+    <ClInclude Include="ATVItem\ATVItemTexture.h" />
+    <ClInclude Include="ATVItem\ATVItemTextureArray.h" />
     <ClInclude Include="BufferDC.h" />
     <ClInclude Include="CLVItem\CLVItemEmpty.h" />
     <ClInclude Include="CLVItem\CLVItemInterface.h" />
@@ -239,9 +244,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssetManager.cpp" />
+    <ClCompile Include="ATVItem\ATVItemCubeMap.cpp" />
+    <ClCompile Include="ATVItem\ATVItemEmpty.cpp" />
     <ClCompile Include="ATVItem\ATVItemFolder.cpp" />
     <ClCompile Include="ATVItem\ATVItemInterface.cpp" />
     <ClCompile Include="AssetTreeView.cpp" />
+    <ClCompile Include="ATVItem\ATVItemMaterial.cpp" />
+    <ClCompile Include="ATVItem\ATVItemTexture.cpp" />
+    <ClCompile Include="ATVItem\ATVItemTextureArray.cpp" />
     <ClCompile Include="BufferDC.cpp" />
     <ClCompile Include="CLVItem\CLVItemEmpty.cpp" />
     <ClCompile Include="CLVItem\CLVItemInterface.cpp" />

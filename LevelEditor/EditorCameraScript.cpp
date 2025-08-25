@@ -38,9 +38,10 @@ void EditorCameraScript::Update()
 	if (ze::Input::GetInstance()->GetMouseButtonDown(ze::MOUSE_BUTTON::LBUTTON)||
 		(ze::Input::GetInstance()->GetMouseButton(ze::MOUSE_BUTTON::LBUTTON) && this->DidMouseMoved()))
 	{
-		CFormView* pComponentInspectorFormView = pMainFrame->GetComponentInspectorFormView();
-		if (pComponentInspectorFormView->IsKindOf(RUNTIME_CLASS(CTerrainInspectorFormView)))
-			this->EditTerrain(static_cast<CTerrainInspectorFormView*>(pComponentInspectorFormView));
+		CFormView* pInspectorFormView = pMainFrame->GetInspectorFormView();
+
+		if (pInspectorFormView->IsKindOf(RUNTIME_CLASS(CTerrainInspectorFormView)))
+			this->EditTerrain(static_cast<CTerrainInspectorFormView*>(pInspectorFormView));
 	}
 }
 

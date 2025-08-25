@@ -24,9 +24,10 @@ private:
 private:
 	void DeleteTreeItemDataRecursive(CTreeCtrl& tc, HTREEITEM hItem);
 public:
-	virtual void OnInitialUpdate();
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
-	afx_msg void OnNMClick(NMHDR* pNMHDR, LRESULT* pResult);
+	virtual void OnInitialUpdate();
+
+	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnNMRClick(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnTvnEndlabeledit(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void On3DObjectTerrain();

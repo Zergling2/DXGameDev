@@ -10,5 +10,4 @@ public:
 	AssetManager() = default;
 	~AssetManager() = default;
 private:
-
 };

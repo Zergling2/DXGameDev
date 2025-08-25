@@ -80,13 +80,10 @@ void CTransformInspectorFormView::OnEnChangeEditPositionX()
 	m_positionX.UpdateData(TRUE);
 
 	ze::Transform* pTransform = this->GetCLVItemToModify()->GetTransform();
+
 	XMFLOAT3A position;
 	XMStoreFloat3A(&position, pTransform->GetLocalPosition());
-
-	TCHAR buf[32];
-	m_positionX.GetWindowText(buf, _countof(buf));
-	float val = _tcstof(buf, nullptr);
-	position.x = val;
+	position.x = m_positionX.GetValue();
 
 	pTransform->SetPosition(position);
 }
@@ -103,13 +100,10 @@ void CTransformInspectorFormView::OnEnChangeEditPositionY()
 	m_positionY.UpdateData(TRUE);
 
 	ze::Transform* pTransform = this->GetCLVItemToModify()->GetTransform();
+
 	XMFLOAT3A position;
 	XMStoreFloat3A(&position, pTransform->GetLocalPosition());
-
-	TCHAR buf[32];
-	m_positionY.GetWindowText(buf, _countof(buf));
-	float val = _tcstof(buf, nullptr);
-	position.y = val;
+	position.y = m_positionY.GetValue();
 
 	pTransform->SetPosition(position);
 }
@@ -126,13 +120,10 @@ void CTransformInspectorFormView::OnEnChangeEditPositionZ()
 	m_positionZ.UpdateData(TRUE);
 
 	ze::Transform* pTransform = this->GetCLVItemToModify()->GetTransform();
+
 	XMFLOAT3A position;
 	XMStoreFloat3A(&position, pTransform->GetLocalPosition());
-
-	TCHAR buf[32];
-	m_positionZ.GetWindowText(buf, _countof(buf));
-	float val = _tcstof(buf, nullptr);
-	position.z = val;
+	position.z = m_positionZ.GetValue();
 
 	pTransform->SetPosition(position);
 }
@@ -148,13 +139,10 @@ void CTransformInspectorFormView::OnEnChangeEditRotationX()
 	m_rotationX.UpdateData(TRUE);
 
 	ze::Transform* pTransform = this->GetCLVItemToModify()->GetTransform();
+
 	XMFLOAT3A rotation;
 	XMStoreFloat3A(&rotation, ze::Math::QuaternionToEulerNormal(pTransform->GetLocalRotation()));
-
-	TCHAR buf[32];
-	m_rotationX.GetWindowText(buf, _countof(buf));
-	float val = _tcstof(buf, nullptr);
-	rotation.x = XMConvertToRadians(val);
+	rotation.x = XMConvertToRadians(m_rotationX.GetValue());
 
 	pTransform->SetRotation(rotation);
 }
@@ -170,13 +158,10 @@ void CTransformInspectorFormView::OnEnChangeEditRotationY()
 	m_rotationY.UpdateData(TRUE);
 
 	ze::Transform* pTransform = this->GetCLVItemToModify()->GetTransform();
+
 	XMFLOAT3A rotation;
 	XMStoreFloat3A(&rotation, ze::Math::QuaternionToEulerNormal(pTransform->GetLocalRotation()));
-
-	TCHAR buf[32];
-	m_rotationY.GetWindowText(buf, _countof(buf));
-	float val = _tcstof(buf, nullptr);
-	rotation.y = XMConvertToRadians(val);
+	rotation.y = XMConvertToRadians(m_rotationY.GetValue());
 
 	pTransform->SetRotation(rotation);
 }
@@ -192,13 +177,10 @@ void CTransformInspectorFormView::OnEnChangeEditRotationZ()
 	m_rotationZ.UpdateData(TRUE);
 
 	ze::Transform* pTransform = this->GetCLVItemToModify()->GetTransform();
+
 	XMFLOAT3A rotation;
 	XMStoreFloat3A(&rotation, ze::Math::QuaternionToEulerNormal(pTransform->GetLocalRotation()));
-
-	TCHAR buf[32];
-	m_rotationZ.GetWindowText(buf, _countof(buf));
-	float val = _tcstof(buf, nullptr);
-	rotation.z = XMConvertToRadians(val);
+	rotation.z = XMConvertToRadians(m_rotationZ.GetValue());
 
 	pTransform->SetRotation(rotation);
 }
@@ -214,13 +196,10 @@ void CTransformInspectorFormView::OnEnChangeEditScaleX()
 	m_scaleX.UpdateData(TRUE);
 
 	ze::Transform* pTransform = this->GetCLVItemToModify()->GetTransform();
+
 	XMFLOAT3A scale;
 	XMStoreFloat3A(&scale, pTransform->GetLocalScale());
-
-	TCHAR buf[32];
-	m_scaleX.GetWindowText(buf, _countof(buf));
-	float val = _tcstof(buf, nullptr);
-	scale.x = val;
+	scale.x = m_scaleX.GetValue();
 
 	pTransform->SetScale(scale);
 }
@@ -236,13 +215,10 @@ void CTransformInspectorFormView::OnEnChangeEditScaleY()
 	m_scaleY.UpdateData(TRUE);
 
 	ze::Transform* pTransform = this->GetCLVItemToModify()->GetTransform();
+
 	XMFLOAT3A scale;
 	XMStoreFloat3A(&scale, pTransform->GetLocalScale());
-
-	TCHAR buf[32];
-	m_scaleY.GetWindowText(buf, _countof(buf));
-	float val = _tcstof(buf, nullptr);
-	scale.y = val;
+	scale.y = m_scaleY.GetValue();
 
 	pTransform->SetScale(scale);
 }
@@ -258,13 +234,10 @@ void CTransformInspectorFormView::OnEnChangeEditScaleZ()
 	m_scaleZ.UpdateData(TRUE);
 
 	ze::Transform* pTransform = this->GetCLVItemToModify()->GetTransform();
+
 	XMFLOAT3A scale;
 	XMStoreFloat3A(&scale, pTransform->GetLocalScale());
-
-	TCHAR buf[32];
-	m_scaleZ.GetWindowText(buf, _countof(buf));
-	float val = _tcstof(buf, nullptr);
-	scale.z = val;
+	scale.z = m_scaleZ.GetValue();
 
 	pTransform->SetScale(scale);
 }

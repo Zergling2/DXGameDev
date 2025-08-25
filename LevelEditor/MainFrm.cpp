@@ -28,6 +28,8 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_COMMAND(ID_GAMEOBJECT_CREATEEMPTY, &CMainFrame::OnGameObjectCreateEmpty)
 	ON_COMMAND(ID_GAMEOBJECT_RENAME, &CMainFrame::OnGameObjectRename)
 	ON_COMMAND(ID_COMPONENT_MESHRENDERER, &CMainFrame::OnComponentMeshRenderer)
+	ON_COMMAND(ID_CREATE_FOLDER, &CMainFrame::OnCreateAssetFolder)
+	ON_COMMAND(ID_CREATE_MATERIAL, &CMainFrame::OnCreateAssetMaterial)
 END_MESSAGE_MAP()
 
 static UINT indicators[] =
@@ -42,7 +44,7 @@ constexpr int LOG_LIST_VIEW_WIDTH = 512;			// LogListView 높이
 constexpr int LOG_LIST_VIEW_HEIGHT = 256;			// LogListView 높이
 constexpr int HIERARCHY_TREE_VIEW_WIDTH = 256;		// HierarchyTreeView 너비
 constexpr int HIERARCHY_TREE_VIEW_HEIGHT = 600;		// HierarchyTreeView 높이
-constexpr int COMPONENT_LIST_VIEW_WIDTH = 332;		// ComponentListView, ComponentInspectorFormView 너비
+constexpr int COMPONENT_LIST_VIEW_WIDTH = 332;		// ComponentListView, InspectorFormView 너비
 constexpr int COMPONENT_LIST_VIEW_HEIGHT = 256;		// ComponentListView 높이
 
 // CMainFrame construction/destruction
@@ -108,7 +110,23 @@ CLevelEditorView* CMainFrame::GetLevelEditorView() const
 	return static_cast<CLevelEditorView*>(m_wndSplitter[2].GetPane(0, 1));
 }
 
-CFormView* CMainFrame::GetComponentInspectorFormView() const
+CLogListView* CMainFrame::GetLogListView() const
+{
+	if (!m_splitterCreated)
+		return nullptr;
+
+	return static_cast<CLogListView*>(m_wndSplitter[3].GetPane(0, 0));
+}
+
+CAssetTreeView* CMainFrame::GetAssetTreeView() const
+{
+	if (!m_splitterCreated)
+		return nullptr;
+
+	return static_cast<CAssetTreeView*>(m_wndSplitter[3].GetPane(0, 1));
+}
+
+CFormView* CMainFrame::GetInspectorFormView() const
 {
 	if (!m_splitterCreated)
 		return nullptr;
@@ -116,7 +134,7 @@ CFormView* CMainFrame::GetComponentInspectorFormView() const
 	return static_cast<CFormView*>(m_wndSplitter[4].GetPane(1, 0));
 }
 
-CFormView* CMainFrame::SwitchComponentInspectorFormView(CRuntimeClass* pRtClass)
+CFormView* CMainFrame::SwitchInspectorFormView(CRuntimeClass* pRtClass)
 {
 	CCreateContext context;
 	CView* pOldView = static_cast<CView*>(m_wndSplitter[4].GetPane(1, 0));
@@ -184,7 +202,7 @@ BOOL CMainFrame::OnCreateClient(LPCREATESTRUCT /*lpcs*/, CCreateContext* pContex
 		if (!result)
 			break;
 
-		// 4. 우측 상하 분할 (ComponentListView | ComponentInspectorFormView)
+		// 4. 우측 상하 분할 (ComponentListView | InspectorFormView)
 		result = m_wndSplitter[4].CreateStatic(&m_wndSplitter[0], 2, 1,
 			WS_CHILD | WS_VISIBLE, m_wndSplitter[0].IdFromRowCol(0, 1));
 		if (!result)
@@ -355,4 +373,16 @@ void CMainFrame::OnComponentMeshRenderer()
 {
 	// TODO: Add your command handler code here
 	::OnComponentMeshRenderer();
+}
+
+void CMainFrame::OnCreateAssetFolder()
+{
+	// TODO: Add your command handler code here
+	::OnCreateAssetFolder();
+}
+
+void CMainFrame::OnCreateAssetMaterial()
+{
+	// TODO: Add your command handler code here
+	::OnCreateAssetMaterial();
 }

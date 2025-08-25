@@ -1,8 +1,13 @@
 #include "CommandHandler.h"
+#include "..\framework.h"
 #include "..\TerrainGenerationDialog.h"
 #include "..\MainFrm.h"
 #include "..\HierarchyTreeView.h"
+#include "..\AssetTreeView.h"
 #include "..\HTVItem\HTVItemGameObject.h"
+#include "..\ATVItem\ATVItemInterface.h"
+#include "..\ATVItem\ATVItemFolder.h"
+#include "..\ATVItem\ATVItemMaterial.h"
 #include "..\Settings.h"
 
 void On3DObjectTerrain()
@@ -137,4 +142,78 @@ void OnComponentMeshRenderer()
 
 	// 컴포넌트 리스트 갱신
 	pHTVItemGameObject->OnSelect();
+}
+
+
+// 아무것도 선택되지 않은 경우에는 Folder만 생성 가능하게 한다.
+// 폴더가 아닌 모든 에셋들은 루트 디렉토리에 위치하지 못하게 한다.
+// ...
+
+void OnCreateAssetFolder()
+{
+	// 현재 선택된 항목이 없거나 폴더인 경우에만 하위 항목으로 폴더를 생성한다.
+	CMainFrame* pMainFrame = static_cast<CMainFrame*>(AfxGetMainWnd());
+	auto pATV = pMainFrame->GetAssetTreeView();
+
+	auto& tc = pATV->GetTreeCtrl();
+	const HTREEITEM hSelectedItem = tc.GetSelectedItem();
+	HTREEITEM hParent;
+	if (hSelectedItem)
+	{
+		IATVItem* pATVItem = reinterpret_cast<IATVItem*>(tc.GetItemData(hSelectedItem));
+		if (pATVItem->GetType() != ATV_ITEM_TYPE::FOLDER)	// 선택된 항목이 폴더가 아닌 경우에는 하위 폴더 생성을 허용하지 않는다.
+			return;
+
+		hParent = hSelectedItem;
+	}
+	else
+	{
+		hParent = TVI_ROOT;
+	}
+
+	ATVItemFolder* pATVItemFolder = new ATVItemFolder();
+	const HTREEITEM hNewItem = tc.InsertItem(L"New Folder",
+		ZE_ICON_INDEX::FOLDER_CLOSED_ICON,
+		ZE_ICON_INDEX::FOLDER_CLOSED_ICON,
+		hParent
+	);
+	tc.SetItemData(hNewItem, reinterpret_cast<DWORD_PTR>(pATVItemFolder));
+	tc.SelectItem(hNewItem);
+
+	// 컴포넌트 리스트 뷰 업데이트
+	pATVItemFolder->OnSelect();
+
+	tc.EditLabel(hNewItem);
+}
+
+void OnCreateAssetMaterial()
+{
+	// 현재 에셋 트리뷰에서 선택된 항목이 폴더인 경우에만 하위 항목으로 Material 생성을 허용
+	CMainFrame* pMainFrame = static_cast<CMainFrame*>(AfxGetMainWnd());
+	auto pATV = pMainFrame->GetAssetTreeView();
+
+	auto& tc = pATV->GetTreeCtrl();
+	const HTREEITEM hSelectedItem = tc.GetSelectedItem();
+	if (hSelectedItem == NULL)	// 현재 선택된 항목(폴더)이 없는 경우
+		return;
+
+	IATVItem* pATVItem = reinterpret_cast<IATVItem*>(tc.GetItemData(hSelectedItem));
+	if (pATVItem->GetType() != ATV_ITEM_TYPE::FOLDER)	// 선택된 항목이 폴더가 아닌 경우에는 하위 항목으로 Material 생성을 허용하지 않는다.
+		return;
+
+	HTREEITEM hParent = hSelectedItem;
+
+	ATVItemMaterial* pATVItemMaterial = new ATVItemMaterial();
+	const HTREEITEM hNewItem = tc.InsertItem(L"New Material",
+		ZE_ICON_INDEX::MATERIAL_ICON,
+		ZE_ICON_INDEX::MATERIAL_ICON,
+		hParent
+	);
+	tc.SetItemData(hNewItem, reinterpret_cast<DWORD_PTR>(pATVItemMaterial));
+	tc.SelectItem(hNewItem);
+
+	// 컴포넌트 리스트 뷰 업데이트
+	pATVItemMaterial->OnSelect();
+
+	tc.EditLabel(hNewItem);
 }
