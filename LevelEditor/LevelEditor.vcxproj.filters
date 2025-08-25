@@ -139,14 +139,14 @@
     <ClInclude Include="ATVItem\ATVItemTexture.h">
       <Filter>Files\ATVItem</Filter>
     </ClInclude>
-    <ClInclude Include="ATVItem\ATVItemCubeMap.h">
-      <Filter>Files\ATVItem</Filter>
-    </ClInclude>
     <ClInclude Include="ATVItem\ATVItemEmpty.h">
       <Filter>Files\ATVItem</Filter>
     </ClInclude>
     <ClInclude Include="ATVItem\ATVItemMaterial.h">
       <Filter>Files\ATVItem</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureInspectorFormView.h">
+      <Filter>Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -249,14 +249,14 @@
     <ClCompile Include="ATVItem\ATVItemTexture.cpp">
       <Filter>Files\ATVItem</Filter>
     </ClCompile>
-    <ClCompile Include="ATVItem\ATVItemCubeMap.cpp">
-      <Filter>Files\ATVItem</Filter>
-    </ClCompile>
     <ClCompile Include="ATVItem\ATVItemEmpty.cpp">
       <Filter>Files\ATVItem</Filter>
     </ClCompile>
     <ClCompile Include="ATVItem\ATVItemMaterial.cpp">
       <Filter>Files\ATVItem</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureInspectorFormView.cpp">
+      <Filter>Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

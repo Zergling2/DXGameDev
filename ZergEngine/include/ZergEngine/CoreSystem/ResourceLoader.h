@@ -3,6 +3,11 @@
 #include <ZergEngine\Common\EngineConstants.h>
 #include <ZergEngine\CoreSystem\Resource\Texture.h>
 
+namespace DirectX
+{
+	class ScratchImage;
+}
+
 namespace ze
 {
 	class Mesh;
@@ -139,16 +144,17 @@ namespace ze
 		void UnInit();
 	public:
 		std::vector<std::shared_ptr<Mesh>> LoadWavefrontOBJ(PCWSTR path);
-		Texture2D LoadTexture(PCWSTR path);
+		Texture2D LoadTexture2D(PCWSTR path, bool generateMipMaps = true);	// 리소스에 밉 맵이 포함된 경우(dds 파일 등)에는 generateMipMaps가 무시됩니다.
 		std::shared_ptr<Material> CreateMaterial();
-		Texture2D LoadCubeMapTexture(PCWSTR path);		// dds 포맷만 지원
 		bool CreateHeightMapFromRawData(Texture2D& heightMap, const uint16_t* pData, SIZE resolution);
 		// std::vector<std::shared_ptr<Mesh>> LoadWavefrontOBJ_deprecated(PCWSTR path, bool importTexture);
 	private:
+		HRESULT GenerateMipMapsForBCFormat(const ScratchImage& src, ScratchImage& result);
 		bool ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, VertexPack& vp, Mesh* pMesh);
 		bool ParseWavefrontOBJFaces(FILE* pOBJFile, long* pnffpos, VERTEX_FORMAT_TYPE vft, const VertexPack& vp,
 			IndexMapPack& imp, Mesh* pMesh, RawVector& tempVB, std::vector<uint32_t>& tempIB);
 		/*
+		Texture2D LoadCubeMapTexture_deprecated(PCWSTR path);		// dds 포맷만 지원
 		Texture2D LoadTexture_deprecated(PCWSTR path);
 		bool ReadFaces_deprecated(FILE* pOBJFile, long* pnffpos, const VERTEX_FORMAT_TYPE vft, const VertexPack& vp,
 			IndexMapPack& imp, Mesh& mesh, size_t meshIndex, RawVector& tempVB, std::vector<uint32_t>& tempIB, std::vector<DeferredMtlLinkingData>& dml,

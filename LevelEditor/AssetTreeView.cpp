@@ -24,8 +24,10 @@ BEGIN_MESSAGE_MAP(CAssetTreeView, CTreeView)
 	ON_NOTIFY_REFLECT(TVN_ENDLABELEDIT, &CAssetTreeView::OnTvnEndlabeledit)
 	ON_NOTIFY_REFLECT(TVN_ITEMEXPANDED, &CAssetTreeView::OnTvnItemexpanded)
 	ON_COMMAND(ID_CREATE_FOLDER, &CAssetTreeView::OnCreateAssetFolder)
-	ON_WM_DESTROY()
 	ON_COMMAND(ID_CREATE_MATERIAL, &CAssetTreeView::OnCreateAssetMaterial)
+	ON_COMMAND(ID_CREATE_TEXTURE, &CAssetTreeView::OnCreateAssetTexture)
+	ON_COMMAND(ID_CREATE_WAVEFRONTOBJ, &CAssetTreeView::OnCreateAssetWavefrontOBJ)
+	ON_WM_DESTROY()
 END_MESSAGE_MAP()
 
 
@@ -236,6 +238,21 @@ void CAssetTreeView::OnCreateAssetMaterial()
 }
 
 
+void CAssetTreeView::OnCreateAssetTexture()
+{
+	// TODO: Add your command handler code here
+	::OnCreateAssetTexture();
+}
+
+
+void CAssetTreeView::OnCreateAssetWavefrontOBJ()
+{
+	// TODO: Add your command handler code here
+	::OnCreateAssetWavefrontOBJ();
+}
+
+
+
 void CAssetTreeView::OnDestroy()
 {
 	// CTreeView::OnDestroy가 호출되면 트리 컨트롤이 파괴되므로 그 전에 트리 아이템에 부착된 동적할당 Data를 해제한다.
@@ -254,4 +271,3 @@ void CAssetTreeView::OnDestroy()
 	// TODO: Add your message handler code here
 	// ...
 }
-

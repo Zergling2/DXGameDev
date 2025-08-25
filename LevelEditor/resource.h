@@ -13,6 +13,7 @@
 #define IDI_ZELOGOMEDIUM                315
 #define IDD_TERRAIN_INSPECTOR_FORMVIEW  316
 #define IDD_MATERIAL_INSPECTOR_FORMVIEW 317
+#define IDD_TEXTURE_INSPECTOR_FORMVIEW  318
 #define IDC_EDIT_POSITIONX              1000
 #define IDC_EDIT_POSITIONY              1001
 #define IDC_EDIT_POSITIONZ              1002
@@ -77,6 +78,11 @@
 #define IDC_STATIC_SMOOTH_TERRAIN_HEIGHT_BLUR_DIRECTION 1061
 #define IDC_STATIC_SET_TERRAIN_HEIGHT_VALUE_HELP 1062
 #define IDC_STATIC_TERRAIN_INFO         1063
+#define IDC_STATIC_TEXTURE_ARRAY_SIZE   1064
+#define IDC_STATIC_TEXTURE_MIP_LEVELS   1065
+#define IDC_STATIC_TEXTURE_TYPE         1066
+#define IDC_STATIC_TEXTURE_FORMAT       1067
+#define IDC_STATIC_TEXTURE_SIZE         1068
 #define ID_FILE_NEWSCENE                32771
 #define ID_FILE_OPENSCENE               32772
 #define ID_Menu                         32773
@@ -121,14 +127,15 @@
 #define ID_COMPONENT                    32812
 #define ID_COMPONENT_MESHRENDERER       32813
 #define ID_CREATE_TEXTURE               32814
+#define ID_CREATE_WAVEFRONTOBJ          32815
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        321
-#define _APS_NEXT_COMMAND_VALUE         32815
-#define _APS_NEXT_CONTROL_VALUE         1064
-#define _APS_NEXT_SYMED_VALUE           318
+#define _APS_NEXT_RESOURCE_VALUE        322
+#define _APS_NEXT_COMMAND_VALUE         32816
+#define _APS_NEXT_CONTROL_VALUE         1069
+#define _APS_NEXT_SYMED_VALUE           319
 #endif
 #endif

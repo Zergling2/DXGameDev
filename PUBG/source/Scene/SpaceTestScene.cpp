@@ -58,7 +58,7 @@ void SpaceTestScene::OnLoadScene()
 		material->m_diffuse = XMFLOAT4A(1.0f, 1.0f, 1.0f, 1.0f);
 		material->m_ambient = XMFLOAT4A(0.2f, 0.2f, 0.2f, 1.0f);
 		material->m_specular = XMFLOAT4A(0.2f, 0.2f, 0.2f, 16.0f);
-		material->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture(L"Resource\\Model\\planet\\RinglessPlanetA_Diffuse.png");
+		material->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Model\\planet\\RinglessPlanetA_Diffuse.png");
 		pMeshRenderer->m_mesh->m_subsets[0].m_material = material;
 	}
 
@@ -113,24 +113,24 @@ void SpaceTestScene::OnLoadScene()
 			material1->m_ambient = XMFLOAT4A(0.25f, 0.25f, 0.25f, 1.0f);
 			material1->m_diffuse = XMFLOAT4A(0.85f, 0.85f, 0.85f, 1.0f);
 			material1->m_specular = XMFLOAT4A(0.5f, 0.5f, 0.5f, 55.0f);
-			material1->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture(L"Resource\\Model\\weapons\\m16a1_2_BaseColor.jpg");
+			material1->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Model\\weapons\\m16a1_2_BaseColor.jpg");
 			pMeshRenderer->m_mesh->m_subsets[0].m_material = material1;
 
 			auto material2 = ResourceLoader::GetInstance()->CreateMaterial();
 			material2->m_ambient = XMFLOAT4A(0.25f, 0.25f, 0.25f, 1.0f);
 			material2->m_diffuse = XMFLOAT4A(0.85f, 0.85f, 0.85f, 1.0f);
 			material2->m_specular = XMFLOAT4A(0.5f, 0.5f, 0.5f, 55.0f);
-			material2->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture(L"Resource\\Model\\weapons\\m16a1_1_BaseColor.jpg");
+			material2->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Model\\weapons\\m16a1_1_BaseColor.jpg");
 			pMeshRenderer->m_mesh->m_subsets[1].m_material = material2;
 		}
 	}
 	
 
 
-	// Texture2D skyboxCubeMap = ResourceLoader::GetInstance()->LoadCubeMapTexture(L"Resource\\Skybox\\cloudy_puresky.dds");
-	// Texture2D skyboxCubeMap = ResourceLoader::GetInstance()->LoadCubeMapTexture(L"Resource\\Skybox\\warm_restaurant_night.dds");
-	// Texture2D skyboxCubeMap = ResourceLoader::GetInstance()->LoadCubeMapTexture(L"Resource\\Skybox\\snowcube.dds");
-	// Texture2D skyboxCubeMap = ResourceLoader::GetInstance()->LoadCubeMapTexture(L"Resource\\Skybox\\sunsetcube.dds");
-	Texture2D skyboxCubeMap = ResourceLoader::GetInstance()->LoadCubeMapTexture(L"Resource\\Skybox\\sky27.dds");
+	// Texture2D skyboxCubeMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Skybox\\cloudy_puresky.dds", false);
+	// Texture2D skyboxCubeMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Skybox\\warm_restaurant_night.dds", false);
+	// Texture2D skyboxCubeMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Skybox\\snowcube.dds", false);
+	// Texture2D skyboxCubeMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Skybox\\sunsetcube.dds", false);
+	Texture2D skyboxCubeMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Skybox\\sky27.dds", false);
 	Environment::GetInstance()->SetSkyboxCubeMap(skyboxCubeMap);
 }

@@ -61,4 +61,6 @@ public:
 	afx_msg void OnComponentMeshRenderer();
 	afx_msg void OnCreateAssetFolder();
 	afx_msg void OnCreateAssetMaterial();
+	afx_msg void OnCreateAssetTexture();
+	afx_msg void OnCreateAssetWavefrontOBJ();
 };

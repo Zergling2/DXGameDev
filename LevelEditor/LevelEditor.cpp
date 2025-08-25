@@ -191,7 +191,7 @@ BOOL CLevelEditorApp::InitInstance()
 	// 카메라 제어 스크립트 추가
 	ze::ComponentHandle<EditorCameraScript> hEditorCameraScript = pEditorCameraObject->AddComponent<EditorCameraScript>();
 
-	ze::Texture2D skyboxCubeMap = ze::ResourceLoader::GetInstance()->LoadCubeMapTexture(L"Resource\\Skybox\\cloudy_puresky.dds");
+	ze::Texture2D skyboxCubeMap = ze::ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Skybox\\cloudy_puresky.dds", false);
 	ze::Environment::GetInstance()->SetSkyboxCubeMap(skyboxCubeMap);
 
 	CRect editorViewRect;

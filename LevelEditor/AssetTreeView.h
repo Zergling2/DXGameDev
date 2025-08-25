@@ -36,5 +36,7 @@ public:
 	afx_msg void OnTvnItemexpanded(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnCreateAssetFolder();
 	afx_msg void OnCreateAssetMaterial();
+	afx_msg void OnCreateAssetTexture();
+	afx_msg void OnCreateAssetWavefrontOBJ();
 	afx_msg void OnDestroy();
 };

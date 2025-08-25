@@ -200,7 +200,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AssetManager.h" />
-    <ClInclude Include="ATVItem\ATVItemCubeMap.h" />
     <ClInclude Include="ATVItem\ATVItemEmpty.h" />
     <ClInclude Include="ATVItem\ATVItemFolder.h" />
     <ClInclude Include="ATVItem\ATVItemInterface.h" />
@@ -232,6 +231,7 @@
     <ClInclude Include="TerrainGenerationDialog.h" />
     <ClInclude Include="TerrainInspectorFormView.h" />
     <ClInclude Include="Edit\FloatEdit.h" />
+    <ClInclude Include="TextureInspectorFormView.h" />
     <ClInclude Include="TransformInspectorFormView.h" />
     <ClInclude Include="LevelEditor.h" />
     <ClInclude Include="LevelEditorDoc.h" />
@@ -243,7 +243,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssetManager.cpp" />
-    <ClCompile Include="ATVItem\ATVItemCubeMap.cpp" />
     <ClCompile Include="ATVItem\ATVItemEmpty.cpp" />
     <ClCompile Include="ATVItem\ATVItemFolder.cpp" />
     <ClCompile Include="ATVItem\ATVItemInterface.cpp" />
@@ -272,6 +271,7 @@
     <ClCompile Include="TerrainGenerationDialog.cpp" />
     <ClCompile Include="TerrainInspectorFormView.cpp" />
     <ClCompile Include="Edit\FloatEdit.cpp" />
+    <ClCompile Include="TextureInspectorFormView.cpp" />
     <ClCompile Include="TransformInspectorFormView.cpp" />
     <ClCompile Include="LevelEditor.cpp" />
     <ClCompile Include="LevelEditorDoc.cpp" />

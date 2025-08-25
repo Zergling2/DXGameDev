@@ -6,3 +6,5 @@ void OnGameObjectRename();
 void OnComponentMeshRenderer();
 void OnCreateAssetFolder();
 void OnCreateAssetMaterial();
+void OnCreateAssetTexture();
+void OnCreateAssetWavefrontOBJ();

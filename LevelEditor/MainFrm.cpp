@@ -30,6 +30,8 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_COMMAND(ID_COMPONENT_MESHRENDERER, &CMainFrame::OnComponentMeshRenderer)
 	ON_COMMAND(ID_CREATE_FOLDER, &CMainFrame::OnCreateAssetFolder)
 	ON_COMMAND(ID_CREATE_MATERIAL, &CMainFrame::OnCreateAssetMaterial)
+	ON_COMMAND(ID_CREATE_TEXTURE, &CMainFrame::OnCreateAssetTexture)
+	ON_COMMAND(ID_CREATE_WAVEFRONTOBJ, &CMainFrame::OnCreateAssetWavefrontOBJ)
 END_MESSAGE_MAP()
 
 static UINT indicators[] =
@@ -385,4 +387,16 @@ void CMainFrame::OnCreateAssetMaterial()
 {
 	// TODO: Add your command handler code here
 	::OnCreateAssetMaterial();
+}
+
+void CMainFrame::OnCreateAssetWavefrontOBJ()
+{
+	// TODO: Add your command handler code here
+	::OnCreateAssetWavefrontOBJ();
+}
+
+void CMainFrame::OnCreateAssetTexture()
+{
+	// TODO: Add your command handler code here
+	::OnCreateAssetTexture();
 }

@@ -11,6 +11,8 @@ public:
 	{
 	}
 	virtual ~ATVItemTexture() = default;
+
+	virtual void OnSelect() override;
 private:
 	ze::Texture2D m_texture;
 };

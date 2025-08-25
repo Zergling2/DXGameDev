@@ -1,5 +1,4 @@
 #include <ZergEngine\CoreSystem\ResourceLoader.h>
-#include <ZergEngine\Common\EngineHelper.h>
 #include <ZergEngine\CoreSystem\Debug.h>
 #include <ZergEngine\CoreSystem\FileSystem.h>
 #include <ZergEngine\CoreSystem\GraphicDevice.h>
@@ -106,7 +105,7 @@ std::vector<std::shared_ptr<Mesh>> ResourceLoader::LoadWavefrontOBJ(PCWSTR path)
 	return meshes;
 }
 
-Texture2D ResourceLoader::LoadTexture(PCWSTR path)
+Texture2D ResourceLoader::LoadTexture2D(PCWSTR path, bool generateMipMaps)
 {
 	HRESULT hr;
 
@@ -134,24 +133,22 @@ Texture2D ResourceLoader::LoadTexture(PCWSTR path)
 		if (FAILED(hr))
 			Debug::ForceCrashWithMessageBox(L"Error", L"Failed to load image with LoadFromXXXFile.\n%s\n", path);
 
-		if (image.GetMetadata().mipLevels > 1)
+		const TexMetadata& imageMetadata = image.GetMetadata();
+
+		if (imageMetadata.mipLevels > 1 || generateMipMaps == false)
 		{
-			// 이미 밉맵이 있는 경우
+			// 이미 밉맵이 있는 경우이거나 밉맵 생성이 요청되지 않은 경우
 			mipChain = std::move(image);
 		}
 		else
 		{
-			hr = GenerateMipMaps(image.GetImages(), image.GetImageCount(), image.GetMetadata(), TEX_FILTER_DEFAULT, 0, mipChain);
+			if (IsCompressed(imageMetadata.format))
+				hr = this->GenerateMipMapsForBCFormat(image, mipChain);
+			else
+				hr = GenerateMipMaps(image.GetImages(), image.GetImageCount(), image.GetMetadata(), TEX_FILTER_DEFAULT, 0, mipChain);
+
 			if (FAILED(hr))
-			{
-				// 
-				Debug::ForceCrashWithHRESULTErrorMessageBox(L"DirectX::GenerateMipMaps failed", hr);
-				// Block compressed (BC) 포맷일 경우 Decompress 후 밉맵 생성 및 다시 Compress 필요
-				// https://github.com/microsoft/DirectXTex/wiki/GenerateMipMaps
-				// https://github.com/microsoft/DirectXTex/wiki/Decompress
-				// https://github.com/microsoft/DirectXTex/wiki/Compress
-				mipChain = std::move(image);
-			}
+				Debug::ForceCrashWithHRESULTErrorMessageBox(L"Failed to generate mip maps.", hr);
 		}
 	}
 
@@ -167,8 +164,8 @@ Texture2D ResourceLoader::LoadTexture(PCWSTR path)
 	descTexture.SampleDesc.Count = 1;	// 렌더 타겟이 아니므로 안티앨리어싱 X
 	descTexture.SampleDesc.Quality = 0;	// 렌더 타겟이 아니므로 안티앨리어싱 X
 	descTexture.Usage = D3D11_USAGE_DEFAULT;
-	descTexture.BindFlags = D3D11_BIND_SHADER_RESOURCE;		// 메시 텍스처링 목적의 셰이더 리소스 생성
-	descTexture.MiscFlags = 0;
+	descTexture.BindFlags = D3D11_BIND_SHADER_RESOURCE;		// 셰이더 리소스 목적으로 생성
+	descTexture.MiscFlags = metadata.IsCubemap() ? D3D11_RESOURCE_MISC_TEXTURECUBE : 0;
 
 	// 텍스처 생성 및 초기화
 	ComPtr<ID3D11Texture2D> cpTex2d;
@@ -181,7 +178,7 @@ Texture2D ResourceLoader::LoadTexture(PCWSTR path)
 			const Image* pImg = mipChain.GetImage(j, i, 0);
 
 			initialData[index].pSysMem = pImg->pixels;
-			initialData[index].SysMemPitch = static_cast<UINT>(pImg->rowPitch);
+			initialData[index].SysMemPitch = static_cast<UINT>(pImg->rowPitch);		// 텍스쳐 너비 * 텍셀 당 바이트 크기
 			// initialData[index].SysMemSlicePitch = 0;		// 3D 텍스쳐에서만 의미 있음
 		}
 	}
@@ -205,106 +202,6 @@ Texture2D ResourceLoader::LoadTexture(PCWSTR path)
 std::shared_ptr<Material> ResourceLoader::CreateMaterial()
 {
 	return std::make_shared<Material>();
-}
-
-Texture2D ResourceLoader::LoadCubeMapTexture(PCWSTR path)
-{
-	HRESULT hr;
-
-	WCHAR filePath[MAX_PATH];
-	hr = FileSystem::GetInstance()->RelativePathToFullPath(path, filePath, sizeof(filePath));
-	if (FAILED(hr))
-		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to create full file path.\n%s", path);
-
-	PCWSTR ext = wcsrchr(filePath, L'.');
-	if (ext == nullptr)
-		Debug::ForceCrashWithMessageBox(L"Error", L"Unknown file extension: %s", path);
-
-	// 이미지 로드
-	ScratchImage mipChain;
-
-	if (wcscmp(L".dds", ext) != 0 && wcscmp(L".DDS", ext) != 0)
-		Debug::ForceCrashWithMessageBox(L"Error", L"%s is not supported file format for cubemap texture.", path);
-
-	hr = LoadFromDDSFile(filePath, DDS_FLAGS::DDS_FLAGS_NONE, nullptr, mipChain);	// dds, DDS
-	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"LoadCubeMapTexture() > LoadFromDDSFile()", hr);
-
-	// 디스크립터 세팅
-	const TexMetadata& metadata = mipChain.GetMetadata();
-	if (!metadata.IsCubemap())
-		Debug::ForceCrashWithMessageBox(L"Error", L"%s is not a cubemap texture.", path);
-
-	D3D11_TEXTURE2D_DESC descTexture;
-	ZeroMemory(&descTexture, sizeof(descTexture));
-	descTexture.Width = static_cast<UINT>(metadata.width);
-	descTexture.Height = static_cast<UINT>(metadata.height);
-	descTexture.MipLevels = static_cast<UINT>(metadata.mipLevels);
-	descTexture.ArraySize = static_cast<UINT>(metadata.arraySize);
-	descTexture.Format = metadata.format;
-	descTexture.SampleDesc.Count = 1;		// 렌더타겟용 큐브맵이 아니므로 안티앨리어싱 X
-	descTexture.SampleDesc.Quality = 0;		// 렌더타겟용 큐브맵이 아니므로 안티앨리어싱 X
-	descTexture.Usage = D3D11_USAGE_IMMUTABLE;
-	descTexture.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-	descTexture.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;		// 스카이박스 큐브 텍스쳐
-
-	// 텍스처 생성
-	ComPtr<ID3D11Texture2D> cpTex2D;
-	{
-		/*
-		CreateTexture2D creates a 2D texture resource, which can contain a number of 2D subresources.
-		The number of textures is specified in the texture description.
-		All textures in a resource must have the same format, size, and number of mipmap levels.
-
-		All resources are made up of one or more subresources. To load data into the texture,
-		applications can supply the data initially as an array of D3D11_SUBRESOURCE_DATA structures pointed to by pInitialData,
-		or it may use one of the D3DX texture functions such as D3DX11CreateTextureFromFile. (D3DX 함수는 UWP 사용 불가...)
-		For a 32 x 32 texture with a full mipmap chain, the pInitialData array has the following 6 elements:
-
-		(텍스쳐 배열의 경우 0번 이미지의 밉맵 포인터 나열 후 1번 이미지의 밉맵 포인터 나열, ...)
-		pInitialData[0] = 32x32		pInitialData[6] = 32x32
-		pInitialData[1] = 16x16		pInitialData[7] = 16x16
-		pInitialData[2] = 8x8		pInitialData[8] = 8x8
-		pInitialData[3] = 4x4		pInitialData[9] = 4x4
-		pInitialData[4] = 2x2		pInitialData[10] = 2x2
-		pInitialData[5] = 1x1		pInitialData[11] = 1x1
-		*/
-		std::vector<D3D11_SUBRESOURCE_DATA> sbrcTexels(metadata.mipLevels * metadata.arraySize);
-
-		for (size_t arrIndex = 0; arrIndex < metadata.arraySize; ++arrIndex)
-		{
-			for (size_t mipIndex = 0; mipIndex < metadata.mipLevels; ++mipIndex)
-			{
-				const Image* pImg = mipChain.GetImage(mipIndex, arrIndex, 0);
-
-				sbrcTexels[arrIndex * metadata.mipLevels + mipIndex].pSysMem = pImg->pixels;
-				sbrcTexels[arrIndex * metadata.mipLevels + mipIndex].SysMemPitch = static_cast<UINT>(pImg->rowPitch);	// 텍스쳐 너비 * 텍셀 당 바이트 크기
-				// sbrcTexels[arrIndex * metadata.mipLevels + mipIndex].SysMemSlicePitch = 0;	// 3D 텍스쳐에서만 의미 있음
-			}
-		}
-
-		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateTexture2D(
-			&descTexture, sbrcTexels.data(), cpTex2D.GetAddressOf()
-		);
-		if (FAILED(hr))
-			Debug::ForceCrashWithHRESULTErrorMessageBox(L"ID3D11Device::CreateTexture2D()", hr);
-	}
-
-	// 셰이더 리소스 뷰 생성
-	ComPtr<ID3D11ShaderResourceView> cpSRV;
-	D3D11_SHADER_RESOURCE_VIEW_DESC descSRV;
-	ZeroMemory(&descSRV, sizeof(descSRV));
-	descSRV.Format = descTexture.Format;
-	descSRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
-	descSRV.TextureCube.MostDetailedMip = 0;	// 사용할 가장 디테일한 밉 레벨
-	descSRV.TextureCube.MipLevels = -1;		// -1로 설정 시 MostDetailedMip에 설정한 밉 레벨부터 최소 퀄리티 밉맵까지 사용
-	hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateShaderResourceView(
-		cpTex2D.Get(), &descSRV, cpSRV.GetAddressOf()
-	);
-	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"ID3D11Device::CreateShaderResourceView()", hr);
-
-	return Texture2D(cpTex2D, cpSRV);
 }
 
 bool ResourceLoader::CreateHeightMapFromRawData(Texture2D& heightMap, const uint16_t* pData, SIZE resolution)
@@ -354,6 +251,104 @@ bool ResourceLoader::CreateHeightMapFromRawData(Texture2D& heightMap, const uint
 	heightMap.m_cpSRV = std::move(cpSRV);
 
 	return true;
+}
+
+HRESULT ResourceLoader::GenerateMipMapsForBCFormat(const ScratchImage& src, ScratchImage& result)
+{
+	// Block compressed (BC) 포맷일 경우 Decompress 후 밉맵 생성 및 다시 Compress 필요
+	// https://github.com/microsoft/DirectXTex/wiki/GenerateMipMaps
+	// https://github.com/microsoft/DirectXTex/wiki/Decompress
+	// https://github.com/microsoft/DirectXTex/wiki/Compress
+
+	HRESULT hr = S_OK;
+
+	do
+	{
+		const TexMetadata& metadata = src.GetMetadata();
+		DXGI_FORMAT srcFormat = metadata.format;
+
+		// 압축 포맷인지 확인
+		if (!IsCompressed(srcFormat))
+		{
+			hr = E_FAIL;
+			break;
+		}
+
+		// 적절한 비압축 포맷 선택
+		DXGI_FORMAT decompFmt;
+		switch (srcFormat)
+		{
+		case DXGI_FORMAT_BC1_TYPELESS:
+		case DXGI_FORMAT_BC1_UNORM:
+		case DXGI_FORMAT_BC1_UNORM_SRGB:
+		case DXGI_FORMAT_BC2_TYPELESS:
+		case DXGI_FORMAT_BC2_UNORM:
+		case DXGI_FORMAT_BC2_UNORM_SRGB:
+		case DXGI_FORMAT_BC3_TYPELESS:
+		case DXGI_FORMAT_BC3_UNORM:
+		case DXGI_FORMAT_BC3_UNORM_SRGB:
+		case DXGI_FORMAT_BC7_TYPELESS:
+		case DXGI_FORMAT_BC7_UNORM:
+		case DXGI_FORMAT_BC7_UNORM_SRGB:
+			decompFmt = DXGI_FORMAT_R8G8B8A8_UNORM;
+			break;
+		case DXGI_FORMAT_BC4_TYPELESS:
+		case DXGI_FORMAT_BC4_UNORM:
+		case DXGI_FORMAT_BC4_SNORM:
+			decompFmt = DXGI_FORMAT_R8_UNORM;
+			break;
+		case DXGI_FORMAT_BC5_TYPELESS:
+		case DXGI_FORMAT_BC5_UNORM:
+		case DXGI_FORMAT_BC5_SNORM:
+			decompFmt = DXGI_FORMAT_R8G8_UNORM;
+			break;
+		case DXGI_FORMAT_BC6H_TYPELESS:
+		case DXGI_FORMAT_BC6H_UF16:
+		case DXGI_FORMAT_BC6H_SF16:
+			decompFmt = DXGI_FORMAT_R16G16B16A16_FLOAT;
+			break;
+		default:
+			decompFmt = DXGI_FORMAT_UNKNOWN;
+			break;
+		}
+
+		// 압축 해제
+		ScratchImage decompressed;
+		hr = Decompress(
+			src.GetImages(),
+			src.GetImageCount(),
+			metadata,
+			decompFmt,
+			decompressed);
+		if (FAILED(hr))
+			break;
+
+		// 밉맵 생성
+		ScratchImage mipChain;
+		hr = GenerateMipMaps(
+			decompressed.GetImages(),
+			decompressed.GetImageCount(),
+			decompressed.GetMetadata(),
+			TEX_FILTER_DEFAULT,
+			0,
+			mipChain
+		);
+		if (FAILED(hr))
+			break;
+
+		hr = Compress(
+			mipChain.GetImages(),
+			mipChain.GetImageCount(),
+			mipChain.GetMetadata(),
+			srcFormat,
+			TEX_COMPRESS_DEFAULT,
+			1.0f,
+			result);
+		if (FAILED(hr))
+			break;
+	} while (false);
+
+	return hr;
 }
 
 bool ResourceLoader::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, VertexPack& vp, Mesh* pMesh)
@@ -716,6 +711,109 @@ bool ResourceLoader::ParseWavefrontOBJFaces(FILE* pOBJFile, long* pnffpos, VERTE
 
 	return ret_nf;
 }
+
+
+/*
+Texture2D ResourceLoader::LoadCubeMapTexture(PCWSTR path)
+{
+	HRESULT hr;
+
+	WCHAR filePath[MAX_PATH];
+	hr = FileSystem::GetInstance()->RelativePathToFullPath(path, filePath, sizeof(filePath));
+	if (FAILED(hr))
+		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to create full file path.\n%s", path);
+
+	PCWSTR ext = wcsrchr(filePath, L'.');
+	if (ext == nullptr)
+		Debug::ForceCrashWithMessageBox(L"Error", L"Unknown file extension: %s", path);
+
+	// 이미지 로드
+	ScratchImage mipChain;
+
+	if (wcscmp(L".dds", ext) != 0 && wcscmp(L".DDS", ext) != 0)
+		Debug::ForceCrashWithMessageBox(L"Error", L"%s is not supported file format for cubemap texture.", path);
+
+	hr = LoadFromDDSFile(filePath, DDS_FLAGS::DDS_FLAGS_NONE, nullptr, mipChain);	// dds, DDS
+	if (FAILED(hr))
+		Debug::ForceCrashWithHRESULTErrorMessageBox(L"LoadCubeMapTexture() > LoadFromDDSFile()", hr);
+
+	// 디스크립터 세팅
+	const TexMetadata& metadata = mipChain.GetMetadata();
+	if (!metadata.IsCubemap())
+		Debug::ForceCrashWithMessageBox(L"Error", L"%s is not a cubemap texture.", path);
+
+	D3D11_TEXTURE2D_DESC textureDesc;
+	ZeroMemory(&textureDesc, sizeof(textureDesc));
+	textureDesc.Width = static_cast<UINT>(metadata.width);
+	textureDesc.Height = static_cast<UINT>(metadata.height);
+	textureDesc.MipLevels = static_cast<UINT>(metadata.mipLevels);
+	textureDesc.ArraySize = static_cast<UINT>(metadata.arraySize);
+	textureDesc.Format = metadata.format;
+	textureDesc.SampleDesc.Count = 1;		// 렌더타겟용 큐브맵이 아니므로 안티앨리어싱 X
+	textureDesc.SampleDesc.Quality = 0;		// 렌더타겟용 큐브맵이 아니므로 안티앨리어싱 X
+	textureDesc.Usage = D3D11_USAGE_IMMUTABLE;
+	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	textureDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;		// 스카이박스 큐브 텍스쳐
+
+	// 텍스처 생성
+	ComPtr<ID3D11Texture2D> cpTex2D;
+	{
+
+		// CreateTexture2D creates a 2D texture resource, which can contain a number of 2D subresources.
+		// The number of textures is specified in the texture description.
+		// All textures in a resource must have the same format, size, and number of mipmap levels.
+		//
+		// All resources are made up of one or more subresources. To load data into the texture,
+		// applications can supply the data initially as an 'array of D3D11_SUBRESOURCE_DATA structures' pointed to by pInitialData,
+		// or it may use one of the D3DX texture functions such as D3DX11CreateTextureFromFile. (D3DX 함수는 UWP 사용 불가...)
+		// For a 32 x 32 texture with a full mipmap chain, the pInitialData array has the following 6 elements:
+		//
+		// (텍스쳐 배열의 경우 0번 이미지의 밉맵 포인터 나열 후 1번 이미지의 밉맵 포인터 나열, ...)
+		// pInitialData[0] = 32x32		pInitialData[6] = 32x32
+		// pInitialData[1] = 16x16		pInitialData[7] = 16x16
+		// pInitialData[2] = 8x8		pInitialData[8] = 8x8
+		// pInitialData[3] = 4x4		pInitialData[9] = 4x4
+		// pInitialData[4] = 2x2		pInitialData[10] = 2x2
+		// pInitialData[5] = 1x1		pInitialData[11] = 1x1
+
+		std::vector<D3D11_SUBRESOURCE_DATA> initialData(metadata.arraySize * metadata.mipLevels);
+		for (size_t i = 0; i < metadata.arraySize; ++i)
+		{
+			for (size_t j = 0; j < metadata.mipLevels; ++j)
+			{
+				const size_t index = i * metadata.mipLevels + j;
+				const Image* pImg = mipChain.GetImage(j, i, 0);
+
+				initialData[index].pSysMem = pImg->pixels;
+				initialData[index].SysMemPitch = static_cast<UINT>(pImg->rowPitch);// 텍스쳐 너비 * 텍셀 당 바이트 크기
+				// initialData[index].SysMemSlicePitch = 0;		// 3D 텍스쳐에서만 의미 있음
+			}
+		}
+
+		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateTexture2D(
+			&textureDesc, initialData.data(), cpTex2D.GetAddressOf()
+		);
+		if (FAILED(hr))
+			Debug::ForceCrashWithHRESULTErrorMessageBox(L"ID3D11Device::CreateTexture2D()", hr);
+	}
+
+	// 셰이더 리소스 뷰 생성
+	ComPtr<ID3D11ShaderResourceView> cpSRV;
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+	ZeroMemory(&srvDesc, sizeof(srvDesc));
+	srvDesc.Format = textureDesc.Format;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+	srvDesc.TextureCube.MostDetailedMip = 0;	// 사용할 가장 디테일한 밉 레벨
+	srvDesc.TextureCube.MipLevels = -1;		// -1로 설정 시 MostDetailedMip에 설정한 밉 레벨부터 최소 퀄리티 밉맵까지 사용
+	hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateShaderResourceView(
+		cpTex2D.Get(), &srvDesc, cpSRV.GetAddressOf()
+	);
+	if (FAILED(hr))
+		Debug::ForceCrashWithHRESULTErrorMessageBox(L"ID3D11Device::CreateShaderResourceView()", hr);
+
+	return Texture2D(cpTex2D, cpSRV);
+}
+*/
 
 /*
 bool Resource::ReadFaces_deprecated(FILE* pOBJFile, long* pnffpos, const VERTEX_FORMAT_TYPE vft, const VertexPack& vp,

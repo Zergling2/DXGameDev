@@ -161,7 +161,7 @@ void OnCreateAssetFolder()
 	if (hSelectedItem)
 	{
 		IATVItem* pATVItem = reinterpret_cast<IATVItem*>(tc.GetItemData(hSelectedItem));
-		if (pATVItem->GetType() != ATV_ITEM_TYPE::FOLDER)	// 선택된 항목이 폴더가 아닌 경우에는 하위 폴더 생성을 허용하지 않는다.
+		if (pATVItem->GetType() != ATV_ITEM_TYPE::FOLDER)	// 선택된 항목이 폴더가 아닌 경우에는 하위 항목으로 생성을 허용하지 않는다.
 			return;
 
 		hParent = hSelectedItem;
@@ -198,7 +198,7 @@ void OnCreateAssetMaterial()
 		return;
 
 	IATVItem* pATVItem = reinterpret_cast<IATVItem*>(tc.GetItemData(hSelectedItem));
-	if (pATVItem->GetType() != ATV_ITEM_TYPE::FOLDER)	// 선택된 항목이 폴더가 아닌 경우에는 하위 항목으로 Material 생성을 허용하지 않는다.
+	if (pATVItem->GetType() != ATV_ITEM_TYPE::FOLDER)	// 선택된 항목이 폴더가 아닌 경우에는 하위 항목으로 생성을 허용하지 않는다.
 		return;
 
 	HTREEITEM hParent = hSelectedItem;
@@ -217,4 +217,73 @@ void OnCreateAssetMaterial()
 	pATVItemMaterial->OnSelect();
 
 	tc.EditLabel(hNewItem);
+}
+
+void OnCreateAssetTexture()
+{
+	// 현재 에셋 트리뷰에서 선택된 항목이 폴더인 경우에만 하위 항목으로 Material 생성을 허용
+	CMainFrame* pMainFrame = static_cast<CMainFrame*>(AfxGetMainWnd());
+	auto pATV = pMainFrame->GetAssetTreeView();
+
+	auto& tc = pATV->GetTreeCtrl();
+	const HTREEITEM hSelectedItem = tc.GetSelectedItem();
+	if (hSelectedItem == NULL)	// 현재 선택된 항목(폴더)이 없는 경우
+		return;
+
+	IATVItem* pATVItem = reinterpret_cast<IATVItem*>(tc.GetItemData(hSelectedItem));
+	if (pATVItem->GetType() != ATV_ITEM_TYPE::FOLDER)	// 선택된 항목이 폴더가 아닌 경우에는 하위 항목으로 생성을 허용하지 않는다.
+		return;
+
+	PCTSTR filter = _T("Image File (*.png; *.jpg; *.jpeg; *.tga; *.dds)|*.png;*.jpg;*.jpeg;*.tga;*.dds|")
+		_T("PNG File (*.png)|*.png|")
+		_T("JPEG File (*.jpg; *.jpeg)|*.jpg;*.jpeg|")
+		_T("TGA File (*.tga)|*.tga|")
+		_T("DDS File (*.dds)|*.dds||");
+
+	CFileDialog fd(
+		TRUE,			// TRUE = Open, FALSE = Save
+		nullptr,		// lpszDefExt (확장자 명시하지 않을 시 자동으로 append 될 확장자)
+		nullptr,		// lpszFileName (기본 파일명)
+		OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_ENABLESIZING,
+		filter
+	);
+
+	if (fd.DoModal() == IDOK)
+	{
+		CString filePath = fd.GetPathName(); // 선택된 파일 경로
+		ze::ResourceLoader::GetInstance()->LoadTexture2D(filePath.GetString(), true);
+	}
+}
+
+void OnCreateAssetWavefrontOBJ()
+{
+	// 현재 에셋 트리뷰에서 선택된 항목이 폴더인 경우에만 하위 항목으로 Material 생성을 허용
+	CMainFrame* pMainFrame = static_cast<CMainFrame*>(AfxGetMainWnd());
+	auto pATV = pMainFrame->GetAssetTreeView();
+
+	auto& tc = pATV->GetTreeCtrl();
+	const HTREEITEM hSelectedItem = tc.GetSelectedItem();
+	if (hSelectedItem == NULL)	// 현재 선택된 항목(폴더)이 없는 경우
+		return;
+
+	IATVItem* pATVItem = reinterpret_cast<IATVItem*>(tc.GetItemData(hSelectedItem));
+	if (pATVItem->GetType() != ATV_ITEM_TYPE::FOLDER)	// 선택된 항목이 폴더가 아닌 경우에는 하위 항목으로 생성을 허용하지 않는다.
+		return;
+
+	PCTSTR filter = _T("Wavefront OBJ File (*.obj)|*.obj||");
+
+	CFileDialog fd(
+		TRUE,			// TRUE = Open, FALSE = Save
+		nullptr,		// lpszDefExt (확장자 명시하지 않을 시 자동으로 append 될 확장자)
+		nullptr,		// lpszFileName (기본 파일명)
+		OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_ENABLESIZING,
+		filter
+	);
+
+	if (fd.DoModal() == IDOK)
+	{
+		CString filePath = fd.GetPathName(); // 선택된 파일 경로
+
+		// ze::ResourceLoader::GetInstance()->LoadTexture()
+	}
 }

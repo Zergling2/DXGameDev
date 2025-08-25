@@ -12,6 +12,8 @@ namespace ze
 		static void ForceCrashWithMessageBox(PCWSTR title, PCWSTR format, ...);
 		static void ForceCrashWithWin32ErrorMessageBox(PCWSTR message, DWORD code);
 		static void ForceCrashWithHRESULTErrorMessageBox(PCWSTR message, HRESULT hr);
+		static PCTSTR DXGIFormatToString(DXGI_FORMAT fmt);
+		static PCTSTR SRVDimensionToString(D3D11_SRV_DIMENSION d);
 	};
 
 	enum class SEVERITY

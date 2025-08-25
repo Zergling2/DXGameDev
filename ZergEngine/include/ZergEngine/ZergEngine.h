@@ -6,6 +6,7 @@
 #include <ZergEngine\CoreSystem\Window.h>
 #include <ZergEngine\CoreSystem\SceneInterface.h>
 #include <ZergEngine\CoreSystem\Input.h>
+#include <ZergEngine\CoreSystem\Debug.h>
 #include <ZergEngine\CoreSystem\GraphicDevice.h>
 #include <ZergEngine\CoreSystem\ResourceLoader.h>
 #include <ZergEngine\CoreSystem\Manager\SceneManager.h>
