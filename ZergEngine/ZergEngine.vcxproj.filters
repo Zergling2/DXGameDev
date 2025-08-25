@@ -34,9 +34,6 @@
     <Filter Include="Files\extlib\DirectXTex">
       <UniqueIdentifier>{cd70828c-a9dd-447e-8adb-676863c74751}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Files\extlib\DirectXTK">
-      <UniqueIdentifier>{e75b379c-6843-48e4-8db7-51c6e9b26863}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Files\ZergEngine\CoreSystem\ShaderResource">
       <UniqueIdentifier>{f098acac-efa6-4024-9447-910bc6a88b7e}</UniqueIdentifier>
     </Filter>
@@ -74,69 +71,6 @@
     </ClInclude>
     <ClInclude Include="include\ZergEngine\Common\ThirdPartySDK.h">
       <Filter>Files\ZergEngine\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\Common\DirectXTK\Audio.h">
-      <Filter>Files\extlib\DirectXTK</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\Common\DirectXTK\BufferHelpers.h">
-      <Filter>Files\extlib\DirectXTK</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\Common\DirectXTK\CommonStates.h">
-      <Filter>Files\extlib\DirectXTK</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\Common\DirectXTK\DDSTextureLoader.h">
-      <Filter>Files\extlib\DirectXTK</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\Common\DirectXTK\DirectXHelpers.h">
-      <Filter>Files\extlib\DirectXTK</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\Common\DirectXTK\Effects.h">
-      <Filter>Files\extlib\DirectXTK</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\Common\DirectXTK\GamePad.h">
-      <Filter>Files\extlib\DirectXTK</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\Common\DirectXTK\GeometricPrimitive.h">
-      <Filter>Files\extlib\DirectXTK</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\Common\DirectXTK\GraphicsMemory.h">
-      <Filter>Files\extlib\DirectXTK</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\Common\DirectXTK\Keyboard.h">
-      <Filter>Files\extlib\DirectXTK</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\Common\DirectXTK\Model.h">
-      <Filter>Files\extlib\DirectXTK</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\Common\DirectXTK\Mouse.h">
-      <Filter>Files\extlib\DirectXTK</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\Common\DirectXTK\PostProcess.h">
-      <Filter>Files\extlib\DirectXTK</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\Common\DirectXTK\PrimitiveBatch.h">
-      <Filter>Files\extlib\DirectXTK</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\Common\DirectXTK\ScreenGrab.h">
-      <Filter>Files\extlib\DirectXTK</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\Common\DirectXTK\SimpleMath.h">
-      <Filter>Files\extlib\DirectXTK</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\Common\DirectXTK\SpriteBatch.h">
-      <Filter>Files\extlib\DirectXTK</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\Common\DirectXTK\SpriteFont.h">
-      <Filter>Files\extlib\DirectXTK</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\Common\DirectXTK\VertexTypes.h">
-      <Filter>Files\extlib\DirectXTK</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\Common\DirectXTK\WICTextureLoader.h">
-      <Filter>Files\extlib\DirectXTK</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\Common\DirectXTK\XboxDDSTextureLoader.h">
-      <Filter>Files\extlib\DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\Common\DirectXTex\DirectXTex.h">
       <Filter>Files\extlib\DirectXTex</Filter>
@@ -600,9 +534,6 @@
   <ItemGroup>
     <None Include="source\CoreSystem\ShaderCode\ShaderCommon.hlsli">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
-    </None>
-    <None Include="include\ZergEngine\Common\DirectXTK\SimpleMath.inl">
-      <Filter>Files\extlib\DirectXTK</Filter>
     </None>
     <None Include="include\ZergEngine\Common\DirectXTex\DirectXTex.inl">
       <Filter>Files\extlib\DirectXTex</Filter>
