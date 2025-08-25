@@ -334,6 +334,29 @@ PCTSTR Debug::SRVDimensionToString(D3D11_SRV_DIMENSION d)
 	}
 }
 
+PCTSTR Debug::VertexFormatToString(VERTEX_FORMAT_TYPE type)
+{
+	switch (type)
+	{
+	case VERTEX_FORMAT_TYPE::POSITION:
+		return _T("POSITION");
+	case VERTEX_FORMAT_TYPE::POSITION_COLOR:
+		return _T("POSITION\nCOLOR");
+	case VERTEX_FORMAT_TYPE::POSITION_NORMAL:
+		return _T("POSITION\nNORMAL");
+	case VERTEX_FORMAT_TYPE::POSITION_TEXCOORD:
+		return _T("POSITION\nTEXCOORD");
+	case VERTEX_FORMAT_TYPE::POSITION_NORMAL_TEXCOORD:
+		return _T("POSITION\nNORMAL\nTEXCOORD");
+	case VERTEX_FORMAT_TYPE::TERRAIN_PATCH_CTRL_PT:
+		__fallthrough;
+	case VERTEX_FORMAT_TYPE::BUTTON:
+		__fallthrough;
+	default:
+		return _T("Unknown");
+	}
+}
+
 AsyncConsoleLogger::AsyncConsoleLogger()
 	: m_init(false)
 	, m_exit(FALSE)

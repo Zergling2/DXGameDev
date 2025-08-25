@@ -50,25 +50,17 @@ void ResourceLoader::UnInit()
 
 std::vector<std::shared_ptr<Mesh>> ResourceLoader::LoadWavefrontOBJ(PCWSTR path)
 {
-	HRESULT hr;
 	FILE* pMeshFile = nullptr;
 	std::vector<std::shared_ptr<Mesh>> meshes;
 
 	do
 	{
 		VertexPack vp;
-		WCHAR filePath[MAX_PATH];
-		filePath[0] = L'\0';
-
-		// Open OBJ file
-		hr = FileSystem::GetInstance()->RelativePathToFullPath(path, filePath, sizeof(filePath));
-		if (FAILED(hr))
-			Debug::ForceCrashWithMessageBox(L"Error", L"Failed to create full file path.\n%s", path);
 
 		// UTF-8 -> UTF-16 자동 인코딩 변환하는 것으로 확인
 		// HexEditor로 열었을 때와 이 함수로 읽어들였을 때 값이 다름. (변환이 됨)
 		errno_t e;
-		e = _wfopen_s(&pMeshFile, filePath, L"rt, ccs=UTF-8");
+		e = _wfopen_s(&pMeshFile, path, L"rt, ccs=UTF-8");
 		if (e != 0)
 			Debug::ForceCrashWithMessageBox(L"Error", L"Failed to open mesh file.\n%s", path);
 
@@ -109,12 +101,7 @@ Texture2D ResourceLoader::LoadTexture2D(PCWSTR path, bool generateMipMaps)
 {
 	HRESULT hr;
 
-	WCHAR filePath[MAX_PATH];
-	hr = FileSystem::GetInstance()->RelativePathToFullPath(path, filePath, sizeof(filePath));
-	if (FAILED(hr))
-		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to create full file path.\n%s", path);
-
-	PCWSTR ext = wcsrchr(filePath, L'.');
+	PCWSTR ext = wcsrchr(path, L'.');
 	if (ext == nullptr)
 		Debug::ForceCrashWithMessageBox(L"Error", L"Unknown file extension: %s", path);
 
@@ -124,11 +111,11 @@ Texture2D ResourceLoader::LoadTexture2D(PCWSTR path, bool generateMipMaps)
 		ScratchImage image;
 
 		if (!wcscmp(L".dds", ext) || !wcscmp(L".DDS", ext))
-			hr = LoadFromDDSFile(filePath, DDS_FLAGS::DDS_FLAGS_NONE, nullptr, image);	// dds, DDS
+			hr = LoadFromDDSFile(path, DDS_FLAGS::DDS_FLAGS_NONE, nullptr, image);	// dds, DDS
 		else if (!wcscmp(L".tga", ext) || !wcscmp(L".TGA", ext))
-			hr = LoadFromTGAFile(filePath, nullptr, image);								// tga, TGA
+			hr = LoadFromTGAFile(path, nullptr, image);								// tga, TGA
 		else
-			hr = LoadFromWICFile(filePath, WIC_FLAGS::WIC_FLAGS_NONE, nullptr, image);	// png, jpg, jpeg, bmp, ...
+			hr = LoadFromWICFile(path, WIC_FLAGS::WIC_FLAGS_NONE, nullptr, image);	// png, jpg, jpeg, bmp, ...
 
 		if (FAILED(hr))
 			Debug::ForceCrashWithMessageBox(L"Error", L"Failed to load image with LoadFromXXXFile.\n%s\n", path);

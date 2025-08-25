@@ -125,7 +125,6 @@ namespace ze
 		POSITION_NORMAL_TEXCOORD,
 		TERRAIN_PATCH_CTRL_PT,
 		BUTTON,
-		IMAGE_BUTTON,
 		// 收收收收收收收收收收收收收收收收收收收收收收
 		COUNT,
 		UNKNOWN

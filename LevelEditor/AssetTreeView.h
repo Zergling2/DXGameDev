@@ -34,6 +34,7 @@ public:
 	afx_msg void OnNMRClick(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnTvnEndlabeledit(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnTvnItemexpanded(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnTvnSelchanged(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnCreateAssetFolder();
 	afx_msg void OnCreateAssetMaterial();
 	afx_msg void OnCreateAssetTexture();

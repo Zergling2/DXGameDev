@@ -148,6 +148,12 @@
     <ClInclude Include="TextureInspectorFormView.h">
       <Filter>Files</Filter>
     </ClInclude>
+    <ClInclude Include="ATVItem\ATVItemMesh.h">
+      <Filter>Files\ATVItem</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshInspectorFormView.h">
+      <Filter>Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BufferDC.cpp">
@@ -256,6 +262,12 @@
       <Filter>Files\ATVItem</Filter>
     </ClCompile>
     <ClCompile Include="TextureInspectorFormView.cpp">
+      <Filter>Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ATVItem\ATVItemMesh.cpp">
+      <Filter>Files\ATVItem</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshInspectorFormView.cpp">
       <Filter>Files</Filter>
     </ClCompile>
   </ItemGroup>

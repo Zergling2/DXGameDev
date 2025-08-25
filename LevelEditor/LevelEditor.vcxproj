@@ -205,6 +205,7 @@
     <ClInclude Include="ATVItem\ATVItemInterface.h" />
     <ClInclude Include="AssetTreeView.h" />
     <ClInclude Include="ATVItem\ATVItemMaterial.h" />
+    <ClInclude Include="ATVItem\ATVItemMesh.h" />
     <ClInclude Include="ATVItem\ATVItemTexture.h" />
     <ClInclude Include="BufferDC.h" />
     <ClInclude Include="CLVItem\CLVItemEmpty.h" />
@@ -223,6 +224,7 @@
     <ClInclude Include="HTVItem\HTVItemInterface.h" />
     <ClInclude Include="HTVItem\HTVItemRoot.h" />
     <ClInclude Include="MaterialInspectorFormView.h" />
+    <ClInclude Include="MeshInspectorFormView.h" />
     <ClInclude Include="MeshRendererInspectorFormView.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="framework.h" />
@@ -248,6 +250,7 @@
     <ClCompile Include="ATVItem\ATVItemInterface.cpp" />
     <ClCompile Include="AssetTreeView.cpp" />
     <ClCompile Include="ATVItem\ATVItemMaterial.cpp" />
+    <ClCompile Include="ATVItem\ATVItemMesh.cpp" />
     <ClCompile Include="ATVItem\ATVItemTexture.cpp" />
     <ClCompile Include="BufferDC.cpp" />
     <ClCompile Include="CLVItem\CLVItemEmpty.cpp" />
@@ -266,6 +269,7 @@
     <ClCompile Include="HTVItem\HTVItemInterface.cpp" />
     <ClCompile Include="HTVItem\HTVItemRoot.cpp" />
     <ClCompile Include="MaterialInspectorFormView.cpp" />
+    <ClCompile Include="MeshInspectorFormView.cpp" />
     <ClCompile Include="MeshRendererInspectorFormView.cpp" />
     <ClCompile Include="TerrainDataEditor.cpp" />
     <ClCompile Include="TerrainGenerationDialog.cpp" />

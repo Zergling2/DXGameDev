@@ -8,6 +8,8 @@
 #include "..\ATVItem\ATVItemInterface.h"
 #include "..\ATVItem\ATVItemFolder.h"
 #include "..\ATVItem\ATVItemMaterial.h"
+#include "..\ATVItem\ATVItemTexture.h"
+#include "..\ATVItem\ATVItemMesh.h"
 #include "..\Settings.h"
 
 void On3DObjectTerrain()
@@ -248,11 +250,27 @@ void OnCreateAssetTexture()
 		filter
 	);
 
-	if (fd.DoModal() == IDOK)
-	{
-		CString filePath = fd.GetPathName(); // 선택된 파일 경로
-		ze::ResourceLoader::GetInstance()->LoadTexture2D(filePath.GetString(), true);
-	}
+	if (fd.DoModal() != IDOK)
+		return;
+
+	CString filePath = fd.GetPathName(); // 선택된 파일 경로
+	ATVItemTexture* pATVItemTexture = new ATVItemTexture();
+	pATVItemTexture->m_texture = ze::ResourceLoader::GetInstance()->LoadTexture2D(filePath.GetString(), true);
+
+	HTREEITEM hParent = hSelectedItem;
+
+	const HTREEITEM hNewItem = tc.InsertItem(L"New Texture",
+		ZE_ICON_INDEX::TEXTURE_ICON,
+		ZE_ICON_INDEX::TEXTURE_ICON,
+		hParent
+	);
+	tc.SetItemData(hNewItem, reinterpret_cast<DWORD_PTR>(pATVItemTexture));
+	tc.SelectItem(hNewItem);
+
+	// 컴포넌트 리스트 뷰 업데이트
+	pATVItemTexture->OnSelect();
+
+	tc.EditLabel(hNewItem);
 }
 
 void OnCreateAssetWavefrontOBJ()
@@ -280,10 +298,39 @@ void OnCreateAssetWavefrontOBJ()
 		filter
 	);
 
-	if (fd.DoModal() == IDOK)
-	{
-		CString filePath = fd.GetPathName(); // 선택된 파일 경로
+	if (fd.DoModal() != IDOK)
+		return;
 
-		// ze::ResourceLoader::GetInstance()->LoadTexture()
+	CString filePath = fd.GetPathName(); // 선택된 파일 경로
+	std::vector<std::shared_ptr<ze::Mesh>> meshes = ze::ResourceLoader::GetInstance()->LoadWavefrontOBJ(filePath.GetString());
+	HTREEITEM hParent = hSelectedItem;
+
+	// 첫 번째 메시를 선택된 상태로 세팅
+	ATVItemMesh* pATVItemMesh = new ATVItemMesh();
+	pATVItemMesh->m_spMesh = meshes[0];
+
+	const HTREEITEM hNewItem = tc.InsertItem(pATVItemMesh->m_spMesh->GetName(),
+		ZE_ICON_INDEX::MESH_ICON,
+		ZE_ICON_INDEX::MESH_ICON,
+		hParent
+	);
+	tc.SetItemData(hNewItem, reinterpret_cast<DWORD_PTR>(pATVItemMesh));
+	tc.SelectItem(hNewItem);
+
+	// 컴포넌트 리스트 뷰 업데이트
+	pATVItemMesh->OnSelect();
+
+	// 나머지 메시들도 항목 생성
+	for (size_t i = 1; i < meshes.size(); ++i)
+	{
+		ATVItemMesh* pATVItemMesh = new ATVItemMesh();
+		pATVItemMesh->m_spMesh = meshes[i];
+
+		const HTREEITEM hNewItem = tc.InsertItem(meshes[i]->GetName(),
+			ZE_ICON_INDEX::MESH_ICON,
+			ZE_ICON_INDEX::MESH_ICON,
+			hParent
+		);
+		tc.SetItemData(hNewItem, reinterpret_cast<DWORD_PTR>(pATVItemMesh));
 	}
 }

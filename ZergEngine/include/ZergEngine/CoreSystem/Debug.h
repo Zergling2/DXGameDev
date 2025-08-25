@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ZergEngine\Common\EngineHelper.h>
+#include <ZergEngine\Common\EngineConstants.h>
 #include <ZergEngine\CoreSystem\Math.h>
 #include <ZergEngine\CoreSystem\SlimRWLock.h>
 
@@ -14,6 +15,7 @@ namespace ze
 		static void ForceCrashWithHRESULTErrorMessageBox(PCWSTR message, HRESULT hr);
 		static PCTSTR DXGIFormatToString(DXGI_FORMAT fmt);
 		static PCTSTR SRVDimensionToString(D3D11_SRV_DIMENSION d);
+		static PCTSTR VertexFormatToString(VERTEX_FORMAT_TYPE type);
 	};
 
 	enum class SEVERITY

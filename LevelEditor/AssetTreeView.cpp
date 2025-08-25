@@ -23,6 +23,7 @@ BEGIN_MESSAGE_MAP(CAssetTreeView, CTreeView)
 	ON_NOTIFY_REFLECT(NM_RCLICK, &CAssetTreeView::OnNMRClick)
 	ON_NOTIFY_REFLECT(TVN_ENDLABELEDIT, &CAssetTreeView::OnTvnEndlabeledit)
 	ON_NOTIFY_REFLECT(TVN_ITEMEXPANDED, &CAssetTreeView::OnTvnItemexpanded)
+	ON_NOTIFY_REFLECT(TVN_SELCHANGED, &CAssetTreeView::OnTvnSelchanged)
 	ON_COMMAND(ID_CREATE_FOLDER, &CAssetTreeView::OnCreateAssetFolder)
 	ON_COMMAND(ID_CREATE_MATERIAL, &CAssetTreeView::OnCreateAssetMaterial)
 	ON_COMMAND(ID_CREATE_TEXTURE, &CAssetTreeView::OnCreateAssetTexture)
@@ -218,6 +219,29 @@ void CAssetTreeView::OnTvnItemexpanded(NMHDR* pNMHDR, LRESULT* pResult)
 		break;
 	default:
 		break;
+	}
+
+	*pResult = 0;
+}
+
+
+void CAssetTreeView::OnTvnSelchanged(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	LPNMTREEVIEW pNMTreeView = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
+	// TODO: Add your control notification handler code here
+
+	CTreeCtrl& tc = this->GetTreeCtrl();
+	const HTREEITEM hSelectedItem = pNMTreeView->itemNew.hItem;
+
+	if (hSelectedItem != NULL)
+	{
+		IATVItem* pATVItem = reinterpret_cast<IATVItem*>(tc.GetItemData(hSelectedItem));
+		pATVItem->OnSelect();
+	}
+	else
+	{
+		ATVItemEmpty e;
+		e.OnSelect();
 	}
 
 	*pResult = 0;

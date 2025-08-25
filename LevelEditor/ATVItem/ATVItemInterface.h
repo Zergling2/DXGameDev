@@ -8,6 +8,7 @@ enum class ATV_ITEM_TYPE : uint8_t
 	FOLDER,
 	MATERIAL,
 	TEXTURE,
+	MESH
 };
 
 class IATVItem abstract
