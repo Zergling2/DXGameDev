@@ -204,6 +204,7 @@ void OnCreateAssetMaterial()
 	HTREEITEM hParent = hSelectedItem;
 
 	ATVItemMaterial* pATVItemMaterial = new ATVItemMaterial();
+	pATVItemMaterial->m_spMaterial = ze::ResourceLoader::GetInstance()->CreateMaterial();
 	const HTREEITEM hNewItem = tc.InsertItem(L"New Material",
 		ZE_ICON_INDEX::MATERIAL_ICON,
 		ZE_ICON_INDEX::MATERIAL_ICON,

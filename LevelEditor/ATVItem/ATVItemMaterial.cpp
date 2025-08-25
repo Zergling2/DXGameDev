@@ -17,33 +17,33 @@ void ATVItemMaterial::OnSelect()
 	TCHAR str[32];
 
 	// Ambient
-	StringCbPrintf(str, sizeof(str), _T("%f"), m_material.m_ambient.x);
+	StringCbPrintf(str, sizeof(str), _T("%f"), m_spMaterial->m_ambient.x);
 	pInspector->m_editAmbientR.SetWindowText(str);
-	StringCbPrintf(str, sizeof(str), _T("%f"), m_material.m_ambient.y);
+	StringCbPrintf(str, sizeof(str), _T("%f"), m_spMaterial->m_ambient.y);
 	pInspector->m_editAmbientG.SetWindowText(str);
-	StringCbPrintf(str, sizeof(str), _T("%f"), m_material.m_ambient.z);
+	StringCbPrintf(str, sizeof(str), _T("%f"), m_spMaterial->m_ambient.z);
 	pInspector->m_editAmbientB.SetWindowText(str);
-	StringCbPrintf(str, sizeof(str), _T("%f"), m_material.m_ambient.w);
+	StringCbPrintf(str, sizeof(str), _T("%f"), m_spMaterial->m_ambient.w);
 	pInspector->m_editAmbientA.SetWindowText(str);
 
 	// Diffuse
-	StringCbPrintf(str, sizeof(str), _T("%f"), m_material.m_diffuse.x);
+	StringCbPrintf(str, sizeof(str), _T("%f"), m_spMaterial->m_diffuse.x);
 	pInspector->m_editDiffuseR.SetWindowText(str);
-	StringCbPrintf(str, sizeof(str), _T("%f"), m_material.m_diffuse.y);
+	StringCbPrintf(str, sizeof(str), _T("%f"), m_spMaterial->m_diffuse.y);
 	pInspector->m_editDiffuseG.SetWindowText(str);
-	StringCbPrintf(str, sizeof(str), _T("%f"), m_material.m_diffuse.z);
+	StringCbPrintf(str, sizeof(str), _T("%f"), m_spMaterial->m_diffuse.z);
 	pInspector->m_editDiffuseB.SetWindowText(str);
-	StringCbPrintf(str, sizeof(str), _T("%f"), m_material.m_diffuse.w);
+	StringCbPrintf(str, sizeof(str), _T("%f"), m_spMaterial->m_diffuse.w);
 	pInspector->m_editDiffuseA.SetWindowText(str);
 
 	// Specular
-	StringCbPrintf(str, sizeof(str), _T("%f"), m_material.m_specular.x);
+	StringCbPrintf(str, sizeof(str), _T("%f"), m_spMaterial->m_specular.x);
 	pInspector->m_editSpecularR.SetWindowText(str);
-	StringCbPrintf(str, sizeof(str), _T("%f"), m_material.m_specular.y);
+	StringCbPrintf(str, sizeof(str), _T("%f"), m_spMaterial->m_specular.y);
 	pInspector->m_editSpecularG.SetWindowText(str);
-	StringCbPrintf(str, sizeof(str), _T("%f"), m_material.m_specular.z);
+	StringCbPrintf(str, sizeof(str), _T("%f"), m_spMaterial->m_specular.z);
 	pInspector->m_editSpecularB.SetWindowText(str);
-	StringCbPrintf(str, sizeof(str), _T("%f"), m_material.m_specular.w);
+	StringCbPrintf(str, sizeof(str), _T("%f"), m_spMaterial->m_specular.w);
 	pInspector->m_editSpecularExp.SetWindowText(str);
 
 

@@ -139,9 +139,6 @@
     <ClInclude Include="ATVItem\ATVItemTexture.h">
       <Filter>Files\ATVItem</Filter>
     </ClInclude>
-    <ClInclude Include="ATVItem\ATVItemTextureArray.h">
-      <Filter>Files\ATVItem</Filter>
-    </ClInclude>
     <ClInclude Include="ATVItem\ATVItemCubeMap.h">
       <Filter>Files\ATVItem</Filter>
     </ClInclude>
@@ -250,9 +247,6 @@
       <Filter>Files</Filter>
     </ClCompile>
     <ClCompile Include="ATVItem\ATVItemTexture.cpp">
-      <Filter>Files\ATVItem</Filter>
-    </ClCompile>
-    <ClCompile Include="ATVItem\ATVItemTextureArray.cpp">
       <Filter>Files\ATVItem</Filter>
     </ClCompile>
     <ClCompile Include="ATVItem\ATVItemCubeMap.cpp">

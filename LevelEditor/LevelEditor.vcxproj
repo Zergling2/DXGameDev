@@ -207,7 +207,6 @@
     <ClInclude Include="AssetTreeView.h" />
     <ClInclude Include="ATVItem\ATVItemMaterial.h" />
     <ClInclude Include="ATVItem\ATVItemTexture.h" />
-    <ClInclude Include="ATVItem\ATVItemTextureArray.h" />
     <ClInclude Include="BufferDC.h" />
     <ClInclude Include="CLVItem\CLVItemEmpty.h" />
     <ClInclude Include="CLVItem\CLVItemInterface.h" />
@@ -251,7 +250,6 @@
     <ClCompile Include="AssetTreeView.cpp" />
     <ClCompile Include="ATVItem\ATVItemMaterial.cpp" />
     <ClCompile Include="ATVItem\ATVItemTexture.cpp" />
-    <ClCompile Include="ATVItem\ATVItemTextureArray.cpp" />
     <ClCompile Include="BufferDC.cpp" />
     <ClCompile Include="CLVItem\CLVItemEmpty.cpp" />
     <ClCompile Include="CLVItem\CLVItemInterface.cpp" />

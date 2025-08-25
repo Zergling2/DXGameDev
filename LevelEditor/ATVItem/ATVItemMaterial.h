@@ -12,9 +12,6 @@ public:
 	virtual ~ATVItemMaterial() = default;
 
 	virtual void OnSelect() override;
-	
-	ze::Material& GetMaterial() { return m_material; }
-	const ze::Material& GetMaterial() const { return m_material; }
-private:
-	ze::Material m_material;
+public:
+	std::shared_ptr<ze::Material> m_spMaterial;
 };
