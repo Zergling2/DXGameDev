@@ -20,25 +20,23 @@ float CalcTessFactor(const float3 v)
     return pow(2.0f, round(lerp(cb_perCamera.maxTessExponent, cb_perCamera.minTessExponent, s)));
 }
 
-bool IsAabbBehindPlane(Aabb aabb, float4 plane)
+bool TestAabbBehindPlane(Aabb aabb, float4 plane)
 {
-    const float3 n = abs(plane.xyz);  // plane의 법선 벡터의 절댓값을 구하고
+    const float3 n = plane.xyz;
     
-    const float r = dot(aabb.extent, n);  // n 역시 정규화 벡터이므로 extent를 n과 내적하면 extent의 plane의 법선 상에서의 투영 길이를 얻을 수 있음
-    
-    // 평면의 법선 벡터와 Aabb center 좌표의 내적 + 원점으로부터 평면까지의 거리
-    const float s = dot(float4(aabb.center, 1.0f), plane);
+    float s = dot(n, aabb.center) + plane.w;
+    float r = dot(abs(n), aabb.extent);
     
     return s + r < 0.0f;
 }
 
-bool IsAabbOutsideFrustum(Aabb aabb, Frustum frustumW)
+bool TestFrustumAabbCollision(Aabb aabb, Frustum frustumW)
 {
     for (uint i = 0; i < 6; ++i)
-        if (IsAabbBehindPlane(aabb, frustumW.plane[i].m_equation))
-            return true;
+        if (TestAabbBehindPlane(aabb, frustumW.plane[i].m_equation))
+            return false;
     
-    return false;
+    return true;
 }
 
 DSInputQuadPatchTess CHSTerrainRendering(InputPatch<HSInputTerrainPatchCtrlPt, NUM_CONTROL_POINTS> patch,
@@ -57,7 +55,7 @@ DSInputQuadPatchTess CHSTerrainRendering(InputPatch<HSInputTerrainPatchCtrlPt, N
     aabb.center = (patchMinCoord + patchMaxCoord) * 0.5f;
     aabb.extent = (patchMaxCoord - patchMinCoord) * 0.5f;
     
-    if (IsAabbOutsideFrustum(aabb, cb_perCamera.frustumW))
+    if (!TestFrustumAabbCollision(aabb, cb_perCamera.frustumW))
     {
         // 패치를 파이프라인에서 제거
         output.edgeTessFactor[0] = 0.0f;

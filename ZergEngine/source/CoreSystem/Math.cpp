@@ -153,18 +153,22 @@ bool Math::TestFrustumAabbCollision(const Frustum& frustum, const Aabb& aabb)
 
 bool Math::TestAabbBehindPlane(const Aabb& aabb, const Plane& plane)
 {
-	XMVECTOR planeEquation = XMLoadFloat4A(&plane.m_equation);
-	// XMVECTOR n = XMVectorAbs(XMVectorSetW(planeEquation, 0.0f));  // XMVector3Dot 함수를 사용하면 XMVectorSetW 불필요
-	XMVECTOR n = XMVectorAbs(planeEquation);  // plane은 정규화되어있는 평면
+	// 원리
+	// 평면의 법선 방향으로 가장 멀리있는 AABB의 정점을 알아내야 한다.
+	// 하지만 굳이 8개 정점을 검색할 필요는 없다.
+	// 우선 평면의 법선 방향으로 가장 멀리 있는 AABB 정점의 투영 길이는 알아낼 수 있다.
+	// 이건 평면 법선의 절댓값과 AABB의 extent를 내적하면 된다. (둘 다 positive 성분만 있기 때문에 최장 투영 길이를 구할 수 있음)
+	// 그리고 그 정점의 대각선으로 마주보는 정점이 평면의 반대쪽에 있는지를 알아내면 된다.
 
-	XMVECTOR center = XMVectorSetW(XMLoadFloat3A(&aabb.m_center), 1.0f);
+	XMVECTOR planeEquation = XMLoadFloat4A(&plane.m_equation);
+	XMVECTOR n = XMVectorSetW(planeEquation, 0.0f);
+	
+	XMVECTOR center = XMLoadFloat3A(&aabb.m_center);
 	XMVECTOR extent = XMLoadFloat3A(&aabb.m_extent);
 
-	const float r = XMVectorGetX(XMVector3Dot(extent, n));  // n 역시 정규화 벡터이므로 extent를 n과 내적하면 extent가 벡터 n에 투영된 길이를 얻을 수 있음
-
-	// 평면의 법선 벡터와 Aabb center 좌표의 내적 + 원점으로부터 평면까지의 거리
-	const float s = XMVectorGetX(XMPlaneDot(center, planeEquation));
-
+	float r = XMVectorGetX(XMVector3Dot(XMVectorAbs(n), extent));					// 가장 먼 정점의 투영 길이
+	float s = XMVectorGetX(XMVector3Dot(n, center)) + XMVectorGetW(planeEquation);	// center가 평면으로부터 떨어져있는 거리
+	
 	return s + r < 0.0f;
 }
 

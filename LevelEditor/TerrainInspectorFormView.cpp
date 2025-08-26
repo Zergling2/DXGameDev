@@ -150,6 +150,10 @@ BEGIN_MESSAGE_MAP(CTerrainInspectorFormView, CFormView)
 	ON_EN_UPDATE(IDC_EDIT_SET_TERRAIN_HEIGHT_VALUE, &CTerrainInspectorFormView::OnEnUpdateEditSetTerrainHeightValue)
 	ON_CBN_SELCHANGE(IDC_COMBO_TERRAIN_DIFFUSE_LAYER, &CTerrainInspectorFormView::OnCbnSelchangeComboTerrainDiffuseLayer)
 	ON_CBN_DROPDOWN(IDC_COMBO_TERRAIN_DIFFUSE_LAYER, &CTerrainInspectorFormView::OnCbnDropdownComboTerrainDiffuseLayer)
+	ON_BN_CLICKED(IDC_BUTTON_REMOVE_TERRAIN_DIFFUSE_LAYER, &CTerrainInspectorFormView::OnBnClickedButtonRemoveTerrainDiffuseLayer)
+	ON_CBN_SELCHANGE(IDC_COMBO_TERRAIN_NORMAL_LAYER, &CTerrainInspectorFormView::OnCbnSelchangeComboTerrainNormalLayer)
+	ON_CBN_DROPDOWN(IDC_COMBO_TERRAIN_NORMAL_LAYER, &CTerrainInspectorFormView::OnCbnDropdownComboTerrainNormalLayer)
+	ON_BN_CLICKED(IDC_BUTTON_REMOVE_TERRAIN_NORMAL_LAYER, &CTerrainInspectorFormView::OnBnClickedButtonRemoveTerrainNormalLayer)
 END_MESSAGE_MAP()
 
 
@@ -368,4 +372,68 @@ void CTerrainInspectorFormView::OnCbnDropdownComboTerrainDiffuseLayer()
 		int index = m_comboTerrainDiffuseLayer.AddString(text);
 		m_comboTerrainDiffuseLayer.SetItemData(index, qi.lParam);
 	}
+}
+
+void CTerrainInspectorFormView::OnBnClickedButtonRemoveTerrainDiffuseLayer()
+{
+	// TODO: Add your control notification handler code here
+	ze::Terrain* pTerrain = this->GetCLVItemToModify()->GetTerrain();
+
+	ze::Texture2D diffuseMapLayer;	// Empty texture
+	ze::Texture2D normalMapLayer = pTerrain->GetNormalMapLayer();
+
+	pTerrain->SetTextureLayer(std::move(diffuseMapLayer), std::move(normalMapLayer));
+}
+
+void CTerrainInspectorFormView::OnCbnSelchangeComboTerrainNormalLayer()
+{
+	// TODO: Add your control notification handler code here
+	const int sel = m_comboTerrainNormalLayer.GetCurSel();
+	if (sel == CB_ERR)
+		return;
+
+	ATVItemTexture* pATVItemTexture = reinterpret_cast<ATVItemTexture*>(m_comboTerrainNormalLayer.GetItemData(sel));
+
+	ze::Terrain* pTerrain = this->GetCLVItemToModify()->GetTerrain();
+	ze::Texture2D diffuseMapLayer = pTerrain->GetDiffuseMapLayer();
+	pTerrain->SetTextureLayer(std::move(diffuseMapLayer), pATVItemTexture->m_texture);
+}
+
+void CTerrainInspectorFormView::OnCbnDropdownComboTerrainNormalLayer()
+{
+	// TODO: Add your control notification handler code here
+	m_comboTerrainNormalLayer.ResetContent();
+	auto textureSet = static_cast<CLevelEditorApp*>(AfxGetApp())->GetAssetManager().GetTextureSet();
+
+	CAssetTreeView* pATV = static_cast<CMainFrame*>(AfxGetMainWnd())->GetAssetTreeView();
+	CTreeCtrl& tc = pATV->GetTreeCtrl();
+	TCHAR text[32];
+	TVITEM qi;	// Query Info
+	qi.mask = TVIF_TEXT | TVIF_PARAM;
+	qi.pszText = text;
+	qi.cchTextMax = _countof(text);
+
+	auto end = textureSet.cend();
+	for (auto iter = textureSet.cbegin(); iter != end; ++iter)
+	{
+		HTREEITEM hItem = *iter;
+		qi.hItem = hItem;
+
+		BOOL ret = tc.GetItem(&qi);
+		assert(ret != FALSE);
+
+		int index = m_comboTerrainNormalLayer.AddString(text);
+		m_comboTerrainNormalLayer.SetItemData(index, qi.lParam);
+	}
+}
+
+void CTerrainInspectorFormView::OnBnClickedButtonRemoveTerrainNormalLayer()
+{
+	// TODO: Add your control notification handler code here
+	ze::Terrain* pTerrain = this->GetCLVItemToModify()->GetTerrain();
+
+	ze::Texture2D diffuseMapLayer = pTerrain->GetDiffuseMapLayer();
+	ze::Texture2D normalMapLayer;	// Empty texture
+
+	pTerrain->SetTextureLayer(std::move(diffuseMapLayer), std::move(normalMapLayer));
 }

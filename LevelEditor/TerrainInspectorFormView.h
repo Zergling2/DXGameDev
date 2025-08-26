@@ -82,13 +82,17 @@ public:
 	CStatic m_staticSmoothTerrainHeightBlurDirection;
 	CSliderCtrl m_sliderSmoothTerrainHeightBlurDirection;
 	CEdit m_editSmoothTerrainHeightBlurDirection;
+	CStatic m_staticTerrainInfo;
 public:
 	virtual void OnInitialUpdate();
 	afx_msg void OnBnClickedTerrainBrushType(UINT id);
 	afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 	afx_msg void OnCbnSelchangeComboTerrainEditMode();
 	afx_msg void OnEnUpdateEditSetTerrainHeightValue();
-	CStatic m_staticTerrainInfo;
 	afx_msg void OnCbnSelchangeComboTerrainDiffuseLayer();
 	afx_msg void OnCbnDropdownComboTerrainDiffuseLayer();
+	afx_msg void OnBnClickedButtonRemoveTerrainDiffuseLayer();
+	afx_msg void OnCbnSelchangeComboTerrainNormalLayer();
+	afx_msg void OnCbnDropdownComboTerrainNormalLayer();
+	afx_msg void OnBnClickedButtonRemoveTerrainNormalLayer();
 };
