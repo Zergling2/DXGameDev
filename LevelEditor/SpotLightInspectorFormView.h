@@ -3,21 +3,21 @@
 #include "framework.h"
 #include "Edit\FloatEdit.h"
 
-class ATVItemMaterial;
+class CLVItemSpotLight;
 
-// CMaterialInspectorFormView form view
+// CSpotLightInspectorFormView form view
 
-class CMaterialInspectorFormView : public CFormView
+class CSpotLightInspectorFormView : public CFormView
 {
-	DECLARE_DYNCREATE(CMaterialInspectorFormView)
+	DECLARE_DYNCREATE(CSpotLightInspectorFormView)
 
 protected:
-	CMaterialInspectorFormView();           // protected constructor used by dynamic creation
-	virtual ~CMaterialInspectorFormView();
+	CSpotLightInspectorFormView();           // protected constructor used by dynamic creation
+	virtual ~CSpotLightInspectorFormView();
 
 public:
 #ifdef AFX_DESIGN_TIME
-	enum { IDD = IDD_MATERIAL_INSPECTOR_FORMVIEW };
+	enum { IDD = IDD_SPOT_LIGHT_INSPECTOR_FORMVIEW };
 #endif
 #ifdef _DEBUG
 	virtual void AssertValid() const;
@@ -25,14 +25,14 @@ public:
 	virtual void Dump(CDumpContext& dc) const;
 #endif
 #endif
-	void SetATVItemToModify(ATVItemMaterial* pItem) { m_pItem = pItem; }
-	ATVItemMaterial* GetATVItemToModify() const { return m_pItem; }
+	void SetCLVItemToModify(CLVItemSpotLight* pItem) { m_pItem = pItem; }
+	CLVItemSpotLight* GetCLVItemToModify() const { return m_pItem; }
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
 	DECLARE_MESSAGE_MAP()
 private:
-	ATVItemMaterial* m_pItem;
+	CLVItemSpotLight* m_pItem;
 public:
 	CFloatEdit m_editAmbientR;
 	CFloatEdit m_editAmbientG;
@@ -46,9 +46,11 @@ public:
 	CFloatEdit m_editSpecularG;
 	CFloatEdit m_editSpecularB;
 	CFloatEdit m_editSpecularExp;
-	CComboBox m_comboDiffuseMap;
-	CComboBox m_comboNormalMap;
-	CComboBox m_comboSpecularMap;
+	CFloatEdit m_editSpotExp;
+	CFloatEdit m_editRange;
+	CFloatEdit m_editAttX;
+	CFloatEdit m_editAttY;
+	CFloatEdit m_editAttZ;
 public:
 	afx_msg void OnEnChangeEditAmbientR();
 	afx_msg void OnEnChangeEditAmbientG();
@@ -62,6 +64,9 @@ public:
 	afx_msg void OnEnChangeEditSpecularG();
 	afx_msg void OnEnChangeEditSpecularB();
 	afx_msg void OnEnChangeEditSpecularExponent();
-	afx_msg void OnCbnSelchangeComboDiffuseMap();
-	afx_msg void OnCbnDropdownComboDiffuseMap();
+	afx_msg void OnEnChangeEditSpotLightSpotExp();
+	afx_msg void OnEnChangeEditSpotLightRange();
+	afx_msg void OnEnChangeEditSpotLightAttX();
+	afx_msg void OnEnChangeEditSpotLightAttY();
+	afx_msg void OnEnChangeEditSpotLightAttZ();
 };

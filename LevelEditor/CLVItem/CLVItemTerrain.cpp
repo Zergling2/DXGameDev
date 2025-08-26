@@ -10,8 +10,6 @@ void CLVItemTerrain::OnSelect()
 	CTerrainInspectorFormView* pInspector =
 		static_cast<CTerrainInspectorFormView*>(pMainFrame->SwitchInspectorFormView(RUNTIME_CLASS(CTerrainInspectorFormView)));
 
-
-
 	pInspector->SetCLVItemToModify(this);		// 수정 시 데이터 반영을 위하여
 
 	// 2. 변경된 인스펙터 폼 뷰에 Terrain 정보 보여주기

@@ -132,7 +132,7 @@ void TestScene1::OnLoadScene()
 		pCamera1CamComponent->SetBackgroundColor(Colors::Gray);
 		pCamera1CamComponent->SetDepth(0);
 		pCamera1CamComponent->SetFieldOfView(92);
-		pCamera1CamComponent->SetClippingPlanes(0.1f, 500.0f);
+		pCamera1CamComponent->SetClippingPlanes(0.3f, 500.0f);
 		ComponentHandle<FirstPersonCamera> hFPSCam = pCamera1->AddComponent<FirstPersonCamera>();		// 1인칭 카메라 조작
 		hFPSCam.ToPtr()->m_hPanel = hPanel;
 	}

@@ -1,6 +1,9 @@
 #include "LevelEditor.h"
 #include "MaterialInspectorFormView.h"
+#include "MainFrm.h"
+#include "AssetTreeView.h"
 #include "ATVItem\ATVItemMaterial.h"
+#include "ATVItem\ATVItemTexture.h"
 
 // CMaterialInspectorFormView
 
@@ -8,6 +11,7 @@ IMPLEMENT_DYNCREATE(CMaterialInspectorFormView, CFormView)
 
 CMaterialInspectorFormView::CMaterialInspectorFormView()
 	: CFormView(IDD_MATERIAL_INSPECTOR_FORMVIEW)
+	, m_pItem(nullptr)
 {
 }
 
@@ -48,6 +52,8 @@ BEGIN_MESSAGE_MAP(CMaterialInspectorFormView, CFormView)
 	ON_EN_CHANGE(IDC_EDIT_SPECULAR_G, &CMaterialInspectorFormView::OnEnChangeEditSpecularG)
 	ON_EN_CHANGE(IDC_EDIT_SPECULAR_B, &CMaterialInspectorFormView::OnEnChangeEditSpecularB)
 	ON_EN_CHANGE(IDC_EDIT_SPECULAR_EXPONENT, &CMaterialInspectorFormView::OnEnChangeEditSpecularExponent)
+	ON_CBN_SELCHANGE(IDC_COMBO_DIFFUSE_MAP, &CMaterialInspectorFormView::OnCbnSelchangeComboDiffuseMap)
+	ON_CBN_DROPDOWN(IDC_COMBO_DIFFUSE_MAP, &CMaterialInspectorFormView::OnCbnDropdownComboDiffuseMap)
 END_MESSAGE_MAP()
 
 
@@ -236,4 +242,45 @@ void CMaterialInspectorFormView::OnEnChangeEditSpecularExponent()
 
 	ze::Material* pMaterial = this->GetATVItemToModify()->m_spMaterial.get();
 	pMaterial->m_specular.w = m_editSpecularExp.GetValue();
+}
+
+void CMaterialInspectorFormView::OnCbnSelchangeComboDiffuseMap()
+{
+	// TODO: Add your control notification handler code here
+	const int sel = m_comboDiffuseMap.GetCurSel();
+	if (sel == CB_ERR)
+		return;
+
+	ATVItemTexture* pATVItemTexture = reinterpret_cast<ATVItemTexture*>(m_comboDiffuseMap.GetItemData(sel));
+	
+	std::shared_ptr<ze::Material> spMaterial = this->GetATVItemToModify()->m_spMaterial;
+	spMaterial->m_diffuseMap = pATVItemTexture->m_texture;
+}
+
+void CMaterialInspectorFormView::OnCbnDropdownComboDiffuseMap()
+{
+	// TODO: Add your control notification handler code here
+	m_comboDiffuseMap.ResetContent();
+	auto textureSet = static_cast<CLevelEditorApp*>(AfxGetApp())->GetAssetManager().GetTextureSet();
+
+	CAssetTreeView* pATV = static_cast<CMainFrame*>(AfxGetMainWnd())->GetAssetTreeView();
+	CTreeCtrl& tc = pATV->GetTreeCtrl();
+	TCHAR text[32];
+	TVITEM qi;	// Query Info
+	qi.mask = TVIF_TEXT | TVIF_PARAM;
+	qi.pszText = text;
+	qi.cchTextMax = _countof(text);
+
+	auto end = textureSet.cend();
+	for (auto iter = textureSet.cbegin(); iter != end; ++iter)
+	{
+		HTREEITEM hItem = *iter;
+		qi.hItem = hItem;
+
+		BOOL ret = tc.GetItem(&qi);
+		assert(ret != FALSE);
+
+		int index = m_comboDiffuseMap.AddString(text);
+		m_comboDiffuseMap.SetItemData(index, qi.lParam);
+	}
 }

@@ -8,6 +8,7 @@ IMPLEMENT_DYNCREATE(CMeshInspectorFormView, CFormView)
 
 CMeshInspectorFormView::CMeshInspectorFormView()
 	: CFormView(IDD_MESH_INSPECTOR_FORMVIEW)
+	, m_pItem(nullptr)
 	, m_staticMeshSubsetCount(0)
 	, m_staticMeshName(_T(""))
 	, m_staticMeshVertexCount(0)

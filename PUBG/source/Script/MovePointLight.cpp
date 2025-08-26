@@ -11,7 +11,7 @@ void MovePointLight::Update()
 
 	ComponentHandle<PointLight> hPointLight = pGameObject->GetComponent<PointLight>();
 	PointLight* pPointLight = hPointLight.ToPtr();
-	XMFLOAT3 att = pPointLight->GetAtt();
+	XMFLOAT3 att = pPointLight->m_att;
 	if (Input::GetInstance()->GetKey(KEY_5))
 		att.x -= 0.01f;
 	if (Input::GetInstance()->GetKey(KEY_6))
@@ -24,7 +24,7 @@ void MovePointLight::Update()
 		att.z -= 0.01f;
 	if (Input::GetInstance()->GetKey(KEY_0))
 		att.z += 0.01f;
-	pPointLight->SetAtt(&att);
+	pPointLight->m_att = att;
 
 	XMFLOAT3A translation;
 	XMStoreFloat3A(&translation, XMVectorZero());

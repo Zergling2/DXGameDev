@@ -81,7 +81,7 @@ void Renderer::Init()
 	m_pDefaultDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DEPTH_STENCIL_STATE_TYPE::DEFAULT);
 	m_pSkyboxDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DEPTH_STENCIL_STATE_TYPE::SKYBOX);
 	m_pDepthReadOnlyDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DEPTH_STENCIL_STATE_TYPE::DEPTH_READ_ONLY);
-	m_pNoDepthStencilTestDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DEPTH_STENCIL_STATE_TYPE::NO_DEPTH_STENCILTEST);
+	m_pNoDepthStencilTestDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DEPTH_STENCIL_STATE_TYPE::NO_DEPTH_STENCIL_TEST);
 	m_pOpaqueBS = GraphicDevice::GetInstance()->GetBSComInterface(BLEND_STATE_TYPE::OPAQUE_);
 	m_pAlphaBlendBS = GraphicDevice::GetInstance()->GetBSComInterface(BLEND_STATE_TYPE::ALPHABLEND);
 	m_pNoColorWriteBS = GraphicDevice::GetInstance()->GetBSComInterface(BLEND_STATE_TYPE::NO_COLOR_WRITE);
@@ -201,9 +201,9 @@ void Renderer::RenderFrame()
 			light[index].specular = pLight->m_specular;
 
 			XMStoreFloat3(&light[index].positionW, pGameObject->m_transform.GetWorldPosition());
-			light[index].range = pLight->GetRange();
+			light[index].range = pLight->m_range;
 
-			light[index].att = pLight->GetAtt();
+			light[index].att = pLight->m_att;
 
 			++index;
 		}
@@ -341,13 +341,13 @@ void Renderer::RenderFrame()
 		}
 
 		// 스카이박스 렌더링
-		pImmContext->OMSetDepthStencilState(m_pSkyboxDSS, 0);
 		ID3D11ShaderResourceView* pSkyboxCubeMap = Environment::GetInstance()->m_skyboxCubeMap.GetSRVComInterface();
 		if (pSkyboxCubeMap)
 		{
+			pImmContext->OMSetDepthStencilState(m_pSkyboxDSS, 0);
 			RenderSkybox(pSkyboxCubeMap);
+			pImmContext->OMSetDepthStencilState(m_pDefaultDSS, 0);
 		}
-		pImmContext->OMSetDepthStencilState(m_pDefaultDSS, 0);
 	}
 
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

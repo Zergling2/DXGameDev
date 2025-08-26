@@ -1,5 +1,6 @@
 #include "CommandHandler.h"
-#include "..\framework.h"
+#include "..\LevelEditor.h"
+#include "..\AssetManager.h"
 #include "..\TerrainGenerationDialog.h"
 #include "..\MainFrm.h"
 #include "..\HierarchyTreeView.h"
@@ -71,12 +72,12 @@ void On3DObjectTerrain()
 	tc.EditLabel(hNewItem);
 }
 
-void OnGameObjectCreateEmpty()
+HTREEITEM CreateEmptyGameObject()
 {
 	CMainFrame* pMainFrame = static_cast<CMainFrame*>(AfxGetMainWnd());
 	auto pHTV = pMainFrame->GetHierarchyTreeView();
-
 	auto& tc = pHTV->GetTreeCtrl();
+
 	const HTREEITEM hSelectedItem = tc.GetSelectedItem();
 	HTREEITEM hParent;
 	if (hSelectedItem)
@@ -89,8 +90,10 @@ void OnGameObjectCreateEmpty()
 	{
 		// 런타임 게임 오브젝트 계층 구조 설정 (SetParent)
 		HTVItemGameObject* pHTVItemGameObject = reinterpret_cast<HTVItemGameObject*>(tc.GetItemData(hParent));
-		ze::GameObjectHandle hParentGameObject = pHTVItemGameObject->GetGameObjectHandle();
+
 		ze::GameObject* pGameObject = hGameObject.ToPtr();
+		ze::GameObjectHandle hParentGameObject = pHTVItemGameObject->GetGameObjectHandle();
+
 		pGameObject->m_transform.SetParent(&hParentGameObject.ToPtr()->m_transform);
 	}
 
@@ -100,10 +103,24 @@ void OnGameObjectCreateEmpty()
 		ZE_ICON_INDEX::GAMEOBJECT_ICON,
 		hParent
 	);
+
 	tc.SetItemData(hNewItem, reinterpret_cast<DWORD_PTR>(pHTVItemGameObject));
+
+	return hNewItem;
+}
+
+void OnGameObjectCreateEmpty()
+{
+	const HTREEITEM hNewItem = CreateEmptyGameObject();
+
+	CMainFrame* pMainFrame = static_cast<CMainFrame*>(AfxGetMainWnd());
+	auto pHTV = pMainFrame->GetHierarchyTreeView();
+	auto& tc = pHTV->GetTreeCtrl();
+
 	tc.SelectItem(hNewItem);
 
 	// 컴포넌트 리스트 뷰 업데이트
+	HTVItemGameObject* pHTVItemGameObject = reinterpret_cast<HTVItemGameObject*>(pHTV->GetTreeCtrl().GetItemData(hNewItem));
 	pHTVItemGameObject->OnSelect();
 
 	tc.EditLabel(hNewItem);
@@ -121,6 +138,66 @@ void OnGameObjectRename()
 		return;
 
 	tc.EditLabel(hSelectedItem);
+}
+
+void OnLightDirectionalLight()
+{
+	HTREEITEM hNewItem = CreateEmptyGameObject();
+
+	CMainFrame* pMainFrame = static_cast<CMainFrame*>(AfxGetMainWnd());
+	auto pHTV = pMainFrame->GetHierarchyTreeView();
+	CTreeCtrl& tc = pHTV->GetTreeCtrl();
+
+	HTVItemGameObject* pHTVItemGameObject = reinterpret_cast<HTVItemGameObject*>(pHTV->GetTreeCtrl().GetItemData(hNewItem));
+
+	// Directional Light 컴포넌트 추가
+	ze::GameObject* pGameObject = pHTVItemGameObject->GetGameObjectHandle().ToPtr();
+	pGameObject->AddComponent<ze::DirectionalLight>();
+
+	tc.SelectItem(hNewItem);
+	
+	// 컴포넌트 리스트 뷰 업데이트
+	pHTVItemGameObject->OnSelect();
+}
+
+void OnLightPointLight()
+{
+	HTREEITEM hNewItem = CreateEmptyGameObject();
+
+	CMainFrame* pMainFrame = static_cast<CMainFrame*>(AfxGetMainWnd());
+	auto pHTV = pMainFrame->GetHierarchyTreeView();
+	CTreeCtrl& tc = pHTV->GetTreeCtrl();
+
+	HTVItemGameObject* pHTVItemGameObject = reinterpret_cast<HTVItemGameObject*>(pHTV->GetTreeCtrl().GetItemData(hNewItem));
+
+	// Point Light 컴포넌트 추가
+	ze::GameObject* pGameObject = pHTVItemGameObject->GetGameObjectHandle().ToPtr();
+	pGameObject->AddComponent<ze::PointLight>();
+
+	tc.SelectItem(hNewItem);
+
+	// 컴포넌트 리스트 뷰 업데이트
+	pHTVItemGameObject->OnSelect();
+}
+
+void OnLightSpotLight()
+{
+	HTREEITEM hNewItem = CreateEmptyGameObject();
+
+	CMainFrame* pMainFrame = static_cast<CMainFrame*>(AfxGetMainWnd());
+	auto pHTV = pMainFrame->GetHierarchyTreeView();
+	CTreeCtrl& tc = pHTV->GetTreeCtrl();
+
+	HTVItemGameObject* pHTVItemGameObject = reinterpret_cast<HTVItemGameObject*>(pHTV->GetTreeCtrl().GetItemData(hNewItem));
+
+	// Point Light 컴포넌트 추가
+	ze::GameObject* pGameObject = pHTVItemGameObject->GetGameObjectHandle().ToPtr();
+	pGameObject->AddComponent<ze::SpotLight>();
+
+	tc.SelectItem(hNewItem);
+
+	// 컴포넌트 리스트 뷰 업데이트
+	pHTVItemGameObject->OnSelect();
 }
 
 void OnComponentMeshRenderer()
@@ -203,6 +280,7 @@ void OnCreateAssetMaterial()
 	if (pATVItem->GetType() != ATV_ITEM_TYPE::FOLDER)	// 선택된 항목이 폴더가 아닌 경우에는 하위 항목으로 생성을 허용하지 않는다.
 		return;
 
+	// 현재 선택된 항목을 부모로 새 하위항목 생성
 	HTREEITEM hParent = hSelectedItem;
 
 	ATVItemMaterial* pATVItemMaterial = new ATVItemMaterial();
@@ -212,6 +290,9 @@ void OnCreateAssetMaterial()
 		ZE_ICON_INDEX::MATERIAL_ICON,
 		hParent
 	);
+	// Asset Manager에 핸들 등록
+	static_cast<CLevelEditorApp*>(AfxGetApp())->GetAssetManager().AddATVItemMaterialHandle(hNewItem);
+
 	tc.SetItemData(hNewItem, reinterpret_cast<DWORD_PTR>(pATVItemMaterial));
 	tc.SelectItem(hNewItem);
 
@@ -264,6 +345,8 @@ void OnCreateAssetTexture()
 		ZE_ICON_INDEX::TEXTURE_ICON,
 		hParent
 	);
+	// Asset Manager에 핸들 등록
+	static_cast<CLevelEditorApp*>(AfxGetApp())->GetAssetManager().AddATVItemTextureHandle(hNewItem);
 	tc.SetItemData(hNewItem, reinterpret_cast<DWORD_PTR>(pATVItemTexture));
 	tc.SelectItem(hNewItem);
 
@@ -314,6 +397,8 @@ void OnCreateAssetWavefrontOBJ()
 		ZE_ICON_INDEX::MESH_ICON,
 		hParent
 	);
+	// Asset Manager에 핸들 등록
+	static_cast<CLevelEditorApp*>(AfxGetApp())->GetAssetManager().AddATVItemMeshHandle(hNewItem);
 	tc.SetItemData(hNewItem, reinterpret_cast<DWORD_PTR>(pATVItemMesh));
 	tc.SelectItem(hNewItem);
 
@@ -331,6 +416,8 @@ void OnCreateAssetWavefrontOBJ()
 			ZE_ICON_INDEX::MESH_ICON,
 			hParent
 		);
+		// Asset Manager에 핸들 등록
+		static_cast<CLevelEditorApp*>(AfxGetApp())->GetAssetManager().AddATVItemMeshHandle(hNewItem);
 		tc.SetItemData(hNewItem, reinterpret_cast<DWORD_PTR>(pATVItemMesh));
 	}
 }

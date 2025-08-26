@@ -18,6 +18,7 @@ EditorCameraScript::EditorCameraScript()
 void EditorCameraScript::Start()
 {
 	m_camera = this->GetGameObjectHandle().ToPtr()->GetComponent<ze::Camera>();
+	m_camera.ToPtr()->SetClippingPlanes(0.3f, 1000.0f);
 }
 
 void EditorCameraScript::Update()

@@ -1,6 +1,9 @@
 #include "TerrainInspectorFormView.h"
 #include "LevelEditor.h"
+#include "AssetTreeView.h"
+#include "MainFrm.h"
 #include "CLVItem\CLVItemTerrain.h"
+#include "ATVItem\ATVItemTexture.h"
 
 // CTerrainInspectorFormView
 
@@ -145,6 +148,8 @@ BEGIN_MESSAGE_MAP(CTerrainInspectorFormView, CFormView)
 	ON_WM_HSCROLL()
 	ON_CBN_SELCHANGE(IDC_COMBO_TERRAIN_EDIT_MODE, &CTerrainInspectorFormView::OnCbnSelchangeComboTerrainEditMode)
 	ON_EN_UPDATE(IDC_EDIT_SET_TERRAIN_HEIGHT_VALUE, &CTerrainInspectorFormView::OnEnUpdateEditSetTerrainHeightValue)
+	ON_CBN_SELCHANGE(IDC_COMBO_TERRAIN_DIFFUSE_LAYER, &CTerrainInspectorFormView::OnCbnSelchangeComboTerrainDiffuseLayer)
+	ON_CBN_DROPDOWN(IDC_COMBO_TERRAIN_DIFFUSE_LAYER, &CTerrainInspectorFormView::OnCbnDropdownComboTerrainDiffuseLayer)
 END_MESSAGE_MAP()
 
 
@@ -321,4 +326,46 @@ void CTerrainInspectorFormView::OnEnUpdateEditSetTerrainHeightValue()
 
 	m_editSetTerrainHeightValue.SetWindowText(str);
 	m_editSetTerrainHeightValue.SetSel(nStartChar, nEndChar);  // 원래 커서 위치로 복원
+}
+
+void CTerrainInspectorFormView::OnCbnSelchangeComboTerrainDiffuseLayer()
+{
+	// TODO: Add your control notification handler code here
+	const int sel = m_comboTerrainDiffuseLayer.GetCurSel();
+	if (sel == CB_ERR)
+		return;
+
+	ATVItemTexture* pATVItemTexture = reinterpret_cast<ATVItemTexture*>(m_comboTerrainDiffuseLayer.GetItemData(sel));
+
+	ze::Terrain* pTerrain = this->GetCLVItemToModify()->GetTerrain();
+	ze::Texture2D normalMapLayer = pTerrain->GetNormalMapLayer();
+	pTerrain->SetTextureLayer(pATVItemTexture->m_texture, std::move(normalMapLayer));
+}
+
+void CTerrainInspectorFormView::OnCbnDropdownComboTerrainDiffuseLayer()
+{
+	// TODO: Add your control notification handler code here
+	m_comboTerrainDiffuseLayer.ResetContent();
+	auto textureSet = static_cast<CLevelEditorApp*>(AfxGetApp())->GetAssetManager().GetTextureSet();
+
+	CAssetTreeView* pATV = static_cast<CMainFrame*>(AfxGetMainWnd())->GetAssetTreeView();
+	CTreeCtrl& tc = pATV->GetTreeCtrl();
+	TCHAR text[32];
+	TVITEM qi;	// Query Info
+	qi.mask = TVIF_TEXT | TVIF_PARAM;
+	qi.pszText = text;
+	qi.cchTextMax = _countof(text);
+
+	auto end = textureSet.cend();
+	for (auto iter = textureSet.cbegin(); iter != end; ++iter)
+	{
+		HTREEITEM hItem = *iter;
+		qi.hItem = hItem;
+
+		BOOL ret = tc.GetItem(&qi);
+		assert(ret != FALSE);
+
+		int index = m_comboTerrainDiffuseLayer.AddString(text);
+		m_comboTerrainDiffuseLayer.SetItemData(index, qi.lParam);
+	}
 }

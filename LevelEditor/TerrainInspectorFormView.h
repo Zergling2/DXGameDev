@@ -89,4 +89,6 @@ public:
 	afx_msg void OnCbnSelchangeComboTerrainEditMode();
 	afx_msg void OnEnUpdateEditSetTerrainHeightValue();
 	CStatic m_staticTerrainInfo;
+	afx_msg void OnCbnSelchangeComboTerrainDiffuseLayer();
+	afx_msg void OnCbnDropdownComboTerrainDiffuseLayer();
 };

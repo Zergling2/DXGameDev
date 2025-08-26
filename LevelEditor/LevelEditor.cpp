@@ -69,6 +69,7 @@ END_MESSAGE_MAP()
 CLevelEditorApp::CLevelEditorApp() noexcept
 	: m_hEditorCameraObject()
 	, m_iconList()
+	, m_am()
 {
 
 	// TODO: replace application ID string below with unique ID string; recommended

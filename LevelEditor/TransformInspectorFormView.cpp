@@ -8,15 +8,15 @@ IMPLEMENT_DYNCREATE(CTransformInspectorFormView, CFormView)
 CTransformInspectorFormView::CTransformInspectorFormView()
 	: CFormView(IDD_TRANSFORM_INSPECTOR_FORMVIEW)
 	, m_pItem(nullptr)
-	, m_positionX()
-	, m_positionY()
-	, m_positionZ()
-	, m_rotationX()
-	, m_rotationY()
-	, m_rotationZ()
-	, m_scaleX()
-	, m_scaleY()
-	, m_scaleZ()
+	, m_editPositionX()
+	, m_editPositionY()
+	, m_editPositionZ()
+	, m_editRotationX()
+	, m_editRotationY()
+	, m_editRotationZ()
+	, m_editScaleX()
+	, m_editScaleY()
+	, m_editScaleZ()
 {
 }
 
@@ -27,15 +27,15 @@ CTransformInspectorFormView::~CTransformInspectorFormView()
 void CTransformInspectorFormView::DoDataExchange(CDataExchange* pDX)
 {
 	CFormView::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_EDIT_POSITIONX, m_positionX);
-	DDX_Control(pDX, IDC_EDIT_POSITIONY, m_positionY);
-	DDX_Control(pDX, IDC_EDIT_POSITIONZ, m_positionZ);
-	DDX_Control(pDX, IDC_EDIT_ROTATIONX, m_rotationX);
-	DDX_Control(pDX, IDC_EDIT_ROTATIONY, m_rotationY);
-	DDX_Control(pDX, IDC_EDIT_ROTATIONZ, m_rotationZ);
-	DDX_Control(pDX, IDC_EDIT_SCALEX, m_scaleX);
-	DDX_Control(pDX, IDC_EDIT_SCALEY, m_scaleY);
-	DDX_Control(pDX, IDC_EDIT_SCALEZ, m_scaleZ);
+	DDX_Control(pDX, IDC_EDIT_POSITIONX, m_editPositionX);
+	DDX_Control(pDX, IDC_EDIT_POSITIONY, m_editPositionY);
+	DDX_Control(pDX, IDC_EDIT_POSITIONZ, m_editPositionZ);
+	DDX_Control(pDX, IDC_EDIT_ROTATIONX, m_editRotationX);
+	DDX_Control(pDX, IDC_EDIT_ROTATIONY, m_editRotationY);
+	DDX_Control(pDX, IDC_EDIT_ROTATIONZ, m_editRotationZ);
+	DDX_Control(pDX, IDC_EDIT_SCALEX, m_editScaleX);
+	DDX_Control(pDX, IDC_EDIT_SCALEY, m_editScaleY);
+	DDX_Control(pDX, IDC_EDIT_SCALEZ, m_editScaleZ);
 }
 
 BEGIN_MESSAGE_MAP(CTransformInspectorFormView, CFormView)
@@ -77,13 +77,13 @@ void CTransformInspectorFormView::OnEnChangeEditPositionX()
 	// TODO:  Add your control notification handler code here
 
 	// 컨트롤 -> 변수로 값 업데이트
-	m_positionX.UpdateData(TRUE);
+	m_editPositionX.UpdateData(TRUE);
 
 	ze::Transform* pTransform = this->GetCLVItemToModify()->GetTransform();
 
 	XMFLOAT3A position;
 	XMStoreFloat3A(&position, pTransform->GetLocalPosition());
-	position.x = m_positionX.GetValue();
+	position.x = m_editPositionX.GetValue();
 
 	pTransform->SetPosition(position);
 }
@@ -97,13 +97,13 @@ void CTransformInspectorFormView::OnEnChangeEditPositionY()
 
 	// TODO:  Add your control notification handler code here
 	// 컨트롤 -> 변수로 값 업데이트
-	m_positionY.UpdateData(TRUE);
+	m_editPositionY.UpdateData(TRUE);
 
 	ze::Transform* pTransform = this->GetCLVItemToModify()->GetTransform();
 
 	XMFLOAT3A position;
 	XMStoreFloat3A(&position, pTransform->GetLocalPosition());
-	position.y = m_positionY.GetValue();
+	position.y = m_editPositionY.GetValue();
 
 	pTransform->SetPosition(position);
 }
@@ -117,13 +117,13 @@ void CTransformInspectorFormView::OnEnChangeEditPositionZ()
 
 	// TODO:  Add your control notification handler code here
 	// 컨트롤 -> 변수로 값 업데이트
-	m_positionZ.UpdateData(TRUE);
+	m_editPositionZ.UpdateData(TRUE);
 
 	ze::Transform* pTransform = this->GetCLVItemToModify()->GetTransform();
 
 	XMFLOAT3A position;
 	XMStoreFloat3A(&position, pTransform->GetLocalPosition());
-	position.z = m_positionZ.GetValue();
+	position.z = m_editPositionZ.GetValue();
 
 	pTransform->SetPosition(position);
 }
@@ -136,13 +136,13 @@ void CTransformInspectorFormView::OnEnChangeEditRotationX()
 	// with the ENM_CHANGE flag ORed into the mask.
 
 	// TODO:  Add your control notification handler code here
-	m_rotationX.UpdateData(TRUE);
+	m_editRotationX.UpdateData(TRUE);
 
 	ze::Transform* pTransform = this->GetCLVItemToModify()->GetTransform();
 
 	XMFLOAT3A rotation;
 	XMStoreFloat3A(&rotation, ze::Math::QuaternionToEulerNormal(pTransform->GetLocalRotation()));
-	rotation.x = XMConvertToRadians(m_rotationX.GetValue());
+	rotation.x = XMConvertToRadians(m_editRotationX.GetValue());
 
 	pTransform->SetRotation(rotation);
 }
@@ -155,13 +155,13 @@ void CTransformInspectorFormView::OnEnChangeEditRotationY()
 	// with the ENM_CHANGE flag ORed into the mask.
 
 	// TODO:  Add your control notification handler code here
-	m_rotationY.UpdateData(TRUE);
+	m_editRotationY.UpdateData(TRUE);
 
 	ze::Transform* pTransform = this->GetCLVItemToModify()->GetTransform();
 
 	XMFLOAT3A rotation;
 	XMStoreFloat3A(&rotation, ze::Math::QuaternionToEulerNormal(pTransform->GetLocalRotation()));
-	rotation.y = XMConvertToRadians(m_rotationY.GetValue());
+	rotation.y = XMConvertToRadians(m_editRotationY.GetValue());
 
 	pTransform->SetRotation(rotation);
 }
@@ -174,13 +174,13 @@ void CTransformInspectorFormView::OnEnChangeEditRotationZ()
 	// with the ENM_CHANGE flag ORed into the mask.
 
 	// TODO:  Add your control notification handler code here
-	m_rotationZ.UpdateData(TRUE);
+	m_editRotationZ.UpdateData(TRUE);
 
 	ze::Transform* pTransform = this->GetCLVItemToModify()->GetTransform();
 
 	XMFLOAT3A rotation;
 	XMStoreFloat3A(&rotation, ze::Math::QuaternionToEulerNormal(pTransform->GetLocalRotation()));
-	rotation.z = XMConvertToRadians(m_rotationZ.GetValue());
+	rotation.z = XMConvertToRadians(m_editRotationZ.GetValue());
 
 	pTransform->SetRotation(rotation);
 }
@@ -193,13 +193,13 @@ void CTransformInspectorFormView::OnEnChangeEditScaleX()
 	// with the ENM_CHANGE flag ORed into the mask.
 
 	// TODO:  Add your control notification handler code here
-	m_scaleX.UpdateData(TRUE);
+	m_editScaleX.UpdateData(TRUE);
 
 	ze::Transform* pTransform = this->GetCLVItemToModify()->GetTransform();
 
 	XMFLOAT3A scale;
 	XMStoreFloat3A(&scale, pTransform->GetLocalScale());
-	scale.x = m_scaleX.GetValue();
+	scale.x = m_editScaleX.GetValue();
 
 	pTransform->SetScale(scale);
 }
@@ -212,13 +212,13 @@ void CTransformInspectorFormView::OnEnChangeEditScaleY()
 	// with the ENM_CHANGE flag ORed into the mask.
 
 	// TODO:  Add your control notification handler code here
-	m_scaleY.UpdateData(TRUE);
+	m_editScaleY.UpdateData(TRUE);
 
 	ze::Transform* pTransform = this->GetCLVItemToModify()->GetTransform();
 
 	XMFLOAT3A scale;
 	XMStoreFloat3A(&scale, pTransform->GetLocalScale());
-	scale.y = m_scaleY.GetValue();
+	scale.y = m_editScaleY.GetValue();
 
 	pTransform->SetScale(scale);
 }
@@ -231,13 +231,13 @@ void CTransformInspectorFormView::OnEnChangeEditScaleZ()
 	// with the ENM_CHANGE flag ORed into the mask.
 
 	// TODO:  Add your control notification handler code here
-	m_scaleZ.UpdateData(TRUE);
+	m_editScaleZ.UpdateData(TRUE);
 
 	ze::Transform* pTransform = this->GetCLVItemToModify()->GetTransform();
 
 	XMFLOAT3A scale;
 	XMStoreFloat3A(&scale, pTransform->GetLocalScale());
-	scale.z = m_scaleZ.GetValue();
+	scale.z = m_editScaleZ.GetValue();
 
 	pTransform->SetScale(scale);
 }

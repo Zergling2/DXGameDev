@@ -14,9 +14,10 @@ namespace ze
 			, m_normalMap()
 			, m_specularMap()
 		{
-			XMStoreFloat4A(&m_ambient, XMVectorZero());
+			XMStoreFloat4A(&m_ambient, g_XMOneHalf);
 			XMStoreFloat4A(&m_diffuse, XMVectorSplatOne());
-			XMStoreFloat4A(&m_specular, XMVectorZero());
+			XMStoreFloat4A(&m_specular, g_XMOneHalf);
+			m_specular.w = 8.0f;
 		}
 		~Material() = default;
 	public:

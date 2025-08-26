@@ -27,6 +27,9 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_COMMAND(ID_3DOBJECT_TERRAIN, &CMainFrame::On3DObjectTerrain)
 	ON_COMMAND(ID_GAMEOBJECT_CREATEEMPTY, &CMainFrame::OnGameObjectCreateEmpty)
 	ON_COMMAND(ID_GAMEOBJECT_RENAME, &CMainFrame::OnGameObjectRename)
+	ON_COMMAND(ID_LIGHT_DIRECTIONALLIGHT, &CMainFrame::OnLightDirectionalLight)
+	ON_COMMAND(ID_LIGHT_POINTLIGHT, &CMainFrame::OnLightPointLight)
+	ON_COMMAND(ID_LIGHT_SPOTLIGHT, &CMainFrame::OnLightSpotLight)
 	ON_COMMAND(ID_COMPONENT_MESHRENDERER, &CMainFrame::OnComponentMeshRenderer)
 	ON_COMMAND(ID_CREATE_FOLDER, &CMainFrame::OnCreateAssetFolder)
 	ON_COMMAND(ID_CREATE_MATERIAL, &CMainFrame::OnCreateAssetMaterial)
@@ -369,6 +372,24 @@ void CMainFrame::OnGameObjectRename()
 {
 	// TODO: Add your command handler code here
 	::OnGameObjectRename();
+}
+
+void CMainFrame::OnLightDirectionalLight()
+{
+	// TODO: Add your command handler code here
+	::OnLightDirectionalLight();
+}
+
+void CMainFrame::OnLightPointLight()
+{
+	// TODO: Add your command handler code here
+	::OnLightPointLight();
+}
+
+void CMainFrame::OnLightSpotLight()
+{
+	// TODO: Add your command handler code here
+	::OnLightSpotLight();
 }
 
 void CMainFrame::OnComponentMeshRenderer()

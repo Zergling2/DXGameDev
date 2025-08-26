@@ -811,36 +811,40 @@ void GraphicDevice::CreateDepthStencilStates()
 {
 	ID3D11Device* pDevice = m_cpDevice.Get();
 
-	D3D11_DEPTH_STENCIL_DESC descDepthStencil;
-	ZeroMemory(&descDepthStencil, sizeof(descDepthStencil));
-
+	D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
+	ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
 	// 1. Default
-	// m_dss[static_cast<size_t>(DEPTH_STENCIL_STATE_TYPE::DEFAULT)].Init();
+	depthStencilDesc.DepthEnable = TRUE;							// 뎁스 테스트 활성화
+	depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;	// 깊이 값 기록 허용
+	depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;				// 더 가까운 픽셀만 그리기
+	depthStencilDesc.StencilEnable = FALSE;							// 스텐실 비활성화
+	m_dss[static_cast<size_t>(DEPTH_STENCIL_STATE_TYPE::DEFAULT)].Init(pDevice, &depthStencilDesc);
 
 	// 2. 스카이박스 렌더링
-	descDepthStencil.DepthEnable = TRUE;
-	descDepthStencil.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-	descDepthStencil.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;	// 스카이박스 렌더링 시 중요
-	descDepthStencil.StencilEnable = FALSE;
-	m_dss[static_cast<size_t>(DEPTH_STENCIL_STATE_TYPE::SKYBOX)].Init(pDevice, &descDepthStencil);
+	ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
+	depthStencilDesc.DepthEnable = TRUE;
+	depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;	// 스카이박스 렌더링 시 중요
+	depthStencilDesc.StencilEnable = FALSE;
+	m_dss[static_cast<size_t>(DEPTH_STENCIL_STATE_TYPE::SKYBOX)].Init(pDevice, &depthStencilDesc);
 
 	// 3. 거울 렌더링용
-	// ...
+	// ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
 	// ...
 
 	// 4. Depth read only
-	ZeroMemory(&descDepthStencil, sizeof(descDepthStencil));
-	descDepthStencil.DepthEnable = TRUE;
-	descDepthStencil.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-	descDepthStencil.DepthFunc = D3D11_COMPARISON_LESS;
-	descDepthStencil.StencilEnable = FALSE;
-	m_dss[static_cast<size_t>(DEPTH_STENCIL_STATE_TYPE::DEPTH_READ_ONLY)].Init(pDevice, &descDepthStencil);
+	ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
+	depthStencilDesc.DepthEnable = TRUE;
+	depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	depthStencilDesc.StencilEnable = FALSE;
+	m_dss[static_cast<size_t>(DEPTH_STENCIL_STATE_TYPE::DEPTH_READ_ONLY)].Init(pDevice, &depthStencilDesc);
 
 	// 5. No Depth/Stencil test (카메라 병합 등...)
-	ZeroMemory(&descDepthStencil, sizeof(descDepthStencil));
-	descDepthStencil.DepthEnable = FALSE;
-	descDepthStencil.StencilEnable = FALSE;
-	m_dss[static_cast<size_t>(DEPTH_STENCIL_STATE_TYPE::NO_DEPTH_STENCILTEST)].Init(pDevice, &descDepthStencil);
+	ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
+	depthStencilDesc.DepthEnable = FALSE;
+	depthStencilDesc.StencilEnable = FALSE;
+	m_dss[static_cast<size_t>(DEPTH_STENCIL_STATE_TYPE::NO_DEPTH_STENCIL_TEST)].Init(pDevice, &depthStencilDesc);
 }
 
 void GraphicDevice::ReleaseDepthStencilStates()

@@ -33,5 +33,8 @@ public:
 	afx_msg void On3DObjectTerrain();
 	afx_msg void OnGameObjectCreateEmpty();
 	afx_msg void OnGameObjectRename();
+	afx_msg void OnLightDirectionalLight();
+	afx_msg void OnLightPointLight();
+	afx_msg void OnLightSpotLight();
 	afx_msg void OnDestroy();
 };

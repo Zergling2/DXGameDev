@@ -43,7 +43,7 @@
 
 #include <new>
 #include <vector>
-#include <unordered_map>
+#include <unordered_set>
 
 #include <strsafe.h>
 #include <d3d11.h>

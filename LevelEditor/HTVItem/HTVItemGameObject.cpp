@@ -4,6 +4,9 @@
 #include "..\ComponentListView.h"
 #include "..\CLVItem\CLVItemTransform.h"
 #include "..\CLVItem\CLVItemMeshRenderer.h"
+#include "..\CLVItem\CLVItemDirectionalLight.h"
+#include "..\CLVItem\CLVItemPointLight.h"
+#include "..\CLVItem\CLVItemSpotLight.h"
 #include "..\CLVItem\CLVItemTerrain.h"
 #include "..\CLVItem\CLVItemEmpty.h"
 #include "..\TransformInspectorFormView.h"
@@ -44,6 +47,18 @@ void HTVItemGameObject::OnSelect()
 		case ze::COMPONENT_TYPE::MESH_RENDERER:
 			index = lc.InsertItem(lc.GetItemCount(), _T("Mesh Renderer"), ZE_ICON_INDEX::MESH_RENDERER_ICON);
 			lc.SetItemData(index, reinterpret_cast<DWORD_PTR>(new CLVItemMeshRenderer(static_cast<ze::MeshRenderer*>(pComponent))));
+			break;
+		case ze::COMPONENT_TYPE::DIRECTIONAL_LIGHT:
+			index = lc.InsertItem(lc.GetItemCount(), _T("Directional Light"), ZE_ICON_INDEX::DIRECTIONAL_LIGHT_ICON);
+			lc.SetItemData(index, reinterpret_cast<DWORD_PTR>(new CLVItemDirectionalLight(static_cast<ze::DirectionalLight*>(pComponent))));
+			break;
+		case ze::COMPONENT_TYPE::POINT_LIGHT:
+			index = lc.InsertItem(lc.GetItemCount(), _T("Point Light"), ZE_ICON_INDEX::POINT_LIGHT_ICON);
+			lc.SetItemData(index, reinterpret_cast<DWORD_PTR>(new CLVItemPointLight(static_cast<ze::PointLight*>(pComponent))));
+			break;
+		case ze::COMPONENT_TYPE::SPOT_LIGHT:
+			index = lc.InsertItem(lc.GetItemCount(), _T("Spot Light"), ZE_ICON_INDEX::SPOT_LIGHT_ICON);
+			lc.SetItemData(index, reinterpret_cast<DWORD_PTR>(new CLVItemSpotLight(static_cast<ze::SpotLight*>(pComponent))));
 			break;
 		case ze::COMPONENT_TYPE::TERRAIN:
 			index = lc.InsertItem(lc.GetItemCount(), _T("Terrain"), ZE_ICON_INDEX::TERRAIN_ICON);

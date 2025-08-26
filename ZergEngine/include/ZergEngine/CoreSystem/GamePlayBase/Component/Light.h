@@ -46,21 +46,14 @@ namespace ze
 		PointLight() noexcept;
 		virtual ~PointLight() = default;
 		virtual COMPONENT_TYPE GetType() const override { return COMPONENT_TYPE::POINT_LIGHT; }
-
-		void SetRange(FLOAT range);
-		FLOAT GetRange() const { return m_range; }
-		void SetAtt(const XMFLOAT3 att);
-		void SetAtt(const XMFLOAT3* pAtt);
-		const XMFLOAT3& GetAtt() const { return m_att; }
 	private:
 		virtual IComponentManager* GetComponentManager() const override;
-	private:
-		FLOAT m_range;
-
+	public:
 		// Ex)
 		// 거리에 반비례하는 점 광원 (0.0f, 1.0f, 0.0f)
 		// 거리의 제곱에 반비례하는 점 광원 (0.0f, 0.0f, 1.0f)
 		XMFLOAT3 m_att;		// LitColor = A + (KdD + KsS) / (m_att.x + m_att.y * d + m_att.z * d^2)
+		FLOAT m_range;
 	};
 
 	// 조명 방향은 컴포넌트 소유 오브젝트의 월드 방향 Z축.
@@ -76,14 +69,14 @@ namespace ze
 	private:
 		virtual IComponentManager* GetComponentManager() const override;
 	public:
-		FLOAT m_range;
-
-		// 스포트라이트 콘 크기 조절 (8.0f -> 대략 45도)
-		FLOAT m_spotExp;		// Kspot = max(-L dot dir, 0) ^ m_spot
-
 		// Ex)
 		// 거리에 반비례하는 점 광원 (0.0f, 1.0f, 0.0f)
 		// 거리의 제곱에 반비례하는 점 광원 (0.0f, 0.0f, 1.0f)
 		XMFLOAT3 m_att;		// LitColor = Kspot(A + (KdD + KsS) / (m_att.x + m_att.y * d + m_att.z * d^2))
+
+		// 스포트라이트 콘 크기 조절 (8.0f -> 대략 45도)
+		FLOAT m_spotExp;		// Kspot = max(-L dot dir, 0) ^ m_spot
+
+		FLOAT m_range;
 	};
 }

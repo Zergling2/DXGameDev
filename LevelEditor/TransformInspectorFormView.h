@@ -35,15 +35,15 @@ protected:
 private:
 	CLVItemTransform* m_pItem;
 public:
-	CFloatEdit m_positionX;
-	CFloatEdit m_positionY;
-	CFloatEdit m_positionZ;
-	CFloatEdit m_rotationX;
-	CFloatEdit m_rotationY;
-	CFloatEdit m_rotationZ;
-	CFloatEdit m_scaleX;
-	CFloatEdit m_scaleY;
-	CFloatEdit m_scaleZ;
+	CFloatEdit m_editPositionX;
+	CFloatEdit m_editPositionY;
+	CFloatEdit m_editPositionZ;
+	CFloatEdit m_editRotationX;
+	CFloatEdit m_editRotationY;
+	CFloatEdit m_editRotationZ;
+	CFloatEdit m_editScaleX;
+	CFloatEdit m_editScaleY;
+	CFloatEdit m_editScaleZ;
 public:
 	afx_msg void OnEnChangeEditPositionX();
 	afx_msg void OnEnChangeEditPositionY();
@@ -55,5 +55,3 @@ public:
 	afx_msg void OnEnChangeEditScaleY();
 	afx_msg void OnEnChangeEditScaleZ();
 };
-
-

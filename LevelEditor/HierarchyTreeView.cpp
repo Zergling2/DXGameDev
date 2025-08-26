@@ -25,6 +25,9 @@ BEGIN_MESSAGE_MAP(CHierarchyTreeView, CTreeView)
 	ON_COMMAND(ID_3DOBJECT_TERRAIN, &CHierarchyTreeView::On3DObjectTerrain)
 	ON_COMMAND(ID_GAMEOBJECT_CREATEEMPTY, &CHierarchyTreeView::OnGameObjectCreateEmpty)
 	ON_COMMAND(ID_GAMEOBJECT_RENAME, &CHierarchyTreeView::OnGameObjectRename)
+	ON_COMMAND(ID_LIGHT_DIRECTIONALLIGHT, &CHierarchyTreeView::OnLightDirectionalLight)
+	ON_COMMAND(ID_LIGHT_POINTLIGHT, &CHierarchyTreeView::OnLightPointLight)
+	ON_COMMAND(ID_LIGHT_SPOTLIGHT, &CHierarchyTreeView::OnLightSpotLight)
 	ON_WM_DESTROY()
 END_MESSAGE_MAP()
 
@@ -214,6 +217,25 @@ void CHierarchyTreeView::OnGameObjectRename()
 	::OnGameObjectRename();
 }
 
+void CHierarchyTreeView::OnLightDirectionalLight()
+{
+	// TODO: Add your command handler code here
+	::OnLightDirectionalLight();
+}
+
+void CHierarchyTreeView::OnLightPointLight()
+{
+	// TODO: Add your command handler code here
+	::OnLightPointLight();
+}
+
+void CHierarchyTreeView::OnLightSpotLight()
+{
+	// TODO: Add your command handler code here
+	::OnLightSpotLight();
+}
+
+
 void CHierarchyTreeView::OnDestroy()
 {
 	// CTreeView::OnDestroy가 호출되면 트리 컨트롤이 파괴되므로 그 전에 트리 아이템에 부착된 동적할당 Data를 해제한다.
@@ -227,4 +249,3 @@ void CHierarchyTreeView::OnDestroy()
 	// ...
 
 }
-

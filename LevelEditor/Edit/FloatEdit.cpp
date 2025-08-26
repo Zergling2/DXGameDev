@@ -29,6 +29,14 @@ float CFloatEdit::GetValue() const
     return _tcstof(buf, nullptr);
 }
 
+void CFloatEdit::SetValue(float val)
+{
+    TCHAR buf[32];
+    StringCbPrintf(buf, sizeof(buf), _T("%f"), val);
+
+    this->SetWindowText(buf);
+}
+
 // CFloatEdit message handlers
 
 void CFloatEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
@@ -70,16 +78,16 @@ void CFloatEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
         if (ch == _T('.'))
         {
             // 이미 .이 있으면 추가 입력 금지
-            if (str.Find('.') != -1)
+            if (str.Find(_T('.')) != -1)
             {
                 pass = false;
                 break;
             }
 
             // 숫자가 없는 상태에서 .만 입력하려는 경우: 0. 으로 자동 대체
-            if (len == 0 || (len == 1 && (str[0] == '+' || str[0] == '-')))
+            if (len == 0 || (len == 1 && (str[0] == _T('+') || str[0] == _T('-'))))
             {
-                ReplaceSel(_T("0."));
+                this->ReplaceSel(_T("0."));
                 return;
             }
 

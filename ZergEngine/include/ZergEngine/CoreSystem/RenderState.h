@@ -54,7 +54,7 @@ namespace ze
 
 		// DepthEnable = FALSE
 		// StencilEnable = FALSE
-		NO_DEPTH_STENCILTEST,
+		NO_DEPTH_STENCIL_TEST,
 
 		// Number of depth stencil states
 		COUNT

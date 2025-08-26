@@ -14,6 +14,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	float GetValue() const;	// Window Text -> Float º¯È¯
+	void SetValue(float val);	// Float -> Window Text
 
 	afx_msg void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
 };

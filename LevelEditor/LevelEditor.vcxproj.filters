@@ -154,6 +154,24 @@
     <ClInclude Include="MeshInspectorFormView.h">
       <Filter>Files</Filter>
     </ClInclude>
+    <ClInclude Include="CLVItem\CLVItemDirectionalLight.h">
+      <Filter>Files\CLVItem</Filter>
+    </ClInclude>
+    <ClInclude Include="CLVItem\CLVItemPointLight.h">
+      <Filter>Files\CLVItem</Filter>
+    </ClInclude>
+    <ClInclude Include="CLVItem\CLVItemSpotLight.h">
+      <Filter>Files\CLVItem</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectionalLightInspectorFormView.h">
+      <Filter>Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PointLightInspectorFormView.h">
+      <Filter>Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SpotLightInspectorFormView.h">
+      <Filter>Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BufferDC.cpp">
@@ -268,6 +286,24 @@
       <Filter>Files\ATVItem</Filter>
     </ClCompile>
     <ClCompile Include="MeshInspectorFormView.cpp">
+      <Filter>Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CLVItem\CLVItemDirectionalLight.cpp">
+      <Filter>Files\CLVItem</Filter>
+    </ClCompile>
+    <ClCompile Include="CLVItem\CLVItemPointLight.cpp">
+      <Filter>Files\CLVItem</Filter>
+    </ClCompile>
+    <ClCompile Include="CLVItem\CLVItemSpotLight.cpp">
+      <Filter>Files\CLVItem</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectionalLightInspectorFormView.cpp">
+      <Filter>Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PointLightInspectorFormView.cpp">
+      <Filter>Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SpotLightInspectorFormView.cpp">
       <Filter>Files</Filter>
     </ClCompile>
   </ItemGroup>

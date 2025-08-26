@@ -24,20 +24,32 @@ public:
 	virtual void Dump(CDumpContext& dc) const;
 #endif
 #endif
-	void SetCLVItemToModify(CLVItemMeshRenderer* pItem) { m_pItem = pItem; }
-	CLVItemMeshRenderer* GetCLVItemToModify() const { return m_pItem; }
+private:
+	CLVItemMeshRenderer* m_pItem;
 public:
 	CButton m_castShadows;
 	CButton m_receiveShadows;
-private:
-	CLVItemMeshRenderer* m_pItem;
+	CComboBox m_comboSelectMesh;
+	CComboBox m_comboSelectSubsetIndex;
+	CComboBox m_comboSelectMaterial;
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
 	DECLARE_MESSAGE_MAP()
 public:
+	void SetCLVItemToModify(CLVItemMeshRenderer* pItem) { m_pItem = pItem; }
+	CLVItemMeshRenderer* GetCLVItemToModify() const { return m_pItem; }
+
+	virtual void OnInitialUpdate();
 	afx_msg void OnBnClickedMeshRendererCastShadows();
 	afx_msg void OnBnClickedMeshRendererReceiveShadows();
+	afx_msg void OnCbnSelchangeComboSelectMesh();
+	afx_msg void OnCbnDropdownComboSelectMesh();
+	afx_msg void OnCbnCloseupComboSelectMesh();
+	afx_msg void OnBnClickedButtonRemoveMesh();
+	afx_msg void OnCbnSelchangeComboSelectSubsetIndex();
+	afx_msg void OnCbnSelchangeComboSelectMaterial();
+	afx_msg void OnCbnDropdownComboSelectMaterial();
 };
 
 

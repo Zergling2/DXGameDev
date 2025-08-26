@@ -1,6 +1,7 @@
 #pragma once
 
 #include "framework.h"
+#include "AssetManager.h"
 
 /*
 #ifndef __AFXWIN_H__
@@ -22,8 +23,10 @@ public:
 private:
 	ze::GameObjectHandle m_hEditorCameraObject;
 	CImageList m_iconList;
+	AssetManager m_am;
 public:
 	CImageList& GetZEIconList() { return m_iconList; }
+	AssetManager& GetAssetManager() { return m_am; }
 
 	// Implementation
 	virtual BOOL InitInstance();

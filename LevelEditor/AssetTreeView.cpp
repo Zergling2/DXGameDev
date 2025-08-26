@@ -276,10 +276,12 @@ void CAssetTreeView::OnCreateAssetWavefrontOBJ()
 }
 
 
-
 void CAssetTreeView::OnDestroy()
 {
 	// CTreeView::OnDestroy가 호출되면 트리 컨트롤이 파괴되므로 그 전에 트리 아이템에 부착된 동적할당 Data를 해제한다.
+	// Asset Manager에 등록된 핸들들이 이제는 유효하지 않게 되므로 모두 제거
+	static_cast<CLevelEditorApp*>(AfxGetApp())->GetAssetManager().RemoveAllATVItemHandle();
+
 	CTreeCtrl& tc = this->GetTreeCtrl();
 	HTREEITEM hRootItem = tc.GetRootItem();
 	while (hRootItem)
@@ -288,7 +290,7 @@ void CAssetTreeView::OnDestroy()
 
 		hRootItem = tc.GetNextItem(hRootItem, TVGN_NEXT);
 	}
-	// tc.DeleteAllItems();	// 객체 파괴시 자동 수행
+	tc.DeleteAllItems();
 
 	CTreeView::OnDestroy();
 
