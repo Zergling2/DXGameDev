@@ -50,7 +50,6 @@ void TestScene1::OnLoadScene()
 	pPanel->m_transform.m_position.x = 0.0f;
 	pPanel->m_transform.m_position.y = 0.0f;
 	pPanel->SetShape(PANEL_SHAPE::ROUNDED_RECTANGLE);
-	pPanel->SetActive(false);
 	{
 		UIObjectHandle hButton = CreateButton();
 		Button* pButton = static_cast<Button*>(hButton.ToPtr());
@@ -90,6 +89,7 @@ void TestScene1::OnLoadScene()
 		pButton->SetTextColor(XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f));
 		pButton->m_transform.SetParent(&pPanel->m_transform);
 	}
+	pPanel->SetActive(false);
 
 	{
 		UIObjectHandle hImage = CreateImage();
