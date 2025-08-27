@@ -4,6 +4,7 @@
 #include <ZergEngine\CoreSystem\InputLayout.h>
 #include <ZergEngine\CoreSystem\RenderState.h>
 #include <ZergEngine\CoreSystem\ShaderResource\VertexBuffer.h>
+#include <ZergEngine\CoreSystem\Resource\Font.h>
 
 namespace ze
 {
@@ -71,7 +72,7 @@ namespace ze
 		ID3D11DepthStencilView* GetSwapChainDSV() const { return m_cpSwapChainDSV.Get(); }
 		ID2D1RenderTarget* GetD2DRenderTarget() const { return m_cpD2DRenderTarget.Get(); }
 		ID2D1SolidColorBrush* GetD2DSolidColorBrush() const { return m_cpD2DSolidColorBrush.Get(); }
-		IDWriteTextFormat* GetDefaultDWriteTextFormat() const { return m_cpDefaultDWriteTextFormat.Get(); }
+		std::shared_ptr<DWriteTextFormatWrapper> GetDWriteTextFormatWrapper(const TextFormat& tf);
 
 		// Shaders getter
 		ID3D11VertexShader* GetVSComInterface(VERTEX_SHADER_TYPE type) { return m_vs[static_cast<size_t>(type)].GetComInterface(); }
@@ -119,7 +120,7 @@ namespace ze
 		// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
 		ComPtr<ID2D1RenderTarget> m_cpD2DRenderTarget;
 		ComPtr<ID2D1SolidColorBrush> m_cpD2DSolidColorBrush;
-		ComPtr<IDWriteTextFormat> m_cpDefaultDWriteTextFormat;
+		std::unordered_map<TextFormat, std::weak_ptr<DWriteTextFormatWrapper>, TextFormatHasher> m_fontMap;
 		// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
 
 		VertexShader m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::COUNT)];

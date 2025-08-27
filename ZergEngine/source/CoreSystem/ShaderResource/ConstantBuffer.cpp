@@ -13,7 +13,7 @@ void IConstantBuffer::Release()
 	Helper::SafeReleaseCom(m_pConstantBuffer);
 }
 
-void IConstantBuffer::InitImpl(ID3D11Device* pDevice, size_t bufferSize) noexcept
+void IConstantBuffer::InitImpl(ID3D11Device* pDevice, size_t bufferSize)
 {
 	D3D11_BUFFER_DESC descConstantBuffer;
 	ZeroMemory(&descConstantBuffer, sizeof(descConstantBuffer));
@@ -30,7 +30,7 @@ void IConstantBuffer::InitImpl(ID3D11Device* pDevice, size_t bufferSize) noexcep
 		Debug::ForceCrashWithHRESULTErrorMessageBox(L"Failed to create a constant buffer.", hr);
 }
 
-void IConstantBuffer::UpdateImpl(ID3D11DeviceContext* pDeviceContext, const void* pData, size_t size) noexcept
+void IConstantBuffer::UpdateImpl(ID3D11DeviceContext* pDeviceContext, const void* pData, size_t size)
 {
 	assert(m_pConstantBuffer != nullptr);
 

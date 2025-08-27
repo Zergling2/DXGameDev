@@ -14,7 +14,7 @@ void TestScript::FixedUpdate()
 
 	pGameObject->m_transform.Translate(XMVectorMultiply(XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f), XMVectorReplicate(Time::GetInstance()->GetDeltaTime())));
 
-	pGameObject->m_transform.Rotate(XMQuaternionRotationAxis(Math::Vector3::UP, XMConvertToRadians(90) * Time::GetInstance()->GetDeltaTime()));
+	pGameObject->m_transform.Rotate(XMQuaternionRotationAxis(Math::Vector3::Up(), XMConvertToRadians(90) * Time::GetInstance()->GetDeltaTime()));
 	
 	ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->GetComponent<MeshRenderer>();
 	MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();

@@ -6,7 +6,7 @@
 
 using namespace ze;
 
-DirectionalLight::DirectionalLight() noexcept
+DirectionalLight::DirectionalLight()
 	: ILight(DirectionalLightManager::GetInstance()->AssignUniqueId())
 {
 }
@@ -16,7 +16,7 @@ IComponentManager* DirectionalLight::GetComponentManager() const
 	return DirectionalLightManager::GetInstance();
 }
 
-PointLight::PointLight() noexcept
+PointLight::PointLight()
 	: ILight(PointLightManager::GetInstance()->AssignUniqueId())
 	, m_range(10.0f)
 	, m_att(0.0f, 0.0f, 1.0f)
@@ -28,7 +28,7 @@ IComponentManager* PointLight::GetComponentManager() const
 	return PointLightManager::GetInstance();
 }
 
-SpotLight::SpotLight() noexcept
+SpotLight::SpotLight()
 	: ILight(SpotLightManager::GetInstance()->AssignUniqueId())
 	, m_range(10.0f)
 	, m_spotExp(4.0f)

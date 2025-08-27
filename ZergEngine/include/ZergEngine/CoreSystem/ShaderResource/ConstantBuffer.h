@@ -12,7 +12,7 @@ namespace ze
 	class IConstantBuffer abstract
 	{
 	public:
-		IConstantBuffer() noexcept
+		IConstantBuffer()
 			: m_pConstantBuffer(nullptr)
 		{
 		}
@@ -21,8 +21,8 @@ namespace ze
 		void Release();
 		ID3D11Buffer* GetComInterface() const { return m_pConstantBuffer; }
 	protected:
-		void InitImpl(ID3D11Device* pDevice, size_t bufferSize) noexcept;
-		void UpdateImpl(ID3D11DeviceContext* pDeviceContext, const void* pData, size_t size) noexcept;
+		void InitImpl(ID3D11Device* pDevice, size_t bufferSize);
+		void UpdateImpl(ID3D11DeviceContext* pDeviceContext, const void* pData, size_t size);
 	protected:
 		ID3D11Buffer* m_pConstantBuffer;
 	};
@@ -60,7 +60,7 @@ namespace ze
 
 	hlslstruct MaterialData
 	{
-		MaterialData() noexcept
+		MaterialData()
 			: mtlFlag(static_cast<uint32_t>(MATERIAL_FLAG::NONE))
 		{
 #if defined(DEBUG) || defined(_DEBUG)
@@ -85,14 +85,14 @@ namespace ze
 
 	hlslstruct DirectionalLightData
 	{
-		DirectionalLightData() noexcept
+		DirectionalLightData()
 		{
 #if defined(DEBUG) || defined(_DEBUG)
 			XMStoreFloat4A(&ambient, XMVectorZero());
 			XMStoreFloat4A(&diffuse, XMVectorZero());
 			XMStoreFloat4A(&specular, XMVectorZero());
 
-			XMStoreFloat3(&directionW, XMVector3Normalize(g_XMOne3));
+			XMStoreFloat3(&directionW, XMVectorZero());
 #endif
 		}
 		XMFLOAT4A ambient;
@@ -105,7 +105,7 @@ namespace ze
 
 	hlslstruct PointLightData
 	{
-		PointLightData() noexcept
+		PointLightData()
 		{
 #if defined(DEBUG) || defined(_DEBUG)
 			XMStoreFloat4A(&ambient, XMVectorZero());
@@ -115,7 +115,7 @@ namespace ze
 			XMStoreFloat3(&positionW, XMVectorZero());
 			range = 10.0f;
 
-			XMStoreFloat3(&att, g_XMIdentityR2);	// 0, 0, 1, 0
+			XMStoreFloat3(&att, XMVectorZero());	// 0, 0, 1, 0
 #endif
 		}
 		XMFLOAT4A ambient;
@@ -131,7 +131,7 @@ namespace ze
 
 	hlslstruct SpotLightData
 	{
-		SpotLightData() noexcept
+		SpotLightData()
 		{
 #if defined(DEBUG) || defined(_DEBUG)
 			XMStoreFloat4A(&ambient, XMVectorZero());
@@ -139,12 +139,12 @@ namespace ze
 			XMStoreFloat4A(&specular, XMVectorZero());
 
 			XMStoreFloat3(&positionW, XMVectorZero());
-			range = 10.0f;
+			range = 0.0f;
 
-			XMStoreFloat3(&directionW, XMVector3Normalize(g_XMOne));
-			spotExp = 10.0f;
+			XMStoreFloat3(&directionW, XMVectorZero());
+			spotExp = 0.0f;
 
-			XMStoreFloat3(&att, g_XMIdentityR2);	// 0, 0, 1, 0
+			XMStoreFloat3(&att, XMVectorZero());
 #endif
 		}
 		XMFLOAT4A ambient;

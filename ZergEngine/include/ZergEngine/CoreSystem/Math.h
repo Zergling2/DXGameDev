@@ -7,7 +7,8 @@ namespace ze
 	class Frustum;
 	class Plane;
 	class Ray;
-	class Aabb;
+	class Triangle;
+	using Aabb = DirectX::BoundingBox;
 
 	class Math
 	{
@@ -15,9 +16,9 @@ namespace ze
 		class Vector3
 		{
 		public:
-			static const XMVECTORF32 UP;
-			static const XMVECTORF32 RIGHT;
-			static const XMVECTORF32 FORWARD;
+			static XMVECTOR Up() { return g_XMIdentityR1; }
+			static XMVECTOR Right() { return g_XMIdentityR0; }
+			static XMVECTOR Forward() { return g_XMIdentityR2; }
 		};
 
 		template<typename T>
@@ -54,12 +55,15 @@ namespace ze
 		
 		// 월드 공간에서의 절두체 평면 6개 계산 및 반환
 		static void XM_CALLCONV CalcWorldFrustumFromViewProjMatrix(FXMMATRIX viewProj, Frustum& frustum) noexcept;
+
 		static bool TestRayAabbCollision(const Ray& ray, const Aabb& aabb);
 
 		static bool TestFrustumAabbCollision(const Frustum& frustum, const Aabb& aabb);
 
-		// 정규화된 Plane을 전달해야 합니다!
+		// 정규화된 Plane을 전달해야 합니다.
 		static bool TestAabbBehindPlane(const Aabb& aabb, const Plane& plane);
+
+		static bool TestRayTriangleCollision(const Ray& ray, const Triangle& tri);
 
 		static const Aabb XM_CALLCONV TransformAabb(const Aabb& aabb, FXMMATRIX m);
 	};

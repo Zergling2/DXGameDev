@@ -31,7 +31,7 @@ namespace ze
 		friend class Renderer;
 		friend class RectTransform;
 	protected:
-		IUIObject(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name, UIOBJECT_TYPE type);
+		IUIObject(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name);
 		virtual ~IUIObject() = default;
 	public:
 		void DontDestroyOnLoad();
@@ -42,7 +42,7 @@ namespace ze
 
 		PCWSTR GetName() const { return m_name; }
 		uint64_t GetId() const { return m_id; }
-		UIOBJECT_TYPE GetType() const { return m_type; }
+		virtual UIOBJECT_TYPE GetType() const = 0;
 
 		void SetActive(bool active);
 	private:
@@ -74,7 +74,6 @@ namespace ze
 		uint32_t m_tableIndex;
 		uint32_t m_groupIndex;
 		UIOBJECT_FLAG m_flag;
-		UIOBJECT_TYPE m_type;
 		WCHAR m_name[16];
 	};
 }

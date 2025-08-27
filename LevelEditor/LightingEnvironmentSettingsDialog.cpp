@@ -21,19 +21,19 @@ CLightingEnvironmentSettingsDialog::~CLightingEnvironmentSettingsDialog()
 void CLightingEnvironmentSettingsDialog::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_COMBO_ENVIRONMENT_SKYBOX_MATERIAL, m_comboEnvironmentSkyboxTexture);
+	DDX_Control(pDX, IDC_COMBO_ENVIRONMENT_SKYBOX_TEXTURE, m_comboEnvironmentSkyboxTexture);
 }
 
 
 BEGIN_MESSAGE_MAP(CLightingEnvironmentSettingsDialog, CDialog)
-	ON_CBN_SELCHANGE(IDC_COMBO_ENVIRONMENT_SKYBOX_MATERIAL, &CLightingEnvironmentSettingsDialog::OnCbnSelchangeComboEnvironmentSkyboxMaterial)
-	ON_CBN_DROPDOWN(IDC_COMBO_ENVIRONMENT_SKYBOX_MATERIAL, &CLightingEnvironmentSettingsDialog::OnCbnDropdownComboEnvironmentSkyboxMaterial)
+	ON_CBN_SELCHANGE(IDC_COMBO_ENVIRONMENT_SKYBOX_TEXTURE, &CLightingEnvironmentSettingsDialog::OnCbnSelchangeComboEnvironmentSkyboxTexture)
+	ON_CBN_DROPDOWN(IDC_COMBO_ENVIRONMENT_SKYBOX_TEXTURE, &CLightingEnvironmentSettingsDialog::OnCbnDropdownComboEnvironmentSkyboxTexture)
 END_MESSAGE_MAP()
 
 
 // CLightingEnvironmentSettingsDialog message handlers
 
-void CLightingEnvironmentSettingsDialog::OnCbnSelchangeComboEnvironmentSkyboxMaterial()
+void CLightingEnvironmentSettingsDialog::OnCbnSelchangeComboEnvironmentSkyboxTexture()
 {
 	// TODO: Add your control notification handler code here
 	const int sel = m_comboEnvironmentSkyboxTexture.GetCurSel();
@@ -44,7 +44,7 @@ void CLightingEnvironmentSettingsDialog::OnCbnSelchangeComboEnvironmentSkyboxMat
 	ze::Environment::GetInstance()->SetSkyboxCubeMap(pATVItemTexture->m_texture);
 }
 
-void CLightingEnvironmentSettingsDialog::OnCbnDropdownComboEnvironmentSkyboxMaterial()
+void CLightingEnvironmentSettingsDialog::OnCbnDropdownComboEnvironmentSkyboxTexture()
 {
 	// TODO: Add your control notification handler code here
 	m_comboEnvironmentSkyboxTexture.ResetContent();

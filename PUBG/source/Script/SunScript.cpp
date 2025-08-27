@@ -9,5 +9,5 @@ void SunScript::FixedUpdate()
 	if (!pGameObject)
 		return;
 
-	pGameObject->m_transform.Rotate(XMQuaternionRotationAxis(Math::Vector3::RIGHT, 0.005f));
+	pGameObject->m_transform.Rotate(XMQuaternionRotationAxis(Math::Vector3::Right(), 0.005f));
 }

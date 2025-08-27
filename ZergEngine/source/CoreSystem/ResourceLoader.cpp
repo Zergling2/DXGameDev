@@ -465,7 +465,7 @@ bool ResourceLoader::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, Verte
 		assert(stride != 0);
 
 		XMVECTOR min = XMVectorReplicate(std::numeric_limits<FLOAT>::max());
-		XMVECTOR max = XMVectorReplicate(std::numeric_limits<FLOAT>::min());
+		XMVECTOR max = XMVectorReplicate(std::numeric_limits<FLOAT>::lowest());
 
 		intptr_t cursor = reinterpret_cast<intptr_t>(tempVB.Data());
 		const size_t count = tempVB.ByteSize() / stride;
@@ -482,15 +482,15 @@ bool ResourceLoader::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, Verte
 		// Center, Extent 계산
 		XMFLOAT3A center;
 		XMFLOAT3A extent;
-		XMStoreFloat3A(&center, XMVectorMultiply(XMVectorAdd(min, max), g_XMOneHalf));
-		XMStoreFloat3A(&extent, XMVectorAbs(XMVectorMultiply(XMVectorSubtract(max, min), g_XMOneHalf)));
+		XMStoreFloat3A(&center, XMVectorScale(XMVectorAdd(min, max), 0.5f));
+		XMStoreFloat3A(&extent, XMVectorAbs(XMVectorScale(XMVectorSubtract(max, min), 0.5f)));
 
 		// extent의 성분 중 너무 작은 값이 있으면 프러스텀 컬링에 실패할 수 있으므로 약간의 크기를 보장한다.
 		XMVECTOR minExtent = XMVectorReplicate(0.05f);
 		XMStoreFloat3A(&extent, XMVectorMax(XMLoadFloat3A(&extent), minExtent));
 
-		pMesh->m_aabb.m_center = center;
-		pMesh->m_aabb.m_extent = extent;
+		pMesh->m_aabb.Center = center;
+		pMesh->m_aabb.Extents = extent;
 	}
 
 	{

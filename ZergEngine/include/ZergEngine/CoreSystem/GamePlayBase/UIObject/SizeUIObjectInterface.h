@@ -8,7 +8,7 @@ namespace ze
 	{
 		friend class Renderer;
 	public:
-		ISizeUIObject(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name, UIOBJECT_TYPE type);
+		ISizeUIObject(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name);
 		virtual ~ISizeUIObject() = default;
 
 		XMVECTOR XM_CALLCONV GetSizeVector() const { return XMLoadFloat2(&m_size); }

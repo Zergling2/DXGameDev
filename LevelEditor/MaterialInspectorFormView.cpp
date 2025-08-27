@@ -86,7 +86,7 @@ void CMaterialInspectorFormView::OnEnChangeEditAmbientR()
 	// TODO:  Add your control notification handler code here
 	m_editAmbientR.UpdateData(TRUE);
 
-	ze::Material* pMaterial = this->GetATVItemToModify()->m_spMaterial.get();
+	ze::Material* pMaterial = this->GetATVItemToModify()->GetMaterialPtr();
 	pMaterial->m_ambient.x = m_editAmbientR.GetValue();
 }
 
@@ -100,7 +100,7 @@ void CMaterialInspectorFormView::OnEnChangeEditAmbientG()
 	// TODO:  Add your control notification handler code here
 	m_editAmbientG.UpdateData(TRUE);
 
-	ze::Material* pMaterial = this->GetATVItemToModify()->m_spMaterial.get();
+	ze::Material* pMaterial = this->GetATVItemToModify()->GetMaterialPtr();
 	pMaterial->m_ambient.y = m_editAmbientG.GetValue();
 }
 
@@ -114,7 +114,7 @@ void CMaterialInspectorFormView::OnEnChangeEditAmbientB()
 	// TODO:  Add your control notification handler code here
 	m_editAmbientB.UpdateData(TRUE);
 
-	ze::Material* pMaterial = this->GetATVItemToModify()->m_spMaterial.get();
+	ze::Material* pMaterial = this->GetATVItemToModify()->GetMaterialPtr();
 	pMaterial->m_ambient.z = m_editAmbientB.GetValue();
 }
 
@@ -128,7 +128,7 @@ void CMaterialInspectorFormView::OnEnChangeEditAmbientA()
 	// TODO:  Add your control notification handler code here
 	m_editAmbientA.UpdateData(TRUE);
 
-	ze::Material* pMaterial = this->GetATVItemToModify()->m_spMaterial.get();
+	ze::Material* pMaterial = this->GetATVItemToModify()->GetMaterialPtr();
 	pMaterial->m_ambient.w = m_editAmbientA.GetValue();
 }
 
@@ -142,7 +142,7 @@ void CMaterialInspectorFormView::OnEnChangeEditDiffuseR()
 	// TODO:  Add your control notification handler code here
 	m_editDiffuseR.UpdateData(TRUE);
 
-	ze::Material* pMaterial = this->GetATVItemToModify()->m_spMaterial.get();
+	ze::Material* pMaterial = this->GetATVItemToModify()->GetMaterialPtr();
 	pMaterial->m_diffuse.x = m_editDiffuseR.GetValue();
 }
 
@@ -156,7 +156,7 @@ void CMaterialInspectorFormView::OnEnChangeEditDiffuseG()
 	// TODO:  Add your control notification handler code here
 	m_editDiffuseG.UpdateData(TRUE);
 
-	ze::Material* pMaterial = this->GetATVItemToModify()->m_spMaterial.get();
+	ze::Material* pMaterial = this->GetATVItemToModify()->GetMaterialPtr();
 	pMaterial->m_diffuse.y = m_editDiffuseG.GetValue();
 }
 
@@ -170,7 +170,7 @@ void CMaterialInspectorFormView::OnEnChangeEditDiffuseB()
 	// TODO:  Add your control notification handler code here
 	m_editDiffuseB.UpdateData(TRUE);
 
-	ze::Material* pMaterial = this->GetATVItemToModify()->m_spMaterial.get();
+	ze::Material* pMaterial = this->GetATVItemToModify()->GetMaterialPtr();
 	pMaterial->m_diffuse.z = m_editDiffuseB.GetValue();
 }
 
@@ -184,7 +184,7 @@ void CMaterialInspectorFormView::OnEnChangeEditDiffuseA()
 	// TODO:  Add your control notification handler code here
 	m_editDiffuseA.UpdateData(TRUE);
 
-	ze::Material* pMaterial = this->GetATVItemToModify()->m_spMaterial.get();
+	ze::Material* pMaterial = this->GetATVItemToModify()->GetMaterialPtr();
 	pMaterial->m_diffuse.w = m_editDiffuseA.GetValue();
 }
 
@@ -198,7 +198,7 @@ void CMaterialInspectorFormView::OnEnChangeEditSpecularR()
 	// TODO:  Add your control notification handler code here
 	m_editSpecularR.UpdateData(TRUE);
 
-	ze::Material* pMaterial = this->GetATVItemToModify()->m_spMaterial.get();
+	ze::Material* pMaterial = this->GetATVItemToModify()->GetMaterialPtr();
 	pMaterial->m_specular.x = m_editSpecularR.GetValue();
 }
 
@@ -212,7 +212,7 @@ void CMaterialInspectorFormView::OnEnChangeEditSpecularG()
 	// TODO:  Add your control notification handler code here
 	m_editSpecularG.UpdateData(TRUE);
 
-	ze::Material* pMaterial = this->GetATVItemToModify()->m_spMaterial.get();
+	ze::Material* pMaterial = this->GetATVItemToModify()->GetMaterialPtr();
 	pMaterial->m_specular.y = m_editSpecularG.GetValue();
 }
 
@@ -226,7 +226,7 @@ void CMaterialInspectorFormView::OnEnChangeEditSpecularB()
 	// TODO:  Add your control notification handler code here
 	m_editSpecularB.UpdateData(TRUE);
 
-	ze::Material* pMaterial = this->GetATVItemToModify()->m_spMaterial.get();
+	ze::Material* pMaterial = this->GetATVItemToModify()->GetMaterialPtr();
 	pMaterial->m_specular.z = m_editSpecularB.GetValue();
 }
 
@@ -240,7 +240,7 @@ void CMaterialInspectorFormView::OnEnChangeEditSpecularExponent()
 	// TODO:  Add your control notification handler code here
 	m_editSpecularExp.UpdateData(TRUE);
 
-	ze::Material* pMaterial = this->GetATVItemToModify()->m_spMaterial.get();
+	ze::Material* pMaterial = this->GetATVItemToModify()->GetMaterialPtr();
 	pMaterial->m_specular.w = m_editSpecularExp.GetValue();
 }
 
@@ -253,8 +253,8 @@ void CMaterialInspectorFormView::OnCbnSelchangeComboDiffuseMap()
 
 	ATVItemTexture* pATVItemTexture = reinterpret_cast<ATVItemTexture*>(m_comboDiffuseMap.GetItemData(sel));
 	
-	std::shared_ptr<ze::Material> spMaterial = this->GetATVItemToModify()->m_spMaterial;
-	spMaterial->m_diffuseMap = pATVItemTexture->m_texture;
+	ze::Material* pMaterial = this->GetATVItemToModify()->GetMaterialPtr();
+	pMaterial->m_diffuseMap = pATVItemTexture->m_texture;
 }
 
 void CMaterialInspectorFormView::OnCbnDropdownComboDiffuseMap()

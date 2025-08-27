@@ -18,9 +18,9 @@ namespace ze
 	class Terrain;
 	class IUIObject;
 	class Panel;
+	class Text;
 	class Button;
 	class Image;
-	class Text;
 
 	class Renderer
 	{
@@ -47,9 +47,9 @@ namespace ze
 		void RenderTerrain(const Terrain* pTerrain);
 		void RenderSkybox(ID3D11ShaderResourceView* pSkyboxCubeMapSRV);
 		void RenderPanel(const Panel* pPanel);
-		void RenderButton(const Button* pButton);
 		void RenderImage(const Image* pImage);
 		void RenderText(const Text* pText);
+		void RenderButton(const Button* pButton);
 	private:
 		static Renderer* s_pInstance;
 

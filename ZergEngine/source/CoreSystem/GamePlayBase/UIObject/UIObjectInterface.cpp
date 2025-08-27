@@ -3,13 +3,12 @@
 
 using namespace ze;
 
-IUIObject::IUIObject(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name, UIOBJECT_TYPE type)
+IUIObject::IUIObject(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name)
 	: m_transform(this)
 	, m_id(id)
 	, m_tableIndex(std::numeric_limits<uint32_t>::max())
 	, m_groupIndex(std::numeric_limits<uint32_t>::max())
 	, m_flag(flag)
-	, m_type(type)
 {
 	StringCbCopyW(m_name, sizeof(m_name), name);
 }

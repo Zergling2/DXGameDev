@@ -123,9 +123,6 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Runtime.h">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Aabb.h">
-      <Filter>Files\ZergEngine\CoreSystem\DataStructure</Filter>
-    </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\Renderer.h">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClInclude>
@@ -151,9 +148,6 @@
       <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\ViewportRect.h">
-      <Filter>Files\ZergEngine\CoreSystem\DataStructure</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\UIHitbox.h">
       <Filter>Files\ZergEngine\CoreSystem\DataStructure</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\EffectInterface.h">
@@ -306,6 +300,15 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Plane.h">
       <Filter>Files\ZergEngine\CoreSystem\DataStructure</Filter>
     </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Triangle.h">
+      <Filter>Files\ZergEngine\CoreSystem\DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Aabb.h">
+      <Filter>Files\ZergEngine\CoreSystem\DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Font.h">
+      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\CoreSystem\Time.cpp">
@@ -364,9 +367,6 @@
     </ClCompile>
     <ClCompile Include="source\CoreSystem\Runtime.cpp">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\DataStructure\Aabb.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\DataStructure</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\Renderer.cpp">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
@@ -529,6 +529,12 @@
     </ClCompile>
     <ClCompile Include="source\CoreSystem\DataStructure\Plane.cpp">
       <Filter>Files\ZergEngine\CoreSystem\DataStructure</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\DataStructure\Triangle.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\DataStructure</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Resource\Font.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

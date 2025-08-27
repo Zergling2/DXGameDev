@@ -11,14 +11,14 @@ namespace ze
 		friend class GameObjectManager;
 		friend class GameObject;
 	public:
-		Transform(GameObject* pGameObject) noexcept;
+		Transform(GameObject* pGameObject);
 		Transform(const Transform&) = delete;
 		Transform(Transform&&) = delete;
 		~Transform() = default;
 		Transform& operator=(const Transform&) = delete;
 
-		XMMATRIX GetWorldTransformMatrix() const noexcept;
-		XMMATRIX GetLocalTransformMatrix() const noexcept
+		XMMATRIX GetWorldTransformMatrix() const;
+		XMMATRIX GetLocalTransformMatrix() const
 		{
 			return 
 				XMMatrixScalingFromVector(XMLoadFloat3A(&m_scale)) *
@@ -26,14 +26,14 @@ namespace ze
 				XMMatrixTranslationFromVector(XMLoadFloat3A(&m_position));
 		}
 
-		XMVECTOR XM_CALLCONV GetLocalScale() const { return XMLoadFloat3A(&m_scale); }
+		XMVECTOR GetLocalScale() const { return XMLoadFloat3A(&m_scale); }
 
 		// 회전 상태를 나타내는 쿼터니언을 반환합니다.
-		XMVECTOR XM_CALLCONV GetLocalRotation() const { return XMLoadFloat4A(&m_rotation); }
-		XMVECTOR XM_CALLCONV GetWorldRotation() const;
+		XMVECTOR GetLocalRotation() const { return XMLoadFloat4A(&m_rotation); }
+		XMVECTOR GetWorldRotation() const;
 
-		XMVECTOR XM_CALLCONV GetLocalPosition() const { return XMLoadFloat3A(&m_position); }
-		XMVECTOR XM_CALLCONV GetWorldPosition() const;
+		XMVECTOR GetLocalPosition() const { return XMLoadFloat3A(&m_position); }
+		XMVECTOR GetWorldPosition() const;
 
 		// 스케일을 설정합니다.
 		void XM_CALLCONV Scale(FXMVECTOR scale) { XMStoreFloat3A(&m_scale, XMVectorMultiply(XMLoadFloat3A(&m_scale), scale)); }

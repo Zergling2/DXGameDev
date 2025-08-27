@@ -16,6 +16,8 @@ namespace ze
 		Panel(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name);
 		virtual ~Panel() = default;
 
+		virtual UIOBJECT_TYPE GetType() const override { return UIOBJECT_TYPE::PANEL; }
+
 		void SetShape(PANEL_SHAPE shape) { m_shape = shape; }
 		PANEL_SHAPE GetShape() const { return m_shape; }
 

@@ -2,7 +2,7 @@
 
 void TerrainDataEditor::SetTerrainToModify(ze::Terrain* pTerrain)
 {
-	if (pTerrain == m_pTerrain)
+	if (pTerrain == m_pTerrainToModify)
 		return;
 
 	ID3D11Device* pDevice = ze::GraphicDevice::GetInstance()->GetDeviceComInterface();
@@ -30,7 +30,7 @@ void TerrainDataEditor::SetTerrainToModify(ze::Terrain* pTerrain)
 	ComPtr<ID3D11Texture2D> cpStagingHeightMap;
 	hr = pDevice->CreateTexture2D(&heightMapDesc, nullptr, cpStagingHeightMap.GetAddressOf());
 	if (FAILED(hr))
-		;
+		ze::Debug::ForceCrashWithHRESULTErrorMessageBox(L"Failed to create staging terrain data. ID3D11Device::CreateTexture2D()", hr);
 
 	normalMapDesc.Usage = D3D11_USAGE_STAGING;
 	normalMapDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
@@ -38,7 +38,7 @@ void TerrainDataEditor::SetTerrainToModify(ze::Terrain* pTerrain)
 	ComPtr<ID3D11Texture2D> cpStagingNormalMap;
 	hr = pDevice->CreateTexture2D(&normalMapDesc, nullptr, cpStagingNormalMap.GetAddressOf());
 	if (FAILED(hr))
-		;
+		ze::Debug::ForceCrashWithHRESULTErrorMessageBox(L"Failed to create staging terrain data. ID3D11Device::CreateTexture2D()", hr);
 
 	blendMapDesc.Usage = D3D11_USAGE_STAGING;
 	blendMapDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
@@ -46,7 +46,7 @@ void TerrainDataEditor::SetTerrainToModify(ze::Terrain* pTerrain)
 	ComPtr<ID3D11Texture2D> cpStagingBlendMap;
 	hr = pDevice->CreateTexture2D(&blendMapDesc, nullptr, cpStagingBlendMap.GetAddressOf());
 	if (FAILED(hr))
-		;
+		ze::Debug::ForceCrashWithHRESULTErrorMessageBox(L"Failed to create staging terrain data. ID3D11Device::CreateTexture2D()", hr);
 
 	patchCtrlPtBufferDesc.Usage = D3D11_USAGE_STAGING;
 	patchCtrlPtBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
@@ -54,7 +54,7 @@ void TerrainDataEditor::SetTerrainToModify(ze::Terrain* pTerrain)
 	ComPtr<ID3D11Buffer> cpStagingPatchCtrlPtBuffer;
 	hr = pDevice->CreateBuffer(&patchCtrlPtBufferDesc, nullptr, cpStagingPatchCtrlPtBuffer.GetAddressOf());
 	if (FAILED(hr))
-		;
+		ze::Debug::ForceCrashWithHRESULTErrorMessageBox(L"Failed to create staging terrain data. ID3D11Device::CreateBuffer()", hr);
 
 	pDeviceContext->CopyResource(cpStagingHeightMap.Get(), pHeightMap);
 	pDeviceContext->CopyResource(cpStagingNormalMap.Get(), pNormalMap);
@@ -65,4 +65,6 @@ void TerrainDataEditor::SetTerrainToModify(ze::Terrain* pTerrain)
 	m_cpStagingNormalMap = std::move(cpStagingNormalMap);
 	m_cpStagingBlendMap = std::move(cpStagingBlendMap);
 	m_cpStagingPatchCtrlPtBuffer = std::move(cpStagingPatchCtrlPtBuffer);
+
+	m_pTerrainToModify = pTerrain;
 }

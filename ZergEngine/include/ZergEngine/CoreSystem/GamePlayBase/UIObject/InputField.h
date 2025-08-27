@@ -7,8 +7,10 @@ namespace ze
 	class InputField : public ISizeColorUIObject
 	{
 	public:
-		InputField(uint64_t id ,UIOBJECT_FLAG flag, PCWSTR name);
+		InputField(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name);
 		virtual ~InputField() = default;
+
+		virtual UIOBJECT_TYPE GetType() const override { return UIOBJECT_TYPE::INPUT_FIELD; }
 
 		// Input Field 박스의 배경 색상을 가져옵니다.
 		const XMFLOAT4& GetBkColor() const { return m_bkColor; }

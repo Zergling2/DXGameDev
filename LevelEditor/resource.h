@@ -106,9 +106,14 @@
 #define IDC_EDIT_SPOT_LIGHT_ATT_Y       1077
 #define IDC_EDIT_SPOT_LIGHT_ATT_Z       1078
 #define IDC_TAB_LIGHTING_MAIN           1079
-#define IDC_COMBO_ENVIRONMENT_SKYBOX_MATERIAL 1080
 #define IDC_COMBO_ENVIRONMENT_SKYBOX_TEXTURE 1080
 #define IDC_CHECK_ENVIRONMENT_FOG       1081
+#define IDC_RADIO_LAYER0                1083
+#define IDC_RADIO_LAYER1                1084
+#define IDC_RADIO_LAYER2                1085
+#define IDC_RADIO_LAYER3                1086
+#define IDC_RADIO_LAYER4                1087
+#define IDC_STATIC_LAYER_MODIFYING      1088
 #define ID_FILE_NEWSCENE                32771
 #define ID_FILE_OPENSCENE               32772
 #define ID_Menu                         32773
@@ -166,7 +171,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        331
 #define _APS_NEXT_COMMAND_VALUE         32821
-#define _APS_NEXT_CONTROL_VALUE         1082
+#define _APS_NEXT_CONTROL_VALUE         1089
 #define _APS_NEXT_SYMED_VALUE           328
 #endif
 #endif

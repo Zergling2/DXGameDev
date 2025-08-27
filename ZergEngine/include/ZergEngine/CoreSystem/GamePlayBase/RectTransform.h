@@ -29,7 +29,7 @@ namespace ze
 		friend class Renderer;
 		friend class ISizeUIObject;
 	public:
-		RectTransform(IUIObject* pUIObject) noexcept
+		RectTransform(IUIObject* pUIObject)
 			: m_pUIObject(pUIObject)
 			, m_pParentTransform(nullptr)
 			, m_children()
@@ -47,7 +47,7 @@ namespace ze
 		VERTICAL_ANCHOR GetVerticalAnchor() const { return m_va; }
 		void SetHorizontalAnchor(HORIZONTAL_ANCHOR ha) { m_ha = ha; }
 		void SetVerticalAnchor(VERTICAL_ANCHOR va) { m_va = va; }
-		XMVECTOR XM_CALLCONV GetLocalPosition() const { return XMLoadFloat2(&m_position); }
+		XMVECTOR GetLocalPosition() const { return XMLoadFloat2(&m_position); }
 
 		void XM_CALLCONV Translate(FXMVECTOR translation) { XMStoreFloat2(&m_position, XMVectorAdd(XMLoadFloat2(&m_position), translation)); }
 		void XM_CALLCONV SetPosition(FXMVECTOR position) { XMStoreFloat2(&m_position, position); }
@@ -60,8 +60,8 @@ namespace ze
 
 		// UIObjectHandle GetChild(uint32_t index);
 	private:
-		XMVECTOR XM_CALLCONV GetPreNDCPosition() const;
-		XMVECTOR XM_CALLCONV GetWindowsScreenPosition() const;
+		XMVECTOR GetPreNDCPosition() const;
+		XMVECTOR GetWindowsScreenPosition() const;
 	private:
 		IUIObject* m_pUIObject;
 		RectTransform* m_pParentTransform;

@@ -2,6 +2,12 @@
 
 #include "CLVItemInterface.h"
 
+class EditorTerrainData
+{
+public:
+private:
+};
+
 class CLVItemTerrain : public ICLVItem
 {
 public:

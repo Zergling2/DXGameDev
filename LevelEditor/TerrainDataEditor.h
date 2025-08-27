@@ -6,7 +6,7 @@ class TerrainDataEditor
 {
 public:
 	TerrainDataEditor()
-		: m_pTerrain(nullptr)
+		: m_pTerrainToModify(nullptr)
 		, m_cpStagingHeightMap()
 		, m_cpStagingNormalMap()
 		, m_cpStagingBlendMap()
@@ -16,15 +16,13 @@ public:
 	~TerrainDataEditor() = default;
 
 	void SetTerrainToModify(ze::Terrain* pTerrain);			// pTerrain이 소유하고 있는 자료형과 동일한 스테이징 자원들 생성
-	ze::Terrain* GetTerrain() const { return m_pTerrain; }
 
-	void IncreaseHeight(size_t row, size_t column, float radius);
-	void DecreaseHeight(size_t row, size_t column, float radius);
-	
-	// 선택 한 좌표로부터 범위 내 정점들의 높이를 일치시킨다.
-	void Flatten(size_t row, size_t column, float radius);
+	void RaiseOrLowerTerrain(bool raise, const ze::Ray& ray, float radius, float opacity);
+	void PaintTexture(const ze::Ray& ray, float radius, uint8_t opacity);
+	void SetHeight(const ze::Ray& ray, float radius, float opacity);
+	void SmoothHeight(const ze::Ray& ray, float radius, float opacity);
 private:
-	ze::Terrain* m_pTerrain;
+	ze::Terrain* m_pTerrainToModify;
 	ComPtr<ID3D11Texture2D> m_cpStagingHeightMap;
 	ComPtr<ID3D11Texture2D> m_cpStagingNormalMap;
 	ComPtr<ID3D11Texture2D> m_cpStagingBlendMap;

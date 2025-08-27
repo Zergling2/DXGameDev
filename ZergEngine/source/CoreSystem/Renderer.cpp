@@ -167,7 +167,7 @@ void Renderer::RenderFrame()
 			light[index].specular = pLight->m_specular;
 			XMStoreFloat3(
 				&light[index].directionW,
-				XMVector3Rotate(Math::Vector3::FORWARD, rotation)
+				XMVector3Rotate(Math::Vector3::Forward(), rotation)
 			);
 
 			++index;
@@ -246,7 +246,7 @@ void Renderer::RenderFrame()
 
 			XMStoreFloat3(
 				&light[index].directionW,
-				XMVector3Rotate(Math::Vector3::FORWARD, rotation)
+				XMVector3Rotate(Math::Vector3::Forward(), rotation)
 			);
 			light[index].spotExp = pLight->m_spotExp;
 
@@ -449,17 +449,18 @@ void Renderer::RenderFrame()
 				case UIOBJECT_TYPE::PANEL:
 					this->RenderPanel(static_cast<const Panel*>(pUIObject));
 					break;
+				case UIOBJECT_TYPE::IMAGE:
+					this->RenderImage(static_cast<const Image*>(pUIObject));
+					break;
+				case UIOBJECT_TYPE::TEXT:
+					this->RenderText(static_cast<const Text*>(pUIObject));
+					break;
+				case UIOBJECT_TYPE::INPUT_FIELD:
+					break;
 				case UIOBJECT_TYPE::BUTTON:
 					this->RenderButton(static_cast<const Button*>(pUIObject));
 					break;
 				case UIOBJECT_TYPE::IMAGE_BUTTON:
-					break;
-				case UIOBJECT_TYPE::IMAGE:
-					this->RenderImage(static_cast<const Image*>(pUIObject));
-					break;
-				case UIOBJECT_TYPE::INPUT_FIELD:
-					break;
-				case UIOBJECT_TYPE::TEXT:
 					break;
 				default:
 					break;
@@ -746,58 +747,6 @@ void Renderer::RenderPanel(const Panel* pPanel)
 	HRESULT hr = pD2DRenderTarget->EndDraw();
 }
 
-void Renderer::RenderButton(const Button* pButton)
-{
-	// 1. 버튼 프레임 렌더링
-	ID3D11Buffer* vbs[] = { m_pButtonVB };
-	UINT strides[] = { sizeof(VFButton) };
-	UINT offsets[] = { 0 };
-
-	m_effectImmediateContext.IASetVertexBuffers(0, 1, vbs, strides, offsets);
-
-	m_buttonEffect.SetPressed(pButton->IsPressed());
-	m_buttonEffect.SetColor(pButton->GetColorVector());
-	m_buttonEffect.SetPreNDCPosition(pButton->m_transform.GetPreNDCPosition());
-	m_buttonEffect.SetSize(pButton->GetSizeVector());
-
-	m_effectImmediateContext.Apply(&m_buttonEffect);
-	m_effectImmediateContext.Draw(30, 0);
-
-	// 2. 버튼 텍스트 렌더링
-	UINT32 textLength = static_cast<UINT32>(pButton->GetTextLength());
-	if (textLength == 0)
-		return;
-
-	ID2D1RenderTarget* pD2DRenderTarget = GraphicDevice::GetInstance()->GetD2DRenderTarget();
-	ID2D1SolidColorBrush* pSolidColorBrush = GraphicDevice::GetInstance()->GetD2DSolidColorBrush();
-	const RectTransform& transform = pButton->m_transform;
-	D2D1_RECT_F layoutRect;
-	XMFLOAT2A windowsButtonCenter;
-	XMStoreFloat2A(&windowsButtonCenter, transform.GetWindowsScreenPosition());
-	if (pButton->IsPressed())
-	{
-		windowsButtonCenter.x += 1.0f;
-		windowsButtonCenter.y += 1.0f;
-	}
-
-	layoutRect.left = windowsButtonCenter.x - pButton->m_halfSize.x;
-	layoutRect.right = layoutRect.left + pButton->m_size.x;
-	layoutRect.top = windowsButtonCenter.y - pButton->m_halfSize.y;
-	layoutRect.bottom = layoutRect.top + pButton->m_size.y;
-
-	pSolidColorBrush->SetColor(reinterpret_cast<const D2D1_COLOR_F&>(pButton->GetTextColor()));
-	pD2DRenderTarget->BeginDraw();
-	pD2DRenderTarget->DrawTextW(
-		pButton->GetText(),
-		textLength,
-		GraphicDevice::GetInstance()->GetDefaultDWriteTextFormat(),
-		layoutRect,
-		pSolidColorBrush
-	);
-
-	HRESULT hr = pD2DRenderTarget->EndDraw();
-}
-
 void Renderer::RenderImage(const Image* pImage)
 {
 	m_imageEffect.SetPreNDCPosition(pImage->m_transform.GetPreNDCPosition());
@@ -808,59 +757,67 @@ void Renderer::RenderImage(const Image* pImage)
 	m_effectImmediateContext.Draw(4, 0);
 }
 
-/*
-void Renderer::RenderTerrain(ID3D11DeviceContext* pDeviceContext, const Terrain* pTerrain)
+void Renderer::RenderText(const Text* pText)
 {
-	assert(pDeviceContext != nullptr && pTerrain != nullptr);
-
-	assert(m_pCbPerTerrain != nullptr);
-
-	HRESULT hr;
-	D3D11_MAPPED_SUBRESOURCE mapped;
-
-	// 버텍스 버퍼 설정
-	const UINT strides[] = { sizeof(VertexFormat::TerrainControlPoint) };
-	const UINT offsets[] = { 0 };
-	ID3D11Buffer* const vb[] = { pTerrain->GetPatchControlPointBufferComInterface() };
-	this->GetDeviceContext()->IASetVertexBuffers(0, 1, vb, stride, offset);
-
-	// 인덱스 버퍼 설정
-	this->GetDeviceContext()->IASetIndexBuffer(pTerrain->GetPatchControlPointIndexBufferComInterface(), DXGI_FORMAT_R32_UINT, 0);
-
-	// PerTerrain 상수버퍼 업데이트 및 바인딩
-	ConstantBuffer::PerTerrain cbPerTerrain;
-
-	// const XMMATRIX w = XMMatrixTranslationFromVector(camPos);
-	// XMStoreFloat4x4A(&cbPerTerrain.cbpt_w, ConvertToHLSLMatrix(w));		// 셰이더에서 미사용
-	// XMStoreFloat4x4A(&cbPerTerrain.cbpt_wInvTr, TransposeAndConvertToHLSLMatrix(XMMatrixInverse(&det, w)));	// 셰이더에서 미사용
-	XMStoreFloat4x4A(&cbPerTerrain.cbpt_wvp, ConvertToHLSLMatrix(XMLoadFloat4x4A(&m_vp)));	// 월드변환은 생략 (지형이 이미 월드 공간에서 정의되었다고 가정하므로)
-	cbPerTerrain.cbptTerrainTextureTiling = pTerrain->GetTextureScale();
-	cbPerTerrain.cbptTerrainCellSpacing = pTerrain->GetCellSpacing();
-	cbPerTerrain.cbptTerrainTexelSpacingU = pTerrain->GetTexelSpacingU();
-	cbPerTerrain.cbptTerrainTexelSpacingV = pTerrain->GetTexelSpacingV();
-	hr = this->GetDeviceContext()->Map(
-		m_pCbPerTerrain,
-		0,
-		D3D11_MAP_WRITE_DISCARD,
-		0,
-		&mapped
-	);
-	if (FAILED(hr))
+	UINT32 textLength = static_cast<UINT32>(pText->GetTextLength());
+	if (textLength == 0)
 		return;
-	memcpy(mapped.pData, &cbPerTerrain, sizeof(cbPerTerrain));
-	this->GetDeviceContext()->Unmap(m_pCbPerTerrain, 0);
 
-	ID3D11Buffer* const cbs[] = { m_pCbPerTerrain };
-	this->GetDeviceContext()->DSSetConstantBuffers(ConstantBuffer::PerTerrain::GetSlotNumber(), _countof(cbs), cbs);
-	this->GetDeviceContext()->PSSetConstantBuffers(ConstantBuffer::PerTerrain::GetSlotNumber(), _countof(cbs), cbs);
+	ID2D1RenderTarget* pD2DRenderTarget = GraphicDevice::GetInstance()->GetD2DRenderTarget();
+	ID2D1SolidColorBrush* pBrush = GraphicDevice::GetInstance()->GetD2DSolidColorBrush();
+	IDWriteTextFormat* pDWriteTextFormat = pText->GetDWriteTextFormatComInterface();
 
-	// 셰이더 리소스 설정
-	ID3D11ShaderResourceView* const srvs[] = { pTerrain->GetHeightMapSRV() };
-	this->GetDeviceContext()->VSSetShaderResources(ShaderResourceSlot::HeightmapSlot::GetSlotNumber(), _countof(srvs), srvs);
-	this->GetDeviceContext()->DSSetShaderResources(ShaderResourceSlot::HeightmapSlot::GetSlotNumber(), _countof(srvs), srvs);
-	this->GetDeviceContext()->PSSetShaderResources(ShaderResourceSlot::HeightmapSlot::GetSlotNumber(), _countof(srvs), srvs);
+	pBrush->SetColor(reinterpret_cast<const D2D1_COLOR_F&>(pText->GetColor()));
+	pDWriteTextFormat->SetTextAlignment(pText->GetTextAlignment());
+	pDWriteTextFormat->SetParagraphAlignment(pText->GetParagraphAlignment());
 
-	// 드로우
-	this->GetDeviceContext()->DrawIndexed(pTerrain->GetPatchControlPointIndexCount(), 0, 0);
+	const RectTransform& transform = pText->m_transform;
+	D2D1_RECT_F layoutRect;
+	XMFLOAT2A windowsButtonCenter;
+	XMStoreFloat2A(&windowsButtonCenter, transform.GetWindowsScreenPosition());
+	if (pText->GetType() == UIOBJECT_TYPE::BUTTON)
+	{
+		if (static_cast<const Button*>(pText)->IsPressed())	// 버튼이 눌린 상태이면 텍스트 위치도 살짝 우하단으로 내려서 입체감 부여
+		{
+			windowsButtonCenter.x += 1.0f;
+			windowsButtonCenter.y += 1.0f;
+		}
+	}
+
+	layoutRect.left = windowsButtonCenter.x - pText->m_halfSize.x;
+	layoutRect.right = layoutRect.left + pText->m_size.x;
+	layoutRect.top = windowsButtonCenter.y - pText->m_halfSize.y;
+	layoutRect.bottom = layoutRect.top + pText->m_size.y;
+
+	pD2DRenderTarget->BeginDraw();
+	pD2DRenderTarget->DrawTextW(
+		pText->GetText(),
+		textLength,
+		pDWriteTextFormat,
+		layoutRect,
+		pBrush
+	);
+
+	HRESULT hr = pD2DRenderTarget->EndDraw();
 }
-*/
+
+void Renderer::RenderButton(const Button* pButton)
+{
+	// 1. 버튼 프레임 렌더링
+	ID3D11Buffer* vbs[] = { m_pButtonVB };
+	UINT strides[] = { sizeof(VFButton) };
+	UINT offsets[] = { 0 };
+
+	m_effectImmediateContext.IASetVertexBuffers(0, 1, vbs, strides, offsets);
+
+	m_buttonEffect.SetPressed(pButton->IsPressed());
+	m_buttonEffect.SetColor(pButton->GetButtonColorVector());
+	m_buttonEffect.SetPreNDCPosition(pButton->m_transform.GetPreNDCPosition());
+	m_buttonEffect.SetSize(pButton->GetSizeVector());
+
+	m_effectImmediateContext.Apply(&m_buttonEffect);
+	m_effectImmediateContext.Draw(30, 0);
+
+	// 2. 버튼 텍스트 렌더링
+	this->RenderText(static_cast<const Text*>(pButton));
+}

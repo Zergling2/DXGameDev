@@ -35,8 +35,8 @@ void FirstPersonCamera::Update()
 
 	const float dt = Time::GetInstance()->GetDeltaTime();
 	XMVECTOR localRotation = pGameObject->m_transform.GetLocalRotation();
-	XMVECTOR worldForwardAxis = XMVector3Rotate(Math::Vector3::FORWARD, localRotation);
-	XMVECTOR worldRightAxis = XMVector3Rotate(Math::Vector3::RIGHT, localRotation);
+	XMVECTOR worldForwardAxis = XMVector3Rotate(Math::Vector3::Forward(), localRotation);
+	XMVECTOR worldRightAxis = XMVector3Rotate(Math::Vector3::Right(), localRotation);
 
 	const int32_t mx = Input::GetInstance()->GetMouseAxisHorizontal();
 	const int32_t my = Input::GetInstance()->GetMouseAxisVertical();

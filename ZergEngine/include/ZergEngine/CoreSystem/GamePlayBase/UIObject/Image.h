@@ -11,6 +11,8 @@ namespace ze
 		Image(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name);
 		virtual ~Image() = default;
 
+		virtual UIOBJECT_TYPE GetType() const override { return UIOBJECT_TYPE::IMAGE; }
+
 		void SetTexture(const Texture2D& texture);
 		Texture2D& GetTexture() { return m_texture; }
 		const Texture2D& GetTexture() const { return m_texture; }

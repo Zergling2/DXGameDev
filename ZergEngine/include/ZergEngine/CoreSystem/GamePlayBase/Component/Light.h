@@ -9,7 +9,7 @@ namespace ze
 	public:
 		static constexpr bool IsCreatable() { return true; }
 
-		ILight(uint64_t id) noexcept
+		ILight(uint64_t id)
 			: IComponent(id)
 			, m_ambient(1.0f, 1.0f, 1.0f, 1.0f)
 			, m_diffuse(1.0f, 1.0f, 1.0f, 1.0f)
@@ -30,7 +30,7 @@ namespace ze
 		static constexpr COMPONENT_TYPE TYPE = COMPONENT_TYPE::DIRECTIONAL_LIGHT;
 		static constexpr bool IsCreatable() { return ILight::IsCreatable(); }
 
-		DirectionalLight() noexcept;
+		DirectionalLight();
 		virtual ~DirectionalLight() = default;
 		virtual COMPONENT_TYPE GetType() const override { return COMPONENT_TYPE::DIRECTIONAL_LIGHT; }
 	private:
@@ -43,7 +43,7 @@ namespace ze
 		static constexpr COMPONENT_TYPE TYPE = COMPONENT_TYPE::POINT_LIGHT;
 		static constexpr bool IsCreatable() { return ILight::IsCreatable(); }
 
-		PointLight() noexcept;
+		PointLight();
 		virtual ~PointLight() = default;
 		virtual COMPONENT_TYPE GetType() const override { return COMPONENT_TYPE::POINT_LIGHT; }
 	private:
@@ -63,7 +63,7 @@ namespace ze
 		static constexpr COMPONENT_TYPE TYPE = COMPONENT_TYPE::SPOT_LIGHT;
 		static constexpr bool IsCreatable() { return ILight::IsCreatable(); }
 
-		SpotLight() noexcept;
+		SpotLight();
 		virtual ~SpotLight() = default;
 		virtual COMPONENT_TYPE GetType() const override { return COMPONENT_TYPE::SPOT_LIGHT; }
 	private:

@@ -7,7 +7,7 @@ namespace ze
 	class ISizeColorUIObject : public ISizeUIObject
 	{
 	public:
-		ISizeColorUIObject(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name, UIOBJECT_TYPE type);
+		ISizeColorUIObject(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name);
 		virtual ~ISizeColorUIObject() = default;
 
 		const XMFLOAT4& GetColor() const { return m_color; }

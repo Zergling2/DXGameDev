@@ -42,6 +42,10 @@ public:
 #endif
 	void SetCLVItemToModify(CLVItemTerrain* pItem);
 	CLVItemTerrain* GetCLVItemToModify() const { return m_pItem; }
+
+	TerrainDataEditor& GetTerrainDataEditor() { return m_tde; }
+	TERRAIN_BRUSH_TYPE GetTerrainBrushType() const { return m_currentTerrainBrushType; }
+	TERRAIN_EDIT_MODE GetTerrainEditMode() const { return m_currentTerrainEditMode; }
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
@@ -72,8 +76,15 @@ public:
 	CStatic m_staticTerrainNormalLayer;
 	CComboBox m_comboTerrainDiffuseLayer;
 	CComboBox m_comboTerrainNormalLayer;
+	CStatic m_staticLayerModifying;
+	CButton m_radioLayerModifying0;
+	CButton m_radioLayerModifying1;
+	CButton m_radioLayerModifying2;
+	CButton m_radioLayerModifying3;
+	CButton m_radioLayerModifying4;
 	CButton m_buttonRemoveTerrainDiffuseLayer;
 	CButton m_buttonRemoveTerrainNormalLayer;
+	size_t m_modifyingLayerIndex;
 	// Set Height
 	CStatic m_staticSetTerrainHeightValue;
 	CEdit m_editSetTerrainHeightValue;
@@ -85,8 +96,9 @@ public:
 	CStatic m_staticTerrainInfo;
 public:
 	virtual void OnInitialUpdate();
-	afx_msg void OnBnClickedTerrainBrushType(UINT id);
 	afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
+	afx_msg void OnBnClickedTerrainBrushType(UINT id);
+	afx_msg void OnBnClickedTerrainLayerToModify(UINT id);
 	afx_msg void OnCbnSelchangeComboTerrainEditMode();
 	afx_msg void OnEnUpdateEditSetTerrainHeightValue();
 	afx_msg void OnCbnSelchangeComboTerrainDiffuseLayer();

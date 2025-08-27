@@ -5,7 +5,7 @@
 
 using namespace ze;
 
-XMVECTOR XM_CALLCONV RectTransform::GetPreNDCPosition() const
+XMVECTOR RectTransform::GetPreNDCPosition() const
 {
     XMFLOAT2A basis;
 
@@ -38,7 +38,7 @@ XMVECTOR XM_CALLCONV RectTransform::GetPreNDCPosition() const
     return XMVectorAdd(XMLoadFloat2A(&basis), XMLoadFloat2(&m_position));
 }
 
-XMVECTOR XM_CALLCONV RectTransform::GetWindowsScreenPosition() const
+XMVECTOR RectTransform::GetWindowsScreenPosition() const
 {
     XMFLOAT2A basis;
     XMFLOAT2A windowsPosition(m_position.x, -m_position.y);

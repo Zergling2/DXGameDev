@@ -53,8 +53,8 @@ void EditorCameraScript::MoveCamera()
 	const float dt = ze::Time::GetInstance()->GetDeltaTime();
 
 	XMVECTOR localRotation = pGameObject->m_transform.GetLocalRotation();
-	XMVECTOR worldForwardAxis = XMVector3Rotate(ze::Math::Vector3::FORWARD, localRotation);
-	XMVECTOR worldRightAxis = XMVector3Rotate(ze::Math::Vector3::RIGHT, localRotation);
+	XMVECTOR worldForwardAxis = XMVector3Rotate(ze::Math::Vector3::Forward(), localRotation);
+	XMVECTOR worldRightAxis = XMVector3Rotate(ze::Math::Vector3::Right(), localRotation);
 
 	const int32_t mx = ze::Input::GetInstance()->GetMouseAxisHorizontal();
 	const int32_t my = ze::Input::GetInstance()->GetMouseAxisVertical();
@@ -89,15 +89,47 @@ void EditorCameraScript::MoveCamera()
 		pGameObject->m_transform.Translate(worldRightAxis * speed);
 }
 
+static void BrushTerrain(CTerrainInspectorFormView* pTerrainInspectorFormView, TERRAIN_EDIT_MODE tem, const ze::Ray& ray)
+{
+	TerrainDataEditor& tde = pTerrainInspectorFormView->GetTerrainDataEditor();
+
+	switch (tem)
+	{
+	case TERRAIN_EDIT_MODE::RAISE_OR_LOWER_TERRAIN:
+		break;
+	case TERRAIN_EDIT_MODE::PAINT_TEXTURE:
+		// tde.
+		break;
+	case TERRAIN_EDIT_MODE::SET_HEIGHT:
+		break;
+	case TERRAIN_EDIT_MODE::SMOOTH_HEIGHT:
+		break;
+	}
+}
+
 void EditorCameraScript::EditTerrain(CTerrainInspectorFormView* pTerrainInspectorFormView)
 {
 	POINT currMousePos = ze::Input::GetInstance()->GetMousePosition();
 
 	ze::Camera* pCamera = m_camera.ToPtr();
 	POINT pt = pCamera->ScreenPointToCameraPoint(currMousePos);
+	// POINT pt = currMousePos;	// ze::Camera::ScreenPointToCameraPoint 함수는 전체화면 카메라의 경우 생략 가능하긴 함
 	ze::Ray ray = pCamera->ScreenPointToRay(pt);
 
-	OutputDebugString(_T("EditTerrain\n"));
+	const TERRAIN_BRUSH_TYPE tbt = pTerrainInspectorFormView->GetTerrainBrushType();
+	const TERRAIN_EDIT_MODE tem = pTerrainInspectorFormView->GetTerrainEditMode();
+	switch (tbt)
+	{
+	case TERRAIN_BRUSH_TYPE::BRUSH_TERRAIN:
+		BrushTerrain(pTerrainInspectorFormView, tem, ray);
+		break;
+	case TERRAIN_BRUSH_TYPE::BRUSH_TREE:
+		break;
+	case TERRAIN_BRUSH_TYPE::BRUSH_GRASS:
+		break;
+	default:
+		break;
+	}
 }
 
 void EditorCameraScript::UpdateMouseMovedInfo()

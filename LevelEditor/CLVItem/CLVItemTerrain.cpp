@@ -19,7 +19,7 @@ void CLVItemTerrain::OnSelect()
 	if (pHeightMap)
 	{
 		pHeightMap->GetDesc(&heightMapDesc);
-		TCHAR str[64];
+		TCHAR str[100];
 		StringCbPrintf(
 			str, sizeof(str),
 			_T("Height Map: %u x %u \nCell Size: %f \nHeight Scale: %f"),

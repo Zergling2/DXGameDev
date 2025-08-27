@@ -4,7 +4,7 @@
 
 using namespace ze;
 
-Transform::Transform(GameObject* pGameObject) noexcept
+Transform::Transform(GameObject* pGameObject)
     : m_pGameObject(pGameObject)
     , m_pParentTransform(nullptr)
     , m_children()
@@ -14,7 +14,7 @@ Transform::Transform(GameObject* pGameObject) noexcept
 	XMStoreFloat3A(&m_position, XMVectorZero());
 }
 
-XMMATRIX Transform::GetWorldTransformMatrix() const noexcept
+XMMATRIX Transform::GetWorldTransformMatrix() const
 {
     assert(m_pGameObject != nullptr);
 
@@ -24,7 +24,7 @@ XMMATRIX Transform::GetWorldTransformMatrix() const noexcept
         return this->GetLocalTransformMatrix();
 }
 
-XMVECTOR XM_CALLCONV Transform::GetWorldRotation() const
+XMVECTOR Transform::GetWorldRotation() const
 {
     assert(m_pGameObject != nullptr);
 
@@ -34,7 +34,7 @@ XMVECTOR XM_CALLCONV Transform::GetWorldRotation() const
         return this->GetLocalRotation();
 }
 
-XMVECTOR XM_CALLCONV Transform::GetWorldPosition() const
+XMVECTOR Transform::GetWorldPosition() const
 {
     assert(m_pGameObject != nullptr);
 

@@ -301,8 +301,8 @@ void Camera::UpdateViewMatrix()
 
 	XMMatrixDecompose(&scale, &rotation, &translation, w);
 
-	const XMVECTOR forward = XMVector3Rotate(Math::Vector3::FORWARD, rotation);
-	const XMVECTOR up = XMVector3Rotate(Math::Vector3::UP, rotation);
+	const XMVECTOR forward = XMVector3Rotate(Math::Vector3::Forward(), rotation);
+	const XMVECTOR up = XMVector3Rotate(Math::Vector3::Up(), rotation);
 	const XMVECTOR eye = translation;
 	const XMVECTOR at = eye + forward;
 

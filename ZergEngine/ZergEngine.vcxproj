@@ -22,9 +22,11 @@
     <ClInclude Include="include\ZergEngine\Common\DisplayMode.h" />
     <ClInclude Include="include\ZergEngine\Common\EngineConstants.h" />
     <ClInclude Include="include\ZergEngine\Common\EngineHelper.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Aabb.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Frustum.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Plane.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Ray.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Triangle.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DeviceContext\EffectDeviceContext.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectP.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPC.h" />
@@ -37,7 +39,6 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DummyEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\EffectInterface.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\SkyboxEffect.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\UIHitbox.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\ViewportRect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\TerrainEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\AudioSource.h" />
@@ -61,7 +62,6 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\MonoBehaviourManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\SpotLightManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\TerrainManager.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Aabb.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\FileSystem.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\GameObjectManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\EnvironmentManager.h" />
@@ -84,6 +84,7 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\GameObject.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\MemoryAllocator.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\RenderState.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Font.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\SceneTable.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\ShaderResource\ConstantBuffer.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\ShaderResource\VertexBuffer.h" />
@@ -103,10 +104,10 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Texture.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Time.h" />
     <ClInclude Include="include\ZergEngine\ZergEngine.h" />
-    <ClCompile Include="source\CoreSystem\DataStructure\Aabb.cpp" />
     <ClCompile Include="source\CoreSystem\DataStructure\Frustum.cpp" />
     <ClCompile Include="source\CoreSystem\DataStructure\Plane.cpp" />
     <ClCompile Include="source\CoreSystem\DataStructure\Ray.cpp" />
+    <ClCompile Include="source\CoreSystem\DataStructure\Triangle.cpp" />
     <ClCompile Include="source\CoreSystem\DeviceContext\EffectDeviceContext.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectP.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectPC.cpp" />
@@ -151,6 +152,7 @@
     <ClCompile Include="source\CoreSystem\MemoryAllocator.cpp" />
     <ClCompile Include="source\CoreSystem\ResourceLoader.cpp" />
     <ClCompile Include="source\CoreSystem\RenderState.cpp" />
+    <ClCompile Include="source\CoreSystem\Resource\Font.cpp" />
     <ClCompile Include="source\CoreSystem\SceneTable.cpp" />
     <ClCompile Include="source\CoreSystem\ShaderResource\ConstantBuffer.cpp" />
     <ClCompile Include="source\CoreSystem\ShaderResource\VertexBuffer.cpp" />

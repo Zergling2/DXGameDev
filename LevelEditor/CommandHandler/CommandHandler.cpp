@@ -284,8 +284,7 @@ void OnCreateAssetMaterial()
 	// 현재 선택된 항목을 부모로 새 하위항목 생성
 	HTREEITEM hParent = hSelectedItem;
 
-	ATVItemMaterial* pATVItemMaterial = new ATVItemMaterial();
-	pATVItemMaterial->m_spMaterial = ze::ResourceLoader::GetInstance()->CreateMaterial();
+	ATVItemMaterial* pATVItemMaterial = new ATVItemMaterial(ze::ResourceLoader::GetInstance()->CreateMaterial());
 	const HTREEITEM hNewItem = tc.InsertItem(L"New Material",
 		ZE_ICON_INDEX::MATERIAL_ICON,
 		ZE_ICON_INDEX::MATERIAL_ICON,

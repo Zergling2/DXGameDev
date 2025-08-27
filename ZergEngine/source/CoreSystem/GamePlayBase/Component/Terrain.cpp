@@ -395,7 +395,7 @@ bool Terrain::SetHeightMap(Texture2D heightMap, float cellSize, float heightScal
 	blendMapDesc.MiscFlags = 0;
 
 	const size_t blendMapByteSize = 4 * blendMapDesc.Width * blendMapDesc.Height;
-	std::vector<uint8_t> blendMapData(blendMapByteSize);
+	std::vector<uint8_t> blendMapData(blendMapByteSize);	// 0으로 초기화된 데이터
 	// ZeroMemory(blendMapData.data(), blendMapByteSize);
 	D3D11_SUBRESOURCE_DATA blendMapInitialData;
 	blendMapInitialData.pSysMem = blendMapData.data();
@@ -429,9 +429,6 @@ bool Terrain::SetHeightMap(Texture2D heightMap, float cellSize, float heightScal
 
 bool Terrain::SetTextureLayer(Texture2D diffuseMapLayer, Texture2D normalMapLayer)
 {
-	D3D11_TEXTURE2D_DESC diffuseMapLayerDesc;
-	D3D11_TEXTURE2D_DESC normalMapLayerDesc;
-
 	m_diffuseMapLayer = std::move(diffuseMapLayer);
 	m_normalMapLayer = std::move(normalMapLayer);
 

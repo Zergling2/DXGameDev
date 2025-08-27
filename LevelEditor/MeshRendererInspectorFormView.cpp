@@ -209,7 +209,7 @@ void CMeshRendererInspectorFormView::OnCbnSelchangeComboSelectMaterial()
 
 	ze::MeshRenderer* pMeshRenderer = this->GetCLVItemToModify()->GetMeshRenderer();
 	assert(subsetSel < pMeshRenderer->m_mesh->m_subsets.size());
-	pMeshRenderer->m_mesh->m_subsets[subsetSel].m_material = pATVItemMaterial->m_spMaterial;
+	pMeshRenderer->m_mesh->m_subsets[subsetSel].m_material = pATVItemMaterial->GetMaterial();
 }
 
 void CMeshRendererInspectorFormView::OnCbnDropdownComboSelectMaterial()

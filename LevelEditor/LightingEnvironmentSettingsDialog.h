@@ -23,6 +23,6 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 public:
-	afx_msg void OnCbnSelchangeComboEnvironmentSkyboxMaterial();
-	afx_msg void OnCbnDropdownComboEnvironmentSkyboxMaterial();
+	afx_msg void OnCbnSelchangeComboEnvironmentSkyboxTexture();
+	afx_msg void OnCbnDropdownComboEnvironmentSkyboxTexture();
 };

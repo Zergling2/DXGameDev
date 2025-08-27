@@ -53,40 +53,47 @@ void TestScene1::OnLoadScene()
 	{
 		UIObjectHandle hButton = CreateButton();
 		Button* pButton = static_cast<Button*>(hButton.ToPtr());
-		pButton->SetSize(XMFLOAT2(80, 40));
-		pButton->SetColor(XMVectorSet(0.25f, 0.25f, 0.75f, 0.5f));
+		pButton->SetSize(XMFLOAT2(80, 30));
+		pButton->SetButtonColor(XMVectorSet(0.25f, 0.25f, 0.75f, 0.5f));
 		pButton->m_transform.SetHorizontalAnchor(HORIZONTAL_ANCHOR::CENTER);
 		pButton->m_transform.SetVerticalAnchor(VERTICAL_ANCHOR::VCENTER);
 		pButton->m_transform.m_position.x = +90.0f;
 		pButton->m_transform.m_position.y = +30.0f;
 		pButton->SetText(L"Blue 버튼");
-		pButton->SetTextColor(XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
+		pButton->SetColor(XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
+		pButton->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 		pButton->m_transform.SetParent(&pPanel->m_transform);
 	}
 	{
 		UIObjectHandle hButton = CreateButton();
 		Button* pButton = static_cast<Button*>(hButton.ToPtr());
-		pButton->SetSize(XMFLOAT2(80, 40));
-		pButton->SetColor(XMVectorSet(0.25f, 0.75f, 0.25f, 0.5f));
+		pButton->SetSize(XMFLOAT2(80, 30));
+		pButton->SetButtonColor(XMVectorSet(0.25f, 0.75f, 0.25f, 0.5f));
 		pButton->m_transform.SetHorizontalAnchor(HORIZONTAL_ANCHOR::CENTER);
 		pButton->m_transform.SetVerticalAnchor(VERTICAL_ANCHOR::VCENTER);
 		pButton->m_transform.m_position.x = -200.0f;
 		pButton->m_transform.m_position.y = +30.0f;
 		pButton->SetText(L"Green 버튼");
-		pButton->SetTextColor(XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f));
+		pButton->SetColor(XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f));
+		pButton->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 		pButton->m_transform.SetParent(&pPanel->m_transform);
+
+		pButton->GetTextFormat().SetSize(16);
+		pButton->Refresh();
 	}
 	{
 		UIObjectHandle hButton = CreateButton();
 		Button* pButton = static_cast<Button*>(hButton.ToPtr());
-		pButton->SetSize(XMFLOAT2(80, 40));
-		pButton->SetColor(XMVectorSet(0.75f, 0.25f, 0.25f, 0.5f));
+		pButton->SetSize(XMFLOAT2(80, 30));
+		pButton->SetButtonColor(XMVectorSet(0.75f, 0.25f, 0.25f, 0.5f));
 		pButton->m_transform.SetHorizontalAnchor(HORIZONTAL_ANCHOR::CENTER);
 		pButton->m_transform.SetVerticalAnchor(VERTICAL_ANCHOR::VCENTER);
 		pButton->m_transform.m_position.x = -110.0f;
 		pButton->m_transform.m_position.y = -230.0f;
 		pButton->SetText(L"Red 버튼");
-		pButton->SetTextColor(XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f));
+		pButton->SetColor(XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f));
+		pButton->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
+		pButton->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_FAR);
 		pButton->m_transform.SetParent(&pPanel->m_transform);
 	}
 	pPanel->SetActive(false);

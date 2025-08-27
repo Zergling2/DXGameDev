@@ -73,7 +73,7 @@ GraphicDevice::GraphicDevice()
 	, m_cpSwapChainDSV()
 	, m_cpD2DRenderTarget()
 	, m_cpD2DSolidColorBrush()
-	, m_cpDefaultDWriteTextFormat()
+	, m_fontMap()
 	, m_vs{}
 	, m_hs{}
 	, m_ds{}
@@ -156,21 +156,6 @@ void GraphicDevice::Init(HWND hWnd, uint32_t width, uint32_t height, bool fullsc
 	hr = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), reinterpret_cast<IUnknown**>(m_cpDWriteFactory.GetAddressOf()));
 	if (FAILED(hr))
 		Debug::ForceCrashWithHRESULTErrorMessageBox(L"DWriteCreateFactory()", hr);
-	
-	hr = m_cpDWriteFactory->CreateTextFormat(
-		L"",
-		nullptr,
-		DWRITE_FONT_WEIGHT_NORMAL,
-		DWRITE_FONT_STYLE_NORMAL,
-		DWRITE_FONT_STRETCH_NORMAL,
-		14.0f,
-		L"ko-kr",
-		m_cpDefaultDWriteTextFormat.GetAddressOf()
-	);
-	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"IDWriteFactory::CreateTextFormat()", hr);
-	m_cpDefaultDWriteTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-	m_cpDefaultDWriteTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 
 
 	// 지원되는 해상도 목록 검색
@@ -375,7 +360,7 @@ void GraphicDevice::UnInit()
 			m_cpSwapChain->SetFullscreenState(FALSE, nullptr);
 	}
 
-	m_cpDefaultDWriteTextFormat.Reset();
+	m_fontMap.clear();	// 모든 IDWriteTextFormat COM 객체 해제
 	m_cpD2DSolidColorBrush.Reset();
 	m_cpD2DRenderTarget.Reset();
 
@@ -929,6 +914,64 @@ void GraphicDevice::UpdateEntireSwapChainViewport(uint32_t width, uint32_t heigh
 	m_entireSwapChainViewport.Height = static_cast<FLOAT>(height);
 	m_entireSwapChainViewport.MinDepth = 0.0f;
 	m_entireSwapChainViewport.MaxDepth = 1.0f;
+}
+
+std::shared_ptr<DWriteTextFormatWrapper> GraphicDevice::GetDWriteTextFormatWrapper(const TextFormat& tf)
+{
+	HRESULT hr;
+	std::shared_ptr<DWriteTextFormatWrapper> spReturn;
+	std::unordered_map<TextFormat, std::weak_ptr<DWriteTextFormatWrapper>, TextFormatHasher>::iterator iter = m_fontMap.find(tf);
+	bool createFont;
+	bool reuseNode = false;
+
+	if (iter != m_fontMap.end())	// 노드가 존재하는 경우
+	{
+		std::weak_ptr<DWriteTextFormatWrapper> wpTextFormat = iter->second;
+		if (!wpTextFormat.expired())	// 포인터도 살아있는 경우
+		{
+			createFont = false;
+			spReturn = wpTextFormat.lock();
+		}
+		else	// 노드는 존재하지만 포인터는 만료된 경우
+		{
+			// 해시맵 노드는 재사용 가능하므로 second의 weak_ptr만 다시 살아있는 포인터를 대입해준다.
+			createFont = true;
+			reuseNode = true;
+		}
+	}
+	else
+	{
+		createFont = true;
+		reuseNode = false;
+	}
+
+	if (createFont)
+	{
+		// 폰트 및 해시맵 노드 새로 생성
+		// 새로 생성
+		IDWriteTextFormat* pTextFormat = nullptr;
+		hr = m_cpDWriteFactory->CreateTextFormat(
+			tf.GetFontFamilyName().c_str(),
+			nullptr,
+			tf.GetWeight(),
+			tf.GetStyle(),
+			tf.GetStretch(),
+			static_cast<FLOAT>(tf.GetSize()),
+			L"",
+			&pTextFormat
+		);
+		if (FAILED(hr))
+			Debug::ForceCrashWithHRESULTErrorMessageBox(L"IDWriteFactory::CreateTextFormat()", hr);
+
+		spReturn = std::make_shared<DWriteTextFormatWrapper>(pTextFormat);
+
+		if (reuseNode)
+		{
+			iter->second = spReturn;
+		}
+	}
+
+	return spReturn;
 }
 
 void GraphicDevice::CreateSupportedResolutionInfo()
