@@ -26,6 +26,9 @@ namespace ze
 		// 루트 오브젝트로 이미지 UI를 생성합니다.
 		UIObjectHandle CreateImage(PCWSTR name = L"New Image");
 
+		// 루트 오브젝트로 텍스트 UI를 생성합니다.
+		UIObjectHandle CreateText(PCWSTR name = L"New Text");
+
 		// 루트 오브젝트로 버튼 UI를 생성합니다.
 		UIObjectHandle CreateButton(PCWSTR name = L"New Button");
 	private:

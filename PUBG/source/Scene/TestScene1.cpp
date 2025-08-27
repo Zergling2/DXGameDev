@@ -50,6 +50,13 @@ void TestScene1::OnLoadScene()
 	pPanel->m_transform.m_position.x = 0.0f;
 	pPanel->m_transform.m_position.y = 0.0f;
 	pPanel->SetShape(PANEL_SHAPE::ROUNDED_RECTANGLE);
+
+	UIObjectHandle hText1 = CreateText();
+	Text* pText = static_cast<Text*>(hText1.ToPtr());
+	pText->SetText(L"+");
+	pText->m_transform.SetHorizontalAnchor(HORIZONTAL_ANCHOR::CENTER);
+	pText->m_transform.SetVerticalAnchor(VERTICAL_ANCHOR::VCENTER);
+	pText->SetColor(Colors::Red);
 	{
 		UIObjectHandle hButton = CreateButton();
 		Button* pButton = static_cast<Button*>(hButton.ToPtr());

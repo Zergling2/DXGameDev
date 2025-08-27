@@ -43,6 +43,10 @@ namespace ze
 		UIObjectHandle CreateImage(PCWSTR name = L"New Image");
 
 		// (이 함수는 스크립트에서만 호출해야 합니다.)
+		// 루트 오브젝트로 텍스트 UI를 생성합니다.
+		UIObjectHandle CreateText(PCWSTR name = L"New Text");
+
+		// (이 함수는 스크립트에서만 호출해야 합니다.)
 		// 루트 오브젝트로 버튼 UI를 생성합니다.
 		UIObjectHandle CreateButton(PCWSTR name = L"New Button");
 

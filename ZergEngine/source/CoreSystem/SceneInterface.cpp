@@ -40,6 +40,15 @@ UIObjectHandle IScene::CreateImage(PCWSTR name)
 	return hNewImage;
 }
 
+UIObjectHandle IScene::CreateText(PCWSTR name)
+{
+	Text* pNewText = nullptr;
+	UIObjectHandle hNewText = UIObjectManager::GetInstance()->CreatePendingObject<Text>(&pNewText, name);
+	m_pendingUIObjects.push_back(pNewText);
+
+	return hNewText;
+}
+
 UIObjectHandle IScene::CreateButton(PCWSTR name)
 {
 	Button* pNewButton = nullptr;

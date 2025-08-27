@@ -317,6 +317,11 @@ UIObjectHandle Runtime::CreateImage(PCWSTR name)
     return UIObjectManager::GetInstance()->CreateObject<Image>(name);
 }
 
+UIObjectHandle Runtime::CreateText(PCWSTR name)
+{
+    return UIObjectManager::GetInstance()->CreateObject<Text>(name);
+}
+
 UIObjectHandle Runtime::CreateButton(PCWSTR name)
 {
     return UIObjectManager::GetInstance()->CreateObject<Button>(name);
