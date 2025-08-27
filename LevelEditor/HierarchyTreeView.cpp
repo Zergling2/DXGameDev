@@ -48,27 +48,23 @@ void CHierarchyTreeView::Dump(CDumpContext& dc) const
 #endif
 #endif //_DEBUG
 
-
-void CHierarchyTreeView::DeleteTreeItemDataRecursive(CTreeCtrl& tc, HTREEITEM hItem)
+void CHierarchyTreeView::RemoveTreeItemPostOrder(HTREEITEM hItem)
 {
-	while (hItem)
+	// 자식 항목이 있으면 자식 항목을 먼저 제거 (후위 순회)
+	CTreeCtrl& tc = this->GetTreeCtrl();
+	HTREEITEM hChildItem = tc.GetChildItem(hItem);
+	while (hChildItem != NULL)
 	{
-		// 자식 먼저 처리
-		HTREEITEM hChildItem = tc.GetChildItem(hItem);
-		if (hChildItem)
-			DeleteTreeItemDataRecursive(tc, hChildItem);
-
-		DWORD_PTR data = tc.GetItemData(hItem);
-		IHTVItem* pHTVItem = reinterpret_cast<IHTVItem*>(data);
-		assert(pHTVItem != nullptr);
-
-		delete pHTVItem;
-
-		// 다음 형제 항목
-		hItem = tc.GetNextSiblingItem(hItem);
+		HTREEITEM hNextChild = tc.GetNextSiblingItem(hChildItem);	// 미리 구해놔야 함
+		RemoveTreeItemPostOrder(hChildItem);	// 자식 항목을 후위 순회 방식으로 제거
+		hChildItem = hNextChild;				// 자식 항목의 형제 순회
 	}
-}
 
+	// 자식 항목 제거 후 자신을 삭제
+	IHTVItem* pHTVItem = reinterpret_cast<IHTVItem*>(tc.GetItemData(hItem));
+	delete pHTVItem;
+	tc.DeleteItem(hItem);
+}
 
 BOOL CHierarchyTreeView::PreCreateWindow(CREATESTRUCT& cs)
 {
@@ -235,14 +231,21 @@ void CHierarchyTreeView::OnLightSpotLight()
 	::OnLightSpotLight();
 }
 
-
 void CHierarchyTreeView::OnDestroy()
 {
 	// CTreeView::OnDestroy가 호출되면 트리 컨트롤이 파괴되므로 그 전에 트리 아이템에 부착된 동적할당 Data를 해제한다.
 	CTreeCtrl& tc = this->GetTreeCtrl();
 	HTREEITEM hRootItem = tc.GetRootItem();
-	this->DeleteTreeItemDataRecursive(tc, hRootItem);
-	// tc.DeleteAllItems();	// 객체 파괴시 자동 수행
+	// 루트 항목부터 시작하여 후위 순회 방식으로 모든 항목 제거
+	while (hRootItem != NULL)
+	{
+		HTREEITEM hNextRootItem = tc.GetNextSiblingItem(hRootItem);	// RemoveItremPostOrder 함수에 들어가면 hRootItem이 삭제되므로 미리 구해놔야 함.
+		RemoveTreeItemPostOrder(hRootItem);
+
+		// 다음 형제 항목으로
+		hRootItem = hNextRootItem;
+	}
+	tc.DeleteAllItems();	// 불필요
 
 	CTreeView::OnDestroy();
 	// TODO: Add your message handler code here

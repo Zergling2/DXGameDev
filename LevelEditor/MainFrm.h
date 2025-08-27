@@ -66,4 +66,5 @@ public:
 	afx_msg void OnCreateAssetMaterial();
 	afx_msg void OnCreateAssetTexture();
 	afx_msg void OnCreateAssetWavefrontOBJ();
+	afx_msg void OnRenderingLighting();
 };

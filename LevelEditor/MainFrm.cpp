@@ -35,6 +35,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_COMMAND(ID_CREATE_MATERIAL, &CMainFrame::OnCreateAssetMaterial)
 	ON_COMMAND(ID_CREATE_TEXTURE, &CMainFrame::OnCreateAssetTexture)
 	ON_COMMAND(ID_CREATE_WAVEFRONTOBJ, &CMainFrame::OnCreateAssetWavefrontOBJ)
+	ON_COMMAND(ID_RENDERING_LIGHTING, &CMainFrame::OnRenderingLighting)
 END_MESSAGE_MAP()
 
 static UINT indicators[] =
@@ -420,4 +421,10 @@ void CMainFrame::OnCreateAssetTexture()
 {
 	// TODO: Add your command handler code here
 	::OnCreateAssetTexture();
+}
+
+void CMainFrame::OnRenderingLighting()
+{
+	// TODO: Add your command handler code here
+	::OnRenderingLighting();
 }

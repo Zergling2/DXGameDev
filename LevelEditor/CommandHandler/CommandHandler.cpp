@@ -2,6 +2,7 @@
 #include "..\LevelEditor.h"
 #include "..\AssetManager.h"
 #include "..\TerrainGenerationDialog.h"
+#include "..\LightingSettingsDialog.h"
 #include "..\MainFrm.h"
 #include "..\HierarchyTreeView.h"
 #include "..\AssetTreeView.h"
@@ -420,4 +421,10 @@ void OnCreateAssetWavefrontOBJ()
 		static_cast<CLevelEditorApp*>(AfxGetApp())->GetAssetManager().AddATVItemMeshHandle(hNewItem);
 		tc.SetItemData(hNewItem, reinterpret_cast<DWORD_PTR>(pATVItemMesh));
 	}
+}
+
+void OnRenderingLighting()
+{
+	CLightingSettingsDialog dlg;
+	INT_PTR ret = dlg.DoModal();
 }

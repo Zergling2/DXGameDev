@@ -13,3 +13,4 @@ void OnCreateAssetFolder();
 void OnCreateAssetMaterial();
 void OnCreateAssetTexture();
 void OnCreateAssetWavefrontOBJ();
+void OnRenderingLighting();

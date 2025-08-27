@@ -227,6 +227,11 @@
     <ClInclude Include="HTVItem\HTVItemGameObject.h" />
     <ClInclude Include="HTVItem\HTVItemInterface.h" />
     <ClInclude Include="HTVItem\HTVItemRoot.h" />
+    <ClInclude Include="LightingBakedLightmapsSettingsDialog.h" />
+    <ClInclude Include="LightingEnvironmentSettingsDialog.h" />
+    <ClInclude Include="LightingRealtimeLightmapsSettingsDialog.h" />
+    <ClInclude Include="LightingSceneSettingsDialog.h" />
+    <ClInclude Include="LightingSettingsDialog.h" />
     <ClInclude Include="MaterialInspectorFormView.h" />
     <ClInclude Include="MeshInspectorFormView.h" />
     <ClInclude Include="MeshRendererInspectorFormView.h" />
@@ -278,6 +283,11 @@
     <ClCompile Include="HTVItem\HTVItemGameObject.cpp" />
     <ClCompile Include="HTVItem\HTVItemInterface.cpp" />
     <ClCompile Include="HTVItem\HTVItemRoot.cpp" />
+    <ClCompile Include="LightingBakedLightmapsSettingsDialog.cpp" />
+    <ClCompile Include="LightingEnvironmentSettingsDialog.cpp" />
+    <ClCompile Include="LightingRealtimeLightmapsSettingsDialog.cpp" />
+    <ClCompile Include="LightingSceneSettingsDialog.cpp" />
+    <ClCompile Include="LightingSettingsDialog.cpp" />
     <ClCompile Include="MaterialInspectorFormView.cpp" />
     <ClCompile Include="MeshInspectorFormView.cpp" />
     <ClCompile Include="MeshRendererInspectorFormView.cpp" />

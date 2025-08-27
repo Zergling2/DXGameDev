@@ -172,6 +172,21 @@
     <ClInclude Include="SpotLightInspectorFormView.h">
       <Filter>Files</Filter>
     </ClInclude>
+    <ClInclude Include="LightingSettingsDialog.h">
+      <Filter>Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LightingSceneSettingsDialog.h">
+      <Filter>Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LightingBakedLightmapsSettingsDialog.h">
+      <Filter>Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LightingEnvironmentSettingsDialog.h">
+      <Filter>Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LightingRealtimeLightmapsSettingsDialog.h">
+      <Filter>Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BufferDC.cpp">
@@ -304,6 +319,21 @@
       <Filter>Files</Filter>
     </ClCompile>
     <ClCompile Include="SpotLightInspectorFormView.cpp">
+      <Filter>Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LightingSettingsDialog.cpp">
+      <Filter>Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LightingBakedLightmapsSettingsDialog.cpp">
+      <Filter>Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LightingEnvironmentSettingsDialog.cpp">
+      <Filter>Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LightingRealtimeLightmapsSettingsDialog.cpp">
+      <Filter>Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LightingSceneSettingsDialog.cpp">
       <Filter>Files</Filter>
     </ClCompile>
   </ItemGroup>

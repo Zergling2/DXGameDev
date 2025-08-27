@@ -21,9 +21,9 @@ protected:
 	DECLARE_MESSAGE_MAP()
 private:
 	bool m_initialized;
-private:
-	void DeleteTreeItemDataRecursive(CTreeCtrl& tc, HTREEITEM hItem);
 public:
+	void RemoveTreeItemPostOrder(HTREEITEM hItem);
+
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
 	virtual void OnInitialUpdate();
 

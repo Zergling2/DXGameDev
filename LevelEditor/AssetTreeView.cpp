@@ -48,26 +48,23 @@ void CAssetTreeView::Dump(CDumpContext& dc) const
 #endif
 #endif //_DEBUG
 
-void CAssetTreeView::DeleteTreeItemDataRecursive(CTreeCtrl& tc, HTREEITEM hItem)
+void CAssetTreeView::RemoveTreeItemPostOrder(HTREEITEM hItem)
 {
-	while (hItem)
+	// 자식 항목이 있으면 자식 항목을 먼저 제거 (후위 순회)
+	CTreeCtrl& tc = this->GetTreeCtrl();
+	HTREEITEM hChildItem = tc.GetChildItem(hItem);
+	while (hChildItem != NULL)
 	{
-		// 자식 먼저 처리
-		HTREEITEM hChildItem = tc.GetChildItem(hItem);
-		if (hChildItem)
-			this->DeleteTreeItemDataRecursive(tc, hChildItem);
-
-		DWORD_PTR data = tc.GetItemData(hItem);
-		IATVItem* pATVItem = reinterpret_cast<IATVItem*>(data);
-		assert(pATVItem != nullptr);
-
-		delete pATVItem;
-
-		// 다음 형제 항목
-		hItem = tc.GetNextSiblingItem(hItem);
+		HTREEITEM hNextChild = tc.GetNextSiblingItem(hChildItem);		// 미리 구해놔야 함
+		RemoveTreeItemPostOrder(hChildItem);	// 자식 항목을 후위 순회 방식으로 제거
+		hChildItem = hNextChild;				// 자식 항목의 형제 순회
 	}
-}
 
+	// 자식 항목 제거 후 자신을 삭제
+	IATVItem* pATVItem = reinterpret_cast<IATVItem*>(tc.GetItemData(hItem));
+	delete pATVItem;
+	tc.DeleteItem(hItem);
+}
 
 BOOL CAssetTreeView::PreCreateWindow(CREATESTRUCT& cs)
 {
@@ -275,7 +272,6 @@ void CAssetTreeView::OnCreateAssetWavefrontOBJ()
 	::OnCreateAssetWavefrontOBJ();
 }
 
-
 void CAssetTreeView::OnDestroy()
 {
 	// CTreeView::OnDestroy가 호출되면 트리 컨트롤이 파괴되므로 그 전에 트리 아이템에 부착된 동적할당 Data를 해제한다.
@@ -284,13 +280,16 @@ void CAssetTreeView::OnDestroy()
 
 	CTreeCtrl& tc = this->GetTreeCtrl();
 	HTREEITEM hRootItem = tc.GetRootItem();
-	while (hRootItem)
+	// 루트 항목부터 시작하여 후위 순회 방식으로 모든 항목 제거
+	while (hRootItem != NULL)
 	{
-		this->DeleteTreeItemDataRecursive(tc, hRootItem);
+		HTREEITEM hNextRootItem = tc.GetNextSiblingItem(hRootItem);	// RemoveItremPostOrder 함수에 들어가면 hRootItem이 삭제되므로 미리 구해놔야 함.
+		RemoveTreeItemPostOrder(hRootItem);
 
-		hRootItem = tc.GetNextItem(hRootItem, TVGN_NEXT);
+		// 다음 형제 항목으로
+		hRootItem = hNextRootItem;
 	}
-	tc.DeleteAllItems();
+	tc.DeleteAllItems();	// 불필요
 
 	CTreeView::OnDestroy();
 
