@@ -114,6 +114,9 @@
 #define IDC_RADIO_LAYER3                1086
 #define IDC_RADIO_LAYER4                1087
 #define IDC_STATIC_LAYER_MODIFYING      1088
+#define IDC_BUTTON_EXPORT_HEIGHT_DATA   1089
+#define IDC_BUTTON_EXPORT_TERRAIN_HEIGHT_DATA 1089
+#define IDC_BUTTON_EXPORT_TERRAIN_BLEND_DATA 1090
 #define ID_FILE_NEWSCENE                32771
 #define ID_FILE_OPENSCENE               32772
 #define ID_Menu                         32773
@@ -171,7 +174,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        331
 #define _APS_NEXT_COMMAND_VALUE         32821
-#define _APS_NEXT_CONTROL_VALUE         1089
+#define _APS_NEXT_CONTROL_VALUE         1090
 #define _APS_NEXT_SYMED_VALUE           328
 #endif
 #endif

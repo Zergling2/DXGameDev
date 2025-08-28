@@ -19,7 +19,7 @@ void VertexShader::Init(ID3D11Device* pDevice, const byte* pShaderByteCode, size
 	);
 
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(SHADER_CREATE_ERROR_MESSAGE, hr);
+		Debug::ForceCrashWithHRESULTMessageBox(SHADER_CREATE_ERROR_MESSAGE, hr);
 }
 
 void VertexShader::Release()
@@ -41,7 +41,7 @@ void HullShader::Init(ID3D11Device* pDevice, const byte* pShaderByteCode, size_t
 	);
 
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(SHADER_CREATE_ERROR_MESSAGE, hr);
+		Debug::ForceCrashWithHRESULTMessageBox(SHADER_CREATE_ERROR_MESSAGE, hr);
 }
 
 void HullShader::Release()
@@ -63,7 +63,7 @@ void DomainShader::Init(ID3D11Device* pDevice, const byte* pShaderByteCode, size
 	);
 
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(SHADER_CREATE_ERROR_MESSAGE, hr);
+		Debug::ForceCrashWithHRESULTMessageBox(SHADER_CREATE_ERROR_MESSAGE, hr);
 }
 
 void DomainShader::Release()
@@ -85,7 +85,7 @@ void PixelShader::Init(ID3D11Device* pDevice, const byte* pShaderByteCode, size_
 	);
 
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(SHADER_CREATE_ERROR_MESSAGE, hr);
+		Debug::ForceCrashWithHRESULTMessageBox(SHADER_CREATE_ERROR_MESSAGE, hr);
 }
 
 void PixelShader::Release()

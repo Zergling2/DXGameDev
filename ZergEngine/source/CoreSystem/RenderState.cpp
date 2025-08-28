@@ -16,7 +16,7 @@ void RasterizerState::Init(ID3D11Device* pDevice, const D3D11_RASTERIZER_DESC* p
 	hr = pDevice->CreateRasterizerState(pDesc, &m_pRasterizerState);
 
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"RasterizerState::Init()", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"RasterizerState::Init()", hr);
 }
 
 void RasterizerState::Release()
@@ -36,7 +36,7 @@ void SamplerState::Init(ID3D11Device* pDevice, const D3D11_SAMPLER_DESC* pDesc)
 	hr = pDevice->CreateSamplerState(pDesc, &m_pSamplerState);
 
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"SamplerState::Init()", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"SamplerState::Init()", hr);
 }
 
 void SamplerState::Release()
@@ -56,7 +56,7 @@ void DepthStencilState::Init(ID3D11Device* pDevice, const D3D11_DEPTH_STENCIL_DE
 	hr = pDevice->CreateDepthStencilState(pDesc, &m_pDepthStencilState);
 
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"DepthStencilState::Init()", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"DepthStencilState::Init()", hr);
 }
 
 void DepthStencilState::Release()
@@ -76,7 +76,7 @@ void BlendState::Init(ID3D11Device* pDevice, const D3D11_BLEND_DESC* pDesc)
 	hr = pDevice->CreateBlendState(pDesc, &m_pBlendState);
 
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"BlendState::Init()", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"BlendState::Init()", hr);
 }
 
 void BlendState::Release()

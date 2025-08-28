@@ -12,7 +12,7 @@ void VertexBuffer::Init(ID3D11Device* pDevice, const D3D11_BUFFER_DESC* pDesc, c
 
 	hr = pDevice->CreateBuffer(pDesc, pInitialData, &m_pBuffer);
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"ID3D11Device::CreateBuffer()", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateBuffer()", hr);
 }
 
 void VertexBuffer::Release()

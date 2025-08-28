@@ -27,7 +27,7 @@ void IConstantBuffer::InitImpl(ID3D11Device* pDevice, size_t bufferSize)
 
 	HRESULT hr = pDevice->CreateBuffer(&descConstantBuffer, nullptr, &m_pConstantBuffer);
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"Failed to create a constant buffer.", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"Failed to create a constant buffer.", hr);
 }
 
 void IConstantBuffer::UpdateImpl(ID3D11DeviceContext* pDeviceContext, const void* pData, size_t size)
@@ -39,7 +39,7 @@ void IConstantBuffer::UpdateImpl(ID3D11DeviceContext* pDeviceContext, const void
 
 	hr = pDeviceContext->Map(m_pConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"Failed to map constant buffer.", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"Failed to map constant buffer.", hr);
 
 	memcpy(mapped.pData, pData, size);
 	pDeviceContext->Unmap(m_pConstantBuffer, 0);

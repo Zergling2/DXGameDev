@@ -58,35 +58,35 @@ void Input::Init(HINSTANCE hInstance, HWND hWnd)
 		nullptr
 	);
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"Input::Init() > DirectInput8Create() failed.", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"Input::Init() > DirectInput8Create() failed.", hr);
 
 	// Keyboard 인터페이스 생성
 	hr = m_cpDirectInput->CreateDevice(GUID_SysKeyboard, m_cpDIKeyboard.GetAddressOf(), nullptr);
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"Input::Init() > m_cpDirectInput->CreateDevice() failed.", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"Input::Init() > m_cpDirectInput->CreateDevice() failed.", hr);
 
 	hr = m_cpDIKeyboard->SetDataFormat(&c_dfDIKeyboard);
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"Input::Init() > m_cpDIKeyboard->SetDataFormat() failed.", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"Input::Init() > m_cpDIKeyboard->SetDataFormat() failed.", hr);
 
 	hr = m_cpDIKeyboard->SetCooperativeLevel(hWnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);	// DISCL_NONEXCLUSIVE
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"Input::Init() > m_cpDIKeyboard->SetCooperativeLevel() failed.", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"Input::Init() > m_cpDIKeyboard->SetCooperativeLevel() failed.", hr);
 
 	hr = m_cpDIKeyboard->Acquire();
 
 	// Mouse 인터페이스 생성
 	hr = m_cpDirectInput->CreateDevice(GUID_SysMouse, m_cpDIMouse.GetAddressOf(), nullptr);
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"Input::Init() > m_cpDirectInput->CreateDevice() failed.", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"Input::Init() > m_cpDirectInput->CreateDevice() failed.", hr);
 
 	hr = m_cpDIMouse->SetDataFormat(&c_dfDIMouse2);
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"Input::Init() > m_cpDIMouse->SetDataFormat() failed.", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"Input::Init() > m_cpDIMouse->SetDataFormat() failed.", hr);
 
 	hr = m_cpDIMouse->SetCooperativeLevel(hWnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);	// DISCL_NONEXCLUSIVE
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"Input::Init() > m_cpDIMouse->SetCooperativeLevel() failed.", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"Input::Init() > m_cpDIMouse->SetCooperativeLevel() failed.", hr);
 
 	hr = m_cpDIMouse->Acquire();
 }

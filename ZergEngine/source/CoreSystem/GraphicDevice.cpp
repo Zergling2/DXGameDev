@@ -140,7 +140,7 @@ void GraphicDevice::Init(HWND hWnd, uint32_t width, uint32_t height, bool fullsc
 		m_cpImmediateContext.GetAddressOf()
 	);
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"D3D11CreateDevice()", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"D3D11CreateDevice()", hr);
 
 	if (maxSupportedFeatureLevel < D3D_FEATURE_LEVEL_11_1)
 		Debug::ForceCrashWithMessageBox(L"Fail", L"Device does not support DirectX 11.1 feature level.");
@@ -149,13 +149,13 @@ void GraphicDevice::Init(HWND hWnd, uint32_t width, uint32_t height, bool fullsc
 	assert(m_cpD2DFactory == nullptr);
 	hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, __uuidof(ID2D1Factory), reinterpret_cast<void**>(m_cpD2DFactory.GetAddressOf()));
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"D2D1CreateFactory()", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"D2D1CreateFactory()", hr);
 
 	// C. DWrite Factory 생성 및 기본 텍스트포맷 생성
 	assert(m_cpDWriteFactory == nullptr);
 	hr = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), reinterpret_cast<IUnknown**>(m_cpDWriteFactory.GetAddressOf()));
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"DWriteCreateFactory()", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"DWriteCreateFactory()", hr);
 
 
 	// 지원되는 해상도 목록 검색
@@ -304,7 +304,7 @@ void GraphicDevice::Init(HWND hWnd, uint32_t width, uint32_t height, bool fullsc
 	// DXGI 편의기능 비활성화
 	hr = cpDXGIFactory->MakeWindowAssociation(hWnd, DXGI_MWA_NO_WINDOW_CHANGES | DXGI_MWA_NO_ALT_ENTER);
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"MakeWindowAssociation()", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"MakeWindowAssociation()", hr);
 
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━ CREATE SHADERS AND INPUT LAYOUTS ━━━━━━━━━━━━━━━━━━━━━━━━━
 	this->CreateShaderAndInputLayout();
@@ -961,7 +961,7 @@ std::shared_ptr<DWriteTextFormatWrapper> GraphicDevice::GetDWriteTextFormatWrapp
 			&pTextFormat
 		);
 		if (FAILED(hr))
-			Debug::ForceCrashWithHRESULTErrorMessageBox(L"IDWriteFactory::CreateTextFormat()", hr);
+			Debug::ForceCrashWithHRESULTMessageBox(L"IDWriteFactory::CreateTextFormat()", hr);
 
 		spReturn = std::make_shared<DWriteTextFormatWrapper>(pTextFormat);
 
@@ -982,31 +982,31 @@ void GraphicDevice::CreateSupportedResolutionInfo()
 
 	hr = CreateDXGIFactory(__uuidof(IDXGIFactory), reinterpret_cast<void**>(cpFactory.GetAddressOf()));
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"CreateSupportedResolutionInfo() > CreateDXGIFactory()", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"CreateSupportedResolutionInfo() > CreateDXGIFactory()", hr);
 
 	// 첫 번째 어댑터를 가져오기 (단일 GPU 가정)
 	ComPtr<IDXGIAdapter> cpAdapter;
 	hr = cpFactory->EnumAdapters(0, cpAdapter.GetAddressOf());
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"CreateSupportedResolutionInfo() > IDXGIFactory::EnumAdapters()", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"CreateSupportedResolutionInfo() > IDXGIFactory::EnumAdapters()", hr);
 
 	// 첫 번째 모니터 접근
 	ComPtr<IDXGIOutput> cpOutput;
 	hr = cpAdapter->EnumOutputs(0, cpOutput.GetAddressOf());
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"CreateSupportedResolutionInfo() > IDXGIAdapter::EnumOutputs()", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"CreateSupportedResolutionInfo() > IDXGIAdapter::EnumOutputs()", hr);
 
 	// 지원되는 해상도 목록 가져오기
 	// 먼저 개수 획득
 	UINT numModes = 0;
 	hr = cpOutput->GetDisplayModeList(this->GetBackBufferFormat(), 0, &numModes, nullptr);
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"Failed to load display mode list.", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"Failed to load display mode list.", hr);
 
 	m_supportedResolution.resize(numModes);
 	hr = cpOutput->GetDisplayModeList(this->GetBackBufferFormat(), 0, &numModes, m_supportedResolution.data());
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"Failed to load display mode list.", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"Failed to load display mode list.", hr);
 }
 
 void GraphicDevice::CreateSupportedMSAAQualityInfo()
@@ -1237,12 +1237,12 @@ void GraphicDevice::ResizeBuffer(uint32_t width, uint32_t height)
 		SWAP_CHAIN_FLAG
 	);
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"IDXGISwapChain::ResizeBuffers", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"IDXGISwapChain::ResizeBuffers", hr);
 
 	// 변경된 스왑 체인의 정보 획득
 	hr = m_cpSwapChain->GetDesc(&m_descSwapChain);
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"IDXGISwapChain::GetDesc", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"IDXGISwapChain::GetDesc", hr);
 
 	m_swapChainSizeFlt = XMFLOAT2(static_cast<FLOAT>(m_descSwapChain.BufferDesc.Width), static_cast<FLOAT>(m_descSwapChain.BufferDesc.Height));
 	m_swapChainHalfSizeFlt = XMFLOAT2(m_swapChainSizeFlt.x * 0.5f, m_swapChainSizeFlt.y * 0.5f);
@@ -1320,7 +1320,7 @@ void GraphicDevice::ResizeBuffer(uint32_t width, uint32_t height)
 	} while (false);
 
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"Failed to resize back buffer!", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"Failed to resize back buffer!", hr);
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 	// 전체 스왑 체인 영역을 나타내는 뷰포트 구조체 업데이트

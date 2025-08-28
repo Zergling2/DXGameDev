@@ -37,12 +37,17 @@ void Debug::ForceCrashWithWin32ErrorMessageBox(PCWSTR message, DWORD code)
 	*reinterpret_cast<int*>(0) = 0;
 }
 
-void Debug::ForceCrashWithHRESULTErrorMessageBox(PCWSTR message, HRESULT hr)
+void Debug::HRESULTMessageBox(PCWSTR message, HRESULT hr)
 {
 	WCHAR buffer[256];
 	StringCbPrintfW(buffer, sizeof(buffer), L"%s\nException from HRESULT: 0x%x", message, hr);
 
 	MessageBoxW(NULL, buffer, L"Error", MB_OK);
+}
+
+void Debug::ForceCrashWithHRESULTMessageBox(PCWSTR message, HRESULT hr)
+{
+	HRESULTMessageBox(message, hr);
 	*reinterpret_cast<int*>(0) = 0;
 }
 

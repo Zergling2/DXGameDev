@@ -32,7 +32,7 @@ void FileSystem::Init()
 
 	hr = StringCbCopyW(m_appFolderPath, sizeof(m_appFolderPath), m_appPath);
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"FileSystem::Init()", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"FileSystem::Init()", hr);
 
 	*(wcsrchr(m_appFolderPath, L'\\') + 1) = L'\0';		// ...\...\MyGames\TheGame\'\0'
 }

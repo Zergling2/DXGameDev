@@ -44,7 +44,7 @@ void InputLayout::Init(ID3D11Device* pDevice, const D3D11_INPUT_ELEMENT_DESC* pD
 
 	hr = pDevice->CreateInputLayout(pDesc, elementCount, pShaderByteCode, shaderByteCodeSize, m_cpInputLayout.ReleaseAndGetAddressOf());
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"InputLayout::Init()", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"InputLayout::Init()", hr);
 }
 
 //--------------------------------------------------------------------------------------

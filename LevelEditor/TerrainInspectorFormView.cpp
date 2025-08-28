@@ -179,6 +179,8 @@ BEGIN_MESSAGE_MAP(CTerrainInspectorFormView, CFormView)
 	ON_CBN_SELCHANGE(IDC_COMBO_TERRAIN_NORMAL_LAYER, &CTerrainInspectorFormView::OnCbnSelchangeComboTerrainNormalLayer)
 	ON_CBN_DROPDOWN(IDC_COMBO_TERRAIN_NORMAL_LAYER, &CTerrainInspectorFormView::OnCbnDropdownComboTerrainNormalLayer)
 	ON_BN_CLICKED(IDC_BUTTON_REMOVE_TERRAIN_NORMAL_LAYER, &CTerrainInspectorFormView::OnBnClickedButtonRemoveTerrainNormalLayer)
+	ON_BN_CLICKED(IDC_BUTTON_EXPORT_TERRAIN_HEIGHT_DATA, &CTerrainInspectorFormView::OnBnClickedButtonExportTerrainHeightData)
+	ON_BN_CLICKED(IDC_BUTTON_EXPORT_TERRAIN_BLEND_DATA, &CTerrainInspectorFormView::OnBnClickedButtonExportTerrainBlendData)
 END_MESSAGE_MAP()
 
 
@@ -493,4 +495,94 @@ void CTerrainInspectorFormView::OnBnClickedButtonRemoveTerrainNormalLayer()
 
 	pTerrain->SetTextureLayer(std::move(diffuseMapLayer), std::move(normalMapLayer));
 	m_comboTerrainNormalLayer.ResetContent();	// 이거 호출하고 나면 GetCurSel()도 -1 (CB_ERR) 반환함
+}
+
+void CTerrainInspectorFormView::OnBnClickedButtonExportTerrainHeightData()
+{
+	// TODO: Add your control notification handler code here
+	CFileDialog fd(FALSE, _T(".thd"), _T("HeightData.thd"), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+		_T("Terrain Height Data Files (*.thd)|*.thd|All Files (*.*)|*.*||"), this);
+
+	INT_PTR ret = fd.DoModal();
+	if (ret != IDOK)
+		return;
+
+	CString path = fd.GetPathName();
+
+	FILE* pFile = nullptr;
+	errno_t e = _tfopen_s(&pFile, path.GetString(), _T("wb"));
+	if (e != 0)	// error
+		return;
+
+	ID3D11Texture2D* pHeightMap = m_tde.GetStagingHeightMapComInterface();
+	D3D11_TEXTURE2D_DESC heightMapDesc;
+	pHeightMap->GetDesc(&heightMapDesc);
+
+	D3D11_MAPPED_SUBRESOURCE mapped;
+	const UINT subresource = D3D11CalcSubresource(0, 0, 0);
+	ID3D11DeviceContext* pImmDeviceContext = ze::GraphicDevice::GetInstance()->GetImmediateContextComInterface();
+	HRESULT hr = pImmDeviceContext->Map(
+		pHeightMap,
+		subresource,
+		D3D11_MAP_READ,
+		0,
+		&mapped
+	);
+	if (FAILED(hr))
+	{
+		ze::Debug::HRESULTMessageBox(L"ID3D11DeviceContext::Map() 함수가 실패하였습니다.", hr);
+		return;
+	}
+
+	// 바이너리로 저장
+	fwrite(mapped.pData, sizeof(uint16_t), static_cast<size_t>(heightMapDesc.Width) * static_cast<size_t>(heightMapDesc.Height), pFile);
+
+	pImmDeviceContext->Unmap(pHeightMap, subresource);
+
+	fclose(pFile);
+}
+
+void CTerrainInspectorFormView::OnBnClickedButtonExportTerrainBlendData()
+{
+	// TODO: Add your control notification handler code here
+	CFileDialog fd(FALSE, _T(".tbd"), _T("BlendData.tbd"), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+		_T("Terrain Blend Data Files (*.tbd)|*.tbd|All Files (*.*)|*.*||"), this);
+
+	INT_PTR ret = fd.DoModal();
+	if (ret != IDOK)
+		return;
+
+	CString path = fd.GetPathName();
+
+	FILE* pFile = nullptr;
+	errno_t e = _tfopen_s(&pFile, path.GetString(), _T("wb"));
+	if (e != 0)	// error
+		return;
+
+	ID3D11Texture2D* pBlendMap = m_tde.GetStagingBlendMapComInterface();
+	D3D11_TEXTURE2D_DESC blendMapDesc;
+	pBlendMap->GetDesc(&blendMapDesc);
+
+	D3D11_MAPPED_SUBRESOURCE mapped;
+	const UINT subresource = D3D11CalcSubresource(0, 0, 0);
+	ID3D11DeviceContext* pImmDeviceContext = ze::GraphicDevice::GetInstance()->GetImmediateContextComInterface();
+	HRESULT hr = pImmDeviceContext->Map(
+		pBlendMap,
+		subresource,
+		D3D11_MAP_READ,
+		0,
+		&mapped
+	);
+	if (FAILED(hr))
+	{
+		ze::Debug::HRESULTMessageBox(L"ID3D11DeviceContext::Map() 함수가 실패하였습니다.", hr);
+		return;
+	}
+
+	// 바이너리로 저장
+	fwrite(mapped.pData, sizeof(uint32_t), static_cast<size_t>(blendMapDesc.Width) * static_cast<size_t>(blendMapDesc.Height), pFile);
+
+	pImmDeviceContext->Unmap(pBlendMap, subresource);
+
+	fclose(pFile);
 }

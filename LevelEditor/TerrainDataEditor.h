@@ -21,6 +21,11 @@ public:
 	void PaintTexture(const ze::Ray& ray, float radius, uint8_t opacity);
 	void SetHeight(const ze::Ray& ray, float radius, float opacity);
 	void SmoothHeight(const ze::Ray& ray, float radius, float opacity);
+
+	ID3D11Texture2D* GetStagingHeightMapComInterface() const { return m_cpStagingHeightMap.Get(); }
+	ID3D11Texture2D* GetStagingNormalMapComInterface() const { return m_cpStagingNormalMap.Get(); }
+	ID3D11Texture2D* GetStagingBlendMapComInterface() const { return m_cpStagingBlendMap.Get(); }
+	ID3D11Buffer* GetStagingPatchCtrlPtBufferComInterface() const { return m_cpStagingPatchCtrlPtBuffer.Get(); }
 private:
 	ze::Terrain* m_pTerrainToModify;
 	ComPtr<ID3D11Texture2D> m_cpStagingHeightMap;

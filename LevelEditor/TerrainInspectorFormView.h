@@ -107,4 +107,6 @@ public:
 	afx_msg void OnCbnSelchangeComboTerrainNormalLayer();
 	afx_msg void OnCbnDropdownComboTerrainNormalLayer();
 	afx_msg void OnBnClickedButtonRemoveTerrainNormalLayer();
+	afx_msg void OnBnClickedButtonExportTerrainHeightData();
+	afx_msg void OnBnClickedButtonExportTerrainBlendData();
 };

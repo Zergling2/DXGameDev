@@ -135,7 +135,7 @@ Texture2D ResourceLoader::LoadTexture2D(PCWSTR path, bool generateMipMaps)
 				hr = GenerateMipMaps(image.GetImages(), image.GetImageCount(), image.GetMetadata(), TEX_FILTER_DEFAULT, 0, mipChain);
 
 			if (FAILED(hr))
-				Debug::ForceCrashWithHRESULTErrorMessageBox(L"Failed to generate mip maps.", hr);
+				Debug::ForceCrashWithHRESULTMessageBox(L"Failed to generate mip maps.", hr);
 		}
 	}
 
@@ -173,7 +173,7 @@ Texture2D ResourceLoader::LoadTexture2D(PCWSTR path, bool generateMipMaps)
 		&descTexture, initialData.data(), cpTex2d.GetAddressOf()
 	);
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"ID3D11Device::CreateTexture2D()", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateTexture2D()", hr);
 
 	// 셰이더 리소스 뷰 생성
 	ComPtr<ID3D11ShaderResourceView> cpSRV;
@@ -181,7 +181,7 @@ Texture2D ResourceLoader::LoadTexture2D(PCWSTR path, bool generateMipMaps)
 		cpTex2d.Get(), nullptr, cpSRV.GetAddressOf()
 	);
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"ID3D11Device::CreateShaderResourceView()", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateShaderResourceView()", hr);
 
 	return Texture2D(cpTex2d, cpSRV);
 }
@@ -512,7 +512,7 @@ bool ResourceLoader::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, Verte
 		ComPtr<ID3D11Buffer> cpVB;
 		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateBuffer(&bufferDesc, &initialData, cpVB.GetAddressOf());
 		if (FAILED(hr))
-			Debug::ForceCrashWithHRESULTErrorMessageBox(L"ID3D11Device::CreateBuffer()", hr);
+			Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateBuffer()", hr);
 
 		// Create an index buffer
 		bufferDesc.ByteWidth = static_cast<UINT>(tempIB.size() * sizeof(uint32_t));
@@ -529,7 +529,7 @@ bool ResourceLoader::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, Verte
 		ComPtr<ID3D11Buffer> cpIB;
 		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateBuffer(&bufferDesc, &initialData, cpIB.GetAddressOf());
 		if (FAILED(hr))
-			Debug::ForceCrashWithHRESULTErrorMessageBox(L"ID3D11Device::CreateBuffer()", hr);
+			Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateBuffer()", hr);
 
 		pMesh->m_cpVB = std::move(cpVB);
 		pMesh->m_cpIB = std::move(cpIB);
@@ -722,7 +722,7 @@ Texture2D ResourceLoader::LoadCubeMapTexture(PCWSTR path)
 
 	hr = LoadFromDDSFile(filePath, DDS_FLAGS::DDS_FLAGS_NONE, nullptr, mipChain);	// dds, DDS
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"LoadCubeMapTexture() > LoadFromDDSFile()", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"LoadCubeMapTexture() > LoadFromDDSFile()", hr);
 
 	// 디스크립터 세팅
 	const TexMetadata& metadata = mipChain.GetMetadata();
@@ -781,7 +781,7 @@ Texture2D ResourceLoader::LoadCubeMapTexture(PCWSTR path)
 			&textureDesc, initialData.data(), cpTex2D.GetAddressOf()
 		);
 		if (FAILED(hr))
-			Debug::ForceCrashWithHRESULTErrorMessageBox(L"ID3D11Device::CreateTexture2D()", hr);
+			Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateTexture2D()", hr);
 	}
 
 	// 셰이더 리소스 뷰 생성
@@ -796,7 +796,7 @@ Texture2D ResourceLoader::LoadCubeMapTexture(PCWSTR path)
 		cpTex2D.Get(), &srvDesc, cpSRV.GetAddressOf()
 	);
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTErrorMessageBox(L"ID3D11Device::CreateShaderResourceView()", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateShaderResourceView()", hr);
 
 	return Texture2D(cpTex2D, cpSRV);
 }
