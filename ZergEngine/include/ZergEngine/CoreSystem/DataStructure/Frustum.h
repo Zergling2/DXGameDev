@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ZergEngine\CoreSystem\DataStructure\Plane.h>
+#include <ZergEngine\Common\ThirdPartySDK.h>
 
 namespace ze
 {
@@ -9,6 +9,6 @@ namespace ze
 	public:
 		Frustum() = default;
 	public:
-		Plane m_plane[6];
+		XMFLOAT4A m_plane[6];
 	};
 }

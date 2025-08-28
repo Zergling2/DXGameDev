@@ -107,14 +107,14 @@ void CMeshRendererInspectorFormView::OnCbnSelchangeComboSelectMesh()
 	ATVItemMesh* pATVItemMesh = reinterpret_cast<ATVItemMesh*>(m_comboSelectMesh.GetItemData(sel));
 
 	ze::MeshRenderer* pMeshRenderer = this->GetCLVItemToModify()->GetMeshRenderer();
-	pMeshRenderer->m_mesh = pATVItemMesh->m_spMesh;
+	pMeshRenderer->SetMesh(pATVItemMesh->m_spMesh);
 
-	if (pMeshRenderer->m_mesh != nullptr)
+	if (pMeshRenderer->GetMeshPtr() != nullptr)
 	{
 		// 2. Subset index 표시 (인덱스 문자열 삽입)
 		m_comboSelectSubsetIndex.ResetContent();
 
-		const int32_t subsetCount = static_cast<int32_t>(pATVItemMesh->m_spMesh->m_subsets.size());
+		const int32_t subsetCount = static_cast<int32_t>(pMeshRenderer->GetSubsetCount());
 		for (int32_t i = 0; i < subsetCount; ++i)
 		{
 			TCHAR buf[8];
@@ -176,7 +176,7 @@ void CMeshRendererInspectorFormView::OnBnClickedButtonRemoveMesh()
 	// TODO: Add your control notification handler code here
 
 	// 1. 현재 수정중인 메시 렌더러 컴포넌트의 메시를 제거
-	this->GetCLVItemToModify()->GetMeshRenderer()->m_mesh = nullptr;
+	this->GetCLVItemToModify()->GetMeshRenderer()->SetMesh(nullptr);
 
 	// 2. 컨트롤들의 컨텐츠 제거
 	m_comboSelectMesh.ResetContent();
@@ -208,8 +208,8 @@ void CMeshRendererInspectorFormView::OnCbnSelchangeComboSelectMaterial()
 	ATVItemMaterial* pATVItemMaterial = reinterpret_cast<ATVItemMaterial*>(m_comboSelectMaterial.GetItemData(sel));
 
 	ze::MeshRenderer* pMeshRenderer = this->GetCLVItemToModify()->GetMeshRenderer();
-	assert(subsetSel < pMeshRenderer->m_mesh->m_subsets.size());
-	pMeshRenderer->m_mesh->m_subsets[subsetSel].m_material = pATVItemMaterial->GetMaterial();
+	assert(subsetSel < pMeshRenderer->GetSubsetCount());
+	pMeshRenderer->SetMaterial(subsetSel, pATVItemMaterial->GetMaterial());
 }
 
 void CMeshRendererInspectorFormView::OnCbnDropdownComboSelectMaterial()

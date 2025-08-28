@@ -14,14 +14,6 @@ namespace ze
 	class Material;
 	class RawVector;
 
-	/*
-	struct SubsetAttribute
-	{
-		bool m_shadeSmooth;
-		const wchar_t* m_mtlName;
-	};
-	*/
-
 	class IndexSet
 	{
 	public:
@@ -143,6 +135,7 @@ namespace ze
 		void Init();
 		void UnInit();
 	public:
+		// Wavefront OBJ 포맷은 단일 obj 파일에 여러 개의 메시를 포함할 수 있습니다.
 		std::vector<std::shared_ptr<Mesh>> LoadWavefrontOBJ(PCWSTR path);
 		Texture2D LoadTexture2D(PCWSTR path, bool generateMipMaps = true);	// 리소스에 밉 맵이 포함된 경우(dds 파일 등)에는 generateMipMaps가 무시됩니다.
 		std::shared_ptr<Material> CreateMaterial();

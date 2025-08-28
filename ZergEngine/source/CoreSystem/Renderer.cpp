@@ -300,15 +300,18 @@ void Renderer::RenderFrame()
 		for (const IComponent* pComponent : MeshRendererManager::GetInstance()->m_directAccessGroup)
 		{
 			const MeshRenderer* pMeshRenderer = static_cast<const MeshRenderer*>(pComponent);
-			if (!pMeshRenderer->IsEnabled() || pMeshRenderer->m_mesh == nullptr)
+			const Mesh* pMesh = pMeshRenderer->GetMeshPtr();
+
+			if (!pMeshRenderer->IsEnabled() || pMesh == nullptr)
 				continue;
 
 			// 프러스텀 컬링
-			Aabb aabbW = Math::TransformAabb(pMeshRenderer->m_mesh->GetAabb(), pMeshRenderer->m_pGameObject->m_transform.GetWorldTransformMatrix());
+			Aabb aabbW;
+			pMesh->GetAabb().Transform(aabbW, pMeshRenderer->m_pGameObject->m_transform.GetWorldTransformMatrix());
 			if (!Math::TestFrustumAabbCollision(cameraFrustumW, aabbW))
 				continue;
 
-			switch (pMeshRenderer->m_mesh->GetVertexFormatType())
+			switch (pMesh->GetVertexFormatType())
 			{
 			case VERTEX_FORMAT_TYPE::POSITION:
 				RenderVFPositionMesh(pMeshRenderer);
@@ -479,7 +482,7 @@ void Renderer::RenderFrame()
 
 void Renderer::RenderVFPositionMesh(const MeshRenderer* pMeshRenderer)
 {
-	const Mesh* pMesh = pMeshRenderer->m_mesh.get();
+	const Mesh* pMesh = pMeshRenderer->GetMeshPtr();
 	if (!pMesh)
 		return;
 
@@ -512,7 +515,7 @@ void Renderer::RenderVFPositionMesh(const MeshRenderer* pMeshRenderer)
 
 void Renderer::RenderVFPositionColorMesh(const MeshRenderer* pMeshRenderer)
 {
-	const Mesh* pMesh = pMeshRenderer->m_mesh.get();
+	const Mesh* pMesh = pMeshRenderer->GetMeshPtr();
 	if (!pMesh)
 		return;
 
@@ -545,7 +548,7 @@ void Renderer::RenderVFPositionColorMesh(const MeshRenderer* pMeshRenderer)
 
 void Renderer::RenderVFPositionNormalMesh(const MeshRenderer* pMeshRenderer)
 {
-	const Mesh* pMesh = pMeshRenderer->m_mesh.get();
+	const Mesh* pMesh = pMeshRenderer->GetMeshPtr();
 	if (!pMesh)
 		return;
 
@@ -566,9 +569,12 @@ void Renderer::RenderVFPositionNormalMesh(const MeshRenderer* pMeshRenderer)
 	m_effectImmediateContext.IASetIndexBuffer(pMesh->GetIBComInterface(), DXGI_FORMAT_R32_UINT, 0);
 
 	// 서브셋들 순회하며 렌더링
-	for (const Subset& subset : pMesh->m_subsets)
+	assert(pMesh->m_subsets.size() == pMeshRenderer->GetMeshPtr()->m_subsets.size());
+	const size_t subsetCount = pMesh->m_subsets.size();
+	for (size_t i = 0; i < subsetCount; ++i)
 	{
-		const Material* pMaterial = subset.m_material.get();
+		const Subset& currentSubset = pMesh->m_subsets[i];
+		const Material* pMaterial = pMeshRenderer->GetMaterialPtr(i);
 		if (pMaterial != nullptr)
 		{
 			m_basicEffectPN.UseMaterial(true);
@@ -584,13 +590,13 @@ void Renderer::RenderVFPositionNormalMesh(const MeshRenderer* pMeshRenderer)
 		m_effectImmediateContext.Apply(&m_basicEffectPN);
 
 		// 드로우
-		m_effectImmediateContext.DrawIndexed(subset.GetIndexCount(), subset.GetStartIndexLocation(), 0);
+		m_effectImmediateContext.DrawIndexed(currentSubset.GetIndexCount(), currentSubset.GetStartIndexLocation(), 0);
 	}
 }
 
 void Renderer::RenderVFPositionTexCoordMesh(const MeshRenderer* pMeshRenderer)
 {
-	const Mesh* pMesh = pMeshRenderer->m_mesh.get();
+	const Mesh* pMesh = pMeshRenderer->GetMeshPtr();
 	if (!pMesh)
 		return;
 
@@ -611,9 +617,12 @@ void Renderer::RenderVFPositionTexCoordMesh(const MeshRenderer* pMeshRenderer)
 	m_effectImmediateContext.IASetIndexBuffer(pMesh->GetIBComInterface(), DXGI_FORMAT_R32_UINT, 0);
 
 	// 서브셋들 순회하며 렌더링
-	for (const Subset& subset : pMesh->m_subsets)
+	assert(pMesh->m_subsets.size() == pMeshRenderer->GetMeshPtr()->m_subsets.size());
+	const size_t subsetCount = pMesh->m_subsets.size();
+	for (size_t i = 0; i < subsetCount; ++i)
 	{
-		const Material* pMaterial = subset.m_material.get();
+		const Subset& currentSubset = pMesh->m_subsets[i];
+		const Material* pMaterial = pMeshRenderer->GetMaterialPtr(i);
 		if (pMaterial != nullptr)
 			m_basicEffectPT.SetTexture(pMaterial->m_diffuseMap.GetSRVComInterface());
 		else
@@ -622,13 +631,13 @@ void Renderer::RenderVFPositionTexCoordMesh(const MeshRenderer* pMeshRenderer)
 		m_effectImmediateContext.Apply(&m_basicEffectPT);
 
 		// 드로우
-		m_effectImmediateContext.DrawIndexed(subset.GetIndexCount(), subset.GetStartIndexLocation(), 0);
+		m_effectImmediateContext.DrawIndexed(currentSubset.GetIndexCount(), currentSubset.GetStartIndexLocation(), 0);
 	}
 }
 
 void Renderer::RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshRenderer)
 {
-	const Mesh* pMesh = pMeshRenderer->m_mesh.get();
+	const Mesh* pMesh = pMeshRenderer->GetMeshPtr();
 	if (!pMesh)
 		return;
 
@@ -649,9 +658,12 @@ void Renderer::RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshRende
 	m_effectImmediateContext.IASetIndexBuffer(pMesh->GetIBComInterface(), DXGI_FORMAT_R32_UINT, 0);
 
 	// 서브셋들 순회하며 렌더링
-	for (const Subset& subset : pMesh->m_subsets)
+	assert(pMesh->m_subsets.size() == pMeshRenderer->GetMeshPtr()->m_subsets.size());
+	const size_t subsetCount = pMesh->m_subsets.size();
+	for (size_t i = 0; i < subsetCount; ++i)
 	{
-		const Material* pMaterial = subset.m_material.get();
+		const Subset& currentSubset = pMesh->m_subsets[i];
+		const Material* pMaterial = pMeshRenderer->GetMaterialPtr(i);
 		if (pMaterial != nullptr)
 		{
 			m_basicEffectPNT.UseMaterial(true);
@@ -667,11 +679,11 @@ void Renderer::RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshRende
 		{
 			m_basicEffectPNT.UseMaterial(false);
 		}
-		
+
 		m_effectImmediateContext.Apply(&m_basicEffectPNT);
 
 		// 드로우
-		m_effectImmediateContext.DrawIndexed(subset.GetIndexCount(), subset.GetStartIndexLocation(), 0);
+		m_effectImmediateContext.DrawIndexed(currentSubset.GetIndexCount(), currentSubset.GetStartIndexLocation(), 0);
 	}
 }
 

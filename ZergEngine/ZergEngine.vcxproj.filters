@@ -297,9 +297,6 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Frustum.h">
       <Filter>Files\ZergEngine\CoreSystem\DataStructure</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Plane.h">
-      <Filter>Files\ZergEngine\CoreSystem\DataStructure</Filter>
-    </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Triangle.h">
       <Filter>Files\ZergEngine\CoreSystem\DataStructure</Filter>
     </ClInclude>
@@ -525,9 +522,6 @@
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\DataStructure\Frustum.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\DataStructure</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\DataStructure\Plane.cpp">
       <Filter>Files\ZergEngine\CoreSystem\DataStructure</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\DataStructure\Triangle.cpp">

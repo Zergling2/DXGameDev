@@ -24,7 +24,6 @@
     <ClInclude Include="include\ZergEngine\Common\EngineHelper.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Aabb.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Frustum.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Plane.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Ray.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Triangle.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DeviceContext\EffectDeviceContext.h" />
@@ -105,7 +104,6 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Time.h" />
     <ClInclude Include="include\ZergEngine\ZergEngine.h" />
     <ClCompile Include="source\CoreSystem\DataStructure\Frustum.cpp" />
-    <ClCompile Include="source\CoreSystem\DataStructure\Plane.cpp" />
     <ClCompile Include="source\CoreSystem\DataStructure\Ray.cpp" />
     <ClCompile Include="source\CoreSystem\DataStructure\Triangle.cpp" />
     <ClCompile Include="source\CoreSystem\DeviceContext\EffectDeviceContext.cpp" />

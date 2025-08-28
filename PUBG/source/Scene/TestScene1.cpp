@@ -57,6 +57,22 @@ void TestScene1::OnLoadScene()
 	pText->m_transform.SetHorizontalAnchor(HORIZONTAL_ANCHOR::CENTER);
 	pText->m_transform.SetVerticalAnchor(VERTICAL_ANCHOR::VCENTER);
 	pText->SetColor(Colors::Red);
+	pText->GetTextFormat().SetSize(20);
+	pText->Refresh();
+
+	UIObjectHandle hText2 = CreateText();
+	Text* pText2 = static_cast<Text*>(hText2.ToPtr());
+	pText2->SetText(L"30초 후 경기 구역이 제한됩니다!");
+	pText2->m_transform.SetHorizontalAnchor(HORIZONTAL_ANCHOR::CENTER);
+	pText2->m_transform.SetVerticalAnchor(VERTICAL_ANCHOR::BOTTOM);
+	pText2->m_transform.m_position.y = +200.0f;
+	pText2->SetSize(XMFLOAT2(400, 50));
+	pText2->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pText2->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pText2->SetColor(Colors::GreenYellow);
+	pText2->GetTextFormat().SetSize(20);
+	pText2->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_DEMI_BOLD);
+	pText2->Refresh();
 	{
 		UIObjectHandle hButton = CreateButton();
 		Button* pButton = static_cast<Button*>(hButton.ToPtr());
@@ -181,14 +197,14 @@ void TestScene1::OnLoadScene()
 		MeshRenderer* pKartMeshRenderer = hKartMeshRenderer.ToPtr();
 
 		meshes = ResourceLoader::GetInstance()->LoadWavefrontOBJ(L"Resource\\Model\\newyorkmusclecar\\newyorkmusclecar_body.obj");
-		pKartMeshRenderer->m_mesh = meshes[0];
+		pKartMeshRenderer->SetMesh(meshes[0]);
 
 		auto material = ResourceLoader::GetInstance()->CreateMaterial();
 		material->m_ambient = XMFLOAT4A(0.25f, 0.25f, 0.25f, 1.0f);
 		material->m_diffuse = XMFLOAT4A(0.8f, 0.8f, 0.8f, 1.0f);
 		material->m_specular = XMFLOAT4A(0.5f, 0.5f, 0.5f, 55.0f);
 		material->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Model\\newyorkmusclecar\\newyorkmusclecar_tex.png");
-		pKartMeshRenderer->m_mesh->m_subsets[0].m_material = material;
+		pKartMeshRenderer->SetMaterial(0, material);
 	}
 
 	
@@ -203,14 +219,14 @@ void TestScene1::OnLoadScene()
 		MeshRenderer* pPlanetMeshRenderer = hPlanetMeshRenderer.ToPtr();
 		// 메시 설정
 		meshes = ResourceLoader::GetInstance()->LoadWavefrontOBJ(L"Resource\\Model\\planet\\RinglessPlanet.obj");
-		pPlanetMeshRenderer->m_mesh = meshes[0];
+		pPlanetMeshRenderer->SetMesh(meshes[0]);
 		// 재질 설정
 		auto material = ResourceLoader::GetInstance()->CreateMaterial();
 		material->m_diffuse = XMFLOAT4A(1.0f, 1.0f, 1.0f, 1.0f);
 		material->m_ambient = XMFLOAT4A(material->m_diffuse.x * 0.2f, material->m_diffuse.y * 0.2f, material->m_diffuse.z * 0.2f, 1.0f);
 		material->m_specular = XMFLOAT4A(0.2f, 0.2f, 0.2f, 16.0f);
 		material->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Model\\planet\\RinglessPlanetB_Diffuse.png");
-		pPlanetMeshRenderer->m_mesh->m_subsets[0].m_material = material;
+		pPlanetMeshRenderer->SetMaterial(0, material);
 	}
 
 
@@ -226,9 +242,9 @@ void TestScene1::OnLoadScene()
 		MeshRenderer* pPillarMeshRenderer = hPillarMeshRenderer.ToPtr();
 		// 메시 설정
 		meshes = ResourceLoader::GetInstance()->LoadWavefrontOBJ(L"Resource\\maps\\mart\\pillar.obj");
-		pPillarMeshRenderer->m_mesh = meshes[0];
+		pPillarMeshRenderer->SetMesh(meshes[0]);
 		// 재질 설정
-		pPillarMeshRenderer->m_mesh->m_subsets[0].m_material = parkinglotMat;
+		pPillarMeshRenderer->SetMaterial(0, parkinglotMat);
 	}
 
 
@@ -240,9 +256,9 @@ void TestScene1::OnLoadScene()
 		// 메시 설정
 		meshes = ResourceLoader::GetInstance()->LoadWavefrontOBJ(L"Resource\\maps\\mart\\bollard.obj");
 		MeshRenderer* pBollardMeshRenderer = hBollardMeshRenderer.ToPtr();
-		pBollardMeshRenderer->m_mesh = meshes[0];
+		pBollardMeshRenderer->SetMesh(meshes[0]);
 		// 재질 설정
-		pBollardMeshRenderer->m_mesh->m_subsets[0].m_material = parkinglotMat;
+		pBollardMeshRenderer->SetMaterial(0, parkinglotMat);
 	}
 
 

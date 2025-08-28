@@ -16,8 +16,8 @@ namespace ze
 		{
 			XMStoreFloat4A(&m_ambient, g_XMOneHalf);
 			XMStoreFloat4A(&m_diffuse, XMVectorSplatOne());
-			XMStoreFloat4A(&m_specular, g_XMOneHalf);
-			m_specular.w = 8.0f;
+			XMStoreFloat4A(&m_specular, XMVectorSplatOne());
+			m_specular.w = 4.0f;
 		}
 		~Material() = default;
 	public:

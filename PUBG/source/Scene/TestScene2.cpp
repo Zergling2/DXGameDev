@@ -85,14 +85,14 @@ void TestScene2::OnLoadScene()
 		// 메시 설정
 		auto meshes = ResourceLoader::GetInstance()->LoadWavefrontOBJ(L"Resource\\maps\\mart\\pillar.obj");
 		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->m_mesh = meshes[0];
+		pMeshRenderer->SetMesh(meshes[0]);
 		// 재질 설정
 		parkinglotMaterial = ResourceLoader::GetInstance()->CreateMaterial();
 		parkinglotMaterial->m_diffuse = XMFLOAT4A(1.0f, 1.0f, 1.0f, 1.0f);
 		parkinglotMaterial->m_ambient = XMFLOAT4A(0.25f, 0.25f, 0.25f, 1.0f);
 		parkinglotMaterial->m_specular = XMFLOAT4A(0.2f, 0.2f, 0.2f, 16.0f);
 		parkinglotMaterial->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\maps\\mart\\ParkingLotInterior_Diffuse.png");
-		pMeshRenderer->m_mesh->m_subsets[0].m_material = parkinglotMaterial;
+		pMeshRenderer->SetMaterial(0, parkinglotMaterial);
 	}
 	
 
@@ -104,9 +104,9 @@ void TestScene2::OnLoadScene()
 		// 메시 설정
 		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 		auto meshes = ResourceLoader::GetInstance()->LoadWavefrontOBJ(L"Resource\\maps\\mart\\bollard.obj");
-		pMeshRenderer->m_mesh = meshes[0];
+		pMeshRenderer->SetMesh(meshes[0]);
 		// 재질 설정
-		pMeshRenderer->m_mesh->m_subsets[0].m_material = parkinglotMaterial;
+		pMeshRenderer->SetMaterial(0, parkinglotMaterial);
 	}
 
 
@@ -117,13 +117,13 @@ void TestScene2::OnLoadScene()
 		auto hMeshRenderer = pKart->AddComponent<MeshRenderer>();
 		auto meshes = ResourceLoader::GetInstance()->LoadWavefrontOBJ(L"Resource\\Model\\newyorktourbus\\newyorktourbus_body.obj");
 		auto pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->m_mesh = meshes[0];
+		pMeshRenderer->SetMesh(meshes[0]);
 		auto material = ResourceLoader::GetInstance()->CreateMaterial();
 		material->m_ambient = XMFLOAT4A(0.25f, 0.25f, 0.25f, 1.0f);
 		material->m_diffuse = XMFLOAT4A(0.85f, 0.85f, 0.85f, 1.0f);
 		material->m_specular = XMFLOAT4A(0.5f, 0.5f, 0.5f, 55.0f);
 		material->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Model\\newyorktourbus\\newyorktourbus_tex.png");
-		pMeshRenderer->m_mesh->m_subsets[0].m_material = material;
+		pMeshRenderer->SetMaterial(0, material);
 	}
 	
 

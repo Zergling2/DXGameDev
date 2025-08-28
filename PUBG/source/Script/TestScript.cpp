@@ -26,14 +26,14 @@ void TestScript::FixedUpdate()
 
 	if (i == 60)
 	{
-		if (pMeshRenderer->m_mesh->m_subsets[0].m_material->m_diffuseMap)
+		if (pMeshRenderer->GetMaterialPtr(0)->m_diffuseMap)
 		{
-			tex = pMeshRenderer->m_mesh->m_subsets[0].m_material->m_diffuseMap;
-			pMeshRenderer->m_mesh->m_subsets[0].m_material->m_diffuseMap.Reset();
+			tex = pMeshRenderer->GetMaterialPtr(0)->m_diffuseMap;
+			pMeshRenderer->GetMaterialPtr(0)->m_diffuseMap.Reset();
 		}
 		else
 		{
-			pMeshRenderer->m_mesh->m_subsets[0].m_material->m_diffuseMap = tex;
+			pMeshRenderer->GetMaterialPtr(0)->m_diffuseMap = tex;
 			tex.Reset();
 		}
 

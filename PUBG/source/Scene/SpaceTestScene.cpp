@@ -52,14 +52,14 @@ void SpaceTestScene::OnLoadScene()
 		// 메시 설정
 		auto pMeshRenderer = hMeshRenderer.ToPtr();
 		auto meshes = ResourceLoader::GetInstance()->LoadWavefrontOBJ(L"Resource\\Model\\planet\\RinglessPlanet.obj");
-		pMeshRenderer->m_mesh = meshes[0];
+		pMeshRenderer->SetMesh(meshes[0]);
 		// 재질 설정
 		auto material = ResourceLoader::GetInstance()->CreateMaterial();
 		material->m_diffuse = XMFLOAT4A(1.0f, 1.0f, 1.0f, 1.0f);
 		material->m_ambient = XMFLOAT4A(0.2f, 0.2f, 0.2f, 1.0f);
 		material->m_specular = XMFLOAT4A(0.2f, 0.2f, 0.2f, 16.0f);
 		material->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Model\\planet\\RinglessPlanetA_Diffuse.png");
-		pMeshRenderer->m_mesh->m_subsets[0].m_material = material;
+		pMeshRenderer->SetMaterial(0, material);
 	}
 
 	// Beryl M762
@@ -73,12 +73,12 @@ void SpaceTestScene::OnLoadScene()
 			pWeaponMagazine->m_transform.SetRotation(XMFLOAT3A(0.0f, XMConvertToRadians(45.0f), 0.0f));
 			auto hMeshRenderer = pWeaponMagazine->AddComponent<MeshRenderer>();
 			auto pMeshRenderer = hMeshRenderer.ToPtr();
-			pMeshRenderer->m_mesh = meshes[0];
+			pMeshRenderer->SetMesh(meshes[0]);
 			auto material = ResourceLoader::GetInstance()->CreateMaterial();
 			material->m_ambient = XMFLOAT4A(0.25f, 0.25f, 0.25f, 1.0f);
 			material->m_diffuse = XMFLOAT4A(0.85f, 0.85f, 0.85f, 1.0f);
 			material->m_specular = XMFLOAT4A(0.5f, 0.5f, 0.5f, 55.0f);
-			pMeshRenderer->m_mesh->m_subsets[0].m_material = material;
+			pMeshRenderer->SetMaterial(0, material);
 		}
 
 		{
@@ -88,12 +88,12 @@ void SpaceTestScene::OnLoadScene()
 			pWeapon->m_transform.SetRotation(XMFLOAT3A(0.0f, XMConvertToRadians(45.0f), 0.0f));
 			auto hMeshRenderer = pWeapon->AddComponent<MeshRenderer>();
 			auto pMeshRenderer = hMeshRenderer.ToPtr();
-			pMeshRenderer->m_mesh = meshes[1];
+			pMeshRenderer->SetMesh(meshes[1]);
 			auto material = ResourceLoader::GetInstance()->CreateMaterial();
 			material->m_ambient = XMFLOAT4A(0.25f, 0.25f, 0.25f, 1.0f);
 			material->m_diffuse = XMFLOAT4A(0.85f, 0.85f, 0.85f, 1.0f);
 			material->m_specular = XMFLOAT4A(0.5f, 0.5f, 0.5f, 55.0f);
-			pMeshRenderer->m_mesh->m_subsets[0].m_material = material;
+			pMeshRenderer->SetMaterial(0, material);
 		}
 	}
 
@@ -108,20 +108,20 @@ void SpaceTestScene::OnLoadScene()
 			pWeapon->m_transform.SetRotation(XMFLOAT3A(0.0f, XMConvertToRadians(45.0f), 0.0f));
 			auto hMeshRenderer = pWeapon->AddComponent<MeshRenderer>();
 			auto pMeshRenderer = hMeshRenderer.ToPtr();
-			pMeshRenderer->m_mesh = meshes[0];
+			pMeshRenderer->SetMesh(meshes[0]);
 			auto material1 = ResourceLoader::GetInstance()->CreateMaterial();
 			material1->m_ambient = XMFLOAT4A(0.25f, 0.25f, 0.25f, 1.0f);
 			material1->m_diffuse = XMFLOAT4A(0.85f, 0.85f, 0.85f, 1.0f);
 			material1->m_specular = XMFLOAT4A(0.5f, 0.5f, 0.5f, 55.0f);
 			material1->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Model\\weapons\\m16a1_2_BaseColor.jpg");
-			pMeshRenderer->m_mesh->m_subsets[0].m_material = material1;
+			pMeshRenderer->SetMaterial(0, material1);
 
 			auto material2 = ResourceLoader::GetInstance()->CreateMaterial();
 			material2->m_ambient = XMFLOAT4A(0.25f, 0.25f, 0.25f, 1.0f);
 			material2->m_diffuse = XMFLOAT4A(0.85f, 0.85f, 0.85f, 1.0f);
 			material2->m_specular = XMFLOAT4A(0.5f, 0.5f, 0.5f, 55.0f);
 			material2->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Model\\weapons\\m16a1_1_BaseColor.jpg");
-			pMeshRenderer->m_mesh->m_subsets[1].m_material = material2;
+			pMeshRenderer->SetMaterial(1, material2);
 		}
 	}
 	

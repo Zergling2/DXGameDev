@@ -1,10 +1,11 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\SizeUIObjectInterface.h>
+#include <ZergEngine\CoreSystem\Math.h>
 #include <ZergEngine\Common\EngineConstants.h>
 
 using namespace ze;
 
-constexpr uint16_t MIN_UI_WIDTH = 16;
-constexpr uint16_t MIN_UI_HEIGHT = 16;
+constexpr uint16_t MIN_UI_WIDTH = 8;
+constexpr uint16_t MIN_UI_HEIGHT = 8;
 
 ISizeUIObject::ISizeUIObject(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name)
 	: IUIObject(id, flag, name)
@@ -16,7 +17,7 @@ ISizeUIObject::ISizeUIObject(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name)
 void XM_CALLCONV ISizeUIObject::SetSize(FXMVECTOR size)
 {
 	XMStoreFloat2(&m_size, size);
-	XMStoreFloat2(&m_halfSize, XMVectorMultiply(size, g_XMOneHalf));
+	XMStoreFloat2(&m_halfSize, XMVectorMultiply(size, Math::Vector3::OneHalf()));
 }
 
 bool XM_CALLCONV ISizeUIObject::HitTest(FXMVECTOR mousePosition) const

@@ -5,7 +5,6 @@
 namespace ze
 {
 	class Frustum;
-	class Plane;
 	class Ray;
 	class Triangle;
 	using Aabb = DirectX::BoundingBox;
@@ -16,9 +15,23 @@ namespace ze
 		class Vector3
 		{
 		public:
+			// 0.0f, 1.0f, 0.0f, 0.0f
 			static XMVECTOR Up() { return g_XMIdentityR1; }
+
+			// 1.0f, 0.0f, 0.0f, 0.0f
 			static XMVECTOR Right() { return g_XMIdentityR0; }
+
+			// 0.0f, 0.0f, 1.0f, 0.0f
 			static XMVECTOR Forward() { return g_XMIdentityR2; }
+
+			// 1.0f, 1.0f, 1.0f, 1.0f
+			static XMVECTOR One() { return g_XMOne; }
+
+			// 1.0f, 1.0f, 1.0f, 0.0f
+			static XMVECTOR One3() { return g_XMOne3; }
+
+			// 0.5f, 0.5f, 0.5f, 0.5f
+			static XMVECTOR OneHalf() { return g_XMOneHalf; }
 		};
 
 		template<typename T>
@@ -60,11 +73,6 @@ namespace ze
 
 		static bool TestFrustumAabbCollision(const Frustum& frustum, const Aabb& aabb);
 
-		// 정규화된 Plane을 전달해야 합니다.
-		static bool TestAabbBehindPlane(const Aabb& aabb, const Plane& plane);
-
 		static bool TestRayTriangleCollision(const Ray& ray, const Triangle& tri);
-
-		static const Aabb XM_CALLCONV TransformAabb(const Aabb& aabb, FXMMATRIX m);
 	};
 }
