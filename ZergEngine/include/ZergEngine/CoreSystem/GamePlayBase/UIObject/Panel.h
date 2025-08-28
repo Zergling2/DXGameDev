@@ -4,7 +4,7 @@
 
 namespace ze
 {
-	enum class PANEL_SHAPE
+	enum class PANEL_SHAPE : uint8_t
 	{
 		RECTANGLE,
 		ROUNDED_RECTANGLE

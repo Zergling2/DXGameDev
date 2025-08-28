@@ -31,6 +31,9 @@ namespace ze
 
 		// 루트 오브젝트로 버튼 UI를 생성합니다.
 		UIObjectHandle CreateButton(PCWSTR name = L"New Button");
+
+		// 루트 오브젝트로 입력 필드 UI를 생성합니다.
+		UIObjectHandle CreateInputField(PCWSTR name = L"New Input Field");
 	private:
 		// OnLoadScene 함수의 구현은 반드시 Runtime의 Create 함수들을 사용하지 말고 
 		// IScene 인터페이스에서 제공하는 Create 함수들을 사용하여 오브젝트를 생성해야 합니다.

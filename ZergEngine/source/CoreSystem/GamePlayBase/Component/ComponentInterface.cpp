@@ -44,7 +44,7 @@ void IComponent::Destroy()
 	pComponentManager->RequestDestroy(this);
 }
 
-const ComponentHandleBase IComponent::ToHandleBase() const
+const ComponentHandleBase IComponent::ToHandle() const
 {
 	IComponentManager* pComponentManager = this->GetComponentManager();
 	assert(pComponentManager->ToPtr(m_tableIndex, m_id) == this);

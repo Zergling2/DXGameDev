@@ -459,6 +459,7 @@ void Renderer::RenderFrame()
 					this->RenderText(static_cast<const Text*>(pUIObject));
 					break;
 				case UIOBJECT_TYPE::INPUT_FIELD:
+					this->RenderInputField(static_cast<const InputField*>(pUIObject));
 					break;
 				case UIOBJECT_TYPE::BUTTON:
 					this->RenderButton(static_cast<const Button*>(pUIObject));
@@ -740,6 +741,8 @@ void Renderer::RenderPanel(const Panel* pPanel)
 
 	pSolidColorBrush->SetColor(reinterpret_cast<const D2D1_COLOR_F&>(pPanel->GetColor()));
 
+
+	// ################ BEGIN DRAW ################
 	pD2DRenderTarget->BeginDraw();
 
 	switch (pPanel->GetShape())
@@ -801,7 +804,10 @@ void Renderer::RenderText(const Text* pText)
 	layoutRect.top = windowsButtonCenter.y - pText->m_halfSize.y;
 	layoutRect.bottom = layoutRect.top + pText->m_size.y;
 
+
+	// ################ BEGIN DRAW ################
 	pD2DRenderTarget->BeginDraw();
+
 	pD2DRenderTarget->DrawTextW(
 		pText->GetText(),
 		textLength,
@@ -832,4 +838,88 @@ void Renderer::RenderButton(const Button* pButton)
 
 	// 2. 버튼 텍스트 렌더링
 	this->RenderText(static_cast<const Text*>(pButton));
+}
+
+void Renderer::RenderInputField(const InputField* pInputField)
+{
+	ID2D1RenderTarget* pD2DRenderTarget = GraphicDevice::GetInstance()->GetD2DRenderTarget();
+	ID2D1SolidColorBrush* pBrush = GraphicDevice::GetInstance()->GetD2DSolidColorBrush();
+
+	// 1. Input Field 배경 렌더링
+	const RectTransform& transform = pInputField->m_transform;
+	XMFLOAT2A windowsRectCenter;
+	XMStoreFloat2A(&windowsRectCenter, transform.GetWindowsScreenPosition());
+
+	D2D1_ROUNDED_RECT shapeInfo;
+	shapeInfo.rect.left = windowsRectCenter.x - pInputField->m_halfSize.x;
+	shapeInfo.rect.right = shapeInfo.rect.left + pInputField->m_size.x;
+	shapeInfo.rect.top = windowsRectCenter.y - pInputField->m_halfSize.y;
+	shapeInfo.rect.bottom = shapeInfo.rect.top + pInputField->m_size.y;
+
+	pBrush->SetColor(reinterpret_cast<const D2D1_COLOR_F&>(pInputField->GetBkColor()));
+
+	// ################ BEGIN DRAW ################
+	pD2DRenderTarget->BeginDraw();
+	do
+	{
+		switch (pInputField->GetShape())
+		{
+		case INPUT_FIELD_SHAPE::RECTANGLE:
+			pD2DRenderTarget->FillRectangle(&shapeInfo.rect, pBrush);
+			break;
+		case INPUT_FIELD_SHAPE::ROUNDED_RECTANGLE:
+			shapeInfo.radiusX = pInputField->GetRadiusX();
+			shapeInfo.radiusY = pInputField->GetRadiusY();
+			pD2DRenderTarget->FillRoundedRectangle(&shapeInfo, pBrush);
+			break;
+		default:
+			break;
+		}
+
+		// 2. Text 렌더링
+		UINT32 textLength = static_cast<UINT32>(pInputField->GetTextLength());
+		if (textLength == 0)
+			break;
+
+		IDWriteTextFormat* pDWriteTextFormat = pInputField->GetDWriteTextFormatComInterface();
+
+		pBrush->SetColor(reinterpret_cast<const D2D1_COLOR_F&>(pInputField->GetColor()));
+		pDWriteTextFormat->SetTextAlignment(pInputField->GetTextAlignment());
+		pDWriteTextFormat->SetParagraphAlignment(pInputField->GetParagraphAlignment());
+		const D2D1_RECT_F& layoutRect = shapeInfo.rect;
+		
+		static PCWSTR pwc = L"********************************";
+		constexpr size_t pwcl = 32;
+		PCTSTR pContent;
+		PWSTR pBuffer = nullptr;
+		if (pInputField->IsPassword())
+		{
+			if (textLength <= pwcl)	// 최대 32개의 *까지는 동적할당 X
+				pContent = pwc;
+			else
+			{
+				pBuffer = new WCHAR[textLength + 1];
+				for (size_t i = 0; i < textLength; ++i)
+					pBuffer[i] = L'*';
+				pBuffer[textLength] = L'\0';
+				pContent = pBuffer;
+			}
+		}
+		else
+		{
+			pContent = pInputField->GetText();
+		}
+		pD2DRenderTarget->DrawTextW(
+			pContent,
+			textLength,
+			pDWriteTextFormat,
+			layoutRect,
+			pBrush
+		);
+
+		if (pBuffer != nullptr)
+			delete[] pBuffer;
+	} while (false);
+
+	pD2DRenderTarget->EndDraw();
 }

@@ -1,5 +1,6 @@
 #include <ZergEngine\CoreSystem\Manager\UIObjectManager.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\UIObjectInterface.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\InputField.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\RectTransform.h>
 
 using namespace ze;
@@ -14,9 +15,10 @@ UIObjectManager::UIObjectManager()
 	, m_activeGroup()
 	, m_inactiveGroup()
 	, m_handleTable(256, nullptr)
-	, m_pObjectPressedByLButton(nullptr)
-	, m_pObjectPressedByRButton(nullptr)
-	, m_pObjectPressedByMButton(nullptr)
+	, m_pLButtonDownObject(nullptr)
+	, m_pMButtonDownObject(nullptr)
+	, m_pRButtonDownObject(nullptr)
+	, m_pActiveInputField(nullptr)
 {
 	m_lock.Init();
 }
@@ -144,7 +146,7 @@ UIObjectHandle UIObjectManager::FindUIObject(PCWSTR name)
 	{
 		if (wcscmp(pUIObject->GetName(), name) == 0)
 		{
-			hUIObject = pUIObject->ToHandleBase();
+			hUIObject = pUIObject->ToHandle();
 			break;
 		}
 	}
@@ -170,7 +172,7 @@ void UIObjectManager::MoveToActiveGroup(IUIObject* pUIObject)
 void UIObjectManager::MoveToInactiveGroup(IUIObject* pUIObject)
 {
 	// 0. UI 상호작용 중(클릭되거나 포커싱된 경우)이었다면 해제
-	this->DetachFromUIInteraction(pUIObject);
+	pUIObject->OnDetachedFromUIInteraction();
 
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	// 1. Active group에서 제거
@@ -292,12 +294,7 @@ void UIObjectManager::RemoveDestroyedUIObjects()
 		assert(pUIObject->IsPending() == false);	// 로딩 씬 소속의 오브젝트는 파괴될 수 없다.
 		assert(pUIObject->IsOnTheDestroyQueue() == true);	// 파괴 큐에 들어온 경우에는 이 ON_DESTROY_QUEUE 플래그가 켜져 있어야만 한다.
 
-		if (pUIObject == m_pObjectPressedByLButton)
-			m_pObjectPressedByLButton = nullptr;
-		if (pUIObject == m_pObjectPressedByRButton)
-			m_pObjectPressedByRButton = nullptr;
-		if (pUIObject == m_pObjectPressedByMButton)
-			m_pObjectPressedByMButton = nullptr;
+		pUIObject->OnDetachedFromUIInteraction();
 
 		// Step 1. Transform 자식 부모 연결 제거
 		RectTransform* pTransform = &pUIObject->m_transform;
@@ -377,21 +374,6 @@ void UIObjectManager::SetActive(IUIObject* pUIObject, bool active)
 		else
 			pUIObject->OffFlag(UIOBJECT_FLAG::ACTIVE);
 	}
-}
-
-void UIObjectManager::DetachFromUIInteraction(IUIObject* pUIObject)
-{
-	// 마우스 클릭된 상태이거나 포커싱된 상태이거나 등...
-	if (m_pObjectPressedByLButton == pUIObject)
-		m_pObjectPressedByLButton = nullptr;
-
-	if (m_pObjectPressedByMButton == pUIObject)
-		m_pObjectPressedByMButton = nullptr;
-
-	if (m_pObjectPressedByRButton == pUIObject)
-		m_pObjectPressedByRButton = nullptr;
-
-	pUIObject->OnDetachUIInteraction();
 }
 
 bool UIObjectManager::SetParent(RectTransform* pTransform, RectTransform* pNewParentTransform)
@@ -517,62 +499,46 @@ IUIObject* XM_CALLCONV UIObjectManager::PostOrderHitTest(FXMVECTOR mousePosition
 		return nullptr;
 }
 
+void UIObjectManager::OnChar(WPARAM wParam, LPARAM lParam)
+{
+	if (!m_pActiveInputField)
+		return;
+
+	m_pActiveInputField->OnChar(static_cast<TCHAR>(wParam));
+}
+
 void UIObjectManager::OnLButtonDown(POINT pt)
 {
 	XMVECTOR mousePosition = XMVectorSet(static_cast<FLOAT>(pt.x), static_cast<FLOAT>(pt.y), 0.0f, 0.0f);
 
 	IUIObject* pHitUI = this->HitTest(mousePosition);
-	if (!pHitUI)
-		return;
-
-	pHitUI->OnLButtonDown();
-	m_pObjectPressedByLButton = pHitUI;
+	if (pHitUI)
+	{
+		pHitUI->OnLButtonDown();
+	}
+	else
+	{
+		SetLButtonDownObject(nullptr);
+		SetActiveInputField(nullptr);
+	}
 }
 
 void UIObjectManager::OnLButtonUp(POINT pt)
 {
 	// 눌려있던 UI오브젝트가 없던 경우에는 어떤 처리도 해줄 필요가 없다.
-	if (m_pObjectPressedByLButton == nullptr)
+	if (m_pLButtonDownObject == nullptr)
 		return;
 
-	m_pObjectPressedByLButton->OnLButtonUp();
-
-	XMVECTOR mousePosition = XMVectorSet(static_cast<FLOAT>(pt.x), static_cast<FLOAT>(pt.y), 0.0f, 0.0f);
-	IUIObject* pLBtnUpObject = this->HitTest(mousePosition);
-
-	if (m_pObjectPressedByLButton == pLBtnUpObject)	// 눌려있던 것이 Up 오브젝트라면 클릭으로 처리
-		m_pObjectPressedByLButton->OnLClick();
-
-	m_pObjectPressedByLButton = nullptr;
-}
-
-void UIObjectManager::OnRButtonDown(POINT pt)
-{
 	XMVECTOR mousePosition = XMVectorSet(static_cast<FLOAT>(pt.x), static_cast<FLOAT>(pt.y), 0.0f, 0.0f);
 
 	IUIObject* pHitUI = this->HitTest(mousePosition);
-	if (!pHitUI)
-		return;
-
-	pHitUI->OnRButtonDown();
-	m_pObjectPressedByRButton = pHitUI;
-}
-
-void UIObjectManager::OnRButtonUp(POINT pt)
-{
-	// 눌려있던 UI오브젝트가 없던 경우에는 어떤 처리도 해줄 필요가 없다.
-	if (m_pObjectPressedByRButton == nullptr)
-		return;
-
-	m_pObjectPressedByRButton->OnRButtonUp();
-
-	XMVECTOR mousePosition = XMVectorSet(static_cast<FLOAT>(pt.x), static_cast<FLOAT>(pt.y), 0.0f, 0.0f);
-	IUIObject* pRBtnUpObject = this->HitTest(mousePosition);
-
-	if (m_pObjectPressedByRButton == pRBtnUpObject)	// 눌려있던 것이 Up 오브젝트라면 클릭으로 처리
-		m_pObjectPressedByRButton->OnRClick();
-
-	m_pObjectPressedByRButton = nullptr;
+	if (pHitUI)
+		pHitUI->OnLButtonUp();
+	else
+	{
+		m_pLButtonDownObject->OnLButtonUp();
+		m_pLButtonDownObject = nullptr;
+	}
 }
 
 void UIObjectManager::OnMButtonDown(POINT pt)
@@ -580,26 +546,65 @@ void UIObjectManager::OnMButtonDown(POINT pt)
 	XMVECTOR mousePosition = XMVectorSet(static_cast<FLOAT>(pt.x), static_cast<FLOAT>(pt.y), 0.0f, 0.0f);
 
 	IUIObject* pHitUI = this->HitTest(mousePosition);
-	if (!pHitUI)
-		return;
-
-	pHitUI->OnMButtonDown();
-	m_pObjectPressedByMButton = pHitUI;
+	if (pHitUI)
+	{
+		pHitUI->OnMButtonDown();
+	}
+	else
+	{
+		SetMButtonDownObject(nullptr);
+		SetActiveInputField(nullptr);
+	}
 }
 
 void UIObjectManager::OnMButtonUp(POINT pt)
 {
 	// 눌려있던 UI오브젝트가 없던 경우에는 어떤 처리도 해줄 필요가 없다.
-	if (m_pObjectPressedByMButton == nullptr)
+	if (m_pMButtonDownObject == nullptr)
 		return;
 
-	m_pObjectPressedByMButton->OnMButtonUp();
+	XMVECTOR mousePosition = XMVectorSet(static_cast<FLOAT>(pt.x), static_cast<FLOAT>(pt.y), 0.0f, 0.0f);
+
+	IUIObject* pHitUI = this->HitTest(mousePosition);
+	if (pHitUI)
+		pHitUI->OnMButtonUp();
+	else
+	{
+		m_pMButtonDownObject->OnMButtonUp();
+		m_pMButtonDownObject = nullptr;
+	}
+}
+
+void UIObjectManager::OnRButtonDown(POINT pt)
+{
+	XMVECTOR mousePosition = XMVectorSet(static_cast<FLOAT>(pt.x), static_cast<FLOAT>(pt.y), 0.0f, 0.0f);
+
+	IUIObject* pHitUI = this->HitTest(mousePosition);
+	if (pHitUI)
+	{
+		pHitUI->OnRButtonDown();
+	}
+	else
+	{
+		SetRButtonDownObject(nullptr);
+		SetActiveInputField(nullptr);
+	}
+}
+
+void UIObjectManager::OnRButtonUp(POINT pt)
+{
+	// 눌려있던 UI오브젝트가 없던 경우에는 어떤 처리도 해줄 필요가 없다.
+	if (m_pRButtonDownObject == nullptr)
+		return;
 
 	XMVECTOR mousePosition = XMVectorSet(static_cast<FLOAT>(pt.x), static_cast<FLOAT>(pt.y), 0.0f, 0.0f);
-	IUIObject* pMBtnUpObject = this->HitTest(mousePosition);
 
-	if (m_pObjectPressedByMButton == pMBtnUpObject)	// 눌려있던 것이 Up 오브젝트라면 클릭으로 처리
-		m_pObjectPressedByMButton->OnMClick();
-
-	m_pObjectPressedByMButton = nullptr;
+	IUIObject* pHitUI = this->HitTest(mousePosition);
+	if (pHitUI)
+		pHitUI->OnRButtonUp();
+	else
+	{
+		m_pRButtonDownObject->OnRButtonUp();
+		m_pRButtonDownObject = nullptr;
+	}
 }

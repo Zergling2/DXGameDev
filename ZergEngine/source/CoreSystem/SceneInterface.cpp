@@ -4,6 +4,7 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Panel.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Image.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Button.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\InputField.h>
 
 using namespace ze;
 
@@ -56,4 +57,13 @@ UIObjectHandle IScene::CreateButton(PCWSTR name)
 	m_pendingUIObjects.push_back(pNewButton);
 
 	return hNewButton;
+}
+
+UIObjectHandle IScene::CreateInputField(PCWSTR name)
+{
+	InputField* pInputField = nullptr;
+	UIObjectHandle hNewInputField = UIObjectManager::GetInstance()->CreatePendingObject<InputField>(&pInputField, name);
+	m_pendingUIObjects.push_back(pInputField);
+
+	return hNewInputField;
 }

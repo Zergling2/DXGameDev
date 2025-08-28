@@ -25,6 +25,7 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Panel.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Image.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Button.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\InputField.h>
 
 using namespace ze;
 
@@ -325,6 +326,11 @@ UIObjectHandle Runtime::CreateText(PCWSTR name)
 UIObjectHandle Runtime::CreateButton(PCWSTR name)
 {
     return UIObjectManager::GetInstance()->CreateObject<Button>(name);
+}
+
+UIObjectHandle Runtime::CreateInputField(PCWSTR name)
+{
+    return UIObjectManager::GetInstance()->CreateObject<InputField>(name);
 }
 
 void Runtime::OnSize(UINT nType, int cx, int cy)

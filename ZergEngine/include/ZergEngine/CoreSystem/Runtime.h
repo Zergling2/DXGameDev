@@ -50,6 +50,10 @@ namespace ze
 		// 루트 오브젝트로 버튼 UI를 생성합니다.
 		UIObjectHandle CreateButton(PCWSTR name = L"New Button");
 
+		// (이 함수는 스크립트에서만 호출해야 합니다.)
+		// 루트 오브젝트로 입력 필드 UI를 생성합니다.
+		UIObjectHandle CreateInputField(PCWSTR name = L"New Input Field");
+
 		GameObjectHandle Instantiate(const GameObjectHandle source);
 		// GameObjectHandle Instantiate(const GameObjectHandle source, GameObjectHandle parent);
 

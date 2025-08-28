@@ -18,9 +18,10 @@ namespace ze
 	class Terrain;
 	class IUIObject;
 	class Panel;
+	class Image;
 	class Text;
 	class Button;
-	class Image;
+	class InputField;
 
 	class Renderer
 	{
@@ -50,6 +51,7 @@ namespace ze
 		void RenderImage(const Image* pImage);
 		void RenderText(const Text* pText);
 		void RenderButton(const Button* pButton);
+		void RenderInputField(const InputField* pInputField);
 	private:
 		static Renderer* s_pInstance;
 

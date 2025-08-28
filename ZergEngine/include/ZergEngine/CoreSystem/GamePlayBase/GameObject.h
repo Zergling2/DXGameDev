@@ -128,7 +128,7 @@ namespace ze
 				assert(pComponent != nullptr);
 				if (dynamic_cast<ComponentType*>(pComponent))
 				{
-					hComponent = pComponent->ToHandleBase();
+					hComponent = pComponent->ToHandle();
 					assert(hComponent.IsValid() == true);
 					break;
 				}
@@ -152,10 +152,10 @@ namespace ze
 			for (auto pComponent : m_components)
 			{
 				assert(pComponent != nullptr);
-				assert(pComponent->ToHandleBase().IsValid());
+				assert(pComponent->ToHandle().IsValid());
 				if (dynamic_cast<ComponentType*>(pComponent))
 				{
-					hv.push_back(pComponent->ToHandleBase());
+					hv.push_back(pComponent->ToHandle());
 					assert(hv[hv.size() - 1].IsValid() == true);
 				}
 			}
@@ -180,7 +180,7 @@ namespace ze
 			assert(pComponent != nullptr);
 			if (dynamic_cast<ComponentType*>(pComponent))
 			{
-				componentArr[count++] = pComponent->ToHandleBase();
+				componentArr[count++] = pComponent->ToHandle();
 				assert(componentArr[count - 1].IsValid() == true);
 				if (count >= len)
 					break;

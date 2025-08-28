@@ -58,7 +58,7 @@ namespace ze
 	private:
 		virtual IComponentManager* GetComponentManager() const = 0;
 
-		const ComponentHandleBase ToHandleBase() const;
+		const ComponentHandleBase ToHandle() const;
 		void OnFlag(COMPONENT_FLAG flag) { m_flag = static_cast<COMPONENT_FLAG>(static_cast<cft>(m_flag) | static_cast<cft>(flag)); }
 		void OffFlag(COMPONENT_FLAG flag) { m_flag = static_cast<COMPONENT_FLAG>(static_cast<cft>(m_flag) & ~static_cast<cft>(flag)); }
 	private:

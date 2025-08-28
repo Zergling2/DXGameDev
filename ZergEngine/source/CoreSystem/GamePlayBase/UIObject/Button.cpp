@@ -9,17 +9,23 @@ Button::Button(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name)
 {
 }
 
-void Button::OnDetachUIInteraction()
+void Button::OnDetachedFromUIInteraction()
 {
+	Text::OnDetachedFromUIInteraction();
+
 	m_pressed = false;
 }
 
 void Button::OnLButtonDown()
 {
+	Text::OnLButtonDown();
+
 	this->SetPressed(true);
 }
 
 void Button::OnLButtonUp()
 {
+	Text::OnLButtonUp();
+
 	this->SetPressed(false);
 }

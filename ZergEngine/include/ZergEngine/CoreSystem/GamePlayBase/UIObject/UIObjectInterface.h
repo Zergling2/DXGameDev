@@ -45,28 +45,28 @@ namespace ze
 		virtual UIOBJECT_TYPE GetType() const = 0;
 
 		void SetActive(bool active);
+	protected:
+		// UI 상호작용이 취소되는경우 할 일 구현
+		virtual void OnDetachedFromUIInteraction();
+		virtual bool XM_CALLCONV HitTest(FXMVECTOR mousePosition) const = 0;
+		virtual void OnLButtonDown();
+		virtual void OnLButtonUp();
+		virtual void OnLButtonClick() {}
+		virtual void OnMButtonDown();
+		virtual void OnMButtonUp();
+		virtual void OnMButtonClick() {}
+		virtual void OnRButtonDown();
+		virtual void OnRButtonUp();
+		virtual void OnRButtonClick() {}
+		virtual void OnChar(TCHAR ch) {}
 	private:
-		const UIObjectHandle ToHandleBase() const;
+		const UIObjectHandle ToHandle() const;
 
 		bool IsPending() const { return static_cast<uioft>(m_flag) & static_cast<uioft>(UIOBJECT_FLAG::PENDING); }
 		void OnFlag(UIOBJECT_FLAG flag) { m_flag = static_cast<UIOBJECT_FLAG>(static_cast<uioft>(m_flag) | static_cast<uioft>(flag)); }
 		void OffFlag(UIOBJECT_FLAG flag) { m_flag = static_cast<UIOBJECT_FLAG>(static_cast<uioft>(m_flag) & ~static_cast<uioft>(flag)); }
 		bool IsOnTheDestroyQueue() const { return static_cast<uioft>(m_flag) & static_cast<uioft>(UIOBJECT_FLAG::ON_DESTROY_QUEUE); }
 		bool IsRoot() const {return static_cast<uioft>(m_flag) & static_cast<uioft>(UIOBJECT_FLAG::REAL_ROOT); }
-
-		// UI 상호작용이 취소되는경우 할 일 구현
-		virtual void OnDetachUIInteraction() {}
-		virtual bool XM_CALLCONV HitTest(FXMVECTOR mousePosition) const = 0;
-
-		virtual void OnLButtonDown() {}
-		virtual void OnLButtonUp() {}
-		virtual void OnLClick() {}
-		virtual void OnRButtonDown() {}
-		virtual void OnRButtonUp() {}
-		virtual void OnRClick() {}
-		virtual void OnMButtonDown() {}
-		virtual void OnMButtonUp() {}
-		virtual void OnMClick() {}
 	public:
 		RectTransform m_transform;
 	private:

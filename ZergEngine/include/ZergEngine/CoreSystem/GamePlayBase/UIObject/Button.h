@@ -19,7 +19,7 @@ namespace ze
 		void SetButtonColor(const XMFLOAT4A& color) { m_buttonColor = color; }
 		void SetButtonColor(const XMFLOAT4& color) { m_buttonColor = color; }
 	private:
-		virtual void OnDetachUIInteraction() override;	// 시각적으로 눌린 상태를 해제한다.
+		virtual void OnDetachedFromUIInteraction() override;	// 시각적으로 눌린 상태를 해제한다.
 
 		virtual void OnLButtonDown() override;
 		virtual void OnLButtonUp() override;

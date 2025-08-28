@@ -31,7 +31,102 @@ void IUIObject::SetActive(bool active)
 	UIObjectManager::GetInstance()->SetActive(this, active);
 }
 
-const UIObjectHandle IUIObject::ToHandleBase() const
+void IUIObject::OnDetachedFromUIInteraction()
+{
+	UIObjectManager* pUIObjectManager = UIObjectManager::GetInstance();
+
+	if (pUIObjectManager->GetLButtonDownObject() == this)
+		pUIObjectManager->SetLButtonDownObject(nullptr);
+
+	if (pUIObjectManager->GetMButtonDownObject() == this)
+		pUIObjectManager->SetMButtonDownObject(nullptr);
+
+	if (pUIObjectManager->GetRButtonDownObject() == this)
+		pUIObjectManager->SetRButtonDownObject(nullptr);
+}
+
+void IUIObject::OnLButtonDown()
+{
+	UIObjectManager* pUIObjectManager = UIObjectManager::GetInstance();
+
+	pUIObjectManager->SetLButtonDownObject(this);
+	pUIObjectManager->SetActiveInputField(nullptr);
+}
+
+void IUIObject::OnLButtonUp()
+{
+	UIObjectManager* pUIObjectManager = UIObjectManager::GetInstance();
+
+	IUIObject* pLButtonDownObject = pUIObjectManager->GetLButtonDownObject();
+
+	if (pLButtonDownObject == this)
+	{
+		this->OnLButtonClick();
+	}
+	else
+	{
+		if (pLButtonDownObject)
+			pLButtonDownObject->OnLButtonUp();
+	}
+
+	pUIObjectManager->SetLButtonDownObject(nullptr);
+}
+
+void IUIObject::OnMButtonDown()
+{
+	UIObjectManager* pUIObjectManager = UIObjectManager::GetInstance();
+
+	pUIObjectManager->SetMButtonDownObject(this);
+	pUIObjectManager->SetActiveInputField(nullptr);
+}
+
+void IUIObject::OnMButtonUp()
+{
+	UIObjectManager* pUIObjectManager = UIObjectManager::GetInstance();
+
+	IUIObject* pMButtonDownObject = pUIObjectManager->GetMButtonDownObject();
+
+	if (pMButtonDownObject == this)
+	{
+		this->OnMButtonClick();
+	}
+	else
+	{
+		if (pMButtonDownObject)
+			pMButtonDownObject->OnMButtonUp();
+	}
+
+	pUIObjectManager->SetMButtonDownObject(nullptr);
+}
+
+void IUIObject::OnRButtonDown()
+{
+	UIObjectManager* pUIObjectManager = UIObjectManager::GetInstance();
+
+	pUIObjectManager->SetRButtonDownObject(this);
+	pUIObjectManager->SetActiveInputField(nullptr);
+}
+
+void IUIObject::OnRButtonUp()
+{
+	UIObjectManager* pUIObjectManager = UIObjectManager::GetInstance();
+
+	IUIObject* pRButtonDownObject = pUIObjectManager->GetRButtonDownObject();
+
+	if (pRButtonDownObject == this)
+	{
+		this->OnRButtonClick();
+	}
+	else
+	{
+		if (pRButtonDownObject)
+			pRButtonDownObject->OnRButtonUp();
+	}
+
+	pUIObjectManager->SetRButtonDownObject(nullptr);
+}
+
+const UIObjectHandle IUIObject::ToHandle() const
 {
 	assert(UIObjectManager::GetInstance()->m_handleTable[m_tableIndex] == this);
 

@@ -119,6 +119,43 @@ void TestScene1::OnLoadScene()
 		pButton->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_FAR);
 		pButton->m_transform.SetParent(&pPanel->m_transform);
 	}
+	{
+		UIObjectHandle hInputField = CreateInputField();
+		InputField* pInputField = static_cast<InputField*>(hInputField.ToPtr());
+		pInputField->SetBkColor(XMVectorSet(0.75f, 0.25f, 0.25f, 0.5f));
+		pInputField->m_transform.SetHorizontalAnchor(HORIZONTAL_ANCHOR::LEFT);
+		pInputField->m_transform.SetVerticalAnchor(VERTICAL_ANCHOR::VCENTER);
+		pInputField->m_transform.m_position.x = +300.0f;
+		pInputField->m_transform.m_position.y = -100.0f;
+		pInputField->SetColor(XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f));
+		pInputField->SetDigitOnly(true);
+		pInputField->m_transform.SetParent(&pPanel->m_transform);
+	}
+	{
+		UIObjectHandle hInputField = CreateInputField();
+		InputField* pInputField = static_cast<InputField*>(hInputField.ToPtr());
+		pInputField->SetBkColor(XMVectorSet(0.75f, 0.75f, 0.25f, 0.75f));
+		pInputField->m_transform.SetHorizontalAnchor(HORIZONTAL_ANCHOR::LEFT);
+		pInputField->m_transform.SetVerticalAnchor(VERTICAL_ANCHOR::VCENTER);
+		pInputField->m_transform.m_position.x = +300.0f;
+		pInputField->m_transform.m_position.y = 0.0f;
+		pInputField->SetColor(XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+		pInputField->SetPassword(true);
+		pInputField->m_transform.SetParent(&pPanel->m_transform);
+		pInputField->SetShape(INPUT_FIELD_SHAPE::ROUNDED_RECTANGLE);
+	}
+	{
+		UIObjectHandle hInputField = CreateInputField();
+		InputField* pInputField = static_cast<InputField*>(hInputField.ToPtr());
+		pInputField->SetBkColor(XMVectorSet(0.0f, 0.25f, 0.75f, 0.75f));
+		pInputField->m_transform.SetHorizontalAnchor(HORIZONTAL_ANCHOR::LEFT);
+		pInputField->m_transform.SetVerticalAnchor(VERTICAL_ANCHOR::VCENTER);
+		pInputField->m_transform.m_position.x = +300.0f;
+		pInputField->m_transform.m_position.y = 100.0f;
+		pInputField->SetColor(XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f));
+		pInputField->AllowReturn(true);
+		pInputField->m_transform.SetParent(&pPanel->m_transform);
+	}
 	pPanel->SetActive(false);
 
 	{

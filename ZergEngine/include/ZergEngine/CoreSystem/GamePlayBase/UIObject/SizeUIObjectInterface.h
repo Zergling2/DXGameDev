@@ -17,7 +17,7 @@ namespace ze
 		void XM_CALLCONV SetSize(FXMVECTOR size);
 		void SetSize(const XMFLOAT2& size) { this->SetSize(XMLoadFloat2(&size)); }
 		void SetSize(const XMFLOAT2A& size) { this->SetSize(XMLoadFloat2A(&size)); }
-	private:
+	protected:
 		virtual bool XM_CALLCONV HitTest(FXMVECTOR mousePosition) const override;
 	protected:
 		XMFLOAT2 m_size;

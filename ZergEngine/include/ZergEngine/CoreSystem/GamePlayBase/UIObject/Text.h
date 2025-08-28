@@ -28,7 +28,7 @@ namespace ze
 		void Refresh();
 
 		IDWriteTextFormat* GetDWriteTextFormatComInterface() const { return m_spDWriteTextFormatWrapper->GetDWriteTextFormatComInterface(); }
-	private:
+	protected:
 		std::wstring m_text;
 		TextFormat m_tf;
 		DWRITE_TEXT_ALIGNMENT m_textAlignment;
