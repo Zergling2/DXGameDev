@@ -31,7 +31,7 @@ void CTerrainGenerationDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT_TERRAIN_GENERATION_CELL_SIZE, m_cellSize);
 	DDV_MinMaxFloat(pDX, m_cellSize, 0.1f, 1.0f);
 	DDX_Text(pDX, IDC_EDIT_TERRAIN_GENERATION_HEIGHT_SCALE, m_heightScale);
-	DDV_MinMaxFloat(pDX, m_heightScale, 0.01f, 1.0f);
+	DDV_MinMaxFloat(pDX, m_heightScale, 0.001f, 1.0f);
 }
 
 

@@ -43,7 +43,7 @@ bool Terrain::SetHeightMap(Texture2D heightMap, float cellSize, float heightScal
 	if (cellSize < 0.1f || cellSize > 1.0f)
 		return false;
 
-	if (heightScale < 0.01f || heightScale > 1.0f)
+	if (heightScale < 0.001f || heightScale > 1.0f)
 		return false;
 
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -78,7 +78,6 @@ bool Terrain::SetHeightMap(Texture2D heightMap, float cellSize, float heightScal
 
 
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-	// 멤버 업데이트
 	uint32_t patchCtrlPtCountRow = (heightMapDesc.Height - 1) / CELLS_PER_TERRAIN_PATCH + 1;
 	uint32_t patchCtrlPtCountCol = (heightMapDesc.Width - 1) / CELLS_PER_TERRAIN_PATCH + 1;
 	uint32_t patchCtrlPtIndexCount = (patchCtrlPtCountRow - 1) * (patchCtrlPtCountCol - 1) * 4;	// 패치당 인덱스 4개 (사각 패치)
@@ -120,13 +119,15 @@ bool Terrain::SetHeightMap(Texture2D heightMap, float cellSize, float heightScal
 	const float tvc = (1.0f / static_cast<float>(heightMapDesc.Height)) / 2.0f;	// 텍스쳐 좌표 오차 보정용 (텍셀의 중앙 가리키기 위해서)
 	const float terrainHalfSizeX = static_cast<float>(heightMapDesc.Width - 1) * cellSize / 2.0f;
 	const float terrainHalfSizeZ = static_cast<float>(heightMapDesc.Height - 1) * cellSize / 2.0f;
-	const uint16_t* pHeightMapData = reinterpret_cast<uint16_t*>(mapped.pData);
+	D3D11Mapped2DSubresourceReader<uint16_t> heightMapData(&mapped);
+
+	aic.SetColumnSize(heightMapDesc.Width);
 	for (uint32_t i = 0; i < patchCtrlPtCountRow; ++i)
 	{
 		for (uint32_t j = 0; j < patchCtrlPtCountCol; ++j)
 		{
 			VFTerrainPatchControlPoint& v = patchCtrlPts[i * patchCtrlPtCountCol + j];
-			const uint16_t data = pHeightMapData[(i * CELLS_PER_TERRAIN_PATCH) * heightMapDesc.Width + (j * CELLS_PER_TERRAIN_PATCH)];
+			const uint16_t data = heightMapData.GetTexel(i * CELLS_PER_TERRAIN_PATCH, j * CELLS_PER_TERRAIN_PATCH);
 			v.m_position.x = static_cast<float>(j * CELLS_PER_TERRAIN_PATCH) * cellSize - terrainHalfSizeX;
 			v.m_position.y = static_cast<float>(data) / static_cast<float>(std::numeric_limits<uint16_t>::max()) * maxHeight;
 			v.m_position.z = -static_cast<float>(i * CELLS_PER_TERRAIN_PATCH) * cellSize + terrainHalfSizeZ;
@@ -142,18 +143,17 @@ bool Terrain::SetHeightMap(Texture2D heightMap, float cellSize, float heightScal
 				const uint32_t le = j * CELLS_PER_TERRAIN_PATCH + 65;
 				uint16_t min = std::numeric_limits<uint16_t>::max();
 				uint16_t max = std::numeric_limits<uint16_t>::min();
-				aic.SetColumnSize(heightMapDesc.Width);
+				
 				for (uint32_t k = i * CELLS_PER_TERRAIN_PATCH; k < ke; ++k)
 				{
 					for (uint32_t l = j * CELLS_PER_TERRAIN_PATCH; l < le; ++l)
 					{
-						const size_t index = aic.GetIndex(k, l);
-						const uint16_t data = pHeightMapData[index];
+						const uint16_t data = heightMapData.GetTexel(k, l);
 
 						// 1. 시스템 메모리에 높이 데이터 저장
 						const float normalizedHeight = static_cast<float>(data) / static_cast<float>(std::numeric_limits<uint16_t>::max());
 						const float realHeight = normalizedHeight * maxHeight;
-						heightData[index] = realHeight;
+						heightData[aic.GetIndex(k, l)] = realHeight;
 
 						// 2. 바운드 계산
 						if (data < min)
@@ -176,6 +176,12 @@ bool Terrain::SetHeightMap(Texture2D heightMap, float cellSize, float heightScal
 				v.m_boundsY = XMFLOAT2(0.0f, 0.0f);
 			}
 		}
+	}
+
+	for (size_t i = 0; i < heightData.size(); ++i)
+	{
+		if (heightData[i] < 0.0f)
+			*reinterpret_cast<int*>(0) = 0;
 	}
 
 	// 다 읽었으면 해제

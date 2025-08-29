@@ -1,36 +1,16 @@
-#include "FirstPersonCamera.h"
+#include "FirstPersonMovement.h"
 
-using namespace pubg;
 using namespace ze;
 
 constexpr float SENSITIVITY = 0.16f;
-constexpr float SPEED = 5.0f;
+constexpr float SPEED = 4.0f;
 constexpr float WALK_SPEED = SPEED * 0.25f;
 constexpr float HEAD_CLAMP_ANGLE = 89.0f;
 
-void FirstPersonCamera::Update()
+void FirstPersonMovement::Update()
 {
 	GameObject* pGameObject = this->GetGameObjectHandle().ToPtr();
 	if (!pGameObject)
-		return;
-
-
-	if (Input::GetInstance()->GetKeyDown(KEY_TAB))
-	{
-		Panel* pPanel = static_cast<Panel*>(m_hPanel.ToPtr());
-		if (pPanel->IsActive())
-		{
-			pPanel->SetActive(false);
-			m_onUI = false;
-		}
-		else
-		{
-			pPanel->SetActive(true);
-			m_onUI = true;
-		}
-	}
-
-	if (m_onUI)
 		return;
 
 	const float dt = Time::GetInstance()->GetDeltaTime();
@@ -69,11 +49,4 @@ void FirstPersonCamera::Update()
 
 	if (Input::GetInstance()->GetKey(KEY_D))
 		pGameObject->m_transform.Translate(worldRightAxis * speed);
-
-
-	if (Input::GetInstance()->GetKeyDown(KEY_APOSTROPHE))
-		Runtime::GetInstance()->SetResolution(1600, 900, DISPLAY_MODE::WINDOWED);
-
-	if (Input::GetInstance()->GetKeyDown(KEY_SEMICOLON))
-		Runtime::GetInstance()->SetResolution(0, 0, DISPLAY_MODE::BORDERLESS_WINDOWED);
 }

@@ -163,4 +163,22 @@ namespace ze
 		size_t m_rowSize;
 		IndexConverter2DTo1D m_2t1;
 	};
+
+	template<class TexelFormat>
+	class D3D11Mapped2DSubresourceReader
+	{
+	public:
+		D3D11Mapped2DSubresourceReader(const D3D11_MAPPED_SUBRESOURCE* pMapped)
+			: m_pMapped(pMapped)
+		{
+		}
+
+		TexelFormat GetTexel(size_t y, size_t x) const
+		{
+			byte* pRow = reinterpret_cast<byte*>(m_pMapped->pData) + y * m_pMapped->RowPitch;
+			return reinterpret_cast<TexelFormat*>(pRow)[x];
+		}
+	private:
+		const D3D11_MAPPED_SUBRESOURCE* m_pMapped;
+	};
 }
