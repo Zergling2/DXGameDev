@@ -9,29 +9,6 @@ ZE_IMPLEMENT_SCENE(TestScene1)
 void TestScene1::OnLoadScene()
 {
 	std::vector<std::shared_ptr<Mesh>> meshes;
-	std::shared_ptr<Material> parkinglotMat;
-
-	{
-		GameObjectHandle hTerrainObject = CreateGameObject(L"Terrain Object");
-		GameObject* pTerrainObject = hTerrainObject.ToPtr();
-		ComponentHandle<Terrain> hTerrain = pTerrainObject->AddComponent<Terrain>();
-		uint16_t* pTempData = new uint16_t[1025 * 1025]();
-		for (size_t i = 0; i < 1025 * 1025; ++i)
-		{
-			pTempData[i] = rand() % 4;
-		}
-
-		Texture2D heightMap;
-
-		if (!ResourceLoader::GetInstance()->CreateHeightMapFromRawData(heightMap, pTempData, SIZE{ 1025, 1025 }))
-			*reinterpret_cast<int*>(0) = 0;
-		if (!hTerrain.ToPtr()->SetHeightMap(heightMap, 1.0f, 0.01f))
-			*reinterpret_cast<int*>(0) = 0;
-		Texture2D diffuseMapLayer = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Terrain\\vikenditerrain_d.dds");
-		Texture2D normalMapLayer;
-		hTerrain.ToPtr()->SetTextureLayer(diffuseMapLayer, normalMapLayer);
-		delete[] pTempData;
-	}
 
 	UIObjectHandle hText1 = CreateText();
 	Text* pText = static_cast<Text*>(hText1.ToPtr());
@@ -70,7 +47,7 @@ void TestScene1::OnLoadScene()
 	GameObjectHandle hMainCamera = CreateGameObject(L"Camera");
 	GameObject* pMainCamera = hMainCamera.ToPtr();
 	{
-		pMainCamera->m_transform.SetPosition(XMFLOAT3A(0.0f, 0.0f, -5.0f));
+		pMainCamera->m_transform.SetPosition(XMFLOAT3A(0.0f, 1.5f, -2.0f));
 		ComponentHandle<Camera> hMainCameraComponent = pMainCamera->AddComponent<Camera>();
 		Camera* pMainCameraComponent = hMainCameraComponent.ToPtr();
 		pMainCameraComponent->SetBackgroundColor(Colors::Gray);
@@ -147,58 +124,23 @@ void TestScene1::OnLoadScene()
 		pKartMeshRenderer->SetMaterial(0, material);
 	}
 
-
 	{
-		GameObjectHandle hPlanet = CreateGameObject(L"AlienPlanet");
-		GameObject* pPlanet = hPlanet.ToPtr();
-		pPlanet->m_transform.SetPosition(XMFLOAT3A(-5.0f, 0.0f, 0.0f));
-		auto hPlanetScript = pPlanet->AddComponent<Planet>();
-		auto pPlanetScript = hPlanetScript.ToPtr();
-		pPlanetScript->m_hCenter = hMainCamera;
-		ComponentHandle<MeshRenderer> hPlanetMeshRenderer = pPlanet->AddComponent<MeshRenderer>();
-		MeshRenderer* pPlanetMeshRenderer = hPlanetMeshRenderer.ToPtr();
+		GameObjectHandle hRange = CreateGameObject(L"Range");
+		GameObject* pRange = hRange.ToPtr();
+		ComponentHandle<MeshRenderer> hRangeMeshRenderer = pRange->AddComponent<MeshRenderer>();
 		// 메시 설정
-		meshes = ResourceLoader::GetInstance()->LoadWavefrontOBJ(L"Resource\\Model\\planet\\RinglessPlanet.obj");
-		pPlanetMeshRenderer->SetMesh(meshes[0]);
-		// 재질 설정
-		auto material = ResourceLoader::GetInstance()->CreateMaterial();
-		material->m_diffuse = XMFLOAT4A(1.0f, 1.0f, 1.0f, 1.0f);
-		material->m_ambient = XMFLOAT4A(material->m_diffuse.x * 0.2f, material->m_diffuse.y * 0.2f, material->m_diffuse.z * 0.2f, 1.0f);
-		material->m_specular = XMFLOAT4A(0.2f, 0.2f, 0.2f, 16.0f);
-		material->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Model\\planet\\RinglessPlanetB_Diffuse.png");
-		pPlanetMeshRenderer->SetMaterial(0, material);
-	}
-
-
-	parkinglotMat = ResourceLoader::GetInstance()->CreateMaterial();
-	parkinglotMat->m_diffuse = XMFLOAT4A(0.9f, 0.9f, 0.9f, 1.0f);
-	parkinglotMat->m_ambient = XMFLOAT4A(0.15f, 0.15f, 0.15f, 1.0f);
-	parkinglotMat->m_specular = XMFLOAT4A(0.2f, 0.2f, 0.2f, 16.0f);
-	parkinglotMat->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\maps\\mart\\ParkingLotInterior_Diffuse.png");
-	{
-		GameObjectHandle hPillar = CreateGameObject(L"Pillar");
-		GameObject* pPillar = hPillar.ToPtr();
-		ComponentHandle<MeshRenderer> hPillarMeshRenderer = pPillar->AddComponent<MeshRenderer>();
-		MeshRenderer* pPillarMeshRenderer = hPillarMeshRenderer.ToPtr();
-		// 메시 설정
-		meshes = ResourceLoader::GetInstance()->LoadWavefrontOBJ(L"Resource\\maps\\mart\\pillar.obj");
-		pPillarMeshRenderer->SetMesh(meshes[0]);
-		// 재질 설정
-		pPillarMeshRenderer->SetMaterial(0, parkinglotMat);
-	}
-
-
-	{
-		GameObjectHandle hBollard = CreateGameObject(L"Bollard");
-		GameObject* pBollard = hBollard.ToPtr();
-		pBollard->m_transform.SetPosition(XMFLOAT3A(-2.0f, 0.0f, 0.0f));
-		ComponentHandle<MeshRenderer> hBollardMeshRenderer = pBollard->AddComponent<MeshRenderer>();
-		// 메시 설정
-		meshes = ResourceLoader::GetInstance()->LoadWavefrontOBJ(L"Resource\\maps\\mart\\bollard.obj");
-		MeshRenderer* pBollardMeshRenderer = hBollardMeshRenderer.ToPtr();
+		meshes = ResourceLoader::GetInstance()->LoadWavefrontOBJ(L"Resource\\Maps\\stage1\\range.obj");
+		MeshRenderer* pBollardMeshRenderer = hRangeMeshRenderer.ToPtr();
 		pBollardMeshRenderer->SetMesh(meshes[0]);
 		// 재질 설정
-		pBollardMeshRenderer->SetMaterial(0, parkinglotMat);
+		auto material = ResourceLoader::GetInstance()->CreateMaterial();
+
+		XMStoreFloat4A(&material->m_diffuse, XMVectorReplicate(0.8f));	// 모래 느낌
+		material->m_diffuse.w = 1.0f;
+		XMStoreFloat4A(&material->m_specular, XMVectorZero());	// 모래 느낌
+		material->m_specular.w = 1.0f;
+		material->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Maps\\stage1\\Limestone.jpg");
+		pBollardMeshRenderer->SetMaterial(0, material);
 	}
 
 	Texture2D skyboxCubeMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Skybox\\snowcube.dds", false);
