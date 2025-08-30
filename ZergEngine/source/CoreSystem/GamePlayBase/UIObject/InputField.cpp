@@ -98,7 +98,7 @@ void InputField::OnChar(TCHAR ch)
 		ct = ALPHA;
 	else if (_istdigit(ch))
 		ct = DIGIT;
-	else if (ch == _istpunct(ch))
+	else if (_istpunct(ch))
 		ct = PUNCT;
 
 

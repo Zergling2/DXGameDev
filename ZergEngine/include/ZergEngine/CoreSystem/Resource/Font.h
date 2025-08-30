@@ -62,7 +62,7 @@ namespace ze
 	class DWriteTextFormatWrapper
 	{
 	public:
-		DWriteTextFormatWrapper(IDWriteTextFormat* pTextFormat)
+		DWriteTextFormatWrapper(IDWriteTextFormat* pTextFormat) noexcept
 			: m_pTextFormat(pTextFormat)
 		{
 		}

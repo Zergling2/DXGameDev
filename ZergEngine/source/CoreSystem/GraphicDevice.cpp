@@ -963,7 +963,22 @@ std::shared_ptr<DWriteTextFormatWrapper> GraphicDevice::GetDWriteTextFormatWrapp
 		if (FAILED(hr))
 			Debug::ForceCrashWithHRESULTMessageBox(L"IDWriteFactory::CreateTextFormat()", hr);
 
-		spReturn = std::make_shared<DWriteTextFormatWrapper>(pTextFormat);
+
+		// A. 
+		// spReturn = std::make_shared<DWriteTextFormatWrapper>(pTextFormat);	// weak_ptr만 남았을 때에도 메모리가 해제될 수 있도록
+		// 제어 블록과 별도로 할당하기 위해 std::make_shared를 사용하지 않는다. 대신 아래의 B 방법을 사용해 객체와 제어 블록을 별도로 유지.
+
+		// B.
+		DWriteTextFormatWrapper* pWrapper;
+		try
+		{
+			pWrapper = new DWriteTextFormatWrapper(pTextFormat);	// 메모리 할당에 대한 try catch, DWriteTextFormatWrapper 생성자는 noexcept이므로 예외 걱정 X
+		}
+		catch (const std::bad_alloc& e)	// 발생할 수 있는 예외는 메모리 할당 실패로 인한 std::bad_alloc 뿐이다.
+		{
+			pWrapper = nullptr;	// 오류 조기 감지
+		}
+		spReturn = std::shared_ptr<DWriteTextFormatWrapper>(pWrapper);
 
 		if (reuseNode)
 		{
