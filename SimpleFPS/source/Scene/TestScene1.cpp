@@ -25,18 +25,18 @@ void TestScene1::OnLoadScene()
 	pText2->m_transform.SetHorizontalAnchor(HORIZONTAL_ANCHOR::CENTER);
 	pText2->m_transform.SetVerticalAnchor(VERTICAL_ANCHOR::BOTTOM);
 	pText2->m_transform.m_position.y = +200.0f;
-	pText2->SetSize(XMFLOAT2(400, 50));
+	pText2->SetSize(XMFLOAT2(600, 50));
 	pText2->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pText2->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pText2->SetColor(Colors::GreenYellow);
-	pText2->GetTextFormat().SetSize(20);
+	pText2->SetColor(Colors::LightGreen);
+	pText2->GetTextFormat().SetSize(24);
 	pText2->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_DEMI_BOLD);
 	pText2->Refresh();
 
 	{
 		GameObjectHandle hSun = CreateGameObject(L"Sun");
 		GameObject* pSun = hSun.ToPtr();
-		pSun->m_transform.SetRotation(XMFLOAT3(XMConvertToRadians(45), XMConvertToRadians(30), 0));
+		pSun->m_transform.SetRotationEuler(XMVectorSet(XMConvertToRadians(45), XMConvertToRadians(30), 0.0f, 0.0f));
 		ComponentHandle<DirectionalLight> hLight = pSun->AddComponent<DirectionalLight>();
 		DirectionalLight* pLight = hLight.ToPtr();
 		pLight->m_ambient = XMFLOAT4A(1.0f, 1.0f, 1.0f, 1.0f);
@@ -47,7 +47,7 @@ void TestScene1::OnLoadScene()
 	GameObjectHandle hMainCamera = CreateGameObject(L"Camera");
 	GameObject* pMainCamera = hMainCamera.ToPtr();
 	{
-		pMainCamera->m_transform.SetPosition(XMFLOAT3A(0.0f, 1.5f, -2.0f));
+		pMainCamera->m_transform.SetPosition(XMVectorSet(0.0f, 1.5f, -5.0f, 0.0f));
 		ComponentHandle<Camera> hMainCameraComponent = pMainCamera->AddComponent<Camera>();
 		Camera* pMainCameraComponent = hMainCameraComponent.ToPtr();
 		pMainCameraComponent->SetBackgroundColor(Colors::Gray);
@@ -60,7 +60,7 @@ void TestScene1::OnLoadScene()
 	{
 		GameObjectHandle hRifle = CreateGameObject(L"Rifle");
 		GameObject* pRifle = hRifle.ToPtr();
-		pRifle->m_transform.SetPosition(XMFLOAT3A(0.0f, -0.2f, 0.15f));
+		pRifle->m_transform.SetPosition(XMVectorSet(0.15f, -0.2f, 0.15f, 0.0f));
 		ComponentHandle<MeshRenderer> hRifleMeshRenderer = pRifle->AddComponent<MeshRenderer>();
 		MeshRenderer* pRifleMeshRenderer = hRifleMeshRenderer.ToPtr();
 		// 메시 설정
@@ -88,8 +88,8 @@ void TestScene1::OnLoadScene()
 	{
 		GameObjectHandle hCamera2 = CreateGameObject(L"Camera2");
 		GameObject* pCamera2 = hCamera2.ToPtr();
-		pCamera2->m_transform.SetPosition(XMFLOAT3A(-5.5f, 2.5f, -2.5f));
-		pCamera2->m_transform.SetRotation(XMFLOAT3A(0.0f, XMConvertToRadians(90), 0.0f));
+		pCamera2->m_transform.SetPosition(XMVectorSet(-5.5f, 2.5f, -2.5f, 0.0f));
+		pCamera2->m_transform.SetRotationEuler(XMVectorSet(0.0f, XMConvertToRadians(90), 0.0f, 0.0f));
 		ComponentHandle<Camera> hCamera2CamComponent = pCamera2->AddComponent<Camera>();
 		Camera* pCamera2CamComponent = hCamera2CamComponent.ToPtr();
 		pCamera2CamComponent->SetBackgroundColor(Colors::Green);
@@ -109,7 +109,7 @@ void TestScene1::OnLoadScene()
 		GameObject* pWall;
 		hWall = CreateGameObject(L"Wall");
 		pWall = hWall.ToPtr();
-		pWall->m_transform.SetPosition(XMFLOAT3A(0.0f, 0.0f, 0.0f));
+		pWall->m_transform.SetPosition(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f));
 		ComponentHandle< MeshRenderer> hKartMeshRenderer = pWall->AddComponent<MeshRenderer>();
 		MeshRenderer* pKartMeshRenderer = hKartMeshRenderer.ToPtr();
 
@@ -143,6 +143,6 @@ void TestScene1::OnLoadScene()
 		pBollardMeshRenderer->SetMaterial(0, material);
 	}
 
-	Texture2D skyboxCubeMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Skybox\\snowcube.dds", false);
+	Texture2D skyboxCubeMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Skybox\\cloudy_puresky.dds", false);
 	Environment::GetInstance()->SetSkyboxCubeMap(skyboxCubeMap);
 }

@@ -52,7 +52,7 @@ void EditorCameraScript::MoveCamera()
 
 	const float dt = ze::Time::GetInstance()->GetDeltaTime();
 
-	XMVECTOR localRotation = pGameObject->m_transform.GetLocalRotation();
+	XMVECTOR localRotation = pGameObject->m_transform.GetRotation();
 	XMVECTOR worldForwardAxis = XMVector3Rotate(ze::Math::Vector3::Forward(), localRotation);
 	XMVECTOR worldRightAxis = XMVector3Rotate(ze::Math::Vector3::Right(), localRotation);
 
@@ -70,8 +70,7 @@ void EditorCameraScript::MoveCamera()
 		rotationEuler.z = 0.0f;
 
 		temp = XMLoadFloat3A(&rotationEuler);
-		temp = XMQuaternionRotationRollPitchYawFromVector(temp);
-		pGameObject->m_transform.SetRotation(temp);
+		pGameObject->m_transform.SetRotationEuler(temp);
 	}
 
 	const float speed = dt * (ze::Input::GetInstance()->GetKey(ze::KEY_LSHIFT) ? WALK_SPEED : SPEED);

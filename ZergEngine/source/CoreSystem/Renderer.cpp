@@ -159,8 +159,8 @@ void Renderer::RenderFrame()
 			const XMMATRIX w = pGameObject->m_transform.GetWorldTransformMatrix();
 			XMVECTOR scale;
 			XMVECTOR rotation;	// Quaternion
-			XMVECTOR transation;
-			XMMatrixDecompose(&scale, &rotation, &transation, w);
+			XMVECTOR translation;
+			XMMatrixDecompose(&scale, &rotation, &translation, w);
 
 			light[index].ambient = pLight->m_ambient;
 			light[index].diffuse = pLight->m_diffuse;
@@ -234,14 +234,14 @@ void Renderer::RenderFrame()
 			const XMMATRIX w = pGameObject->m_transform.GetWorldTransformMatrix();
 			XMVECTOR scale;
 			XMVECTOR rotation;	// Quaternion
-			XMVECTOR transation;
-			XMMatrixDecompose(&scale, &rotation, &transation, w);
+			XMVECTOR translation;
+			XMMatrixDecompose(&scale, &rotation, &translation, w);
 
 			light[index].ambient = pLight->m_ambient;
 			light[index].diffuse = pLight->m_diffuse;
 			light[index].specular = pLight->m_specular;
 
-			XMStoreFloat3(&light[index].positionW, transation);
+			XMStoreFloat3(&light[index].positionW, translation);
 			light[index].range = pLight->m_range;
 
 			XMStoreFloat3(

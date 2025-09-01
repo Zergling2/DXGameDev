@@ -18,55 +18,56 @@ namespace ze
 		Transform& operator=(const Transform&) = delete;
 
 		XMMATRIX GetWorldTransformMatrix() const;
-		XMMATRIX GetLocalTransformMatrix() const
-		{
-			return 
-				XMMatrixScalingFromVector(XMLoadFloat3A(&m_scale)) *
-				XMMatrixRotationQuaternion(XMLoadFloat4A(&m_rotation)) *
-				XMMatrixTranslationFromVector(XMLoadFloat3A(&m_position));
-		}
 
-		XMVECTOR GetLocalScale() const { return XMLoadFloat3A(&m_scale); }
+		// 현재 로컬 스케일을 반환합니다.
+		XMVECTOR GetScale() const { return XMLoadFloat3A(&m_scale); }
 
-		// 회전 상태를 나타내는 쿼터니언을 반환합니다.
-		XMVECTOR GetLocalRotation() const { return XMLoadFloat4A(&m_rotation); }
+		// 현재 월드 스케일을 반환합니다.
+		XMVECTOR GetWorldScale() const;
+
+		// 현재 로컬 회전 상태를 나타내는 쿼터니언을 반환합니다.
+		XMVECTOR GetRotation() const { return XMLoadFloat4A(&m_rotation); }
+
+		// 현재 월드 회전 상태를 나타내는 쿼터니언을 반환합니다.
 		XMVECTOR GetWorldRotation() const;
 
-		XMVECTOR GetLocalPosition() const { return XMLoadFloat3A(&m_position); }
+		// 현재 로컬 위치를 반환합니다.
+		XMVECTOR GetPosition() const { return XMLoadFloat3A(&m_position); }
+
+		// 현재 월드 위치를 반환합니다.
 		XMVECTOR GetWorldPosition() const;
 
-		// 스케일을 설정합니다.
+		// 현재 스케일 상태에 스케일링을 누적합니다.
+		void XM_CALLCONV Scale(FLOAT scale) { XMStoreFloat3A(&m_scale, XMVectorScale(XMLoadFloat3A(&m_scale), scale)); }
+
+		// 현재 스케일 상태에 스케일링을 누적합니다.
 		void XM_CALLCONV Scale(FXMVECTOR scale) { XMStoreFloat3A(&m_scale, XMVectorMultiply(XMLoadFloat3A(&m_scale), scale)); }
-		void Scale(const XMFLOAT3& scale) { XMStoreFloat3A(&m_scale, XMVectorMultiply(XMLoadFloat3A(&m_scale), XMLoadFloat3(&scale))); }
-		void Scale(const XMFLOAT3A& scale) { XMStoreFloat3A(&m_scale, XMVectorMultiply(XMLoadFloat3A(&m_scale), XMLoadFloat3A(&scale))); }
+
+		// 로컬 스케일을 재설정합니다.
 		void XM_CALLCONV SetScale(FXMVECTOR scale) { XMStoreFloat3A(&m_scale, scale); }
-		void SetScale(const XMFLOAT3& scale) { SetScale(XMLoadFloat3(&scale)); }
-		void SetScale(const XMFLOAT3A& scale) { m_scale = scale; }
 
-		// 현재의 상태에서 추가적으로 회전시킵니다.
-		void XM_CALLCONV Rotate(FXMVECTOR quaternion) { XMStoreFloat4A(&m_rotation, XMQuaternionNormalize(XMQuaternionMultiply(XMLoadFloat4A(&m_rotation), quaternion))); }
-		void Rotate(const XMFLOAT3& euler) { XMStoreFloat4A(&m_rotation, XMQuaternionNormalize(XMQuaternionMultiply(XMLoadFloat4A(&m_rotation), XMQuaternionRotationRollPitchYaw(euler.x, euler.y, euler.z)))); }
-		void Rotate(const XMFLOAT3A& euler) { XMStoreFloat4A(&m_rotation, XMQuaternionNormalize(XMQuaternionMultiply(XMLoadFloat4A(&m_rotation), XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3A(&euler))))); }
+		// 현재 상태에서 추가적으로 회전시킵니다.
+		void XM_CALLCONV RotateQuaternion(FXMVECTOR quaternion) { XMStoreFloat4A(&m_rotation, XMQuaternionNormalize(XMQuaternionMultiply(XMLoadFloat4A(&m_rotation), quaternion))); }
 
-		// 회전각도를 재설정합니다.
-		// 오일러 각도의 경우 변환 순서는 Z(Roll), X(Pitch), Y(Yaw)입니다. 회전각 단위는 라디안입니다.
-		void XM_CALLCONV SetRotation(FXMVECTOR quaternion) { XMStoreFloat4A(&m_rotation, quaternion); }
-		void SetRotation(const XMFLOAT3& euler) { XMStoreFloat4A(&m_rotation, XMQuaternionRotationRollPitchYaw(euler.x, euler.y, euler.z)); }
-		void SetRotation(const XMFLOAT3A& euler) { XMStoreFloat4A(&m_rotation, XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3A(&euler))); }
+		// 현재 상태에서 추가적으로 회전시킵니다.
+		void XM_CALLCONV RotateEuler(FXMVECTOR euler) { XMStoreFloat4A(&m_rotation, XMQuaternionNormalize(XMQuaternionMultiply(XMLoadFloat4A(&m_rotation), XMQuaternionRotationRollPitchYawFromVector(euler)))); }
+
+		// 로컬 회전각도를 쿼터니언으로 재설정합니다.
+		void XM_CALLCONV SetRotationQuaternion(FXMVECTOR quaternion) { XMStoreFloat4A(&m_rotation, quaternion); }
+
+		// 로컬 회전각도를 오일러 각도로 재설정합니다.
+		// 변환 순서는 Z(Roll), X(Pitch), Y(Yaw)입니다. 회전각 단위는 라디안입니다.
+		void XM_CALLCONV SetRotationEuler(FXMVECTOR euler) { SetRotationQuaternion(XMQuaternionRotationRollPitchYawFromVector(euler)); }
 
 		// Rotates the transform about axis passing through point in world coordinates by angle radians.
-		// point: 월드 좌표계 상의 회전 중심점
-		// axis: 월드 좌표계 상의 회전 축
+		// point: 월드 좌표계의 회전 중심점
+		// axis: 월드 좌표계의 회전 축
 		// angle: 회전할 각도 (라디안 단위)
 		void XM_CALLCONV RotateAround(FXMVECTOR point, FXMVECTOR axis, FLOAT angle);
 
 		void XM_CALLCONV Translate(FXMVECTOR translation) { XMStoreFloat3A(&m_position, XMVectorAdd(XMLoadFloat3A(&m_position), translation)); }
+
 		void XM_CALLCONV SetPosition(FXMVECTOR position) { XMStoreFloat3A(&m_position, position); }
-		void SetPosition(const XMFLOAT3& position) { SetPosition(XMLoadFloat3(&position)); }
-		void SetPosition(const XMFLOAT3A& position) { m_position = position; }
-		void XM_CALLCONV SetWorldPosition(FXMVECTOR position);
-		void SetWorldPosition(const XMFLOAT3& position) { SetWorldPosition(XMLoadFloat3(&position)); }
-		void SetWorldPosition(const XMFLOAT3A& position) { SetWorldPosition(XMLoadFloat3A(&position)); }
 
 		bool SetParent(Transform* pTransform);
 		bool IsDescendantOf(Transform* pTransform) const;

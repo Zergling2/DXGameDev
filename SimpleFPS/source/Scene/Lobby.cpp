@@ -115,7 +115,7 @@ void Lobby::OnLoadScene()
 	{
 		GameObjectHandle hMainCamera = CreateGameObject(L"Main Camera");
 		GameObject* pMainCamera = hMainCamera.ToPtr();
-		pMainCamera->m_transform.SetPosition(XMFLOAT3A(0.0f, 0.0f, -5.0f));
+		pMainCamera->m_transform.SetPosition(XMVectorSet(0.0f, 0.0f, -5.0f, 0.0f));
 		ComponentHandle<Camera> hMainCameraComponent = pMainCamera->AddComponent<Camera>();	// 카메라 컴포넌트 추가
 		Camera* pMainCameraComponent = hMainCameraComponent.ToPtr();
 		pMainCameraComponent->SetBackgroundColor(Colors::Gray);

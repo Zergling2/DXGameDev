@@ -19,7 +19,7 @@ void CLVItemTransform::OnSelect()
 
 	// 변수로 값 세팅
 	// Position
-	XMStoreFloat3A(&val, m_pTransform->GetLocalPosition());
+	XMStoreFloat3A(&val, m_pTransform->GetPosition());
 	StringCbPrintf(buf, sizeof(buf), _T("%f"), val.x);
 	pInspector->m_editPositionX.SetWindowTextW(buf);
 	StringCbPrintf(buf, sizeof(buf), _T("%f"), val.y);
@@ -28,7 +28,7 @@ void CLVItemTransform::OnSelect()
 	pInspector->m_editPositionZ.SetWindowTextW(buf);
 	
 	// Rotation
-	XMStoreFloat3A(&val, ze::Math::QuaternionToEulerNormal(m_pTransform->GetLocalRotation()));
+	XMStoreFloat3A(&val, ze::Math::QuaternionToEulerNormal(m_pTransform->GetRotation()));
 	val.x = XMConvertToDegrees(val.x);	// Radian to degree
 	val.y = XMConvertToDegrees(val.y);	// Radian to degree
 	val.z = XMConvertToDegrees(val.z);	// Radian to degree
@@ -40,7 +40,7 @@ void CLVItemTransform::OnSelect()
 	pInspector->m_editRotationZ.SetWindowTextW(buf);
 	
 	// Scale
-	XMStoreFloat3A(&val, m_pTransform->GetLocalScale());
+	XMStoreFloat3A(&val, m_pTransform->GetScale());
 	StringCbPrintf(buf, sizeof(buf), _T("%f"), val.x);
 	pInspector->m_editScaleX.SetWindowTextW(buf);
 	StringCbPrintf(buf, sizeof(buf), _T("%f"), val.y);

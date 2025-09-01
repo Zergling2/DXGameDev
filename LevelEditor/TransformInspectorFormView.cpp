@@ -82,10 +82,10 @@ void CTransformInspectorFormView::OnEnChangeEditPositionX()
 	ze::Transform* pTransform = this->GetCLVItemToModify()->GetTransform();
 
 	XMFLOAT3A position;
-	XMStoreFloat3A(&position, pTransform->GetLocalPosition());
+	XMStoreFloat3A(&position, pTransform->GetPosition());
 	position.x = m_editPositionX.GetValue();
 
-	pTransform->SetPosition(position);
+	pTransform->SetPosition(XMLoadFloat3A(&position));
 }
 
 void CTransformInspectorFormView::OnEnChangeEditPositionY()
@@ -102,10 +102,10 @@ void CTransformInspectorFormView::OnEnChangeEditPositionY()
 	ze::Transform* pTransform = this->GetCLVItemToModify()->GetTransform();
 
 	XMFLOAT3A position;
-	XMStoreFloat3A(&position, pTransform->GetLocalPosition());
+	XMStoreFloat3A(&position, pTransform->GetPosition());
 	position.y = m_editPositionY.GetValue();
 
-	pTransform->SetPosition(position);
+	pTransform->SetPosition(XMLoadFloat3A(&position));
 }
 
 void CTransformInspectorFormView::OnEnChangeEditPositionZ()
@@ -122,10 +122,10 @@ void CTransformInspectorFormView::OnEnChangeEditPositionZ()
 	ze::Transform* pTransform = this->GetCLVItemToModify()->GetTransform();
 
 	XMFLOAT3A position;
-	XMStoreFloat3A(&position, pTransform->GetLocalPosition());
+	XMStoreFloat3A(&position, pTransform->GetPosition());
 	position.z = m_editPositionZ.GetValue();
 
-	pTransform->SetPosition(position);
+	pTransform->SetPosition(XMLoadFloat3A(&position));
 }
 
 void CTransformInspectorFormView::OnEnChangeEditRotationX()
@@ -141,10 +141,10 @@ void CTransformInspectorFormView::OnEnChangeEditRotationX()
 	ze::Transform* pTransform = this->GetCLVItemToModify()->GetTransform();
 
 	XMFLOAT3A rotation;
-	XMStoreFloat3A(&rotation, ze::Math::QuaternionToEulerNormal(pTransform->GetLocalRotation()));
+	XMStoreFloat3A(&rotation, ze::Math::QuaternionToEulerNormal(pTransform->GetRotation()));
 	rotation.x = XMConvertToRadians(m_editRotationX.GetValue());
 
-	pTransform->SetRotation(rotation);
+	pTransform->SetRotationEuler(XMLoadFloat3A(&rotation));
 }
 
 void CTransformInspectorFormView::OnEnChangeEditRotationY()
@@ -160,10 +160,10 @@ void CTransformInspectorFormView::OnEnChangeEditRotationY()
 	ze::Transform* pTransform = this->GetCLVItemToModify()->GetTransform();
 
 	XMFLOAT3A rotation;
-	XMStoreFloat3A(&rotation, ze::Math::QuaternionToEulerNormal(pTransform->GetLocalRotation()));
+	XMStoreFloat3A(&rotation, ze::Math::QuaternionToEulerNormal(pTransform->GetRotation()));
 	rotation.y = XMConvertToRadians(m_editRotationY.GetValue());
 
-	pTransform->SetRotation(rotation);
+	pTransform->SetRotationEuler(XMLoadFloat3A(&rotation));
 }
 
 void CTransformInspectorFormView::OnEnChangeEditRotationZ()
@@ -179,10 +179,10 @@ void CTransformInspectorFormView::OnEnChangeEditRotationZ()
 	ze::Transform* pTransform = this->GetCLVItemToModify()->GetTransform();
 
 	XMFLOAT3A rotation;
-	XMStoreFloat3A(&rotation, ze::Math::QuaternionToEulerNormal(pTransform->GetLocalRotation()));
+	XMStoreFloat3A(&rotation, ze::Math::QuaternionToEulerNormal(pTransform->GetRotation()));
 	rotation.z = XMConvertToRadians(m_editRotationZ.GetValue());
 
-	pTransform->SetRotation(rotation);
+	pTransform->SetRotationEuler(XMLoadFloat3A(&rotation));
 }
 
 void CTransformInspectorFormView::OnEnChangeEditScaleX()
@@ -198,10 +198,10 @@ void CTransformInspectorFormView::OnEnChangeEditScaleX()
 	ze::Transform* pTransform = this->GetCLVItemToModify()->GetTransform();
 
 	XMFLOAT3A scale;
-	XMStoreFloat3A(&scale, pTransform->GetLocalScale());
+	XMStoreFloat3A(&scale, pTransform->GetScale());
 	scale.x = m_editScaleX.GetValue();
 
-	pTransform->SetScale(scale);
+	pTransform->SetScale(XMLoadFloat3A(&scale));
 }
 
 void CTransformInspectorFormView::OnEnChangeEditScaleY()
@@ -217,10 +217,10 @@ void CTransformInspectorFormView::OnEnChangeEditScaleY()
 	ze::Transform* pTransform = this->GetCLVItemToModify()->GetTransform();
 
 	XMFLOAT3A scale;
-	XMStoreFloat3A(&scale, pTransform->GetLocalScale());
+	XMStoreFloat3A(&scale, pTransform->GetScale());
 	scale.y = m_editScaleY.GetValue();
 
-	pTransform->SetScale(scale);
+	pTransform->SetScale(XMLoadFloat3A(&scale));
 }
 
 void CTransformInspectorFormView::OnEnChangeEditScaleZ()
@@ -236,8 +236,8 @@ void CTransformInspectorFormView::OnEnChangeEditScaleZ()
 	ze::Transform* pTransform = this->GetCLVItemToModify()->GetTransform();
 
 	XMFLOAT3A scale;
-	XMStoreFloat3A(&scale, pTransform->GetLocalScale());
+	XMStoreFloat3A(&scale, pTransform->GetScale());
 	scale.z = m_editScaleZ.GetValue();
 
-	pTransform->SetScale(scale);
+	pTransform->SetScale(XMLoadFloat3A(&scale));
 }
