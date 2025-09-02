@@ -1,5 +1,5 @@
 # ZergEngine
-This project is aimed at developing a DirectX11-based game engine.
+ZergEngine is a simple game engine based on DirectX 11.
 
 ## How to Build
 This project supports only Windows 10 platforms and is built only in the Microsoft Visual Studio 2022 environment.
