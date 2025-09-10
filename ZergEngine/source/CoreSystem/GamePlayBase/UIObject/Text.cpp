@@ -12,7 +12,7 @@ Text::Text(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name)
 {
 }
 
-void Text::Refresh()
+void Text::Apply()
 {
 	m_spDWriteTextFormatWrapper = GraphicDevice::GetInstance()->GetDWriteTextFormatWrapper(m_tf);
 }

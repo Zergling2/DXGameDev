@@ -60,12 +60,6 @@ void Runtime::DestroyInstance()
 
 void Runtime::Init(HINSTANCE hInstance, int nCmdShow, uint32_t width, uint32_t height, PCWSTR title, PCWSTR startScene)
 {
-    // Enable run-time memory check for debug builds.
-#if defined(DEBUG) || defined(_DEBUG)
-    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-    // Perform automatic leak checking at program exit through a call to _CrtDumpMemoryLeaks 
-    // and generate an error report if the application failed to free all the memory it allocated.
-#endif
     m_isEditor = false;
     m_nCmdShow = nCmdShow;
 
@@ -122,13 +116,6 @@ void Runtime::Init(HINSTANCE hInstance, int nCmdShow, uint32_t width, uint32_t h
 
 void Runtime::InitEditor(HINSTANCE hInstance, HWND hMainFrameWnd, HWND hViewWnd, uint32_t width, uint32_t height)
 {
-    // Enable run-time memory check for debug builds.
-#if defined(DEBUG) || defined(_DEBUG)
-    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-    // Perform automatic leak checking at program exit through a call to _CrtDumpMemoryLeaks 
-    // and generate an error report if the application failed to free all the memory it allocated.
-#endif
-
     m_isEditor = true;
 
     // 기타 초기화 작업...
@@ -224,7 +211,7 @@ void Runtime::UnInit()
     MemoryAllocator::DestroyInstance();
     CoUninitialize();
 
-    // 디버그
+    // DXGI Debug
     this->OutputDXGIDebugLog();
 }
 
@@ -252,9 +239,6 @@ void Runtime::Run()
             OnIdle();
         }
     }
-
-    this->DestroyAllObject();
-    this->RemoveDestroyedComponentsAndObjects();
 }
 
 void Runtime::Exit()
@@ -331,6 +315,12 @@ UIObjectHandle Runtime::CreateButton(PCWSTR name)
 UIObjectHandle Runtime::CreateInputField(PCWSTR name)
 {
     return UIObjectManager::GetInstance()->CreateObject<InputField>(name);
+}
+
+void Runtime::OnDestroy(WPARAM wParam, LPARAM lParam)
+{
+    this->DestroyAllObject();
+    this->RemoveDestroyedComponentsAndObjects();
 }
 
 void Runtime::OnSize(UINT nType, int cx, int cy)
@@ -456,13 +446,14 @@ void Runtime::DestroyAllObject()
 void Runtime::RemoveDestroyedComponentsAndObjects()
 {
     // 컴포넌트 제거 작업
-    MonoBehaviourManager::GetInstance()->RemoveDestroyedComponents();
-    CameraManager::GetInstance()->RemoveDestroyedComponents();
-    DirectionalLightManager::GetInstance()->RemoveDestroyedComponents();
-    PointLightManager::GetInstance()->RemoveDestroyedComponents();
-    SpotLightManager::GetInstance()->RemoveDestroyedComponents();
-    MeshRendererManager::GetInstance()->RemoveDestroyedComponents();
+    MonoBehaviourManager::GetInstance()->RemoveDestroyedComponents();   // 가장 먼저 수행하여 오브젝트 및 컴포넌트에 대해 최대한의 접근도 보장
     TerrainManager::GetInstance()->RemoveDestroyedComponents();
+    MeshRendererManager::GetInstance()->RemoveDestroyedComponents();
+    SpotLightManager::GetInstance()->RemoveDestroyedComponents();
+    PointLightManager::GetInstance()->RemoveDestroyedComponents();
+    DirectionalLightManager::GetInstance()->RemoveDestroyedComponents();
+    CameraManager::GetInstance()->RemoveDestroyedComponents();
+    AudioSourceManager::GetInstance()->RemoveDestroyedComponents();
 
     UIObjectManager::GetInstance()->RemoveDestroyedUIObjects();
     // 반드시 컴포넌트 제거 작업 이후 실행

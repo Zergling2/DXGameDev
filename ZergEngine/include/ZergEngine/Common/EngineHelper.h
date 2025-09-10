@@ -111,6 +111,9 @@ namespace ze
 		}
 
 		static void SafeCloseWinThreadHandle(HANDLE& handle);
+
+		static int ConvertUTF8ToUTF16(PCSTR utf8Str, WCHAR* pBuffer, size_t cchWideChar);
+		static int ConvertUTF16ToUTF8(PCWSTR utf16Str, CHAR* pBuffer, size_t cbMultiByte);
 	};
 
 	// 旨收收收收收收收收收收收收收收收收收收收收收收收收收收收收收旬

@@ -16,6 +16,11 @@ namespace ze
 			, m_startIndexLocation(0)
 		{
 		}
+		Subset(uint32_t indexCount, uint32_t startIndexLocation)
+			: m_indexCount(indexCount)
+			, m_startIndexLocation(startIndexLocation)
+		{
+		}
 		~Subset() = default;
 		uint32_t GetIndexCount() const { return m_indexCount; }
 		uint32_t GetStartIndexLocation() const { return m_startIndexLocation; }

@@ -56,11 +56,11 @@ namespace ze
 
 		GameObjectHandle Instantiate(const GameObjectHandle source);
 		// GameObjectHandle Instantiate(const GameObjectHandle source, GameObjectHandle parent);
-
+		
 		// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
 		// Window Message Handler
 		// virtual void OnCreate(WPARAM wParam, LPARAM lParam) override;
-		// virtual void OnDestroy(WPARAM wParam, LPARAM lParam) override;
+		virtual void OnDestroy(WPARAM wParam, LPARAM lParam) override;
 		virtual void OnSize(UINT nType, int cx, int cy) override;
 		virtual void OnChar(WPARAM wParam, LPARAM lParam) override;
 		virtual void OnMouseMove(UINT flags, POINT pt) override;

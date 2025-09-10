@@ -22,7 +22,7 @@ namespace ze
 	
 	
 	#define ZE_IMPLEMENT_SCENE(ClassName)\
-	IScene* ClassName::SF() { return new(std::nothrow) ClassName(); }\
+	IScene* ClassName::SF() { return new ClassName(); }\
 	ClassName::ClassName##Register::ClassName##Register()\
 	{\
 		SceneTable::AddItem(L#ClassName, ClassName::SF);\

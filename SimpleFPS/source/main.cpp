@@ -12,8 +12,15 @@ using namespace ze;
 
 int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nShowCmd)
 {
+	// Enable run-time memory check for debug builds.
+#if defined(DEBUG) || defined(_DEBUG)
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	// Perform automatic leak checking at program exit through a call to _CrtDumpMemoryLeaks 
+	// and generate an error report if the application failed to free all the memory it allocated.
+#endif
+
 	Runtime::CreateInstance();
-	Runtime::GetInstance()->Init(hInstance, nShowCmd, 1366, 768, L"Simple FPS", L"TestScene1");
+	Runtime::GetInstance()->Init(hInstance, nShowCmd, 1600, 900, L"Simple FPS", L"TestScene1");
 
 	Runtime::GetInstance()->Run();
 

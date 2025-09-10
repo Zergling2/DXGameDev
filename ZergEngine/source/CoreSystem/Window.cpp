@@ -3,7 +3,7 @@
 
 using namespace ze;
 
-PCTSTR WNDCLASS_NAME = _T("ZEMAINFRM");
+PCTSTR WNDCLASS_NAME = _T("ZEWnd");
 
 Window::Window()
     : m_pHandler(nullptr)

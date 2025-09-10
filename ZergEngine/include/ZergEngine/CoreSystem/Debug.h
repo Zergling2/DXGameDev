@@ -11,6 +11,7 @@ namespace ze
 	{
 	public:
 		static void ForceCrashWithMessageBox(PCWSTR title, PCWSTR format, ...);
+		static void ForceCrashWithMessageBox(PCSTR title, PCSTR format, ...);
 		static void ForceCrashWithWin32ErrorMessageBox(PCWSTR message, DWORD code);
 		static void HRESULTMessageBox(PCWSTR message, HRESULT hr);
 		static void ForceCrashWithHRESULTMessageBox(PCWSTR message, HRESULT hr);

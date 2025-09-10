@@ -385,7 +385,10 @@ void OnCreateAssetWavefrontOBJ()
 		return;
 
 	CString filePath = fd.GetPathName(); // 선택된 파일 경로
-	std::vector<std::shared_ptr<ze::Mesh>> meshes = ze::ResourceLoader::GetInstance()->LoadWavefrontOBJ(filePath.GetString());
+	char path[MAX_PATH];
+	ze::Helper::ConvertUTF16ToUTF8(filePath.GetString(), path, sizeof(path));
+	// std::vector<std::shared_ptr<ze::Mesh>> meshes = ze::ResourceLoader::GetInstance()->LoadWavefrontOBJ(filePath.GetString());
+	std::vector<std::shared_ptr<ze::Mesh>> meshes = ze::ResourceLoader::GetInstance()->LoadMesh(path);
 	HTREEITEM hParent = hSelectedItem;
 
 	// 첫 번째 메시를 선택된 상태로 세팅

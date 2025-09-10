@@ -491,7 +491,7 @@
     </Link>
     <Lib>
       <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;d2d1.lib;dwrite.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex_$(Platform)_$(Configuration).lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\bullet3\;$(ProjectDir)extlib\lib\DirectXTex\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\bullet3\;$(ProjectDir)extlib\lib\DirectXTex\;$(ProjectDir)extlib\lib\assimp\</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -517,7 +517,7 @@
     </Link>
     <Lib>
       <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;d2d1.lib;dwrite.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex_$(Platform).lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\bullet3\;$(ProjectDir)extlib\lib\DirectXTex\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\bullet3\;$(ProjectDir)extlib\lib\DirectXTex\;$(ProjectDir)extlib\lib\assimp\</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -537,8 +537,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;d2d1.lib;dwrite.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex_$(Platform)_$(Configuration).lib;BulletDynamics_vs2010_x64_debug.lib;BulletInverseDynamics_vs2010_x64_debug.lib;BulletCollision_vs2010_x64_debug.lib;BulletSoftBody_vs2010_x64_debug.lib;LinearMath_vs2010_x64_debug.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\bullet3\;$(ProjectDir)extlib\lib\DirectXTex\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;d2d1.lib;dwrite.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex_$(Platform)_$(Configuration).lib;BulletDynamics_vs2010_x64_debug.lib;BulletInverseDynamics_vs2010_x64_debug.lib;BulletCollision_vs2010_x64_debug.lib;BulletSoftBody_vs2010_x64_debug.lib;LinearMath_vs2010_x64_debug.lib;assimp-vc143-mtd.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\bullet3\;$(ProjectDir)extlib\lib\DirectXTex\;$(ProjectDir)extlib\lib\assimp\</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -563,8 +563,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;d2d1.lib;dwrite.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex_$(Platform).lib;BulletDynamics_vs2010_x64_release.lib;BulletInverseDynamics_vs2010_x64_release.lib;BulletCollision_vs2010_x64_release.lib;BulletSoftBody_vs2010_x64_release.lib;LinearMath_vs2010_x64_release.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\bullet3\;$(ProjectDir)extlib\lib\DirectXTex\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;d2d1.lib;dwrite.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex_$(Platform).lib;BulletDynamics_vs2010_x64_release.lib;BulletInverseDynamics_vs2010_x64_release.lib;BulletCollision_vs2010_x64_release.lib;BulletSoftBody_vs2010_x64_release.lib;LinearMath_vs2010_x64_release.lib;assimp-vc143-mt.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\bullet3\;$(ProjectDir)extlib\lib\DirectXTex\;$(ProjectDir)extlib\lib\assimp\</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

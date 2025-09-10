@@ -6,6 +6,9 @@
 #include <ZergEngine\CoreSystem\Resource\Mesh.h>
 #include <ZergEngine\CoreSystem\Resource\Material.h>
 #include <DirectXTex\DirectXTex.h>
+#include <assimp\Importer.hpp>
+#include <assimp\scene.h>
+#include <assimp\postprocess.h>
 
 using namespace ze;
 
@@ -46,6 +49,169 @@ void ResourceLoader::Init()
 
 void ResourceLoader::UnInit()
 {
+}
+
+void ResourceLoader::DFSAiNodeLoadMesh(std::vector<std::shared_ptr<Mesh>>& meshes, const aiScene* pAiScene, const aiNode* pAiNode)
+{
+	// 한 노드가 가리키는 모든 aiMesh들을 하나의 ze::Mesh에 담고 각 aiMesh들은 ze::Subset에 대응시키면 된다.
+
+	if (pAiNode->mNumMeshes > 0)	// 노드가 메쉬는 아무것도 가리키고 있지 않을 수 있으므로 (대표적으로 루트 노드의 경우)
+	{
+		WCHAR name[32];
+		name[0] = L'\0';
+		Helper::ConvertUTF8ToUTF16(pAiNode->mName.C_Str(), name, _countof(name));
+
+		std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>(name);
+		std::vector<VFPositionNormalTexCoord> vertices;		// TEST
+		std::vector<uint32_t> indices;
+		uint32_t startIndexLocation = 0;
+
+		// AABB 계산 로직을 간단하게 하기 위해서 일단 첫 번째 메시의 AABB를 담아두고 반복적으로 병합해간다.
+		Aabb finalAabb;
+		const aiMesh* pFirstAiMesh = pAiScene->mMeshes[pAiNode->mMeshes[0]];
+		XMVECTOR min = XMVectorSet(pFirstAiMesh->mAABB.mMin.x, pFirstAiMesh->mAABB.mMin.y, pFirstAiMesh->mAABB.mMin.z, 0.0f);
+		XMVECTOR max = XMVectorSet(pFirstAiMesh->mAABB.mMax.x, pFirstAiMesh->mAABB.mMax.y, pFirstAiMesh->mAABB.mMax.z, 0.0f);
+		XMStoreFloat3(&finalAabb.Center, XMVectorScale(XMVectorAdd(min, max), 0.5f));
+		XMStoreFloat3(&finalAabb.Extents, XMVectorScale(XMVectorAbs(XMVectorSubtract(max, min)), 0.5f));
+
+		for (unsigned int i = 0; i < pAiNode->mNumMeshes; ++i)
+		{
+			const aiMesh* pAiMesh = pAiScene->mMeshes[pAiNode->mMeshes[i]];
+			uint32_t indexCount = 0;
+			uint32_t baseVertexIndex = static_cast<uint32_t>(vertices.size());	// 정점들을 담기 전에 미리 알아두어야 함.
+
+			// AABB 추출
+			Aabb aabb;
+			XMVECTOR min = XMVectorSet(pAiMesh->mAABB.mMin.x, pAiMesh->mAABB.mMin.y, pAiMesh->mAABB.mMin.z, 0.0f);
+			XMVECTOR max = XMVectorSet(pAiMesh->mAABB.mMax.x, pAiMesh->mAABB.mMax.y, pAiMesh->mAABB.mMax.z, 0.0f);
+			XMStoreFloat3(&aabb.Center, XMVectorScale(XMVectorAdd(min, max), 0.5f));
+			XMStoreFloat3(&aabb.Extents, XMVectorScale(XMVectorAbs(XMVectorSubtract(max, min)), 0.5f));
+			Aabb::CreateMerged(finalAabb, finalAabb, aabb);
+
+			for (unsigned int v = 0; v < pAiMesh->mNumVertices; ++v)
+			{
+				VFPositionNormalTexCoord vertex;		// TEST
+
+				vertex.m_position.x = pAiMesh->mVertices[v].x;
+				vertex.m_position.y = pAiMesh->mVertices[v].y;
+				vertex.m_position.z = pAiMesh->mVertices[v].z;
+
+				vertex.m_normal.x = pAiMesh->mNormals[v].x;
+				vertex.m_normal.y = pAiMesh->mNormals[v].y;
+				vertex.m_normal.z = pAiMesh->mNormals[v].z;
+
+				// vertex.m_tangent.x = pAiMesh->mTangents[v].x;
+				// vertex.m_tangent.y = pAiMesh->mTangents[v].y;
+				// vertex.m_tangent.z = pAiMesh->mTangents[v].z;
+
+				constexpr size_t UV_CHANNEL_INDEX = 0;
+				vertex.m_texCoord.x = pAiMesh->mTextureCoords[UV_CHANNEL_INDEX][v].x;
+				vertex.m_texCoord.y = pAiMesh->mTextureCoords[UV_CHANNEL_INDEX][v].y;
+
+				vertices.push_back(vertex);
+			}
+
+			for (unsigned int f = 0; f < pAiMesh->mNumFaces; ++f)
+			{
+				const aiFace* pAiFace = &pAiMesh->mFaces[f];
+				assert(pAiFace->mNumIndices == 3);
+				for (unsigned int fi = 0; fi < pAiFace->mNumIndices; ++fi)
+				{
+					++indexCount;
+					indices.push_back(pAiFace->mIndices[fi] + baseVertexIndex);
+				}
+			}
+
+			// 서브셋 정보 저장
+			mesh->m_subsets.push_back(Subset(indexCount, startIndexLocation));
+
+			startIndexLocation += indexCount;	// 다음 루프 메시를 위해
+		}
+
+		// 정보 세팅
+		// 1. AABB 설정
+		mesh->m_aabb = finalAabb;
+
+		// 2. 최종적으로 모든 서브셋들이 공유할 버텍스버퍼, 인덱스버퍼 생성
+		HRESULT hr;
+
+		// Create a vertex buffer
+		D3D11_BUFFER_DESC bufferDesc;
+		D3D11_SUBRESOURCE_DATA initialData;
+
+		bufferDesc.ByteWidth = static_cast<UINT>(vertices.size() * sizeof(VFPositionNormalTexCoord));
+		bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+		bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+		bufferDesc.CPUAccessFlags = 0;
+		bufferDesc.MiscFlags = 0;
+		bufferDesc.StructureByteStride = InputLayoutHelper::GetStructureByteStride(VERTEX_FORMAT_TYPE::POSITION_NORMAL_TEXCOORD);
+
+		initialData.pSysMem = vertices.data();
+		// initialData.SysMemPitch = 0;		// unused
+		// initialData.SysMemSlicePitch = 0;	// unused
+
+		ComPtr<ID3D11Buffer> cpVB;
+		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateBuffer(&bufferDesc, &initialData, cpVB.GetAddressOf());
+		if (FAILED(hr))
+			Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateBuffer()", hr);
+
+		// Create an index buffer
+		bufferDesc.ByteWidth = static_cast<UINT>(indices.size() * sizeof(uint32_t));
+		bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+		bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+		// bufferDesc.CPUAccessFlags = 0;
+		// bufferDesc.MiscFlags = 0;
+		bufferDesc.StructureByteStride = sizeof(uint32_t);
+
+		initialData.pSysMem = indices.data();
+		// initialData.SysMemPitch = 0;			// unused
+		// initialData.SysMemSlicePitch = 0;	// unused
+
+		ComPtr<ID3D11Buffer> cpIB;
+		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateBuffer(&bufferDesc, &initialData, cpIB.GetAddressOf());
+		if (FAILED(hr))
+			Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateBuffer()", hr);
+
+		mesh->m_cpVB = std::move(cpVB);
+		mesh->m_cpIB = std::move(cpIB);
+
+		// 3. VFT
+		mesh->m_vft = VERTEX_FORMAT_TYPE::POSITION_NORMAL_TEXCOORD;	// TEST
+
+		meshes.push_back(std::move(mesh));
+	}
+
+	for (unsigned int i = 0; i < pAiNode->mNumChildren; ++i)
+	{
+		DFSAiNodeLoadMesh(meshes, pAiScene, pAiNode->mChildren[i]);
+	}
+}
+
+std::vector<std::shared_ptr<Mesh>> ResourceLoader::LoadMesh(PCSTR path)
+{
+	std::vector<std::shared_ptr<Mesh>> meshes;
+
+	Assimp::Importer aiImporter;
+
+	const aiScene* pAiScene = aiImporter.ReadFile(path, 
+		aiProcessPreset_TargetRealtime_Fast |
+		aiProcess_ConvertToLeftHanded |
+		aiProcess_GenBoundingBoxes
+	);
+
+	if (!pAiScene)
+		Debug::ForceCrashWithMessageBox("Error", "Assimp::Importer::ReadFile error: %s", aiImporter.GetErrorString());
+
+	if (!pAiScene->HasMeshes())
+		return meshes;
+
+	// 한 aiNode에서 참조하고 있는 aiMesh들을 모두 순회하며 Vertex를 하나의 std::vector에 몰아넣되, 각 aiMesh마다 자신의 정점들을 넣어둔 시작 인덱스와
+	// 인덱스 개수를 기록해두고 이것들을 ze::Subset으로 만들어 넣어야 한다.
+	// 그리고 중요한 점은 AABB도 한 aiNode에서 참조하는 모든 aiMesh들에 대해서 병합해야 한다. 이건 DirectX BoundingBox에 함수로 있으니 쉬움.
+	aiNode* pAiRootNode = pAiScene->mRootNode;
+	DFSAiNodeLoadMesh(meshes, pAiScene, pAiRootNode);
+
+	return meshes;
 }
 
 std::vector<std::shared_ptr<Mesh>> ResourceLoader::LoadWavefrontOBJ(PCWSTR path)

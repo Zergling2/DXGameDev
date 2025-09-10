@@ -25,6 +25,7 @@ BEGIN_MESSAGE_MAP(CLevelEditorView, CView)
     ON_WM_MOUSEMOVE()
     ON_WM_SETFOCUS()
     ON_WM_KILLFOCUS()
+    ON_WM_DESTROY()
 END_MESSAGE_MAP()
 
 // CLevelEditorView construction/destruction
@@ -141,4 +142,13 @@ void CLevelEditorView::OnKillFocus(CWnd* pNewWnd)
     // TODO: Add your message handler code here
     m_focused = false;
     OutputDebugString(_T("OnKillFocus\n"));
+}
+
+void CLevelEditorView::OnDestroy()
+{
+    CView::OnDestroy();
+
+    // TODO: Add your message handler code here
+    ze::Runtime::GetInstance()->DestroyAllObject();
+    ze::Runtime::GetInstance()->RemoveDestroyedComponentsAndObjects();
 }

@@ -36,10 +36,6 @@ namespace ze
 			: m_position(position)
 		{
 		}
-		VFPosition(FXMVECTOR position) noexcept
-		{
-			XMStoreFloat3(&m_position, position);
-		}
 	private:
 		static constexpr size_t INPUT_ELEMENT_COUNT = 1;
 		static const D3D11_INPUT_ELEMENT_DESC s_ied[INPUT_ELEMENT_COUNT];
@@ -61,11 +57,6 @@ namespace ze
 			: m_position(position)
 			, m_color(color)
 		{
-		}
-		VFPositionColor(FXMVECTOR position, FXMVECTOR color) noexcept
-		{
-			XMStoreFloat3(&m_position, position);
-			XMStoreFloat4(&m_color, color);
 		}
 	private:
 		static constexpr size_t INPUT_ELEMENT_COUNT = 2;
@@ -91,11 +82,6 @@ namespace ze
 			, m_normal(normal)
 		{
 		}
-		VFPositionNormal(FXMVECTOR position, FXMVECTOR normal) noexcept
-		{
-			XMStoreFloat3(&m_position, position);
-			XMStoreFloat3(&m_normal, normal);
-		}
 	private:
 		static constexpr size_t INPUT_ELEMENT_COUNT = 2;
 		static const D3D11_INPUT_ELEMENT_DESC s_ied[INPUT_ELEMENT_COUNT];
@@ -117,11 +103,6 @@ namespace ze
 			: m_position(position)
 			, m_texCoord(texCoord)
 		{
-		}
-		VFPositionTexCoord(FXMVECTOR position, FXMVECTOR texCoord) noexcept
-		{
-			XMStoreFloat3(&m_position, position);
-			XMStoreFloat2(&m_texCoord, texCoord);
 		}
 	private:
 		static constexpr size_t INPUT_ELEMENT_COUNT = 2;
@@ -146,18 +127,39 @@ namespace ze
 			, m_texCoord(texCoord)
 		{
 		}
-		VFPositionNormalTexCoord(FXMVECTOR position, FXMVECTOR normal, FXMVECTOR texCoord) noexcept
-		{
-			XMStoreFloat3(&m_position, position);
-			XMStoreFloat3(&m_normal, normal);
-			XMStoreFloat2(&m_texCoord, texCoord);
-		}
 	private:
 		static constexpr size_t INPUT_ELEMENT_COUNT = 3;
 		static const D3D11_INPUT_ELEMENT_DESC s_ied[INPUT_ELEMENT_COUNT];
 	public:
 		XMFLOAT3 m_position;
 		XMFLOAT3 m_normal;
+		XMFLOAT2 m_texCoord;
+	};
+
+	class VFPositionNormalTexCoordTangent
+	{
+	public:
+		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
+		static constexpr uint32_t GetInputElementCount() { return VFPositionNormalTexCoordTangent::INPUT_ELEMENT_COUNT; }
+
+		VFPositionNormalTexCoordTangent() = default;
+		VFPositionNormalTexCoordTangent(const VFPositionNormalTexCoordTangent&) = default;
+		VFPositionNormalTexCoordTangent& operator=(const VFPositionNormalTexCoordTangent&) = default;
+		VFPositionNormalTexCoordTangent(const XMFLOAT3& position, const XMFLOAT3& normal,
+			const XMFLOAT3& tangent, const XMFLOAT2& texCoord) noexcept
+			: m_position(position)
+			, m_normal(normal)
+			, m_tangent(tangent)
+			, m_texCoord(texCoord)
+		{
+		}
+	private:
+		static constexpr size_t INPUT_ELEMENT_COUNT = 4;
+		static const D3D11_INPUT_ELEMENT_DESC s_ied[INPUT_ELEMENT_COUNT];
+	public:
+		XMFLOAT3 m_position;
+		XMFLOAT3 m_normal;
+		XMFLOAT3 m_tangent;
 		XMFLOAT2 m_texCoord;
 	};
 

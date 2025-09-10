@@ -150,7 +150,7 @@ void MonoBehaviourManager::LateUpdate()
 void MonoBehaviourManager::RemoveDestroyedComponents()
 {
     // OnDestroy()에서 다른 스크립트를 Destroy 하는 경우를 고려하여
-    // m_destroyed.size()를 매번 확인하여 추가된 파괴 예정 스크립트들도 모두 OnDestroy가 호출될 수 있게 한다.
+    // m_destroyed.size()를 매번 확인하여 현재 루프를 돌던 중 추가된 파괴 예정 스크립트들도 모두 OnDestroy가 호출될 수 있게 한다.
     for (size_t i = 0; i < m_destroyed.size(); ++i)
     {
         MonoBehaviour* pScript = static_cast<MonoBehaviour*>(m_destroyed[i]);
@@ -175,6 +175,8 @@ void MonoBehaviourManager::RemoveDestroyedComponents()
             m_startQueue.pop_back();
         }
     }
+
+    // m_destroyed 벡터는 IComponentManager::RemoveDestroyedComponents() 함수에서 사용되므로 여기서 clear 하면 안됨.
 
     IComponentManager::RemoveDestroyedComponents();
 }

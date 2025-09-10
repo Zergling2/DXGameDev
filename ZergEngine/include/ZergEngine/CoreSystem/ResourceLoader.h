@@ -3,10 +3,16 @@
 #include <ZergEngine\Common\EngineConstants.h>
 #include <ZergEngine\CoreSystem\Resource\Texture.h>
 
+// ##################################
+// Forward declaration
 namespace DirectX
 {
 	class ScratchImage;
 }
+
+struct aiScene;
+struct aiNode;
+// ##################################
 
 namespace ze
 {
@@ -135,6 +141,8 @@ namespace ze
 		void Init();
 		void UnInit();
 	public:
+		std::vector<std::shared_ptr<Mesh>> LoadMesh(PCSTR path);
+
 		// Wavefront OBJ 포맷은 단일 obj 파일에 여러 개의 메시를 포함할 수 있습니다.
 		std::vector<std::shared_ptr<Mesh>> LoadWavefrontOBJ(PCWSTR path);
 		Texture2D LoadTexture2D(PCWSTR path, bool generateMipMaps = true);	// 리소스에 밉 맵이 포함된 경우(dds 파일 등)에는 generateMipMaps가 무시됩니다.
@@ -142,6 +150,7 @@ namespace ze
 		bool CreateHeightMapFromRawData(Texture2D& heightMap, const uint16_t* pData, SIZE resolution);
 		// std::vector<std::shared_ptr<Mesh>> LoadWavefrontOBJ_deprecated(PCWSTR path, bool importTexture);
 	private:
+		void DFSAiNodeLoadMesh(std::vector<std::shared_ptr<Mesh>>& meshes, const aiScene* pAiScene, const aiNode* pAiNode);
 		HRESULT GenerateMipMapsForBCFormat(const ScratchImage& src, ScratchImage& result);
 		bool ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, VertexPack& vp, Mesh* pMesh);
 		bool ParseWavefrontOBJFaces(FILE* pOBJFile, long* pnffpos, VERTEX_FORMAT_TYPE vft, const VertexPack& vp,

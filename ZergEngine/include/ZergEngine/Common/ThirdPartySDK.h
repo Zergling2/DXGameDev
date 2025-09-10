@@ -2,6 +2,7 @@
 
 // Microsoft SDK
 #define NOMINMAX
+#define _CRTDBG_MAP_ALLOC
 
 #include <Windows.h>
 #include <windowsx.h>
@@ -11,6 +12,7 @@
 #include <wrl\client.h>
 #include <strsafe.h>
 #include <tchar.h>
+#include <crtdbg.h>
 
 #include <cassert>
 #include <clocale>
@@ -19,7 +21,6 @@
 #include <limits>
 #include <memory>
 #include <random>
-#include <chrono>
 #include <cstdint>
 #include <type_traits>
 

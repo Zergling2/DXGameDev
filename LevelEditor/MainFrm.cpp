@@ -148,8 +148,10 @@ CFormView* CMainFrame::SwitchInspectorFormView(CRuntimeClass* pRtClass)
 	if (!pOldView)
 		return nullptr;
 
+	/*
 	if (pOldView->IsKindOf(pRtClass))
 		return static_cast<CFormView*>(pOldView);
+	*/
 
 	// CCreateContext 세팅
 	context.m_pCurrentDoc = pOldView->GetDocument();	// pOldView가 파괴되기 전에 도큐먼트 포인터 값 얻어오기

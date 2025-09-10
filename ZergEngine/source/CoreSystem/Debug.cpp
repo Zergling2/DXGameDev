@@ -22,6 +22,19 @@ void Debug::ForceCrashWithMessageBox(PCWSTR title, PCWSTR format, ...)
 	*reinterpret_cast<int*>(0) = 0;
 }
 
+void Debug::ForceCrashWithMessageBox(PCSTR title, PCSTR format, ...)
+{
+	CHAR buffer[256];
+
+	va_list args;
+	va_start(args, format);
+	vsprintf_s(buffer, _countof(buffer), format, args);
+	va_end(args);
+
+	MessageBoxA(NULL, buffer, title, MB_OK);
+	*reinterpret_cast<int*>(0) = 0;
+}
+
 void Debug::ForceCrashWithWin32ErrorMessageBox(PCWSTR message, DWORD code)
 {
 	WCHAR buffer[384];

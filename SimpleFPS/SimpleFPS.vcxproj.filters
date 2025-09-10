@@ -28,6 +28,9 @@
     <ClCompile Include="source\Script\Planet.cpp">
       <Filter>source\Script</Filter>
     </ClCompile>
+    <ClCompile Include="source\Scene\Warehouse.cpp">
+      <Filter>source\Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Scene\Lobby.h">
@@ -41,6 +44,9 @@
     </ClInclude>
     <ClInclude Include="source\Script\Planet.h">
       <Filter>source\Script</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Scene\Warehouse.h">
+      <Filter>source\Scene</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

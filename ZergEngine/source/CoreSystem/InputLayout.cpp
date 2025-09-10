@@ -96,6 +96,17 @@ const D3D11_INPUT_ELEMENT_DESC VFPositionNormalTexCoord::s_ied[] =
 static_assert(sizeof(VFPositionNormalTexCoord) == 32, INPUT_LAYOUT_STATIC_ASSERT_MESSAGE);
 
 //--------------------------------------------------------------------------------------
+// Vertex struct holding position, normal vector, texture mapping, tangent information.
+const D3D11_INPUT_ELEMENT_DESC VFPositionNormalTexCoordTangent::s_ied[] =
+{
+	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+};
+static_assert(sizeof(VFPositionNormalTexCoordTangent) == 44, INPUT_LAYOUT_STATIC_ASSERT_MESSAGE);
+
+//--------------------------------------------------------------------------------------
 // Vertex struct holding position, texture mapping information and bounding volume.
 const D3D11_INPUT_ELEMENT_DESC VFTerrainPatchControlPoint::s_ied[] =
 {

@@ -25,7 +25,7 @@ namespace ze
 		void SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT pa) { m_paragraphAlignment = pa; }
 
 		// TextFormat을 변경한 후 호출해야 새로운 폰트로 갱신됩니다.
-		void Refresh();
+		void Apply();
 
 		IDWriteTextFormat* GetDWriteTextFormatComInterface() const { return m_spDWriteTextFormatWrapper->GetDWriteTextFormatComInterface(); }
 	protected:

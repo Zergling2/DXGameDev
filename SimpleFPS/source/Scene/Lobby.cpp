@@ -38,7 +38,7 @@ void Lobby::OnLoadScene()
 		pTitleText->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 		pTitleText->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_HEAVY);
 		pTitleText->GetTextFormat().SetSize(32);
-		pTitleText->Refresh();
+		pTitleText->Apply();
 		pTitleText->m_transform.m_position.x = +0.0f;
 		pTitleText->m_transform.m_position.y = +160.0f;
 
@@ -55,7 +55,7 @@ void Lobby::OnLoadScene()
 		pButtonGameStart->SetColor(XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
 		pButtonGameStart->GetTextFormat().SetSize(20);
 		pButtonGameStart->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_BOLD);
-		pButtonGameStart->Refresh();
+		pButtonGameStart->Apply();
 		pButtonGameStart->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 		pButtonGameStart->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 		pButtonGameStart->m_transform.SetParent(&pPanel->m_transform);
@@ -73,7 +73,7 @@ void Lobby::OnLoadScene()
 		pButtonGameExit->SetColor(XMFLOAT4(0.0f, 0.05f, 0.0f, 1.0f));
 		pButtonGameExit->GetTextFormat().SetSize(20);
 		pButtonGameExit->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_BOLD);
-		pButtonGameExit->Refresh();
+		pButtonGameExit->Apply();
 		pButtonGameExit->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 		pButtonGameExit->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 		pButtonGameExit->m_transform.SetParent(&pPanel->m_transform);
@@ -91,7 +91,7 @@ void Lobby::OnLoadScene()
 		pInputField0->SetBkColor(Colors::LightGray);
 		pInputField0->SetColor(Colors::Blue);
 		pInputField0->GetTextFormat().SetSize(16);
-		pInputField0->Refresh();
+		pInputField0->Apply();
 		pInputField0->m_transform.SetParent(&pPanel->m_transform);
 
 		UIObjectHandle hInputField1 = CreateInputField();
@@ -108,7 +108,7 @@ void Lobby::OnLoadScene()
 		pInputField1->SetColor(Colors::Black);
 		pInputField1->GetTextFormat().SetSize(14);
 		pInputField1->SetPassword(true);
-		pInputField1->Refresh();
+		pInputField1->Apply();
 		pInputField1->m_transform.SetParent(&pPanel->m_transform);
 	}
 

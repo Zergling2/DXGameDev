@@ -85,6 +85,13 @@ CLevelEditorApp::CLevelEditorApp() noexcept
 
 BOOL CLevelEditorApp::InitInstance()
 {
+	// Enable run-time memory check for debug builds.
+#if defined(DEBUG) || defined(_DEBUG)
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	// Perform automatic leak checking at program exit through a call to _CrtDumpMemoryLeaks 
+	// and generate an error report if the application failed to free all the memory it allocated.
+#endif
+
 	// InitCommonControlsEx() is required on Windows XP if an application
 	// manifest specifies use of ComCtl32.dll version 6 or later to enable
 	// visual styles.  Otherwise, any window creation will fail.
@@ -172,7 +179,6 @@ BOOL CLevelEditorApp::InitInstance()
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	// Zerg Engine 런타임 초기화
 	ze::Runtime::CreateInstance();
-	
 	ze::Runtime::GetInstance()->InitEditor(
 		AfxGetApp()->m_hInstance,
 		pMainFrame->m_hWnd,
@@ -210,13 +216,8 @@ BOOL CLevelEditorApp::InitInstance()
 int CLevelEditorApp::ExitInstance()
 {
 	// TODO: Add your specialized code here and/or call the base class
-	ze::Runtime::GetInstance()->DestroyAllObject();
-	ze::Runtime::GetInstance()->RemoveDestroyedComponentsAndObjects();
-
 	ze::Runtime::GetInstance()->UnInit();
 	ze::Runtime::GetInstance()->DestroyInstance();
-
-
 
 	return CWinApp::ExitInstance();
 }

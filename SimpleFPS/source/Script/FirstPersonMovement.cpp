@@ -48,4 +48,7 @@ void FirstPersonMovement::Update()
 
 	if (Input::GetInstance()->GetKey(KEY_D))
 		pGameObject->m_transform.Translate(worldRightAxis * speed);
+
+	if (Input::GetInstance()->GetKey(KEY_ESCAPE))
+		Runtime::GetInstance()->Exit();
 }
