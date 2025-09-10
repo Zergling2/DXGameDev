@@ -42,11 +42,11 @@ namespace ze
 		GameObjectHandle THREADSAFE RegisterToHandleTable(GameObject* pGameObject);
 		void AddToDestroyQueue(GameObject* pGameObject);
 
+		// 비-지연 오브젝트들을 옮기는 함수
 		void MoveToActiveGroup(GameObject* pGameObject);
+		// 비-지연 오브젝트들을 옮기는 함수
 		void MoveToInactiveGroup(GameObject* pGameObject);
 
-		void DeployToActiveGroup(GameObject* pGameObject);
-		void DeployToInactiveGroup(GameObject* pGameObject);
 		void AddToActiveGroup(GameObject* pGameObject);
 		void AddToInactiveGroup(GameObject* pGameObject);
 

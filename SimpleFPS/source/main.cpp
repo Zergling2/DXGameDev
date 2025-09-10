@@ -20,7 +20,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 #endif
 
 	Runtime::CreateInstance();
-	Runtime::GetInstance()->Init(hInstance, nShowCmd, 1600, 900, L"Simple FPS", L"TestScene1");
+	Runtime::GetInstance()->Init(hInstance, nShowCmd, 1280, 960, L"Simple FPS", L"TestScene1");
 
 	Runtime::GetInstance()->Run();
 

@@ -12,4 +12,6 @@ public:
 	virtual ~FirstPersonMovement() = default;
 
 	virtual void Update() override;
+public:
+	ze::GameObjectHandle m_hWeapons[4];
 };

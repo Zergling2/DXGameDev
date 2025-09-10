@@ -306,6 +306,9 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Font.h">
       <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
     </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPNTT.h">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\CoreSystem\Time.cpp">
@@ -529,6 +532,9 @@
     </ClCompile>
     <ClCompile Include="source\CoreSystem\Resource\Font.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Effect\BasicEffectPNTT.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

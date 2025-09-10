@@ -93,7 +93,6 @@ ComponentHandleBase IComponentManager::RegisterToHandleTable(IComponent* pCompon
 
 void IComponentManager::AddToDirectAccessGroup(IComponent* pComponent)
 {
-	// Active vector¿¡ Ãß°¡
 	m_directAccessGroup.push_back(pComponent);
 	pComponent->m_groupIndex = static_cast<uint32_t>(m_directAccessGroup.size() - 1);
 }

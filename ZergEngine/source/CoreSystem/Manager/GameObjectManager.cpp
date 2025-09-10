@@ -173,9 +173,11 @@ void GameObjectManager::AddToDestroyQueue(GameObject* pGameObject)
 
 void GameObjectManager::MoveToActiveGroup(GameObject* pGameObject)
 {
+	assert(!pGameObject->IsPending());	// 비-지연 상태였어야 한다.
+	assert(!pGameObject->IsActive());	// Inactive 상태였어야 한다.
+
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	// 1. Inactive group에서 제거
-	assert(!pGameObject->IsActive());	// Inactive 상태였어야 한다.
 	this->RemoveFromGroup(pGameObject);
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -188,9 +190,11 @@ void GameObjectManager::MoveToActiveGroup(GameObject* pGameObject)
 
 void GameObjectManager::MoveToInactiveGroup(GameObject* pGameObject)
 {
+	assert(!pGameObject->IsPending());	// 비-지연 상태였어야 한다.
+	assert(pGameObject->IsActive());	// Active 상태였어야 한다.
+
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	// 1. Active group에서 제거
-	assert(pGameObject->IsActive());	// Active 상태였어야 한다.
 	this->RemoveFromGroup(pGameObject);
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -201,34 +205,16 @@ void GameObjectManager::MoveToInactiveGroup(GameObject* pGameObject)
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 }
 
-void GameObjectManager::DeployToActiveGroup(GameObject* pGameObject)
-{
-	assert(pGameObject->IsActive());
-
-	AddToActiveGroup(pGameObject);
-}
-
-void GameObjectManager::DeployToInactiveGroup(GameObject* pGameObject)
-{
-	assert(!pGameObject->IsActive());
-
-	AddToInactiveGroup(pGameObject);
-}
-
 void GameObjectManager::AddToActiveGroup(GameObject* pGameObject)
 {
 	m_activeGroup.push_back(pGameObject);
 	pGameObject->m_groupIndex = static_cast<uint32_t>(m_activeGroup.size() - 1);
-
-	pGameObject->OnFlag(GAMEOBJECT_FLAG::ACTIVE);
 }
 
 void GameObjectManager::AddToInactiveGroup(GameObject* pGameObject)
 {
 	m_inactiveGroup.push_back(pGameObject);
 	pGameObject->m_groupIndex = static_cast<uint32_t>(m_inactiveGroup.size() - 1);
-
-	pGameObject->OffFlag(GAMEOBJECT_FLAG::ACTIVE);
 }
 
 void GameObjectManager::RemoveFromGroup(GameObject* pGameObject)
@@ -336,6 +322,9 @@ void GameObjectManager::SetActive(GameObject* pGameObject, bool active)
 		// PENDING 상태가 아닌 경우에만 포인터 이동 (PENDING 상태에서는 Active/Inactive 벡터에 포인터가 존재하지 않는다.)
 		if (!pGameObject->IsPending())
 			this->MoveToActiveGroup(pGameObject);
+
+		
+		pGameObject->OnFlag(GAMEOBJECT_FLAG::ACTIVE);
 	}
 	else
 	{
@@ -345,6 +334,9 @@ void GameObjectManager::SetActive(GameObject* pGameObject, bool active)
 		// PENDING 상태가 아닌 경우에만 포인터 이동 (PENDING 상태에서는 Active/Inactive 벡터에 포인터가 존재하지 않는다.)
 		if (!pGameObject->IsPending())
 			this->MoveToInactiveGroup(pGameObject);
+
+
+		pGameObject->OffFlag(GAMEOBJECT_FLAG::ACTIVE);
 	}
 }
 
@@ -356,7 +348,7 @@ bool GameObjectManager::SetParent(Transform* pTransform, Transform* pNewParentTr
 	if (pGameObject->IsOnTheDestroyQueue())
 		return false;
 
-	// 자기 자신을 부모로 설정하려고 하거나 이미 설정하려는 부모가 이미 부모인 경우에는 실패
+	// 자기 자신을 부모로 설정하려고 하거나 설정하려는 부모가 이미 부모인 경우에는 실패
 	if (pTransform == pNewParentTransform || pOldParentTransform == pNewParentTransform)
 		return false;
 
@@ -397,9 +389,16 @@ bool GameObjectManager::SetParent(Transform* pTransform, Transform* pNewParentTr
 		assert(find == true);	// 자식으로 존재했었어야 함
 	}
 
-	// 부모의 자식 목록을 업데이트
+	// 만약 부모가 nullptr이 아니라면
 	if (pNewParentTransform != nullptr)
+	{
+		// 부모의 자식 목록을 업데이트
 		pNewParentTransform->m_children.push_back(pTransform);
+
+		// 부모가 비활성 상태이면 자식도 비활성화
+		if (pNewParentTransform->m_pGameObject->IsActive() == false)
+			pTransform->m_pGameObject->SetActive(false);
+	}
 
 	// 부모 포인터를 새로운 부모로 업데이트
 	pTransform->m_pParentTransform = pNewParentTransform;

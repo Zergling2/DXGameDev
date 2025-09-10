@@ -31,6 +31,7 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPC.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPN.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPNT.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPNTT.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPT.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\ButtonEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\ImageEffect.h" />
@@ -111,6 +112,7 @@
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectPC.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectPN.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectPNT.cpp" />
+    <ClCompile Include="source\CoreSystem\Effect\BasicEffectPNTT.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectPT.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\ButtonEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\ImageEffect.cpp" />

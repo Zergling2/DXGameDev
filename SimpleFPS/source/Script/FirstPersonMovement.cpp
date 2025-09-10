@@ -51,4 +51,36 @@ void FirstPersonMovement::Update()
 
 	if (Input::GetInstance()->GetKey(KEY_ESCAPE))
 		Runtime::GetInstance()->Exit();
+
+	bool weaponChange = false;
+	size_t weaponIndex;
+	if (Input::GetInstance()->GetKeyDown(KEY_1))
+	{
+		weaponChange = true;
+		weaponIndex = 0;
+	}
+	if (Input::GetInstance()->GetKeyDown(KEY_2))
+	{
+		weaponChange = true;
+		weaponIndex = 1;
+	}
+	if (Input::GetInstance()->GetKeyDown(KEY_3))
+	{
+		weaponChange = true;
+		weaponIndex = 2;
+	}
+	if (Input::GetInstance()->GetKeyDown(KEY_4))
+	{
+		weaponChange = true;
+		weaponIndex = 3;
+	}
+
+	if (weaponChange)
+	{
+		m_hWeapons[0].ToPtr()->SetActive(false);
+		m_hWeapons[1].ToPtr()->SetActive(false);
+		m_hWeapons[2].ToPtr()->SetActive(false);
+		m_hWeapons[3].ToPtr()->SetActive(false);
+		m_hWeapons[weaponIndex].ToPtr()->SetActive(true);
+	}
 }

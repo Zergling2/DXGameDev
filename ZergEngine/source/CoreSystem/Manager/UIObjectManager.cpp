@@ -384,7 +384,7 @@ bool UIObjectManager::SetParent(RectTransform* pTransform, RectTransform* pNewPa
 	if (pUIObject->IsOnTheDestroyQueue())
 		return false;
 
-	// 자기 자신을 부모로 설정하려고 하거나 이미 설정하려는 부모가 이미 부모인 경우에는 실패
+	// 자기 자신을 부모로 설정하려고 하거나 설정하려는 부모가 이미 부모인 경우에는 실패
 	if (pTransform == pNewParentTransform || pOldParentTransform == pNewParentTransform)
 		return false;
 
@@ -431,9 +431,9 @@ bool UIObjectManager::SetParent(RectTransform* pTransform, RectTransform* pNewPa
 		// 부모의 자식 목록을 업데이트
 		pNewParentTransform->m_children.push_back(pTransform);
 
-		// 부모와의 IsActive 상태 일치화시키기
-		if (pTransform->m_pUIObject->IsActive() != pNewParentTransform->m_pUIObject->IsActive())
-			pTransform->m_pUIObject->SetActive(pNewParentTransform->m_pUIObject->IsActive());
+		// 부모가 비활성 상태이면 자식도 비활성화
+		if (pNewParentTransform->m_pUIObject->IsActive() == false)
+			pTransform->m_pUIObject->SetActive(false);
 	}
 
 	// 부모 포인터를 새로운 부모로 업데이트
