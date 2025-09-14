@@ -9,6 +9,7 @@
 
 #include "LevelEditorView.h"
 #include "LevelEditorDoc.h"
+#include <ZergEngine\CoreSystem\Runtime.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

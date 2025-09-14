@@ -1,6 +1,7 @@
 #include "ATVItemMaterial.h"
 #include "..\MainFrm.h"
 #include "..\MaterialInspectorFormView.h"
+#include <ZergEngine\CoreSystem\Resource\Material.h>
 
 void ATVItemMaterial::OnSelect()
 {

@@ -37,26 +37,25 @@ namespace ze
 		ID3D11SamplerState* m_pSamplerState;
 	};
 
-	enum class DEPTH_STENCIL_STATE_TYPE
+	enum class DepthStencilStateType
 	{
-		DEFAULT,
+		Default,
 
 		// DepthEnable = TRUE
 		// DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL
 		// DepthFunc = D3D11_COMPARISON_LESS_EQUAL (스카이박스의 모든 프래그먼트를 NDC에서 z = 1.0f에 위치시키므로)
 		// StencilEnable = FALSE
-		SKYBOX,
+		Skybox,
 
-		MIRROR,
+		Mirror,
 
-		// Depth read only, No Write
-		DEPTH_READ_ONLY,
+		// Depth read only, No write
+		DepthReadOnly,
 
 		// DepthEnable = FALSE
 		// StencilEnable = FALSE
-		NO_DEPTH_STENCIL_TEST,
-
-		// Number of depth stencil states
+		NoDepthStencilTest,
+		// ━━━━━━━━━━━━━━━━━━━━━━
 		COUNT
 	};
 
@@ -77,12 +76,16 @@ namespace ze
 		ID3D11DepthStencilState* m_pDepthStencilState;
 	};
 
-	enum class BLEND_STATE_TYPE
+	enum class BlendStateType
 	{
-		OPAQUE_,
-		ALPHABLEND,
-		NO_COLOR_WRITE,		// Backbuffer에는 쓰기 X, Depth/Stencil 버퍼에만 쓰기 시 사용
+		Opaque,
 
+
+		AlphaBlend,
+
+		// Color buffer에는 쓰기 X, Depth/Stencil 버퍼에만 쓰기 시 사용
+		NoColorWrite,
+		// ━━━━━━━━━━━━━━━━━━━━━━
 		COUNT
 	};
 

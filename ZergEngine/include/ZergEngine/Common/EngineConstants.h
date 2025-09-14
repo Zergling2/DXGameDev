@@ -11,34 +11,37 @@ namespace ze
 	constexpr uint32_t MAX_GLOBAL_LIGHT_COUNT = 4;
 	constexpr uint16_t MAX_CAMERA_COUNT = 4;
 
-	enum class RASTERIZER_FILL_MODE
+	enum class RasterizerFillMode
 	{
-		WIREFRAME,
-		SOLID,
+		Wireframe,
+		Solid,
+		// ━━━━━━━━━━━━━━━━━━━━━━
 		COUNT
 	};
 
-	enum class RASTERIZER_CULL_MODE
+	enum class RasterizerCullMode
 	{
-		NONE,
-		FRONT,
-		BACK,
+		None,
+		Front,
+		Back,
+		// ━━━━━━━━━━━━━━━━━━━━━━
 		COUNT
 	};
 
-	enum class TEXTURE_FILTERING_OPTION
+	enum class TextureFilteringMode
 	{
-		POINT,
-		BILINEAR,
-		TRILINEAR,
-		ANISOTROPIC_2X,
-		ANISOTROPIC_4X,
-		ANISOTROPIC_8X,
-		ANISOTROPIC_16X,
+		Point,
+		Bilinear,
+		Trilinear,
+		Anisotropic2x,
+		Anisotropic4x,
+		Anisotropic8x,
+		Anisotropic16x,
+		// ━━━━━━━━━━━━━━━━━━━━━━
 		COUNT
 	};
 
-	enum class VERTEX_SHADER_TYPE
+	enum class VertexShaderType
 	{
 		TRANSFORM_SKYBOX_TO_HCS,
 		TRANSFORM_TERRAIN_PATCH_CTRL_PT,
@@ -50,81 +53,79 @@ namespace ze
 		TRANSFORM_PNT_TO_HCS,
 		TRANSFORM_BUTTON_TO_HCS,
 		TRANSFORM_PT_QUAD_TO_HCS,
-
+		// ━━━━━━━━━━━━━━━━━━━━━━
 		COUNT
 	};
 
-	enum class HULL_SHADER_TYPE
+	enum class HullShaderType
 	{
-		CALC_TERRAIN_TESS_FACTOR,
-
+		CalcTerrainTessFactor,
+		// ━━━━━━━━━━━━━━━━━━━━━━
 		COUNT
 	};
 
-	enum class DOMAIN_SHADER_TYPE
+	enum class DomainShaderType
 	{
-		SAMPLE_TERRAIN_HEIGHT_MAP,
-
+		SampleTerrainHeightMap,
+		// ━━━━━━━━━━━━━━━━━━━━━━
 		COUNT
 	};
 
-	enum class PIXEL_SHADER_TYPE
+	enum class PixelShaderType
 	{
-		COLOR_SKYBOX_FRAGMENT,
-		COLOR_TERRAIN_FRAGMENT,
-		COLOR_P_FRAGMENT,
-		COLOR_PC_FRAGMENT,
-		COLOR_PN_FRAGMENT,
-		COLOR_PT_FRAGMENT,
-		COLOR_PNT_FRAGMENT,
-		COLOR_PT_FRAGMENT_SINGLE_TEXTURE,
-		COLOR_PT_FRAGMENT_SINGLE_MSTEXTURE,
-		TEXTURE_PT_FRAGMENT,
-
+		ColorSkyboxFragment,
+		ColorTerrainFragment,
+		ColorPositionFragment,
+		ColorPositionColorFragment,
+		ColorPositionNormalFragment,
+		ColorPositionTexCoordFragmentWithSingleTexture,
+		ColorPositionTexCoordFragmentWithSingleMSTexture,
+		ColorPositionNormalTexCoordFragment,
+		// ━━━━━━━━━━━━━━━━━━━━━━
 		COUNT
 	};
 
-	enum class VERTEX_BUFFER_TYPE
+	enum class VertexBufferType
 	{
-		BUTTON,
-		// IMAGE_BUTTON,	// (셰이더 지역변수로 처리 가능)
-
+		ButtonPt,
+		// ImageButtonPt,	// (셰이더 지역변수로 처리 가능)
+		// ━━━━━━━━━━━━━━━━━━━━━━
 		COUNT
 	};
 
-	enum class MSAA_SAMPLE_COUNT : uint32_t
+	enum class MultisamplingAntiAliasingMode
 	{
-		OFF	= 1,
-		X2	= 2,
-		X4	= 4,
-		X8	= 8,
-		X16	= 16,
-		X32	= 32
+		Off	= 1,
+		x2	= 2,
+		x4	= 4,
+		x8	= 8,
+		x16	= 16,
+		x32	= 32
 	};
 
-	enum class PROJECTION_METHOD : int8_t
+	enum class ProjectionMethod : int8_t
 	{
-		PERSPECTIVE,
-		ORTHOGRAPHIC
+		Perspective,
+		Orthographic
 	};
 
-	enum class CLEAR_FLAG : int8_t
+	enum class ClearFlag : int8_t
 	{
-		SKYBOX,
-		SOLID_COLOR,
-		DEPTH_ONLY,
-		DONT_CLEAR
+		Skybox,
+		SolidColor,
+		DepthOnly,
+		DontClear
 	};
 
-	enum class VERTEX_FORMAT_TYPE : int32_t
+	enum class VertexFormatType : int32_t
 	{
-		POSITION,
-		POSITION_COLOR,
-		POSITION_NORMAL,
-		POSITION_TEXCOORD,
-		POSITION_NORMAL_TEXCOORD,
-		TERRAIN_PATCH_CTRL_PT,
-		BUTTON,
+		Position,
+		PositionColor,
+		PositionNormal,
+		PositionTexCoord,
+		PositionNormalTexCoord,
+		TerrainPatchCtrlPt,
+		ButtonPt,
 		// ━━━━━━━━━━━━━━━━━━━━━━
 		COUNT,
 		UNKNOWN

@@ -4,6 +4,7 @@
 #include <ZergEngine\CoreSystem\FileSystem.h>
 #include <ZergEngine\CoreSystem\Time.h>
 #include <ZergEngine\CoreSystem\Input.h>
+#include <ZergEngine\CoreSystem\Cursor.h>
 #include <ZergEngine\CoreSystem\GraphicDevice.h>
 #include <ZergEngine\CoreSystem\ResourceLoader.h>
 #include <ZergEngine\CoreSystem\Renderer.h>
@@ -40,6 +41,7 @@ Runtime::Runtime()
     , m_render(true)
     , m_nCmdShow(0)
     , m_window()
+    , m_hGameWnd(NULL)
 {
 }
 
@@ -92,6 +94,7 @@ void Runtime::Init(HINSTANCE hInstance, int nCmdShow, uint32_t width, uint32_t h
     SceneManager::CreateInstance();
 
     m_window.Create(this, hInstance, TITLEBAR_WINDOW_STYLE, width, height, title);
+    m_hGameWnd = m_window.GetHandle();
 
     MemoryAllocator::GetInstance()->Init();
     FileSystem::GetInstance()->Init();
@@ -146,6 +149,7 @@ void Runtime::InitEditor(HINSTANCE hInstance, HWND hMainFrameWnd, HWND hViewWnd,
     MonoBehaviourManager::CreateInstance();
     SceneManager::CreateInstance();
 
+    m_hGameWnd = hViewWnd;
     MemoryAllocator::GetInstance()->Init();
     FileSystem::GetInstance()->Init();
     Time::GetInstance()->Init();
@@ -360,6 +364,43 @@ void Runtime::OnSize(UINT nType, int cx, int cy)
 
         // Camera Color Buffer & Depth/Stencil Buffer Resize & Projection Matrix Update
         CameraManager::GetInstance()->ResizeBuffer(newWidth, newHeight);
+
+        // 만약 Lock 모드 또는 Confined 모드였다면 커서 클립 영역을 재계산해야 하므로 설정.
+        Cursor::SetLockState(Cursor::GetLockState());
+    }
+}
+
+void Runtime::OnMove(WPARAM wParam, LPARAM lParam)
+{
+    Cursor::SetLockState(Cursor::GetLockState());
+}
+
+void Runtime::OnActivateApp(WPARAM wParam, LPARAM lParam)
+{
+    CURSORINFO ci;
+
+    switch (wParam)
+    {
+    case FALSE: // DEACTIVATED
+        Cursor::SetChangeOnlyFlag(true);
+
+        ClipCursor(nullptr);
+
+        ci.cbSize = sizeof(ci);
+        GetCursorInfo(&ci);
+
+        if (ci.flags == 0)  // 커서가 숨겨진 상태라면
+            while (ShowCursor(TRUE) < 0);   // 커서를 보이게 한다.
+        break;
+    case TRUE:  // ACTIVATED
+        Cursor::SetChangeOnlyFlag(false);
+
+        // 상태 복구
+        Cursor::SetVisible(Cursor::IsVisible());
+        Cursor::SetLockState(Cursor::GetLockState());
+        break;
+    default:
+        break;
     }
 }
 

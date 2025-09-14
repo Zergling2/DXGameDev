@@ -16,9 +16,9 @@ void BasicEffectP::Init()
 
 	m_dirtyFlag = DIRTY_FLAG::ALL;
 
-	m_pInputLayout = GraphicDevice::GetInstance()->GetILComInterface(VERTEX_FORMAT_TYPE::POSITION);
-	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VERTEX_SHADER_TYPE::TRANSFORM_P_TO_HCS);
-	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PIXEL_SHADER_TYPE::COLOR_P_FRAGMENT);
+	m_pInputLayout = GraphicDevice::GetInstance()->GetILComInterface(VertexFormatType::Position);
+	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::TRANSFORM_P_TO_HCS);
+	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::ColorPositionFragment);
 
 	m_cbPerCamera.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
 	m_cbPerMesh.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());

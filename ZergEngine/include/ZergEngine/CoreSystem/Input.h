@@ -160,19 +160,13 @@ namespace ze
 		KEY_MEDIASELECT		= 0xED		/* Media Select */
 	};
 
-	enum class MOUSE_BUTTON
+	enum class MouseButton
 	{
-		LBUTTON = 0,
-		RBUTTON = 1,
-		MBUTTON = 2,
+		Left = 0,
+		Right = 1,
+		Middle = 2,
 
 		COUNT
-	};
-
-	enum class INPUT_MODE
-	{
-		GAMEPLAY,
-		UI_INPUT_WAITING,
 	};
 
 	class Input
@@ -190,8 +184,6 @@ namespace ze
 		void Init(HINSTANCE hInstance, HWND hWnd);
 		void UnInit();
 
-		void SetMode(INPUT_MODE mode) { m_mode = mode; }
-		INPUT_MODE GetMode() const { return m_mode; }
 		void SetMousePos(POINT pt);
 
 		void Update();
@@ -200,9 +192,9 @@ namespace ze
 		bool GetKeyDown(KEYCODE code) const;
 		bool GetKeyUp(KEYCODE code) const;
 
-		bool GetMouseButton(MOUSE_BUTTON button) const;
-		bool GetMouseButtonDown(MOUSE_BUTTON button) const;
-		bool GetMouseButtonUp(MOUSE_BUTTON button) const;
+		bool GetMouseButton(MouseButton button) const;
+		bool GetMouseButtonDown(MouseButton button) const;
+		bool GetMouseButtonUp(MouseButton button) const;
 
 		int32_t GetMouseAxisHorizontal() const { return m_currMouseState.lX; }
 		int32_t GetMouseAxisVertical() const { return m_currMouseState.lY; }
@@ -212,8 +204,7 @@ namespace ze
 		XMVECTOR XM_CALLCONV GetMousePositionVector() const { return XMLoadFloat3A(&m_mousePositionFlt); }
 	private:
 		static Input* s_pInstance;
-
-		INPUT_MODE m_mode;
+		
 		ComPtr<IDirectInput8> m_cpDirectInput;
 		ComPtr<IDirectInputDevice8> m_cpDIKeyboard;
 		ComPtr<IDirectInputDevice8> m_cpDIMouse;

@@ -1,6 +1,7 @@
 #include "CLVItemMeshRenderer.h"
 #include "..\MainFrm.h"
 #include "..\MeshRendererInspectorFormView.h"
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\MeshRenderer.h>
 
 void CLVItemMeshRenderer::OnSelect()
 {

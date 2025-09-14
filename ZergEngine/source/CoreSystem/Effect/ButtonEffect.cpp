@@ -7,9 +7,9 @@ void ButtonEffect::Init()
 {
 	m_dirtyFlag = DIRTY_FLAG::ALL;
 
-	m_pInputLayout = GraphicDevice::GetInstance()->GetILComInterface(VERTEX_FORMAT_TYPE::BUTTON);
-	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VERTEX_SHADER_TYPE::TRANSFORM_BUTTON_TO_HCS);
-	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PIXEL_SHADER_TYPE::COLOR_PC_FRAGMENT);
+	m_pInputLayout = GraphicDevice::GetInstance()->GetILComInterface(VertexFormatType::ButtonPt);
+	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::TRANSFORM_BUTTON_TO_HCS);
+	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::ColorPositionColorFragment);
 
 	m_cbPerUIRender.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
 	m_cbPerButton.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());

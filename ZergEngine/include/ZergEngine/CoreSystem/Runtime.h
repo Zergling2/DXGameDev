@@ -25,6 +25,8 @@ namespace ze
 		void Run();
 		void Exit();
 		void OnIdle();
+		bool IsEditor() const { return m_isEditor; }
+		HWND GetGameWindowHandle() const { return m_hGameWnd; }
 
 		// mode가 DISPLAY_MODE::BORDERLESS_WINDOWED일 경우 width, height는 무시됩니다.
 		// mode가 DISPLAY_MODE::FULLSCREEN일 경우 width, height는 각각 전체화면 해상도의 너비, 높이값이 됩니다.
@@ -62,6 +64,8 @@ namespace ze
 		// virtual void OnCreate(WPARAM wParam, LPARAM lParam) override;
 		virtual void OnDestroy(WPARAM wParam, LPARAM lParam) override;
 		virtual void OnSize(UINT nType, int cx, int cy) override;
+		virtual void OnMove(WPARAM wParam, LPARAM lParam) override;
+		virtual void OnActivateApp(WPARAM wParam, LPARAM lParam) override;
 		virtual void OnChar(WPARAM wParam, LPARAM lParam) override;
 		virtual void OnMouseMove(UINT flags, POINT pt) override;
 		virtual void OnLButtonDown(UINT flags, POINT pt) override;
@@ -88,5 +92,6 @@ namespace ze
 		bool m_render;
 		int m_nCmdShow;
 		Window m_window;
+		HWND m_hGameWnd;
 	};
 }

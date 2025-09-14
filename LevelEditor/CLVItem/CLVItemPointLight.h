@@ -2,6 +2,11 @@
 
 #include "CLVItemInterface.h"
 
+namespace ze
+{
+	class PointLight;
+}
+
 class CLVItemPointLight : public ICLVItem
 {
 public:

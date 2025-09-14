@@ -309,6 +309,9 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPNTT.h">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Cursor.h">
+      <Filter>Files\ZergEngine\CoreSystem</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\CoreSystem\Time.cpp">
@@ -536,6 +539,9 @@
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectPNTT.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClCompile>
+    <ClCompile Include="source\CoreSystem\Cursor.cpp">
+      <Filter>Files\ZergEngine\CoreSystem</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="source\CoreSystem\ShaderCode\ShaderCommon.hlsli">
@@ -579,7 +585,7 @@
     <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformPTToHCS.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorPTFragment.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorPTFragmentSingleTexture.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
     <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformCameraMergeQuad.hlsl">
@@ -604,9 +610,6 @@
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
     <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformButtonToHCS.hlsl">
-      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
-    </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\PSTexturePTFragment.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
     <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformPTQuadToHCS.hlsl">

@@ -19,18 +19,18 @@ namespace ze
 		friend class CameraManager;
 		friend class Renderer;
 	public:
-		static constexpr COMPONENT_TYPE TYPE = COMPONENT_TYPE::CAMERA;
+		static constexpr ComponentType TYPE = ComponentType::CAMERA;
 		static constexpr bool IsCreatable() { return true; }
 
 		Camera() noexcept;
 		virtual ~Camera() = default;
 
-		virtual COMPONENT_TYPE GetType() const override { return COMPONENT_TYPE::CAMERA; }
+		virtual ComponentType GetType() const override { return ComponentType::CAMERA; }
 		const XMFLOAT4A& GetBackgroundColor() const { return m_backgroundColor; }
 		void SetBackgroundColor(const XMFLOAT4A color) { m_backgroundColor = color; }
 		void XM_CALLCONV SetBackgroundColor(FXMVECTOR color) { XMStoreFloat4A(&m_backgroundColor, color); }
-		PROJECTION_METHOD GetProjectionMethod() const { return m_projMethod; }
-		void SetProjectionMethod(PROJECTION_METHOD method);
+		ProjectionMethod GetProjectionMethod() const { return m_projMethod; }
+		void SetProjectionMethod(ProjectionMethod method);
 		uint32_t GetFieldOfView() const { return m_fov; }
 		void SetFieldOfView(uint8_t degree);
 		float GetNearPlane() const { return m_nearPlane; }
@@ -87,8 +87,8 @@ namespace ze
 		XMFLOAT4A m_backgroundColor;
 		uint8_t m_fov;
 		int8_t m_depth;
-		PROJECTION_METHOD m_projMethod;
-		CLEAR_FLAG m_clearFlag;
+		ProjectionMethod m_projMethod;
+		ClearFlag m_clearFlag;
 		float m_nearPlane;
 		float m_farPlane;
 		ViewportRect m_viewportRect;

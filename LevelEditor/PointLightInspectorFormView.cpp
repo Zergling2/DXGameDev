@@ -1,6 +1,7 @@
 #include "LevelEditor.h"
 #include "PointLightInspectorFormView.h"
 #include "CLVItem\CLVItemPointLight.h"
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\Light.h>
 
 // CPointLightInspectorFormView
 

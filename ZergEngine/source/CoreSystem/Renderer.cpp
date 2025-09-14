@@ -75,17 +75,17 @@ void Renderer::DestroyInstance()
 
 void Renderer::Init()
 {
-	m_pCullBackRS = GraphicDevice::GetInstance()->GetRSComInterface(RASTERIZER_FILL_MODE::SOLID, RASTERIZER_CULL_MODE::BACK);
-	m_pCullNoneRS = GraphicDevice::GetInstance()->GetRSComInterface(RASTERIZER_FILL_MODE::SOLID, RASTERIZER_CULL_MODE::NONE);
-	m_pWireFrameRS = GraphicDevice::GetInstance()->GetRSComInterface(RASTERIZER_FILL_MODE::WIREFRAME, RASTERIZER_CULL_MODE::NONE);
-	m_pDefaultDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DEPTH_STENCIL_STATE_TYPE::DEFAULT);
-	m_pSkyboxDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DEPTH_STENCIL_STATE_TYPE::SKYBOX);
-	m_pDepthReadOnlyDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DEPTH_STENCIL_STATE_TYPE::DEPTH_READ_ONLY);
-	m_pNoDepthStencilTestDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DEPTH_STENCIL_STATE_TYPE::NO_DEPTH_STENCIL_TEST);
-	m_pOpaqueBS = GraphicDevice::GetInstance()->GetBSComInterface(BLEND_STATE_TYPE::OPAQUE_);
-	m_pAlphaBlendBS = GraphicDevice::GetInstance()->GetBSComInterface(BLEND_STATE_TYPE::ALPHABLEND);
-	m_pNoColorWriteBS = GraphicDevice::GetInstance()->GetBSComInterface(BLEND_STATE_TYPE::NO_COLOR_WRITE);
-	m_pButtonVB = GraphicDevice::GetInstance()->GetVBComInterface(VERTEX_BUFFER_TYPE::BUTTON);	// Read only vertex buffer
+	m_pCullBackRS = GraphicDevice::GetInstance()->GetRSComInterface(RasterizerFillMode::Solid, RasterizerCullMode::Back);
+	m_pCullNoneRS = GraphicDevice::GetInstance()->GetRSComInterface(RasterizerFillMode::Solid, RasterizerCullMode::None);
+	m_pWireFrameRS = GraphicDevice::GetInstance()->GetRSComInterface(RasterizerFillMode::Wireframe, RasterizerCullMode::None);
+	m_pDefaultDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DepthStencilStateType::Default);
+	m_pSkyboxDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DepthStencilStateType::Skybox);
+	m_pDepthReadOnlyDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DepthStencilStateType::DepthReadOnly);
+	m_pNoDepthStencilTestDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DepthStencilStateType::NoDepthStencilTest);
+	m_pOpaqueBS = GraphicDevice::GetInstance()->GetBSComInterface(BlendStateType::Opaque);
+	m_pAlphaBlendBS = GraphicDevice::GetInstance()->GetBSComInterface(BlendStateType::AlphaBlend);
+	m_pNoColorWriteBS = GraphicDevice::GetInstance()->GetBSComInterface(BlendStateType::NoColorWrite);
+	m_pButtonVB = GraphicDevice::GetInstance()->GetVBComInterface(VertexBufferType::ButtonPt);	// Read only vertex buffer
 
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ INITIALIZE EFFECTS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	m_basicEffectP.Init();
@@ -125,9 +125,9 @@ void Renderer::RenderFrame()
 
 	ID3D11SamplerState* const ssArr[] =
 	{
-		GraphicDevice::GetInstance()->GetSSComInterface(TEXTURE_FILTERING_OPTION::ANISOTROPIC_4X),	// s0 mesh texture sampler
-		GraphicDevice::GetInstance()->GetSSComInterface(TEXTURE_FILTERING_OPTION::BILINEAR),		// s1
-		GraphicDevice::GetInstance()->GetSSComInterface(TEXTURE_FILTERING_OPTION::TRILINEAR),		// s2
+		GraphicDevice::GetInstance()->GetSSComInterface(TextureFilteringMode::Anisotropic4x),	// s0 mesh texture sampler
+		GraphicDevice::GetInstance()->GetSSComInterface(TextureFilteringMode::Bilinear),		// s1
+		GraphicDevice::GetInstance()->GetSSComInterface(TextureFilteringMode::Trilinear),		// s2
 	};
 	pImmContext->DSSetSamplers(0, _countof(ssArr), ssArr);
 	pImmContext->PSSetSamplers(0, _countof(ssArr), ssArr);
@@ -313,24 +313,24 @@ void Renderer::RenderFrame()
 
 			switch (pMesh->GetVertexFormatType())
 			{
-			case VERTEX_FORMAT_TYPE::POSITION:
+			case VertexFormatType::Position:
 				RenderVFPositionMesh(pMeshRenderer);
 				break;
-			case VERTEX_FORMAT_TYPE::POSITION_COLOR:
+			case VertexFormatType::PositionColor:
 				RenderVFPositionColorMesh(pMeshRenderer);
 				break;
-			case VERTEX_FORMAT_TYPE::POSITION_NORMAL:
+			case VertexFormatType::PositionNormal:
 				RenderVFPositionNormalMesh(pMeshRenderer);
 				break;
-			case VERTEX_FORMAT_TYPE::POSITION_TEXCOORD:
+			case VertexFormatType::PositionTexCoord:
 				RenderVFPositionTexCoordMesh(pMeshRenderer);
 				break;
-			case VERTEX_FORMAT_TYPE::POSITION_NORMAL_TEXCOORD:
+			case VertexFormatType::PositionNormalTexCoord:
 				RenderVFPositionNormalTexCoordMesh(pMeshRenderer);
 				break;
-			case VERTEX_FORMAT_TYPE::COUNT:
+			case VertexFormatType::COUNT:
 				__fallthrough;
-			case VERTEX_FORMAT_TYPE::UNKNOWN:
+			case VertexFormatType::UNKNOWN:
 				*reinterpret_cast<int*>(0) = 0;
 				break;
 			}
@@ -487,7 +487,7 @@ void Renderer::RenderVFPositionMesh(const MeshRenderer* pMeshRenderer)
 	if (!pMesh)
 		return;
 
-	assert(pMesh->GetVertexFormatType() == VERTEX_FORMAT_TYPE::POSITION);
+	assert(pMesh->GetVertexFormatType() == VertexFormatType::Position);
 
 	const GameObject* pGameObject = pMeshRenderer->m_pGameObject;
 	assert(pGameObject != nullptr);
@@ -520,7 +520,7 @@ void Renderer::RenderVFPositionColorMesh(const MeshRenderer* pMeshRenderer)
 	if (!pMesh)
 		return;
 
-	assert(pMesh->GetVertexFormatType() == VERTEX_FORMAT_TYPE::POSITION_COLOR);
+	assert(pMesh->GetVertexFormatType() == VertexFormatType::PositionColor);
 
 	const GameObject* pGameObject = pMeshRenderer->m_pGameObject;
 	assert(pGameObject != nullptr);
@@ -553,7 +553,7 @@ void Renderer::RenderVFPositionNormalMesh(const MeshRenderer* pMeshRenderer)
 	if (!pMesh)
 		return;
 
-	assert(pMesh->GetVertexFormatType() == VERTEX_FORMAT_TYPE::POSITION_NORMAL);
+	assert(pMesh->GetVertexFormatType() == VertexFormatType::PositionNormal);
 
 	const GameObject* pGameObject = pMeshRenderer->m_pGameObject;
 	assert(pGameObject != nullptr);
@@ -601,7 +601,7 @@ void Renderer::RenderVFPositionTexCoordMesh(const MeshRenderer* pMeshRenderer)
 	if (!pMesh)
 		return;
 
-	assert(pMesh->GetVertexFormatType() == VERTEX_FORMAT_TYPE::POSITION_TEXCOORD);
+	assert(pMesh->GetVertexFormatType() == VertexFormatType::PositionTexCoord);
 
 	const GameObject* pGameObject = pMeshRenderer->m_pGameObject;
 	assert(pGameObject != nullptr);
@@ -642,7 +642,7 @@ void Renderer::RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshRende
 	if (!pMesh)
 		return;
 
-	assert(pMesh->GetVertexFormatType() == VERTEX_FORMAT_TYPE::POSITION_NORMAL_TEXCOORD);
+	assert(pMesh->GetVertexFormatType() == VertexFormatType::PositionNormalTexCoord);
 
 	const GameObject* pGameObject = pMeshRenderer->m_pGameObject;
 	assert(pGameObject != nullptr);
@@ -700,7 +700,7 @@ void Renderer::RenderTerrain(const Terrain* pTerrain)
 	);
 
 	// 버텍스 버퍼 설정
-	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(VERTEX_FORMAT_TYPE::TERRAIN_PATCH_CTRL_PT) };
+	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(VertexFormatType::TerrainPatchCtrlPt) };
 	const UINT offsets[] = { 0 };
 	ID3D11Buffer* const vbs[] = { pTerrain->GetPatchControlPointBufferComInterface() };
 	m_effectImmediateContext.IASetVertexBuffers(0, _countof(vbs), vbs, strides, offsets);

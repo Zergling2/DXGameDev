@@ -1,6 +1,7 @@
 #pragma once
 
 #include "framework.h"
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\MonoBehaviour.h>
 
 class CTerrainInspectorFormView;
 

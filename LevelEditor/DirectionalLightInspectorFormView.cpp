@@ -1,6 +1,7 @@
 #include "LevelEditor.h"
 #include "DirectionalLightInspectorFormView.h"
 #include "CLVItem\CLVItemDirectionalLight.h"
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\Light.h>
 
 // CDirectionalLightInspectorFormView
 

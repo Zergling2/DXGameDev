@@ -39,14 +39,14 @@ namespace ze
 			, m_aabb()
 			, m_cpVB()
 			, m_cpIB()
-			, m_vft(VERTEX_FORMAT_TYPE::UNKNOWN)
+			, m_vft(VertexFormatType::UNKNOWN)
 		{
 		}
 		PCWSTR GetName() const { return m_name.c_str(); }
 		const Aabb& GetAabb() const { return m_aabb; }
 		ID3D11Buffer* GetVBComInterface() const { return m_cpVB.Get(); }
 		ID3D11Buffer* GetIBComInterface() const { return m_cpIB.Get(); }
-		VERTEX_FORMAT_TYPE GetVertexFormatType() const { return m_vft; }
+		VertexFormatType GetVertexFormatType() const { return m_vft; }
 	public:
 		std::vector<Subset> m_subsets;
 	private:
@@ -54,6 +54,6 @@ namespace ze
 		Aabb m_aabb;
 		ComPtr<ID3D11Buffer> m_cpVB;
 		ComPtr<ID3D11Buffer> m_cpIB;
-		VERTEX_FORMAT_TYPE m_vft;
+		VertexFormatType m_vft;
 	};
 }

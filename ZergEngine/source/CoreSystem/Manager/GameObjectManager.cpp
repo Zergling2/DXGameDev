@@ -99,8 +99,7 @@ GameObjectHandle GameObjectManager::CreatePendingObject(GameObject** ppNewGameOb
 void GameObjectManager::RequestDestroy(GameObject* pGameObject)
 {
 	// 지연된 오브젝트를 제거하는 경우는 OnLoadScene에서 Destroy를 한다는 의미인데 이것은 허용하지 않는다.
-	if (pGameObject->IsPending())
-		return;
+	assert(!pGameObject->IsPending());
 
 	// 자식 오브젝트까지 Destroy
 	for (Transform* pChildTransform : pGameObject->m_transform.m_children)
@@ -109,8 +108,9 @@ void GameObjectManager::RequestDestroy(GameObject* pGameObject)
 	// 소유하고 있는 모든 컴포넌트 제거
 	for (IComponent* pComponent : pGameObject->m_components)
 		pComponent->Destroy();	// 내부에서 곧바로 GameObject <-> Component간 연결 끊으면 안됨 (지금 순회하는 이터레이터 망가짐!) (지연삭제)
-
-	this->AddToDestroyQueue(pGameObject);
+	
+	if (!pGameObject->IsOnTheDestroyQueue())	// 매우 중요! (중복 삽입으로 인한 중복 delete 힙 손상 방지)
+		this->AddToDestroyQueue(pGameObject);
 }
 
 GameObject* GameObjectManager::ToPtr(uint32_t tableIndex, uint64_t id) const
@@ -164,8 +164,7 @@ GameObjectHandle THREADSAFE GameObjectManager::RegisterToHandleTable(GameObject*
 
 void GameObjectManager::AddToDestroyQueue(GameObject* pGameObject)
 {
-	if (pGameObject->IsOnTheDestroyQueue())	// 매우 중요! (중복 삽입으로 인한 중복 delete 힙 손상 방지)
-		return;
+	assert(!pGameObject->IsOnTheDestroyQueue());
 
 	m_destroyed.push_back(pGameObject);
 	pGameObject->OnFlag(GAMEOBJECT_FLAG::ON_DESTROY_QUEUE);

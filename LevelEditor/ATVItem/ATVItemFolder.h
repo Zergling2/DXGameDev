@@ -5,11 +5,9 @@
 class ATVItemFolder : public IATVItem
 {
 public:
-	ATVItemFolder()
-		: IATVItem(ATV_ITEM_TYPE::FOLDER)
-	{
-	}
+	ATVItemFolder() = default;
 	virtual ~ATVItemFolder() = default;
 
+	virtual ATVItemType GetType() const override { return ATVItemType::Folder; }
 	virtual void OnSelect() override;
 };

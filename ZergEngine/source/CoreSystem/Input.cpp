@@ -6,8 +6,7 @@ using namespace ze;
 Input* Input::s_pInstance = nullptr;
 
 Input::Input()
-	: m_mode(INPUT_MODE::GAMEPLAY)
-	, m_cpDirectInput(nullptr)
+	: m_cpDirectInput(nullptr)
 	, m_cpDIKeyboard(nullptr)
 	, m_cpDIMouse(nullptr)
 	, m_prevKeyState{}
@@ -116,32 +115,22 @@ void Input::Update()
 	memcpy(m_prevKeyState, m_currKeyState, sizeof(m_prevKeyState));
 	memcpy(m_prevMouseBtnState, m_currMouseState.rgbButtons, sizeof(m_prevMouseBtnState));
 
-	switch (m_mode)
+	// Read keyboard
+	hr = m_cpDIKeyboard->GetDeviceState(sizeof(m_currKeyState), reinterpret_cast<LPVOID>(m_currKeyState));
+	if (FAILED(hr) && (hr == DIERR_INPUTLOST || hr == DIERR_NOTACQUIRED))
 	{
-	case INPUT_MODE::GAMEPLAY:
-		// Read keyboard
-		hr = m_cpDIKeyboard->GetDeviceState(sizeof(m_currKeyState), reinterpret_cast<LPVOID>(m_currKeyState));
-		if (FAILED(hr) && (hr == DIERR_INPUTLOST || hr == DIERR_NOTACQUIRED))
-		{
-			hr = m_cpDIKeyboard->Acquire();
-			if (SUCCEEDED(hr))
-				m_cpDIKeyboard->GetDeviceState(sizeof(m_currKeyState), reinterpret_cast<LPVOID>(m_currKeyState));
-		}
+		hr = m_cpDIKeyboard->Acquire();
+		if (SUCCEEDED(hr))
+			m_cpDIKeyboard->GetDeviceState(sizeof(m_currKeyState), reinterpret_cast<LPVOID>(m_currKeyState));
+	}
 
-		// Read mouse
-		hr = m_cpDIMouse->GetDeviceState(sizeof(m_currMouseState), reinterpret_cast<LPVOID>(&m_currMouseState));
-		if (FAILED(hr) && (hr == DIERR_INPUTLOST || hr == DIERR_NOTACQUIRED))
-		{
-			hr = m_cpDIMouse->Acquire();
-			if (SUCCEEDED(hr))
-				m_cpDIMouse->GetDeviceState(sizeof(m_currMouseState), reinterpret_cast<LPVOID>(&m_currMouseState));
-		}
-		break;
-	case INPUT_MODE::UI_INPUT_WAITING:
-		// DirectInput의 입력 차단
-		ZeroMemory(m_currKeyState, sizeof(m_currKeyState));
-		ZeroMemory(&m_currMouseState, sizeof(m_currMouseState));
-		break;
+	// Read mouse
+	hr = m_cpDIMouse->GetDeviceState(sizeof(m_currMouseState), reinterpret_cast<LPVOID>(&m_currMouseState));
+	if (FAILED(hr) && (hr == DIERR_INPUTLOST || hr == DIERR_NOTACQUIRED))
+	{
+		hr = m_cpDIMouse->Acquire();
+		if (SUCCEEDED(hr))
+			m_cpDIMouse->GetDeviceState(sizeof(m_currMouseState), reinterpret_cast<LPVOID>(&m_currMouseState));
 	}
 }
 
@@ -163,20 +152,20 @@ bool Input::GetKeyUp(KEYCODE code) const
 	return !(m_currKeyState[static_cast<size_t>(code)] & 0x80) && (m_prevKeyState[static_cast<size_t>(code)] & 0x80);
 }
 
-bool Input::GetMouseButton(MOUSE_BUTTON button) const
+bool Input::GetMouseButton(MouseButton button) const
 {
-	assert(static_cast<size_t>(button) < static_cast<size_t>(MOUSE_BUTTON::COUNT));
+	assert(static_cast<size_t>(button) < static_cast<size_t>(MouseButton::COUNT));
 	return m_currMouseState.rgbButtons[static_cast<size_t>(button)] & 0x80;
 }
 
-bool Input::GetMouseButtonDown(MOUSE_BUTTON button) const
+bool Input::GetMouseButtonDown(MouseButton button) const
 {
-	assert(static_cast<size_t>(button) < static_cast<size_t>(MOUSE_BUTTON::COUNT));
+	assert(static_cast<size_t>(button) < static_cast<size_t>(MouseButton::COUNT));
 	return (m_currMouseState.rgbButtons[static_cast<size_t>(button)] & 0x80) && !(m_prevMouseBtnState[static_cast<size_t>(button)] & 0x80);
 }
 
-bool Input::GetMouseButtonUp(MOUSE_BUTTON button) const
+bool Input::GetMouseButtonUp(MouseButton button) const
 {
-	assert(static_cast<size_t>(button) < static_cast<size_t>(MOUSE_BUTTON::COUNT));
+	assert(static_cast<size_t>(button) < static_cast<size_t>(MouseButton::COUNT));
 	return !(m_currMouseState.rgbButtons[static_cast<size_t>(button)] & 0x80) && (m_prevMouseBtnState[static_cast<size_t>(button)] & 0x80);
 }

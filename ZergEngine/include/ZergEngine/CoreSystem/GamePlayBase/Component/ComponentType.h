@@ -4,7 +4,7 @@
 
 namespace ze
 {
-	enum class COMPONENT_TYPE : uint16_t
+	enum class ComponentType
 	{
 		// 3D GameObject Components
 		CAMERA,

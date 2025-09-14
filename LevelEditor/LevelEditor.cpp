@@ -11,6 +11,7 @@
 #include "LogListView.h"
 #include "Settings.h"
 #include "EditorCameraScript.h"
+#include <ZergEngine\ZergEngine.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

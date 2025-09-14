@@ -16,8 +16,8 @@ void SkyboxEffect::Init()
 	m_dirtyFlag = DIRTY_FLAG::ALL;
 
 	m_pInputLayout = nullptr;
-	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VERTEX_SHADER_TYPE::TRANSFORM_SKYBOX_TO_HCS);
-	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PIXEL_SHADER_TYPE::COLOR_SKYBOX_FRAGMENT);
+	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::TRANSFORM_SKYBOX_TO_HCS);
+	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::ColorSkyboxFragment);
 
 	m_cbPerCamera.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
 

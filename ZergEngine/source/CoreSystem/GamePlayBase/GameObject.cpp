@@ -31,6 +31,9 @@ void GameObject::DontDestroyOnLoad()
 
 void GameObject::Destroy()
 {
+	if (this->IsPending())
+		return;
+
 	GameObjectManager::GetInstance()->RequestDestroy(this);
 }
 
@@ -56,7 +59,7 @@ ComponentHandleBase GameObject::AddComponentImpl(IComponent* pComponent)
 	m_components.push_back(pComponent);
 
 	if (!this->IsActive())
-		pComponent->OffFlag(COMPONENT_FLAG::ENABLED);
+		pComponent->OffFlag(ComponentFlag::Enabled);
 
 	IComponentManager* pComponentManager = pComponent->GetComponentManager();
 	ComponentHandleBase hComponent = pComponentManager->RegisterToHandleTable(pComponent);
@@ -66,7 +69,7 @@ ComponentHandleBase GameObject::AddComponentImpl(IComponent* pComponent)
 	{
 		pComponentManager->AddToDirectAccessGroup(pComponent);
 
-		if (pComponent->GetType() == COMPONENT_TYPE::MONOBEHAVIOUR)
+		if (pComponent->GetType() == ComponentType::MONOBEHAVIOUR)
 		{
 			MonoBehaviour* pMonoBehaviour = static_cast<MonoBehaviour*>(pComponent);
 			pMonoBehaviour->Awake();	// Awake는 활성화 여부와 관계 없이 호출

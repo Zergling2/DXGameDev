@@ -1,4 +1,7 @@
 #include "TerrainDataEditor.h"
+#include <ZergEngine\CoreSystem\GraphicDevice.h>
+#include <ZergEngine\CoreSystem\Debug.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\Terrain.h>
 
 void TerrainDataEditor::SetTerrainToModify(ze::Terrain* pTerrain)
 {

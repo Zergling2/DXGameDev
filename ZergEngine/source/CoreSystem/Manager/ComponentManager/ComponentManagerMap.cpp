@@ -13,51 +13,51 @@
 
 using namespace ze;
 
-IComponentManager* ComponentManagerMap::GetManager(COMPONENT_TYPE type)
+IComponentManager* ComponentManagerMap::GetManager(ComponentType type)
 {
 	IComponentManager* pComponentManager;
 
 	// 3D GameObject Components
 	switch (type)
 	{
-	case COMPONENT_TYPE::CAMERA:
+	case ComponentType::CAMERA:
 		pComponentManager = CameraManager::GetInstance();
 		break;
-	case COMPONENT_TYPE::MESH_RENDERER:
+	case ComponentType::MESH_RENDERER:
 		pComponentManager = MeshRendererManager::GetInstance();
 		break;
-	case COMPONENT_TYPE::DIRECTIONAL_LIGHT:
+	case ComponentType::DIRECTIONAL_LIGHT:
 		pComponentManager = DirectionalLightManager::GetInstance();
 		break;
-	case COMPONENT_TYPE::POINT_LIGHT:
+	case ComponentType::POINT_LIGHT:
 		pComponentManager = PointLightManager::GetInstance();
 		break;
-	case COMPONENT_TYPE::SPOT_LIGHT:
+	case ComponentType::SPOT_LIGHT:
 		pComponentManager = SpotLightManager::GetInstance();
 		break;
-	case COMPONENT_TYPE::MONOBEHAVIOUR:
+	case ComponentType::MONOBEHAVIOUR:
 		pComponentManager = MonoBehaviourManager::GetInstance();
 		break;
-	case COMPONENT_TYPE::RIGIDBODY:
+	case ComponentType::RIGIDBODY:
 		// pComponentManager = RigidbodyManager::GetInstance();
 		pComponentManager = nullptr;
 		break;
-	case COMPONENT_TYPE::BOX_COLLIDER:
+	case ComponentType::BOX_COLLIDER:
 		// pComponentManager = BoxColliderManager::GetInstance();
 		pComponentManager = nullptr;
 		break;
-	case COMPONENT_TYPE::SPHERE_COLLIDER:
+	case ComponentType::SPHERE_COLLIDER:
 		// pComponentManager = SphereColliderManager::GetInstance();
 		pComponentManager = nullptr;
 		break;
-	case COMPONENT_TYPE::MESH_COLLIDER:
+	case ComponentType::MESH_COLLIDER:
 		// pComponentManager = MeshColliderManager::GetInstance();
 		pComponentManager = nullptr;
 		break;
-	case COMPONENT_TYPE::TERRAIN:
+	case ComponentType::TERRAIN:
 		pComponentManager = TerrainManager::GetInstance();
 		break;
-	case COMPONENT_TYPE::AUDIO_SOURCE:
+	case ComponentType::AUDIO_SOURCE:
 		pComponentManager = AudioSourceManager::GetInstance();
 		break;
 	default:

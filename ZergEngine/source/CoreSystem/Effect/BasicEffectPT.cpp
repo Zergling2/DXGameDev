@@ -16,9 +16,9 @@ void BasicEffectPT::Init()
 {
 	m_dirtyFlag = DIRTY_FLAG::ALL;
 
-	m_pInputLayout = GraphicDevice::GetInstance()->GetILComInterface(VERTEX_FORMAT_TYPE::POSITION_TEXCOORD);
-	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VERTEX_SHADER_TYPE::TRANSFORM_PT_TO_HCS);
-	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PIXEL_SHADER_TYPE::COLOR_PT_FRAGMENT);
+	m_pInputLayout = GraphicDevice::GetInstance()->GetILComInterface(VertexFormatType::PositionTexCoord);
+	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::TRANSFORM_PT_TO_HCS);
+	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::ColorPositionTexCoordFragmentWithSingleTexture);
 
 	m_cbPerCamera.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
 	m_cbPerMesh.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());

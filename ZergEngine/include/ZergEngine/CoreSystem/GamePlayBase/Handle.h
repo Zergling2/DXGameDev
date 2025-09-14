@@ -15,7 +15,7 @@ namespace ze
 	class ToPtrHelper
 	{
 	public:
-		static IComponent* ToComponentPtrImpl(COMPONENT_TYPE type, uint32_t tableIndex, uint64_t id);
+		static IComponent* ToComponentPtrImpl(ComponentType type, uint32_t tableIndex, uint64_t id);
 	};
 
 	class GameObjectHandle

@@ -2,11 +2,10 @@
 
 #include "CLVItemInterface.h"
 
-class EditorTerrainData
+namespace ze
 {
-public:
-private:
-};
+	class Terrain;
+}
 
 class CLVItemTerrain : public ICLVItem
 {

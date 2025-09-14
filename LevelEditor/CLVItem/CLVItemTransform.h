@@ -2,6 +2,11 @@
 
 #include "CLVItemInterface.h"
 
+namespace ze
+{
+	class Transform;
+}
+
 class CLVItemTransform : public ICLVItem
 {
 public:

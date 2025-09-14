@@ -10,7 +10,7 @@ IComponent::IComponent(uint64_t id) noexcept
 	, m_id(id)
 	, m_tableIndex(std::numeric_limits<uint32_t>::max())
 	, m_groupIndex(std::numeric_limits<uint32_t>::max())
-	, m_flag(COMPONENT_FLAG::ENABLED)	// 기본 상태는 enable 상태
+	, m_flag(ComponentFlag::Enabled)	// 기본 상태는 enable 상태
 {
 }
 
@@ -19,7 +19,7 @@ void IComponent::Enable()
 	if (this->IsEnabled())
 		return;
 
-	this->OnFlag(COMPONENT_FLAG::ENABLED);
+	this->OnFlag(ComponentFlag::Enabled);
 }
 
 void IComponent::Disable()
@@ -27,7 +27,7 @@ void IComponent::Disable()
 	if (!this->IsEnabled())
 		return;
 
-	this->OffFlag(COMPONENT_FLAG::ENABLED);
+	this->OffFlag(ComponentFlag::Enabled);
 }
 
 const GameObjectHandle IComponent::GetGameObjectHandle() const
@@ -39,6 +39,12 @@ const GameObjectHandle IComponent::GetGameObjectHandle() const
 
 void IComponent::Destroy()
 {
+	assert(m_pGameObject != nullptr);
+
+	// 지연된 오브젝트에서 컴포넌트를 제거하는 경우는 OnLoadScene에서 Destroy를 한다는 의미인데 이것은 허용하지 않는다.
+	if (m_pGameObject->IsPending())
+		return;
+
 	IComponentManager* pComponentManager = this->GetComponentManager();
 
 	pComponentManager->RequestDestroy(this);

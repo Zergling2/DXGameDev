@@ -22,6 +22,7 @@
     <ClInclude Include="include\ZergEngine\Common\DisplayMode.h" />
     <ClInclude Include="include\ZergEngine\Common\EngineConstants.h" />
     <ClInclude Include="include\ZergEngine\Common\EngineHelper.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Cursor.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Aabb.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Frustum.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Ray.h" />
@@ -104,6 +105,7 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Texture.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Time.h" />
     <ClInclude Include="include\ZergEngine\ZergEngine.h" />
+    <ClCompile Include="source\CoreSystem\Cursor.cpp" />
     <ClCompile Include="source\CoreSystem\DataStructure\Frustum.cpp" />
     <ClCompile Include="source\CoreSystem\DataStructure\Ray.cpp" />
     <ClCompile Include="source\CoreSystem\DataStructure\Triangle.cpp" />
@@ -264,16 +266,6 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\PSTexturePTFragment.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
-    </FxCompile>
     <FxCompile Include="source\CoreSystem\ShaderCode\PSColorSkyboxFragment.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
@@ -284,7 +276,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorPTFragment.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorPTFragmentSingleTexture.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>

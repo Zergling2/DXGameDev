@@ -2,6 +2,11 @@
 
 #include "CLVItemInterface.h"
 
+namespace ze
+{
+	class DirectionalLight;
+}
+
 class CLVItemDirectionalLight : public ICLVItem
 {
 public:

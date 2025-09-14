@@ -13,8 +13,8 @@ void DrawQuadWithMSTextureEffect::Init()
 	m_dirtyFlag = DIRTY_FLAG::ALL;
 
 	m_pInputLayout = nullptr;
-	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VERTEX_SHADER_TYPE::TRANSFORM_CAMERA_MERGE_QUAD);
-	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PIXEL_SHADER_TYPE::COLOR_PT_FRAGMENT_SINGLE_MSTEXTURE);
+	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::TRANSFORM_CAMERA_MERGE_QUAD);
+	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::ColorPositionTexCoordFragmentWithSingleMSTexture);
 
 	m_cbPerDrawQuad.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
 

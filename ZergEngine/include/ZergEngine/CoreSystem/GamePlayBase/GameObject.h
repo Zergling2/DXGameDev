@@ -11,7 +11,7 @@ namespace ze
 
 	enum class GAMEOBJECT_FLAG : goft
 	{
-		NONE					= 0,
+		None					= 0,
 
 		STATIC					= 1 << 0,
 		DONT_DESTROY_ON_LOAD	= 1 << 1,

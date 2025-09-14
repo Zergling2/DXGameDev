@@ -266,7 +266,6 @@
     <ClCompile Include="AssetManager.cpp" />
     <ClCompile Include="ATVItem\ATVItemEmpty.cpp" />
     <ClCompile Include="ATVItem\ATVItemFolder.cpp" />
-    <ClCompile Include="ATVItem\ATVItemInterface.cpp" />
     <ClCompile Include="AssetTreeView.cpp" />
     <ClCompile Include="ATVItem\ATVItemMaterial.cpp" />
     <ClCompile Include="ATVItem\ATVItemMesh.cpp" />
@@ -289,7 +288,6 @@
     <ClCompile Include="HierarchyTreeView.cpp" />
     <ClCompile Include="HTVItem\HTVItemEmpty.cpp" />
     <ClCompile Include="HTVItem\HTVItemGameObject.cpp" />
-    <ClCompile Include="HTVItem\HTVItemInterface.cpp" />
     <ClCompile Include="HTVItem\HTVItemRoot.cpp" />
     <ClCompile Include="LightingBakedLightmapsSettingsDialog.cpp" />
     <ClCompile Include="LightingEnvironmentSettingsDialog.cpp" />

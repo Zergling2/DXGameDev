@@ -352,23 +352,23 @@ PCTSTR Debug::SRVDimensionToString(D3D11_SRV_DIMENSION d)
 	}
 }
 
-PCTSTR Debug::VertexFormatToString(VERTEX_FORMAT_TYPE type)
+PCTSTR Debug::VertexFormatToString(VertexFormatType type)
 {
 	switch (type)
 	{
-	case VERTEX_FORMAT_TYPE::POSITION:
-		return _T("POSITION");
-	case VERTEX_FORMAT_TYPE::POSITION_COLOR:
-		return _T("POSITION\nCOLOR");
-	case VERTEX_FORMAT_TYPE::POSITION_NORMAL:
-		return _T("POSITION\nNORMAL");
-	case VERTEX_FORMAT_TYPE::POSITION_TEXCOORD:
-		return _T("POSITION\nTEXCOORD");
-	case VERTEX_FORMAT_TYPE::POSITION_NORMAL_TEXCOORD:
-		return _T("POSITION\nNORMAL\nTEXCOORD");
-	case VERTEX_FORMAT_TYPE::TERRAIN_PATCH_CTRL_PT:
+	case VertexFormatType::Position:
+		return _T("Position");
+	case VertexFormatType::PositionColor:
+		return _T("Position\nColor");
+	case VertexFormatType::PositionNormal:
+		return _T("Position\nNormal");
+	case VertexFormatType::PositionTexCoord:
+		return _T("Position\nTexCoord");
+	case VertexFormatType::PositionNormalTexCoord:
+		return _T("Position\nNormal\nTexCoord");
+	case VertexFormatType::TerrainPatchCtrlPt:
 		__fallthrough;
-	case VERTEX_FORMAT_TYPE::BUTTON:
+	case VertexFormatType::ButtonPt:
 		__fallthrough;
 	default:
 		return _T("Unknown");

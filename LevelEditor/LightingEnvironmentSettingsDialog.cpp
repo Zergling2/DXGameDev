@@ -3,6 +3,7 @@
 #include "MainFrm.h"
 #include "AssetTreeView.h"
 #include "ATVItem\ATVItemTexture.h"
+#include <ZergEngine\CoreSystem\Manager\EnvironmentManager.h>
 
 // CLightingEnvironmentSettingsDialog dialog
 
@@ -65,7 +66,7 @@ void CLightingEnvironmentSettingsDialog::OnCbnDropdownComboEnvironmentSkyboxText
 		qi.hItem = hItem;
 
 		BOOL ret = tc.GetItem(&qi);
-		assert(ret != FALSE);
+		ASSERT(ret != FALSE);
 
 		int index = m_comboEnvironmentSkyboxTexture.AddString(text);
 		m_comboEnvironmentSkyboxTexture.SetItemData(index, qi.lParam);

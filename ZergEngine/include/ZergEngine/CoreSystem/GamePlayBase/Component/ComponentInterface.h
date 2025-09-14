@@ -10,14 +10,14 @@ namespace ze
 	using ComponentFlagType = uint16_t;
 	using cft = ComponentFlagType;
 
-	enum class COMPONENT_FLAG : cft
+	enum class ComponentFlag : cft
 	{
-		NONE				= 0,
-		ENABLED				= 1 << 0,
+		None				= 0,
+		Enabled				= 1 << 0,
 
-		ON_STARTING_QUEUE	= 1 << 13,
-		START_CALLED		= 1 << 14,
-		ON_DESTROY_QUEUE	= 1 << 15,
+		OnStartingQueue		= 1 << 13,
+		StartCalled			= 1 << 14,
+		OnDestroyQueue		= 1 << 15,
 	};
 
 	class IComponent
@@ -41,32 +41,32 @@ namespace ze
 		IComponent(uint64_t id) noexcept;
 		virtual ~IComponent() = default;
 
-		virtual COMPONENT_TYPE GetType() const = 0;
+		virtual ComponentType GetType() const = 0;
 		virtual void Enable();
 		virtual void Disable();
 
 		const GameObjectHandle GetGameObjectHandle() const;
 
 		uint64_t GetId() const { return m_id; }
-		bool IsEnabled() const { return static_cast<cft>(m_flag) & static_cast<cft>(COMPONENT_FLAG::ENABLED); }
+		bool IsEnabled() const { return static_cast<cft>(m_flag) & static_cast<cft>(ComponentFlag::Enabled); }
 		void Destroy();
 		void Destroy(float delay);
 
-		bool IsOnTheDestroyQueue() const { return static_cast<cft>(m_flag) & static_cast<cft>(COMPONENT_FLAG::ON_DESTROY_QUEUE); }
-		bool IsOnTheStartingQueue() const { return static_cast<cft>(m_flag) & static_cast<cft>(COMPONENT_FLAG::ON_STARTING_QUEUE); }
-		bool IsStartCalled() const { return static_cast<cft>(m_flag) & static_cast<cft>(COMPONENT_FLAG::START_CALLED); }
+		bool IsOnTheDestroyQueue() const { return static_cast<cft>(m_flag) & static_cast<cft>(ComponentFlag::OnDestroyQueue); }
+		bool IsOnTheStartingQueue() const { return static_cast<cft>(m_flag) & static_cast<cft>(ComponentFlag::OnStartingQueue); }
+		bool IsStartCalled() const { return static_cast<cft>(m_flag) & static_cast<cft>(ComponentFlag::StartCalled); }
 	private:
 		virtual IComponentManager* GetComponentManager() const = 0;
 
 		const ComponentHandleBase ToHandle() const;
-		void OnFlag(COMPONENT_FLAG flag) { m_flag = static_cast<COMPONENT_FLAG>(static_cast<cft>(m_flag) | static_cast<cft>(flag)); }
-		void OffFlag(COMPONENT_FLAG flag) { m_flag = static_cast<COMPONENT_FLAG>(static_cast<cft>(m_flag) & ~static_cast<cft>(flag)); }
+		void OnFlag(ComponentFlag flag) { m_flag = static_cast<ComponentFlag>(static_cast<cft>(m_flag) | static_cast<cft>(flag)); }
+		void OffFlag(ComponentFlag flag) { m_flag = static_cast<ComponentFlag>(static_cast<cft>(m_flag) & ~static_cast<cft>(flag)); }
 	private:
 		GameObject* m_pGameObject;
 		uint64_t m_id;
 		uint32_t m_tableIndex;
 		uint32_t m_groupIndex;
-		COMPONENT_FLAG m_flag;
+		ComponentFlag m_flag;
 		uint16_t m_reserved0;
 		uint32_t m_reserved1;
 	};

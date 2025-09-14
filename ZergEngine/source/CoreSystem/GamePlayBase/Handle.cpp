@@ -17,7 +17,7 @@ IUIObject* UIObjectHandle::ToPtr() const
 	return UIObjectManager::GetInstance()->ToPtr(m_tableIndex, m_id);
 }
 
-IComponent* ToPtrHelper::ToComponentPtrImpl(COMPONENT_TYPE type, uint32_t tableIndex, uint64_t id)
+IComponent* ToPtrHelper::ToComponentPtrImpl(ComponentType type, uint32_t tableIndex, uint64_t id)
 {
 	IComponentManager* pComponentManager = ComponentManagerMap::GetManager(type);
 	assert(pComponentManager != nullptr);

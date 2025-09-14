@@ -13,6 +13,7 @@
 #include "..\ATVItem\ATVItemTexture.h"
 #include "..\ATVItem\ATVItemMesh.h"
 #include "..\Settings.h"
+#include <ZergEngine\ZergEngine.h>
 
 void On3DObjectTerrain()
 {
@@ -216,7 +217,7 @@ void OnComponentMeshRenderer()
 	HTVItemGameObject* pHTVItemGameObject = reinterpret_cast<HTVItemGameObject*>(data);
 	ze::GameObjectHandle hGameObject = pHTVItemGameObject->GetGameObjectHandle();
 	ze::GameObject* pGameObject = hGameObject.ToPtr();
-	assert(pGameObject != nullptr);
+	ASSERT(pGameObject != nullptr);
 
 	pGameObject->AddComponent<ze::MeshRenderer>();
 
@@ -241,7 +242,7 @@ void OnCreateAssetFolder()
 	if (hSelectedItem)
 	{
 		IATVItem* pATVItem = reinterpret_cast<IATVItem*>(tc.GetItemData(hSelectedItem));
-		if (pATVItem->GetType() != ATV_ITEM_TYPE::FOLDER)	// 선택된 항목이 폴더가 아닌 경우에는 하위 항목으로 생성을 허용하지 않는다.
+		if (pATVItem->GetType() != ATVItemType::Folder)	// 선택된 항목이 폴더가 아닌 경우에는 하위 항목으로 생성을 허용하지 않는다.
 			return;
 
 		hParent = hSelectedItem;
@@ -278,7 +279,7 @@ void OnCreateAssetMaterial()
 		return;
 
 	IATVItem* pATVItem = reinterpret_cast<IATVItem*>(tc.GetItemData(hSelectedItem));
-	if (pATVItem->GetType() != ATV_ITEM_TYPE::FOLDER)	// 선택된 항목이 폴더가 아닌 경우에는 하위 항목으로 생성을 허용하지 않는다.
+	if (pATVItem->GetType() != ATVItemType::Folder)	// 선택된 항목이 폴더가 아닌 경우에는 하위 항목으로 생성을 허용하지 않는다.
 		return;
 
 	// 현재 선택된 항목을 부모로 새 하위항목 생성
@@ -314,7 +315,7 @@ void OnCreateAssetTexture()
 		return;
 
 	IATVItem* pATVItem = reinterpret_cast<IATVItem*>(tc.GetItemData(hSelectedItem));
-	if (pATVItem->GetType() != ATV_ITEM_TYPE::FOLDER)	// 선택된 항목이 폴더가 아닌 경우에는 하위 항목으로 생성을 허용하지 않는다.
+	if (pATVItem->GetType() != ATVItemType::Folder)	// 선택된 항목이 폴더가 아닌 경우에는 하위 항목으로 생성을 허용하지 않는다.
 		return;
 
 	PCTSTR filter = _T("Image File (*.png; *.jpg; *.jpeg; *.tga; *.dds)|*.png;*.jpg;*.jpeg;*.tga;*.dds|")
@@ -368,7 +369,7 @@ void OnCreateAssetWavefrontOBJ()
 		return;
 
 	IATVItem* pATVItem = reinterpret_cast<IATVItem*>(tc.GetItemData(hSelectedItem));
-	if (pATVItem->GetType() != ATV_ITEM_TYPE::FOLDER)	// 선택된 항목이 폴더가 아닌 경우에는 하위 항목으로 생성을 허용하지 않는다.
+	if (pATVItem->GetType() != ATVItemType::Folder)	// 선택된 항목이 폴더가 아닌 경우에는 하위 항목으로 생성을 허용하지 않는다.
 		return;
 
 	PCTSTR filter = _T("Wavefront OBJ File (*.obj)|*.obj||");

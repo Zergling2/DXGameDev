@@ -1,6 +1,7 @@
 #include "ATVItemTexture.h"
 #include "..\MainFrm.h"
 #include "..\TextureInspectorFormView.h"
+#include <ZergEngine\CoreSystem\Debug.h>
 
 void ATVItemTexture::OnSelect()
 {

@@ -5,6 +5,7 @@
 #include "MeshRendererInspectorFormView.h"
 #include "AssetTreeView.h"
 #include "MainFrm.h"
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\MeshRenderer.h>
 
 // CMeshRendererInspectorFormView
 
@@ -148,7 +149,7 @@ void CMeshRendererInspectorFormView::OnCbnDropdownComboSelectMesh()
 		qi.hItem = hItem;
 
 		BOOL ret = tc.GetItem(&qi);
-		assert(ret != FALSE);
+		ASSERT(ret != FALSE);
 
 		int index = m_comboSelectMesh.AddString(text);
 		m_comboSelectMesh.SetItemData(index, qi.lParam);
@@ -208,7 +209,7 @@ void CMeshRendererInspectorFormView::OnCbnSelchangeComboSelectMaterial()
 	ATVItemMaterial* pATVItemMaterial = reinterpret_cast<ATVItemMaterial*>(m_comboSelectMaterial.GetItemData(sel));
 
 	ze::MeshRenderer* pMeshRenderer = this->GetCLVItemToModify()->GetMeshRenderer();
-	assert(subsetSel < pMeshRenderer->GetSubsetCount());
+	ASSERT(subsetSel < pMeshRenderer->GetSubsetCount());
 	pMeshRenderer->SetMaterial(subsetSel, pATVItemMaterial->GetMaterial());
 }
 
@@ -233,7 +234,7 @@ void CMeshRendererInspectorFormView::OnCbnDropdownComboSelectMaterial()
 		qi.hItem = hItem;
 
 		BOOL ret = tc.GetItem(&qi);
-		assert(ret != FALSE);
+		ASSERT(ret != FALSE);
 
 		int index = m_comboSelectMaterial.AddString(text);
 		m_comboSelectMaterial.SetItemData(index, qi.lParam);

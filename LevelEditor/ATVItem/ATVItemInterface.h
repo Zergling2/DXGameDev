@@ -2,27 +2,21 @@
 
 #include "..\framework.h"
 
-enum class ATV_ITEM_TYPE : uint8_t
+enum class ATVItemType
 {
-	EMPTY,
-	FOLDER,
-	MATERIAL,
-	TEXTURE,
-	MESH
+	Empty,
+	Folder,
+	Material,
+	Texture,
+	Mesh
 };
 
 class IATVItem abstract
 {
 public:
-	IATVItem(ATV_ITEM_TYPE type)
-		: m_type(type)
-	{
-	}
+	IATVItem() = default;
 	virtual ~IATVItem() = default;
 
+	virtual ATVItemType GetType() const = 0;
 	virtual void OnSelect() = 0;
-
-	ATV_ITEM_TYPE GetType() const { return m_type; }
-private:
-	ATV_ITEM_TYPE m_type;
 };

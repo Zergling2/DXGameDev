@@ -10,8 +10,8 @@ using namespace ze;
 
 constexpr uint8_t CAMERA_FIELD_OF_VIEW_DEFAULT = 92;
 constexpr int8_t CAMERA_DEPTH_DEFAULT = 0;
-constexpr PROJECTION_METHOD CAMERA_PROJECTION_METHOD_DEFAULT = PROJECTION_METHOD::PERSPECTIVE;
-constexpr CLEAR_FLAG CAMERA_CLEAR_FLAG_DEFAULT = CLEAR_FLAG::SOLID_COLOR;
+constexpr ProjectionMethod CAMERA_PROJECTION_METHOD_DEFAULT = ProjectionMethod::Perspective;
+constexpr ClearFlag CAMERA_CLEAR_FLAG_DEFAULT = ClearFlag::SolidColor;
 const XMVECTORF32 CAMERA_BACKGROUND_COLOR_DEFAULT = Colors::Blue;
 
 constexpr float CAMERA_CLIPPING_NEAR_PLANE_DEFAULT = 0.3f;
@@ -166,8 +166,8 @@ HRESULT Camera::CreateBuffer(uint32_t width, uint32_t height)
 		descColorBuffer.MipLevels = 1;
 		descColorBuffer.ArraySize = 1;
 		descColorBuffer.Format = GraphicDevice::GetInstance()->GetBackBufferFormat();
-		descColorBuffer.SampleDesc.Count = static_cast<UINT>(MSAA_SAMPLE_COUNT::X4);	// (테스트) 4X MSAA에 maximum quailty를 고정으로 사용
-		descColorBuffer.SampleDesc.Quality = GraphicDevice::GetInstance()->GetMSAAMaximumQuality(MSAA_SAMPLE_COUNT::X4);	// Use max quality level
+		descColorBuffer.SampleDesc.Count = static_cast<UINT>(MultisamplingAntiAliasingMode::x4);	// (테스트) 4X MSAA에 maximum quailty를 고정으로 사용
+		descColorBuffer.SampleDesc.Quality = GraphicDevice::GetInstance()->GetMSAAMaximumQuality(MultisamplingAntiAliasingMode::x4);	// Use max quality level
 		descColorBuffer.Usage = D3D11_USAGE_DEFAULT;
 		descColorBuffer.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;		// 렌더링 + 카메라 병합 셰이더 리소스
 		descColorBuffer.CPUAccessFlags = 0;

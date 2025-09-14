@@ -228,9 +228,6 @@
     <ClCompile Include="MeshRendererInspectorFormView.cpp">
       <Filter>Files</Filter>
     </ClCompile>
-    <ClCompile Include="HTVItem\HTVItemInterface.cpp">
-      <Filter>Files\HTVItem</Filter>
-    </ClCompile>
     <ClCompile Include="CLVItem\CLVItemInterface.cpp">
       <Filter>Files\CLVItem</Filter>
     </ClCompile>
@@ -266,9 +263,6 @@
     </ClCompile>
     <ClCompile Include="MaterialInspectorFormView.cpp">
       <Filter>Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ATVItem\ATVItemInterface.cpp">
-      <Filter>Files\ATVItem</Filter>
     </ClCompile>
     <ClCompile Include="AssetTreeView.cpp">
       <Filter>Files</Filter>

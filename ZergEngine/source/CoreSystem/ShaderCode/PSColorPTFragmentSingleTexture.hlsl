@@ -10,7 +10,6 @@ PSOutput main(PSInputPTFragment input)
 {
     PSOutput output;
     
-    // 라이팅 계산 X
     output.color = tex2d_tex0.Sample(ss_mesh, input.texCoord);
     
     return output;

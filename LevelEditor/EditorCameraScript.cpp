@@ -2,6 +2,11 @@
 #include "MainFrm.h"
 #include "LevelEditorView.h"
 #include "TerrainInspectorFormView.h"
+#include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\Camera.h>
+#include <ZergEngine\CoreSystem\Input.h>
+#include <ZergEngine\CoreSystem\Time.h>
+#include <ZergEngine\CoreSystem\Math.h>
 
 constexpr float SENSITIVITY = 0.12f;
 constexpr float SPEED = 5.0f;
@@ -30,14 +35,14 @@ void EditorCameraScript::Update()
 	this->UpdateMouseMovedInfo();
 
 	// 애디터 뷰 화면에 마우스 R버튼이 눌린 상태일 시
-	if (ze::Input::GetInstance()->GetMouseButton(ze::MOUSE_BUTTON::RBUTTON))
+	if (ze::Input::GetInstance()->GetMouseButton(ze::MouseButton::Right))
 	{
 		this->MoveCamera();
 		return;
 	}
 
-	if (ze::Input::GetInstance()->GetMouseButtonDown(ze::MOUSE_BUTTON::LBUTTON)||
-		(ze::Input::GetInstance()->GetMouseButton(ze::MOUSE_BUTTON::LBUTTON) && this->DidMouseMoved()))
+	if (ze::Input::GetInstance()->GetMouseButtonDown(ze::MouseButton::Left)||
+		(ze::Input::GetInstance()->GetMouseButton(ze::MouseButton::Left) && this->DidMouseMoved()))
 	{
 		CFormView* pInspectorFormView = pMainFrame->GetInspectorFormView();
 

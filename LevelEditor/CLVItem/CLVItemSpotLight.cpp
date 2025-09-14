@@ -1,6 +1,7 @@
 #include "CLVItemSpotLight.h"
 #include "..\MainFrm.h"
 #include "..\SpotLightInspectorFormView.h"
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\Light.h>
 
 void CLVItemSpotLight::OnSelect()
 {

@@ -20,6 +20,10 @@ void IUIObject::DontDestroyOnLoad()
 
 void IUIObject::Destroy()
 {
+	// 지연된 오브젝트를 제거하는 경우는 OnLoadScene에서 Destroy를 한다는 의미인데 이것은 허용하지 않는다.
+	if (this->IsPending())
+		return;
+
 	UIObjectManager::GetInstance()->RequestDestroy(this);
 }
 

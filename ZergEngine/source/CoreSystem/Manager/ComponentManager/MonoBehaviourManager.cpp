@@ -34,7 +34,7 @@ void MonoBehaviourManager::RequestEnable(MonoBehaviour* pMonoBehaviour)
     if (pMonoBehaviour->IsEnabled())
         return;
 
-    pMonoBehaviour->OnFlag(COMPONENT_FLAG::ENABLED);
+    pMonoBehaviour->OnFlag(ComponentFlag::Enabled);
 
     if (pMonoBehaviour->m_pGameObject->IsPending())
         return;
@@ -51,7 +51,7 @@ void MonoBehaviourManager::RequestDisable(MonoBehaviour* pMonoBehaviour)
     if (!pMonoBehaviour->IsEnabled())
         return;
 
-    pMonoBehaviour->OffFlag(COMPONENT_FLAG::ENABLED);
+    pMonoBehaviour->OffFlag(ComponentFlag::Enabled);
 
     if (pMonoBehaviour->m_pGameObject->IsPending())
         return;
@@ -75,7 +75,7 @@ void MonoBehaviourManager::AddToStartQueue(MonoBehaviour* pMonoBehaviour)
 
     // Start() 호출 큐에 들어있다가 직전 프레임에 제거되는 경우 StartingQueue에서 빠르게 제거하기 위해 인덱스를 기록해둔다.
     pMonoBehaviour->m_startingQueueIndex = static_cast<uint32_t>(m_startQueue.size() - 1);
-    pMonoBehaviour->OnFlag(COMPONENT_FLAG::ON_STARTING_QUEUE);
+    pMonoBehaviour->OnFlag(ComponentFlag::OnStartingQueue);
 }
 
 void MonoBehaviourManager::AwakeDeployedComponents()
@@ -101,8 +101,8 @@ void MonoBehaviourManager::CallStart()
         assert(!pScript->IsStartCalled());
 
         pScript->Start();
-        pScript->OnFlag(COMPONENT_FLAG::START_CALLED);
-        pScript->OffFlag(COMPONENT_FLAG::ON_STARTING_QUEUE);
+        pScript->OnFlag(ComponentFlag::StartCalled);
+        pScript->OffFlag(ComponentFlag::OnStartingQueue);
         pScript->m_startingQueueIndex = std::numeric_limits<uint32_t>::max();
     }
 

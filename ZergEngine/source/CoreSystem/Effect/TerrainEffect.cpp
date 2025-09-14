@@ -12,11 +12,11 @@ void TerrainEffect::Init()
 {
 	m_dirtyFlag = DIRTY_FLAG::ALL;
 
-	m_pInputLayout = GraphicDevice::GetInstance()->GetILComInterface(VERTEX_FORMAT_TYPE::TERRAIN_PATCH_CTRL_PT);
-	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VERTEX_SHADER_TYPE::TRANSFORM_TERRAIN_PATCH_CTRL_PT);
-	m_pHullShader = GraphicDevice::GetInstance()->GetHSComInterface(HULL_SHADER_TYPE::CALC_TERRAIN_TESS_FACTOR);
-	m_pDomainShader = GraphicDevice::GetInstance()->GetDSComInterface(DOMAIN_SHADER_TYPE::SAMPLE_TERRAIN_HEIGHT_MAP);
-	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PIXEL_SHADER_TYPE::COLOR_TERRAIN_FRAGMENT);
+	m_pInputLayout = GraphicDevice::GetInstance()->GetILComInterface(VertexFormatType::TerrainPatchCtrlPt);
+	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::TRANSFORM_TERRAIN_PATCH_CTRL_PT);
+	m_pHullShader = GraphicDevice::GetInstance()->GetHSComInterface(HullShaderType::CalcTerrainTessFactor);
+	m_pDomainShader = GraphicDevice::GetInstance()->GetDSComInterface(DomainShaderType::SampleTerrainHeightMap);
+	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::ColorTerrainFragment);
 
 	m_cbPerFrame.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
 	m_cbPerCamera.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());

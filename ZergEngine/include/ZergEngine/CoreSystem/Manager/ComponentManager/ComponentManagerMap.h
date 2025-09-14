@@ -9,6 +9,6 @@ namespace ze
 	class ComponentManagerMap
 	{
 	public:
-		static IComponentManager* GetManager(COMPONENT_TYPE type);
+		static IComponentManager* GetManager(ComponentType type);
 	};
 }

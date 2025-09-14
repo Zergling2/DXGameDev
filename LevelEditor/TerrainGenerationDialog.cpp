@@ -2,7 +2,6 @@
 #include "afxdialogex.h"
 #include "TerrainGenerationDialog.h"
 
-
 // CTerrainGenerationDialog dialog
 
 IMPLEMENT_DYNAMIC(CTerrainGenerationDialog, CDialog)

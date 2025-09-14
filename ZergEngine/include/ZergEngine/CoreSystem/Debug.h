@@ -17,7 +17,7 @@ namespace ze
 		static void ForceCrashWithHRESULTMessageBox(PCWSTR message, HRESULT hr);
 		static PCTSTR DXGIFormatToString(DXGI_FORMAT fmt);
 		static PCTSTR SRVDimensionToString(D3D11_SRV_DIMENSION d);
-		static PCTSTR VertexFormatToString(VERTEX_FORMAT_TYPE type);
+		static PCTSTR VertexFormatToString(VertexFormatType type);
 	};
 
 	enum class SEVERITY

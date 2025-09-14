@@ -2,6 +2,11 @@
 
 #include "CLVItemInterface.h"
 
+namespace ze
+{
+	class MeshRenderer;
+}
+
 class CLVItemMeshRenderer : public ICLVItem
 {
 public:

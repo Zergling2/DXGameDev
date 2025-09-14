@@ -142,11 +142,23 @@ LRESULT Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         pHandler->OnDestroy(wParam, lParam);
         PostQuitMessage(0);
         break;
+    case WM_MOVE:
+        pHandler->OnMove(wParam, lParam);
+        break;
     case WM_SIZE:
         pHandler->OnSize(static_cast<UINT>(wParam), GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
         break;
+    case WM_SETFOCUS:
+        pHandler->OnSetFocus(wParam, lParam);
+        break;
+    case WM_KILLFOCUS:
+        pHandler->OnKillFocus(wParam, lParam);
+        break;
     case WM_SHOWWINDOW:
         pHandler->OnShowWindow(wParam, lParam);
+        break;
+    case WM_ACTIVATEAPP:
+        pHandler->OnActivateApp(wParam, lParam);
         break;
     case WM_CHAR:
         pHandler->OnChar(wParam, lParam);
@@ -171,6 +183,9 @@ LRESULT Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         break;
     case WM_MBUTTONUP:
         pHandler->OnMButtonUp(static_cast<UINT>(wParam), POINT{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) });
+        break;
+    case WM_MOVING:
+        pHandler->OnMoving(wParam, lParam);
         break;
     case WM_ENTERSIZEMOVE:
         pHandler->OnEnterSizeMove(wParam, lParam);

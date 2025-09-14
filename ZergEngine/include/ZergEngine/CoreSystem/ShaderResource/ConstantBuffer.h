@@ -43,7 +43,7 @@ namespace ze
 	// 曲收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收旭
 	enum class MATERIAL_FLAG : uint32_t
 	{
-		NONE				= 0,
+		None				= 0,
 		USE_MATERIAL		= 0x80000000,
 		USE_LIGHT_MAP		= 1 << 0,
 		USE_DIFFUSE_MAP		= 1 << 1,
@@ -53,7 +53,7 @@ namespace ze
 
 	enum class TERRAIN_LAYER_FLAG : uint32_t
 	{
-		NONE				= 0,
+		None				= 0,
 		USE_DIFFUSE_LAYER	= 0x00000001,
 		USE_NORMAL_LAYER	= 0x00000002
 	};
@@ -61,7 +61,7 @@ namespace ze
 	hlslstruct MaterialData
 	{
 		MaterialData()
-			: mtlFlag(static_cast<uint32_t>(MATERIAL_FLAG::NONE))
+			: mtlFlag(static_cast<uint32_t>(MATERIAL_FLAG::None))
 		{
 #if defined(DEBUG) || defined(_DEBUG)
 			XMStoreFloat4A(&ambient, XMVectorZero());

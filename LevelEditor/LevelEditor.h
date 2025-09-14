@@ -2,6 +2,7 @@
 
 #include "framework.h"
 #include "AssetManager.h"
+#include <ZergEngine\CoreSystem\GamePlayBase\Handle.h>
 
 /*
 #ifndef __AFXWIN_H__

@@ -1,6 +1,14 @@
 #pragma once
 
 #include "framework.h"
+#include <wrl.h>
+#include <ZergEngine\Common\ThirdPartySDK.h>
+
+namespace ze
+{
+	class Terrain;
+	class Ray;
+}
 
 class TerrainDataEditor
 {

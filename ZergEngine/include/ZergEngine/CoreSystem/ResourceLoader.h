@@ -153,12 +153,12 @@ namespace ze
 		void DFSAiNodeLoadMesh(std::vector<std::shared_ptr<Mesh>>& meshes, const aiScene* pAiScene, const aiNode* pAiNode);
 		HRESULT GenerateMipMapsForBCFormat(const ScratchImage& src, ScratchImage& result);
 		bool ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, VertexPack& vp, Mesh* pMesh);
-		bool ParseWavefrontOBJFaces(FILE* pOBJFile, long* pnffpos, VERTEX_FORMAT_TYPE vft, const VertexPack& vp,
+		bool ParseWavefrontOBJFaces(FILE* pOBJFile, long* pnffpos, VertexFormatType vft, const VertexPack& vp,
 			IndexMapPack& imp, Mesh* pMesh, RawVector& tempVB, std::vector<uint32_t>& tempIB);
 		/*
 		Texture2D LoadCubeMapTexture_deprecated(PCWSTR path);		// dds 포맷만 지원
 		Texture2D LoadTexture_deprecated(PCWSTR path);
-		bool ReadFaces_deprecated(FILE* pOBJFile, long* pnffpos, const VERTEX_FORMAT_TYPE vft, const VertexPack& vp,
+		bool ReadFaces_deprecated(FILE* pOBJFile, long* pnffpos, const VertexFormatType vft, const VertexPack& vp,
 			IndexMapPack& imp, Mesh& mesh, size_t meshIndex, RawVector& tempVB, std::vector<uint32_t>& tempIB, std::vector<DeferredMtlLinkingData>& dml,
 			SubsetAttribute& subsetAttribute);
 		bool ReadObject_deprecated(FILE* pOBJFile, long* pofpos, VertexPack& vp, Mesh& mesh, const size_t meshIndex,

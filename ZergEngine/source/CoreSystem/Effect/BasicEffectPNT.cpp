@@ -16,9 +16,9 @@ void BasicEffectPNT::Init()
 {
 	m_dirtyFlag = DIRTY_FLAG::ALL;
 
-	m_pInputLayout = GraphicDevice::GetInstance()->GetILComInterface(VERTEX_FORMAT_TYPE::POSITION_NORMAL_TEXCOORD);
-	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VERTEX_SHADER_TYPE::TRANSFORM_PNT_TO_HCS);
-	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PIXEL_SHADER_TYPE::COLOR_PNT_FRAGMENT);
+	m_pInputLayout = GraphicDevice::GetInstance()->GetILComInterface(VertexFormatType::PositionNormalTexCoord);
+	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::TRANSFORM_PNT_TO_HCS);
+	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::ColorPositionNormalTexCoordFragment);
 
 	m_cbPerFrame.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
 	m_cbPerCamera.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
@@ -101,7 +101,7 @@ void BasicEffectPNT::UseMaterial(bool b) noexcept
 	if (b)
 		m_cbPerSubsetCache.mtl.mtlFlag |= static_cast<uint32_t>(MATERIAL_FLAG::USE_MATERIAL);
 	else
-		m_cbPerSubsetCache.mtl.mtlFlag = static_cast<uint32_t>(MATERIAL_FLAG::NONE);
+		m_cbPerSubsetCache.mtl.mtlFlag = static_cast<uint32_t>(MATERIAL_FLAG::None);
 
 	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_SUBSET;
 }

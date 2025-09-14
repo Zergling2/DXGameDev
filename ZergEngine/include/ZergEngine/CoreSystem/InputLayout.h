@@ -7,7 +7,7 @@ namespace ze
 	class InputLayoutHelper
 	{
 	public:
-		static UINT GetStructureByteStride(VERTEX_FORMAT_TYPE vft);
+		static UINT GetStructureByteStride(VertexFormatType vft);
 	};
 
 	class InputLayout

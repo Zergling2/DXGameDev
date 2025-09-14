@@ -125,7 +125,7 @@ void CHierarchyTreeView::OnLButtonDown(UINT nFlags, CPoint point)
 		tc.SelectItem(hItem);
 		DWORD_PTR data = tc.GetItemData(hItem);
 		IHTVItem* pHTVItem = reinterpret_cast<IHTVItem*>(data);
-		assert(pHTVItem != nullptr);
+		ASSERT(pHTVItem != nullptr);
 
 		pHTVItem->OnSelect();
 	}
@@ -158,7 +158,7 @@ void CHierarchyTreeView::OnNMRClick(NMHDR* pNMHDR, LRESULT* pResult)
 		tc.SelectItem(hItem);
 		DWORD_PTR data = tc.GetItemData(hItem);
 		IHTVItem* pHTVItem = reinterpret_cast<IHTVItem*>(data);
-		assert(pHTVItem != nullptr);
+		ASSERT(pHTVItem != nullptr);
 
 		pHTVItem->OnSelect();
 	}

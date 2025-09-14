@@ -5,11 +5,9 @@
 class ATVItemEmpty : public IATVItem
 {
 public:
-	ATVItemEmpty()
-		: IATVItem(ATV_ITEM_TYPE::EMPTY)
-	{
-	}
+	ATVItemEmpty() = default;
 	virtual ~ATVItemEmpty() = default;
 
+	virtual ATVItemType GetType() const override { return ATVItemType::Empty; }
 	virtual void OnSelect() override;
 };

@@ -4,6 +4,7 @@
 #include "AssetTreeView.h"
 #include "ATVItem\ATVItemMaterial.h"
 #include "ATVItem\ATVItemTexture.h"
+#include <ZergEngine\CoreSystem\Resource\Material.h>
 
 // CMaterialInspectorFormView
 
@@ -278,7 +279,7 @@ void CMaterialInspectorFormView::OnCbnDropdownComboDiffuseMap()
 		qi.hItem = hItem;
 
 		BOOL ret = tc.GetItem(&qi);
-		assert(ret != FALSE);
+		ASSERT(ret != FALSE);
 
 		int index = m_comboDiffuseMap.AddString(text);
 		m_comboDiffuseMap.SetItemData(index, qi.lParam);

@@ -52,7 +52,7 @@ namespace ze
 	public:
 		// Return max quality level
 		DXGI_FORMAT GetBackBufferFormat() const { return m_backBufferFormat; }
-		UINT GetMSAAMaximumQuality(MSAA_SAMPLE_COUNT sampleCount);
+		UINT GetMSAAMaximumQuality(MultisamplingAntiAliasingMode sampleCount);
 		const DXGI_SWAP_CHAIN_DESC& GetSwapChainDesc() { return m_descSwapChain; }
 		const D3D11_VIEWPORT& GetEntireSwapChainViewport() const { return m_entireSwapChainViewport; }
 		void UpdateEntireSwapChainViewport(uint32_t width, uint32_t height);
@@ -75,28 +75,28 @@ namespace ze
 		std::shared_ptr<DWriteTextFormatWrapper> GetDWriteTextFormatWrapper(const TextFormat& tf);
 
 		// Shaders getter
-		ID3D11VertexShader* GetVSComInterface(VERTEX_SHADER_TYPE type) { return m_vs[static_cast<size_t>(type)].GetComInterface(); }
-		ID3D11HullShader* GetHSComInterface(HULL_SHADER_TYPE type) { return m_hs[static_cast<size_t>(type)].GetComInterface(); }
-		ID3D11DomainShader* GetDSComInterface(DOMAIN_SHADER_TYPE type) { return m_ds[static_cast<size_t>(type)].GetComInterface(); }
-		ID3D11PixelShader* GetPSComInterface(PIXEL_SHADER_TYPE type) { return m_ps[static_cast<size_t>(type)].GetComInterface(); }
-		ID3D11InputLayout* GetILComInterface(VERTEX_FORMAT_TYPE type) { return m_il[static_cast<size_t>(type)].GetComInterface(); }
-		ID3D11Buffer* GetVBComInterface(VERTEX_BUFFER_TYPE type) { return m_vb[static_cast<size_t>(type)].GetComInterface(); }
+		ID3D11VertexShader* GetVSComInterface(VertexShaderType type) { return m_vs[static_cast<size_t>(type)].GetComInterface(); }
+		ID3D11HullShader* GetHSComInterface(HullShaderType type) { return m_hs[static_cast<size_t>(type)].GetComInterface(); }
+		ID3D11DomainShader* GetDSComInterface(DomainShaderType type) { return m_ds[static_cast<size_t>(type)].GetComInterface(); }
+		ID3D11PixelShader* GetPSComInterface(PixelShaderType type) { return m_ps[static_cast<size_t>(type)].GetComInterface(); }
+		ID3D11InputLayout* GetILComInterface(VertexFormatType type) { return m_il[static_cast<size_t>(type)].GetComInterface(); }
+		ID3D11Buffer* GetVBComInterface(VertexBufferType type) { return m_vb[static_cast<size_t>(type)].GetComInterface(); }
 		// Render state getter
-		ID3D11RasterizerState* GetRSComInterface(RASTERIZER_FILL_MODE fm, RASTERIZER_CULL_MODE cm) const
+		ID3D11RasterizerState* GetRSComInterface(RasterizerFillMode fillMode, RasterizerCullMode cullMode) const
 		{
-			return m_rs[static_cast<size_t>(fm)][static_cast<size_t>(cm)].GetComInterface();
+			return m_rs[static_cast<size_t>(fillMode)][static_cast<size_t>(cullMode)].GetComInterface();
 		}
-		ID3D11SamplerState* GetSSComInterface(TEXTURE_FILTERING_OPTION tfo) const
+		ID3D11SamplerState* GetSSComInterface(TextureFilteringMode mode) const
 		{
-			return m_ss[static_cast<size_t>(tfo)].GetComInterface();
+			return m_ss[static_cast<size_t>(mode)].GetComInterface();
 		}
-		ID3D11DepthStencilState* GetDSSComInterface(DEPTH_STENCIL_STATE_TYPE dst) const
+		ID3D11DepthStencilState* GetDSSComInterface(DepthStencilStateType type) const
 		{
-			return m_dss[static_cast<size_t>(dst)].GetComInterface();
+			return m_dss[static_cast<size_t>(type)].GetComInterface();
 		}
-		ID3D11BlendState* GetBSComInterface(BLEND_STATE_TYPE bst) const
+		ID3D11BlendState* GetBSComInterface(BlendStateType type) const
 		{
-			return m_bs[static_cast<size_t>(bst)].GetComInterface();
+			return m_bs[static_cast<size_t>(type)].GetComInterface();
 		}
 	private:
 		static GraphicDevice* s_pInstance;
@@ -108,7 +108,7 @@ namespace ze
 		D3D11_TEXTURE2D_DESC m_descDepthStencil;
 		D3D11_VIEWPORT m_entireSwapChainViewport;
 		std::vector<DXGI_MODE_DESC> m_supportedResolution;
-		std::vector<std::pair<MSAA_SAMPLE_COUNT, UINT>> m_supportedMSAA;
+		std::vector<std::pair<MultisamplingAntiAliasingMode, UINT>> m_supportedMSAA;
 		ComPtr<ID3D11Device> m_cpDevice;
 		ComPtr<ID3D11DeviceContext> m_cpImmediateContext;
 		ComPtr<ID2D1Factory> m_cpD2DFactory;
@@ -123,16 +123,16 @@ namespace ze
 		std::unordered_map<TextFormat, std::weak_ptr<DWriteTextFormatWrapper>, TextFormatHasher> m_fontMap;
 		// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
 
-		VertexShader m_vs[static_cast<size_t>(VERTEX_SHADER_TYPE::COUNT)];
-		HullShader m_hs[static_cast<size_t>(HULL_SHADER_TYPE::COUNT)];
-		DomainShader m_ds[static_cast<size_t>(DOMAIN_SHADER_TYPE::COUNT)];
-		PixelShader m_ps[static_cast<size_t>(PIXEL_SHADER_TYPE::COUNT)];
-		InputLayout m_il[static_cast<size_t>(VERTEX_FORMAT_TYPE::COUNT)];
-		VertexBuffer m_vb[static_cast<size_t>(VERTEX_BUFFER_TYPE::COUNT)];
+		VertexShader m_vs[static_cast<size_t>(VertexShaderType::COUNT)];
+		HullShader m_hs[static_cast<size_t>(HullShaderType::COUNT)];
+		DomainShader m_ds[static_cast<size_t>(DomainShaderType::COUNT)];
+		PixelShader m_ps[static_cast<size_t>(PixelShaderType::COUNT)];
+		InputLayout m_il[static_cast<size_t>(VertexFormatType::COUNT)];
+		VertexBuffer m_vb[static_cast<size_t>(VertexBufferType::COUNT)];
 
-		RasterizerState m_rs[static_cast<size_t>(RASTERIZER_FILL_MODE::COUNT)][static_cast<size_t>(RASTERIZER_CULL_MODE::COUNT)];
-		SamplerState m_ss[static_cast<size_t>(TEXTURE_FILTERING_OPTION::COUNT)];
-		DepthStencilState m_dss[static_cast<size_t>(DEPTH_STENCIL_STATE_TYPE::COUNT)];
-		BlendState m_bs[static_cast<size_t>(BLEND_STATE_TYPE::COUNT)];
+		RasterizerState m_rs[static_cast<size_t>(RasterizerFillMode::COUNT)][static_cast<size_t>(RasterizerCullMode::COUNT)];
+		SamplerState m_ss[static_cast<size_t>(TextureFilteringMode::COUNT)];
+		DepthStencilState m_dss[static_cast<size_t>(DepthStencilStateType::COUNT)];
+		BlendState m_bs[static_cast<size_t>(BlendStateType::COUNT)];
 	};
 }

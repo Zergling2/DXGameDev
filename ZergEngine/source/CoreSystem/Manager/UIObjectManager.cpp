@@ -69,15 +69,12 @@ void UIObjectManager::Deploy(IUIObject* pUIObject)
 
 void UIObjectManager::RequestDestroy(IUIObject* pUIObject)
 {
-	// 지연된 오브젝트를 제거하는 경우는 OnLoadScene에서 Destroy를 한다는 의미인데 이것은 허용하지 않는다.
-	if (pUIObject->IsPending())
-		return;
-
 	// 자식 오브젝트까지 Destroy
 	for (RectTransform* pChildTransform : pUIObject->m_transform.m_children)
 		pChildTransform->m_pUIObject->Destroy();
 
-	this->AddToDestroyQueue(pUIObject);
+	if (!pUIObject->IsOnTheDestroyQueue())
+		this->AddToDestroyQueue(pUIObject);
 }
 
 IUIObject* UIObjectManager::ToPtr(uint32_t tableIndex, uint64_t id) const
@@ -131,8 +128,7 @@ UIObjectHandle THREADSAFE UIObjectManager::RegisterToHandleTable(IUIObject* pUIO
 
 void UIObjectManager::AddToDestroyQueue(IUIObject* pUIObject)
 {
-	if (pUIObject->IsOnTheDestroyQueue())
-		return;
+	assert(!pUIObject->IsOnTheDestroyQueue());
 
 	pUIObject->OnFlag(UIOBJECT_FLAG::ON_DESTROY_QUEUE);		// 매우 중요! (벡터에 중복 삽입으로 인한 중복 delete 힙 손상 방지)
 	m_destroyed.push_back(pUIObject);

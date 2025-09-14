@@ -4,6 +4,9 @@
 #include "MainFrm.h"
 #include "CLVItem\CLVItemTerrain.h"
 #include "ATVItem\ATVItemTexture.h"
+#include <ZergEngine\CoreSystem\GraphicDevice.h>
+#include <ZergEngine\CoreSystem\Debug.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\Terrain.h>
 
 // CTerrainInspectorFormView
 
@@ -318,7 +321,7 @@ void CTerrainInspectorFormView::OnBnClickedTerrainBrushType(UINT id)
 		m_currentTerrainBrushType = TERRAIN_BRUSH_TYPE::BRUSH_GRASS;
 		break;
 	default:
-		assert(false);
+		ASSERT(false);
 		break;
 	}
 }
@@ -343,7 +346,7 @@ void CTerrainInspectorFormView::OnBnClickedTerrainLayerToModify(UINT id)
 		m_modifyingLayerIndex = 4;
 		break;
 	default:
-		assert(false);
+		ASSERT(false);
 		// m_modifyingLayerIndex = 0;
 		break;
 	}
@@ -423,7 +426,7 @@ void CTerrainInspectorFormView::OnCbnDropdownComboTerrainDiffuseLayer()
 		qi.hItem = hItem;
 
 		BOOL ret = tc.GetItem(&qi);
-		assert(ret != FALSE);
+		ASSERT(ret != FALSE);
 
 		int index = m_comboTerrainDiffuseLayer.AddString(text);
 		m_comboTerrainDiffuseLayer.SetItemData(index, qi.lParam);
@@ -478,7 +481,7 @@ void CTerrainInspectorFormView::OnCbnDropdownComboTerrainNormalLayer()
 		qi.hItem = hItem;
 
 		BOOL ret = tc.GetItem(&qi);
-		assert(ret != FALSE);
+		ASSERT(ret != FALSE);
 
 		int index = m_comboTerrainNormalLayer.AddString(text);
 		m_comboTerrainNormalLayer.SetItemData(index, qi.lParam);

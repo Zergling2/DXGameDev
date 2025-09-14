@@ -1,7 +1,6 @@
 #pragma once
 #include "afxdialogex.h"
 
-
 // CTerrainGenerationDialog dialog
 
 class CTerrainGenerationDialog : public CDialog

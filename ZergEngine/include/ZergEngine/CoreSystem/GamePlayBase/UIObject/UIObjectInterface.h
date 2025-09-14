@@ -10,7 +10,7 @@ namespace ze
 
 	enum class UIOBJECT_FLAG : uioft
 	{
-		NONE = 0,
+		None = 0,
 
 		STATIC					= 1 << 0,
 		DONT_DESTROY_ON_LOAD	= 1 << 1,

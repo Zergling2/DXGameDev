@@ -10,9 +10,7 @@ public:
 		: m_hGameObject(hGameObject)
 	{
 	}
-	virtual ~HTVItemGameObject()
-	{
-	}
+	virtual ~HTVItemGameObject() = default;
 
 	virtual void OnSelect();
 

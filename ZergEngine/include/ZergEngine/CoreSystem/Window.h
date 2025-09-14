@@ -13,7 +13,11 @@ namespace ze
 		virtual void OnCreate(WPARAM wParam, LPARAM lParam) {}
 		virtual void OnDestroy(WPARAM wParam, LPARAM lParam) {}
 		virtual void OnSize(UINT nType, int cx, int cy) {}
+		virtual void OnMove(WPARAM wParam, LPARAM lParam) {}
+		virtual void OnKillFocus(WPARAM wParam, LPARAM lParam) {};
+		virtual void OnSetFocus(WPARAM wParam, LPARAM lParam) {};
 		virtual void OnShowWindow(WPARAM wParam, LPARAM lParam) {}
+		virtual void OnActivateApp(WPARAM wParam, LPARAM lParam) {};
 		virtual void OnChar(WPARAM wParam, LPARAM lParam) {}
 		virtual void OnMouseMove(UINT flags, POINT pt) {}
 		virtual void OnLButtonDown(UINT flags, POINT pt) {}
@@ -22,6 +26,7 @@ namespace ze
 		virtual void OnRButtonUp(UINT flags, POINT pt) {}
 		virtual void OnMButtonDown(UINT flags, POINT pt) {}
 		virtual void OnMButtonUp(UINT flags, POINT pt) {}
+		virtual void OnMoving(WPARAM wParam, LPARAM lParam) {}
 		virtual void OnEnterSizeMove(WPARAM wParam, LPARAM lParam) {}
 		virtual void OnExitSizeMove(WPARAM wParam, LPARAM lParam) {}
 	};

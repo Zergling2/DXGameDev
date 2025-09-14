@@ -1,6 +1,8 @@
 #include "CLVItemTerrain.h"
 #include "..\MainFrm.h"
 #include "..\TerrainInspectorFormView.h"
+#include <ZergEngine\Common\ThirdPartySDK.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\Terrain.h>
 
 void CLVItemTerrain::OnSelect()
 {

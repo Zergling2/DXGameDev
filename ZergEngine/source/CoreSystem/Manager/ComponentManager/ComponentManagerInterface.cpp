@@ -29,14 +29,10 @@ void IComponentManager::Deploy(IComponent* pComponent)
 
 void IComponentManager::RequestDestroy(IComponent* pComponent)
 {
-	GameObject* pOwner = pComponent->m_pGameObject;
-	assert(pOwner != nullptr);
+	assert(!pComponent->m_pGameObject->IsPending());
 
-	// 지연된 오브젝트에서 컴포넌트를 제거하는 경우는 OnLoadScene에서 Destroy를 한다는 의미인데 이것은 허용하지 않는다.
-	if (pOwner->IsPending())
-		return;
-
-	this->AddToDestroyQueue(pComponent);
+	if (!pComponent->IsOnTheDestroyQueue())
+		this->AddToDestroyQueue(pComponent);
 }
 
 IComponent* IComponentManager::ToPtr(uint32_t tableIndex, uint64_t id) const
@@ -172,9 +168,8 @@ void IComponentManager::RemoveDestroyedComponents()
 
 void IComponentManager::AddToDestroyQueue(IComponent* pComponent)
 {
-	if (pComponent->IsOnTheDestroyQueue())
-		return;
+	assert(!pComponent->IsOnTheDestroyQueue());
 
-	pComponent->OnFlag(COMPONENT_FLAG::ON_DESTROY_QUEUE);		// 중복 삽입 방지!
+	pComponent->OnFlag(ComponentFlag::OnDestroyQueue);		// 중복 삽입 방지!
 	m_destroyed.push_back(pComponent);
 }

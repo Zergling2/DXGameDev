@@ -1,6 +1,7 @@
 #include "CLVItemDirectionalLight.h"
 #include "..\MainFrm.h"
 #include "..\DirectionalLightInspectorFormView.h"
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\Light.h>
 
 void CLVItemDirectionalLight::OnSelect()
 {

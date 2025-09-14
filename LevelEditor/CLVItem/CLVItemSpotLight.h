@@ -1,5 +1,11 @@
 #pragma once
+
 #include "CLVItemInterface.h"
+
+namespace ze
+{
+	class SpotLight;
+}
 
 class CLVItemSpotLight : public ICLVItem
 {

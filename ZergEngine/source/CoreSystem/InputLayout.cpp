@@ -5,23 +5,23 @@ using namespace ze;
 
 #define INPUT_LAYOUT_STATIC_ASSERT_MESSAGE "Vertex struct/layout mismatch"
 
-UINT InputLayoutHelper::GetStructureByteStride(VERTEX_FORMAT_TYPE vft)
+UINT InputLayoutHelper::GetStructureByteStride(VertexFormatType vft)
 {
 	switch (vft)
 	{
-	case VERTEX_FORMAT_TYPE::POSITION:
+	case VertexFormatType::Position:
 		return static_cast<UINT>(sizeof(VFPosition));
-	case VERTEX_FORMAT_TYPE::POSITION_COLOR:
+	case VertexFormatType::PositionColor:
 		return static_cast<UINT>(sizeof(VFPositionColor));
-	case VERTEX_FORMAT_TYPE::POSITION_NORMAL:
+	case VertexFormatType::PositionNormal:
 		return static_cast<UINT>(sizeof(VFPositionNormal));
-	case VERTEX_FORMAT_TYPE::POSITION_TEXCOORD:
+	case VertexFormatType::PositionTexCoord:
 		return static_cast<UINT>(sizeof(VFPositionTexCoord));
-	case VERTEX_FORMAT_TYPE::POSITION_NORMAL_TEXCOORD:
+	case VertexFormatType::PositionNormalTexCoord:
 		return static_cast<UINT>(sizeof(VFPositionNormalTexCoord));
-	case VERTEX_FORMAT_TYPE::TERRAIN_PATCH_CTRL_PT:
+	case VertexFormatType::TerrainPatchCtrlPt:
 		return static_cast<UINT>(sizeof(VFTerrainPatchControlPoint));
-	case VERTEX_FORMAT_TYPE::BUTTON:
+	case VertexFormatType::ButtonPt:
 		return static_cast<UINT>(sizeof(VFButton));
 	default:
 		Debug::ForceCrashWithMessageBox(

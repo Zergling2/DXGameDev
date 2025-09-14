@@ -144,7 +144,7 @@ void ResourceLoader::DFSAiNodeLoadMesh(std::vector<std::shared_ptr<Mesh>>& meshe
 		bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 		bufferDesc.CPUAccessFlags = 0;
 		bufferDesc.MiscFlags = 0;
-		bufferDesc.StructureByteStride = InputLayoutHelper::GetStructureByteStride(VERTEX_FORMAT_TYPE::POSITION_NORMAL_TEXCOORD);
+		bufferDesc.StructureByteStride = InputLayoutHelper::GetStructureByteStride(VertexFormatType::PositionNormalTexCoord);
 
 		initialData.pSysMem = vertices.data();
 		// initialData.SysMemPitch = 0;		// unused
@@ -176,7 +176,7 @@ void ResourceLoader::DFSAiNodeLoadMesh(std::vector<std::shared_ptr<Mesh>>& meshe
 		mesh->m_cpIB = std::move(cpIB);
 
 		// 3. VFT
-		mesh->m_vft = VERTEX_FORMAT_TYPE::POSITION_NORMAL_TEXCOORD;	// TEST
+		mesh->m_vft = VertexFormatType::PositionNormalTexCoord;	// TEST
 
 		meshes.push_back(std::move(mesh));
 	}
@@ -516,7 +516,7 @@ bool ResourceLoader::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, Verte
 	PCWSTR token;
 
 	bool ret_o = false;
-	VERTEX_FORMAT_TYPE vft = VERTEX_FORMAT_TYPE::UNKNOWN;
+	VertexFormatType vft = VertexFormatType::UNKNOWN;
 	RawVector tempVB;
 	std::vector<uint32_t> tempIB;
 
@@ -578,19 +578,19 @@ bool ResourceLoader::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, Verte
 		{
 			// Vertex Format Layout 구하기 (Object의 Subset마다 서로 다른 Vertex Layout을 가지는 것은 불가능하다고 간주)
 			// 메시의 Vertex Format Layout을 아직 모르는 경우 최초 1회 레이아웃을 파악한다.
-			if (vft == VERTEX_FORMAT_TYPE::UNKNOWN)
+			if (vft == VertexFormatType::UNKNOWN)
 			{
 				PCWSTR firstIndexSet = wcstok_s(nullptr, OBJ_MTL_DELIM, &nextToken);
 				PCWSTR firstSlash = wcschr(firstIndexSet, L'/');
 				PCWSTR lastSlash = wcsrchr(firstIndexSet, L'/');
 				if (!firstSlash)							// v
-					vft = VERTEX_FORMAT_TYPE::POSITION;
+					vft = VertexFormatType::Position;
 				else if (firstSlash == lastSlash)			// v/vt
-					vft = VERTEX_FORMAT_TYPE::POSITION_TEXCOORD;
+					vft = VertexFormatType::PositionTexCoord;
 				else if (firstSlash + 1 == lastSlash)		// v//vn
-					vft = VERTEX_FORMAT_TYPE::POSITION_NORMAL;
+					vft = VertexFormatType::PositionNormal;
 				else										// v/vt/vn
-					vft = VERTEX_FORMAT_TYPE::POSITION_NORMAL_TEXCOORD;
+					vft = VertexFormatType::PositionNormalTexCoord;
 
 				pMesh->m_vft = vft;
 			}
@@ -604,7 +604,7 @@ bool ResourceLoader::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, Verte
 		fpos = ftell(pOBJFile);	// save file stream pointer
 	}
 
-	assert(pMesh->m_vft != VERTEX_FORMAT_TYPE::UNKNOWN);
+	assert(pMesh->m_vft != VertexFormatType::UNKNOWN);
 
 	{
 		// AABB 정보 생성
@@ -613,16 +613,16 @@ bool ResourceLoader::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, Verte
 		// Alignment: 4바이트
 		switch (pMesh->m_vft)
 		{
-		case VERTEX_FORMAT_TYPE::POSITION:
+		case VertexFormatType::Position:
 			stride = sizeof(VFPosition);
 			break;
-		case VERTEX_FORMAT_TYPE::POSITION_NORMAL:
+		case VertexFormatType::PositionNormal:
 			stride = sizeof(VFPositionNormal);
 			break;
-		case VERTEX_FORMAT_TYPE::POSITION_TEXCOORD:
+		case VertexFormatType::PositionTexCoord:
 			stride = sizeof(VFPositionTexCoord);
 			break;
-		case VERTEX_FORMAT_TYPE::POSITION_NORMAL_TEXCOORD:
+		case VertexFormatType::PositionNormalTexCoord:
 			stride = sizeof(VFPositionNormalTexCoord);
 			break;
 		default:
@@ -705,7 +705,7 @@ bool ResourceLoader::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, Verte
 	return ret_o;
 }
 
-bool ResourceLoader::ParseWavefrontOBJFaces(FILE* pOBJFile, long* pnffpos, VERTEX_FORMAT_TYPE vft, const VertexPack& vp,
+bool ResourceLoader::ParseWavefrontOBJFaces(FILE* pOBJFile, long* pnffpos, VertexFormatType vft, const VertexPack& vp,
 	IndexMapPack& imp, Mesh* pMesh, RawVector& tempVB, std::vector<uint32_t>& tempIB)
 {
 	// f만 읽다가 아닌 경우 리턴
@@ -764,7 +764,7 @@ bool ResourceLoader::ParseWavefrontOBJFaces(FILE* pOBJFile, long* pnffpos, VERTE
 
 				switch (vft)
 				{
-				case VERTEX_FORMAT_TYPE::POSITION:
+				case VertexFormatType::Position:
 					vIndex = wcstoul(index[0], &toulEnd, 10) - 1;
 					{
 						const IndexSet::Position item(vIndex);
@@ -784,7 +784,7 @@ bool ResourceLoader::ParseWavefrontOBJFaces(FILE* pOBJFile, long* pnffpos, VERTE
 						}
 					}
 					break;
-				case VERTEX_FORMAT_TYPE::POSITION_NORMAL:
+				case VertexFormatType::PositionNormal:
 					vIndex = wcstoul(index[0], &toulEnd, 10) - 1;
 					vnIndex = wcstoul(index[1], &toulEnd, 10) - 1;
 					{
@@ -805,7 +805,7 @@ bool ResourceLoader::ParseWavefrontOBJFaces(FILE* pOBJFile, long* pnffpos, VERTE
 						}
 					}
 					break;
-				case VERTEX_FORMAT_TYPE::POSITION_TEXCOORD:
+				case VertexFormatType::PositionTexCoord:
 					vIndex = wcstoul(index[0], &toulEnd, 10) - 1;
 					vtIndex = wcstoul(index[1], &toulEnd, 10) - 1;
 					{
@@ -826,7 +826,7 @@ bool ResourceLoader::ParseWavefrontOBJFaces(FILE* pOBJFile, long* pnffpos, VERTE
 						}
 					}
 					break;
-				case VERTEX_FORMAT_TYPE::POSITION_NORMAL_TEXCOORD:
+				case VertexFormatType::PositionNormalTexCoord:
 					vIndex = wcstoul(index[0], &toulEnd, 10) - 1;
 					vtIndex = wcstoul(index[1], &toulEnd, 10) - 1;
 					vnIndex = wcstoul(index[2], &toulEnd, 10) - 1;
@@ -970,7 +970,7 @@ Texture2D ResourceLoader::LoadCubeMapTexture(PCWSTR path)
 */
 
 /*
-bool Resource::ReadFaces_deprecated(FILE* pOBJFile, long* pnffpos, const VERTEX_FORMAT_TYPE vft, const VertexPack& vp,
+bool Resource::ReadFaces_deprecated(FILE* pOBJFile, long* pnffpos, const VertexFormatType vft, const VertexPack& vp,
 	IndexMapPack& imp, Mesh& mesh, size_t meshIndex, RawVector& tempVB, std::vector<uint32_t>& tempIB, std::vector<DeferredMtlLinkingData>& dml,
 	SubsetAttribute& subsetAttribute)
 {
@@ -1031,7 +1031,7 @@ bool Resource::ReadFaces_deprecated(FILE* pOBJFile, long* pnffpos, const VERTEX_
 
 				switch (vft)
 				{
-				case VERTEX_FORMAT_TYPE::POSITION:
+				case VertexFormatType::Position:
 					vIndex = wcstoul(index[0], &toulEnd, 10) - 1;
 					{
 						const IndexSet::Position item(vIndex);
@@ -1051,7 +1051,7 @@ bool Resource::ReadFaces_deprecated(FILE* pOBJFile, long* pnffpos, const VERTEX_
 						}
 					}
 					break;
-				case VERTEX_FORMAT_TYPE::POSITION_NORMAL:
+				case VertexFormatType::PositionNormal:
 					vIndex = wcstoul(index[0], &toulEnd, 10) - 1;
 					vnIndex = wcstoul(index[1], &toulEnd, 10) - 1;
 					{
@@ -1072,7 +1072,7 @@ bool Resource::ReadFaces_deprecated(FILE* pOBJFile, long* pnffpos, const VERTEX_
 						}
 					}
 					break;
-				case VERTEX_FORMAT_TYPE::POSITION_TEXCOORD:
+				case VertexFormatType::PositionTexCoord:
 					vIndex = wcstoul(index[0], &toulEnd, 10) - 1;
 					vtIndex = wcstoul(index[1], &toulEnd, 10) - 1;
 					{
@@ -1093,7 +1093,7 @@ bool Resource::ReadFaces_deprecated(FILE* pOBJFile, long* pnffpos, const VERTEX_
 						}
 					}
 					break;
-				case VERTEX_FORMAT_TYPE::POSITION_NORMAL_TEXCOORD:
+				case VertexFormatType::PositionNormalTexCoord:
 					vIndex = wcstoul(index[0], &toulEnd, 10) - 1;
 					vtIndex = wcstoul(index[1], &toulEnd, 10) - 1;
 					vnIndex = wcstoul(index[2], &toulEnd, 10) - 1;
@@ -1145,7 +1145,7 @@ bool Resource::ReadObject_deprecated(FILE* pOBJFile, long* pofpos, VertexPack& v
 	sa.m_shadeSmooth = false;
 	sa.m_mtlName = nullptr;
 	bool ret_o = false;
-	VERTEX_FORMAT_TYPE vft = VERTEX_FORMAT_TYPE::UNKNOWN;
+	VertexFormatType vft = VertexFormatType::UNKNOWN;
 	RawVector tempVB;
 	std::vector<uint32_t> tempIB;
 
@@ -1228,19 +1228,19 @@ bool Resource::ReadObject_deprecated(FILE* pOBJFile, long* pofpos, VertexPack& v
 		{
 			// Vertex Format Layout 구하기 (Object의 Subset마다 서로 다른 Vertex Layout을 가지는 것은 불가능하다고 간주)
 			// 메시의 Vertex Format Layout을 아직 모르는 경우 최초 1회 레이아웃을 파악한다.
-			if (vft == VERTEX_FORMAT_TYPE::UNKNOWN)
+			if (vft == VertexFormatType::UNKNOWN)
 			{
 				const wchar_t* firstIndexSet = wcstok_s(nullptr, OBJ_MTL_DELIM, &nextToken);
 				const wchar_t* firstSlash = wcschr(firstIndexSet, L'/');
 				const wchar_t* lastSlash = wcsrchr(firstIndexSet, L'/');
 				if (!firstSlash)							// v
-					vft = VERTEX_FORMAT_TYPE::POSITION;
+					vft = VertexFormatType::Position;
 				else if (firstSlash == lastSlash)			// v/vt
-					vft = VERTEX_FORMAT_TYPE::POSITION_TEXCOORD;
+					vft = VertexFormatType::PositionTexCoord;
 				else if (firstSlash + 1 == lastSlash)		// v//vn
-					vft = VERTEX_FORMAT_TYPE::POSITION_NORMAL;
+					vft = VertexFormatType::PositionNormal;
 				else										// v/vt/vn
-					vft = VERTEX_FORMAT_TYPE::POSITION_NORMAL_TEXCOORD;
+					vft = VertexFormatType::PositionNormalTexCoord;
 
 				mesh.m_vft = vft;
 			}
@@ -1254,7 +1254,7 @@ bool Resource::ReadObject_deprecated(FILE* pOBJFile, long* pofpos, VertexPack& v
 		fpos = ftell(pOBJFile);	// save file stream pointer
 	}
 
-	assert(mesh.m_vft != VERTEX_FORMAT_TYPE::UNKNOWN);
+	assert(mesh.m_vft != VertexFormatType::UNKNOWN);
 
 	// Create a vertex buffer
 	D3D11_BUFFER_DESC bufferDesc;

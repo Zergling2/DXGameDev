@@ -1,4 +1,5 @@
 #include "AssetTreeView.h"
+#include <cassert>
 #include "LevelEditor.h"
 #include "Settings.h"
 #include "ATVItem\ATVItemEmpty.h"
@@ -124,8 +125,8 @@ void CAssetTreeView::OnLButtonDown(UINT nFlags, CPoint point)
 		tc.SelectItem(hItem);
 		DWORD_PTR data = tc.GetItemData(hItem);
 		IATVItem* pATVItem = reinterpret_cast<IATVItem*>(data);
-		assert(pATVItem != nullptr);
-
+		ASSERT(pATVItem != nullptr);
+		
 		pATVItem->OnSelect();
 	}
 	else
@@ -157,7 +158,7 @@ void CAssetTreeView::OnNMRClick(NMHDR* pNMHDR, LRESULT* pResult)
 		tc.SelectItem(hItem);
 		DWORD_PTR data = tc.GetItemData(hItem);
 		IATVItem* pATVItem = reinterpret_cast<IATVItem*>(data);
-		assert(pATVItem != nullptr);
+		ASSERT(pATVItem != nullptr);
 
 		pATVItem->OnSelect();
 	}
