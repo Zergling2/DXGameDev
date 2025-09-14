@@ -6,11 +6,12 @@
 #include <ZergEngine\CoreSystem\Window.h>
 #include <ZergEngine\CoreSystem\SceneInterface.h>
 #include <ZergEngine\CoreSystem\Input.h>
+#include <ZergEngine\CoreSystem\Cursor.h>
 #include <ZergEngine\CoreSystem\Debug.h>
 #include <ZergEngine\CoreSystem\GraphicDevice.h>
 #include <ZergEngine\CoreSystem\ResourceLoader.h>
+#include <ZergEngine\CoreSystem\RenderSettings.h>
 #include <ZergEngine\CoreSystem\Manager\SceneManager.h>
-#include <ZergEngine\CoreSystem\Manager\EnvironmentManager.h>
 #include <ZergEngine\CoreSystem\Resource\Mesh.h>
 #include <ZergEngine\CoreSystem\Resource\Material.h>
 #include <ZergEngine\CoreSystem\Resource\Texture.h>

@@ -33,8 +33,10 @@ void Cursor::SetVisible(bool visible)
 	else
 	{
 		if (ci.flags == CURSOR_SHOWING)
-			while (ShowCursor(TRUE) >= 0);	// 0 미만이 될 때까지 반복 호출
+			while (ShowCursor(FALSE) >= 0);	// 0 미만이 될 때까지 반복 호출
 	}
+
+	s_context.m_visible = visible;
 }
 
 void Cursor::SetLockState(CursorLockMode mode)
@@ -57,6 +59,8 @@ void Cursor::SetLockState(CursorLockMode mode)
 		Cursor::ConfineCursor();
 		break;
 	}
+
+	s_context.m_lockMode = mode;
 }
 
 void Cursor::UnlockCursor()
@@ -71,12 +75,16 @@ void Cursor::LockCursor()
 	RECT cr;	// Client rect
 	GetClientRect(hGameWnd, &cr);
 
-	POINT tl = { cr.left, cr.top };
-	POINT br = { cr.right, cr.bottom };
+	POINT center;
+	center.x = (cr.right - cr.left) / 2;
+	center.y = (cr.bottom - cr.top) / 2;
+	ClientToScreen(hGameWnd, &center);
 
-	ClientToScreen(hGameWnd, &tl);
-	ClientToScreen(hGameWnd, &br);
-	RECT clipRect = { tl.x, tl.y, br.x, br.y };
+	RECT clipRect;
+	clipRect.left = center.x;
+	clipRect.right = center.x + 1;
+	clipRect.top = center.y;
+	clipRect.bottom = center.y + 1;
 
 	ClipCursor(&clipRect);
 }
@@ -88,12 +96,21 @@ void Cursor::ConfineCursor()
 	RECT cr;	// Client rect
 	GetClientRect(hGameWnd, &cr);
 
-	POINT tl = { cr.left, cr.top };
-	POINT br = { cr.right, cr.bottom };
+	POINT lt;	// Left Top
+	POINT rb;	// Right Bottom
+	lt.x = cr.left;
+	lt.y = cr.top;
+	rb.x = cr.right;
+	rb.y = cr.bottom;
 
-	ClientToScreen(hGameWnd, &tl);
-	ClientToScreen(hGameWnd, &br);
-	RECT clipRect = { tl.x, tl.y, br.x, br.y };
+	ClientToScreen(hGameWnd, &lt);
+	ClientToScreen(hGameWnd, &rb);
+
+	RECT clipRect;
+	clipRect.left = lt.x;
+	clipRect.top = lt.y;
+	clipRect.right = rb.x;
+	clipRect.bottom = rb.y;
 
 	ClipCursor(&clipRect);
 }

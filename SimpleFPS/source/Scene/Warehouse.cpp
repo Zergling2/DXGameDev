@@ -1105,6 +1105,6 @@ void Warehouse::OnLoadScene()
 	// Skybox
 	{
 		Texture2D skybox = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Skybox\\sunset.dds", false);
-		Environment::GetInstance()->SetSkyboxCubeMap(skybox);
+		RenderSettings::GetInstance()->SetSkybox(skybox);
 	}
 }

@@ -65,7 +65,7 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\TerrainManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\FileSystem.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\GameObjectManager.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\EnvironmentManager.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\RenderSettings.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Handle.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\ComponentType.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\UIObjectManager.h" />
@@ -134,7 +134,7 @@
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\SizeColorUIObjectInterface.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\AudioSourceManager.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\ComponentManagerMap.cpp" />
-    <ClCompile Include="source\CoreSystem\Manager\EnvironmentManager.cpp" />
+    <ClCompile Include="source\CoreSystem\RenderSettings.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Handle.cpp" />
     <ClCompile Include="source\Common\EngineHelper.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\CameraManager.cpp" />

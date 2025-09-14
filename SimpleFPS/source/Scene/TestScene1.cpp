@@ -485,5 +485,5 @@ void TestScene1::OnLoadScene()
 	}
 
 	Texture2D skyboxCubeMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Skybox\\indigo.dds", false);
-	Environment::GetInstance()->SetSkyboxCubeMap(skyboxCubeMap);
+	RenderSettings::GetInstance()->SetSkybox(skyboxCubeMap);
 }

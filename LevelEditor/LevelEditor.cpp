@@ -200,7 +200,7 @@ BOOL CLevelEditorApp::InitInstance()
 	ze::ComponentHandle<EditorCameraScript> hEditorCameraScript = pEditorCameraObject->AddComponent<EditorCameraScript>();
 
 	ze::Texture2D skyboxCubeMap = ze::ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Skybox\\cloudy_puresky.dds", false);
-	ze::Environment::GetInstance()->SetSkyboxCubeMap(skyboxCubeMap);
+	ze::RenderSettings::GetInstance()->SetSkybox(skyboxCubeMap);
 
 	CRect editorViewRect;
 	pMainFrame->GetLevelEditorView()->GetWindowRect(&editorViewRect);

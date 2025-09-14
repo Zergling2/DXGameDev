@@ -9,7 +9,7 @@
 #include <ZergEngine\CoreSystem\ResourceLoader.h>
 #include <ZergEngine\CoreSystem\Renderer.h>
 #include <ZergEngine\CoreSystem\SceneInterface.h>
-#include <ZergEngine\CoreSystem\Manager\EnvironmentManager.h>
+#include <ZergEngine\CoreSystem\RenderSettings.h>
 #include <ZergEngine\CoreSystem\Manager\GameObjectManager.h>
 #include <ZergEngine\CoreSystem\Manager\UIObjectManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\AudioSourceManager.h>
@@ -80,7 +80,7 @@ void Runtime::Init(HINSTANCE hInstance, int nCmdShow, uint32_t width, uint32_t h
     GraphicDevice::CreateInstance();
     ResourceLoader::CreateInstance();
     Renderer::CreateInstance();
-    Environment::CreateInstance();
+    RenderSettings::CreateInstance();
     GameObjectManager::CreateInstance();
     UIObjectManager::CreateInstance();
     AudioSourceManager::CreateInstance();
@@ -103,7 +103,7 @@ void Runtime::Init(HINSTANCE hInstance, int nCmdShow, uint32_t width, uint32_t h
     GraphicDevice::GetInstance()->Init(m_window.GetHandle(), width, height, false);
     ResourceLoader::GetInstance()->Init();
     Renderer::GetInstance()->Init();
-    Environment::GetInstance()->Init();
+    RenderSettings::GetInstance()->Init();
     GameObjectManager::GetInstance()->Init();
     UIObjectManager::GetInstance()->Init();
     AudioSourceManager::GetInstance()->Init();
@@ -136,7 +136,7 @@ void Runtime::InitEditor(HINSTANCE hInstance, HWND hMainFrameWnd, HWND hViewWnd,
     GraphicDevice::CreateInstance();
     ResourceLoader::CreateInstance();
     Renderer::CreateInstance();
-    Environment::CreateInstance();
+    RenderSettings::CreateInstance();
     GameObjectManager::CreateInstance();
     UIObjectManager::CreateInstance();
     AudioSourceManager::CreateInstance();
@@ -157,7 +157,7 @@ void Runtime::InitEditor(HINSTANCE hInstance, HWND hMainFrameWnd, HWND hViewWnd,
     GraphicDevice::GetInstance()->Init(hViewWnd, width, height, false);
     ResourceLoader::GetInstance()->Init();
     Renderer::GetInstance()->Init();
-    Environment::GetInstance()->Init();
+    RenderSettings::GetInstance()->Init();
     GameObjectManager::GetInstance()->Init();
     UIObjectManager::GetInstance()->Init();
     AudioSourceManager::GetInstance()->Init();
@@ -185,7 +185,7 @@ void Runtime::UnInit()
     AudioSourceManager::GetInstance()->UnInit();
     UIObjectManager::GetInstance()->UnInit();
     GameObjectManager::GetInstance()->UnInit();
-    Environment::GetInstance()->UnInit();
+    RenderSettings::GetInstance()->UnInit();
     Renderer::GetInstance()->UnInit();
     ResourceLoader::GetInstance()->UnInit();
     GraphicDevice::GetInstance()->UnInit();
@@ -205,7 +205,7 @@ void Runtime::UnInit()
     AudioSourceManager::DestroyInstance();
     UIObjectManager::DestroyInstance();
     GameObjectManager::DestroyInstance();
-    Environment::DestroyInstance();
+    RenderSettings::DestroyInstance();
     Renderer::DestroyInstance();
     ResourceLoader::DestroyInstance();
     GraphicDevice::DestroyInstance();

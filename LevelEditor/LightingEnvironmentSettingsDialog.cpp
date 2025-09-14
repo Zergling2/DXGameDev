@@ -3,7 +3,7 @@
 #include "MainFrm.h"
 #include "AssetTreeView.h"
 #include "ATVItem\ATVItemTexture.h"
-#include <ZergEngine\CoreSystem\Manager\EnvironmentManager.h>
+#include <ZergEngine\CoreSystem\RenderSettings.h>
 
 // CLightingEnvironmentSettingsDialog dialog
 
@@ -42,7 +42,7 @@ void CLightingEnvironmentSettingsDialog::OnCbnSelchangeComboEnvironmentSkyboxTex
 		return;
 
 	ATVItemTexture* pATVItemTexture = reinterpret_cast<ATVItemTexture*>(m_comboEnvironmentSkyboxTexture.GetItemData(sel));
-	ze::Environment::GetInstance()->SetSkyboxCubeMap(pATVItemTexture->m_texture);
+	ze::RenderSettings::GetInstance()->SetSkybox(pATVItemTexture->m_texture);
 }
 
 void CLightingEnvironmentSettingsDialog::OnCbnDropdownComboEnvironmentSkyboxTexture()

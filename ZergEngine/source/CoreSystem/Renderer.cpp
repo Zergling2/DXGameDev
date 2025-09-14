@@ -1,5 +1,6 @@
 #include <ZergEngine\CoreSystem\Renderer.h>
 #include <ZergEngine\CoreSystem\GraphicDevice.h>
+#include <ZergEngine\CoreSystem\RenderSettings.h>
 #include <ZergEngine\CoreSystem\Math.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\DirectionalLightManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\PointLightManager.h>
@@ -8,7 +9,6 @@
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\MeshRendererManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\TerrainManager.h>
 #include <ZergEngine\CoreSystem\Manager\UIObjectManager.h>
-#include <ZergEngine\CoreSystem\Manager\EnvironmentManager.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Panel.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Button.h>
@@ -344,7 +344,7 @@ void Renderer::RenderFrame()
 		}
 
 		// 스카이박스 렌더링
-		ID3D11ShaderResourceView* pSkyboxCubeMap = Environment::GetInstance()->m_skyboxCubeMap.GetSRVComInterface();
+		ID3D11ShaderResourceView* pSkyboxCubeMap = RenderSettings::GetInstance()->m_skyboxCubeMap.GetSRVComInterface();
 		if (pSkyboxCubeMap)
 		{
 			pImmContext->OMSetDepthStencilState(m_pSkyboxDSS, 0);
@@ -716,7 +716,7 @@ void Renderer::RenderSkybox(ID3D11ShaderResourceView* pSkyboxCubeMapSRV)
 {
 	assert(pSkyboxCubeMapSRV != nullptr);
 
-	m_skyboxEffect.SetSkyboxCubeMap(pSkyboxCubeMapSRV);
+	m_skyboxEffect.SetSkybox(pSkyboxCubeMapSRV);
 
 	m_effectImmediateContext.Apply(&m_skyboxEffect);
 

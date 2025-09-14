@@ -285,9 +285,6 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\ResourceLoader.h">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\EnvironmentManager.h">
-      <Filter>Files\ZergEngine\CoreSystem\Manager</Filter>
-    </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\Random.h">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClInclude>
@@ -310,6 +307,9 @@
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\Cursor.h">
+      <Filter>Files\ZergEngine\CoreSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\RenderSettings.h">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClInclude>
   </ItemGroup>
@@ -518,9 +518,6 @@
     <ClCompile Include="source\CoreSystem\ResourceLoader.cpp">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClCompile>
-    <ClCompile Include="source\CoreSystem\Manager\EnvironmentManager.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\Manager</Filter>
-    </ClCompile>
     <ClCompile Include="source\CoreSystem\Random.cpp">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClCompile>
@@ -540,6 +537,9 @@
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\Cursor.cpp">
+      <Filter>Files\ZergEngine\CoreSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\RenderSettings.cpp">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClCompile>
   </ItemGroup>
