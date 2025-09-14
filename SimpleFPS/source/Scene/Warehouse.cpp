@@ -1051,9 +1051,10 @@ void Warehouse::OnLoadScene()
 
 
 	// TEST CODE
-	// WEAPONS
-
-	std::shared_ptr<Mesh> meshSTANAG30RdsMag = ResourceLoader::GetInstance()->LoadMesh(L"Resource\\Models\\Weapons\\Magazine\\STANAG\\STANAG30Rds.obj")[0];
+	// WEAPON
+	// 
+	// Primary weapon
+	std::shared_ptr<Mesh> meshSTANAG30Rds = ResourceLoader::GetInstance()->LoadMesh(L"Resource\\Models\\Weapons\\Magazine\\STANAG\\STANAG30Rds.obj")[0];
 	{
 		GameObjectHandle hPrimaryWeapon = CreateGameObject(L"Primary Weapon");
 		pFirstPersonMovement->m_hWeapons[0] = hPrimaryWeapon;	// 1번 슬롯
@@ -1066,19 +1067,19 @@ void Warehouse::OnLoadScene()
 		auto meshM16A1 = ResourceLoader::GetInstance()->LoadMesh(L"Resource\\Models\\Weapons\\M16A1\\M16A1.obj")[0];
 		pMeshRenderer->SetMesh(meshM16A1);
 		// 재질 설정
-		auto material0 = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&material0->m_ambient, Math::Vector3::OneHalf());
-		XMStoreFloat4A(&material0->m_diffuse, Math::Vector3::One());
-		XMStoreFloat4A(&material0->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.5f), 4.0f));
-		material0->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M16A1\\Textures\\M16A1Receiver_Diffuse.jpg");
+		auto matM16A1Receiver = ResourceLoader::GetInstance()->CreateMaterial();
+		XMStoreFloat4A(&matM16A1Receiver->m_ambient, Math::Vector3::OneHalf());
+		XMStoreFloat4A(&matM16A1Receiver->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.5f));
+		XMStoreFloat4A(&matM16A1Receiver->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.25f), 4.0f));
+		matM16A1Receiver->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M16A1\\Textures\\M16A1Receiver_Diffuse.jpg");
 
-		auto material1 = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&material1->m_ambient, Math::Vector3::OneHalf());
-		XMStoreFloat4A(&material1->m_diffuse, Math::Vector3::One());
-		XMStoreFloat4A(&material1->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.25f), 4.0f));
-		material1->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M16A1\\Textures\\M16A1Furniture_Diffuse.jpg");
-		pMeshRenderer->SetMaterial(0, material0);
-		pMeshRenderer->SetMaterial(1, material1);
+		auto matM16A1Furniture = ResourceLoader::GetInstance()->CreateMaterial();
+		XMStoreFloat4A(&matM16A1Furniture->m_ambient, Math::Vector3::OneHalf());
+		XMStoreFloat4A(&matM16A1Furniture->m_diffuse, Math::Vector3::One());
+		XMStoreFloat4A(&matM16A1Furniture->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.25f), 4.0f));
+		matM16A1Furniture->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M16A1\\Textures\\M16A1Furniture_Diffuse.jpg");
+		pMeshRenderer->SetMaterial(0, matM16A1Receiver);
+		pMeshRenderer->SetMaterial(1, matM16A1Furniture);
 
 		pPrimaryWeapon->m_transform.SetParent(&pMainCamera->m_transform);
 
@@ -1089,15 +1090,59 @@ void Warehouse::OnLoadScene()
 			ComponentHandle<MeshRenderer> hMeshRenderer = pPWMagazine->AddComponent<MeshRenderer>();
 			MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 			// 메시 설정
-			pMeshRenderer->SetMesh(meshSTANAG30RdsMag);
+			pMeshRenderer->SetMesh(meshSTANAG30Rds);
 			// 재질 설정
-			auto material0 = ResourceLoader::GetInstance()->CreateMaterial();
-			XMStoreFloat4A(&material0->m_ambient, XMVectorScale(Math::Vector3::One(), 0.15f));
-			XMStoreFloat4A(&material0->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.2f));
-			XMStoreFloat4A(&material0->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.9f), 2.0f));
-			pMeshRenderer->SetMaterial(0, material0);
+			auto matSTANAG30Rds = ResourceLoader::GetInstance()->CreateMaterial();
+			XMStoreFloat4A(&matSTANAG30Rds->m_ambient, XMVectorScale(Math::Vector3::One(), 0.15f));
+			XMStoreFloat4A(&matSTANAG30Rds->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.2f));
+			XMStoreFloat4A(&matSTANAG30Rds->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.9f), 2.0f));
+			pMeshRenderer->SetMaterial(0, matSTANAG30Rds);
 
 			pPWMagazine->m_transform.SetParent(&pPrimaryWeapon->m_transform);
+		}
+	}
+
+	// Secondary weapon
+	{
+		GameObjectHandle hSecondaryWeapon = CreateGameObject(L"Secondary Weapon");
+		pFirstPersonMovement->m_hWeapons[1] = hSecondaryWeapon;		// 4번 슬롯
+
+		GameObject* pSecondaryWeapon = hSecondaryWeapon.ToPtr();
+		pSecondaryWeapon->SetActive(false);	// 안보이게 비활성화 상태로 초기화
+		pSecondaryWeapon->m_transform.SetPosition(XMVectorSet(0.12f, -0.18f, 0.32f, 0.0f));
+		ComponentHandle<MeshRenderer> hMeshRenderer = pSecondaryWeapon->AddComponent<MeshRenderer>();
+		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+		// 메시 설정
+		auto meshM9A1 = ResourceLoader::GetInstance()->LoadMesh(L"Resource\\Models\\Weapons\\M9A1\\M9A1.obj")[0];
+		pMeshRenderer->SetMesh(meshM9A1);
+		// 재질 설정
+		auto matM9A1 = ResourceLoader::GetInstance()->CreateMaterial();
+		XMStoreFloat4A(&matM9A1->m_ambient, XMVectorScale(Math::Vector3::One(), 0.5f));
+		XMStoreFloat4A(&matM9A1->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.5f));
+		XMStoreFloat4A(&matM9A1->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.25f), 4.0f));
+		matM9A1->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M9A1\\Textures\\M9A1_Base_Color.png");
+		pMeshRenderer->SetMaterial(0, matM9A1);
+
+		pSecondaryWeapon->m_transform.SetParent(&pMainCamera->m_transform);
+
+		{
+			GameObjectHandle hWeaponLight = CreateGameObject(L"Weapon Light");
+			GameObject* pWeaponLight = hWeaponLight.ToPtr();
+			pWeaponLight->m_transform.SetPosition(XMVectorSet(0.0f, -0.004f, 0.028f, 0.0f));
+			ComponentHandle<MeshRenderer> hMeshRenderer = pWeaponLight->AddComponent<MeshRenderer>();
+			MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+			// 메시 설정
+			auto meshX300U = ResourceLoader::GetInstance()->LoadMesh(L"Resource\\Models\\Weapons\\X300U\\X300U.obj")[0];
+			pMeshRenderer->SetMesh(meshX300U);
+			// 재질 설정
+			auto matX300U = ResourceLoader::GetInstance()->CreateMaterial();
+			XMStoreFloat4A(&matX300U->m_ambient, XMVectorScale(Math::Vector3::One(), 0.75f));
+			XMStoreFloat4A(&matX300U->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.75f));
+			XMStoreFloat4A(&matX300U->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.25f), 4.0f));
+			matX300U->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\X300U\\Textures\\Body_Black_albedo.jpg");
+			pMeshRenderer->SetMaterial(0, matX300U);
+
+			pWeaponLight->m_transform.SetParent(&pSecondaryWeapon->m_transform);
 		}
 	}
 

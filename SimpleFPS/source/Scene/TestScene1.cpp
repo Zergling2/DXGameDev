@@ -320,7 +320,7 @@ void TestScene1::OnLoadScene()
 
 	{
 		GameObjectHandle hSecondaryWeapon = CreateGameObject(L"Secondary Weapon");
-		hFirstPersonMovement.ToPtr()->m_hWeapons[3] = hSecondaryWeapon;		// 4번 슬롯
+		hFirstPersonMovement.ToPtr()->m_hWeapons[3] = hSecondaryWeapon;		// 2번 슬롯
 
 		GameObject* pSecondaryWeapon = hSecondaryWeapon.ToPtr();
 		pSecondaryWeapon->SetActive(false);	// 안보이게 비활성화 상태로 초기화

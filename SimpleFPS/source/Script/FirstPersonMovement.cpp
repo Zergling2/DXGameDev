@@ -64,11 +64,16 @@ void FirstPersonMovement::Update()
 
 	if (weaponChange)
 	{
-		m_hWeapons[0].ToPtr()->SetActive(false);
-		m_hWeapons[1].ToPtr()->SetActive(false);
-		m_hWeapons[2].ToPtr()->SetActive(false);
-		m_hWeapons[3].ToPtr()->SetActive(false);
-		m_hWeapons[weaponIndex].ToPtr()->SetActive(true);
+		for (size_t i = 0; i < _countof(m_hWeapons); ++i)
+		{
+			GameObject* pWeapon = m_hWeapons[i].ToPtr();
+			if (pWeapon)
+				pWeapon->SetActive(false);
+		}
+
+		GameObject* pCurrWeapon = m_hWeapons[weaponIndex].ToPtr();
+		if (pCurrWeapon)
+			pCurrWeapon->SetActive(true);
 	}
 }
 
