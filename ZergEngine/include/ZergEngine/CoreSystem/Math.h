@@ -32,6 +32,9 @@ namespace ze
 
 			// 0.5f, 0.5f, 0.5f, 0.5f
 			static XMVECTOR OneHalf() { return g_XMOneHalf; }
+
+			// 0.0f, 0.0f, 0.0f, 0.0f
+			static XMVECTOR Zero() { return g_XMZero; }
 		};
 
 		template<typename T>

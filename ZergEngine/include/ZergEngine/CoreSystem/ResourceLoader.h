@@ -141,7 +141,7 @@ namespace ze
 		void Init();
 		void UnInit();
 	public:
-		std::vector<std::shared_ptr<Mesh>> LoadMesh(PCSTR path);
+		std::vector<std::shared_ptr<Mesh>> LoadMesh(PCWSTR path);
 
 		// Wavefront OBJ 포맷은 단일 obj 파일에 여러 개의 메시를 포함할 수 있습니다.
 		std::vector<std::shared_ptr<Mesh>> LoadWavefrontOBJ(PCWSTR path);

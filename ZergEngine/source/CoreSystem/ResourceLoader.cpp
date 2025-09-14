@@ -187,13 +187,14 @@ void ResourceLoader::DFSAiNodeLoadMesh(std::vector<std::shared_ptr<Mesh>>& meshe
 	}
 }
 
-std::vector<std::shared_ptr<Mesh>> ResourceLoader::LoadMesh(PCSTR path)
+std::vector<std::shared_ptr<Mesh>> ResourceLoader::LoadMesh(PCWSTR path)
 {
 	std::vector<std::shared_ptr<Mesh>> meshes;
 
 	Assimp::Importer aiImporter;
-
-	const aiScene* pAiScene = aiImporter.ReadFile(path, 
+	CHAR utf8Path[MAX_PATH];
+	Helper::ConvertUTF16ToUTF8(path, utf8Path, sizeof(utf8Path));
+	const aiScene* pAiScene = aiImporter.ReadFile(utf8Path, 
 		aiProcessPreset_TargetRealtime_Fast |
 		aiProcess_ConvertToLeftHanded |
 		aiProcess_GenBoundingBoxes

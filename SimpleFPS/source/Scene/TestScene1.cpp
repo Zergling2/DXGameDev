@@ -10,17 +10,17 @@ void TestScene1::OnLoadScene()
 {
 	std::vector<std::shared_ptr<Mesh>> meshes;
 
-	UIObjectHandle hCrosshair = CreateImage();
-	Image* pCrosshair = static_cast<Image*>(hCrosshair.ToPtr());
-	pCrosshair->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Sprite\\ch.dds"));
-	pCrosshair->SetNativeSize(true);
-	pCrosshair->m_transform.SetHorizontalAnchor(HORIZONTAL_ANCHOR::CENTER);
-	pCrosshair->m_transform.SetVerticalAnchor(VERTICAL_ANCHOR::VCENTER);
-
 	{
+		UIObjectHandle hCrosshair = CreateImage();
+		Image* pCrosshair = static_cast<Image*>(hCrosshair.ToPtr());
+		pCrosshair->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Sprites\\ch.dds"));
+		pCrosshair->SetNativeSize(true);
+		pCrosshair->m_transform.SetHorizontalAnchor(HORIZONTAL_ANCHOR::CENTER);
+		pCrosshair->m_transform.SetVerticalAnchor(VERTICAL_ANCHOR::VCENTER);
+
 		UIObjectHandle hHealthBgr = CreateImage();
 		Image* pHealthBgr = static_cast<Image*>(hHealthBgr.ToPtr());
-		pHealthBgr->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Sprite\\Health.png"));
+		pHealthBgr->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Sprites\\Health.png"));
 		pHealthBgr->SetNativeSize(true);
 		pHealthBgr->m_transform.m_position.x = pHealthBgr->GetHalfSize().x + 4;
 		pHealthBgr->m_transform.m_position.y = pHealthBgr->GetHalfSize().y + 4;
@@ -29,7 +29,7 @@ void TestScene1::OnLoadScene()
 
 		UIObjectHandle hWeaponIndicatorBgr = CreateImage();
 		Image* pWeaponIndicatorBgr = static_cast<Image*>(hWeaponIndicatorBgr.ToPtr());
-		pWeaponIndicatorBgr->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Sprite\\WeaponIndicator.png"));
+		pWeaponIndicatorBgr->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Sprites\\WeaponIndicator.png"));
 		pWeaponIndicatorBgr->SetNativeSize(true);
 		pWeaponIndicatorBgr->m_transform.m_position.x = -pWeaponIndicatorBgr->GetHalfSize().x - 4;
 		pWeaponIndicatorBgr->m_transform.m_position.y = pWeaponIndicatorBgr->GetHalfSize().y + 4;
@@ -166,7 +166,7 @@ void TestScene1::OnLoadScene()
 		ComponentHandle<MeshRenderer> hRifleMeshRenderer = pPrimaryWeapon->AddComponent<MeshRenderer>();
 		MeshRenderer* pMeshRenderer = hRifleMeshRenderer.ToPtr();
 		// 메시 설정
-		meshes = ResourceLoader::GetInstance()->LoadMesh(u8"Resource\\Models\\Weapons\\M16A1\\M16A1.obj");
+		meshes = ResourceLoader::GetInstance()->LoadMesh(L"Resource\\Models\\Weapons\\M16A1\\M16A1.obj");
 		pMeshRenderer->SetMesh(meshes[0]);
 		// 재질 설정
 		auto material0 = ResourceLoader::GetInstance()->CreateMaterial();
@@ -192,7 +192,7 @@ void TestScene1::OnLoadScene()
 			ComponentHandle<MeshRenderer> hMeshRenderer = pPWMagazine->AddComponent<MeshRenderer>();
 			MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 			// 메시 설정
-			meshes = ResourceLoader::GetInstance()->LoadMesh(u8"Resource\\Models\\Weapons\\Magazine\\STANAG\\STANAG30Rds.obj");
+			meshes = ResourceLoader::GetInstance()->LoadMesh(L"Resource\\Models\\Weapons\\Magazine\\STANAG\\STANAG30Rds.obj");
 			pMeshRenderer->SetMesh(meshes[0]);
 			// 재질 설정
 			auto material0 = ResourceLoader::GetInstance()->CreateMaterial();
@@ -215,7 +215,7 @@ void TestScene1::OnLoadScene()
 		ComponentHandle<MeshRenderer> hMeshRenderer = pPrimaryWeapon->AddComponent<MeshRenderer>();
 		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 		// 메시 설정
-		meshes = ResourceLoader::GetInstance()->LoadMesh(u8"Resource\\Models\\Weapons\\M4A1\\M4A1.obj");
+		meshes = ResourceLoader::GetInstance()->LoadMesh(L"Resource\\Models\\Weapons\\M4A1\\M4A1.obj");
 		pMeshRenderer->SetMesh(meshes[0]);
 		// 재질 설정
 		auto material0 = ResourceLoader::GetInstance()->CreateMaterial();
@@ -234,7 +234,7 @@ void TestScene1::OnLoadScene()
 			ComponentHandle<MeshRenderer> hMeshRenderer = pRearSight->AddComponent<MeshRenderer>();
 			MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 			// 메시 설정
-			meshes = ResourceLoader::GetInstance()->LoadMesh(u8"Resource\\Models\\Weapons\\Sights\\KACRearSight\\KACRearSight.obj");
+			meshes = ResourceLoader::GetInstance()->LoadMesh(L"Resource\\Models\\Weapons\\Sights\\KACRearSight\\KACRearSight.obj");
 			pMeshRenderer->SetMesh(meshes[0]);
 			// 재질 설정
 			auto material0 = ResourceLoader::GetInstance()->CreateMaterial();
@@ -254,7 +254,7 @@ void TestScene1::OnLoadScene()
 			ComponentHandle<MeshRenderer> hMeshRenderer = pPWMagazine->AddComponent<MeshRenderer>();
 			MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 			// 메시 설정
-			meshes = ResourceLoader::GetInstance()->LoadMesh(u8"Resource\\Models\\Weapons\\Magazine\\STANAG\\STANAG30Rds.obj");
+			meshes = ResourceLoader::GetInstance()->LoadMesh(L"Resource\\Models\\Weapons\\Magazine\\STANAG\\STANAG30Rds.obj");
 			pMeshRenderer->SetMesh(meshes[0]);
 			// 재질 설정
 			auto material0 = ResourceLoader::GetInstance()->CreateMaterial();
@@ -277,7 +277,7 @@ void TestScene1::OnLoadScene()
 		ComponentHandle<MeshRenderer> hMeshRenderer = pPrimaryWeapon->AddComponent<MeshRenderer>();
 		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 		// 메시 설정
-		meshes = ResourceLoader::GetInstance()->LoadMesh(u8"Resource\\Models\\Weapons\\AKM\\AKM.obj");
+		meshes = ResourceLoader::GetInstance()->LoadMesh(L"Resource\\Models\\Weapons\\AKM\\AKM.obj");
 		pMeshRenderer->SetMesh(meshes[0]);
 		// 재질 설정
 		auto matReceiver = ResourceLoader::GetInstance()->CreateMaterial();
@@ -303,7 +303,7 @@ void TestScene1::OnLoadScene()
 			ComponentHandle<MeshRenderer> hMeshRenderer = pPWMagazine->AddComponent<MeshRenderer>();
 			MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 			// 메시 설정
-			meshes = ResourceLoader::GetInstance()->LoadMesh(u8"Resource\\Models\\Weapons\\Magazine\\Bakelite\\BakeliteMag30Rds.obj");
+			meshes = ResourceLoader::GetInstance()->LoadMesh(L"Resource\\Models\\Weapons\\Magazine\\Bakelite\\BakeliteMag30Rds.obj");
 			pMeshRenderer->SetMesh(meshes[0]);
 			// 재질 설정
 			auto matMagazine = ResourceLoader::GetInstance()->CreateMaterial();
@@ -328,7 +328,7 @@ void TestScene1::OnLoadScene()
 		ComponentHandle<MeshRenderer> hMeshRenderer = pSecondaryWeapon->AddComponent<MeshRenderer>();
 		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 		// 메시 설정
-		meshes = ResourceLoader::GetInstance()->LoadMesh(u8"Resource\\Models\\Weapons\\M9A1\\M9A1.obj");
+		meshes = ResourceLoader::GetInstance()->LoadMesh(L"Resource\\Models\\Weapons\\M9A1\\M9A1.obj");
 		pMeshRenderer->SetMesh(meshes[0]);
 		// 재질 설정
 		auto material0 = ResourceLoader::GetInstance()->CreateMaterial();
@@ -347,7 +347,7 @@ void TestScene1::OnLoadScene()
 			ComponentHandle<MeshRenderer> hMeshRenderer = pWeaponLight->AddComponent<MeshRenderer>();
 			MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 			// 메시 설정
-			meshes = ResourceLoader::GetInstance()->LoadMesh(u8"Resource\\Models\\Weapons\\X300U\\X300U.obj");
+			meshes = ResourceLoader::GetInstance()->LoadMesh(L"Resource\\Models\\Weapons\\X300U\\X300U.obj");
 			pMeshRenderer->SetMesh(meshes[0]);
 			// 재질 설정
 			auto material0 = ResourceLoader::GetInstance()->CreateMaterial();
@@ -392,7 +392,7 @@ void TestScene1::OnLoadScene()
 		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 
 		// meshes = ResourceLoader::GetInstance()->LoadWavefrontOBJ(L"Resource\\Models\\test\\cube_pt.obj");
-		meshes = ResourceLoader::GetInstance()->LoadMesh(u8"Resource\\Models\\test\\cube_pt.obj");
+		meshes = ResourceLoader::GetInstance()->LoadMesh(L"Resource\\Models\\test\\cube_pt.obj");
 		pMeshRenderer->SetMesh(meshes[0]);
 
 		auto material = ResourceLoader::GetInstance()->CreateMaterial();
@@ -413,7 +413,7 @@ void TestScene1::OnLoadScene()
 		ComponentHandle<MeshRenderer> hMeshRenderer = pContainer->AddComponent<MeshRenderer>();
 		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 
-		meshes = ResourceLoader::GetInstance()->LoadMesh(u8"Resource\\Models\\Props\\OpenContainer\\OpenContainer.obj");
+		meshes = ResourceLoader::GetInstance()->LoadMesh(L"Resource\\Models\\Props\\OpenContainer\\OpenContainer2.obj");
 		pMeshRenderer->SetMesh(meshes[0]);
 
 		auto material = ResourceLoader::GetInstance()->CreateMaterial();
@@ -433,7 +433,7 @@ void TestScene1::OnLoadScene()
 		ComponentHandle<MeshRenderer> hMeshRenderer = pContainer->AddComponent<MeshRenderer>();
 		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 
-		meshes = ResourceLoader::GetInstance()->LoadMesh(u8"Resource\\Models\\Props\\ClosedContainer\\ClosedContainer.obj");
+		meshes = ResourceLoader::GetInstance()->LoadMesh(L"Resource\\Models\\Props\\ClosedContainer\\ClosedContainer.obj");
 		pMeshRenderer->SetMesh(meshes[0]);
 
 		auto material = ResourceLoader::GetInstance()->CreateMaterial();
@@ -454,7 +454,7 @@ void TestScene1::OnLoadScene()
 		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 
 		// meshes = ResourceLoader::GetInstance()->LoadWavefrontOBJ(L"Resource\\Maps\\mart\\wall1.obj");
-		meshes = ResourceLoader::GetInstance()->LoadMesh(u8"Resource\\Maps\\mart\\wall1.obj");
+		meshes = ResourceLoader::GetInstance()->LoadMesh(L"Resource\\Maps\\mart\\wall1.obj");
 		pMeshRenderer->SetMesh(meshes[0]);
 
 		auto material = ResourceLoader::GetInstance()->CreateMaterial();
