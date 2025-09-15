@@ -1,8 +1,8 @@
 #pragma once
 
-#include <ZergEngine\Common\ThirdPartySDK.h>
-#include <ZergEngine\Common\EngineConstants.h>
+#include <ZergEngine\CoreSystem\Platform.h>
 #include <ZergEngine\CoreSystem\DataStructure\Frustum.h>
+#include <ZergEngine\CoreSystem\EngineConstants.h>
 
 #define hlslstruct struct alignas(16)
 #define HLSLPad float
@@ -13,18 +13,18 @@ namespace ze
 	{
 	public:
 		IConstantBuffer()
-			: m_pConstantBuffer(nullptr)
+			: m_cpBuffer()
 		{
 		}
-		virtual ~IConstantBuffer();
+		virtual ~IConstantBuffer() = default;
 
 		void Release();
-		ID3D11Buffer* GetComInterface() const { return m_pConstantBuffer; }
+		ID3D11Buffer* GetComInterface() const { return m_cpBuffer.Get(); }
 	protected:
 		void InitImpl(ID3D11Device* pDevice, size_t bufferSize);
 		void UpdateImpl(ID3D11DeviceContext* pDeviceContext, const void* pData, size_t size);
 	protected:
-		ID3D11Buffer* m_pConstantBuffer;
+		ComPtr<ID3D11Buffer> m_cpBuffer;
 	};
 
 	template<typename T>

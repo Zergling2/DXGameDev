@@ -2,6 +2,7 @@
 
 #include <ZergEngine\CoreSystem\GamePlayBase\Handle.h>
 #include <ZergEngine\CoreSystem\SlimRWLock.h>
+#include <vector>
 
 namespace ze
 {
@@ -37,6 +38,7 @@ namespace ze
 		SlimRWLock m_lock;
 		std::vector<IComponent*> m_destroyed;
 		std::vector<IComponent*> m_directAccessGroup;
+		std::vector<uint32_t> m_emptyHandleTableIndex;
 		std::vector<IComponent*> m_handleTable;
 	};
 }

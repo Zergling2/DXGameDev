@@ -1,4 +1,4 @@
-#include <ZergEngine\CoreSystem\DeviceContext\EffectDeviceContext.h>
+#include <ZergEngine\CoreSystem\RenderContext\EffectDeviceContext.h>
 #include <ZergEngine\CoreSystem\Effect\DummyEffect.h>
 
 using namespace ze;

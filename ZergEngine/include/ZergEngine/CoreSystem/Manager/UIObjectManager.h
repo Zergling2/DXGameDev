@@ -4,8 +4,6 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\Handle.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\UIObjectInterface.h>
 
-#define THREADSAFE
-
 namespace ze
 {
 	class IUIObject;
@@ -44,7 +42,7 @@ namespace ze
 
 		IUIObject* ToPtr(uint32_t tableIndex, uint64_t id) const;
 
-		UIObjectHandle THREADSAFE RegisterToHandleTable(IUIObject* pUIObject);
+		UIObjectHandle RegisterToHandleTable(IUIObject* pUIObject);
 		void AddToDestroyQueue(IUIObject* pUIObject);
 		UIObjectHandle FindUIObject(PCWSTR name);
 
@@ -97,6 +95,7 @@ namespace ze
 		std::vector<IUIObject*> m_roots;			// 루트 UI 오브젝트들 포인터 (렌더링 시 루트부터 렌더링하기 위해서 필요)
 		std::vector<IUIObject*> m_activeGroup;		// 검색 시 전체 테이블을 순회할 필요 제거
 		std::vector<IUIObject*> m_inactiveGroup;	// 비활성화된 오브젝트들 (검색 대상에서 제외)
+		std::vector<uint32_t> m_emptyHandleTableIndex;
 		std::vector<IUIObject*> m_handleTable;
 		IUIObject* m_pLButtonDownObject;
 		IUIObject* m_pMButtonDownObject;

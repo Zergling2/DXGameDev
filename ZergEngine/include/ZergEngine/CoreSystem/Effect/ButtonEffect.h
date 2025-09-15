@@ -2,6 +2,7 @@
 
 #include <ZergEngine\CoreSystem\Effect\EffectInterface.h>
 #include <ZergEngine\CoreSystem\ShaderResource\ConstantBuffer.h>
+#include <string>
 
 namespace ze
 {

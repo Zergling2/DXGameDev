@@ -25,3 +25,13 @@ SceneFactory SceneTable::GetItem(PCWSTR sceneName)
 	else
 		return result->second;
 }
+
+void SceneTable::DestroySceneTable()
+{
+	if (s_pSceneTable)
+	{
+		delete s_pSceneTable;
+
+		s_pSceneTable = nullptr;
+	}
+}

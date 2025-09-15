@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ZergEngine\Common\DisplayMode.h>
+#include <ZergEngine\CoreSystem\DisplayMode.h>
 #include <ZergEngine\CoreSystem\Window.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Handle.h>
 

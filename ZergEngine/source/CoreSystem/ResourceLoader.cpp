@@ -5,6 +5,7 @@
 #include <ZergEngine\CoreSystem\DataStructure\RawVector.h>
 #include <ZergEngine\CoreSystem\Resource\Mesh.h>
 #include <ZergEngine\CoreSystem\Resource\Material.h>
+#include <ZergEngine\CoreSystem\Helper.h>
 #include <DirectXTex\DirectXTex.h>
 #include <assimp\Importer.hpp>
 #include <assimp\scene.h>
@@ -88,6 +89,7 @@ void ResourceLoader::DFSAiNodeLoadMesh(std::vector<std::shared_ptr<Mesh>>& meshe
 			XMStoreFloat3(&aabb.Extents, XMVectorScale(XMVectorAbs(XMVectorSubtract(max, min)), 0.5f));
 			Aabb::CreateMerged(finalAabb, finalAabb, aabb);
 
+			// 정점 정보 읽기
 			for (unsigned int v = 0; v < pAiMesh->mNumVertices; ++v)
 			{
 				VFPositionNormalTexCoord vertex;		// TEST
@@ -175,7 +177,7 @@ void ResourceLoader::DFSAiNodeLoadMesh(std::vector<std::shared_ptr<Mesh>>& meshe
 		mesh->m_cpVB = std::move(cpVB);
 		mesh->m_cpIB = std::move(cpIB);
 
-		// 3. VFT
+		// 3. Vertex Format Type 설정
 		mesh->m_vft = VertexFormatType::PositionNormalTexCoord;	// TEST
 
 		meshes.push_back(std::move(mesh));
@@ -231,8 +233,6 @@ std::vector<std::shared_ptr<Mesh>> ResourceLoader::LoadWavefrontOBJ(PCWSTR path)
 		if (e != 0)
 			Debug::ForceCrashWithMessageBox(L"Error", L"Failed to open mesh file.\n%s", path);
 
-		Helper::AutoCRTFileCloser afc(pMeshFile);
-
 		// Wavefront OBJ parsing
 		WCHAR line[MAX_LINE_LENGTH];
 		PWSTR nextToken = nullptr;
@@ -260,6 +260,9 @@ std::vector<std::shared_ptr<Mesh>> ResourceLoader::LoadWavefrontOBJ(PCWSTR path)
 			}
 		}
 	} while (false);
+
+	if (pMeshFile)
+		fclose(pMeshFile);
 
 	return meshes;
 }
@@ -631,7 +634,7 @@ bool ResourceLoader::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, Verte
 		}
 		assert(stride != 0);
 
-		XMVECTOR min = XMVectorReplicate(std::numeric_limits<FLOAT>::max());
+		XMVECTOR min = XMVectorReplicate((std::numeric_limits<FLOAT>::max)());
 		XMVECTOR max = XMVectorReplicate(std::numeric_limits<FLOAT>::lowest());
 
 		intptr_t cursor = reinterpret_cast<intptr_t>(tempVB.Data());

@@ -1,6 +1,7 @@
 #pragma once
 
-#include <ZergEngine\Common\EngineConstants.h>
+#include <ZergEngine\CoreSystem\EngineConstants.h>
+#include <ZergEngine\CoreSystem\Platform.h>
 
 namespace ze
 {

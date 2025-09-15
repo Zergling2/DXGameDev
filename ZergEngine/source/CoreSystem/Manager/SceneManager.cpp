@@ -43,6 +43,8 @@ void SceneManager::UnInit()
 {
 	// safe cleanup...
 	Helper::SafeDelete(m_pNextScene);
+
+	SceneTable::DestroySceneTable();
 }
 
 bool SceneManager::LoadScene(PCWSTR sceneName)

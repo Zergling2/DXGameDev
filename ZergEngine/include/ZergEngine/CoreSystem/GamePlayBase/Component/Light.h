@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\ComponentInterface.h>
+#include <ZergEngine\CoreSystem\Platform.h>
 
 namespace ze
 {

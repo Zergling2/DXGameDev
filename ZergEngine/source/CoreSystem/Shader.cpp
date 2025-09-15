@@ -15,7 +15,7 @@ void VertexShader::Init(ID3D11Device* pDevice, const byte* pShaderByteCode, size
 		pShaderByteCode,
 		shaderByteCodeSize,
 		nullptr,
-		&m_pShader
+		m_cpShader.GetAddressOf()
 	);
 
 	if (FAILED(hr))
@@ -24,7 +24,7 @@ void VertexShader::Init(ID3D11Device* pDevice, const byte* pShaderByteCode, size
 
 void VertexShader::Release()
 {
-	Helper::SafeReleaseCom(m_pShader);
+	m_cpShader.Reset();
 }
 
 void HullShader::Init(ID3D11Device* pDevice, const byte* pShaderByteCode, size_t shaderByteCodeSize)
@@ -37,7 +37,7 @@ void HullShader::Init(ID3D11Device* pDevice, const byte* pShaderByteCode, size_t
 		pShaderByteCode,
 		shaderByteCodeSize,
 		nullptr,
-		&m_pShader
+		m_cpShader.GetAddressOf()
 	);
 
 	if (FAILED(hr))
@@ -46,7 +46,7 @@ void HullShader::Init(ID3D11Device* pDevice, const byte* pShaderByteCode, size_t
 
 void HullShader::Release()
 {
-	Helper::SafeReleaseCom(m_pShader);
+	m_cpShader.Reset();
 }
 
 void DomainShader::Init(ID3D11Device* pDevice, const byte* pShaderByteCode, size_t shaderByteCodeSize)
@@ -59,7 +59,7 @@ void DomainShader::Init(ID3D11Device* pDevice, const byte* pShaderByteCode, size
 		pShaderByteCode,
 		shaderByteCodeSize,
 		nullptr,
-		&m_pShader
+		m_cpShader.GetAddressOf()
 	);
 
 	if (FAILED(hr))
@@ -68,7 +68,7 @@ void DomainShader::Init(ID3D11Device* pDevice, const byte* pShaderByteCode, size
 
 void DomainShader::Release()
 {
-	Helper::SafeReleaseCom(m_pShader);
+	m_cpShader.Reset();
 }
 
 void PixelShader::Init(ID3D11Device* pDevice, const byte* pShaderByteCode, size_t shaderByteCodeSize)
@@ -81,7 +81,7 @@ void PixelShader::Init(ID3D11Device* pDevice, const byte* pShaderByteCode, size_
 		pShaderByteCode,
 		shaderByteCodeSize,
 		nullptr,
-		&m_pShader
+		m_cpShader.GetAddressOf()
 	);
 
 	if (FAILED(hr))
@@ -90,5 +90,5 @@ void PixelShader::Init(ID3D11Device* pDevice, const byte* pShaderByteCode, size_
 
 void PixelShader::Release()
 {
-	Helper::SafeReleaseCom(m_pShader);
+	m_cpShader.Reset();
 }

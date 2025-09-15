@@ -5,7 +5,7 @@ using namespace ze;
 
 MonoBehaviour::MonoBehaviour()
 	: IComponent(MonoBehaviourManager::GetInstance()->AssignUniqueId())
-	, m_startingQueueIndex(std::numeric_limits<uint32_t>::max())
+	, m_startingQueueIndex((std::numeric_limits<uint32_t>::max)())
 {
 }
 

@@ -1,17 +1,9 @@
-#include <ZergEngine\Common\EngineHelper.h>
+#include <ZergEngine\CoreSystem\Helper.h>
+#include <vector>
 
 using namespace ze;
 
-void Helper::SafeCloseWinThreadHandle(HANDLE& handle)
-{
-	if (handle != NULL)
-	{
-		CloseHandle(handle);
-		handle = NULL;
-	}
-}
-
-int Helper::ConvertUTF8ToUTF16(PCSTR utf8Str, WCHAR* pBuffer, size_t cchWideChar)
+int Helper::ConvertUTF8ToUTF16(const char* utf8Str, wchar_t* pBuffer, size_t cchWideChar)
 {
 	if (!utf8Str || !pBuffer || cchWideChar == 0)
 		return 0;
@@ -25,7 +17,7 @@ int Helper::ConvertUTF8ToUTF16(PCSTR utf8Str, WCHAR* pBuffer, size_t cchWideChar
 		0			// 필요 사이즈를 얻기 위해서
 	);
 
-	std::vector<wchar_t> tb(cchRequired);
+	std::vector<WCHAR> tb(cchRequired);
 
 	int result = MultiByteToWideChar(
 		CP_UTF8,
@@ -42,7 +34,7 @@ int Helper::ConvertUTF8ToUTF16(PCSTR utf8Str, WCHAR* pBuffer, size_t cchWideChar
 	return result;
 }
 
-int Helper::ConvertUTF16ToUTF8(PCWSTR utf16Str, CHAR* pBuffer, size_t cbMultiByte)
+int Helper::ConvertUTF16ToUTF8(const wchar_t* utf16Str, char* pBuffer, size_t cbMultiByte)
 {
 	if (!utf16Str || !pBuffer || cbMultiByte == 0)
 		return 0;
@@ -58,7 +50,7 @@ int Helper::ConvertUTF16ToUTF8(PCWSTR utf16Str, CHAR* pBuffer, size_t cbMultiByt
 		NULL		// CP_UTF8을 사용하면 반드시 NULL을 전달해야 함.
 	);
 
-	std::vector<char> tb(cbRequired);
+	std::vector<CHAR> tb(cbRequired);
 
 	int result = WideCharToMultiByte(
 		CP_UTF8,
@@ -75,13 +67,4 @@ int Helper::ConvertUTF16ToUTF8(PCWSTR utf16Str, CHAR* pBuffer, size_t cbMultiByt
 		StringCbCopyA(pBuffer, cbMultiByte, tb.data());
 
 	return result;
-}
-
-void Helper::AutoCRTFileCloser::Close()
-{
-	if (m_pFile != nullptr)
-	{
-		fclose(m_pFile);
-		m_pFile = nullptr;
-	}
 }

@@ -5,12 +5,15 @@ using namespace ze;
 
 GameObjectManager* GameObjectManager::s_pInstance = nullptr;
 
+static constexpr size_t HANDLE_TABLE_INIT_SIZE = 8192;
+
 GameObjectManager::GameObjectManager()
 	: m_uniqueId(0)
 	, m_lock()
 	, m_activeGroup()
 	, m_inactiveGroup()
-	, m_handleTable(8192, nullptr)
+	, m_emptyHandleTableIndex(HANDLE_TABLE_INIT_SIZE)	// 단편화를 최소화하기 위해서 최초에 핸들 테이블의 사이즈와 동일한 개수만큼 인덱스 버퍼를 할당한다.
+	, m_handleTable(HANDLE_TABLE_INIT_SIZE, nullptr)
 	, m_destroyed()
 {
 	m_lock.Init();
@@ -38,6 +41,11 @@ void GameObjectManager::DestroyInstance()
 void GameObjectManager::Init()
 {
 	m_uniqueId = 0;
+
+	// 벡터를 스택처럼 사용할 것이므로 가장 밑에 높은 인덱스를 넣어두어 0번 인덱스부터 사용할 수 있도록 한다.
+	const size_t handleTableEndIndex = m_handleTable.size() - 1;
+	for (size_t i = 0; i < m_emptyHandleTableIndex.size() - 1; ++i)
+		m_emptyHandleTableIndex[i] = static_cast<uint32_t>(handleTableEndIndex - i);
 }
 
 void GameObjectManager::UnInit()
@@ -115,6 +123,13 @@ void GameObjectManager::RequestDestroy(GameObject* pGameObject)
 
 GameObject* GameObjectManager::ToPtr(uint32_t tableIndex, uint64_t id) const
 {
+	// ※ 비동기 씬 로드 지원 시 고려해야 할 사항
+	// 가변 길이 테이블을 지원하려면 ToPtr에서 락을 걸어야 한다.
+	// (비동기 로드 씬으로 인해서 ToPtr 도중에 핸들 테이블의 주소가 바뀌어버릴 수 있으므로.)
+	// 고정 길이 테이블을 사용하면 락을 걸지 않아도 되나, 런타임에 오브젝트의 개수가 제한된다는 점이 아쉬워진다.
+
+	// 현재는 Thread unsafe 상태.
+
 	assert(tableIndex < GameObjectManager::GetInstance()->m_handleTable.size());
 
 	GameObject* pGameObject = GameObjectManager::GetInstance()->m_handleTable[tableIndex];
@@ -125,39 +140,37 @@ GameObject* GameObjectManager::ToPtr(uint32_t tableIndex, uint64_t id) const
 		return pGameObject;
 }
 
-GameObjectHandle THREADSAFE GameObjectManager::RegisterToHandleTable(GameObject* pGameObject)
+GameObjectHandle GameObjectManager::RegisterToHandleTable(GameObject* pGameObject)
 {
+	assert(pGameObject->m_tableIndex == (std::numeric_limits<uint32_t>::max)());
+	assert(pGameObject->m_groupIndex == (std::numeric_limits<uint32_t>::max)());
+
 	GameObjectHandle hGameObject;
 
-	// Auto Exclusive Lock
-	AutoAcquireSlimRWLockExclusive autolock(m_lock);
-	
-	// 테이블에 등록
-	// 빈 자리 검색
-	uint32_t emptyIndex;
-	bool find = false;
-	const uint32_t tableSize = static_cast<uint32_t>(m_handleTable.size());
-	for (uint32_t i = 0; i < tableSize; ++i)
 	{
-		if (m_handleTable[i] == nullptr)
+		// Auto Exclusive Lock
+		AutoAcquireSlimRWLockExclusive autolock(m_lock);
+
+		// 핸들 테이블의 빈 자리를 검색
+		uint32_t emptyIndex;
+		const size_t ehtIdxSize = m_emptyHandleTableIndex.size();
+		if (ehtIdxSize > 0)
 		{
-			emptyIndex = i;
-			find = true;
-			break;
+			emptyIndex = m_emptyHandleTableIndex[ehtIdxSize - 1];
+			m_emptyHandleTableIndex.pop_back();
 		}
+		else
+		{
+			// 만약 핸들 테이블에 빈 공간이 없는 경우
+			m_handleTable.push_back(nullptr);	// 핸들 테이블에 빈 공간 추가
+			emptyIndex = static_cast<uint32_t>(m_handleTable.size() - 1);
+		}
+
+		m_handleTable[emptyIndex] = pGameObject;
+		pGameObject->m_tableIndex = emptyIndex;
 	}
 
-	// 만약 빈 자리를 찾지 못했을 경우
-	if (!find)
-	{
-		emptyIndex = tableSize;
-		m_handleTable.push_back(nullptr);	// 테이블 공간 확보
-	}
-
-	m_handleTable[emptyIndex] = pGameObject;
-	pGameObject->m_tableIndex = emptyIndex;
-
-	hGameObject = GameObjectHandle(emptyIndex, pGameObject->GetId());	// 유효한 핸들 준비
+	hGameObject = GameObjectHandle(pGameObject->m_tableIndex, pGameObject->GetId());	// 유효한 핸들 준비
 
 	return hGameObject;
 }
@@ -251,8 +264,8 @@ void GameObjectManager::RemoveDestroyedGameObjects()
 	for (GameObject* pGameObject : m_destroyed)
 	{
 		/* 검증 */
-		assert(pGameObject->IsPending() == false);			// 로딩 씬 소속의 오브젝트는 파괴될 수 없다.
-		assert(pGameObject->IsOnTheDestroyQueue() == true);	// 파괴 큐에 들어온 경우에는 이 ON_DESTROY_QUEUE 플래그가 켜져 있어야만 한다.
+		assert(!pGameObject->IsPending());			// 로딩 씬 소속의 오브젝트는 파괴될 수 없다.
+		assert(pGameObject->IsOnTheDestroyQueue());	// 파괴 큐에 들어온 경우에는 이 ON_DESTROY_QUEUE 플래그가 켜져 있어야만 한다.
 
 		// Step 1. Transform 자식 부모 연결 제거
 		Transform* pTransform = &pGameObject->m_transform;
@@ -282,7 +295,7 @@ void GameObjectManager::RemoveDestroyedGameObjects()
 		for (Transform* pChildTransform : pTransform->m_children)
 		{
 			assert(pChildTransform->m_pParentTransform == pTransform);	// 자신과의 연결 확인
-
+			
 
 			// 중요 포인트
 			pChildTransform->m_pParentTransform = nullptr;	// 밑에서 곧 delete되는 자신을 접근(Step 1에서 접근함)하는 것을 방지 (잠재적 댕글링 포인터 제거)
@@ -296,10 +309,7 @@ void GameObjectManager::RemoveDestroyedGameObjects()
 		// 핸들 테이블에서 제거
 		assert(m_handleTable[pGameObject->m_tableIndex] == pGameObject);
 		m_handleTable[pGameObject->m_tableIndex] = nullptr;
-
-		// for debugging...
-		pGameObject->m_groupIndex = std::numeric_limits<uint32_t>::max();
-		pGameObject->m_tableIndex = std::numeric_limits<uint32_t>::max();
+		m_emptyHandleTableIndex.push_back(pGameObject->m_tableIndex);		// 파괴되는 오브젝트가 사용하던 핸들 테이블 인덱스를 다시 재사용
 
 		delete pGameObject;
 	}

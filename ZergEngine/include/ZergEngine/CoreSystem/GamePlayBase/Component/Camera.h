@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ZergEngine\Common\EngineConstants.h>
+#include <ZergEngine\CoreSystem\EngineConstants.h>
 #include <ZergEngine\CoreSystem\DataStructure\ViewportRect.h>
 #include <ZergEngine\CoreSystem\DataStructure\Ray.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\ComponentInterface.h>

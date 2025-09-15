@@ -1,6 +1,5 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\SizeUIObjectInterface.h>
 #include <ZergEngine\CoreSystem\Math.h>
-#include <ZergEngine\Common\EngineConstants.h>
 
 using namespace ze;
 

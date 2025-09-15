@@ -5,6 +5,9 @@
 #include <ZergEngine\CoreSystem\RenderState.h>
 #include <ZergEngine\CoreSystem\ShaderResource\VertexBuffer.h>
 #include <ZergEngine\CoreSystem\Resource\Font.h>
+#include <memory>
+#include <vector>
+#include <unordered_map>
 
 namespace ze
 {

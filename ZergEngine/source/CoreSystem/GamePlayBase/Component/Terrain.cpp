@@ -2,6 +2,7 @@
 #include <ZergEngine\CoreSystem\GraphicDevice.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\TerrainManager.h>
 #include <ZergEngine\CoreSystem\InputLayout.h>
+#include <ZergEngine\CoreSystem\Helper.h>
 
 using namespace ze;
 
@@ -26,7 +27,7 @@ Terrain::Terrain()
 
 float Terrain::GetMaxHeight() const
 {
-	return m_heightScale * static_cast<float>(std::numeric_limits<uint16_t>::max());
+	return m_heightScale * static_cast<float>((std::numeric_limits<uint16_t>::max)());
 }
 
 IComponentManager* Terrain::GetComponentManager() const
@@ -85,7 +86,7 @@ bool Terrain::SetHeightMap(Texture2D heightMap, float cellSize, float heightScal
 
 	const float terrainSizeAlongX = static_cast<float>((patchCtrlPtCountCol - 1) * CELLS_PER_TERRAIN_PATCH) * cellSize;
 	const float terrainSizeAlongZ = static_cast<float>((patchCtrlPtCountRow - 1) * CELLS_PER_TERRAIN_PATCH) * cellSize;
-	const float maxHeight = heightScale * static_cast<float>(std::numeric_limits<uint16_t>::max());
+	const float maxHeight = heightScale * static_cast<float>((std::numeric_limits<uint16_t>::max)());
 
 	ID3D11Device* pDevice = GraphicDevice::GetInstance()->GetDeviceComInterface();
 	ID3D11DeviceContext* pImmediateContext = GraphicDevice::GetInstance()->GetImmediateContextComInterface();
@@ -129,7 +130,7 @@ bool Terrain::SetHeightMap(Texture2D heightMap, float cellSize, float heightScal
 			VFTerrainPatchControlPoint& v = patchCtrlPts[i * patchCtrlPtCountCol + j];
 			const uint16_t data = heightMapData.GetTexel(i * CELLS_PER_TERRAIN_PATCH, j * CELLS_PER_TERRAIN_PATCH);
 			v.m_position.x = static_cast<float>(j * CELLS_PER_TERRAIN_PATCH) * cellSize - terrainHalfSizeX;
-			v.m_position.y = static_cast<float>(data) / static_cast<float>(std::numeric_limits<uint16_t>::max()) * maxHeight;
+			v.m_position.y = static_cast<float>(data) / static_cast<float>((std::numeric_limits<uint16_t>::max)()) * maxHeight;
 			v.m_position.z = -static_cast<float>(i * CELLS_PER_TERRAIN_PATCH) * cellSize + terrainHalfSizeZ;
 
 			v.m_texCoord.x = static_cast<float>(j * CELLS_PER_TERRAIN_PATCH) / static_cast<float>(heightMapDesc.Width) + tuc;
@@ -141,8 +142,8 @@ bool Terrain::SetHeightMap(Texture2D heightMap, float cellSize, float heightScal
 				// 바운드 계산 (65 x 65 검색) 및 높이 데이터 시스템 메모리에 저장
 				const uint32_t ke = i * CELLS_PER_TERRAIN_PATCH + 65;
 				const uint32_t le = j * CELLS_PER_TERRAIN_PATCH + 65;
-				uint16_t min = std::numeric_limits<uint16_t>::max();
-				uint16_t max = std::numeric_limits<uint16_t>::min();
+				uint16_t min = (std::numeric_limits<uint16_t>::max)();
+				uint16_t max = (std::numeric_limits<uint16_t>::min)();
 				
 				for (uint32_t k = i * CELLS_PER_TERRAIN_PATCH; k < ke; ++k)
 				{
@@ -151,7 +152,7 @@ bool Terrain::SetHeightMap(Texture2D heightMap, float cellSize, float heightScal
 						const uint16_t data = heightMapData.GetTexel(k, l);
 
 						// 1. 시스템 메모리에 높이 데이터 저장
-						const float normalizedHeight = static_cast<float>(data) / static_cast<float>(std::numeric_limits<uint16_t>::max());
+						const float normalizedHeight = static_cast<float>(data) / static_cast<float>((std::numeric_limits<uint16_t>::max)());
 						const float realHeight = normalizedHeight * maxHeight;
 						heightData[aic.GetIndex(k, l)] = realHeight;
 
@@ -163,8 +164,8 @@ bool Terrain::SetHeightMap(Texture2D heightMap, float cellSize, float heightScal
 					}
 				}
 
-				v.m_boundsY.x = static_cast<float>(min) / static_cast<float>(std::numeric_limits<uint16_t>::max()) * maxHeight;
-				v.m_boundsY.y = static_cast<float>(max) / static_cast<float>(std::numeric_limits<uint16_t>::max()) * maxHeight;
+				v.m_boundsY.x = static_cast<float>(min) / static_cast<float>((std::numeric_limits<uint16_t>::max)()) * maxHeight;
+				v.m_boundsY.y = static_cast<float>(max) / static_cast<float>((std::numeric_limits<uint16_t>::max)()) * maxHeight;
 				if (v.m_boundsY.y - v.m_boundsY.x < 1.0f)	// 패치가 평면에 가까울 경우 프러스텀 컬링이 어려울 수 있으므로 바운딩 볼륨의 두께를 증가시킨다.
 				{
 					v.m_boundsY.x -= 0.5f;

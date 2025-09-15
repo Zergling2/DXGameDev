@@ -7,9 +7,6 @@
     <Filter Include="Files\ZergEngine">
       <UniqueIdentifier>{feecaef1-dde4-4377-8f92-e679b387c5ce}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Files\ZergEngine\Common">
-      <UniqueIdentifier>{8e8f9bc5-ff4a-49f6-a92e-70e9c3cb4545}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Files\ZergEngine\CoreSystem">
       <UniqueIdentifier>{7e7c8dbb-7a71-43dc-959b-c165adef07dd}</UniqueIdentifier>
     </Filter>
@@ -40,9 +37,6 @@
     <Filter Include="Files\ZergEngine\CoreSystem\ShaderCode">
       <UniqueIdentifier>{e92a1726-7c06-492a-86bb-e736f838346a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Files\ZergEngine\CoreSystem\DeviceContext">
-      <UniqueIdentifier>{42897642-bd97-4a56-9cb8-a63142bf1766}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Files\ZergEngine\CoreSystem\GamePlayBase">
       <UniqueIdentifier>{e1ac729c-10c9-41ca-b6ad-feb8af528f69}</UniqueIdentifier>
     </Filter>
@@ -52,13 +46,16 @@
     <Filter Include="Files\ZergEngine\CoreSystem\GamePlayBase\UIObject">
       <UniqueIdentifier>{76db95bf-73ee-420f-8187-f914763a1df1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Files\ZergEngine\CoreSystem\RenderPass">
+      <UniqueIdentifier>{38482f98-02c2-48fc-a03a-6d5548272892}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Files\ZergEngine\CoreSystem\RenderContext">
+      <UniqueIdentifier>{42897642-bd97-4a56-9cb8-a63142bf1766}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ZergEngine\ZergEngine.h">
       <Filter>Files\ZergEngine</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\Common\EngineConstants.h">
-      <Filter>Files\ZergEngine\Common</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\Time.h">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
@@ -69,9 +66,6 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Input.h">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\Common\ThirdPartySDK.h">
-      <Filter>Files\ZergEngine\Common</Filter>
-    </ClInclude>
     <ClInclude Include="include\ZergEngine\Common\DirectXTex\DirectXTex.h">
       <Filter>Files\extlib\DirectXTex</Filter>
     </ClInclude>
@@ -80,9 +74,6 @@
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\MemoryAllocator.h">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\Common\EngineHelper.h">
-      <Filter>Files\ZergEngine\Common</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Material.h">
       <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
@@ -162,8 +153,8 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Shader.h">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\DeviceContext\EffectDeviceContext.h">
-      <Filter>Files\ZergEngine\CoreSystem\DeviceContext</Filter>
+    <ClInclude Include="include\ZergEngine\CoreSystem\RenderContext\EffectDeviceContext.h">
+      <Filter>Files\ZergEngine\CoreSystem\RenderContext</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DummyEffect.h">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
@@ -279,9 +270,6 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\AudioSourceManager.h">
       <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\Common\DisplayMode.h">
-      <Filter>Files\ZergEngine\Common</Filter>
-    </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\ResourceLoader.h">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClInclude>
@@ -310,6 +298,24 @@
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\RenderSettings.h">
+      <Filter>Files\ZergEngine\CoreSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\RenderPass\RenderPassInterface.h">
+      <Filter>Files\ZergEngine\CoreSystem\RenderPass</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\RenderContext\RenderContext.h">
+      <Filter>Files\ZergEngine\CoreSystem\RenderContext</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\DisplayMode.h">
+      <Filter>Files\ZergEngine\CoreSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\EngineConstants.h">
+      <Filter>Files\ZergEngine\CoreSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Helper.h">
+      <Filter>Files\ZergEngine\CoreSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Platform.h">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClInclude>
   </ItemGroup>
@@ -352,9 +358,6 @@
     </ClCompile>
     <ClCompile Include="source\CoreSystem\SlimRWLock.cpp">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Common\EngineHelper.cpp">
-      <Filter>Files\ZergEngine\Common</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\FileSystem.cpp">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
@@ -404,8 +407,8 @@
     <ClCompile Include="source\CoreSystem\Shader.cpp">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClCompile>
-    <ClCompile Include="source\CoreSystem\DeviceContext\EffectDeviceContext.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\DeviceContext</Filter>
+    <ClCompile Include="source\CoreSystem\RenderContext\EffectDeviceContext.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\RenderContext</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\Effect\DummyEffect.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
@@ -541,6 +544,15 @@
     </ClCompile>
     <ClCompile Include="source\CoreSystem\RenderSettings.cpp">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\RenderPass\RenderPassInterface.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\RenderContext\RenderContext.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\RenderContext</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Helper.cpp">
+      <Filter>Files\ZergEngine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

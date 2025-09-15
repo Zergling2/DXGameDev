@@ -103,7 +103,7 @@ void MonoBehaviourManager::CallStart()
         pScript->Start();
         pScript->OnFlag(ComponentFlag::StartCalled);
         pScript->OffFlag(ComponentFlag::OnStartingQueue);
-        pScript->m_startingQueueIndex = std::numeric_limits<uint32_t>::max();
+        pScript->m_startingQueueIndex = (std::numeric_limits<uint32_t>::max)();
     }
 
     m_startQueue.clear();

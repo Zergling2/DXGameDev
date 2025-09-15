@@ -1,6 +1,5 @@
 #include "TransformInspectorFormView.h"
 #include "CLVItem\CLVItemTransform.h"
-#include <ZergEngine\Common\ThirdPartySDK.h>
 #include <ZergEngine\CoreSystem\Math.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Transform.h>
 

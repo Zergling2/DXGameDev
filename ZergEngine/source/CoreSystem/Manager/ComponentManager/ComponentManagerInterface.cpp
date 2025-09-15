@@ -4,18 +4,27 @@
 
 using namespace ze;
 
+static constexpr size_t HANDLE_TABLE_INIT_SIZE = 128;
+
 IComponentManager::IComponentManager()
 	: m_uniqueId(0)
 	, m_lock()
 	, m_destroyed()
 	, m_directAccessGroup()
-	, m_handleTable(128)
+	, m_emptyHandleTableIndex(HANDLE_TABLE_INIT_SIZE)	// 단편화를 최소화하기 위해서 최초에 핸들 테이블의 사이즈와 동일한 개수만큼 인덱스 버퍼를 할당한다.
+	, m_handleTable(HANDLE_TABLE_INIT_SIZE, nullptr)
 {
 	m_lock.Init();
 }
 
 void IComponentManager::Init()
 {
+	m_uniqueId = 0;
+
+	// 벡터를 스택처럼 사용할 것이므로 가장 밑에 높은 인덱스를 넣어두어 0번 인덱스부터 사용할 수 있도록 한다.
+	const size_t handleTableEndIndex = m_handleTable.size() - 1;
+	for (size_t i = 0; i < m_emptyHandleTableIndex.size() - 1; ++i)
+		m_emptyHandleTableIndex[i] = static_cast<uint32_t>(handleTableEndIndex - i);
 }
 
 void IComponentManager::UnInit()
@@ -49,40 +58,35 @@ IComponent* IComponentManager::ToPtr(uint32_t tableIndex, uint64_t id) const
 
 ComponentHandleBase IComponentManager::RegisterToHandleTable(IComponent* pComponent)
 {
-	assert(pComponent != nullptr);
-	assert(pComponent->m_tableIndex == std::numeric_limits<uint32_t>::max());
-	assert(pComponent->m_groupIndex == std::numeric_limits<uint32_t>::max());
+	assert(pComponent->m_tableIndex == (std::numeric_limits<uint32_t>::max)());
+	assert(pComponent->m_groupIndex == (std::numeric_limits<uint32_t>::max)());
 
 	ComponentHandleBase hComponent;
 
-	AutoAcquireSlimRWLockExclusive autolock(m_lock);
-
-	// Table에 추가
-	// 빈 자리 검색
-	uint32_t emptyIndex;
-	bool find = false;
-	const uint32_t tableSize = static_cast<uint32_t>(m_handleTable.size());
-	for (uint32_t i = 0; i < tableSize; ++i)
 	{
-		if (m_handleTable[i] == nullptr)
+		// Auto Exclusive Lock
+		AutoAcquireSlimRWLockExclusive autolock(m_lock);
+
+		// 핸들 테이블의 빈 자리를 검색
+		uint32_t emptyIndex;
+		const size_t ehtIdxSize = m_emptyHandleTableIndex.size();
+		if (ehtIdxSize > 0)
 		{
-			emptyIndex = i;
-			find = true;
-			break;
+			emptyIndex = m_emptyHandleTableIndex[ehtIdxSize - 1];
+			m_emptyHandleTableIndex.pop_back();
 		}
+		else
+		{
+			// 만약 핸들 테이블에 빈 공간이 없는 경우
+			m_handleTable.push_back(nullptr);	// 핸들 테이블에 빈 공간 추가
+			emptyIndex = static_cast<uint32_t>(m_handleTable.size() - 1);
+		}
+
+		m_handleTable[emptyIndex] = pComponent;
+		pComponent->m_tableIndex = emptyIndex;
 	}
 
-	// 만약 빈 자리를 찾지 못한 경우
-	if (!find)
-	{
-		emptyIndex = tableSize;
-		m_handleTable.push_back(nullptr);	// 테이블 공간 확보
-	}
-
-	m_handleTable[emptyIndex] = pComponent;
-	pComponent->m_tableIndex = emptyIndex;
-
-	hComponent = ComponentHandleBase(emptyIndex, pComponent->GetId());	// 유효한 핸들 준비
+	hComponent = ComponentHandleBase(pComponent->m_tableIndex, pComponent->GetId());	// 유효한 핸들 준비
 
 	return hComponent;
 }
@@ -102,7 +106,6 @@ void IComponentManager::RemoveDestroyedComponents()
 		assert(pComponent->IsOnTheDestroyQueue());
 
 		GameObject* pGameObject = pComponent->m_pGameObject;
-		assert(pGameObject != nullptr);
 
 		// Step 1. GameObject의 Component List에서 현재 파괴되는 컴포넌트 포인터를 찾아 제거
 		// 만약 GameObject가 Destroy Queue에 있는 경우에는 불필요한 작업 (댕글링 포인터가 남아있는 벡터가 파괴되므로.)
@@ -158,13 +161,13 @@ void IComponentManager::RemoveDestroyedComponents()
 		// Step 3. 테이블에서 제거
 		assert(m_handleTable[pComponent->m_tableIndex] == pComponent);
 		m_handleTable[pComponent->m_tableIndex] = nullptr;
+		m_emptyHandleTableIndex.push_back(pComponent->m_tableIndex);		// 파괴되는 오브젝트가 사용하던 핸들 테이블 인덱스를 다시 재사용
 
 		delete pComponent;
 	}
 
 	m_destroyed.clear();	// 파괴된 컴포넌트 포인터 목록 제거
 }
-
 
 void IComponentManager::AddToDestroyQueue(IComponent* pComponent)
 {

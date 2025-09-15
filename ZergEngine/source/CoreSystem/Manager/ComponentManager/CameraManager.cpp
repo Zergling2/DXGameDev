@@ -1,5 +1,6 @@
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\CameraManager.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Camera.h>
+#include <algorithm>
 
 using namespace ze;
 

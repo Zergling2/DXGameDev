@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ZergEngine\CoreSystem\DeviceContext\EffectDeviceContext.h>
+#include <ZergEngine\CoreSystem\RenderContext\EffectDeviceContext.h>
 #include <ZergEngine\CoreSystem\Effect\BasicEffectP.h>
 #include <ZergEngine\CoreSystem\Effect\BasicEffectPC.h>
 #include <ZergEngine\CoreSystem\Effect\BasicEffectPN.h>
@@ -11,6 +11,7 @@
 #include <ZergEngine\CoreSystem\Effect\DrawQuadWithMSTextureEffect.h>
 #include <ZergEngine\CoreSystem\Effect\ButtonEffect.h>
 #include <ZergEngine\CoreSystem\Effect\ImageEffect.h>
+#include <vector>
 
 namespace ze
 {

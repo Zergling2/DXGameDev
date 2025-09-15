@@ -375,25 +375,23 @@ void GraphicDevice::UnInit()
 bool GraphicDevice::LoadShaderByteCode(PCWSTR path, byte** ppByteCode, size_t* pSize)
 {
 	byte* pByteCode = nullptr;
-	FILE* pCSOFile = nullptr;
+	FILE* pFile = nullptr;
 
-	errno_t e = _wfopen_s(&pCSOFile, path, L"rb");
-	if (e != 0)
+	errno_t e = _wfopen_s(&pFile, path, L"rb");
+	if (e != 0 || pFile == nullptr)
 		return false;
 
-	Helper::AutoCRTFileCloser af(pCSOFile);
-
-	fseek(pCSOFile, 0, SEEK_END);
-	const size_t fileSize = static_cast<size_t>(ftell(pCSOFile));
-	fseek(pCSOFile, 0, SEEK_SET);
+	fseek(pFile, 0, SEEK_END);
+	const size_t fileSize = static_cast<size_t>(ftell(pFile));
+	fseek(pFile, 0, SEEK_SET);
 
 	pByteCode = new byte[fileSize];
 
-	const size_t bytesRead = static_cast<size_t>(fread_s(pByteCode, fileSize, 1, fileSize, pCSOFile));
+	const size_t bytesRead = static_cast<size_t>(fread_s(pByteCode, fileSize, 1, fileSize, pFile));
 	// Check error
 	assert(bytesRead == fileSize);
 
-	af.Close();
+	fclose(pFile);
 
 	// 바이트 코드와 크기 리턴
 	*ppByteCode = pByteCode;
@@ -950,6 +948,7 @@ std::shared_ptr<DWriteTextFormatWrapper> GraphicDevice::GetDWriteTextFormatWrapp
 		}
 		catch (const std::bad_alloc& e)	// 발생할 수 있는 예외는 메모리 할당 실패로 인한 std::bad_alloc 뿐이다.
 		{
+			UNREFERENCED_PARAMETER(e);
 			pWrapper = nullptr;	// 오류 조기 감지
 		}
 		spReturn = std::shared_ptr<DWriteTextFormatWrapper>(pWrapper);

@@ -3,6 +3,8 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\Transform.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\ComponentInterface.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\ComponentManagerInterface.h>
+#include <string>
+#include <list>
 
 namespace ze
 {

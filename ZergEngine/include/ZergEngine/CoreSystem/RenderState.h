@@ -1,40 +1,34 @@
 #pragma once
 
-#include <ZergEngine\Common\ThirdPartySDK.h>
+#include <ZergEngine\CoreSystem\Platform.h>
 
 namespace ze
 {
 	class RasterizerState
 	{
 	public:
-		RasterizerState()
-			: m_pRasterizerState(nullptr)
-		{
-		}
-		~RasterizerState();
+		RasterizerState() = default;
+		~RasterizerState() = default;
 		void Init(ID3D11Device* pDevice, const D3D11_RASTERIZER_DESC* pDesc);
 		void Release();
 
-		ID3D11RasterizerState* GetComInterface() const { return m_pRasterizerState; }
+		ID3D11RasterizerState* GetComInterface() const { return m_cpState.Get(); }
 	private:
-		ID3D11RasterizerState* m_pRasterizerState;
+		ComPtr<ID3D11RasterizerState> m_cpState;
 	};
 
 	class SamplerState
 	{
 	public:
-		SamplerState()
-			: m_pSamplerState(nullptr)
-		{
-		}
-		~SamplerState();
+		SamplerState() = default;
+		~SamplerState() = default;
 
 		void Init(ID3D11Device* pDevice, const D3D11_SAMPLER_DESC* pDesc);
 		void Release();
 
-		ID3D11SamplerState* GetComInterface() const { return m_pSamplerState; }
+		ID3D11SamplerState* GetComInterface() const { return m_cpState.Get(); }
 	private:
-		ID3D11SamplerState* m_pSamplerState;
+		ComPtr<ID3D11SamplerState> m_cpState;
 	};
 
 	enum class DepthStencilStateType
@@ -62,18 +56,15 @@ namespace ze
 	class DepthStencilState
 	{
 	public:
-		DepthStencilState()
-			: m_pDepthStencilState(nullptr)
-		{
-		}
-		~DepthStencilState();
+		DepthStencilState() = default;
+		~DepthStencilState() = default;
 
 		void Init(ID3D11Device* pDevice, const D3D11_DEPTH_STENCIL_DESC* pDesc);
 		void Release();
 
-		ID3D11DepthStencilState* GetComInterface() const { return m_pDepthStencilState; }
+		ID3D11DepthStencilState* GetComInterface() const { return m_cpState.Get(); }
 	private:
-		ID3D11DepthStencilState* m_pDepthStencilState;
+		ComPtr<ID3D11DepthStencilState> m_cpState;
 	};
 
 	enum class BlendStateType
@@ -92,17 +83,14 @@ namespace ze
 	class BlendState
 	{
 	public:
-		BlendState()
-			: m_pBlendState(nullptr)
-		{
-		}
-		~BlendState();
+		BlendState() = default;
+		~BlendState() = default;
 
 		void Init(ID3D11Device* pDevice, const D3D11_BLEND_DESC* pDesc);
 		void Release();
 
-		ID3D11BlendState* GetComInterface() const { return m_pBlendState; }
+		ID3D11BlendState* GetComInterface() const { return m_cpState.Get(); }
 	private:
-		ID3D11BlendState* m_pBlendState;
+		ComPtr<ID3D11BlendState> m_cpState;
 	};
 }

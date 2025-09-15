@@ -1,7 +1,11 @@
 #pragma once
 
-#include <ZergEngine\Common\EngineConstants.h>
+#include <ZergEngine\CoreSystem\EngineConstants.h>
 #include <ZergEngine\CoreSystem\Resource\Texture.h>
+#include <vector>
+#include <map>
+#include <memory>
+#include <string>
 
 // ##################################
 // Forward declaration

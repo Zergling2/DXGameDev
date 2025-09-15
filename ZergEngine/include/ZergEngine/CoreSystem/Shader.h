@@ -1,70 +1,58 @@
 #pragma once
 
-#include <ZergEngine\Common\EngineHelper.h>
+#include <ZergEngine\CoreSystem\Platform.h>
 
 namespace ze
 {
 	class VertexShader
 	{
 	public:
-		VertexShader()
-			: m_pShader(nullptr)
-		{
-		}
-		~VertexShader() { this->Release(); }
+		VertexShader() = default;
+		~VertexShader() = default;
 
 		void Init(ID3D11Device* pDevice, const byte* pShaderByteCode, size_t shaderByteCodeSize);
 		void Release();
-		ID3D11VertexShader* GetComInterface() { return m_pShader; }
+		ID3D11VertexShader* GetComInterface() { return m_cpShader.Get(); }
 	private:
-		ID3D11VertexShader* m_pShader;
+		ComPtr<ID3D11VertexShader> m_cpShader;
 	};
 
 	class HullShader
 	{
 	public:
-		HullShader()
-			: m_pShader(nullptr)
-		{
-		}
-		~HullShader() { this->Release(); }
+		HullShader() = default;
+		~HullShader() = default;
 
 		void Init(ID3D11Device* pDevice, const byte* pShaderByteCode, size_t shaderByteCodeSize);
 		void Release();
-		ID3D11HullShader* GetComInterface() { return m_pShader; }
+		ID3D11HullShader* GetComInterface() { return m_cpShader.Get(); }
 	private:
-		ID3D11HullShader* m_pShader;
+		ComPtr<ID3D11HullShader> m_cpShader;
 	};
 
 	class DomainShader
 	{
 	public:
-		DomainShader()
-			: m_pShader(nullptr)
-		{
-		}
-		~DomainShader() { this->Release(); }
+		DomainShader() = default;
+		~DomainShader() = default;
 
 		void Init(ID3D11Device* pDevice, const byte* pShaderByteCode, size_t shaderByteCodeSize);
 		void Release();
-		ID3D11DomainShader* GetComInterface() { return m_pShader; }
+		ID3D11DomainShader* GetComInterface() { return m_cpShader.Get(); }
 	private:
-		ID3D11DomainShader* m_pShader;
+		ComPtr<ID3D11DomainShader> m_cpShader;
 	};
 
 	class PixelShader
 	{
 	public:
-		PixelShader()
-			: m_pShader(nullptr)
-		{
-		}
-		~PixelShader() { this->Release(); }
+		PixelShader() = default;
+		~PixelShader() = default;
 
 		void Init(ID3D11Device* pDevice, const byte* pShaderByteCode, size_t shaderByteCodeSize);
 		void Release();
-		ID3D11PixelShader* GetComInterface() { return m_pShader; }
+		ID3D11PixelShader* GetComInterface() { return m_cpShader.Get(); }
 	private:
-		ID3D11PixelShader* m_pShader;
+		ComPtr<ID3D11PixelShader> m_cpShader;
 	};
 }

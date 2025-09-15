@@ -175,12 +175,18 @@ void Warehouse::OnLoadScene()
 	std::shared_ptr<Mesh> meshHouseWallSouth = ResourceLoader::GetInstance()->LoadMesh(L"Resource\\Maps\\Warehouse\\HouseWallSouth\\HouseWallSouth.obj")[0];
 	std::shared_ptr<Mesh> meshHouseWallNorth = ResourceLoader::GetInstance()->LoadMesh(L"Resource\\Maps\\Warehouse\\HouseWallNorth\\HouseWallNorth.obj")[0];
 	std::shared_ptr<Mesh> meshBlueTeamBase = ResourceLoader::GetInstance()->LoadMesh(L"Resource\\Maps\\Warehouse\\BlueTeamBase\\BlueTeamBase.obj")[0];
+	std::shared_ptr<Mesh> meshRedTeamBase = ResourceLoader::GetInstance()->LoadMesh(L"Resource\\Maps\\Warehouse\\RedTeamBase\\RedTeamBase.obj")[0];
+	std::shared_ptr<Mesh> meshHouseRoof = ResourceLoader::GetInstance()->LoadMesh(L"Resource\\Maps\\Warehouse\\HouseRoof\\HouseRoof.obj")[0];
 	std::shared_ptr<Mesh> meshDoorFrame = ResourceLoader::GetInstance()->LoadMesh(L"Resource\\Maps\\Warehouse\\DoorFrame\\DoorFrame.obj")[0];
+
 
 	Texture2D tex01murocrep512 = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\concrete\\01murocrep512.png");
 	Texture2D tex03intonacorovinato2 = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\concrete\\03intonacorovinato2.png");
 	Texture2D texWood4 = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\wood\\Wood4.png");
 	Texture2D texWood5 = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\wood\\Wood5.png");
+	Texture2D texBrick22 = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\bricks\\Brick 22 - 256x256.png");
+	Texture2D texRoof24 = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\roof\\Roof 24 - 256x256.png");
+
 
 	std::shared_ptr<Material> matYellowedConcrete = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matYellowedConcrete->m_ambient, XMVectorScale(Math::Vector3::One(), 0.75f));
@@ -188,11 +194,13 @@ void Warehouse::OnLoadScene()
 	XMStoreFloat4A(&matYellowedConcrete->m_specular, XMVectorSetW(Math::Vector3::Zero(), 4.0f));
 	matYellowedConcrete->m_diffuseMap = tex03intonacorovinato2;
 
+
 	std::shared_ptr<Material> matConcrete1 = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matConcrete1->m_ambient, XMVectorScale(Math::Vector3::One(), 0.75f));
 	XMStoreFloat4A(&matConcrete1->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.75f));
 	XMStoreFloat4A(&matConcrete1->m_specular, XMVectorSetW(Math::Vector3::Zero(), 4.0f));
 	matConcrete1->m_diffuseMap = tex01murocrep512;
+
 
 	std::shared_ptr<Material> matWood4 = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matWood4->m_ambient, XMVectorScale(Math::Vector3::One(), 0.75f));
@@ -200,11 +208,27 @@ void Warehouse::OnLoadScene()
 	XMStoreFloat4A(&matWood4->m_specular, XMVectorSetW(Math::Vector3::Zero(), 4.0f));
 	matWood4->m_diffuseMap = texWood4;
 
+
 	std::shared_ptr<Material> matWood5 = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matWood5->m_ambient, XMVectorScale(Math::Vector3::One(), 0.75f));
 	XMStoreFloat4A(&matWood5->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.75f));
 	XMStoreFloat4A(&matWood5->m_specular, XMVectorSetW(Math::Vector3::Zero(), 4.0f));
 	matWood5->m_diffuseMap = texWood5;
+
+
+	std::shared_ptr<Material> matBrick22 = ResourceLoader::GetInstance()->CreateMaterial();
+	XMStoreFloat4A(&matBrick22->m_ambient, XMVectorScale(Math::Vector3::One(), 0.75f));
+	XMStoreFloat4A(&matBrick22->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.75f));
+	XMStoreFloat4A(&matBrick22->m_specular, XMVectorSetW(Math::Vector3::Zero(), 4.0f));
+	matBrick22->m_diffuseMap = texBrick22;
+
+
+	std::shared_ptr<Material> matRoof24 = ResourceLoader::GetInstance()->CreateMaterial();
+	XMStoreFloat4A(&matRoof24->m_ambient, XMVectorScale(Math::Vector3::One(), 0.75f));
+	XMStoreFloat4A(&matRoof24->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.75f));
+	XMStoreFloat4A(&matRoof24->m_specular, XMVectorSetW(Math::Vector3::Zero(), 4.0f));
+	matRoof24->m_diffuseMap = texRoof24;
+
 
 	std::shared_ptr<Material> matClosedContainer = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matClosedContainer->m_ambient, Math::Vector3::OneHalf());
@@ -212,16 +236,19 @@ void Warehouse::OnLoadScene()
 	XMStoreFloat4A(&matClosedContainer->m_specular, XMVectorSetW(Math::Vector3::OneHalf(), 4.0f));
 	matClosedContainer->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Props\\ClosedContainer\\Diffuse.png");
 
+
 	std::shared_ptr<Material> matOpenContainer = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matOpenContainer->m_ambient, Math::Vector3::OneHalf());
 	XMStoreFloat4A(&matOpenContainer->m_diffuse, Math::Vector3::OneHalf());
 	XMStoreFloat4A(&matOpenContainer->m_specular, XMVectorSetW(Math::Vector3::OneHalf(), 4.0f));
 	matOpenContainer->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Props\\OpenContainer\\Diffuse.png");
 
+
 	std::shared_ptr<Material> matHouseFrame = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matHouseFrame->m_ambient, XMVectorScale(Math::Vector3::One(), 0.2f));
 	XMStoreFloat4A(&matHouseFrame->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.2f));
 	XMStoreFloat4A(&matHouseFrame->m_specular, XMVectorSetW(Math::Vector3::OneHalf(), 32.0f));
+
 
 	std::shared_ptr<Material> matHouseSideWall = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matHouseSideWall->m_ambient, Math::Vector3::One());
@@ -229,11 +256,13 @@ void Warehouse::OnLoadScene()
 	XMStoreFloat4A(&matHouseSideWall->m_specular, XMVectorSetW(Math::Vector3::Zero(), 4.0f));
 	matHouseSideWall->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Maps\\Warehouse\\HouseSideWall\\Textures\\Diffuse.png");
 
+
 	std::shared_ptr<Material> matWoodenBox = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matWoodenBox->m_ambient, Math::Vector3::OneHalf());
 	XMStoreFloat4A(&matWoodenBox->m_diffuse, Math::Vector3::One());
 	XMStoreFloat4A(&matWoodenBox->m_specular, XMVectorSetW(Math::Vector3::Zero(), 4.0f));
 	matWoodenBox->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Props\\Box\\WoodenBox.png");
+
 
 	std::shared_ptr<Material> matPaperBox = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matPaperBox->m_ambient, Math::Vector3::OneHalf());
@@ -241,45 +270,61 @@ void Warehouse::OnLoadScene()
 	XMStoreFloat4A(&matPaperBox->m_specular, XMVectorSetW(Math::Vector3::Zero(), 4.0f));
 	matPaperBox->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Props\\Box\\PaperBox.png");
 
+
 	std::shared_ptr<Material> matHouseWallSouth0 = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matHouseWallSouth0->m_ambient, Math::Vector3::OneHalf());
 	XMStoreFloat4A(&matHouseWallSouth0->m_diffuse, Math::Vector3::OneHalf());
 	XMStoreFloat4A(&matHouseWallSouth0->m_specular, XMVectorSetW(Math::Vector3::Zero(), 4.0f));
 	matHouseWallSouth0->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Maps\\Warehouse\\HouseWallSouth\\Diffuse.png");
 
+
 	std::shared_ptr<Material> matHouseWallSouth1 = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matHouseWallSouth1->m_ambient, XMVectorScale(Math::Vector3::One(), 0.25f));
 	XMStoreFloat4A(&matHouseWallSouth1->m_diffuse, Math::Vector3::OneHalf());
 	XMStoreFloat4A(&matHouseWallSouth1->m_specular, XMVectorSetW(Math::Vector3::Zero(), 4.0f));
 
-	std::shared_ptr<Material> matHouseWallNorth[4];
-	matHouseWallNorth[0] = ResourceLoader::GetInstance()->CreateMaterial();
-	XMStoreFloat4A(&matHouseWallNorth[0]->m_ambient, Math::Vector3::OneHalf());
-	XMStoreFloat4A(&matHouseWallNorth[0]->m_diffuse, Math::Vector3::OneHalf());
-	XMStoreFloat4A(&matHouseWallNorth[0]->m_specular, XMVectorSetW(Math::Vector3::Zero(), 4.0f));
-	matHouseWallNorth[0]->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Maps\\Warehouse\\HouseWallNorth\\InsideDiffuse.png");
 
-	matHouseWallNorth[1] = matYellowedConcrete;
-	matHouseWallNorth[2] = matWood4;
-	matHouseWallNorth[3] = matWood5;
+	std::shared_ptr<Material> matHouseWallNorth[4];
+	{
+		matHouseWallNorth[0] = ResourceLoader::GetInstance()->CreateMaterial();
+		XMStoreFloat4A(&matHouseWallNorth[0]->m_ambient, Math::Vector3::OneHalf());
+		XMStoreFloat4A(&matHouseWallNorth[0]->m_diffuse, Math::Vector3::OneHalf());
+		XMStoreFloat4A(&matHouseWallNorth[0]->m_specular, XMVectorSetW(Math::Vector3::Zero(), 4.0f));
+		matHouseWallNorth[0]->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Maps\\Warehouse\\HouseWallNorth\\InsideDiffuse.png");
+
+		matHouseWallNorth[1] = matYellowedConcrete;
+		matHouseWallNorth[2] = matWood4;
+		matHouseWallNorth[3] = matWood5;
+	}
+	
 
 	std::shared_ptr<Material> matBlueTeamBase[5];
+	{
+		matBlueTeamBase[0] = ResourceLoader::GetInstance()->CreateMaterial();
+		XMStoreFloat4A(&matBlueTeamBase[0]->m_ambient, XMVectorScale(Math::Vector3::One(), 0.75f));
+		XMStoreFloat4A(&matBlueTeamBase[0]->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.75f));
+		XMStoreFloat4A(&matBlueTeamBase[0]->m_specular, XMVectorSetW(Math::Vector3::Zero(), 4.0f));
+		matBlueTeamBase[0]->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Maps\\Warehouse\\BlueTeamBase\\FloorDiffuse.png");
 
-	matBlueTeamBase[0] = ResourceLoader::GetInstance()->CreateMaterial();
-	XMStoreFloat4A(&matBlueTeamBase[0]->m_ambient, XMVectorScale(Math::Vector3::One(), 0.75f));
-	XMStoreFloat4A(&matBlueTeamBase[0]->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.75f));
-	XMStoreFloat4A(&matBlueTeamBase[0]->m_specular, XMVectorSetW(Math::Vector3::Zero(), 4.0f));
-	matBlueTeamBase[0]->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Maps\\Warehouse\\BlueTeamBase\\FloorDiffuse.png");
+		matBlueTeamBase[1] = matConcrete1;
+		matBlueTeamBase[2] = matYellowedConcrete;
+		matBlueTeamBase[3] = matWood4;
+		matBlueTeamBase[4] = matWood5;
+	}
+	
 
-	matBlueTeamBase[1] = matConcrete1;
-	matBlueTeamBase[2] = matYellowedConcrete;
-	matBlueTeamBase[3] = matWood4;
-	matBlueTeamBase[4] = matWood5;
+	std::shared_ptr<Material> matRedTeamBase[1];
+	{
+		matRedTeamBase[0] = matBrick22;
+	}
+
 
 	std::shared_ptr<Material> matDoorFrame = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matDoorFrame->m_ambient, XMVectorSet(0.1f, 0.025f, 0.0f, 0.0f));
 	XMStoreFloat4A(&matDoorFrame->m_diffuse, XMVectorSet(0.1f, 0.025f, 0.0f, 0.0f));
 	XMStoreFloat4A(&matDoorFrame->m_specular, XMVectorSetW(Math::Vector3::OneHalf(), 2.0f));
+
+
 
 	// Mesh Game Objects
 	{
@@ -995,6 +1040,28 @@ void Warehouse::OnLoadScene()
 	}
 
 	{
+		GameObjectHandle hGameObject = CreateGameObject(L"Red Team Base");
+		GameObject* pGameObject = hGameObject.ToPtr();
+		pGameObject->m_transform.SetPosition(XMVectorSet(0.0f, 0.0f, -28.5f, 0.0f));
+
+		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
+		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+		pMeshRenderer->SetMesh(meshRedTeamBase);
+		pMeshRenderer->SetMaterial(0, matRedTeamBase[0]);
+	}
+
+	{
+		GameObjectHandle hGameObject = CreateGameObject(L"House Roof");
+		GameObject* pGameObject = hGameObject.ToPtr();
+		pGameObject->m_transform.SetPosition(XMVectorSet(0.0f, 10.0f, 0.0f, 0.0f));
+
+		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
+		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+		pMeshRenderer->SetMesh(meshHouseRoof);
+		pMeshRenderer->SetMaterial(0, matRoof24);
+	}
+
+	{
 		GameObjectHandle hGameObject = CreateGameObject(L"Door Frame");
 		GameObject* pGameObject = hGameObject.ToPtr();
 		pGameObject->m_transform.SetPosition(XMVectorSet(-6.7f, 0.0f, -22.0f, 0.0f));
@@ -1055,6 +1122,10 @@ void Warehouse::OnLoadScene()
 	// 
 	// Primary weapon
 	std::shared_ptr<Mesh> meshSTANAG30Rds = ResourceLoader::GetInstance()->LoadMesh(L"Resource\\Models\\Weapons\\Magazine\\STANAG\\STANAG30Rds.obj")[0];
+	auto matSTANAG30Rds = ResourceLoader::GetInstance()->CreateMaterial();
+	XMStoreFloat4A(&matSTANAG30Rds->m_ambient, XMVectorScale(Math::Vector3::One(), 0.15f));
+	XMStoreFloat4A(&matSTANAG30Rds->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.2f));
+	XMStoreFloat4A(&matSTANAG30Rds->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.9f), 2.0f));
 	{
 		GameObjectHandle hPrimaryWeapon = CreateGameObject(L"Primary Weapon");
 		pFirstPersonMovement->m_hWeapons[0] = hPrimaryWeapon;	// 1번 슬롯
@@ -1092,10 +1163,6 @@ void Warehouse::OnLoadScene()
 			// 메시 설정
 			pMeshRenderer->SetMesh(meshSTANAG30Rds);
 			// 재질 설정
-			auto matSTANAG30Rds = ResourceLoader::GetInstance()->CreateMaterial();
-			XMStoreFloat4A(&matSTANAG30Rds->m_ambient, XMVectorScale(Math::Vector3::One(), 0.15f));
-			XMStoreFloat4A(&matSTANAG30Rds->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.2f));
-			XMStoreFloat4A(&matSTANAG30Rds->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.9f), 2.0f));
 			pMeshRenderer->SetMaterial(0, matSTANAG30Rds);
 
 			pPWMagazine->m_transform.SetParent(&pPrimaryWeapon->m_transform);
@@ -1105,7 +1172,7 @@ void Warehouse::OnLoadScene()
 	// Secondary weapon
 	{
 		GameObjectHandle hSecondaryWeapon = CreateGameObject(L"Secondary Weapon");
-		pFirstPersonMovement->m_hWeapons[1] = hSecondaryWeapon;		// 4번 슬롯
+		pFirstPersonMovement->m_hWeapons[1] = hSecondaryWeapon;		// 2번 슬롯
 
 		GameObject* pSecondaryWeapon = hSecondaryWeapon.ToPtr();
 		pSecondaryWeapon->SetActive(false);	// 안보이게 비활성화 상태로 초기화
@@ -1143,6 +1210,50 @@ void Warehouse::OnLoadScene()
 			pMeshRenderer->SetMaterial(0, matX300U);
 
 			pWeaponLight->m_transform.SetParent(&pSecondaryWeapon->m_transform);
+		}
+	}
+
+
+	{
+		GameObjectHandle hPrimaryWeapon = CreateGameObject(L"Primary Weapon");
+		pFirstPersonMovement->m_hWeapons[2] = hPrimaryWeapon;		// 3번 슬롯
+
+		GameObject* pPrimaryWeapon = hPrimaryWeapon.ToPtr();
+		pPrimaryWeapon->SetActive(false);	// 안보이게 비활성화 상태로 초기화
+		pPrimaryWeapon->m_transform.SetPosition(XMVectorSet(0.12f, -0.18f, 0.22f, 0.0f));
+		ComponentHandle<MeshRenderer> hMeshRenderer = pPrimaryWeapon->AddComponent<MeshRenderer>();
+		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+		// 메시 설정
+		auto meshM4A1 = ResourceLoader::GetInstance()->LoadMesh(L"Resource\\Models\\Weapons\\M4A1\\M4A1.obj")[0];
+		pMeshRenderer->SetMesh(meshM4A1);
+		// 재질 설정
+		auto matM4A1Receiver = ResourceLoader::GetInstance()->CreateMaterial();
+		XMStoreFloat4A(&matM4A1Receiver->m_ambient, Math::Vector3::OneHalf());
+		XMStoreFloat4A(&matM4A1Receiver->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.5f));
+		XMStoreFloat4A(&matM4A1Receiver->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.25f), 4.0f));
+		matM4A1Receiver->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M4A1\\Textures\\ReceiverDiffuse.png");
+		auto matKACRearSight = ResourceLoader::GetInstance()->CreateMaterial();
+		XMStoreFloat4A(&matKACRearSight->m_ambient, Math::Vector3::OneHalf());
+		XMStoreFloat4A(&matKACRearSight->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.5f));
+		XMStoreFloat4A(&matKACRearSight->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.05f), 4.0f));
+		matKACRearSight->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M4A1\\Textures\\KACRearSightDiffuse.png");
+		pMeshRenderer->SetMaterial(0, matM4A1Receiver);
+		pMeshRenderer->SetMaterial(1, matKACRearSight);
+
+		pPrimaryWeapon->m_transform.SetParent(&pMainCamera->m_transform);
+
+		{
+			GameObjectHandle hMagazine = CreateGameObject(L"PW Magazine");
+			GameObject* pPWMagazine = hMagazine.ToPtr();
+			pPWMagazine->m_transform.SetPosition(XMVectorSet(0.0, -0.03f, 0.07f, 0.0f));
+			ComponentHandle<MeshRenderer> hMeshRenderer = pPWMagazine->AddComponent<MeshRenderer>();
+			MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+			// 메시 설정
+			pMeshRenderer->SetMesh(meshSTANAG30Rds);
+			// 재질 설정
+			pMeshRenderer->SetMaterial(0, matSTANAG30Rds);
+
+			pPWMagazine->m_transform.SetParent(&pPrimaryWeapon->m_transform);
 		}
 	}
 

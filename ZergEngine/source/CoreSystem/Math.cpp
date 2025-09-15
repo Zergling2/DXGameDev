@@ -3,6 +3,7 @@
 #include <ZergEngine\CoreSystem\DataStructure\Aabb.h>
 #include <ZergEngine\CoreSystem\DataStructure\Frustum.h>
 #include <ZergEngine\CoreSystem\DataStructure\Triangle.h>
+#include <cmath>
 
 using namespace ze;
 

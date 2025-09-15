@@ -2,8 +2,7 @@
 
 #include <ZergEngine\CoreSystem\SlimRWLock.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Handle.h>
-
-#define THREADSAFE
+#include <vector>
 
 namespace ze
 {
@@ -39,7 +38,7 @@ namespace ze
 		GameObject* ToPtr(uint32_t tableIndex, uint64_t id) const;
 
 		// 비동기 씬 로딩 스레드에 의해서 호출될 수 있음.
-		GameObjectHandle THREADSAFE RegisterToHandleTable(GameObject* pGameObject);
+		GameObjectHandle RegisterToHandleTable(GameObject* pGameObject);
 		void AddToDestroyQueue(GameObject* pGameObject);
 
 		// 비-지연 오브젝트들을 옮기는 함수
@@ -67,6 +66,7 @@ namespace ze
 		SlimRWLock m_lock;
 		std::vector<GameObject*> m_activeGroup;		// 검색 시 전체 테이블을 순회할 필요 제거
 		std::vector<GameObject*> m_inactiveGroup;	// 비활성화된 게임 오브젝트들 (검색 대상에서 제외)
+		std::vector<uint32_t> m_emptyHandleTableIndex;
 		std::vector<GameObject*> m_handleTable;
 		std::vector<GameObject*> m_destroyed;
 	};

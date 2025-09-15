@@ -1,6 +1,7 @@
 #pragma once
 
-#include <ZergEngine\Common\EngineHelper.h>
+#include <map>
+#include <ZergEngine\CoreSystem\Helper.h>
 
 namespace ze
 {
@@ -37,6 +38,8 @@ namespace ze
 		static void AddItem(PCWSTR sceneName, SceneFactory factory);
 		static SceneFactory GetItem(PCWSTR sceneName);
 	private:
-		static std::map<PCWSTR, SceneFactory, WideCharStringComparator>* s_pSceneTable;
+		static void DestroySceneTable();	// called by the SceneManager
+	private:
+		static std::map<PCWSTR, SceneFactory, WideCharStringComparator>* s_pSceneTable;	// Key: Literal string!
 	};
 }

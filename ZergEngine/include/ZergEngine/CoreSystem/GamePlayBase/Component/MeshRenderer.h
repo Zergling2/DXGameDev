@@ -1,6 +1,9 @@
 #pragma once
 
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\ComponentInterface.h>
+#include <memory>
+#include <vector>
+#include <cassert>
 
 namespace ze
 {

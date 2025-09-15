@@ -2,6 +2,7 @@
 
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\SizeColorUIObjectInterface.h>
 #include <ZergEngine\CoreSystem\Resource\Font.h>
+#include <memory>
 
 namespace ze
 {

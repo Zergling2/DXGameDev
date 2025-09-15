@@ -1,4 +1,5 @@
 #include <ZergEngine\CoreSystem\DataStructure\RawVector.h>
+#include <cstring>
 
 using namespace ze;
 
@@ -8,7 +9,7 @@ RawVector::RawVector()
 	: m_byteSize(0)
 	, m_capacity(INITIAL_SIZE)
 {
-	m_pMemBegin = reinterpret_cast<byte*>(_aligned_malloc(m_capacity, 16));
+	m_pMemBegin = reinterpret_cast<char*>(_aligned_malloc(m_capacity, 16));
 	m_pWritePtr = m_pMemBegin;
 	m_pMemEnd = m_pMemBegin + m_capacity;
 }
@@ -39,7 +40,7 @@ void RawVector::Resize(size_t size)
 	if (size == 0 || size == m_capacity)
 		return;
 
-	byte* pNewMem  = reinterpret_cast<byte*>(_aligned_malloc(size, 16));
+	char* pNewMem  = reinterpret_cast<char*>(_aligned_malloc(size, 16));
 
 	if (size >= m_byteSize)
 		memcpy_s(pNewMem, size, m_pMemBegin, m_byteSize);

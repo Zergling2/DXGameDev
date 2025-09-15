@@ -2,6 +2,7 @@
 
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\ComponentInterface.h>
 #include <ZergEngine\CoreSystem\Resource\Texture.h>
+#include <vector>
 
 namespace ze
 {

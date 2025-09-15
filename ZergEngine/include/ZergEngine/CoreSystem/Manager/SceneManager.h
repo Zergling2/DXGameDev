@@ -5,7 +5,6 @@
 namespace ze
 {
 	class IScene;
-	class IUIObject;
 
 	class AsyncOperation
 	{

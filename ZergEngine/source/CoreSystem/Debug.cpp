@@ -1,6 +1,5 @@
 #include <ZergEngine\CoreSystem\Debug.h>
 #include <ZergEngine\CoreSystem\MemoryAllocator.h>
-#include <ZergEngine\Common\EngineHelper.h>
 
 using namespace ze;
 

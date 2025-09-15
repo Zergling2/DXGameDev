@@ -8,8 +8,8 @@ using namespace ze;
 IComponent::IComponent(uint64_t id) noexcept
 	: m_pGameObject(nullptr)
 	, m_id(id)
-	, m_tableIndex(std::numeric_limits<uint32_t>::max())
-	, m_groupIndex(std::numeric_limits<uint32_t>::max())
+	, m_tableIndex((std::numeric_limits<uint32_t>::max)())
+	, m_groupIndex((std::numeric_limits<uint32_t>::max)())
 	, m_flag(ComponentFlag::Enabled)	// 기본 상태는 enable 상태
 {
 }

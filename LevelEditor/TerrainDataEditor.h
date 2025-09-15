@@ -1,8 +1,7 @@
 #pragma once
 
 #include "framework.h"
-#include <wrl.h>
-#include <ZergEngine\Common\ThirdPartySDK.h>
+#include <ZergEngine\CoreSystem\Platform.h>
 
 namespace ze
 {

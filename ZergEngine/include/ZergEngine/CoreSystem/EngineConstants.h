@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ZergEngine\Common\ThirdPartySDK.h>
+#include <cstdint>
 
 namespace ze
 {
@@ -117,7 +117,7 @@ namespace ze
 		DontClear
 	};
 
-	enum class VertexFormatType : int32_t
+	enum class VertexFormatType
 	{
 		Position,
 		PositionColor,

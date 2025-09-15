@@ -1,9 +1,9 @@
 #pragma once
 
-#include <ZergEngine\Common\EngineHelper.h>
-#include <ZergEngine\Common\EngineConstants.h>
 #include <ZergEngine\CoreSystem\Math.h>
 #include <ZergEngine\CoreSystem\SlimRWLock.h>
+#include <ZergEngine\CoreSystem\EngineConstants.h>
+#include <vector>
 
 namespace ze
 {

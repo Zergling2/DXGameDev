@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ZergEngine\Common\ThirdPartySDK.h>
+#include <ZergEngine\CoreSystem\Platform.h>
 #include <ZergEngine\CoreSystem\Resource\Texture.h>
 
 namespace ze

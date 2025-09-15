@@ -1,6 +1,4 @@
 #include <ZergEngine\CoreSystem\Cursor.h>
-#define NOMINMAX
-#include <Windows.h>
 #include <ZergEngine\CoreSystem\Runtime.h>
 
 using namespace ze;

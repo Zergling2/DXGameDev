@@ -1,7 +1,9 @@
 #pragma once
 
-#include <ZergEngine\Common\EngineConstants.h>
+#include <ZergEngine\CoreSystem\EngineConstants.h>
 #include <ZergEngine\CoreSystem\DataStructure\Aabb.h>
+#include <string>
+#include <vector>
 
 namespace ze
 {

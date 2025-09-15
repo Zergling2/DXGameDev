@@ -3,14 +3,9 @@
 
 using namespace ze;
 
-IConstantBuffer::~IConstantBuffer()
-{
-	Helper::SafeReleaseCom(m_pConstantBuffer);
-}
-
 void IConstantBuffer::Release()
 {
-	Helper::SafeReleaseCom(m_pConstantBuffer);
+	m_cpBuffer.Reset();
 }
 
 void IConstantBuffer::InitImpl(ID3D11Device* pDevice, size_t bufferSize)
@@ -25,22 +20,23 @@ void IConstantBuffer::InitImpl(ID3D11Device* pDevice, size_t bufferSize)
 	descConstantBuffer.MiscFlags = 0;
 	descConstantBuffer.StructureByteStride = 0;
 
-	HRESULT hr = pDevice->CreateBuffer(&descConstantBuffer, nullptr, &m_pConstantBuffer);
+	assert(m_cpBuffer == nullptr);
+	HRESULT hr = pDevice->CreateBuffer(&descConstantBuffer, nullptr, m_cpBuffer.GetAddressOf());
 	if (FAILED(hr))
 		Debug::ForceCrashWithHRESULTMessageBox(L"Failed to create a constant buffer.", hr);
 }
 
 void IConstantBuffer::UpdateImpl(ID3D11DeviceContext* pDeviceContext, const void* pData, size_t size)
 {
-	assert(m_pConstantBuffer != nullptr);
+	assert(m_cpBuffer != nullptr);
 
 	HRESULT hr;
 	D3D11_MAPPED_SUBRESOURCE mapped;
 
-	hr = pDeviceContext->Map(m_pConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+	hr = pDeviceContext->Map(m_cpBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
 	if (FAILED(hr))
 		Debug::ForceCrashWithHRESULTMessageBox(L"Failed to map constant buffer.", hr);
 
 	memcpy(mapped.pData, pData, size);
-	pDeviceContext->Unmap(m_pConstantBuffer, 0);
+	pDeviceContext->Unmap(m_cpBuffer.Get(), 0);
 }

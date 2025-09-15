@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ZergEngine\Common\ThirdPartySDK.h>
+#include <cstdlib>
 
 namespace ze
 {
@@ -16,8 +16,8 @@ namespace ze
 	private:
 		size_t m_byteSize;
 		size_t m_capacity;
-		byte* m_pWritePtr;
-		byte* m_pMemBegin;
-		byte* m_pMemEnd;
+		char* m_pWritePtr;
+		char* m_pMemBegin;
+		char* m_pMemEnd;
 	};
 }

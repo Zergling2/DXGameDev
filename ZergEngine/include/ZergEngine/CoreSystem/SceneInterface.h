@@ -2,6 +2,7 @@
 
 #include <ZergEngine\CoreSystem\SceneTable.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Handle.h>
+#include <vector>
 
 namespace ze
 {

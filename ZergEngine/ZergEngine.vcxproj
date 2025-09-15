@@ -19,15 +19,16 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\ZergEngine\Common\DisplayMode.h" />
-    <ClInclude Include="include\ZergEngine\Common\EngineConstants.h" />
-    <ClInclude Include="include\ZergEngine\Common\EngineHelper.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Platform.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\DisplayMode.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\EngineConstants.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Helper.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Cursor.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Aabb.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Frustum.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Ray.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\Triangle.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\DeviceContext\EffectDeviceContext.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\RenderContext\EffectDeviceContext.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectP.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPC.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPN.h" />
@@ -65,6 +66,8 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\TerrainManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\FileSystem.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\GameObjectManager.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\RenderContext\RenderContext.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\RenderPass\RenderPassInterface.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\RenderSettings.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Handle.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\ComponentType.h" />
@@ -72,7 +75,6 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Random.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Renderer.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Math.h" />
-    <ClInclude Include="include\ZergEngine\Common\ThirdPartySDK.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\Camera.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\MonoBehaviour.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\Light.h" />
@@ -109,7 +111,7 @@
     <ClCompile Include="source\CoreSystem\DataStructure\Frustum.cpp" />
     <ClCompile Include="source\CoreSystem\DataStructure\Ray.cpp" />
     <ClCompile Include="source\CoreSystem\DataStructure\Triangle.cpp" />
-    <ClCompile Include="source\CoreSystem\DeviceContext\EffectDeviceContext.cpp" />
+    <ClCompile Include="source\CoreSystem\RenderContext\EffectDeviceContext.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectP.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectPC.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectPN.cpp" />
@@ -134,9 +136,11 @@
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\SizeColorUIObjectInterface.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\AudioSourceManager.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\ComponentManagerMap.cpp" />
+    <ClCompile Include="source\CoreSystem\RenderContext\RenderContext.cpp" />
+    <ClCompile Include="source\CoreSystem\RenderPass\RenderPassInterface.cpp" />
     <ClCompile Include="source\CoreSystem\RenderSettings.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Handle.cpp" />
-    <ClCompile Include="source\Common\EngineHelper.cpp" />
+    <ClCompile Include="source\CoreSystem\Helper.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\CameraManager.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\ComponentManagerInterface.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\DirectionalLightManager.cpp" />

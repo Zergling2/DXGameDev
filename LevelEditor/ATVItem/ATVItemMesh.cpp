@@ -1,7 +1,6 @@
 #include "ATVItemMesh.h"
 #include "..\MainFrm.h"
 #include "..\MeshInspectorFormView.h"
-#include <ZergEngine\Common\ThirdPartySDK.h>
 #include <ZergEngine\CoreSystem\Resource\Mesh.h>
 #include <ZergEngine\CoreSystem\InputLayout.h>
 #include <ZergEngine\CoreSystem\Debug.h>

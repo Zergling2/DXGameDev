@@ -218,34 +218,20 @@ void TestScene1::OnLoadScene()
 		meshes = ResourceLoader::GetInstance()->LoadMesh(L"Resource\\Models\\Weapons\\M4A1\\M4A1.obj");
 		pMeshRenderer->SetMesh(meshes[0]);
 		// 재질 설정
-		auto material0 = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&material0->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.8f));
-		XMStoreFloat4A(&material0->m_ambient, XMVectorScale(Math::Vector3::One(), 0.25f));
-		XMStoreFloat4A(&material0->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.5f), 4.0f));
-		material0->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M4A1\\Textures\\diff.tga");
-		pMeshRenderer->SetMaterial(0, material0);
+		auto matM4A1Receiver = ResourceLoader::GetInstance()->CreateMaterial();
+		XMStoreFloat4A(&matM4A1Receiver->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.8f));
+		XMStoreFloat4A(&matM4A1Receiver->m_ambient, XMVectorScale(Math::Vector3::One(), 0.25f));
+		XMStoreFloat4A(&matM4A1Receiver->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.5f), 4.0f));
+		matM4A1Receiver->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M4A1\\Textures\\ReceiverDiffuse.png");
+		auto matKACRearSight = ResourceLoader::GetInstance()->CreateMaterial();
+		XMStoreFloat4A(&matKACRearSight->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.8f));
+		XMStoreFloat4A(&matKACRearSight->m_ambient, XMVectorScale(Math::Vector3::One(), 0.25f));
+		XMStoreFloat4A(&matKACRearSight->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.5f), 4.0f));
+		matKACRearSight->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M4A1\\Textures\\KACRearSightDiffuse.png");
+		pMeshRenderer->SetMaterial(0, matM4A1Receiver);
+		pMeshRenderer->SetMaterial(1, matKACRearSight);
 	
 		pPrimaryWeapon->m_transform.SetParent(&pMainCamera->m_transform);
-	
-		{
-			GameObjectHandle hRearSight = CreateGameObject(L"Rear Sight");
-			GameObject* pRearSight = hRearSight.ToPtr();
-			pRearSight->m_transform.SetPosition(XMVectorSet(0.0f, 0.104f, -0.037f, 0.0f));
-			ComponentHandle<MeshRenderer> hMeshRenderer = pRearSight->AddComponent<MeshRenderer>();
-			MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-			// 메시 설정
-			meshes = ResourceLoader::GetInstance()->LoadMesh(L"Resource\\Models\\Weapons\\Sights\\KACRearSight\\KACRearSight.obj");
-			pMeshRenderer->SetMesh(meshes[0]);
-			// 재질 설정
-			auto material0 = ResourceLoader::GetInstance()->CreateMaterial();
-			XMStoreFloat4A(&material0->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.8f));
-			XMStoreFloat4A(&material0->m_ambient, XMVectorScale(Math::Vector3::One(), 0.25f));
-			XMStoreFloat4A(&material0->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.5f), 4.0f));
-			material0->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\Sights\\KACRearSight\\Textures\\Albedo.png");
-			pMeshRenderer->SetMaterial(0, material0);
-	
-			pRearSight->m_transform.SetParent(&pPrimaryWeapon->m_transform);
-		}
 	
 		{
 			GameObjectHandle hMagazine = CreateGameObject(L"PW Magazine");

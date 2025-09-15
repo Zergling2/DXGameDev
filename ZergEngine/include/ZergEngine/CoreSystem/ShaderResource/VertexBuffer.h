@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ZergEngine\Common\ThirdPartySDK.h>
+#include <ZergEngine\CoreSystem\Platform.h>
 
 namespace ze
 {
@@ -8,15 +8,15 @@ namespace ze
 	{
 	public:
 		VertexBuffer()
-			: m_pBuffer(nullptr)
+			: m_cpBuffer()
 		{
 		}
-		~VertexBuffer() { this->Release(); }
+		~VertexBuffer() = default;
 
 		void Init(ID3D11Device* pDevice, const D3D11_BUFFER_DESC* pDesc, const D3D11_SUBRESOURCE_DATA* pInitialData);
 		void Release();
-		ID3D11Buffer* GetComInterface() { return m_pBuffer; }
+		ID3D11Buffer* GetComInterface() { return m_cpBuffer.Get(); }
 	private:
-		ID3D11Buffer* m_pBuffer;
+		ComPtr<ID3D11Buffer> m_cpBuffer;
 	};
 }

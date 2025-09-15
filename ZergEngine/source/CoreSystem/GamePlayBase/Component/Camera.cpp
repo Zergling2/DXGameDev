@@ -4,7 +4,6 @@
 #include <ZergEngine\CoreSystem\Math.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Transform.h>
-#include <ZergEngine\Common\EngineConstants.h>
 
 using namespace ze;
 

@@ -1,13 +1,13 @@
 #pragma once
 
-#include <ZergEngine\Common\ThirdPartySDK.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\ComponentType.h>
+#include <cstdint>
+#include <limits>
 
 namespace ze
 {
 	class GameObject;
 	class IComponent;
-	class IComponentManager;
 	class IUIObject;
 
 	constexpr uint64_t INVALID_ID = (std::numeric_limits<uint64_t>::max)();

@@ -1,6 +1,7 @@
 #pragma once
 
-#include <ZergEngine\Common\ThirdPartySDK.h>
+#include <ZergEngine\CoreSystem\Platform.h>
+#include <utility>
 
 namespace ze
 {

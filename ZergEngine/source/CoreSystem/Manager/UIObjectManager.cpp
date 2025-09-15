@@ -7,6 +7,8 @@ using namespace ze;
 
 UIObjectManager* UIObjectManager::s_pInstance = nullptr;
 
+static constexpr size_t HANDLE_TABLE_INIT_SIZE = 256;
+
 UIObjectManager::UIObjectManager()
 	: m_uniqueId(0)
 	, m_lock()
@@ -14,7 +16,8 @@ UIObjectManager::UIObjectManager()
 	, m_roots()
 	, m_activeGroup()
 	, m_inactiveGroup()
-	, m_handleTable(256, nullptr)
+	, m_emptyHandleTableIndex(HANDLE_TABLE_INIT_SIZE)	// 단편화를 최소화하기 위해서 최초에 핸들 테이블의 사이즈와 동일한 개수만큼 인덱스 버퍼를 할당한다.
+	, m_handleTable(HANDLE_TABLE_INIT_SIZE, nullptr)
 	, m_pLButtonDownObject(nullptr)
 	, m_pMButtonDownObject(nullptr)
 	, m_pRButtonDownObject(nullptr)
@@ -45,6 +48,11 @@ void UIObjectManager::DestroyInstance()
 void UIObjectManager::Init()
 {
 	m_uniqueId = 0;
+
+	// 벡터를 스택처럼 사용할 것이므로 가장 밑에 높은 인덱스를 넣어두어 0번 인덱스부터 사용할 수 있도록 한다.
+	const size_t handleTableEndIndex = m_handleTable.size() - 1;
+	for (size_t i = 0; i < m_emptyHandleTableIndex.size() - 1; ++i)
+		m_emptyHandleTableIndex[i] = static_cast<uint32_t>(handleTableEndIndex - i);
 }
 
 void UIObjectManager::UnInit()
@@ -89,39 +97,37 @@ IUIObject* UIObjectManager::ToPtr(uint32_t tableIndex, uint64_t id) const
 		return pUIObject;
 }
 
-UIObjectHandle THREADSAFE UIObjectManager::RegisterToHandleTable(IUIObject* pUIObject)
+UIObjectHandle UIObjectManager::RegisterToHandleTable(IUIObject* pUIObject)
 {
+	assert(pUIObject->m_tableIndex == (std::numeric_limits<uint32_t>::max)());
+	assert(pUIObject->m_groupIndex == (std::numeric_limits<uint32_t>::max)());
+
 	UIObjectHandle hUIObject;
 
-	// Auto Exclusive Lock
-	AutoAcquireSlimRWLockExclusive autolock(m_lock);
-
-	// 테이블에 등록
-	// 빈 자리 검색
-	uint32_t emptyIndex;
-	bool find = false;
-	const uint32_t tableSize = static_cast<uint32_t>(m_handleTable.size());
-	for (uint32_t i = 0; i < tableSize; ++i)
 	{
-		if (m_handleTable[i] == nullptr)
+		// Auto Exclusive Lock
+		AutoAcquireSlimRWLockExclusive autolock(m_lock);
+
+		// 핸들 테이블의 빈 자리를 검색
+		uint32_t emptyIndex;
+		const size_t ehtIdxSize = m_emptyHandleTableIndex.size();
+		if (ehtIdxSize > 0)
 		{
-			emptyIndex = i;
-			find = true;
-			break;
+			emptyIndex = m_emptyHandleTableIndex[ehtIdxSize - 1];
+			m_emptyHandleTableIndex.pop_back();
 		}
+		else
+		{
+			// 만약 핸들 테이블에 빈 공간이 없는 경우
+			m_handleTable.push_back(nullptr);	// 핸들 테이블에 빈 공간 추가
+			emptyIndex = static_cast<uint32_t>(m_handleTable.size() - 1);
+		}
+
+		m_handleTable[emptyIndex] = pUIObject;
+		pUIObject->m_tableIndex = emptyIndex;
 	}
 
-	// 만약 빈 자리를 찾지 못했을 경우
-	if (!find)
-	{
-		emptyIndex = tableSize;
-		m_handleTable.push_back(nullptr);	// 테이블 공간 확보
-	}
-
-	m_handleTable[emptyIndex] = pUIObject;
-	pUIObject->m_tableIndex = emptyIndex;
-
-	hUIObject = UIObjectHandle(emptyIndex, pUIObject->GetId());	// 유효한 핸들 준비
+	hUIObject = UIObjectHandle(pUIObject->m_tableIndex, pUIObject->GetId());	// 유효한 핸들 준비
 
 	return hUIObject;
 }
@@ -337,10 +343,7 @@ void UIObjectManager::RemoveDestroyedUIObjects()
 		// 핸들 테이블에서 제거
 		assert(m_handleTable[pUIObject->m_tableIndex] == pUIObject);
 		m_handleTable[pUIObject->m_tableIndex] = nullptr;
-
-		// for debugging...
-		pUIObject->m_groupIndex = std::numeric_limits<uint32_t>::max();
-		pUIObject->m_tableIndex = std::numeric_limits<uint32_t>::max();
+		m_emptyHandleTableIndex.push_back(pUIObject->m_tableIndex);		// 파괴되는 오브젝트가 사용하던 핸들 테이블 인덱스를 다시 재사용
 
 		delete pUIObject;
 	}

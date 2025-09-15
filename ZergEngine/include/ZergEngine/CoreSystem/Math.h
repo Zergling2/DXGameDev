@@ -1,6 +1,31 @@
 #pragma once
 
-#include <ZergEngine\Common\ThirdPartySDK.h>
+#include <ZergEngine\CoreSystem\Platform.h>
+
+/*
+	XMVECTOR, XMMATRIX 전달 규칙
+	https://learn.microsoft.com/en-us/windows/win32/dxmath/pg-xnamath-internals
+	FXMVECTOR _1, FXMVECTOR _2, FXMVECTOR _3, GXMVECTOR _4, HXMVECTOR _5, HXMVECTOR _6, CXMVECTOR _7, CXMVECTOR _8, ...
+
+	Use the FXMVECTOR alias to pass up to the first three instances of XMVECTOR used as arguments to a function.
+	Use the GXMVECTOR alias to pass the 4th instance of an XMVECTOR used as an argument to a function.
+	Use the HXMVECTOR alias to pass the 5th and 6th instances of an XMVECTOR used as an argument to a function. For info about additional considerations, see the __vectorcall documentation.
+	Use the CXMVECTOR alias to pass any further instances of XMVECTOR used as arguments.
+
+	FXMMATRIX = __m128 x 4
+	Use the FXMMATRIX alias to pass the first XMMATRIX as an argument to the function.
+	This assumes you don't have more than two FXMVECTOR arguments or more than two float, double,
+	or FXMVECTOR arguments to the 'right' of the matrix. For info about additional considerations,
+	see the __vectorcall documentation.
+	Use the CXMMATRIX alias otherwise.
+	*/
+
+	/*
+	In addition to the type aliases, you must also use the XM_CALLCONV annotation to make sure
+	the function uses the appropriate calling convention (__fastcall versus __vectorcall) based
+	on your compiler and architecture. Because of limitations with __vectorcall, we recommend
+	that you not use XM_CALLCONV for C++ constructors.
+	*/
 
 namespace ze
 {
