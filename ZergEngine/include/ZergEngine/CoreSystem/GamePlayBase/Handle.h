@@ -2,6 +2,7 @@
 
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\ComponentType.h>
 #include <cstdint>
+#include <cstddef>
 #include <limits>
 
 namespace ze
@@ -54,6 +55,17 @@ namespace ze
 
 			return *this;
 		}
+		GameObjectHandle& operator=(nullptr_t) noexcept
+		{
+			m_tableIndex = 0;
+			m_id = INVALID_ID;
+
+			return *this;
+		}
+		explicit operator bool() const
+		{
+			return this->ToPtr() != nullptr;
+		}
 		~GameObjectHandle() = default;
 
 		GameObject* ToPtr() const;	// index에 가서 nullptr이면 파괴된 것, 아니라면 m_id와 객체의 id 비교
@@ -103,6 +115,17 @@ namespace ze
 			m_id = other.m_id;
 
 			return *this;
+		}
+		UIObjectHandle& operator=(nullptr_t) noexcept
+		{
+			m_tableIndex = 0;
+			m_id = INVALID_ID;
+
+			return *this;
+		}
+		explicit operator bool() const
+		{
+			return this->ToPtr() != nullptr;
 		}
 		~UIObjectHandle() = default;
 
@@ -185,6 +208,17 @@ namespace ze
 			ComponentHandleBase::operator=(other);
 
 			return *this;
+		}
+		UIObjectHandle& operator=(nullptr_t) noexcept
+		{
+			m_tableIndex = 0;
+			m_id = INVALID_ID;
+
+			return *this;
+		}
+		explicit operator bool() const
+		{
+			return this->ToPtr() != nullptr;
 		}
 		~ComponentHandle() = default;
 

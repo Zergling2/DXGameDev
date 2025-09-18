@@ -75,6 +75,27 @@ void FirstPersonMovement::Update()
 		if (pCurrWeapon)
 			pCurrWeapon->SetActive(true);
 	}
+
+
+	if (Input::GetInstance()->GetKeyDown(KEY_NUMPAD7))
+	{
+		if (m_hDestroyTest)
+		{
+			GameObject* pDestroyTest = m_hDestroyTest.ToPtr();
+			pDestroyTest->Destroy();
+
+			m_hDestroyTest = nullptr;
+		}
+		else
+		{
+			m_hDestroyTest = Runtime::GetInstance()->CreateGameObject();
+			GameObject* pDestroyTest = m_hDestroyTest.ToPtr();
+			pDestroyTest->m_transform.SetPosition(XMVectorSetY(pDestroyTest->m_transform.GetPosition(), 1.0f));
+			ComponentHandle<MeshRenderer> hMeshRenderer = pDestroyTest->AddComponent<MeshRenderer>();
+			MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+			pMeshRenderer->SetMesh(ResourceLoader::GetInstance()->LoadMesh(L"Resource\\Models\\Props\\Box\\Box.obj")[0]);
+		}
+	}
 }
 
 void FirstPersonMovement::MovementProcess(ze::GameObject* pGameObject)
