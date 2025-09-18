@@ -19,13 +19,13 @@ namespace ze
 		friend class CameraManager;
 		friend class Renderer;
 	public:
-		static constexpr ComponentType TYPE = ComponentType::CAMERA;
+		static constexpr ComponentType TYPE = ComponentType::Camera;
 		static constexpr bool IsCreatable() { return true; }
 
 		Camera() noexcept;
 		virtual ~Camera() = default;
 
-		virtual ComponentType GetType() const override { return ComponentType::CAMERA; }
+		virtual ComponentType GetType() const override { return ComponentType::Camera; }
 		const XMFLOAT4A& GetBackgroundColor() const { return m_backgroundColor; }
 		void SetBackgroundColor(const XMFLOAT4A color) { m_backgroundColor = color; }
 		void XM_CALLCONV SetBackgroundColor(FXMVECTOR color) { XMStoreFloat4A(&m_backgroundColor, color); }

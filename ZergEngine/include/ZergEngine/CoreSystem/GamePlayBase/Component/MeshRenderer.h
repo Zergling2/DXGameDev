@@ -13,13 +13,13 @@ namespace ze
 	class MeshRenderer : public IComponent
 	{
 	public:
-		static constexpr ComponentType TYPE = ComponentType::MESH_RENDERER;
+		static constexpr ComponentType TYPE = ComponentType::MeshRenderer;
 		static constexpr bool IsCreatable() { return true; }
 
 		MeshRenderer() noexcept;
 		virtual ~MeshRenderer() = default;
 
-		virtual ComponentType GetType() const override { return ComponentType::MESH_RENDERER; }
+		virtual ComponentType GetType() const override { return ComponentType::MeshRenderer; }
 
 		bool GetCastShadows() const { return m_castShadows; }
 		void SetCastShadows(bool b) { m_castShadows = b; }

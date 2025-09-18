@@ -18,7 +18,7 @@ namespace ze
 
 		void Init(ID3D11Device* pDevice, const D3D11_INPUT_ELEMENT_DESC* pDesc, UINT elementCount,
 			const byte* pShaderByteCode, size_t shaderByteCodeSize);
-		void Release() { m_cpInputLayout.Reset(); }
+		void Release();
 
 		ID3D11InputLayout* GetComInterface() const { return m_cpInputLayout.Get(); }
 	private:
@@ -28,8 +28,6 @@ namespace ze
 	struct VFPosition
 	{
 	public:
-		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
-		static constexpr uint32_t GetInputElementCount() { return VFPosition::INPUT_ELEMENT_COUNT; }
 		VFPosition() = default;
 		VFPosition(const VFPosition&) = default;
 		VFPosition& operator=(const VFPosition&) = default;
@@ -37,6 +35,9 @@ namespace ze
 			: m_position(position)
 		{
 		}
+
+		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
+		static constexpr uint32_t GetInputElementCount() { return VFPosition::INPUT_ELEMENT_COUNT; }
 	private:
 		static constexpr size_t INPUT_ELEMENT_COUNT = 1;
 		static const D3D11_INPUT_ELEMENT_DESC s_ied[INPUT_ELEMENT_COUNT];
@@ -48,9 +49,6 @@ namespace ze
 	struct VFPositionColor	// Used for only debug wireframe mode
 	{
 	public:
-		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
-		static constexpr uint32_t GetInputElementCount() { return VFPositionColor::INPUT_ELEMENT_COUNT; }
-
 		VFPositionColor() = default;
 		VFPositionColor(const VFPositionColor&) = default;
 		VFPositionColor& operator=(const VFPositionColor&) = default;
@@ -59,22 +57,21 @@ namespace ze
 			, m_color(color)
 		{
 		}
+
+		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
+		static constexpr uint32_t GetInputElementCount() { return VFPositionColor::INPUT_ELEMENT_COUNT; }
 	private:
 		static constexpr size_t INPUT_ELEMENT_COUNT = 2;
 		static const D3D11_INPUT_ELEMENT_DESC s_ied[INPUT_ELEMENT_COUNT];
 	public:
 		XMFLOAT3 m_position;
 		XMFLOAT4 m_color;
-
 	};
 
 	// Vertex struct holding position and normal vector.
 	struct VFPositionNormal
 	{
 	public:
-		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
-		static constexpr uint32_t GetInputElementCount() { return VFPositionNormal::INPUT_ELEMENT_COUNT; }
-
 		VFPositionNormal() = default;
 		VFPositionNormal(const VFPositionNormal&) = default;
 		VFPositionNormal& operator=(const VFPositionNormal&) = default;
@@ -83,6 +80,9 @@ namespace ze
 			, m_normal(normal)
 		{
 		}
+
+		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
+		static constexpr uint32_t GetInputElementCount() { return VFPositionNormal::INPUT_ELEMENT_COUNT; }
 	private:
 		static constexpr size_t INPUT_ELEMENT_COUNT = 2;
 		static const D3D11_INPUT_ELEMENT_DESC s_ied[INPUT_ELEMENT_COUNT];
@@ -94,9 +94,6 @@ namespace ze
 	struct VFPositionTexCoord
 	{
 	public:
-		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
-		static constexpr uint32_t GetInputElementCount() { return VFPositionTexCoord::INPUT_ELEMENT_COUNT; }
-
 		VFPositionTexCoord() = default;
 		VFPositionTexCoord(const VFPositionTexCoord&) = default;
 		VFPositionTexCoord& operator=(const VFPositionTexCoord&) = default;
@@ -105,6 +102,9 @@ namespace ze
 			, m_texCoord(texCoord)
 		{
 		}
+
+		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
+		static constexpr uint32_t GetInputElementCount() { return VFPositionTexCoord::INPUT_ELEMENT_COUNT; }
 	private:
 		static constexpr size_t INPUT_ELEMENT_COUNT = 2;
 		static const D3D11_INPUT_ELEMENT_DESC s_ied[INPUT_ELEMENT_COUNT];
@@ -116,9 +116,6 @@ namespace ze
 	struct VFPositionNormalTexCoord
 	{
 	public:
-		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
-		static constexpr uint32_t GetInputElementCount() { return VFPositionNormalTexCoord::INPUT_ELEMENT_COUNT; }
-
 		VFPositionNormalTexCoord() = default;
 		VFPositionNormalTexCoord(const VFPositionNormalTexCoord&) = default;
 		VFPositionNormalTexCoord& operator=(const VFPositionNormalTexCoord&) = default;
@@ -128,6 +125,9 @@ namespace ze
 			, m_texCoord(texCoord)
 		{
 		}
+
+		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
+		static constexpr uint32_t GetInputElementCount() { return VFPositionNormalTexCoord::INPUT_ELEMENT_COUNT; }
 	private:
 		static constexpr size_t INPUT_ELEMENT_COUNT = 3;
 		static const D3D11_INPUT_ELEMENT_DESC s_ied[INPUT_ELEMENT_COUNT];
@@ -137,23 +137,22 @@ namespace ze
 		XMFLOAT2 m_texCoord;
 	};
 
-	class VFPositionNormalTexCoordTangent
+	class VFPositionNormalTangentTexCoord
 	{
 	public:
-		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
-		static constexpr uint32_t GetInputElementCount() { return VFPositionNormalTexCoordTangent::INPUT_ELEMENT_COUNT; }
-
-		VFPositionNormalTexCoordTangent() = default;
-		VFPositionNormalTexCoordTangent(const VFPositionNormalTexCoordTangent&) = default;
-		VFPositionNormalTexCoordTangent& operator=(const VFPositionNormalTexCoordTangent&) = default;
-		VFPositionNormalTexCoordTangent(const XMFLOAT3& position, const XMFLOAT3& normal,
-			const XMFLOAT3& tangent, const XMFLOAT2& texCoord) noexcept
+		VFPositionNormalTangentTexCoord() = default;
+		VFPositionNormalTangentTexCoord(const VFPositionNormalTangentTexCoord&) = default;
+		VFPositionNormalTangentTexCoord& operator=(const VFPositionNormalTangentTexCoord&) = default;
+		VFPositionNormalTangentTexCoord(const XMFLOAT3& position, const XMFLOAT3& normal, const XMFLOAT3& tangent, const XMFLOAT2& texCoord) noexcept
 			: m_position(position)
 			, m_normal(normal)
 			, m_tangent(tangent)
 			, m_texCoord(texCoord)
 		{
 		}
+
+		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
+		static constexpr uint32_t GetInputElementCount() { return VFPositionNormalTangentTexCoord::INPUT_ELEMENT_COUNT; }
 	private:
 		static constexpr size_t INPUT_ELEMENT_COUNT = 4;
 		static const D3D11_INPUT_ELEMENT_DESC s_ied[INPUT_ELEMENT_COUNT];
@@ -167,9 +166,6 @@ namespace ze
 	struct VFTerrainPatchControlPoint
 	{
 	public:
-		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
-		static constexpr uint32_t GetInputElementCount() { return VFTerrainPatchControlPoint::INPUT_ELEMENT_COUNT; }
-
 		VFTerrainPatchControlPoint() = default;
 		VFTerrainPatchControlPoint(const VFTerrainPatchControlPoint&) = default;
 		VFTerrainPatchControlPoint& operator=(const VFTerrainPatchControlPoint&) = default;
@@ -179,12 +175,9 @@ namespace ze
 			, m_boundsY(boundsY)
 		{
 		}
-		VFTerrainPatchControlPoint(FXMVECTOR position, FXMVECTOR texCoord, FXMVECTOR boundsY) noexcept
-		{
-			XMStoreFloat3(&m_position, position);
-			XMStoreFloat2(&m_texCoord, texCoord);
-			XMStoreFloat2(&m_boundsY, boundsY);
-		}
+
+		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
+		static constexpr uint32_t GetInputElementCount() { return VFTerrainPatchControlPoint::INPUT_ELEMENT_COUNT; }
 	private:
 		static constexpr size_t INPUT_ELEMENT_COUNT = 3;
 		static const D3D11_INPUT_ELEMENT_DESC s_ied[INPUT_ELEMENT_COUNT];
@@ -197,9 +190,6 @@ namespace ze
 	class VFButton
 	{
 	public:
-		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
-		static constexpr uint32_t GetInputElementCount() { return VFButton::INPUT_ELEMENT_COUNT; }
-
 		VFButton() = default;
 		VFButton(const VFButton&) = default;
 		VFButton& operator=(const VFButton&) = default;
@@ -209,12 +199,9 @@ namespace ze
 			, m_shade(shade)
 		{
 		}
-		VFButton(FXMVECTOR position, FXMVECTOR offset, FXMVECTOR shade) noexcept
-		{
-			XMStoreFloat2(&m_position, position);
-			XMStoreFloat2(&m_offset, offset);
-			XMStoreFloat2(&m_shade, shade);
-		}
+
+		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
+		static constexpr uint32_t GetInputElementCount() { return VFButton::INPUT_ELEMENT_COUNT; }
 	private:
 		static constexpr size_t INPUT_ELEMENT_COUNT = 3;
 		static const D3D11_INPUT_ELEMENT_DESC s_ied[INPUT_ELEMENT_COUNT];

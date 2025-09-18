@@ -1,4 +1,3 @@
-#include "ShaderCommon.hlsli"
 #include "Lighting.hlsli"
 
 // [Constant Buffer]
@@ -26,7 +25,7 @@ PSOutput main(PSInputPNFragment input)
         // normalize again
         input.normalW = normalize(input.normalW);
     
-        const float3 toEye = normalize(cb_perCamera.cameraPosW - input.posW);
+        const float3 toEyeW = normalize(cb_perCamera.cameraPosW - input.posW);
     
         float4 ambient = float4(0.0f, 0.0f, 0.0f, 0.0f);
         float4 diffuse = float4(0.0f, 0.0f, 0.0f, 0.0f);
@@ -36,7 +35,7 @@ PSOutput main(PSInputPNFragment input)
         uint i;
         for (i = 0; i < cb_perFrame.dlCount; ++i)
         {
-            ComputeDirectionalLight(cb_perFrame.dl[i], cb_perSubset.mtl, input.normalW, toEye, addA, addD, addS);
+            ComputeDirectionalLight(cb_perFrame.dl[i], cb_perSubset.mtl, input.normalW, toEyeW, addA, addD, addS);
             ambient += addA;
             diffuse += addD;
             specular += addS;
@@ -44,7 +43,7 @@ PSOutput main(PSInputPNFragment input)
     
         for (i = 0; i < cb_perFrame.plCount; ++i)
         {
-            ComputePointLight(cb_perFrame.pl[i], cb_perSubset.mtl, input.posW, input.normalW, toEye, addA, addD, addS);
+            ComputePointLight(cb_perFrame.pl[i], cb_perSubset.mtl, input.posW, input.normalW, toEyeW, addA, addD, addS);
             ambient += addA;
             diffuse += addD;
             specular += addS;
@@ -52,7 +51,7 @@ PSOutput main(PSInputPNFragment input)
     
         for (i = 0; i < cb_perFrame.slCount; ++i)
         {
-            ComputeSpotLight(cb_perFrame.sl[i], cb_perSubset.mtl, input.posW, input.normalW, toEye, addA, addD, addS);
+            ComputeSpotLight(cb_perFrame.sl[i], cb_perSubset.mtl, input.posW, input.normalW, toEyeW, addA, addD, addS);
             ambient += addA;
             diffuse += addD;
             specular += addS;

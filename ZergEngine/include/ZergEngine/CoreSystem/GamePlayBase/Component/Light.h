@@ -28,12 +28,12 @@ namespace ze
 	class DirectionalLight : public ILight
 	{
 	public:
-		static constexpr ComponentType TYPE = ComponentType::DIRECTIONAL_LIGHT;
+		static constexpr ComponentType TYPE = ComponentType::DirectionalLight;
 		static constexpr bool IsCreatable() { return ILight::IsCreatable(); }
 
 		DirectionalLight();
 		virtual ~DirectionalLight() = default;
-		virtual ComponentType GetType() const override { return ComponentType::DIRECTIONAL_LIGHT; }
+		virtual ComponentType GetType() const override { return ComponentType::DirectionalLight; }
 	private:
 		virtual IComponentManager* GetComponentManager() const override;
 	};
@@ -41,12 +41,12 @@ namespace ze
 	class PointLight : public ILight
 	{
 	public:
-		static constexpr ComponentType TYPE = ComponentType::POINT_LIGHT;
+		static constexpr ComponentType TYPE = ComponentType::PointLight;
 		static constexpr bool IsCreatable() { return ILight::IsCreatable(); }
 
 		PointLight();
 		virtual ~PointLight() = default;
-		virtual ComponentType GetType() const override { return ComponentType::POINT_LIGHT; }
+		virtual ComponentType GetType() const override { return ComponentType::PointLight; }
 	private:
 		virtual IComponentManager* GetComponentManager() const override;
 	public:
@@ -61,12 +61,12 @@ namespace ze
 	class SpotLight : public ILight
 	{
 	public:
-		static constexpr ComponentType TYPE = ComponentType::SPOT_LIGHT;
+		static constexpr ComponentType TYPE = ComponentType::SpotLight;
 		static constexpr bool IsCreatable() { return ILight::IsCreatable(); }
 
 		SpotLight();
 		virtual ~SpotLight() = default;
-		virtual ComponentType GetType() const override { return ComponentType::SPOT_LIGHT; }
+		virtual ComponentType GetType() const override { return ComponentType::SpotLight; }
 	private:
 		virtual IComponentManager* GetComponentManager() const override;
 	public:

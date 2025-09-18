@@ -20,7 +20,7 @@ RawVector::~RawVector()
 		_aligned_free(m_pMemBegin);
 }
 
-void RawVector::PushBack(void* ptr, size_t size)
+void RawVector::PushBack(const void* ptr, size_t size)
 {
 	if (m_pWritePtr + size > m_pMemEnd)
 	{

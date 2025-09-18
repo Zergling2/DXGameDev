@@ -39,7 +39,7 @@ namespace ze
 			, m_cbPerCameraCache()
 			, m_cbPerMeshCache()
 			, m_cbPerSubsetCache()
-			, m_pTextureSRVArray{ nullptr, nullptr, nullptr, nullptr }
+			, m_pTextureSRVArray{ nullptr, nullptr }
 		{
 		}
 		virtual ~BasicEffectPNT() = default;
@@ -63,9 +63,7 @@ namespace ze
 		void XM_CALLCONV SetSpecularColor(FXMVECTOR specular) noexcept;
 		void XM_CALLCONV SetReflection(FXMVECTOR reflect) noexcept;
 
-		void SetLightMap(ID3D11ShaderResourceView* pLightMap) noexcept;
 		void SetDiffuseMap(ID3D11ShaderResourceView* pDiffuseMap) noexcept;
-		void SetNormalMap(ID3D11ShaderResourceView* pNormalMap) noexcept;
 		void SetSpecularMap(ID3D11ShaderResourceView* pSpecularMap) noexcept;
 	private:
 		virtual void ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept override;
@@ -76,12 +74,7 @@ namespace ze
 		void ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
 		void ApplyPerMeshConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
 		void ApplyPerSubsetConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
-
-		void ClearTextureSRVArray()
-		{
-			for (size_t i = 0; i < _countof(m_pTextureSRVArray); ++i)
-				m_pTextureSRVArray[i] = nullptr;
-		}
+		void ClearTextureSRVArray() noexcept;
 	private:
 		DWORD m_dirtyFlag;
 
@@ -98,7 +91,7 @@ namespace ze
 		CbPerMesh m_cbPerMeshCache;
 		CbPerSubset m_cbPerSubsetCache;
 
-		// [0] LIGHT_MAP, [1] DIFFUSE_MAP, [2] NORMAL_MAP, [3] SPECULAR_MAP
-		ID3D11ShaderResourceView* m_pTextureSRVArray[4];
+		// [0] DIFFUSE_MAP, [1] SPECULAR_MAP
+		ID3D11ShaderResourceView* m_pTextureSRVArray[2];
 	};
 }

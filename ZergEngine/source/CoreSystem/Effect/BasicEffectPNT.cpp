@@ -99,7 +99,7 @@ void XM_CALLCONV BasicEffectPNT::SetWorldMatrix(FXMMATRIX w) noexcept
 void BasicEffectPNT::UseMaterial(bool b) noexcept
 {
 	if (b)
-		m_cbPerSubsetCache.mtl.mtlFlag |= static_cast<uint32_t>(MATERIAL_FLAG::USE_MATERIAL);
+		m_cbPerSubsetCache.mtl.mtlFlag |= static_cast<uint32_t>(MATERIAL_FLAG::UseMaterial);
 	else
 		m_cbPerSubsetCache.mtl.mtlFlag = static_cast<uint32_t>(MATERIAL_FLAG::None);
 
@@ -134,44 +134,24 @@ void XM_CALLCONV BasicEffectPNT::SetReflection(FXMVECTOR reflect) noexcept
 	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_SUBSET;
 }
 
-void BasicEffectPNT::SetLightMap(ID3D11ShaderResourceView* pLightMap) noexcept
-{
-	m_pTextureSRVArray[0] = pLightMap;
-
-	if (pLightMap)
-		m_cbPerSubsetCache.mtl.mtlFlag |= static_cast<uint32_t>(MATERIAL_FLAG::USE_LIGHT_MAP);
-	else
-		m_cbPerSubsetCache.mtl.mtlFlag &= ~static_cast<uint32_t>(MATERIAL_FLAG::USE_LIGHT_MAP);
-}
-
 void BasicEffectPNT::SetDiffuseMap(ID3D11ShaderResourceView* pDiffuseMap) noexcept
 {
-	m_pTextureSRVArray[1] = pDiffuseMap;
+	m_pTextureSRVArray[0] = pDiffuseMap;
 
 	if (pDiffuseMap)
-		m_cbPerSubsetCache.mtl.mtlFlag |= static_cast<uint32_t>(MATERIAL_FLAG::USE_DIFFUSE_MAP);
+		m_cbPerSubsetCache.mtl.mtlFlag |= static_cast<uint32_t>(MATERIAL_FLAG::UseDiffuseMap);
 	else
-		m_cbPerSubsetCache.mtl.mtlFlag &= ~static_cast<uint32_t>(MATERIAL_FLAG::USE_DIFFUSE_MAP);
-}
-
-void BasicEffectPNT::SetNormalMap(ID3D11ShaderResourceView* pNormalMap) noexcept
-{
-	m_pTextureSRVArray[2] = pNormalMap;
-
-	if (pNormalMap)
-		m_cbPerSubsetCache.mtl.mtlFlag |= static_cast<uint32_t>(MATERIAL_FLAG::USE_NORMAL_MAP);
-	else
-		m_cbPerSubsetCache.mtl.mtlFlag &= ~static_cast<uint32_t>(MATERIAL_FLAG::USE_NORMAL_MAP);
+		m_cbPerSubsetCache.mtl.mtlFlag &= ~static_cast<uint32_t>(MATERIAL_FLAG::UseDiffuseMap);
 }
 
 void BasicEffectPNT::SetSpecularMap(ID3D11ShaderResourceView* pSpecularMap) noexcept
 {
-	m_pTextureSRVArray[3] = pSpecularMap;
+	m_pTextureSRVArray[1] = pSpecularMap;
 
 	if (pSpecularMap)
-		m_cbPerSubsetCache.mtl.mtlFlag |= static_cast<uint32_t>(MATERIAL_FLAG::USE_SPECULAR_MAP);
+		m_cbPerSubsetCache.mtl.mtlFlag |= static_cast<uint32_t>(MATERIAL_FLAG::UseSpecularMap);
 	else
-		m_cbPerSubsetCache.mtl.mtlFlag &= ~static_cast<uint32_t>(MATERIAL_FLAG::USE_SPECULAR_MAP);
+		m_cbPerSubsetCache.mtl.mtlFlag &= ~static_cast<uint32_t>(MATERIAL_FLAG::UseSpecularMap);
 }
 
 void BasicEffectPNT::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
@@ -214,10 +194,8 @@ void BasicEffectPNT::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
 
 	// 텍스처 리소스는 항상 재설정 (포인터를 들고 있어봤자 메모리 재사용 등으로 인해 이전 리소스 그대로인지 확신할 수 없음..)
 	/*
-	Texture2D tex2d_lightMap : register(t0);
-	Texture2D tex2d_diffuseMap : register(t1);
-	Texture2D tex2d_normalMap : register(t2);
-	Texture2D tex2d_specularMap : register(t3);
+	Texture2D tex2d_diffuseMap : register(t0);
+	Texture2D tex2d_specularMap : register(t1);
 	*/
 	pDeviceContext->PSSetShaderResources(0, _countof(m_pTextureSRVArray), m_pTextureSRVArray);
 
@@ -280,4 +258,10 @@ void BasicEffectPNT::ApplyPerSubsetConstantBuffer(ID3D11DeviceContext* pDeviceCo
 	// PerSubset 상수버퍼 사용 셰이더
 	constexpr UINT startSlot = 2;
 	pDeviceContext->PSSetConstantBuffers(startSlot, 1, cbs);
+}
+
+void BasicEffectPNT::ClearTextureSRVArray() noexcept
+{
+	for (size_t i = 0; i < _countof(m_pTextureSRVArray); ++i)
+		m_pTextureSRVArray[i] = nullptr;
 }

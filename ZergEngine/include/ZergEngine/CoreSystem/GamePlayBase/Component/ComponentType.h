@@ -5,18 +5,18 @@ namespace ze
 	enum class ComponentType
 	{
 		// 3D GameObject Components
-		CAMERA,
-		MESH_RENDERER,
-		DIRECTIONAL_LIGHT,
-		POINT_LIGHT,
-		SPOT_LIGHT,
-		MONOBEHAVIOUR,
-		RIGIDBODY,
-		BOX_COLLIDER,
-		SPHERE_COLLIDER,
-		MESH_COLLIDER,
-		TERRAIN,
-		AUDIO_SOURCE,
+		Camera,
+		MeshRenderer,
+		DirectionalLight,
+		PointLight,
+		SpotLight,
+		MonoBehaviour,
+		Rigidbody,
+		BoxCollider,
+		SphereCollider,
+		MeshCollider,
+		Terrain,
+		AudioSource,
 
 		UNKNOWN
 	};

@@ -98,13 +98,13 @@ PSOutput main(PSInputTerrainFragment input)
     float4 bf = tex2d_blendMap.Sample(ss_bilinear, input.texCoord);
     float bfArr[4] = { bf.r, bf.g, bf.b, bf.a };
     
-    float4 diffuse = tex2d_diffuseMapLayer.Sample(ss_bilinear, float3(input.tiledTexCoord, index)); // 레이어 0으로 초기화
+    float4 diffuse = tex2d_diffuseMapLayer.Sample(ss_common, float3(input.tiledTexCoord, index)); // 레이어 0으로 초기화
     for (i = 1; i < cb_perTerrain.layerArraySize; ++i)
     {
         index += 1.0f;
 
-        float4 diffuseLayerColor = tex2d_diffuseMapLayer.Sample(ss_bilinear, float3(input.tiledTexCoord, index));
-        diffuse = lerp(diffuse, diffuseLayerColor, bfArr[i - 1]);
+        float4 nextDiffuse = tex2d_diffuseMapLayer.Sample(ss_common, float3(input.tiledTexCoord, index));
+        diffuse = lerp(diffuse, nextDiffuse, bfArr[i - 1]);
     }
     
     float4 diffuseLight = float4(0.0f, 0.0f, 0.0f, 0.0f);

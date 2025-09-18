@@ -20,44 +20,44 @@ IComponentManager* ComponentManagerMap::GetManager(ComponentType type)
 	// 3D GameObject Components
 	switch (type)
 	{
-	case ComponentType::CAMERA:
+	case ComponentType::Camera:
 		pComponentManager = CameraManager::GetInstance();
 		break;
-	case ComponentType::MESH_RENDERER:
+	case ComponentType::MeshRenderer:
 		pComponentManager = MeshRendererManager::GetInstance();
 		break;
-	case ComponentType::DIRECTIONAL_LIGHT:
+	case ComponentType::DirectionalLight:
 		pComponentManager = DirectionalLightManager::GetInstance();
 		break;
-	case ComponentType::POINT_LIGHT:
+	case ComponentType::PointLight:
 		pComponentManager = PointLightManager::GetInstance();
 		break;
-	case ComponentType::SPOT_LIGHT:
+	case ComponentType::SpotLight:
 		pComponentManager = SpotLightManager::GetInstance();
 		break;
-	case ComponentType::MONOBEHAVIOUR:
+	case ComponentType::MonoBehaviour:
 		pComponentManager = MonoBehaviourManager::GetInstance();
 		break;
-	case ComponentType::RIGIDBODY:
+	case ComponentType::Rigidbody:
 		// pComponentManager = RigidbodyManager::GetInstance();
 		pComponentManager = nullptr;
 		break;
-	case ComponentType::BOX_COLLIDER:
+	case ComponentType::BoxCollider:
 		// pComponentManager = BoxColliderManager::GetInstance();
 		pComponentManager = nullptr;
 		break;
-	case ComponentType::SPHERE_COLLIDER:
+	case ComponentType::SphereCollider:
 		// pComponentManager = SphereColliderManager::GetInstance();
 		pComponentManager = nullptr;
 		break;
-	case ComponentType::MESH_COLLIDER:
+	case ComponentType::MeshCollider:
 		// pComponentManager = MeshColliderManager::GetInstance();
 		pComponentManager = nullptr;
 		break;
-	case ComponentType::TERRAIN:
+	case ComponentType::Terrain:
 		pComponentManager = TerrainManager::GetInstance();
 		break;
-	case ComponentType::AUDIO_SOURCE:
+	case ComponentType::AudioSource:
 		pComponentManager = AudioSourceManager::GetInstance();
 		break;
 	default:

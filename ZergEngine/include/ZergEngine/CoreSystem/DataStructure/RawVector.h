@@ -10,7 +10,7 @@ namespace ze
 		RawVector();
 		~RawVector();
 		inline size_t ByteSize() const { return m_byteSize; }
-		void PushBack(void* ptr, size_t size);
+		void PushBack(const void* ptr, size_t size);
 		void Resize(size_t size);
 		inline void* Data() const { return m_pMemBegin; }
 	private:

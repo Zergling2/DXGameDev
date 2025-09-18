@@ -12,13 +12,13 @@ namespace ze
 	{
 		friend class Renderer;
 	public:
-		static constexpr ComponentType TYPE = ComponentType::TERRAIN;
+		static constexpr ComponentType TYPE = ComponentType::Terrain;
 		static constexpr bool IsCreatable() { return true; }
 
 		Terrain();
 		virtual ~Terrain() = default;
 
-		virtual ComponentType GetType() const override { return ComponentType::TERRAIN; }
+		virtual ComponentType GetType() const override { return ComponentType::Terrain; }
 
 		float GetCellSize() const { return m_cellSize; }
 		void SetCellSize(float cellSize);	// 지형 콜라이더 재생성 및 터레인 제어점 버퍼 재생성

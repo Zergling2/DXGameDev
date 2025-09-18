@@ -49,10 +49,11 @@ namespace ze
 		TRANSFORM_PC_TO_HCS,
 		TRANSFORM_PN_TO_HCS,
 		TRANSFORM_PT_TO_HCS,
-		TRANSFORM_CAMERA_MERGE_QUAD,
 		TRANSFORM_PNT_TO_HCS,
+		TRANSFORM_PNTT_TO_HCS,
 		TRANSFORM_BUTTON_TO_HCS,
 		TRANSFORM_PT_QUAD_TO_HCS,
+		TRANSFORM_CAMERA_MERGE_QUAD,
 		// 收收收收收收收收收收收收收收收收收收收收收收
 		COUNT
 	};
@@ -81,6 +82,7 @@ namespace ze
 		ColorPositionTexCoordFragmentWithSingleTexture,
 		ColorPositionTexCoordFragmentWithSingleMSTexture,
 		ColorPositionNormalTexCoordFragment,
+		ColorPositionNormalTangentTexCoordFragment,
 		// 收收收收收收收收收收收收收收收收收收收收收收
 		COUNT
 	};
@@ -124,6 +126,7 @@ namespace ze
 		PositionNormal,
 		PositionTexCoord,
 		PositionNormalTexCoord,
+		PositionNormalTangentTexCoord,
 		TerrainPatchCtrlPt,
 		ButtonPt,
 		// 收收收收收收收收收收收收收收收收收收收收收收

@@ -7,13 +7,13 @@ namespace ze
 	class AudioSource : public IComponent
 	{
 	public:
-		static constexpr ComponentType TYPE = ComponentType::AUDIO_SOURCE;
+		static constexpr ComponentType TYPE = ComponentType::AudioSource;
 		static constexpr bool IsCreatable() { return true; }
 
 		AudioSource() = default;
 		virtual ~AudioSource() = default;
 
-		virtual ComponentType GetType() const override { return ComponentType::AUDIO_SOURCE; }
+		virtual ComponentType GetType() const override { return ComponentType::AudioSource; }
 	private:
 		virtual IComponentManager* GetComponentManager() const override;
 	};

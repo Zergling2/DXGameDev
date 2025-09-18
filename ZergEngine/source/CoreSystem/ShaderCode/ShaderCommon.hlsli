@@ -21,10 +21,9 @@
 // HLSL Structs
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 #define IsUsingMaterial(mtlFlag)    ((mtlFlag) & 0x80000000)
-#define IsUsingLightMap(mtlFlag)    ((mtlFlag) & 0x00000001)
-#define IsUsingDiffuseMap(mtlFlag)  ((mtlFlag) & 0x00000002)
+#define IsUsingDiffuseMap(mtlFlag)  ((mtlFlag) & 0x00000001)
+#define IsUsingSpecularMap(mtlFlag) ((mtlFlag) & 0x00000002)
 #define IsUsingNormalMap(mtlFlag)   ((mtlFlag) & 0x00000004)
-#define IsUsingSpecularMap(mtlFlag) ((mtlFlag) & 0x00000008)
 
 #define IsUsingDiffuseLayer(layerFlag) ((layerFlag) & 0x00000001)
 #define IsUsingNormalLayer(layerFlag) ((layerFlag) & 0x00000002)
@@ -114,7 +113,7 @@ struct DSInputQuadPatchTess
 struct DSInputTerrainPatchCtrlPt
 {
     float3 posW : POSITION;
-    float2 texCoord : TEXCOORD0;
+    float2 texCoord : TEXCOORD;
 };
 
 struct PSInputPFragment
@@ -138,15 +137,24 @@ struct PSInputPNFragment
 struct PSInputPTFragment
 {
     float4 posH : SV_Position;
-    float2 texCoord : TEXCOORD0;
+    float2 texCoord : TEXCOORD;
 };
 
 struct PSInputPNTFragment
 {
-    float4 posH : SV_Position;      // Homogeneous clip space position
-    float3 posW : POSITION;         // World space position (조명 처리를 위해서)
+    float4 posH : SV_Position;	// Homogeneous clip space position
+    float3 posW : POSITION;		// World space position (조명 처리를 위해서)
     float3 normalW : NORMAL;
-    float2 texCoord : TEXCOORD0;
+    float2 texCoord : TEXCOORD;
+};
+
+struct PSInputPNTTFragment
+{
+    float4 posH : SV_Position;	// Homogeneous clip space position
+    float3 posW : POSITION;		// World space position (조명 처리를 위해서)
+    float3 normalW : NORMAL;
+    float3 tangentW : TANGENT;
+    float2 texCoord : TEXCOORD;
 };
 
 struct PSInputSkyboxFragment
@@ -261,8 +269,8 @@ hlslstruct CbPerButton
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Sampler States
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-SamplerState ss_mesh : register(s0);
-SamplerState ss_bilinear : register(s1);
-SamplerState ss_trilinear : register(s2);
+SamplerState ss_common : register(s0);
+SamplerState ss_normalMap : register(s1);
+SamplerState ss_bilinear : register(s2);
 
 #endif

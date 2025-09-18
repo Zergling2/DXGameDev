@@ -28,7 +28,7 @@ PSInputPNFragment main(VSInputVertexPN input)
     
     output.posH = mul(float4(input.posL, 1.0f), mul(cb_perMesh.w, cb_perCamera.vp));
     output.posW = mul(float4(input.posL, 1.0f), cb_perMesh.w).xyz;
-    output.normalW = normalize(mul(float4(input.normalL, 1.0f), cb_perMesh.wInvTr).xyz);
+    output.normalW = normalize(mul(input.normalL, (float3x3)cb_perMesh.wInvTr));
     
     return output;
 }

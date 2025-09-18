@@ -44,6 +44,7 @@ Renderer::Renderer()
 	, m_basicEffectPN()
 	, m_basicEffectPT()
 	, m_basicEffectPNT()
+	, m_basicEffectPNTT()
 	, m_terrainEffect()
 	, m_skyboxEffect()
 	, m_drawQuadWithMSTextureEffect()
@@ -93,6 +94,7 @@ void Renderer::Init()
 	m_basicEffectPN.Init();
 	m_basicEffectPT.Init();
 	m_basicEffectPNT.Init();
+	m_basicEffectPNTT.Init();
 	m_terrainEffect.Init();
 	m_skyboxEffect.Init();
 	m_drawQuadWithMSTextureEffect.Init();
@@ -112,6 +114,7 @@ void Renderer::UnInit()
 	m_basicEffectPN.Release();
 	m_basicEffectPT.Release();
 	m_basicEffectPNT.Release();
+	m_basicEffectPNTT.Release();
 	m_terrainEffect.Release();
 	m_skyboxEffect.Release();
 	m_drawQuadWithMSTextureEffect.Release();
@@ -125,9 +128,9 @@ void Renderer::RenderFrame()
 
 	ID3D11SamplerState* const ssArr[] =
 	{
-		GraphicDevice::GetInstance()->GetSSComInterface(TextureFilteringMode::Anisotropic4x),	// s0 mesh texture sampler
-		GraphicDevice::GetInstance()->GetSSComInterface(TextureFilteringMode::Bilinear),		// s1
-		GraphicDevice::GetInstance()->GetSSComInterface(TextureFilteringMode::Trilinear),		// s2
+		GraphicDevice::GetInstance()->GetSSComInterface(TextureFilteringMode::Anisotropic4x),	// s0 common sampler
+		GraphicDevice::GetInstance()->GetSSComInterface(TextureFilteringMode::Trilinear),		// s1 normal map sampler
+		GraphicDevice::GetInstance()->GetSSComInterface(TextureFilteringMode::Bilinear),		// s2 bilinear sampler
 	};
 	pImmContext->DSSetSamplers(0, _countof(ssArr), ssArr);
 	pImmContext->PSSetSamplers(0, _countof(ssArr), ssArr);
@@ -178,6 +181,7 @@ void Renderer::RenderFrame()
 		m_basicEffectPN.SetDirectionalLight(light, lightCount);
 		// m_basicEffectPT.SetDirectionalLight(light, lightCount);
 		m_basicEffectPNT.SetDirectionalLight(light, lightCount);
+		m_basicEffectPNTT.SetDirectionalLight(light, lightCount);
 		// m_skyboxEffect.SetDirectionalLight(light, lightCount);
 		m_terrainEffect.SetDirectionalLight(light, lightCount);
 	}
@@ -213,6 +217,7 @@ void Renderer::RenderFrame()
 		m_basicEffectPN.SetPointLight(light, lightCount);
 		// m_basicEffectPT.SetPointLight(light, lightCount);
 		m_basicEffectPNT.SetPointLight(light, lightCount);
+		m_basicEffectPNTT.SetPointLight(light, lightCount);
 		// m_skyboxEffect.SetPointLight(light, lightCount);
 		m_terrainEffect.SetPointLight(light, lightCount);
 	}
@@ -260,6 +265,7 @@ void Renderer::RenderFrame()
 		m_basicEffectPN.SetSpotLight(light, lightCount);
 		// m_basicEffectPT.SetSpotLight(light, lightCount);
 		m_basicEffectPNT.SetSpotLight(light, lightCount);
+		m_basicEffectPNTT.SetSpotLight(light, lightCount);
 		// m_skyboxEffect.SetSpotLight(light, lightCount);
 		m_terrainEffect.SetSpotLight(light, lightCount);
 	}
@@ -294,6 +300,7 @@ void Renderer::RenderFrame()
 		m_basicEffectPN.SetCamera(pCamera);
 		m_basicEffectPT.SetCamera(pCamera);
 		m_basicEffectPNT.SetCamera(pCamera);
+		m_basicEffectPNTT.SetCamera(pCamera);
 		m_skyboxEffect.SetCamera(pCamera);
 		m_terrainEffect.SetCamera(pCamera);
 
@@ -327,6 +334,9 @@ void Renderer::RenderFrame()
 				break;
 			case VertexFormatType::PositionNormalTexCoord:
 				RenderVFPositionNormalTexCoordMesh(pMeshRenderer);
+				break;
+			case VertexFormatType::PositionNormalTangentTexCoord:
+				RenderVFPositionNormalTangentTexCoordMesh(pMeshRenderer);
 				break;
 			case VertexFormatType::COUNT:
 				__fallthrough;
@@ -671,9 +681,7 @@ void Renderer::RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshRende
 			m_basicEffectPNT.SetAmbientColor(XMLoadFloat4A(&pMaterial->m_ambient));
 			m_basicEffectPNT.SetDiffuseColor(XMLoadFloat4A(&pMaterial->m_diffuse));
 			m_basicEffectPNT.SetSpecularColor(XMLoadFloat4A(&pMaterial->m_specular));
-			m_basicEffectPNT.SetLightMap(pMaterial->m_lightMap.GetSRVComInterface());
 			m_basicEffectPNT.SetDiffuseMap(pMaterial->m_diffuseMap.GetSRVComInterface());
-			m_basicEffectPNT.SetNormalMap(pMaterial->m_normalMap.GetSRVComInterface());
 			m_basicEffectPNT.SetSpecularMap(pMaterial->m_specularMap.GetSRVComInterface());
 		}
 		else
@@ -682,6 +690,57 @@ void Renderer::RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshRende
 		}
 
 		m_effectImmediateContext.Apply(&m_basicEffectPNT);
+
+		// 드로우
+		m_effectImmediateContext.DrawIndexed(currentSubset.GetIndexCount(), currentSubset.GetStartIndexLocation(), 0);
+	}
+}
+
+void Renderer::RenderVFPositionNormalTangentTexCoordMesh(const MeshRenderer* pMeshRenderer)
+{
+	const Mesh* pMesh = pMeshRenderer->GetMeshPtr();
+	if (!pMesh)
+		return;
+
+	assert(pMesh->GetVertexFormatType() == VertexFormatType::PositionNormalTangentTexCoord);
+
+	const GameObject* pGameObject = pMeshRenderer->m_pGameObject;
+	assert(pGameObject != nullptr);
+
+	m_basicEffectPNTT.SetWorldMatrix(pGameObject->m_transform.GetWorldTransformMatrix());
+
+	// 버텍스 버퍼 설정
+	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(pMesh->GetVertexFormatType()) };
+	const UINT offsets[] = { 0 };
+	ID3D11Buffer* const vbs[] = { pMesh->GetVBComInterface() };
+	m_effectImmediateContext.IASetVertexBuffers(0, _countof(vbs), vbs, strides, offsets);
+
+	// 인덱스 버퍼 설정
+	m_effectImmediateContext.IASetIndexBuffer(pMesh->GetIBComInterface(), DXGI_FORMAT_R32_UINT, 0);
+
+	// 서브셋들 순회하며 렌더링
+	assert(pMesh->m_subsets.size() == pMeshRenderer->GetMeshPtr()->m_subsets.size());
+	const size_t subsetCount = pMesh->m_subsets.size();
+	for (size_t i = 0; i < subsetCount; ++i)
+	{
+		const Subset& currentSubset = pMesh->m_subsets[i];
+		const Material* pMaterial = pMeshRenderer->GetMaterialPtr(i);
+		if (pMaterial != nullptr)
+		{
+			m_basicEffectPNTT.UseMaterial(true);
+			m_basicEffectPNTT.SetAmbientColor(XMLoadFloat4A(&pMaterial->m_ambient));
+			m_basicEffectPNTT.SetDiffuseColor(XMLoadFloat4A(&pMaterial->m_diffuse));
+			m_basicEffectPNTT.SetSpecularColor(XMLoadFloat4A(&pMaterial->m_specular));
+			m_basicEffectPNTT.SetDiffuseMap(pMaterial->m_diffuseMap.GetSRVComInterface());
+			m_basicEffectPNTT.SetSpecularMap(pMaterial->m_specularMap.GetSRVComInterface());
+			m_basicEffectPNTT.SetNormalMap(pMaterial->m_normalMap.GetSRVComInterface());
+		}
+		else
+		{
+			m_basicEffectPNTT.UseMaterial(false);
+		}
+
+		m_effectImmediateContext.Apply(&m_basicEffectPNTT);
 
 		// 드로우
 		m_effectImmediateContext.DrawIndexed(currentSubset.GetIndexCount(), currentSubset.GetStartIndexLocation(), 0);

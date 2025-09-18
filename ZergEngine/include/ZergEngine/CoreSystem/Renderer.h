@@ -6,6 +6,7 @@
 #include <ZergEngine\CoreSystem\Effect\BasicEffectPN.h>
 #include <ZergEngine\CoreSystem\Effect\BasicEffectPT.h>
 #include <ZergEngine\CoreSystem\Effect\BasicEffectPNT.h>
+#include <ZergEngine\CoreSystem\Effect\BasicEffectPNTT.h>
 #include <ZergEngine\CoreSystem\Effect\TerrainEffect.h>
 #include <ZergEngine\CoreSystem\Effect\SkyboxEffect.h>
 #include <ZergEngine\CoreSystem\Effect\DrawQuadWithMSTextureEffect.h>
@@ -46,6 +47,7 @@ namespace ze
 		void RenderVFPositionNormalMesh(const MeshRenderer* pMeshRenderer);
 		void RenderVFPositionTexCoordMesh(const MeshRenderer* pMeshRenderer);
 		void RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshRenderer);
+		void RenderVFPositionNormalTangentTexCoordMesh(const MeshRenderer* pMeshRenderer);
 		void RenderTerrain(const Terrain* pTerrain);
 		void RenderSkybox(ID3D11ShaderResourceView* pSkyboxCubeMapSRV);
 		void RenderPanel(const Panel* pPanel);
@@ -75,6 +77,7 @@ namespace ze
 		BasicEffectPN m_basicEffectPN;
 		BasicEffectPT m_basicEffectPT;
 		BasicEffectPNT m_basicEffectPNT;
+		BasicEffectPNTT m_basicEffectPNTT;
 		TerrainEffect m_terrainEffect;
 		SkyboxEffect m_skyboxEffect;
 		DrawQuadWithMSTextureEffect m_drawQuadWithMSTextureEffect;

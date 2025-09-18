@@ -20,10 +20,11 @@ static PCWSTR VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::COUNT)] 
 	L"VSTransformPCToHCS.cso",
 	L"VSTransformPNToHCS.cso",
 	L"VSTransformPTToHCS.cso",
-	L"VSTransformCameraMergeQuad.cso",
 	L"VSTransformPNTToHCS.cso",
+	L"VSTransformPNTTToHCS.cso",
 	L"VSTransformButtonToHCS.cso",
-	L"VSTransformPTQuadToHCS.cso"
+	L"VSTransformPTQuadToHCS.cso",
+	L"VSTransformCameraMergeQuad.cso"
 };
 
 static PCWSTR HULL_SHADER_FILES[static_cast<size_t>(HullShaderType::COUNT)] =
@@ -46,6 +47,7 @@ static PCWSTR PIXEL_SHADER_FILES[static_cast<size_t>(PixelShaderType::COUNT)] =
 	L"PSColorPTFragmentSingleTexture.cso",
 	L"PSColorPTFragmentSingleMSTexture.cso",
 	L"PSColorPNTFragment.cso",
+	L"PSColorPNTTFragment.cso"
 };
 
 // constexpr float allows only one floating point constant to exist in memory, even if it is not encoded in a x86 command.
@@ -409,7 +411,7 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	WCHAR targetPath[MAX_PATH];
 
 	// VERTEX SHADERS
-	// 1. TRANSFORM_SKYBOX_TO_HCS (No Input Layout required)
+	// TRANSFORM_SKYBOX_TO_HCS (No Input Layout required)
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
 	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TRANSFORM_SKYBOX_TO_HCS)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
@@ -417,7 +419,7 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	m_vs[static_cast<size_t>(VertexShaderType::TRANSFORM_SKYBOX_TO_HCS)].Init(pDevice, pByteCode, byteCodeSize);
 	delete[] pByteCode;
 
-	// 2. TRANSFORM_TERRAIN_PATCH_CTRL_PT (POSITION, TEXCOORD0, TEXCOORD1)
+	// TRANSFORM_TERRAIN_PATCH_CTRL_PT (POSITION, TEXCOORD0, TEXCOORD1)
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
 	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TRANSFORM_TERRAIN_PATCH_CTRL_PT)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
@@ -433,7 +435,7 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	);
 	delete[] pByteCode;
 
-	// 3. TRANSFORM_P_TO_HCS (POSITION)
+	// TRANSFORM_P_TO_HCS (POSITION)
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
 	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TRANSFORM_P_TO_HCS)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
@@ -449,7 +451,7 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	);
 	delete[] pByteCode;
 
-	// 4. TRANSFORM_PC_TO_HCS (POSITION, COLOR0)
+	// TRANSFORM_PC_TO_HCS (POSITION, COLOR0)
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
 	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TRANSFORM_PC_TO_HCS)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
@@ -465,7 +467,7 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	);
 	delete[] pByteCode;
 
-	// 5. TRANSFORM_PN_TO_HCS (POSITION, NORMAL)
+	// TRANSFORM_PN_TO_HCS (POSITION, NORMAL)
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
 	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TRANSFORM_PN_TO_HCS)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
@@ -481,7 +483,7 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	);
 	delete[] pByteCode;
 
-	// 6. TRANSFORM_PT_TO_HCS (POSITION, TEXCOORD0)
+	// TRANSFORM_PT_TO_HCS (POSITION, TEXCOORD0)
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
 	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TRANSFORM_PT_TO_HCS)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
@@ -497,16 +499,7 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	);
 	delete[] pByteCode;
 
-	// 7. TRANSFORM_CAMERA_MERGE_QUAD (No Input Layout required)
-	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
-	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TRANSFORM_CAMERA_MERGE_QUAD)]);
-	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
-		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
-	m_vs[static_cast<size_t>(VertexShaderType::TRANSFORM_CAMERA_MERGE_QUAD)].Init(pDevice, pByteCode, byteCodeSize);
-	// No input layout required.
-	delete[] pByteCode;
-
-	// 8. TRANSFORM_PNT_TO_HCS (POSITION, NORMAL, TEXCOORD)
+	// TRANSFORM_PNT_TO_HCS (POSITION, NORMAL, TEXCOORD)
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
 	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TRANSFORM_PNT_TO_HCS)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
@@ -522,7 +515,23 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	);
 	delete[] pByteCode;
 
-	// 9. TRANSFORM_BUTTON_TO_HCS (POSITION, TEXCOORD0, COLOR0)
+	// TRANSFORM_PNTT_TO_HCS (POSITION, NORMAL, TANGENT, TEXCOORD)
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TRANSFORM_PNTT_TO_HCS)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
+	m_vs[static_cast<size_t>(VertexShaderType::TRANSFORM_PNTT_TO_HCS)].Init(pDevice, pByteCode, byteCodeSize);
+	// ¦±¦¬ Create compatible Input Layout
+	m_il[static_cast<size_t>(VertexFormatType::PositionNormalTangentTexCoord)].Init(
+		pDevice,
+		VFPositionNormalTangentTexCoord::GetInputElementDescriptor(),
+		VFPositionNormalTangentTexCoord::GetInputElementCount(),
+		pByteCode,
+		byteCodeSize
+	);
+	delete[] pByteCode;
+
+	// TRANSFORM_BUTTON_TO_HCS (POSITION, TEXCOORD0, COLOR0)
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
 	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TRANSFORM_BUTTON_TO_HCS)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
@@ -538,7 +547,7 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	);
 	delete[] pByteCode;
 
-	// 10. TRANSFORM_PT_QUAD_TO_HCS
+	// TRANSFORM_PT_QUAD_TO_HCS
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
 	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TRANSFORM_PT_QUAD_TO_HCS)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
@@ -546,8 +555,21 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	m_vs[static_cast<size_t>(VertexShaderType::TRANSFORM_PT_QUAD_TO_HCS)].Init(pDevice, pByteCode, byteCodeSize);
 	delete[] pByteCode;
 
+	// TRANSFORM_CAMERA_MERGE_QUAD (No Input Layout required)
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TRANSFORM_CAMERA_MERGE_QUAD)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
+	m_vs[static_cast<size_t>(VertexShaderType::TRANSFORM_CAMERA_MERGE_QUAD)].Init(pDevice, pByteCode, byteCodeSize);
+	// No input layout required.
+	delete[] pByteCode;
+
+
+
+
+
 	// HULL SHADERS
-	// 1. HS CalcTerrainTessFactor
+	// HS CalcTerrainTessFactor
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
 	StringCbCatW(targetPath, sizeof(targetPath), HULL_SHADER_FILES[static_cast<size_t>(HullShaderType::CalcTerrainTessFactor)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
@@ -555,8 +577,12 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	m_hs[static_cast<size_t>(HullShaderType::CalcTerrainTessFactor)].Init(pDevice, pByteCode, byteCodeSize);
 	delete[] pByteCode;
 
+
+
+
+
 	// DOMAIN SHADERS
-	// 1. DS SampleTerrainHeightMap
+	// DS SampleTerrainHeightMap
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
 	StringCbCatW(targetPath, sizeof(targetPath), DOMAIN_SHADER_FILES[static_cast<size_t>(DomainShaderType::SampleTerrainHeightMap)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
@@ -564,8 +590,13 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	m_ds[static_cast<size_t>(DomainShaderType::SampleTerrainHeightMap)].Init(pDevice, pByteCode, byteCodeSize);
 	delete[] pByteCode;
 
+
+
+
+
+
 	// PIXEL SHADERS
-	// 1. ColorSkyboxFragment
+	// ColorSkyboxFragment
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
 	StringCbCatW(targetPath, sizeof(targetPath), PIXEL_SHADER_FILES[static_cast<size_t>(PixelShaderType::ColorSkyboxFragment)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
@@ -573,7 +604,7 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	m_ps[static_cast<size_t>(PixelShaderType::ColorSkyboxFragment)].Init(pDevice, pByteCode, byteCodeSize);
 	delete[] pByteCode;
 
-	// 2. ColorTerrainFragment
+	// ColorTerrainFragment
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
 	StringCbCatW(targetPath, sizeof(targetPath), PIXEL_SHADER_FILES[static_cast<size_t>(PixelShaderType::ColorTerrainFragment)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
@@ -581,7 +612,7 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	m_ps[static_cast<size_t>(PixelShaderType::ColorTerrainFragment)].Init(pDevice, pByteCode, byteCodeSize);
 	delete[] pByteCode;
 
-	// 3. ColorPositionFragment
+	// ColorPositionFragment
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
 	StringCbCatW(targetPath, sizeof(targetPath), PIXEL_SHADER_FILES[static_cast<size_t>(PixelShaderType::ColorPositionFragment)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
@@ -589,7 +620,7 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	m_ps[static_cast<size_t>(PixelShaderType::ColorPositionFragment)].Init(pDevice, pByteCode, byteCodeSize);
 	delete[] pByteCode;
 
-	// 4. ColorPositionColorFragment
+	// ColorPositionColorFragment
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
 	StringCbCatW(targetPath, sizeof(targetPath), PIXEL_SHADER_FILES[static_cast<size_t>(PixelShaderType::ColorPositionColorFragment)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
@@ -597,7 +628,7 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	m_ps[static_cast<size_t>(PixelShaderType::ColorPositionColorFragment)].Init(pDevice, pByteCode, byteCodeSize);
 	delete[] pByteCode;
 
-	// 5. ColorPositionNormalFragment
+	// ColorPositionNormalFragment
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
 	StringCbCatW(targetPath, sizeof(targetPath), PIXEL_SHADER_FILES[static_cast<size_t>(PixelShaderType::ColorPositionNormalFragment)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
@@ -605,15 +636,7 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	m_ps[static_cast<size_t>(PixelShaderType::ColorPositionNormalFragment)].Init(pDevice, pByteCode, byteCodeSize);
 	delete[] pByteCode;
 
-	// 7. ColorPositionNormalTexCoordFragment
-	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
-	StringCbCatW(targetPath, sizeof(targetPath), PIXEL_SHADER_FILES[static_cast<size_t>(PixelShaderType::ColorPositionNormalTexCoordFragment)]);
-	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
-		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
-	m_ps[static_cast<size_t>(PixelShaderType::ColorPositionNormalTexCoordFragment)].Init(pDevice, pByteCode, byteCodeSize);
-	delete[] pByteCode;
-
-	// 8. ColorPositionTexCoordFragmentWithSingleTextur
+	// ColorPositionTexCoordFragmentWithSingleTextur
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
 	StringCbCatW(targetPath, sizeof(targetPath), PIXEL_SHADER_FILES[static_cast<size_t>(PixelShaderType::ColorPositionTexCoordFragmentWithSingleTexture)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
@@ -621,12 +644,28 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	m_ps[static_cast<size_t>(PixelShaderType::ColorPositionTexCoordFragmentWithSingleTexture)].Init(pDevice, pByteCode, byteCodeSize);
 	delete[] pByteCode;
 
-	// 9. ColorPositionTexCoordFragmentWithSingleMSTexture
+	// ColorPositionTexCoordFragmentWithSingleMSTexture
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
 	StringCbCatW(targetPath, sizeof(targetPath), PIXEL_SHADER_FILES[static_cast<size_t>(PixelShaderType::ColorPositionTexCoordFragmentWithSingleMSTexture)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
 		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
 	m_ps[static_cast<size_t>(PixelShaderType::ColorPositionTexCoordFragmentWithSingleMSTexture)].Init(pDevice, pByteCode, byteCodeSize);
+	delete[] pByteCode;
+
+	// ColorPositionNormalTexCoordFragment
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), PIXEL_SHADER_FILES[static_cast<size_t>(PixelShaderType::ColorPositionNormalTexCoordFragment)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
+	m_ps[static_cast<size_t>(PixelShaderType::ColorPositionNormalTexCoordFragment)].Init(pDevice, pByteCode, byteCodeSize);
+	delete[] pByteCode;
+
+	// ColorPositionNormalTangentTexCoordFragment
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), PIXEL_SHADER_FILES[static_cast<size_t>(PixelShaderType::ColorPositionNormalTangentTexCoordFragment)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
+	m_ps[static_cast<size_t>(PixelShaderType::ColorPositionNormalTangentTexCoordFragment)].Init(pDevice, pByteCode, byteCodeSize);
 	delete[] pByteCode;
 }
 

@@ -44,23 +44,23 @@ void HTVItemGameObject::OnSelect()
 		int index;
 		switch (pComponent->GetType())
 		{
-		case ze::ComponentType::MESH_RENDERER:
+		case ze::ComponentType::MeshRenderer:
 			index = lc.InsertItem(lc.GetItemCount(), _T("Mesh Renderer"), ZE_ICON_INDEX::MESH_RENDERER_ICON);
 			lc.SetItemData(index, reinterpret_cast<DWORD_PTR>(new CLVItemMeshRenderer(static_cast<ze::MeshRenderer*>(pComponent))));
 			break;
-		case ze::ComponentType::DIRECTIONAL_LIGHT:
+		case ze::ComponentType::DirectionalLight:
 			index = lc.InsertItem(lc.GetItemCount(), _T("Directional Light"), ZE_ICON_INDEX::DIRECTIONAL_LIGHT_ICON);
 			lc.SetItemData(index, reinterpret_cast<DWORD_PTR>(new CLVItemDirectionalLight(static_cast<ze::DirectionalLight*>(pComponent))));
 			break;
-		case ze::ComponentType::POINT_LIGHT:
+		case ze::ComponentType::PointLight:
 			index = lc.InsertItem(lc.GetItemCount(), _T("Point Light"), ZE_ICON_INDEX::POINT_LIGHT_ICON);
 			lc.SetItemData(index, reinterpret_cast<DWORD_PTR>(new CLVItemPointLight(static_cast<ze::PointLight*>(pComponent))));
 			break;
-		case ze::ComponentType::SPOT_LIGHT:
+		case ze::ComponentType::SpotLight:
 			index = lc.InsertItem(lc.GetItemCount(), _T("Spot Light"), ZE_ICON_INDEX::SPOT_LIGHT_ICON);
 			lc.SetItemData(index, reinterpret_cast<DWORD_PTR>(new CLVItemSpotLight(static_cast<ze::SpotLight*>(pComponent))));
 			break;
-		case ze::ComponentType::TERRAIN:
+		case ze::ComponentType::Terrain:
 			index = lc.InsertItem(lc.GetItemCount(), _T("Terrain"), ZE_ICON_INDEX::TERRAIN_ICON);
 			lc.SetItemData(index, reinterpret_cast<DWORD_PTR>(new CLVItemTerrain(static_cast<ze::Terrain*>(pComponent))));
 			break;

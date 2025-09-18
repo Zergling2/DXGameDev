@@ -284,6 +284,14 @@ void Warehouse::OnLoadScene()
 	XMStoreFloat4A(&matHouseWallSouth1->m_specular, XMVectorSetW(Math::Vector3::Zero(), 4.0f));
 
 
+	std::shared_ptr<Material> matRustedSteelHotspot = ResourceLoader::GetInstance()->CreateMaterial();
+	XMStoreFloat4A(&matRustedSteelHotspot->m_ambient, XMVectorScale(Math::Vector3::One(), 0.25f));
+	XMStoreFloat4A(&matRustedSteelHotspot->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.75f));
+	XMStoreFloat4A(&matRustedSteelHotspot->m_specular, XMVectorSetW(Math::Vector3::OneHalf(), 4.0f));
+	matRustedSteelHotspot->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\metals\\RustedSteel\\RustedSteel_Diffuse.png");
+	matRustedSteelHotspot->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\metals\\RustedSteel\\RustedSteel_Normal.png");
+
+
 	std::shared_ptr<Material> matHouseWallNorth[4];
 	{
 		matHouseWallNorth[0] = ResourceLoader::GetInstance()->CreateMaterial();
@@ -1113,7 +1121,7 @@ void Warehouse::OnLoadScene()
 		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
 		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 		pMeshRenderer->SetMesh(meshHouseFloor);
-		pMeshRenderer->SetMaterial(0, matConcrete1);
+		pMeshRenderer->SetMaterial(0, matRustedSteelHotspot);
 	}
 
 
@@ -1143,12 +1151,14 @@ void Warehouse::OnLoadScene()
 		XMStoreFloat4A(&matM16A1Receiver->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.5f));
 		XMStoreFloat4A(&matM16A1Receiver->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.25f), 4.0f));
 		matM16A1Receiver->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M16A1\\Textures\\M16A1Receiver_Diffuse.jpg");
+		matM16A1Receiver->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M16A1\\Textures\\M16A1Receiver_Normal.jpg");
 
 		auto matM16A1Furniture = ResourceLoader::GetInstance()->CreateMaterial();
 		XMStoreFloat4A(&matM16A1Furniture->m_ambient, Math::Vector3::OneHalf());
 		XMStoreFloat4A(&matM16A1Furniture->m_diffuse, Math::Vector3::One());
 		XMStoreFloat4A(&matM16A1Furniture->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.25f), 4.0f));
 		matM16A1Furniture->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M16A1\\Textures\\M16A1Furniture_Diffuse.jpg");
+		matM16A1Furniture->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M16A1\\Textures\\M16A1Furniture_Normal.jpg");
 		pMeshRenderer->SetMaterial(0, matM16A1Receiver);
 		pMeshRenderer->SetMaterial(1, matM16A1Furniture);
 
@@ -1187,7 +1197,8 @@ void Warehouse::OnLoadScene()
 		XMStoreFloat4A(&matM9A1->m_ambient, XMVectorScale(Math::Vector3::One(), 0.5f));
 		XMStoreFloat4A(&matM9A1->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.5f));
 		XMStoreFloat4A(&matM9A1->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.25f), 4.0f));
-		matM9A1->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M9A1\\Textures\\M9A1_Base_Color.png");
+		matM9A1->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M9A1\\Textures\\M9A1_Diffuse.png");
+		matM9A1->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M9A1\\Textures\\M9A1_Normal.png");
 		pMeshRenderer->SetMaterial(0, matM9A1);
 
 		pSecondaryWeapon->m_transform.SetParent(&pMainCamera->m_transform);
@@ -1231,12 +1242,13 @@ void Warehouse::OnLoadScene()
 		XMStoreFloat4A(&matM4A1Receiver->m_ambient, Math::Vector3::OneHalf());
 		XMStoreFloat4A(&matM4A1Receiver->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.5f));
 		XMStoreFloat4A(&matM4A1Receiver->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.25f), 4.0f));
-		matM4A1Receiver->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M4A1\\Textures\\ReceiverDiffuse.png");
+		matM4A1Receiver->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M4A1\\Textures\\Receiver_Diffuse.png");
+		matM4A1Receiver->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M4A1\\Textures\\Receiver_Normal.tga");
 		auto matKACRearSight = ResourceLoader::GetInstance()->CreateMaterial();
 		XMStoreFloat4A(&matKACRearSight->m_ambient, Math::Vector3::OneHalf());
 		XMStoreFloat4A(&matKACRearSight->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.5f));
 		XMStoreFloat4A(&matKACRearSight->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.05f), 4.0f));
-		matKACRearSight->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M4A1\\Textures\\KACRearSightDiffuse.png");
+		matKACRearSight->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M4A1\\Textures\\KACRearSight_Diffuse.png");
 		pMeshRenderer->SetMaterial(0, matM4A1Receiver);
 		pMeshRenderer->SetMaterial(1, matKACRearSight);
 

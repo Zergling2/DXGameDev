@@ -1,8 +1,7 @@
-#include "ShaderCommon.hlsli"
 #include "Lighting.hlsli"
 
 // [Sampler State]
-// ss_mesh
+// ss_common
 
 // [Constant Buffer]
 cbuffer Cb0 : register(b0)
@@ -21,10 +20,8 @@ cbuffer Cb2 : register(b2)
 }
 
 // [Texture]
-Texture2D tex2d_lightMap : register(t0);
-Texture2D tex2d_diffuseMap : register(t1);
-Texture2D tex2d_normalMap : register(t2);
-Texture2D tex2d_specularMap : register(t3);
+Texture2D tex2d_diffuseMap : register(t0);
+Texture2D tex2d_specularMap : register(t1);
 
 PSOutput main(PSInputPNTFragment input)
 {
@@ -35,7 +32,7 @@ PSOutput main(PSInputPNTFragment input)
         // normalize again
         input.normalW = normalize(input.normalW);
     
-        const float3 toEye = normalize(cb_perCamera.cameraPosW - input.posW);
+        const float3 toEyeW = normalize(cb_perCamera.cameraPosW - input.posW);
     
         float4 ambient = float4(0.0f, 0.0f, 0.0f, 0.0f);
         float4 diffuse = float4(0.0f, 0.0f, 0.0f, 0.0f);
@@ -45,7 +42,7 @@ PSOutput main(PSInputPNTFragment input)
         uint i;
         for (i = 0; i < cb_perFrame.dlCount; ++i)
         {
-            ComputeDirectionalLight(cb_perFrame.dl[i], cb_perSubset.mtl, input.normalW, toEye, addA, addD, addS);
+            ComputeDirectionalLight(cb_perFrame.dl[i], cb_perSubset.mtl, input.normalW, toEyeW, addA, addD, addS);
             ambient += addA;
             diffuse += addD;
             specular += addS;
@@ -53,7 +50,7 @@ PSOutput main(PSInputPNTFragment input)
     
         for (i = 0; i < cb_perFrame.plCount; ++i)
         {
-            ComputePointLight(cb_perFrame.pl[i], cb_perSubset.mtl, input.posW, input.normalW, toEye, addA, addD, addS);
+            ComputePointLight(cb_perFrame.pl[i], cb_perSubset.mtl, input.posW, input.normalW, toEyeW, addA, addD, addS);
             ambient += addA;
             diffuse += addD;
             specular += addS;
@@ -61,14 +58,14 @@ PSOutput main(PSInputPNTFragment input)
     
         for (i = 0; i < cb_perFrame.slCount; ++i)
         {
-            ComputeSpotLight(cb_perFrame.sl[i], cb_perSubset.mtl, input.posW, input.normalW, toEye, addA, addD, addS);
+            ComputeSpotLight(cb_perFrame.sl[i], cb_perSubset.mtl, input.posW, input.normalW, toEyeW, addA, addD, addS);
             ambient += addA;
             diffuse += addD;
             specular += addS;
         }
         
         if (IsUsingDiffuseMap(cb_perSubset.mtl.mtlFlag))
-            output.color = tex2d_diffuseMap.Sample(ss_mesh, input.texCoord) * (ambient + diffuse) + specular;
+            output.color = tex2d_diffuseMap.Sample(ss_common, input.texCoord) * (ambient + diffuse) + specular;
         else
             output.color = (ambient + diffuse) + specular;
     

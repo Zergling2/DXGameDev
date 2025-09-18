@@ -95,12 +95,12 @@ void XM_CALLCONV BasicEffectPN::SetWorldMatrix(FXMMATRIX w) noexcept
 
 void BasicEffectPN::UseMaterial(bool b) noexcept
 {
-	const bool oldMtlFlag = m_cbPerSubsetCache.mtl.mtlFlag & static_cast<uint32_t>(MATERIAL_FLAG::USE_MATERIAL);
+	const bool oldMtlFlag = m_cbPerSubsetCache.mtl.mtlFlag & static_cast<uint32_t>(MATERIAL_FLAG::UseMaterial);
 
 	if (b)
-		m_cbPerSubsetCache.mtl.mtlFlag |= static_cast<uint32_t>(MATERIAL_FLAG::USE_MATERIAL);
+		m_cbPerSubsetCache.mtl.mtlFlag |= static_cast<uint32_t>(MATERIAL_FLAG::UseMaterial);
 	else
-		m_cbPerSubsetCache.mtl.mtlFlag &= ~static_cast<uint32_t>(MATERIAL_FLAG::USE_MATERIAL);
+		m_cbPerSubsetCache.mtl.mtlFlag &= ~static_cast<uint32_t>(MATERIAL_FLAG::UseMaterial);
 
 	if (oldMtlFlag != b)
 		m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_SUBSET;

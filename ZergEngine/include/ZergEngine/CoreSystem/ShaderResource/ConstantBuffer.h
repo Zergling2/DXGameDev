@@ -43,19 +43,18 @@ namespace ze
 	// 曲收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收旭
 	enum class MATERIAL_FLAG : uint32_t
 	{
-		None				= 0,
-		USE_MATERIAL		= 0x80000000,
-		USE_LIGHT_MAP		= 1 << 0,
-		USE_DIFFUSE_MAP		= 1 << 1,
-		USE_NORMAL_MAP		= 1 << 2,
-		USE_SPECULAR_MAP	= 1 << 3,
+		None			= 0,
+		UseMaterial		= 0x80000000,
+		UseDiffuseMap	= 0x00000001,
+		UseSpecularMap	= 0x00000002,
+		UseNormalMap	= 0x00000004
 	};
 
 	enum class TERRAIN_LAYER_FLAG : uint32_t
 	{
 		None				= 0,
-		USE_DIFFUSE_LAYER	= 0x00000001,
-		USE_NORMAL_LAYER	= 0x00000002
+		UseDiffuseLayer		= 0x00000001,
+		UseNormalLayer		= 0x00000002
 	};
 
 	hlslstruct MaterialData

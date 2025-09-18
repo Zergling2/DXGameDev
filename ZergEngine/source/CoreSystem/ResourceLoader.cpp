@@ -62,8 +62,10 @@ void ResourceLoader::DFSAiNodeLoadMesh(std::vector<std::shared_ptr<Mesh>>& meshe
 		name[0] = L'\0';
 		Helper::ConvertUTF8ToUTF16(pAiNode->mName.C_Str(), name, _countof(name));
 
+		using MeshVertexFormat = VFPositionNormalTangentTexCoord;
+
 		std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>(name);
-		std::vector<VFPositionNormalTexCoord> vertices;		// TEST
+		std::vector<MeshVertexFormat> vertices;		// TEST
 		std::vector<uint32_t> indices;
 		uint32_t startIndexLocation = 0;
 
@@ -92,7 +94,7 @@ void ResourceLoader::DFSAiNodeLoadMesh(std::vector<std::shared_ptr<Mesh>>& meshe
 			// 정점 정보 읽기
 			for (unsigned int v = 0; v < pAiMesh->mNumVertices; ++v)
 			{
-				VFPositionNormalTexCoord vertex;		// TEST
+				MeshVertexFormat vertex;		// TEST
 
 				vertex.m_position.x = pAiMesh->mVertices[v].x;
 				vertex.m_position.y = pAiMesh->mVertices[v].y;
@@ -102,9 +104,9 @@ void ResourceLoader::DFSAiNodeLoadMesh(std::vector<std::shared_ptr<Mesh>>& meshe
 				vertex.m_normal.y = pAiMesh->mNormals[v].y;
 				vertex.m_normal.z = pAiMesh->mNormals[v].z;
 
-				// vertex.m_tangent.x = pAiMesh->mTangents[v].x;
-				// vertex.m_tangent.y = pAiMesh->mTangents[v].y;
-				// vertex.m_tangent.z = pAiMesh->mTangents[v].z;
+				vertex.m_tangent.x = pAiMesh->mTangents[v].x;
+				vertex.m_tangent.y = pAiMesh->mTangents[v].y;
+				vertex.m_tangent.z = pAiMesh->mTangents[v].z;
 
 				constexpr size_t UV_CHANNEL_INDEX = 0;
 				vertex.m_texCoord.x = pAiMesh->mTextureCoords[UV_CHANNEL_INDEX][v].x;
@@ -141,7 +143,7 @@ void ResourceLoader::DFSAiNodeLoadMesh(std::vector<std::shared_ptr<Mesh>>& meshe
 		D3D11_BUFFER_DESC bufferDesc;
 		D3D11_SUBRESOURCE_DATA initialData;
 
-		bufferDesc.ByteWidth = static_cast<UINT>(vertices.size() * sizeof(VFPositionNormalTexCoord));
+		bufferDesc.ByteWidth = static_cast<UINT>(vertices.size() * sizeof(MeshVertexFormat));
 		bufferDesc.Usage = D3D11_USAGE_DEFAULT;
 		bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 		bufferDesc.CPUAccessFlags = 0;
@@ -178,7 +180,7 @@ void ResourceLoader::DFSAiNodeLoadMesh(std::vector<std::shared_ptr<Mesh>>& meshe
 		mesh->m_cpIB = std::move(cpIB);
 
 		// 3. Vertex Format Type 설정
-		mesh->m_vft = VertexFormatType::PositionNormalTexCoord;	// TEST
+		mesh->m_vft = VertexFormatType::PositionNormalTangentTexCoord;	// TEST
 
 		meshes.push_back(std::move(mesh));
 	}
@@ -203,7 +205,10 @@ std::vector<std::shared_ptr<Mesh>> ResourceLoader::LoadMesh(PCWSTR path)
 	);
 
 	if (!pAiScene)
+	{
 		Debug::ForceCrashWithMessageBox("Error", "Assimp::Importer::ReadFile error: %s", aiImporter.GetErrorString());
+		return meshes;
+	}
 
 	if (!pAiScene->HasMeshes())
 		return meshes;
@@ -774,7 +779,7 @@ bool ResourceLoader::ParseWavefrontOBJFaces(FILE* pOBJFile, long* pnffpos, Verte
 						auto iter = imp.vIndexMap.find(item);
 						if (iter == imp.vIndexMap.cend())
 						{
-							VFPosition vData(vp.v[vIndex]);
+							const VFPosition vData(vp.v[vIndex]);
 							tempVB.PushBack(&vData, sizeof(vData));
 
 							const uint32_t vbIndex = static_cast<uint32_t>(tempVB.ByteSize() / sizeof(vData) - 1);
@@ -795,7 +800,7 @@ bool ResourceLoader::ParseWavefrontOBJFaces(FILE* pOBJFile, long* pnffpos, Verte
 						auto iter = imp.vvnIndexMap.find(item);
 						if (iter == imp.vvnIndexMap.cend())
 						{
-							VFPositionNormal vData(vp.v[vIndex], vp.vn[vnIndex]);
+							const VFPositionNormal vData(vp.v[vIndex], vp.vn[vnIndex]);
 							tempVB.PushBack(&vData, sizeof(vData));
 
 							const uint32_t vbIndex = static_cast<uint32_t>(tempVB.ByteSize() / sizeof(vData) - 1);
@@ -816,7 +821,7 @@ bool ResourceLoader::ParseWavefrontOBJFaces(FILE* pOBJFile, long* pnffpos, Verte
 						auto iter = imp.vvtIndexMap.find(item);
 						if (iter == imp.vvtIndexMap.cend())
 						{
-							VFPositionTexCoord vData(vp.v[vIndex], vp.vt[vtIndex]);
+							const VFPositionTexCoord vData(vp.v[vIndex], vp.vt[vtIndex]);
 							tempVB.PushBack(&vData, sizeof(vData));
 
 							const uint32_t vbIndex = static_cast<uint32_t>(tempVB.ByteSize() / sizeof(vData) - 1);
@@ -838,7 +843,7 @@ bool ResourceLoader::ParseWavefrontOBJFaces(FILE* pOBJFile, long* pnffpos, Verte
 						auto iter = imp.vvnvtIndexMap.find(item);
 						if (iter == imp.vvnvtIndexMap.cend())
 						{
-							VFPositionNormalTexCoord vData(vp.v[vIndex], vp.vn[vnIndex], vp.vt[vtIndex]);
+							const VFPositionNormalTexCoord vData(vp.v[vIndex], vp.vn[vnIndex], vp.vt[vtIndex]);
 							tempVB.PushBack(&vData, sizeof(vData));
 
 							const uint32_t vbIndex = static_cast<uint32_t>(tempVB.ByteSize() / sizeof(vData) - 1);

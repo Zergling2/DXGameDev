@@ -126,14 +126,14 @@ void TerrainEffect::SetLayerTexture(
 	m_pBlendMapSRV = pBlendMapSRV;
 
 	if (pDiffuseMapLayerSRV)
-		m_cbPerTerrainCache.layerFlag |= static_cast<uint32_t>(TERRAIN_LAYER_FLAG::USE_DIFFUSE_LAYER);
+		m_cbPerTerrainCache.layerFlag |= static_cast<uint32_t>(TERRAIN_LAYER_FLAG::UseDiffuseLayer);
 	else
-		m_cbPerTerrainCache.layerFlag &= ~static_cast<uint32_t>(TERRAIN_LAYER_FLAG::USE_DIFFUSE_LAYER);
+		m_cbPerTerrainCache.layerFlag &= ~static_cast<uint32_t>(TERRAIN_LAYER_FLAG::UseDiffuseLayer);
 
 	if (pNormalMapLayerSRV)
-		m_cbPerTerrainCache.layerFlag |= static_cast<uint32_t>(TERRAIN_LAYER_FLAG::USE_NORMAL_LAYER);
+		m_cbPerTerrainCache.layerFlag |= static_cast<uint32_t>(TERRAIN_LAYER_FLAG::UseNormalLayer);
 	else
-		m_cbPerTerrainCache.layerFlag &= ~static_cast<uint32_t>(TERRAIN_LAYER_FLAG::USE_NORMAL_LAYER);
+		m_cbPerTerrainCache.layerFlag &= ~static_cast<uint32_t>(TERRAIN_LAYER_FLAG::UseNormalLayer);
 
 	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_TERRAIN;
 }

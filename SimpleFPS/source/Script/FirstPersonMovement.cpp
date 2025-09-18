@@ -2,7 +2,7 @@
 
 using namespace ze;
 
-constexpr float SENSITIVITY = 0.16f;
+constexpr float SENSITIVITY = 0.1f;
 constexpr float SPEED = 16.0f;
 constexpr float WALK_SPEED = SPEED * 0.25f;
 constexpr float HEAD_CLAMP_ANGLE = 89.0f;

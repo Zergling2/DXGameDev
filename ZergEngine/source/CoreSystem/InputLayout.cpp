@@ -19,6 +19,8 @@ UINT InputLayoutHelper::GetStructureByteStride(VertexFormatType vft)
 		return static_cast<UINT>(sizeof(VFPositionTexCoord));
 	case VertexFormatType::PositionNormalTexCoord:
 		return static_cast<UINT>(sizeof(VFPositionNormalTexCoord));
+	case VertexFormatType::PositionNormalTangentTexCoord:
+		return static_cast<UINT>(sizeof(VFPositionNormalTangentTexCoord));
 	case VertexFormatType::TerrainPatchCtrlPt:
 		return static_cast<UINT>(sizeof(VFTerrainPatchControlPoint));
 	case VertexFormatType::ButtonPt:
@@ -40,11 +42,18 @@ InputLayout::InputLayout()
 void InputLayout::Init(ID3D11Device* pDevice, const D3D11_INPUT_ELEMENT_DESC* pDesc, UINT elementCount,
 	const byte* pShaderByteCode, size_t shaderByteCodeSize)
 {
+	this->Release();
+
 	HRESULT hr;
 
-	hr = pDevice->CreateInputLayout(pDesc, elementCount, pShaderByteCode, shaderByteCodeSize, m_cpInputLayout.ReleaseAndGetAddressOf());
+	hr = pDevice->CreateInputLayout(pDesc, elementCount, pShaderByteCode, shaderByteCodeSize, m_cpInputLayout.GetAddressOf());
 	if (FAILED(hr))
 		Debug::ForceCrashWithHRESULTMessageBox(L"InputLayout::Init()", hr);
+}
+
+void InputLayout::Release()
+{
+	m_cpInputLayout.Reset();
 }
 
 //--------------------------------------------------------------------------------------
@@ -97,14 +106,14 @@ static_assert(sizeof(VFPositionNormalTexCoord) == 32, INPUT_LAYOUT_STATIC_ASSERT
 
 //--------------------------------------------------------------------------------------
 // Vertex struct holding position, normal vector, texture mapping, tangent information.
-const D3D11_INPUT_ELEMENT_DESC VFPositionNormalTexCoordTangent::s_ied[] =
+const D3D11_INPUT_ELEMENT_DESC VFPositionNormalTangentTexCoord::s_ied[] =
 {
 	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 };
-static_assert(sizeof(VFPositionNormalTexCoordTangent) == 44, INPUT_LAYOUT_STATIC_ASSERT_MESSAGE);
+static_assert(sizeof(VFPositionNormalTangentTexCoord) == 44, INPUT_LAYOUT_STATIC_ASSERT_MESSAGE);
 
 //--------------------------------------------------------------------------------------
 // Vertex struct holding position, texture mapping information and bounding volume.

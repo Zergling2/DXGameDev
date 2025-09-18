@@ -5,7 +5,7 @@
 // ComponentManagerMap 검색 시 필요
 #define DECLARE_MONOBEHAVIOUR_TYPE \
 public:\
-	static constexpr ze::ComponentType TYPE = ze::ComponentType::MONOBEHAVIOUR;
+	static constexpr ze::ComponentType TYPE = ze::ComponentType::MonoBehaviour;
 
 namespace ze
 {
@@ -22,7 +22,7 @@ namespace ze
 		virtual void Enable() override;
 		virtual void Disable() override;
 
-		virtual ComponentType GetType() const override { return ComponentType::MONOBEHAVIOUR; }
+		virtual ComponentType GetType() const override { return ComponentType::MonoBehaviour; }
 		virtual void Awake();
 		virtual void OnEnable();
 		virtual void Start();

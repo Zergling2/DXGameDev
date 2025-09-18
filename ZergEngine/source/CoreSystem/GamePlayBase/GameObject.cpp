@@ -69,7 +69,7 @@ ComponentHandleBase GameObject::AddComponentImpl(IComponent* pComponent)
 	{
 		pComponentManager->AddToDirectAccessGroup(pComponent);
 
-		if (pComponent->GetType() == ComponentType::MONOBEHAVIOUR)
+		if (pComponent->GetType() == ComponentType::MonoBehaviour)
 		{
 			MonoBehaviour* pMonoBehaviour = static_cast<MonoBehaviour*>(pComponent);
 			pMonoBehaviour->Awake();	// Awake는 활성화 여부와 관계 없이 호출
