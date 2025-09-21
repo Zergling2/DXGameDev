@@ -279,8 +279,10 @@ void Renderer::RenderFrame()
 			continue;
 
 		pCamera->UpdateViewMatrix();	// 뷰 변환 행렬 업데이트
-		Frustum cameraFrustumW;			// 프러스텀 컬링용
-		Math::CalcWorldFrustumFromViewProjMatrix(pCamera->GetViewMatrix()* pCamera->GetProjMatrix(), cameraFrustumW);
+		Frustum worldSpaceFrustum;
+		Frustum(pCamera->GetProjMatrix(), false).Transform(worldSpaceFrustum, XMMatrixInverse(nullptr, pCamera->GetViewMatrix()));
+		// Frustum cameraFrustumW;			// 프러스텀 컬링용
+		// Math::CalcWorldFrustumFromViewProjMatrix(pCamera->GetViewMatrix()* pCamera->GetProjMatrix(), cameraFrustumW);
 
 		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 		// 뷰포트 바인딩
@@ -312,10 +314,11 @@ void Renderer::RenderFrame()
 			if (!pMeshRenderer->IsEnabled() || pMesh == nullptr)
 				continue;
 
+			
 			// 프러스텀 컬링
-			Aabb aabbW;
-			pMesh->GetAabb().Transform(aabbW, pMeshRenderer->m_pGameObject->m_transform.GetWorldTransformMatrix());
-			if (!Math::TestFrustumAabbCollision(cameraFrustumW, aabbW))
+			Aabb worldSpaceAabb;
+			pMesh->GetAabb().Transform(worldSpaceAabb, pMeshRenderer->m_pGameObject->m_transform.GetWorldTransformMatrix());
+			if (!Math::TestFrustumAabbCollision(worldSpaceFrustum, worldSpaceAabb))
 				continue;
 
 			switch (pMesh->GetVertexFormatType())

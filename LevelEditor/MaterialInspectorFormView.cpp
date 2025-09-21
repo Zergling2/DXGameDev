@@ -55,6 +55,8 @@ BEGIN_MESSAGE_MAP(CMaterialInspectorFormView, CFormView)
 	ON_EN_CHANGE(IDC_EDIT_SPECULAR_EXPONENT, &CMaterialInspectorFormView::OnEnChangeEditSpecularExponent)
 	ON_CBN_SELCHANGE(IDC_COMBO_DIFFUSE_MAP, &CMaterialInspectorFormView::OnCbnSelchangeComboDiffuseMap)
 	ON_CBN_DROPDOWN(IDC_COMBO_DIFFUSE_MAP, &CMaterialInspectorFormView::OnCbnDropdownComboDiffuseMap)
+	ON_CBN_SELCHANGE(IDC_COMBO_NORMAL_MAP, &CMaterialInspectorFormView::OnCbnSelchangeComboNormalMap)
+	ON_CBN_DROPDOWN(IDC_COMBO_NORMAL_MAP, &CMaterialInspectorFormView::OnCbnDropdownComboNormalMap)
 END_MESSAGE_MAP()
 
 
@@ -285,3 +287,45 @@ void CMaterialInspectorFormView::OnCbnDropdownComboDiffuseMap()
 		m_comboDiffuseMap.SetItemData(index, qi.lParam);
 	}
 }
+
+void CMaterialInspectorFormView::OnCbnSelchangeComboNormalMap()
+{
+	// TODO: Add your control notification handler code here
+	const int sel = m_comboNormalMap.GetCurSel();
+	if (sel == CB_ERR)
+		return;
+
+	ATVItemTexture* pATVItemTexture = reinterpret_cast<ATVItemTexture*>(m_comboNormalMap.GetItemData(sel));
+
+	ze::Material* pMaterial = this->GetATVItemToModify()->GetMaterialPtr();
+	pMaterial->m_normalMap = pATVItemTexture->m_texture;
+}
+
+void CMaterialInspectorFormView::OnCbnDropdownComboNormalMap()
+{
+	// TODO: Add your control notification handler code here
+	m_comboNormalMap.ResetContent();
+	auto textureSet = static_cast<CLevelEditorApp*>(AfxGetApp())->GetAssetManager().GetTextureSet();
+
+	CAssetTreeView* pATV = static_cast<CMainFrame*>(AfxGetMainWnd())->GetAssetTreeView();
+	CTreeCtrl& tc = pATV->GetTreeCtrl();
+	TCHAR text[32];
+	TVITEM qi;	// Query Info
+	qi.mask = TVIF_TEXT | TVIF_PARAM;
+	qi.pszText = text;
+	qi.cchTextMax = _countof(text);
+
+	auto end = textureSet.cend();
+	for (auto iter = textureSet.cbegin(); iter != end; ++iter)
+	{
+		HTREEITEM hItem = *iter;
+		qi.hItem = hItem;
+
+		BOOL ret = tc.GetItem(&qi);
+		ASSERT(ret != FALSE);
+
+		int index = m_comboNormalMap.AddString(text);
+		m_comboNormalMap.SetItemData(index, qi.lParam);
+	}
+}
+

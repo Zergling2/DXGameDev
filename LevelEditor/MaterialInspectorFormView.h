@@ -64,4 +64,6 @@ public:
 	afx_msg void OnEnChangeEditSpecularExponent();
 	afx_msg void OnCbnSelchangeComboDiffuseMap();
 	afx_msg void OnCbnDropdownComboDiffuseMap();
+	afx_msg void OnCbnSelchangeComboNormalMap();
+	afx_msg void OnCbnDropdownComboNormalMap();
 };

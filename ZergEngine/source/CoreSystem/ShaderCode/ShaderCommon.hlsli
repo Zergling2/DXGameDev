@@ -81,16 +81,6 @@ hlslstruct SpotLightData
 	HLSLPad pad;
 };
 
-hlslstruct Plane
-{
-	XMFLOAT4A m_equation;
-};
-
-hlslstruct Frustum
-{
-    Plane plane[6];
-};
-
 hlslstruct Aabb
 {
 	float3 center;
@@ -118,7 +108,7 @@ struct DSInputTerrainPatchCtrlPt
 
 struct PSInputPFragment
 {
-    float4 posH : SV_Position;      // No lighting, No texturing
+    float4 posH : SV_Position;
 };
 
 struct PSInputPCFragment
@@ -129,8 +119,8 @@ struct PSInputPCFragment
 
 struct PSInputPNFragment
 {
-    float4 posH : SV_Position;      // Homogeneous clip space position
-    float3 posW : POSITION;         // World space position (조명 처리를 위해서)
+    float4 posH : SV_Position;
+    float3 posW : POSITION;         // World space position
     float3 normalW : NORMAL;
 };
 
@@ -142,16 +132,16 @@ struct PSInputPTFragment
 
 struct PSInputPNTFragment
 {
-    float4 posH : SV_Position;	// Homogeneous clip space position
-    float3 posW : POSITION;		// World space position (조명 처리를 위해서)
+    float4 posH : SV_Position;
+    float3 posW : POSITION;		// World space position
     float3 normalW : NORMAL;
     float2 texCoord : TEXCOORD;
 };
 
 struct PSInputPNTTFragment
 {
-    float4 posH : SV_Position;	// Homogeneous clip space position
-    float3 posW : POSITION;		// World space position (조명 처리를 위해서)
+    float4 posH : SV_Position;
+    float3 posW : POSITION;		// World space position
     float3 normalW : NORMAL;
     float3 tangentW : TANGENT;
     float2 texCoord : TEXCOORD;
@@ -208,7 +198,7 @@ hlslstruct CbPerCamera
 	FLOAT minTessExponent;
 	FLOAT maxTessExponent;
 
-    Frustum frustumW;
+    XMFLOAT4A worldSpaceFrustumPlane[6];
 
     XMFLOAT4X4A vp; // View * Proj
 };

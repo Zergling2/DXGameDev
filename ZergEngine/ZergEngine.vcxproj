@@ -108,7 +108,6 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Time.h" />
     <ClInclude Include="include\ZergEngine\ZergEngine.h" />
     <ClCompile Include="source\CoreSystem\Cursor.cpp" />
-    <ClCompile Include="source\CoreSystem\DataStructure\Frustum.cpp" />
     <ClCompile Include="source\CoreSystem\DataStructure\Ray.cpp" />
     <ClCompile Include="source\CoreSystem\DataStructure\Triangle.cpp" />
     <ClCompile Include="source\CoreSystem\RenderContext\EffectDeviceContext.cpp" />

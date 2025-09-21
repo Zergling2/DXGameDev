@@ -688,7 +688,7 @@ bool ResourceLoader::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, Verte
 		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateBuffer(&bufferDesc, &initialData, cpVB.GetAddressOf());
 		if (FAILED(hr))
 			Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateBuffer()", hr);
-
+		
 		// Create an index buffer
 		bufferDesc.ByteWidth = static_cast<UINT>(tempIB.size() * sizeof(uint32_t));
 		bufferDesc.Usage = D3D11_USAGE_DEFAULT;

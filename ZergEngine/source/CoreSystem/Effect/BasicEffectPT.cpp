@@ -38,7 +38,7 @@ void BasicEffectPT::SetCamera(const Camera* pCamera) noexcept
 	assert(pCameraOwner != nullptr);
 
 	XMMATRIX vp = pCamera->GetViewMatrix() * pCamera->GetProjMatrix();
-	Math::CalcWorldFrustumFromViewProjMatrix(vp, m_cbPerCameraCache.frustumW);
+	Math::CalcFrustumPlanesFromViewProjMatrix(vp, m_cbPerCameraCache.worldSpaceFrustumPlane);
 
 	XMStoreFloat3(&m_cbPerCameraCache.cameraPosW, pCameraOwner->m_transform.GetWorldPosition());
 	m_cbPerCameraCache.tessMinDist = pCamera->GetMinDistanceTessellationToStart();

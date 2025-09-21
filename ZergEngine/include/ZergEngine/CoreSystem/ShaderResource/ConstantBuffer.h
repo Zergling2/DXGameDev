@@ -1,7 +1,6 @@
 #pragma once
 
 #include <ZergEngine\CoreSystem\Platform.h>
-#include <ZergEngine\CoreSystem\DataStructure\Frustum.h>
 #include <ZergEngine\CoreSystem\EngineConstants.h>
 
 #define hlslstruct struct alignas(16)
@@ -182,7 +181,7 @@ namespace ze
 		FLOAT minTessExponent;
 		FLOAT maxTessExponent;
 
-		Frustum frustumW;
+		XMFLOAT4A worldSpaceFrustumPlane[6];
 
 		XMFLOAT4X4A vp;		// View * Proj
 	};

@@ -30,10 +30,10 @@ bool TestAabbBehindPlane(Aabb aabb, float4 plane)
     return s + r < 0.0f;
 }
 
-bool TestFrustumAabbCollision(Aabb aabb, Frustum frustumW)
+bool TestFrustumAabbCollision(Aabb aabb, float4 frustumPlanes[6])
 {
     for (uint i = 0; i < 6; ++i)
-        if (TestAabbBehindPlane(aabb, frustumW.plane[i].m_equation))
+        if (TestAabbBehindPlane(aabb, frustumPlanes[i]))
             return false;
     
     return true;
@@ -51,11 +51,11 @@ DSInputQuadPatchTess CHSTerrainRendering(InputPatch<HSInputTerrainPatchCtrlPt, N
     // [2]최소 [3]
     const float3 patchMinCoord = float3(patch[2].posW.x, patch[0].boundsY.x, patch[2].posW.z);
     const float3 patchMaxCoord = float3(patch[1].posW.x, patch[0].boundsY.y, patch[1].posW.z);
-    Aabb aabb;
+    Aabb aabb;  // World space Aabb
     aabb.center = (patchMinCoord + patchMaxCoord) * 0.5f;
     aabb.extent = (patchMaxCoord - patchMinCoord) * 0.5f;
     
-    if (!TestFrustumAabbCollision(aabb, cb_perCamera.frustumW))
+    if (!TestFrustumAabbCollision(aabb, cb_perCamera.worldSpaceFrustumPlane))
     {
         // 패치를 파이프라인에서 제거
         output.edgeTessFactor[0] = 0.0f;

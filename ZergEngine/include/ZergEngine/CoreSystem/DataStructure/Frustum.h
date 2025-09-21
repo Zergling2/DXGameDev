@@ -4,11 +4,5 @@
 
 namespace ze
 {
-	class Frustum
-	{
-	public:
-		Frustum() = default;
-	public:
-		XMFLOAT4A m_plane[6];
-	};
+	using Frustum = DirectX::BoundingFrustum;
 }

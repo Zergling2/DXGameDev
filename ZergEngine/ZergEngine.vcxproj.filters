@@ -527,9 +527,6 @@
     <ClCompile Include="source\CoreSystem\Effect\TerrainEffect.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClCompile>
-    <ClCompile Include="source\CoreSystem\DataStructure\Frustum.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\DataStructure</Filter>
-    </ClCompile>
     <ClCompile Include="source\CoreSystem\DataStructure\Triangle.cpp">
       <Filter>Files\ZergEngine\CoreSystem\DataStructure</Filter>
     </ClCompile>
@@ -552,7 +549,7 @@
       <Filter>Files\ZergEngine\CoreSystem\RenderContext</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\Helper.cpp">
-      <Filter>Files\ZergEngine</Filter>
+      <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

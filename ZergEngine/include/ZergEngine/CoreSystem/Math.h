@@ -29,10 +29,10 @@
 
 namespace ze
 {
-	class Frustum;
+	using Frustum = DirectX::BoundingFrustum;
+	using Aabb = DirectX::BoundingBox;
 	class Ray;
 	class Triangle;
-	using Aabb = DirectX::BoundingBox;
 
 	class Math
 	{
@@ -93,14 +93,13 @@ namespace ze
 
 		// ============================================================================
 		// Graphics math
-		
-		// 월드 공간에서의 절두체 평면 6개 계산 및 반환
-		static void XM_CALLCONV CalcWorldFrustumFromViewProjMatrix(FXMMATRIX viewProj, Frustum& frustum) noexcept;
-
 		static bool TestRayAabbCollision(const Ray& ray, const Aabb& aabb);
 
 		static bool TestFrustumAabbCollision(const Frustum& frustum, const Aabb& aabb);
 
 		static bool TestRayTriangleCollision(const Ray& ray, const Triangle& tri);
+
+		static void XM_CALLCONV CalcFrustumPlanesFromViewProjMatrix(FXMMATRIX viewProj, XMFLOAT4* pPlanes);
+		static void XM_CALLCONV CalcFrustumPlanesFromViewProjMatrix(FXMMATRIX viewProj, XMFLOAT4A* pPlanes);
 	};
 }
