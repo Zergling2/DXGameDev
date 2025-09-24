@@ -313,7 +313,6 @@ void Renderer::RenderFrame()
 
 			if (!pMeshRenderer->IsEnabled() || pMesh == nullptr)
 				continue;
-
 			
 			// 프러스텀 컬링
 			Aabb worldSpaceAabb;

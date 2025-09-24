@@ -284,12 +284,20 @@ void Warehouse::OnLoadScene()
 	XMStoreFloat4A(&matHouseWallSouth1->m_specular, XMVectorSetW(Math::Vector3::Zero(), 4.0f));
 
 
-	std::shared_ptr<Material> matRustedSteelHotspot = ResourceLoader::GetInstance()->CreateMaterial();
-	XMStoreFloat4A(&matRustedSteelHotspot->m_ambient, XMVectorScale(Math::Vector3::One(), 0.25f));
-	XMStoreFloat4A(&matRustedSteelHotspot->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.75f));
-	XMStoreFloat4A(&matRustedSteelHotspot->m_specular, XMVectorSetW(Math::Vector3::OneHalf(), 4.0f));
-	matRustedSteelHotspot->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\metals\\RustedSteel\\RustedSteel_Diffuse.png");
-	matRustedSteelHotspot->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\metals\\RustedSteel\\RustedSteel_Normal.png");
+	// std::shared_ptr<Material> matRustedSteelHotspot = ResourceLoader::GetInstance()->CreateMaterial();
+	// XMStoreFloat4A(&matRustedSteelHotspot->m_ambient, XMVectorScale(Math::Vector3::One(), 0.25f));
+	// XMStoreFloat4A(&matRustedSteelHotspot->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.75f));
+	// XMStoreFloat4A(&matRustedSteelHotspot->m_specular, XMVectorSetW(Math::Vector3::OneHalf(), 4.0f));
+	// matRustedSteelHotspot->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\metals\\RustedSteel\\RustedSteel_Diffuse.png");
+	// matRustedSteelHotspot->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\metals\\RustedSteel\\RustedSteel_Normal.png");
+
+
+	std::shared_ptr<Material> matGranite = ResourceLoader::GetInstance()->CreateMaterial();
+	XMStoreFloat4A(&matGranite->m_ambient, XMVectorScale(Math::Vector3::One(), 0.25f));
+	XMStoreFloat4A(&matGranite->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.75f));
+	XMStoreFloat4A(&matGranite->m_specular, XMVectorSetW(Math::Vector3::OneHalf(), 8.0f));
+	matGranite->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\rocks\\granite\\GreyWhite2_Diffuse.jpg");
+	matGranite->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\rocks\\granite\\GreyWhite2_Normal.jpg");
 
 
 	std::shared_ptr<Material> matHouseWallNorth[4];
@@ -309,10 +317,11 @@ void Warehouse::OnLoadScene()
 	std::shared_ptr<Material> matBlueTeamBase[5];
 	{
 		matBlueTeamBase[0] = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matBlueTeamBase[0]->m_ambient, XMVectorScale(Math::Vector3::One(), 0.75f));
+		XMStoreFloat4A(&matBlueTeamBase[0]->m_ambient, XMVectorScale(Math::Vector3::One(), 0.50f));
 		XMStoreFloat4A(&matBlueTeamBase[0]->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.75f));
-		XMStoreFloat4A(&matBlueTeamBase[0]->m_specular, XMVectorSetW(Math::Vector3::Zero(), 4.0f));
-		matBlueTeamBase[0]->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Maps\\Warehouse\\BlueTeamBase\\FloorDiffuse.png");
+		XMStoreFloat4A(&matBlueTeamBase[0]->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.25f), 4.0f));
+		matBlueTeamBase[0]->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Maps\\Warehouse\\BlueTeamBase\\Floor_Diffuse.png");
+		matBlueTeamBase[0]->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Maps\\Warehouse\\BlueTeamBase\\Floor_Normal.png");
 
 		matBlueTeamBase[1] = matConcrete1;
 		matBlueTeamBase[2] = matYellowedConcrete;
@@ -1121,7 +1130,7 @@ void Warehouse::OnLoadScene()
 		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
 		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 		pMeshRenderer->SetMesh(meshHouseFloor);
-		pMeshRenderer->SetMaterial(0, matRustedSteelHotspot);
+		pMeshRenderer->SetMaterial(0, matGranite);
 	}
 
 
@@ -1186,7 +1195,7 @@ void Warehouse::OnLoadScene()
 
 		GameObject* pSecondaryWeapon = hSecondaryWeapon.ToPtr();
 		pSecondaryWeapon->SetActive(false);	// 안보이게 비활성화 상태로 초기화
-		pSecondaryWeapon->m_transform.SetPosition(XMVectorSet(0.12f, -0.18f, 0.32f, 0.0f));
+		pSecondaryWeapon->m_transform.SetPosition(XMVectorSet(0.12f, -0.14f, 0.26f, 0.0f));
 		ComponentHandle<MeshRenderer> hMeshRenderer = pSecondaryWeapon->AddComponent<MeshRenderer>();
 		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 		// 메시 설정

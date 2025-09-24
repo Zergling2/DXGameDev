@@ -630,5 +630,8 @@
     <FxCompile Include="source\CoreSystem\ShaderCode\PSColorPNTTFragment.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSPerspectiveShadowMap.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

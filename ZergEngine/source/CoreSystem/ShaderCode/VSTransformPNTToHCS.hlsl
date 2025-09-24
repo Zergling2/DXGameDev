@@ -27,8 +27,9 @@ PSInputPNTFragment main(VSInputVertexPNT input)
 {
     PSInputPNTFragment output;
     
-    output.posH = mul(float4(input.posL, 1.0f), mul(cb_perMesh.w, cb_perCamera.vp));
-    output.posW = mul(float4(input.posL, 1.0f), cb_perMesh.w).xyz;
+    float3 posW = mul(float4(input.posL, 1.0f), cb_perMesh.w).xyz;
+    output.posH = mul(float4(posW, 1.0f), cb_perCamera.vp);
+    output.posW = posW;
     output.normalW = normalize(mul(input.normalL, (float3x3) cb_perMesh.wInvTr));
     output.texCoord = input.texCoord;
     

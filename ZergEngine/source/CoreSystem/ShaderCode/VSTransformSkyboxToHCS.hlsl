@@ -72,14 +72,18 @@ static const float3 g_skyboxVertices[36] =
     LEFT_BOTTOM_FRONT
 };
 
+static const float4 g_identityR0 = { 1.0f, 0.0f, 0.0f, 0.0f };
+static const float4 g_identityR1 = { 0.0f, 1.0f, 0.0f, 0.0f };
+static const float4 g_identityR2 = { 0.0f, 0.0f, 1.0f, 0.0f };
+
 PSInputSkyboxFragment main(uint vertexId : SV_VertexID)
 {
     PSInputSkyboxFragment output;
     
     float4x4 w = float4x4(
-        float4(1.0f, 0.0f, 0.0f, 0.0f),
-        float4(0.0f, 1.0f, 0.0f, 0.0f),
-        float4(0.0f, 0.0f, 1.0f, 0.0f),
+        g_identityR0,
+        g_identityR1,
+        g_identityR2,
         float4(cb_perCamera.cameraPosW, 1.0f)
     );
     float4x4 wvp = mul(w, cb_perCamera.vp);
