@@ -19,6 +19,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\MeshSubset.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPNTTSkinned.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\SkinnedMeshRenderer.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\SkinnedMeshRendererManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Platform.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DisplayMode.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\EngineConstants.h" />
@@ -87,14 +91,17 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\GameObject.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\MemoryAllocator.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\RenderState.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Animation.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Armature.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Font.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\SkinnedMesh.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\SceneTable.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\ShaderResource\ConstantBuffer.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\ShaderResource\VertexBuffer.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\SlimRWLock.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GraphicDevice.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Material.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Mesh.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\StaticMesh.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\Terrain.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Input.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\RawVector.h" />
@@ -110,6 +117,9 @@
     <ClCompile Include="source\CoreSystem\Cursor.cpp" />
     <ClCompile Include="source\CoreSystem\DataStructure\Ray.cpp" />
     <ClCompile Include="source\CoreSystem\DataStructure\Triangle.cpp" />
+    <ClCompile Include="source\CoreSystem\Effect\BasicEffectPNTTSkinned.cpp" />
+    <ClCompile Include="source\CoreSystem\GamePlayBase\Component\SkinnedMeshRenderer.cpp" />
+    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\SkinnedMeshRendererManager.cpp" />
     <ClCompile Include="source\CoreSystem\RenderContext\EffectDeviceContext.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectP.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectPC.cpp" />
@@ -157,13 +167,16 @@
     <ClCompile Include="source\CoreSystem\MemoryAllocator.cpp" />
     <ClCompile Include="source\CoreSystem\ResourceLoader.cpp" />
     <ClCompile Include="source\CoreSystem\RenderState.cpp" />
+    <ClCompile Include="source\CoreSystem\Resource\Animation.cpp" />
+    <ClCompile Include="source\CoreSystem\Resource\Armature.cpp" />
     <ClCompile Include="source\CoreSystem\Resource\Font.cpp" />
+    <ClCompile Include="source\CoreSystem\Resource\SkinnedMesh.cpp" />
     <ClCompile Include="source\CoreSystem\SceneTable.cpp" />
     <ClCompile Include="source\CoreSystem\ShaderResource\ConstantBuffer.cpp" />
     <ClCompile Include="source\CoreSystem\ShaderResource\VertexBuffer.cpp" />
     <ClCompile Include="source\CoreSystem\SlimRWLock.cpp" />
     <ClCompile Include="source\CoreSystem\Resource\Material.cpp" />
-    <ClCompile Include="source\CoreSystem\Resource\Mesh.cpp" />
+    <ClCompile Include="source\CoreSystem\Resource\StaticMesh.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\Terrain.cpp" />
     <ClCompile Include="source\CoreSystem\DataStructure\RawVector.cpp" />
     <ClCompile Include="source\CoreSystem\InputLayout.cpp" />
@@ -309,6 +322,16 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSShadowMapAlphaClipping.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
     <FxCompile Include="source\CoreSystem\ShaderCode\VSPerspectiveShadowMap.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
@@ -334,6 +357,16 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformPNTTSkinnedToHCS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>

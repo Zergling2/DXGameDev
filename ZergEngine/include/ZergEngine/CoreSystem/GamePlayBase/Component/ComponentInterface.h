@@ -36,6 +36,7 @@ namespace ze
 		friend class BasicEffectPT;
 		friend class BasicEffectPNT;
 		friend class BasicEffectPNTT;
+		friend class BasicEffectPNTTSkinned;
 		friend class SkyboxEffect;
 		friend class TerrainEffect;
 	public:

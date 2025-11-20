@@ -21,13 +21,15 @@ UINT InputLayoutHelper::GetStructureByteStride(VertexFormatType vft)
 		return static_cast<UINT>(sizeof(VFPositionNormalTexCoord));
 	case VertexFormatType::PositionNormalTangentTexCoord:
 		return static_cast<UINT>(sizeof(VFPositionNormalTangentTexCoord));
+	case VertexFormatType::PositionNormalTangentTexCoordSkinned:
+		return static_cast<UINT>(sizeof(VFPositionNormalTangentTexCoordSkinned));
 	case VertexFormatType::TerrainPatchCtrlPt:
 		return static_cast<UINT>(sizeof(VFTerrainPatchControlPoint));
 	case VertexFormatType::ButtonPt:
 		return static_cast<UINT>(sizeof(VFButton));
 	default:
 		Debug::ForceCrashWithMessageBox(
-			L"Fatal Error",
+			L"Error",
 			L"InputLayoutHelper::GetStructureByteStride()\nUnknown vertex format type: %d\n", static_cast<int>(vft)
 		);
 		return 0;
@@ -62,8 +64,6 @@ const D3D11_INPUT_ELEMENT_DESC VFPosition::s_ied[] =
 {
 	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 };
-static_assert(sizeof(VFPosition) == 12, INPUT_LAYOUT_STATIC_ASSERT_MESSAGE);
-
 
 //--------------------------------------------------------------------------------------
 // Vertex struct holding position and color information.
@@ -72,8 +72,6 @@ const D3D11_INPUT_ELEMENT_DESC VFPositionColor::s_ied[] =
 	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 };
-static_assert(sizeof(VFPositionColor) == 28, INPUT_LAYOUT_STATIC_ASSERT_MESSAGE);
-
 
 //--------------------------------------------------------------------------------------
 // Vertex struct holding position and normal vector.
@@ -82,7 +80,6 @@ const D3D11_INPUT_ELEMENT_DESC VFPositionNormal::s_ied[] =
 	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 };
-static_assert(sizeof(VFPositionNormal) == 24, INPUT_LAYOUT_STATIC_ASSERT_MESSAGE);
 
 //--------------------------------------------------------------------------------------
 // Vertex struct holding position and texture mapping information.
@@ -91,8 +88,6 @@ const D3D11_INPUT_ELEMENT_DESC VFPositionTexCoord::s_ied[] =
 	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 };
-static_assert(sizeof(VFPositionTexCoord) == 20, INPUT_LAYOUT_STATIC_ASSERT_MESSAGE);
-
 
 //--------------------------------------------------------------------------------------
 // Vertex struct holding position, normal vector and texture mapping information.
@@ -102,7 +97,6 @@ const D3D11_INPUT_ELEMENT_DESC VFPositionNormalTexCoord::s_ied[] =
 	{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 };
-static_assert(sizeof(VFPositionNormalTexCoord) == 32, INPUT_LAYOUT_STATIC_ASSERT_MESSAGE);
 
 //--------------------------------------------------------------------------------------
 // Vertex struct holding position, normal vector, texture mapping, tangent information.
@@ -113,7 +107,18 @@ const D3D11_INPUT_ELEMENT_DESC VFPositionNormalTangentTexCoord::s_ied[] =
 	{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 };
-static_assert(sizeof(VFPositionNormalTangentTexCoord) == 44, INPUT_LAYOUT_STATIC_ASSERT_MESSAGE);
+
+//--------------------------------------------------------------------------------------
+// Vertex struct holding position, normal vector, texture mapping, tangent information, skinning data.
+const D3D11_INPUT_ELEMENT_DESC VFPositionNormalTangentTexCoordSkinned::s_ied[] =
+{
+	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "WEIGHTS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	{ "BONEINDICES", 0, DXGI_FORMAT_R8G8B8A8_UINT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}
+};
 
 //--------------------------------------------------------------------------------------
 // Vertex struct holding position, texture mapping information and bounding volume.
@@ -123,7 +128,6 @@ const D3D11_INPUT_ELEMENT_DESC VFTerrainPatchControlPoint::s_ied[] =
 	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	{ "TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 };
-static_assert(sizeof(VFTerrainPatchControlPoint) == 28, INPUT_LAYOUT_STATIC_ASSERT_MESSAGE);
 
 //--------------------------------------------------------------------------------------
 // Vertex struct holding position, texture mapping information and bounding volume.
@@ -133,4 +137,21 @@ const D3D11_INPUT_ELEMENT_DESC VFButton::s_ied[] =
 	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	{ "COLOR", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 };
-static_assert(sizeof(VFButton) == 24, INPUT_LAYOUT_STATIC_ASSERT_MESSAGE);
+
+bool VFPositionNormalTangentTexCoordSkinned::AddSkinningData(BYTE boneIndex, float weight)
+{
+	bool success = false;
+
+	for (size_t i = 0; i < _countof(m_weights); ++i)
+	{
+		if (m_weights[i] == 0.0f)
+		{
+			m_boneIndices[i] = boneIndex;
+			m_weights[i] = weight;
+			success = true;
+			break;
+		}
+	}
+
+	return success;
+}

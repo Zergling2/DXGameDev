@@ -85,9 +85,9 @@ namespace ze
 		ID3D11InputLayout* GetILComInterface(VertexFormatType type) { return m_il[static_cast<size_t>(type)].GetComInterface(); }
 		ID3D11Buffer* GetVBComInterface(VertexBufferType type) { return m_vb[static_cast<size_t>(type)].GetComInterface(); }
 		// Render state getter
-		ID3D11RasterizerState* GetRSComInterface(RasterizerFillMode fillMode, RasterizerCullMode cullMode) const
+		ID3D11RasterizerState* GetRSComInterface(RasterizerMode mode) const
 		{
-			return m_rs[static_cast<size_t>(fillMode)][static_cast<size_t>(cullMode)].GetComInterface();
+			return m_rs[static_cast<size_t>(mode)].GetComInterface();
 		}
 		ID3D11SamplerState* GetSSComInterface(TextureFilteringMode mode) const
 		{
@@ -133,7 +133,7 @@ namespace ze
 		InputLayout m_il[static_cast<size_t>(VertexFormatType::COUNT)];
 		VertexBuffer m_vb[static_cast<size_t>(VertexBufferType::COUNT)];
 
-		RasterizerState m_rs[static_cast<size_t>(RasterizerFillMode::COUNT)][static_cast<size_t>(RasterizerCullMode::COUNT)];
+		RasterizerState m_rs[static_cast<size_t>(RasterizerMode::COUNT)];
 		SamplerState m_ss[static_cast<size_t>(TextureFilteringMode::COUNT)];
 		DepthStencilState m_dss[static_cast<size_t>(DepthStencilStateType::COUNT)];
 		BlendState m_bs[static_cast<size_t>(BlendStateType::COUNT)];

@@ -1,6 +1,7 @@
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\ComponentManagerMap.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\CameraManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\MeshRendererManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\SkinnedMeshRendererManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\DirectionalLightManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\PointLightManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\SpotLightManager.h>
@@ -25,6 +26,9 @@ IComponentManager* ComponentManagerMap::GetManager(ComponentType type)
 		break;
 	case ComponentType::MeshRenderer:
 		pComponentManager = MeshRendererManager::GetInstance();
+		break;
+	case ComponentType::SkinnedMeshRenderer:
+		pComponentManager = SkinnedMeshRendererManager::GetInstance();
 		break;
 	case ComponentType::DirectionalLight:
 		pComponentManager = DirectionalLightManager::GetInstance();

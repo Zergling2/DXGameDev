@@ -7,6 +7,7 @@
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\SpotLightManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\CameraManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\MeshRendererManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\SkinnedMeshRendererManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\TerrainManager.h>
 #include <ZergEngine\CoreSystem\Manager\UIObjectManager.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
@@ -18,8 +19,12 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Light.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Camera.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\MeshRenderer.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\SkinnedMeshRenderer.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Terrain.h>
-#include <ZergEngine\CoreSystem\Resource\Mesh.h>
+#include <ZergEngine\CoreSystem\Resource\StaticMesh.h>
+#include <ZergEngine\CoreSystem\Resource\SkinnedMesh.h>
+#include <ZergEngine\CoreSystem\Resource\Animation.h>
+#include <ZergEngine\CoreSystem\Resource\Armature.h>
 #include <ZergEngine\CoreSystem\Resource\Material.h>
 
 
@@ -39,12 +44,15 @@ Renderer::Renderer()
 	, m_pNoColorWriteBS(nullptr)
 	, m_pButtonVB(nullptr)
 	, m_effectImmediateContext()
+	, m_pAnimFinalTransformIdentity(nullptr)
+	, m_pAnimFinalTransformBuffer(nullptr)
 	, m_basicEffectP()
 	, m_basicEffectPC()
 	, m_basicEffectPN()
 	, m_basicEffectPT()
 	, m_basicEffectPNT()
 	, m_basicEffectPNTT()
+	, m_basicEffectPNTTSkinned()
 	, m_terrainEffect()
 	, m_skyboxEffect()
 	, m_drawQuadWithMSTextureEffect()
@@ -53,10 +61,20 @@ Renderer::Renderer()
 	, m_uiRenderQueue()
 {
 	m_uiRenderQueue.reserve(256);
+
+	constexpr size_t XMFLOAT4X4A_ALIGNMENT = 16;
+
+	m_pAnimFinalTransformBufferSpace = reinterpret_cast<XMFLOAT4X4A*>(_aligned_malloc(sizeof(XMFLOAT4X4A) * MAX_BONE_COUNT * 2, XMFLOAT4X4A_ALIGNMENT));
+	m_pAnimFinalTransformIdentity = m_pAnimFinalTransformBufferSpace;
+	m_pAnimFinalTransformBuffer = m_pAnimFinalTransformIdentity + MAX_BONE_COUNT;
+
+	for (size_t i = 0; i < MAX_BONE_COUNT; ++i)
+		XMStoreFloat4x4A(&m_pAnimFinalTransformIdentity[i], XMMatrixIdentity());
 }
 
 Renderer::~Renderer()
 {
+	_aligned_free(m_pAnimFinalTransformBufferSpace);
 }
 
 void Renderer::CreateInstance()
@@ -76,9 +94,9 @@ void Renderer::DestroyInstance()
 
 void Renderer::Init()
 {
-	m_pCullBackRS = GraphicDevice::GetInstance()->GetRSComInterface(RasterizerFillMode::Solid, RasterizerCullMode::Back);
-	m_pCullNoneRS = GraphicDevice::GetInstance()->GetRSComInterface(RasterizerFillMode::Solid, RasterizerCullMode::None);
-	m_pWireFrameRS = GraphicDevice::GetInstance()->GetRSComInterface(RasterizerFillMode::Wireframe, RasterizerCullMode::None);
+	m_pCullBackRS = GraphicDevice::GetInstance()->GetRSComInterface(RasterizerMode::SolidCullBackMultisample);
+	m_pCullNoneRS = GraphicDevice::GetInstance()->GetRSComInterface(RasterizerMode::SolidCullNoneMultisample);
+	m_pWireFrameRS = GraphicDevice::GetInstance()->GetRSComInterface(RasterizerMode::WireframeMultisample);
 	m_pDefaultDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DepthStencilStateType::Default);
 	m_pSkyboxDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DepthStencilStateType::Skybox);
 	m_pDepthReadOnlyDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DepthStencilStateType::DepthReadOnly);
@@ -95,6 +113,7 @@ void Renderer::Init()
 	m_basicEffectPT.Init();
 	m_basicEffectPNT.Init();
 	m_basicEffectPNTT.Init();
+	m_basicEffectPNTTSkinned.Init();
 	m_terrainEffect.Init();
 	m_skyboxEffect.Init();
 	m_drawQuadWithMSTextureEffect.Init();
@@ -115,6 +134,7 @@ void Renderer::UnInit()
 	m_basicEffectPT.Release();
 	m_basicEffectPNT.Release();
 	m_basicEffectPNTT.Release();
+	m_basicEffectPNTTSkinned.Release();
 	m_terrainEffect.Release();
 	m_skyboxEffect.Release();
 	m_drawQuadWithMSTextureEffect.Release();
@@ -182,6 +202,7 @@ void Renderer::RenderFrame()
 		// m_basicEffectPT.SetDirectionalLight(light, lightCount);
 		m_basicEffectPNT.SetDirectionalLight(light, lightCount);
 		m_basicEffectPNTT.SetDirectionalLight(light, lightCount);
+		m_basicEffectPNTTSkinned.SetDirectionalLight(light, lightCount);
 		// m_skyboxEffect.SetDirectionalLight(light, lightCount);
 		m_terrainEffect.SetDirectionalLight(light, lightCount);
 	}
@@ -218,6 +239,7 @@ void Renderer::RenderFrame()
 		// m_basicEffectPT.SetPointLight(light, lightCount);
 		m_basicEffectPNT.SetPointLight(light, lightCount);
 		m_basicEffectPNTT.SetPointLight(light, lightCount);
+		m_basicEffectPNTTSkinned.SetPointLight(light, lightCount);
 		// m_skyboxEffect.SetPointLight(light, lightCount);
 		m_terrainEffect.SetPointLight(light, lightCount);
 	}
@@ -266,6 +288,7 @@ void Renderer::RenderFrame()
 		// m_basicEffectPT.SetSpotLight(light, lightCount);
 		m_basicEffectPNT.SetSpotLight(light, lightCount);
 		m_basicEffectPNTT.SetSpotLight(light, lightCount);
+		m_basicEffectPNTTSkinned.SetSpotLight(light, lightCount);
 		// m_skyboxEffect.SetSpotLight(light, lightCount);
 		m_terrainEffect.SetSpotLight(light, lightCount);
 	}
@@ -303,13 +326,14 @@ void Renderer::RenderFrame()
 		m_basicEffectPT.SetCamera(pCamera);
 		m_basicEffectPNT.SetCamera(pCamera);
 		m_basicEffectPNTT.SetCamera(pCamera);
+		m_basicEffectPNTTSkinned.SetCamera(pCamera);
 		m_skyboxEffect.SetCamera(pCamera);
 		m_terrainEffect.SetCamera(pCamera);
 
 		for (const IComponent* pComponent : MeshRendererManager::GetInstance()->m_directAccessGroup)
 		{
 			const MeshRenderer* pMeshRenderer = static_cast<const MeshRenderer*>(pComponent);
-			const Mesh* pMesh = pMeshRenderer->GetMeshPtr();
+			const StaticMesh* pMesh = pMeshRenderer->GetMeshPtr();
 
 			if (!pMeshRenderer->IsEnabled() || pMesh == nullptr)
 				continue;
@@ -320,6 +344,8 @@ void Renderer::RenderFrame()
 			if (!Math::TestFrustumAabbCollision(worldSpaceFrustum, worldSpaceAabb))
 				continue;
 
+			RenderVFPositionNormalTangentTexCoordMesh(pMeshRenderer);
+			/*
 			switch (pMesh->GetVertexFormatType())
 			{
 			case VertexFormatType::Position:
@@ -346,6 +372,24 @@ void Renderer::RenderFrame()
 				*reinterpret_cast<int*>(0) = 0;
 				break;
 			}
+			*/
+		}
+
+		for (const IComponent* pComponent : SkinnedMeshRendererManager::GetInstance()->m_directAccessGroup)
+		{
+			const SkinnedMeshRenderer* pMeshRenderer = static_cast<const SkinnedMeshRenderer*>(pComponent);
+			const SkinnedMesh* pMesh = pMeshRenderer->GetMeshPtr();
+
+			if (!pMeshRenderer->IsEnabled() || pMesh == nullptr)
+				continue;
+
+			// 프러스텀 컬링
+			// Aabb worldSpaceAabb;
+			// pMesh->GetAabb().Transform(worldSpaceAabb, pMeshRenderer->m_pGameObject->m_transform.GetWorldTransformMatrix());
+			// if (!Math::TestFrustumAabbCollision(worldSpaceFrustum, worldSpaceAabb))
+			// 	continue;
+
+			RenderVFPositionNormalTangentTexCoordSkinnedMesh(pMeshRenderer);
 		}
 
 		// 지형 렌더링
@@ -495,11 +539,11 @@ void Renderer::RenderFrame()
 
 void Renderer::RenderVFPositionMesh(const MeshRenderer* pMeshRenderer)
 {
-	const Mesh* pMesh = pMeshRenderer->GetMeshPtr();
+	const StaticMesh* pMesh = pMeshRenderer->GetMeshPtr();
 	if (!pMesh)
 		return;
 
-	assert(pMesh->GetVertexFormatType() == VertexFormatType::Position);
+	// assert(pMesh->GetVertexFormatType() == VertexFormatType::Position);
 
 	const GameObject* pGameObject = pMeshRenderer->m_pGameObject;
 	assert(pGameObject != nullptr);
@@ -507,7 +551,7 @@ void Renderer::RenderVFPositionMesh(const MeshRenderer* pMeshRenderer)
 	m_basicEffectP.SetWorldMatrix(pGameObject->m_transform.GetWorldTransformMatrix());
 
 	// 버텍스 버퍼 설정
-	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(pMesh->GetVertexFormatType()) };
+	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(VertexFormatType::Position) };
 	const UINT offsets[] = { 0 };
 	ID3D11Buffer* const vbs[] = { pMesh->GetVBComInterface() };
 	m_effectImmediateContext.IASetVertexBuffers(0, _countof(vbs), vbs, strides, offsets);
@@ -519,7 +563,7 @@ void Renderer::RenderVFPositionMesh(const MeshRenderer* pMeshRenderer)
 	m_effectImmediateContext.Apply(&m_basicEffectP);
 
 	// 서브셋들 순회하며 렌더링
-	for (const Subset& subset : pMesh->m_subsets)
+	for (const MeshSubset& subset : pMesh->m_subsets)
 	{
 		// 드로우
 		m_effectImmediateContext.DrawIndexed(subset.GetIndexCount(), subset.GetStartIndexLocation(), 0);
@@ -528,11 +572,11 @@ void Renderer::RenderVFPositionMesh(const MeshRenderer* pMeshRenderer)
 
 void Renderer::RenderVFPositionColorMesh(const MeshRenderer* pMeshRenderer)
 {
-	const Mesh* pMesh = pMeshRenderer->GetMeshPtr();
+	const StaticMesh* pMesh = pMeshRenderer->GetMeshPtr();
 	if (!pMesh)
 		return;
 
-	assert(pMesh->GetVertexFormatType() == VertexFormatType::PositionColor);
+	// assert(pMesh->GetVertexFormatType() == VertexFormatType::PositionColor);
 
 	const GameObject* pGameObject = pMeshRenderer->m_pGameObject;
 	assert(pGameObject != nullptr);
@@ -540,7 +584,7 @@ void Renderer::RenderVFPositionColorMesh(const MeshRenderer* pMeshRenderer)
 	m_basicEffectPC.SetWorldMatrix(pGameObject->m_transform.GetWorldTransformMatrix());
 
 	// 버텍스 버퍼 설정
-	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(pMesh->GetVertexFormatType()) };
+	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(VertexFormatType::PositionColor) };
 	const UINT offsets[] = { 0 };
 	ID3D11Buffer* const vbs[] = { pMesh->GetVBComInterface() };
 	m_effectImmediateContext.IASetVertexBuffers(0, _countof(vbs), vbs, strides, offsets);
@@ -552,7 +596,7 @@ void Renderer::RenderVFPositionColorMesh(const MeshRenderer* pMeshRenderer)
 	m_effectImmediateContext.Apply(&m_basicEffectPC);
 
 	// 서브셋들 순회하며 렌더링
-	for (const Subset& subset : pMesh->m_subsets)
+	for (const MeshSubset& subset : pMesh->m_subsets)
 	{
 		// 드로우
 		m_effectImmediateContext.DrawIndexed(subset.GetIndexCount(), subset.GetStartIndexLocation(), 0);
@@ -561,11 +605,11 @@ void Renderer::RenderVFPositionColorMesh(const MeshRenderer* pMeshRenderer)
 
 void Renderer::RenderVFPositionNormalMesh(const MeshRenderer* pMeshRenderer)
 {
-	const Mesh* pMesh = pMeshRenderer->GetMeshPtr();
+	const StaticMesh* pMesh = pMeshRenderer->GetMeshPtr();
 	if (!pMesh)
 		return;
 
-	assert(pMesh->GetVertexFormatType() == VertexFormatType::PositionNormal);
+	// assert(pMesh->GetVertexFormatType() == VertexFormatType::PositionNormal);
 
 	const GameObject* pGameObject = pMeshRenderer->m_pGameObject;
 	assert(pGameObject != nullptr);
@@ -573,7 +617,7 @@ void Renderer::RenderVFPositionNormalMesh(const MeshRenderer* pMeshRenderer)
 	m_basicEffectPN.SetWorldMatrix(pGameObject->m_transform.GetWorldTransformMatrix());
 
 	// 버텍스 버퍼 설정
-	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(pMesh->GetVertexFormatType()) };
+	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(VertexFormatType::PositionNormal) };
 	const UINT offsets[] = { 0 };
 	ID3D11Buffer* const vbs[] = { pMesh->GetVBComInterface() };
 	m_effectImmediateContext.IASetVertexBuffers(0, _countof(vbs), vbs, strides, offsets);
@@ -586,7 +630,7 @@ void Renderer::RenderVFPositionNormalMesh(const MeshRenderer* pMeshRenderer)
 	const size_t subsetCount = pMesh->m_subsets.size();
 	for (size_t i = 0; i < subsetCount; ++i)
 	{
-		const Subset& currentSubset = pMesh->m_subsets[i];
+		const MeshSubset& currentSubset = pMesh->m_subsets[i];
 		const Material* pMaterial = pMeshRenderer->GetMaterialPtr(i);
 		if (pMaterial != nullptr)
 		{
@@ -609,11 +653,11 @@ void Renderer::RenderVFPositionNormalMesh(const MeshRenderer* pMeshRenderer)
 
 void Renderer::RenderVFPositionTexCoordMesh(const MeshRenderer* pMeshRenderer)
 {
-	const Mesh* pMesh = pMeshRenderer->GetMeshPtr();
+	const StaticMesh* pMesh = pMeshRenderer->GetMeshPtr();
 	if (!pMesh)
 		return;
 
-	assert(pMesh->GetVertexFormatType() == VertexFormatType::PositionTexCoord);
+	// assert(pMesh->GetVertexFormatType() == VertexFormatType::PositionTexCoord);
 
 	const GameObject* pGameObject = pMeshRenderer->m_pGameObject;
 	assert(pGameObject != nullptr);
@@ -621,7 +665,7 @@ void Renderer::RenderVFPositionTexCoordMesh(const MeshRenderer* pMeshRenderer)
 	m_basicEffectPT.SetWorldMatrix(pGameObject->m_transform.GetWorldTransformMatrix());
 
 	// 버텍스 버퍼 설정
-	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(pMesh->GetVertexFormatType()) };
+	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(VertexFormatType::PositionTexCoord) };
 	const UINT offsets[] = { 0 };
 	ID3D11Buffer* const vbs[] = { pMesh->GetVBComInterface() };
 	m_effectImmediateContext.IASetVertexBuffers(0, _countof(vbs), vbs, strides, offsets);
@@ -634,7 +678,7 @@ void Renderer::RenderVFPositionTexCoordMesh(const MeshRenderer* pMeshRenderer)
 	const size_t subsetCount = pMesh->m_subsets.size();
 	for (size_t i = 0; i < subsetCount; ++i)
 	{
-		const Subset& currentSubset = pMesh->m_subsets[i];
+		const MeshSubset& currentSubset = pMesh->m_subsets[i];
 		const Material* pMaterial = pMeshRenderer->GetMaterialPtr(i);
 		if (pMaterial != nullptr)
 			m_basicEffectPT.SetTexture(pMaterial->m_diffuseMap.GetSRVComInterface());
@@ -650,11 +694,11 @@ void Renderer::RenderVFPositionTexCoordMesh(const MeshRenderer* pMeshRenderer)
 
 void Renderer::RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshRenderer)
 {
-	const Mesh* pMesh = pMeshRenderer->GetMeshPtr();
+	const StaticMesh* pMesh = pMeshRenderer->GetMeshPtr();
 	if (!pMesh)
 		return;
 
-	assert(pMesh->GetVertexFormatType() == VertexFormatType::PositionNormalTexCoord);
+	// assert(pMesh->GetVertexFormatType() == VertexFormatType::PositionNormalTexCoord);
 
 	const GameObject* pGameObject = pMeshRenderer->m_pGameObject;
 	assert(pGameObject != nullptr);
@@ -662,7 +706,7 @@ void Renderer::RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshRende
 	m_basicEffectPNT.SetWorldMatrix(pGameObject->m_transform.GetWorldTransformMatrix());
 
 	// 버텍스 버퍼 설정
-	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(pMesh->GetVertexFormatType()) };
+	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(VertexFormatType::PositionNormalTexCoord) };
 	const UINT offsets[] = { 0 };
 	ID3D11Buffer* const vbs[] = { pMesh->GetVBComInterface() };
 	m_effectImmediateContext.IASetVertexBuffers(0, _countof(vbs), vbs, strides, offsets);
@@ -675,7 +719,7 @@ void Renderer::RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshRende
 	const size_t subsetCount = pMesh->m_subsets.size();
 	for (size_t i = 0; i < subsetCount; ++i)
 	{
-		const Subset& currentSubset = pMesh->m_subsets[i];
+		const MeshSubset& currentSubset = pMesh->m_subsets[i];
 		const Material* pMaterial = pMeshRenderer->GetMaterialPtr(i);
 		if (pMaterial != nullptr)
 		{
@@ -700,11 +744,11 @@ void Renderer::RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshRende
 
 void Renderer::RenderVFPositionNormalTangentTexCoordMesh(const MeshRenderer* pMeshRenderer)
 {
-	const Mesh* pMesh = pMeshRenderer->GetMeshPtr();
+	const StaticMesh* pMesh = pMeshRenderer->GetMeshPtr();
 	if (!pMesh)
 		return;
 
-	assert(pMesh->GetVertexFormatType() == VertexFormatType::PositionNormalTangentTexCoord);
+	// assert(pMesh->GetVertexFormatType() == VertexFormatType::PositionNormalTangentTexCoord);
 
 	const GameObject* pGameObject = pMeshRenderer->m_pGameObject;
 	assert(pGameObject != nullptr);
@@ -712,7 +756,7 @@ void Renderer::RenderVFPositionNormalTangentTexCoordMesh(const MeshRenderer* pMe
 	m_basicEffectPNTT.SetWorldMatrix(pGameObject->m_transform.GetWorldTransformMatrix());
 
 	// 버텍스 버퍼 설정
-	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(pMesh->GetVertexFormatType()) };
+	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(VertexFormatType::PositionNormalTangentTexCoord) };
 	const UINT offsets[] = { 0 };
 	ID3D11Buffer* const vbs[] = { pMesh->GetVBComInterface() };
 	m_effectImmediateContext.IASetVertexBuffers(0, _countof(vbs), vbs, strides, offsets);
@@ -725,7 +769,7 @@ void Renderer::RenderVFPositionNormalTangentTexCoordMesh(const MeshRenderer* pMe
 	const size_t subsetCount = pMesh->m_subsets.size();
 	for (size_t i = 0; i < subsetCount; ++i)
 	{
-		const Subset& currentSubset = pMesh->m_subsets[i];
+		const MeshSubset& currentSubset = pMesh->m_subsets[i];
 		const Material* pMaterial = pMeshRenderer->GetMaterialPtr(i);
 		if (pMaterial != nullptr)
 		{
@@ -743,6 +787,78 @@ void Renderer::RenderVFPositionNormalTangentTexCoordMesh(const MeshRenderer* pMe
 		}
 
 		m_effectImmediateContext.Apply(&m_basicEffectPNTT);
+
+		// 드로우
+		m_effectImmediateContext.DrawIndexed(currentSubset.GetIndexCount(), currentSubset.GetStartIndexLocation(), 0);
+	}
+}
+
+#include <ZergEngine\CoreSystem\Input.h>
+void Renderer::RenderVFPositionNormalTangentTexCoordSkinnedMesh(const SkinnedMeshRenderer* pSkinnedMeshRenderer)
+{
+	const SkinnedMesh* pMesh = pSkinnedMeshRenderer->GetMeshPtr();
+	if (!pMesh)
+		return;
+
+	const GameObject* pGameObject = pSkinnedMeshRenderer->m_pGameObject;
+	assert(pGameObject != nullptr);
+
+	m_basicEffectPNTTSkinned.SetWorldMatrix(pGameObject->m_transform.GetWorldTransformMatrix());
+	
+	const Animation* pCurrAnim = pSkinnedMeshRenderer->GetCurrentAnimation();
+	if (pCurrAnim)
+	{
+		pCurrAnim->ComputeFinalTransform(
+			pSkinnedMeshRenderer->GetAnimationTimeCursor(),
+			m_pAnimFinalTransformBuffer,
+			pSkinnedMeshRenderer->GetArmaturePtr()->GetBoneCount()
+		);
+
+		for (size_t i = 0; i < pSkinnedMeshRenderer->GetArmaturePtr()->GetBoneCount(); ++i)
+		{
+			XMMATRIX m = XMLoadFloat4x4A(&m_pAnimFinalTransformBuffer[i]);
+			m = ConvertToHLSLMatrix(m);
+			XMStoreFloat4x4A(&m_pAnimFinalTransformBuffer[i], m);
+		}
+		m_basicEffectPNTTSkinned.SetArmatureFinalTransform(m_pAnimFinalTransformBuffer, pSkinnedMeshRenderer->GetArmaturePtr()->GetBoneCount());
+	}
+	else
+	{
+		m_basicEffectPNTTSkinned.SetArmatureFinalTransform(m_pAnimFinalTransformIdentity, pSkinnedMeshRenderer->GetArmaturePtr()->GetBoneCount());
+	}
+
+	// 버텍스 버퍼 설정
+	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(VertexFormatType::PositionNormalTangentTexCoordSkinned) };
+	const UINT offsets[] = { 0 };
+	ID3D11Buffer* const vbs[] = { pMesh->GetVBComInterface() };
+	m_effectImmediateContext.IASetVertexBuffers(0, _countof(vbs), vbs, strides, offsets);
+
+	// 인덱스 버퍼 설정
+	m_effectImmediateContext.IASetIndexBuffer(pMesh->GetIBComInterface(), DXGI_FORMAT_R32_UINT, 0);
+
+	// 서브셋들 순회하며 렌더링
+	assert(pMesh->m_subsets.size() == pSkinnedMeshRenderer->GetMeshPtr()->m_subsets.size());
+	const size_t subsetCount = pMesh->m_subsets.size();
+	for (size_t i = 0; i < subsetCount; ++i)
+	{
+		const MeshSubset& currentSubset = pMesh->m_subsets[i];
+		const Material* pMaterial = pSkinnedMeshRenderer->GetMaterialPtr(i);
+		if (pMaterial != nullptr)
+		{
+			m_basicEffectPNTTSkinned.UseMaterial(true);
+			m_basicEffectPNTTSkinned.SetAmbientColor(XMLoadFloat4A(&pMaterial->m_ambient));
+			m_basicEffectPNTTSkinned.SetDiffuseColor(XMLoadFloat4A(&pMaterial->m_diffuse));
+			m_basicEffectPNTTSkinned.SetSpecularColor(XMLoadFloat4A(&pMaterial->m_specular));
+			m_basicEffectPNTTSkinned.SetDiffuseMap(pMaterial->m_diffuseMap.GetSRVComInterface());
+			m_basicEffectPNTTSkinned.SetSpecularMap(pMaterial->m_specularMap.GetSRVComInterface());
+			m_basicEffectPNTTSkinned.SetNormalMap(pMaterial->m_normalMap.GetSRVComInterface());
+		}
+		else
+		{
+			m_basicEffectPNTTSkinned.UseMaterial(false);
+		}
+
+		m_effectImmediateContext.Apply(&m_basicEffectPNTTSkinned);
 
 		// 드로우
 		m_effectImmediateContext.DrawIndexed(currentSubset.GetIndexCount(), currentSubset.GetStartIndexLocation(), 0);

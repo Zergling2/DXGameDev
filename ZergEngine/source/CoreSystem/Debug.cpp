@@ -366,9 +366,9 @@ PCTSTR Debug::VertexFormatToString(VertexFormatType type)
 	case VertexFormatType::PositionNormalTexCoord:
 		return _T("Position\nNormal\nTexCoord");
 	case VertexFormatType::TerrainPatchCtrlPt:
-		__fallthrough;
+		return _T("TerrainPatchCtrlPt");
 	case VertexFormatType::ButtonPt:
-		__fallthrough;
+		return _T("ButtonPt");
 	default:
 		return _T("Unknown");
 	}

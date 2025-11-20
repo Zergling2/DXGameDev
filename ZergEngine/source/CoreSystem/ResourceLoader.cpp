@@ -3,13 +3,17 @@
 #include <ZergEngine\CoreSystem\FileSystem.h>
 #include <ZergEngine\CoreSystem\GraphicDevice.h>
 #include <ZergEngine\CoreSystem\DataStructure\RawVector.h>
-#include <ZergEngine\CoreSystem\Resource\Mesh.h>
+#include <ZergEngine\CoreSystem\Resource\Armature.h>
+#include <ZergEngine\CoreSystem\Resource\Animation.h>
+#include <ZergEngine\CoreSystem\Resource\StaticMesh.h>
+#include <ZergEngine\CoreSystem\Resource\SkinnedMesh.h>
 #include <ZergEngine\CoreSystem\Resource\Material.h>
 #include <ZergEngine\CoreSystem\Helper.h>
 #include <DirectXTex\DirectXTex.h>
 #include <assimp\Importer.hpp>
 #include <assimp\scene.h>
 #include <assimp\postprocess.h>
+#include <queue>
 
 using namespace ze;
 
@@ -17,6 +21,60 @@ ResourceLoader* ResourceLoader::s_pInstance = nullptr;
 
 constexpr int MAX_LINE_LENGTH = 256;
 PCWSTR OBJ_MTL_DELIM = L" \t\n";
+
+void XMStoreFloat4x4(DirectX::XMFLOAT4X4* pOut, const aiMatrix4x4* pAiMatrix4x4)
+{
+	pOut->_11 = static_cast<float>(pAiMatrix4x4->a1);
+	pOut->_12 = static_cast<float>(pAiMatrix4x4->b1);
+	pOut->_13 = static_cast<float>(pAiMatrix4x4->c1);
+	pOut->_14 = static_cast<float>(pAiMatrix4x4->d1);
+
+	pOut->_21 = static_cast<float>(pAiMatrix4x4->a2);
+	pOut->_22 = static_cast<float>(pAiMatrix4x4->b2);
+	pOut->_23 = static_cast<float>(pAiMatrix4x4->c2);
+	pOut->_24 = static_cast<float>(pAiMatrix4x4->d2);
+
+	pOut->_31 = static_cast<float>(pAiMatrix4x4->a3);
+	pOut->_32 = static_cast<float>(pAiMatrix4x4->b3);
+	pOut->_33 = static_cast<float>(pAiMatrix4x4->c3);
+	pOut->_34 = static_cast<float>(pAiMatrix4x4->d3);
+
+	pOut->_41 = static_cast<float>(pAiMatrix4x4->a4);
+	pOut->_42 = static_cast<float>(pAiMatrix4x4->b4);
+	pOut->_43 = static_cast<float>(pAiMatrix4x4->c4);
+	pOut->_44 = static_cast<float>(pAiMatrix4x4->d4);
+}
+
+void XMStoreFloat4x4A(DirectX::XMFLOAT4X4A* pOut, const aiMatrix4x4* pAiMatrix4x4)
+{
+	pOut->_11 = static_cast<float>(pAiMatrix4x4->a1);
+	pOut->_12 = static_cast<float>(pAiMatrix4x4->b1);
+	pOut->_13 = static_cast<float>(pAiMatrix4x4->c1);
+	pOut->_14 = static_cast<float>(pAiMatrix4x4->d1);
+
+	pOut->_21 = static_cast<float>(pAiMatrix4x4->a2);
+	pOut->_22 = static_cast<float>(pAiMatrix4x4->b2);
+	pOut->_23 = static_cast<float>(pAiMatrix4x4->c2);
+	pOut->_24 = static_cast<float>(pAiMatrix4x4->d2);
+
+	pOut->_31 = static_cast<float>(pAiMatrix4x4->a3);
+	pOut->_32 = static_cast<float>(pAiMatrix4x4->b3);
+	pOut->_33 = static_cast<float>(pAiMatrix4x4->c3);
+	pOut->_34 = static_cast<float>(pAiMatrix4x4->d3);
+
+	pOut->_41 = static_cast<float>(pAiMatrix4x4->a4);
+	pOut->_42 = static_cast<float>(pAiMatrix4x4->b4);
+	pOut->_43 = static_cast<float>(pAiMatrix4x4->c4);
+	pOut->_44 = static_cast<float>(pAiMatrix4x4->d4);
+}
+
+DirectX::XMMATRIX XMLoadAiMatrix4x4(const aiMatrix4x4* pAiMatrix4x4)
+{
+	XMFLOAT4X4A xmMatrix;
+	XMStoreFloat4x4A(&xmMatrix, pAiMatrix4x4);
+
+	return XMLoadFloat4x4A(&xmMatrix);
+}
 
 ResourceLoader::ResourceLoader()
 	: m_errTex()
@@ -44,156 +102,622 @@ void ResourceLoader::DestroyInstance()
 
 void ResourceLoader::Init()
 {
-	// 보라돌이 텍스처 생성
-	// m_errTex;
+	// 텍스쳐 로드에 실패했을 시 반환할 텍스쳐 생성 (Magenta, Black 체크무늬 텍스쳐)
+	// 디스크립터 세팅
+	D3D11_TEXTURE2D_DESC descTexture;
+	ZeroMemory(&descTexture, sizeof(descTexture));
+	constexpr UINT width = 256;
+	constexpr UINT height = 256;
+	descTexture.Width = width;
+	descTexture.Height = height;
+	descTexture.MipLevels = 0;	// 밉맵 체인 생성
+	descTexture.ArraySize = 1;
+	descTexture.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	descTexture.SampleDesc.Count = 1;
+	descTexture.SampleDesc.Quality = 0;
+	descTexture.Usage = D3D11_USAGE_DEFAULT;
+	descTexture.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;		// 셰이더 리소스 목적으로 생성 + 밉맵 생성을 위해 렌더타겟 플래그 설정
+	descTexture.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
+
+	// 텍스처 생성 및 초기화
+	struct R8G8B8A8
+	{
+		unsigned char r;
+		unsigned char g;
+		unsigned char b;
+		unsigned char a;
+	};
+	std::vector<R8G8B8A8> texels(width * height);	// DXGI_FORMAT_R8G8B8A8_UNORM
+	constexpr UINT CHECK_DOT_SIZE = 32;	// 256x256에서 32x32 픽셀 크기로 번갈아가며 색상 배열
+	bool magenta = false;
+	constexpr R8G8B8A8 MAGENTA{ 255, 0, 255, 255 };
+	constexpr R8G8B8A8 BLACK{ 0, 0, 0, 255 };
+	for (UINT i = 0; i < width; i += CHECK_DOT_SIZE)
+	{
+		for (UINT j = 0; j < height; j += CHECK_DOT_SIZE)
+		{
+			const R8G8B8A8 texel = magenta ? MAGENTA : BLACK;
+			for (UINT k = i; k < i + CHECK_DOT_SIZE; ++k)
+			{
+				for (UINT l = j; l < j + CHECK_DOT_SIZE; ++l)
+				{
+					texels[k * width + l] = texel;
+				}
+			}
+			magenta = !magenta;
+		}
+		magenta = !magenta;
+	}
+	// D3D11_SUBRESOURCE_DATA initialData;
+	// initialData.pSysMem = texels.data();
+	// initialData.SysMemPitch = sizeof(R8G8B8A8) * width;
+	// initialData.SysMemSlicePitch = 0;	// 3D 텍스쳐에서만 사용됨
+
+	ComPtr<ID3D11Texture2D> cpTex2D;
+	HRESULT hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateTexture2D(
+		&descTexture, nullptr, cpTex2D.GetAddressOf()
+	);
+	if (FAILED(hr))
+		Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateTexture2D()", hr);
+
+	GraphicDevice::GetInstance()->GetImmediateContextComInterface()->UpdateSubresource(cpTex2D.Get(), D3D11CalcSubresource(0, 0, 0),
+		nullptr, texels.data(), sizeof(R8G8B8A8)* width, 0);
+
+	// 셰이더 리소스 뷰 생성
+	ComPtr<ID3D11ShaderResourceView> cpSRV;
+	hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateShaderResourceView(
+		cpTex2D.Get(), nullptr, cpSRV.GetAddressOf()
+	);
+	if (FAILED(hr))
+		Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateShaderResourceView()", hr);
+
+	// 밉맵 생성
+	GraphicDevice::GetInstance()->GetImmediateContextComInterface()->GenerateMips(cpSRV.Get());
+
+	m_errTex.m_cpTex2D = std::move(cpTex2D);
+	m_errTex.m_cpSRV = std::move(cpSRV);
 }
 
 void ResourceLoader::UnInit()
 {
+	m_errTex.Reset();
 }
 
-void ResourceLoader::DFSAiNodeLoadMesh(std::vector<std::shared_ptr<Mesh>>& meshes, const aiScene* pAiScene, const aiNode* pAiNode)
+void ResourceLoader::DFSAiNodeLoadModel(TempModelData& tmd, const aiScene* pAiScene, const aiNode* pAiNode)
 {
 	// 한 노드가 가리키는 모든 aiMesh들을 하나의 ze::Mesh에 담고 각 aiMesh들은 ze::Subset에 대응시키면 된다.
-
-	if (pAiNode->mNumMeshes > 0)	// 노드가 메쉬는 아무것도 가리키고 있지 않을 수 있으므로 (대표적으로 루트 노드의 경우)
+	if (pAiNode->mNumMeshes > 0)
 	{
-		WCHAR name[32];
-		name[0] = L'\0';
-		Helper::ConvertUTF8ToUTF16(pAiNode->mName.C_Str(), name, _countof(name));
-
-		using MeshVertexFormat = VFPositionNormalTangentTexCoord;
-
-		std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>(name);
-		std::vector<MeshVertexFormat> vertices;		// TEST
-		std::vector<uint32_t> indices;
-		uint32_t startIndexLocation = 0;
-
-		// AABB 계산 로직을 간단하게 하기 위해서 일단 첫 번째 메시의 AABB를 담아두고 반복적으로 병합해간다.
-		Aabb finalAabb;
-		const aiMesh* pFirstAiMesh = pAiScene->mMeshes[pAiNode->mMeshes[0]];
-		XMVECTOR min = XMVectorSet(pFirstAiMesh->mAABB.mMin.x, pFirstAiMesh->mAABB.mMin.y, pFirstAiMesh->mAABB.mMin.z, 0.0f);
-		XMVECTOR max = XMVectorSet(pFirstAiMesh->mAABB.mMax.x, pFirstAiMesh->mAABB.mMax.y, pFirstAiMesh->mAABB.mMax.z, 0.0f);
-		XMStoreFloat3(&finalAabb.Center, XMVectorScale(XMVectorAdd(min, max), 0.5f));
-		XMStoreFloat3(&finalAabb.Extents, XMVectorScale(XMVectorAbs(XMVectorSubtract(max, min)), 0.5f));
-
-		for (unsigned int i = 0; i < pAiNode->mNumMeshes; ++i)
+		bool isSkinnedMeshNode;
 		{
-			const aiMesh* pAiMesh = pAiScene->mMeshes[pAiNode->mMeshes[i]];
-			uint32_t indexCount = 0;
-			uint32_t baseVertexIndex = static_cast<uint32_t>(vertices.size());	// 정점들을 담기 전에 미리 알아두어야 함.
-
-			// AABB 추출
-			Aabb aabb;
-			XMVECTOR min = XMVectorSet(pAiMesh->mAABB.mMin.x, pAiMesh->mAABB.mMin.y, pAiMesh->mAABB.mMin.z, 0.0f);
-			XMVECTOR max = XMVectorSet(pAiMesh->mAABB.mMax.x, pAiMesh->mAABB.mMax.y, pAiMesh->mAABB.mMax.z, 0.0f);
-			XMStoreFloat3(&aabb.Center, XMVectorScale(XMVectorAdd(min, max), 0.5f));
-			XMStoreFloat3(&aabb.Extents, XMVectorScale(XMVectorAbs(XMVectorSubtract(max, min)), 0.5f));
-			Aabb::CreateMerged(finalAabb, finalAabb, aabb);
-
-			// 정점 정보 읽기
-			for (unsigned int v = 0; v < pAiMesh->mNumVertices; ++v)
+			// 노드 내의 aiMesh들이 하나의 StaticMesh 또는 SkinnedMesh를 구성해야 하므로
+			// 전부 다 뼈를 가지고 있던지, 아니면 전부 다 뼈를 갖고 있지 않던지 해야함.
+			// 이것을 검사하는 코드
+			bool hasBones = pAiScene->mMeshes[pAiNode->mMeshes[0]]->HasBones();
+			for (unsigned int i = 1; i < pAiNode->mNumMeshes; ++i)
 			{
-				MeshVertexFormat vertex;		// TEST
-
-				vertex.m_position.x = pAiMesh->mVertices[v].x;
-				vertex.m_position.y = pAiMesh->mVertices[v].y;
-				vertex.m_position.z = pAiMesh->mVertices[v].z;
-
-				vertex.m_normal.x = pAiMesh->mNormals[v].x;
-				vertex.m_normal.y = pAiMesh->mNormals[v].y;
-				vertex.m_normal.z = pAiMesh->mNormals[v].z;
-
-				vertex.m_tangent.x = pAiMesh->mTangents[v].x;
-				vertex.m_tangent.y = pAiMesh->mTangents[v].y;
-				vertex.m_tangent.z = pAiMesh->mTangents[v].z;
-
-				constexpr size_t UV_CHANNEL_INDEX = 0;
-				vertex.m_texCoord.x = pAiMesh->mTextureCoords[UV_CHANNEL_INDEX][v].x;
-				vertex.m_texCoord.y = pAiMesh->mTextureCoords[UV_CHANNEL_INDEX][v].y;
-
-				vertices.push_back(vertex);
+				if (hasBones != pAiScene->mMeshes[pAiNode->mMeshes[i]]->HasBones())
+					Debug::ForceCrashWithMessageBox(L"Error", L"Mesh consistency error! (HasBones)");
 			}
 
-			for (unsigned int f = 0; f < pAiMesh->mNumFaces; ++f)
-			{
-				const aiFace* pAiFace = &pAiMesh->mFaces[f];
-				assert(pAiFace->mNumIndices == 3);
-				for (unsigned int fi = 0; fi < pAiFace->mNumIndices; ++fi)
-				{
-					++indexCount;
-					indices.push_back(pAiFace->mIndices[fi] + baseVertexIndex);
-				}
-			}
-
-			// 서브셋 정보 저장
-			mesh->m_subsets.push_back(Subset(indexCount, startIndexLocation));
-
-			startIndexLocation += indexCount;	// 다음 루프 메시를 위해
+			isSkinnedMeshNode = hasBones;
 		}
-
-		// 정보 세팅
-		// 1. AABB 설정
-		mesh->m_aabb = finalAabb;
-
-		// 2. 최종적으로 모든 서브셋들이 공유할 버텍스버퍼, 인덱스버퍼 생성
-		HRESULT hr;
-
-		// Create a vertex buffer
-		D3D11_BUFFER_DESC bufferDesc;
-		D3D11_SUBRESOURCE_DATA initialData;
-
-		bufferDesc.ByteWidth = static_cast<UINT>(vertices.size() * sizeof(MeshVertexFormat));
-		bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-		bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-		bufferDesc.CPUAccessFlags = 0;
-		bufferDesc.MiscFlags = 0;
-		bufferDesc.StructureByteStride = InputLayoutHelper::GetStructureByteStride(VertexFormatType::PositionNormalTexCoord);
-
-		initialData.pSysMem = vertices.data();
-		// initialData.SysMemPitch = 0;		// unused
-		// initialData.SysMemSlicePitch = 0;	// unused
-
-		ComPtr<ID3D11Buffer> cpVB;
-		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateBuffer(&bufferDesc, &initialData, cpVB.GetAddressOf());
-		if (FAILED(hr))
-			Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateBuffer()", hr);
-
-		// Create an index buffer
-		bufferDesc.ByteWidth = static_cast<UINT>(indices.size() * sizeof(uint32_t));
-		bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-		bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-		// bufferDesc.CPUAccessFlags = 0;
-		// bufferDesc.MiscFlags = 0;
-		bufferDesc.StructureByteStride = sizeof(uint32_t);
-
-		initialData.pSysMem = indices.data();
-		// initialData.SysMemPitch = 0;			// unused
-		// initialData.SysMemSlicePitch = 0;	// unused
-
-		ComPtr<ID3D11Buffer> cpIB;
-		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateBuffer(&bufferDesc, &initialData, cpIB.GetAddressOf());
-		if (FAILED(hr))
-			Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateBuffer()", hr);
-
-		mesh->m_cpVB = std::move(cpVB);
-		mesh->m_cpIB = std::move(cpIB);
-
-		// 3. Vertex Format Type 설정
-		mesh->m_vft = VertexFormatType::PositionNormalTangentTexCoord;	// TEST
-
-		meshes.push_back(std::move(mesh));
+		
+		if (isSkinnedMeshNode)
+			AiLoadSkinnedMeshNode(tmd, pAiScene, pAiNode);
+		else
+			AiLoadStaticMeshNode(tmd, pAiScene, pAiNode);
 	}
 
 	for (unsigned int i = 0; i < pAiNode->mNumChildren; ++i)
+		DFSAiNodeLoadModel(tmd, pAiScene, pAiNode->mChildren[i]);
+}
+
+void ResourceLoader::AiLoadStaticMeshNode(TempModelData& tmd, const aiScene* pAiScene, const aiNode* pAiNode)
+{
+	WCHAR name[32];
+	name[0] = L'\0';
+	Helper::ConvertUTF8ToUTF16(pAiNode->mName.C_Str(), name, _countof(name));
+
+	using MeshVertexFormat = VFPositionNormalTangentTexCoord;
+
+	std::shared_ptr<StaticMesh> mesh = std::make_shared<StaticMesh>(name);
+	std::vector<MeshVertexFormat> vertices;
+	std::vector<uint32_t> indices;
+	uint32_t startIndexLocation = 0;			// 초기화
+
+	// AABB 계산 로직을 간단하게 하기 위해서 일단 첫 번째 메시의 AABB를 담아두고 반복적으로 병합해간다.
+	Aabb finalAabb;
+	const aiMesh* pFirstAiMesh = pAiScene->mMeshes[pAiNode->mMeshes[0]];
+	XMVECTOR min = XMVectorSet(pFirstAiMesh->mAABB.mMin.x, pFirstAiMesh->mAABB.mMin.y, pFirstAiMesh->mAABB.mMin.z, 0.0f);
+	XMVECTOR max = XMVectorSet(pFirstAiMesh->mAABB.mMax.x, pFirstAiMesh->mAABB.mMax.y, pFirstAiMesh->mAABB.mMax.z, 0.0f);
+	XMStoreFloat3(&finalAabb.Center, XMVectorScale(XMVectorAdd(min, max), 0.5f));
+	XMStoreFloat3(&finalAabb.Extents, XMVectorScale(XMVectorAbs(XMVectorSubtract(max, min)), 0.5f));
+
+	for (unsigned int i = 0; i < pAiNode->mNumMeshes; ++i)
 	{
-		DFSAiNodeLoadMesh(meshes, pAiScene, pAiNode->mChildren[i]);
+		const aiMesh* pAiMesh = pAiScene->mMeshes[pAiNode->mMeshes[i]];
+
+		const uint32_t vertexIndexBase = static_cast<uint32_t>(vertices.size());	// 현재 서브셋 정점들이 담기는 시작 인덱스
+
+		// AABB 추출
+		Aabb aabb;
+		XMVECTOR min = XMVectorSet(pAiMesh->mAABB.mMin.x, pAiMesh->mAABB.mMin.y, pAiMesh->mAABB.mMin.z, 0.0f);
+		XMVECTOR max = XMVectorSet(pAiMesh->mAABB.mMax.x, pAiMesh->mAABB.mMax.y, pAiMesh->mAABB.mMax.z, 0.0f);
+		XMStoreFloat3(&aabb.Center, XMVectorScale(XMVectorAdd(min, max), 0.5f));
+		XMStoreFloat3(&aabb.Extents, XMVectorScale(XMVectorAbs(XMVectorSubtract(max, min)), 0.5f));
+		Aabb::CreateMerged(finalAabb, finalAabb, aabb);
+
+		assert(pAiMesh->mVertices != nullptr);
+		assert(pAiMesh->mNormals != nullptr);
+		assert(pAiMesh->mTangents != nullptr);
+		assert(pAiMesh->mTextureCoords != nullptr);
+		// 정점 정보 읽기
+		for (unsigned int v = 0; v < pAiMesh->mNumVertices; ++v)
+		{
+			MeshVertexFormat vertex;
+
+			vertex.m_position.x = pAiMesh->mVertices[v].x;
+			vertex.m_position.y = pAiMesh->mVertices[v].y;
+			vertex.m_position.z = pAiMesh->mVertices[v].z;
+
+			vertex.m_normal.x = pAiMesh->mNormals[v].x;
+			vertex.m_normal.y = pAiMesh->mNormals[v].y;
+			vertex.m_normal.z = pAiMesh->mNormals[v].z;
+
+			vertex.m_tangent.x = pAiMesh->mTangents[v].x;
+			vertex.m_tangent.y = pAiMesh->mTangents[v].y;
+			vertex.m_tangent.z = pAiMesh->mTangents[v].z;
+
+			constexpr size_t UV_CHANNEL_INDEX = 0;
+			vertex.m_texCoord.x = pAiMesh->mTextureCoords[UV_CHANNEL_INDEX][v].x;
+			vertex.m_texCoord.y = pAiMesh->mTextureCoords[UV_CHANNEL_INDEX][v].y;
+
+			vertices.push_back(vertex);
+		}
+
+		uint32_t indexCount = 0;	// 서브셋의 인덱스 개수 (드로우콜시 필요 정보)
+		for (unsigned int f = 0; f < pAiMesh->mNumFaces; ++f)	// Face들을 순회
+		{
+			const aiFace* pAiFace = &pAiMesh->mFaces[f];
+			assert(pAiFace->mNumIndices == 3);
+			for (unsigned int fi = 0; fi < pAiFace->mNumIndices; ++fi)	// Face들을 구성하는 정점들에 대한 인덱스를 획득
+			{
+				++indexCount;
+				indices.push_back(pAiFace->mIndices[fi] + vertexIndexBase);
+			}
+		}
+
+		// 서브셋 정보 저장
+		mesh->m_subsets.push_back(MeshSubset(indexCount, startIndexLocation));
+
+		startIndexLocation += indexCount;	// 다음 루프 메시를 위해
+	}
+
+	// 정보 세팅
+	// 1. AABB 설정
+	mesh->m_aabb = finalAabb;
+
+	// 2. 최종적으로 모든 서브셋들이 공유할 버텍스버퍼, 인덱스버퍼 생성
+	HRESULT hr;
+
+	// Create a vertex buffer
+	D3D11_BUFFER_DESC bufferDesc;
+	D3D11_SUBRESOURCE_DATA initialData;
+
+	bufferDesc.ByteWidth = static_cast<UINT>(vertices.size() * sizeof(MeshVertexFormat));
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	bufferDesc.MiscFlags = 0;
+	bufferDesc.StructureByteStride = InputLayoutHelper::GetStructureByteStride(VertexFormatType::PositionNormalTexCoord);
+
+	initialData.pSysMem = vertices.data();
+	// initialData.SysMemPitch = 0;		// unused
+	// initialData.SysMemSlicePitch = 0;	// unused
+
+	ComPtr<ID3D11Buffer> cpVB;
+	hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateBuffer(&bufferDesc, &initialData, cpVB.GetAddressOf());
+	if (FAILED(hr))
+		Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateBuffer()", hr);
+
+	// Create an index buffer
+	bufferDesc.ByteWidth = static_cast<UINT>(indices.size() * sizeof(uint32_t));
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	// bufferDesc.CPUAccessFlags = 0;
+	// bufferDesc.MiscFlags = 0;
+	bufferDesc.StructureByteStride = sizeof(uint32_t);
+
+	initialData.pSysMem = indices.data();
+	// initialData.SysMemPitch = 0;			// unused
+	// initialData.SysMemSlicePitch = 0;	// unused
+
+	ComPtr<ID3D11Buffer> cpIB;
+	hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateBuffer(&bufferDesc, &initialData, cpIB.GetAddressOf());
+	if (FAILED(hr))
+		Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateBuffer()", hr);
+
+	mesh->m_cpVB = std::move(cpVB);
+	mesh->m_cpIB = std::move(cpIB);
+
+	// 3. Vertex Format Type 설정
+	// mesh->m_vft = VertexFormatType::PositionNormalTangentTexCoord;
+
+	tmd.staticMeshes.push_back(std::move(mesh));
+}
+
+void ResourceLoader::AiLoadAnimation(const TempModelData& tmd, const aiScene* pAiScene)
+{
+	for (unsigned int i = 0; i < pAiScene->mNumAnimations; ++i)
+	{
+		const aiAnimation* pAiAnimation = pAiScene->mAnimations[i];
+
+		if (pAiAnimation->mNumChannels == 0)
+			continue;
+
+		// 어느 뼈대에 대한 애니메이션인지 검색
+		// Armature 검색을 위한 샘플 노드
+		const aiNodeAnim* pAiNodeAnimSample = pAiAnimation->mChannels[0];
+
+		size_t armatureIndex = (std::numeric_limits<size_t>::max)();
+		const std::unordered_map<std::string, BYTE>* pBoneIndexMap = nullptr;
+		for (size_t j = 0; j < tmd.armatureData.boneIndexMap.size(); ++j)
+		{
+			auto& currBoneIndexMap = tmd.armatureData.boneIndexMap[j];
+			auto iter = currBoneIndexMap.find(pAiNodeAnimSample->mNodeName.C_Str());
+			if (iter != currBoneIndexMap.end())
+			{
+				armatureIndex = j;
+				pBoneIndexMap = &currBoneIndexMap;
+				break;
+			}
+		}
+		assert(armatureIndex != (std::numeric_limits<size_t>::max)());
+		assert(pBoneIndexMap != nullptr);
+
+		// 찾아낸 뼈대
+		Armature* pArmature = tmd.armatureData.armatures[armatureIndex].get();
+
+		// 뼈대에 애니메이션 키 프레임 데이터들을 추가
+		const double totalTick = pAiAnimation->mDuration;
+		const double ticksPerSecond = pAiAnimation->mTicksPerSecond;
+		const double duration = totalTick / ticksPerSecond;
+		Animation* pAnimation = pArmature->AddNewAnimation(pAiAnimation->mName.C_Str(), static_cast<float>(duration));
+		auto& boneAnimations = pAnimation->GetBoneAnimations();
+		
+		for (unsigned int c = 0; c < pAiAnimation->mNumChannels; ++c)
+		{
+			const aiNodeAnim* pAiNodeAnim = pAiAnimation->mChannels[c];
+
+			auto iter = pBoneIndexMap->find(pAiNodeAnim->mNodeName.C_Str());
+			assert(iter != pBoneIndexMap->end());
+			const BYTE boneIndex = iter->second;
+
+			auto& boneAnimation = boneAnimations[boneIndex];
+			
+			for (unsigned int ski = 0; ski < pAiNodeAnim->mNumScalingKeys; ++ski)
+			{
+				const aiVectorKey* pAiVectorKey = &pAiNodeAnim->mScalingKeys[ski];
+
+				ScaleKeyFrame kf;
+				
+				kf.m_time = static_cast<float>((pAiVectorKey->mTime / totalTick) * duration);
+				kf.m_value.x = pAiVectorKey->mValue.x;
+				kf.m_value.y = pAiVectorKey->mValue.y;
+				kf.m_value.z = pAiVectorKey->mValue.z;
+
+				boneAnimation.GetScaleKeyFrames().push_back(kf);
+			}
+
+			for (unsigned int rki = 0; rki < pAiNodeAnim->mNumRotationKeys; ++rki)
+			{
+				const aiQuatKey* pAiQuatKey = &pAiNodeAnim->mRotationKeys[rki];
+
+				RotationKeyFrame kf;
+
+				kf.m_time = static_cast<float>((pAiQuatKey->mTime / totalTick) * duration);
+				kf.m_value.x = pAiQuatKey->mValue.x;
+				kf.m_value.y = pAiQuatKey->mValue.y;
+				kf.m_value.z = pAiQuatKey->mValue.z;
+				kf.m_value.w = pAiQuatKey->mValue.w;
+
+				boneAnimation.GetRotationKeyFrames().push_back(kf);
+			}
+
+			for (unsigned int pki = 0; pki < pAiNodeAnim->mNumPositionKeys; ++pki)
+			{
+				const aiVectorKey* pAiVectorKey = &pAiNodeAnim->mPositionKeys[pki];
+
+				PositionKeyFrame kf;
+
+				kf.m_time = static_cast<float>((pAiVectorKey->mTime / totalTick) * duration);
+				kf.m_value.x = pAiVectorKey->mValue.x;
+				kf.m_value.y = pAiVectorKey->mValue.y;
+				kf.m_value.z = pAiVectorKey->mValue.z;
+
+				boneAnimation.GetPositionKeyFrames().push_back(kf);
+			}
+		}
 	}
 }
 
-std::vector<std::shared_ptr<Mesh>> ResourceLoader::LoadMesh(PCWSTR path)
+void ResourceLoader::AiLoadSkinnedMeshNode(TempModelData& tmd, const aiScene* pAiScene, const aiNode* pAiNode)
 {
-	std::vector<std::shared_ptr<Mesh>> meshes;
+	// Skinned Mesh의 경우 AABB를 어떻게 계산할지?
+	// 1. 직접 임의 값 설정
+	// 2. 바운딩 박스 x1.25 정도로 설정
+
+	WCHAR name[32];
+	name[0] = L'\0';
+	Helper::ConvertUTF8ToUTF16(pAiNode->mName.C_Str(), name, _countof(name));
+
+	using MeshVertexFormat = VFPositionNormalTangentTexCoordSkinned;
+
+	std::shared_ptr<SkinnedMesh> mesh = std::make_shared<SkinnedMesh>(name);
+	std::vector<MeshVertexFormat> vertices;
+	std::vector<uint32_t> indices;
+	uint32_t startIndexLocation = 0;			// 초기화
+
+	// AABB 계산 로직을 간단하게 하기 위해서 일단 첫 번째 메시의 AABB를 담아두고 반복적으로 병합해간다.
+	Aabb finalAabb;
+	const aiMesh* pFirstAiMesh = pAiScene->mMeshes[pAiNode->mMeshes[0]];
+	XMVECTOR min = XMVectorSet(pFirstAiMesh->mAABB.mMin.x, pFirstAiMesh->mAABB.mMin.y, pFirstAiMesh->mAABB.mMin.z, 0.0f);
+	XMVECTOR max = XMVectorSet(pFirstAiMesh->mAABB.mMax.x, pFirstAiMesh->mAABB.mMax.y, pFirstAiMesh->mAABB.mMax.z, 0.0f);
+	XMStoreFloat3(&finalAabb.Center, XMVectorScale(XMVectorAdd(min, max), 0.5f));
+	XMStoreFloat3(&finalAabb.Extents, XMVectorScale(XMVectorAbs(XMVectorSubtract(max, min)), 0.5f));
+
+	std::vector<uint32_t> subsetVertexBaseIndex;
+	for (unsigned int i = 0; i < pAiNode->mNumMeshes; ++i)
+	{
+		const aiMesh* pAiMesh = pAiScene->mMeshes[pAiNode->mMeshes[i]];
+
+		const uint32_t vertexIndexBase = static_cast<uint32_t>(vertices.size());	// 현재 서브셋 정점들이 담기는 시작 인덱스
+		subsetVertexBaseIndex.push_back(vertexIndexBase);
+
+		// AABB 추출
+		Aabb aabb;
+		XMVECTOR min = XMVectorSet(pAiMesh->mAABB.mMin.x, pAiMesh->mAABB.mMin.y, pAiMesh->mAABB.mMin.z, 0.0f);
+		XMVECTOR max = XMVectorSet(pAiMesh->mAABB.mMax.x, pAiMesh->mAABB.mMax.y, pAiMesh->mAABB.mMax.z, 0.0f);
+		XMStoreFloat3(&aabb.Center, XMVectorScale(XMVectorAdd(min, max), 0.5f));
+		XMStoreFloat3(&aabb.Extents, XMVectorScale(XMVectorAbs(XMVectorSubtract(max, min)), 0.5f));
+		Aabb::CreateMerged(finalAabb, finalAabb, aabb);
+
+		assert(pAiMesh->mVertices != nullptr);
+		assert(pAiMesh->mNormals != nullptr);
+		assert(pAiMesh->mTangents != nullptr);
+		assert(pAiMesh->mTextureCoords != nullptr);
+		// 정점 정보 읽기
+		for (unsigned int v = 0; v < pAiMesh->mNumVertices; ++v)
+		{
+			MeshVertexFormat vertex;
+
+			vertex.m_position.x = pAiMesh->mVertices[v].x;
+			vertex.m_position.y = pAiMesh->mVertices[v].y;
+			vertex.m_position.z = pAiMesh->mVertices[v].z;
+
+			vertex.m_normal.x = pAiMesh->mNormals[v].x;
+			vertex.m_normal.y = pAiMesh->mNormals[v].y;
+			vertex.m_normal.z = pAiMesh->mNormals[v].z;
+
+			vertex.m_tangent.x = pAiMesh->mTangents[v].x;
+			vertex.m_tangent.y = pAiMesh->mTangents[v].y;
+			vertex.m_tangent.z = pAiMesh->mTangents[v].z;
+
+			constexpr size_t UV_CHANNEL_INDEX = 0;
+			vertex.m_texCoord.x = pAiMesh->mTextureCoords[UV_CHANNEL_INDEX][v].x;
+			vertex.m_texCoord.y = pAiMesh->mTextureCoords[UV_CHANNEL_INDEX][v].y;
+
+			vertices.push_back(vertex);
+		}
+
+		uint32_t indexCount = 0;	// 서브셋의 인덱스 개수 (드로우콜시 필요 정보)
+		for (unsigned int f = 0; f < pAiMesh->mNumFaces; ++f)	// Face들을 순회
+		{
+			const aiFace* pAiFace = &pAiMesh->mFaces[f];
+			assert(pAiFace->mNumIndices == 3);
+			for (unsigned int fi = 0; fi < pAiFace->mNumIndices; ++fi)	// Face들을 구성하는 정점들에 대한 인덱스를 획득
+			{
+				++indexCount;
+				indices.push_back(pAiFace->mIndices[fi] + vertexIndexBase);
+			}
+		}
+
+		// 서브셋 정보 저장
+		mesh->m_subsets.push_back(MeshSubset(indexCount, startIndexLocation));
+
+		startIndexLocation += indexCount;	// 다음 루프 메시를 위해
+	}
+
+
+
+	// ###################################################################
+	// 루트 뼈 찾기 및 본 인덱스 맵 생성
+	std::unordered_map<std::string, const aiBone*> allBones;
+	for (unsigned int i = 0; i < pAiNode->mNumMeshes; ++i)
+	{
+		const aiMesh* pAiMesh = pAiScene->mMeshes[pAiNode->mMeshes[i]];
+
+		for (unsigned int j = 0; j < pAiMesh->mNumBones; ++j)
+		{
+			const aiBone* pAiBone = pAiMesh->mBones[j];
+
+			std::string boneName(pAiBone->mName.C_Str());
+			allBones.insert(std::make_pair(std::move(boneName), pAiBone));
+		}
+	}
+	assert(allBones.size() < (std::numeric_limits<BYTE>::max)());
+
+	const aiNode* pAiRootBoneNode = nullptr;
+	auto end = allBones.cend();
+	for (auto iter = allBones.cbegin(); iter != end; ++iter)
+	{
+		const aiNode* pCurrentAiBoneNode = iter->second->mNode;
+		const aiNode* pParentNode = pCurrentAiBoneNode->mParent;
+		
+		if (pParentNode != nullptr)
+		{
+			auto f = allBones.find(pParentNode->mName.C_Str());	// 부모 노드를 본 맵에서 검색(만약 검색에 실패하면 루트 노드로 볼 수 있음)
+			if (f == allBones.cend())
+			{
+				pAiRootBoneNode = pCurrentAiBoneNode;
+				break;
+			}
+		}
+	}
+	assert(pAiRootBoneNode != nullptr);
+
+	bool armatureAlreadyExist;
+	const char* armatureNodeName = pAiRootBoneNode->mParent->mName.C_Str();
+	if (tmd.armatureData.nameSet.find(armatureNodeName) == tmd.armatureData.nameSet.end())
+		armatureAlreadyExist = false;
+	else
+		armatureAlreadyExist = true;
+
+	std::unordered_map<std::string, BYTE> boneIndexMap;
+	std::vector<BYTE> parentIndexArray(allBones.size());
+	std::vector<XMFLOAT4X4> MdInvArray(allBones.size());
+	// std::vector<XMFLOAT4X4> MpArray(allBones.size());	// Assimp로 로드한 키 프레임은 뼈의 로컬 변환에 to parent 성분이 포함된 값을 갖고 있어서 Mp 행렬이 필요가 없음.
+
+	size_t currBoneIndex = 0;
+	std::queue<const aiNode*> bq;
+	bq.push(pAiRootBoneNode);
+	while (!bq.empty())
+	{
+		const aiNode* pBoneNode = bq.front();
+		bq.pop();
+
+		const aiNode* pParentNode = pBoneNode->mParent;
+
+		// Get parent bone node index
+		auto bimIter = boneIndexMap.find(pParentNode->mName.C_Str());		// 부모 뼈의 인덱스를 탐색
+		if (bimIter == boneIndexMap.end())	// 이 케이스에 해당하는 루트 뼈인경우는 부모가 인덱스 맵에 없다.
+			parentIndexArray[currBoneIndex] = static_cast<BYTE>(currBoneIndex);	// 자기 자신의 인덱스를 그대로 담아둔다. 이렇게 하면 boneHierarchy[index] == index인 경우 부모가 없는 뼈임을 판단할 수 있다.
+		else
+			parentIndexArray[currBoneIndex] = bimIter->second;
+
+		// To bone space 행렬
+		XMStoreFloat4x4(&MdInvArray[currBoneIndex], &allBones[pBoneNode->mName.C_Str()]->mOffsetMatrix);
+
+		// Get Mp(To parent transform matrix)
+		// XMStoreFloat4x4(&MpArray[currBoneIndex], &pBoneNode->mTransformation);
+
+		boneIndexMap.insert(std::make_pair(std::string(pBoneNode->mName.C_Str()), static_cast<BYTE>(currBoneIndex)));
+
+		for (unsigned int i = 0; i < pBoneNode->mNumChildren; ++i)
+			bq.push(pBoneNode->mChildren[i]);
+
+		assert(currBoneIndex <= (std::numeric_limits<BYTE>::max)());
+		++currBoneIndex;
+	}
+	// ###################################################################
+	
+	// 생성된 본 인덱스 맵을 바탕으로 스키닝 데이터 세팅
+	for (unsigned int i = 0; i < pAiNode->mNumMeshes; ++i)
+	{
+		const aiMesh* pAiMesh = pAiScene->mMeshes[pAiNode->mMeshes[i]];	// 서브셋
+
+		for (unsigned int j = 0; j < pAiMesh->mNumBones; ++j)
+		{
+			const aiBone* pAiBone = pAiMesh->mBones[j];
+
+			const std::string boneName(pAiBone->mName.C_Str());
+
+			auto iter = boneIndexMap.find(boneName);
+			assert(iter != boneIndexMap.end());
+			const BYTE boneIndex = iter->second;
+
+			for (unsigned int k = 0; k < pAiBone->mNumWeights; ++k)
+			{
+				const aiVertexWeight* pAiVertexWeight = &pAiBone->mWeights[k];
+				
+				const uint32_t vertexIndex = pAiVertexWeight->mVertexId + subsetVertexBaseIndex[i];	// i번째 서브셋의 정점들의 베이스 인덱스 값을 더해줘야 함.
+				const float weight = pAiVertexWeight->mWeight;
+
+				assert(vertexIndex < vertices.size());
+				bool ret = vertices[vertexIndex].AddSkinningData(boneIndex, weight);
+				assert(ret == true);
+			}
+		}
+	}
+
+	// 다른 메시에 의해서 이미 뼈대 객체가 만들어진 경우에는 새로 만들지 않음 (서로 다른 메시가 동일한 뼈대를 참조하고 있는 경우에 해당)
+	if (!armatureAlreadyExist)
+	{
+		// 뼈대 객체 할당 및 뼈대 정보 로드 (뼈대 애니메이션 정보 로드는 바깥 함수에서 수행하므로 벡터에 담아서 내보낸다.)
+		assert(boneIndexMap.size() <= (std::numeric_limits<BYTE>::max)() - 1);
+		std::shared_ptr<Armature> armature = std::make_shared<Armature>(static_cast<BYTE>(boneIndexMap.size()));
+		armature->SetBoneHierarchy(parentIndexArray.data());
+		armature->SetMdInvArray(MdInvArray.data());
+		// armature->SetMpArray(MpArray.data());
+
+		tmd.armatureData.nameSet.insert(armatureNodeName);	// Armature 중복 생성 방지를 위해 기록
+		// +
+		tmd.armatureData.armatures.push_back(std::move(armature));	// 애니메이션 키 프레임 정보는 ResourceLoader::LoadModel(PCWSTR path) 함수에서 마저 수행.
+		// +
+		tmd.armatureData.boneIndexMap.push_back(std::move(boneIndexMap));	// 애니메이션 로드 시 이 정보를 참조해야 한다.
+	}
+
+	// 정보 세팅
+	// 1. AABB 설정
+	// mesh->m_aabb = finalAabb;
+
+	// 2. 최종적으로 모든 서브셋들이 공유할 버텍스버퍼, 인덱스버퍼 생성
+	HRESULT hr;
+
+	// Create a vertex buffer
+	D3D11_BUFFER_DESC bufferDesc;
+	D3D11_SUBRESOURCE_DATA initialData;
+
+	bufferDesc.ByteWidth = static_cast<UINT>(vertices.size() * sizeof(MeshVertexFormat));
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	bufferDesc.MiscFlags = 0;
+	bufferDesc.StructureByteStride = InputLayoutHelper::GetStructureByteStride(VertexFormatType::PositionNormalTangentTexCoordSkinned);
+
+	initialData.pSysMem = vertices.data();
+	// initialData.SysMemPitch = 0;		// unused
+	// initialData.SysMemSlicePitch = 0;	// unused
+
+	ComPtr<ID3D11Buffer> cpVB;
+	hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateBuffer(&bufferDesc, &initialData, cpVB.GetAddressOf());
+	if (FAILED(hr))
+		Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateBuffer()", hr);
+
+	// Create an index buffer
+	bufferDesc.ByteWidth = static_cast<UINT>(indices.size() * sizeof(uint32_t));
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	// bufferDesc.CPUAccessFlags = 0;
+	// bufferDesc.MiscFlags = 0;
+	bufferDesc.StructureByteStride = sizeof(uint32_t);
+
+	initialData.pSysMem = indices.data();
+	// initialData.SysMemPitch = 0;			// unused
+	// initialData.SysMemSlicePitch = 0;	// unused
+
+	ComPtr<ID3D11Buffer> cpIB;
+	hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateBuffer(&bufferDesc, &initialData, cpIB.GetAddressOf());
+	if (FAILED(hr))
+		Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateBuffer()", hr);
+
+	mesh->m_cpVB = std::move(cpVB);
+	mesh->m_cpIB = std::move(cpIB);
+
+	// 3. Vertex Format Type 설정
+	// mesh->m_vft = VertexFormatType::PositionNormalTangentTexCoordSkinned;
+
+
+
+	// 메시 벡터로 이동
+	tmd.skinnedMeshes.push_back(std::move(mesh));
+}
+
+ModelData ResourceLoader::LoadModel(PCWSTR path)
+{
+	TempModelData tmd;
+	ModelData md;
 
 	Assimp::Importer aiImporter;
 	CHAR utf8Path[MAX_PATH];
@@ -201,75 +725,31 @@ std::vector<std::shared_ptr<Mesh>> ResourceLoader::LoadMesh(PCWSTR path)
 	const aiScene* pAiScene = aiImporter.ReadFile(utf8Path, 
 		aiProcessPreset_TargetRealtime_Fast |
 		aiProcess_ConvertToLeftHanded |
+		aiProcess_PopulateArmatureData |
+		aiProcess_LimitBoneWeights |
 		aiProcess_GenBoundingBoxes
 	);
 
 	if (!pAiScene)
 	{
 		Debug::ForceCrashWithMessageBox("Error", "Assimp::Importer::ReadFile error: %s", aiImporter.GetErrorString());
-		return meshes;
+		return md;
 	}
 
-	if (!pAiScene->HasMeshes())
-		return meshes;
-
-	// 한 aiNode에서 참조하고 있는 aiMesh들을 모두 순회하며 Vertex를 하나의 std::vector에 몰아넣되, 각 aiMesh마다 자신의 정점들을 넣어둔 시작 인덱스와
-	// 인덱스 개수를 기록해두고 이것들을 ze::Subset으로 만들어 넣어야 한다.
-	// 그리고 중요한 점은 AABB도 한 aiNode에서 참조하는 모든 aiMesh들에 대해서 병합해야 한다. 이건 DirectX BoundingBox에 함수로 있으니 쉬움.
 	aiNode* pAiRootNode = pAiScene->mRootNode;
-	DFSAiNodeLoadMesh(meshes, pAiScene, pAiRootNode);
+	DFSAiNodeLoadModel(tmd, pAiScene, pAiRootNode);
 
-	return meshes;
-}
+	AiLoadAnimation(tmd, pAiScene);
 
-std::vector<std::shared_ptr<Mesh>> ResourceLoader::LoadWavefrontOBJ(PCWSTR path)
-{
-	FILE* pMeshFile = nullptr;
-	std::vector<std::shared_ptr<Mesh>> meshes;
+	assert(
+		tmd.armatureData.nameSet.size() == tmd.armatureData.boneIndexMap.size() &&
+		tmd.armatureData.boneIndexMap.size() == tmd.armatureData.armatures.size()
+	);
+	md.staticMeshes = std::move(tmd.staticMeshes);
+	md.armatures = std::move(tmd.armatureData.armatures);
+	md.skinnedMeshes = std::move(tmd.skinnedMeshes);
 
-	do
-	{
-		VertexPack vp;
-
-		// UTF-8 -> UTF-16 자동 인코딩 변환하는 것으로 확인
-		// HexEditor로 열었을 때와 이 함수로 읽어들였을 때 값이 다름. (변환이 됨)
-		errno_t e;
-		e = _wfopen_s(&pMeshFile, path, L"rt, ccs=UTF-8");
-		if (e != 0)
-			Debug::ForceCrashWithMessageBox(L"Error", L"Failed to open mesh file.\n%s", path);
-
-		// Wavefront OBJ parsing
-		WCHAR line[MAX_LINE_LENGTH];
-		PWSTR nextToken = nullptr;
-		PCWSTR token;
-		while (fgetws(line, _countof(line), pMeshFile))
-		{
-			token = wcstok_s(line, OBJ_MTL_DELIM, &nextToken);
-			const WCHAR firstChar = token ? token[0] : L'\0';
-
-			if (!token || firstChar == L'#')
-				continue;
-
-			if (firstChar == L'o' && !wcscmp(token, L"o"))
-			{
-				token = wcstok_s(nullptr, OBJ_MTL_DELIM, &nextToken);		// token = object name
-				if (token != nullptr)
-				{
-					std::shared_ptr<Mesh> spMesh = std::make_shared<Mesh>(token);
-					Mesh* pMesh = spMesh.get();
-					meshes.push_back(std::move(spMesh));
-					long ofpos;
-					if (ResourceLoader::ParseWavefrontOBJObject(pMeshFile, &ofpos, vp, pMesh))
-						fseek(pMeshFile, ofpos, SEEK_SET);
-				}
-			}
-		}
-	} while (false);
-
-	if (pMeshFile)
-		fclose(pMeshFile);
-
-	return meshes;
+	return md;
 }
 
 Texture2D ResourceLoader::LoadTexture2D(PCWSTR path, bool generateMipMaps)
@@ -330,7 +810,7 @@ Texture2D ResourceLoader::LoadTexture2D(PCWSTR path, bool generateMipMaps)
 	descTexture.MiscFlags = metadata.IsCubemap() ? D3D11_RESOURCE_MISC_TEXTURECUBE : 0;
 
 	// 텍스처 생성 및 초기화
-	ComPtr<ID3D11Texture2D> cpTex2d;
+	ComPtr<ID3D11Texture2D> cpTex2D;
 	std::vector<D3D11_SUBRESOURCE_DATA> initialData(metadata.arraySize * metadata.mipLevels);
 	for (size_t i = 0; i < metadata.arraySize; ++i)
 	{
@@ -345,7 +825,7 @@ Texture2D ResourceLoader::LoadTexture2D(PCWSTR path, bool generateMipMaps)
 		}
 	}
 	hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateTexture2D(
-		&descTexture, initialData.data(), cpTex2d.GetAddressOf()
+		&descTexture, initialData.data(), cpTex2D.GetAddressOf()
 	);
 	if (FAILED(hr))
 		Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateTexture2D()", hr);
@@ -353,12 +833,12 @@ Texture2D ResourceLoader::LoadTexture2D(PCWSTR path, bool generateMipMaps)
 	// 셰이더 리소스 뷰 생성
 	ComPtr<ID3D11ShaderResourceView> cpSRV;
 	hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateShaderResourceView(
-		cpTex2d.Get(), nullptr, cpSRV.GetAddressOf()
+		cpTex2D.Get(), nullptr, cpSRV.GetAddressOf()
 	);
 	if (FAILED(hr))
 		Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateShaderResourceView()", hr);
 
-	return Texture2D(cpTex2d, cpSRV);
+	return Texture2D(cpTex2D, cpSRV);
 }
 
 std::shared_ptr<Material> ResourceLoader::CreateMaterial()
@@ -513,7 +993,8 @@ HRESULT ResourceLoader::GenerateMipMapsForBCFormat(const ScratchImage& src, Scra
 	return hr;
 }
 
-bool ResourceLoader::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, VertexPack& vp, Mesh* pMesh)
+/*
+bool ResourceLoader::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, VertexPack& vp, StaticMesh* pMesh)
 {
 	HRESULT hr;
 	// object 정보를 읽는다.
@@ -541,7 +1022,7 @@ bool ResourceLoader::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, Verte
 		}
 		else if (firstChar == L'o' && !wcscmp(token, L"o"))
 		{
-			ret_o = true;		// 또 다른 Mesh 스타트 심볼 등장
+			ret_o = true;		// 또 다른 StaticMesh 스타트 심볼 등장
 			*pofpos = fpos;
 			break;
 		}
@@ -714,7 +1195,7 @@ bool ResourceLoader::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, Verte
 }
 
 bool ResourceLoader::ParseWavefrontOBJFaces(FILE* pOBJFile, long* pnffpos, VertexFormatType vft, const VertexPack& vp,
-	IndexMapPack& imp, Mesh* pMesh, RawVector& tempVB, std::vector<uint32_t>& tempIB)
+	IndexMapPack& imp, StaticMesh* pMesh, RawVector& tempVB, std::vector<uint32_t>& tempIB)
 {
 	// f만 읽다가 아닌 경우 리턴
 
@@ -874,8 +1355,6 @@ bool ResourceLoader::ParseWavefrontOBJFaces(FILE* pOBJFile, long* pnffpos, Verte
 	return ret_nf;
 }
 
-
-/*
 Texture2D ResourceLoader::LoadCubeMapTexture(PCWSTR path)
 {
 	HRESULT hr;
@@ -979,7 +1458,7 @@ Texture2D ResourceLoader::LoadCubeMapTexture(PCWSTR path)
 
 /*
 bool Resource::ReadFaces_deprecated(FILE* pOBJFile, long* pnffpos, const VertexFormatType vft, const VertexPack& vp,
-	IndexMapPack& imp, Mesh& mesh, size_t meshIndex, RawVector& tempVB, std::vector<uint32_t>& tempIB, std::vector<DeferredMtlLinkingData>& dml,
+	IndexMapPack& imp, StaticMesh& mesh, size_t meshIndex, RawVector& tempVB, std::vector<uint32_t>& tempIB, std::vector<DeferredMtlLinkingData>& dml,
 	SubsetAttribute& subsetAttribute)
 {
 	wchar_t line[MAX_LINE_LENGTH];
@@ -1141,7 +1620,7 @@ bool Resource::ReadFaces_deprecated(FILE* pOBJFile, long* pnffpos, const VertexF
 	return ret_nf;
 }
 
-bool Resource::ReadObject_deprecated(FILE* pOBJFile, long* pofpos, VertexPack& vp, Mesh& mesh, const size_t meshIndex,
+bool Resource::ReadObject_deprecated(FILE* pOBJFile, long* pofpos, VertexPack& vp, StaticMesh& mesh, const size_t meshIndex,
 	std::vector<DeferredMtlLinkingData>& dml)
 {
 	wchar_t line[MAX_LINE_LENGTH];
@@ -1307,9 +1786,60 @@ bool Resource::ReadObject_deprecated(FILE* pOBJFile, long* pofpos, VertexPack& v
 	return ret_o;
 }
 
-std::vector<std::shared_ptr<Mesh>> Resource::LoadWavefrontOBJ_deprecated(PCWSTR path, bool importTexture)
+
+std::vector<std::shared_ptr<StaticMesh>> ResourceLoader::LoadWavefrontOBJ(PCWSTR path)
 {
-	std::vector<std::shared_ptr<Mesh>> meshes;
+	FILE* pMeshFile = nullptr;
+	std::vector<std::shared_ptr<StaticMesh>> meshes;
+
+	do
+	{
+		VertexPack vp;
+
+		// UTF-8 -> UTF-16 자동 인코딩 변환하는 것으로 확인
+		// HexEditor로 열었을 때와 이 함수로 읽어들였을 때 값이 다름. (변환이 됨)
+		errno_t e;
+		e = _wfopen_s(&pMeshFile, path, L"rt, ccs=UTF-8");
+		if (e != 0)
+			Debug::ForceCrashWithMessageBox(L"Error", L"Failed to open mesh file.\n%s", path);
+
+		// Wavefront OBJ parsing
+		WCHAR line[MAX_LINE_LENGTH];
+		PWSTR nextToken = nullptr;
+		PCWSTR token;
+		while (fgetws(line, _countof(line), pMeshFile))
+		{
+			token = wcstok_s(line, OBJ_MTL_DELIM, &nextToken);
+			const WCHAR firstChar = token ? token[0] : L'\0';
+
+			if (!token || firstChar == L'#')
+				continue;
+
+			if (firstChar == L'o' && !wcscmp(token, L"o"))
+			{
+				token = wcstok_s(nullptr, OBJ_MTL_DELIM, &nextToken);		// token = object name
+				if (token != nullptr)
+				{
+					std::shared_ptr<StaticMesh> spMesh = std::make_shared<StaticMesh>(token);
+					StaticMesh* pMesh = spMesh.get();
+					meshes.push_back(std::move(spMesh));
+					long ofpos;
+					if (ResourceLoader::ParseWavefrontOBJObject(pMeshFile, &ofpos, vp, pMesh))
+						fseek(pMeshFile, ofpos, SEEK_SET);
+				}
+			}
+		}
+	} while (false);
+
+	if (pMeshFile)
+		fclose(pMeshFile);
+
+	return meshes;
+}
+
+std::vector<std::shared_ptr<StaticMesh>> Resource::LoadWavefrontOBJ_deprecated(PCWSTR path, bool importTexture)
+{
+	std::vector<std::shared_ptr<StaticMesh>> meshes;
 	VertexPack vp;
 
 	errno_t e;
@@ -1365,9 +1895,9 @@ std::vector<std::shared_ptr<Mesh>> Resource::LoadWavefrontOBJ_deprecated(PCWSTR 
 			token = wcstok_s(nullptr, OBJ_MTL_DELIM, &nextToken);		// token = object name
 			if (token != nullptr)
 			{
-				meshes.emplace_back(std::make_shared<Mesh>(token));
+				meshes.emplace_back(std::make_shared<StaticMesh>(token));
 				const size_t meshIndex = meshes.size() - 1;
-				Mesh& mesh = *meshes[meshIndex].get();
+				StaticMesh& mesh = *meshes[meshIndex].get();
 				long ofpos;
 				if (Resource::ReadObject_deprecated(file, &ofpos, vp, mesh, meshIndex, dml))
 					fseek(file, ofpos, SEEK_SET);
@@ -1544,9 +2074,9 @@ std::vector<std::shared_ptr<Mesh>> Resource::LoadWavefrontOBJ_deprecated(PCWSTR 
 	return meshes;
 }
 
-std::vector<std::shared_ptr<Mesh>> Resource::LoadWavefrontOBJ(const wchar_t* path, bool importTexture)
+std::vector<std::shared_ptr<StaticMesh>> Resource::LoadWavefrontOBJ(const wchar_t* path, bool importTexture)
 {
-	std::vector<std::shared_ptr<Mesh>> meshes;
+	std::vector<std::shared_ptr<StaticMesh>> meshes;
 	VertexPack vp;
 
 	errno_t e;
@@ -1602,9 +2132,9 @@ std::vector<std::shared_ptr<Mesh>> Resource::LoadWavefrontOBJ(const wchar_t* pat
 			token = wcstok_s(nullptr, OBJ_MTL_DELIM, &nextToken);		// token = object name
 			if (token != nullptr)
 			{
-				meshes.emplace_back(std::make_shared<Mesh>(token));
+				meshes.emplace_back(std::make_shared<StaticMesh>(token));
 				const size_t meshIndex = meshes.size() - 1;
-				Mesh& mesh = *meshes[meshIndex].get();
+				StaticMesh& mesh = *meshes[meshIndex].get();
 				long ofpos;
 				if (Resource::ParseWavefrontOBJObject(file, &ofpos, vp, mesh, meshIndex, dml))
 					fseek(file, ofpos, SEEK_SET);

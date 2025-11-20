@@ -18,6 +18,7 @@
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\PointLightManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\SpotLightManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\MeshRendererManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\SkinnedMeshRendererManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\TerrainManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\MonoBehaviourManager.h>
 #include <ZergEngine\CoreSystem\Manager\SceneManager.h>
@@ -27,6 +28,9 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Image.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Button.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\InputField.h>
+
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\SkinnedMeshRenderer.h>
+#include <ZergEngine\CoreSystem\Resource\Animation.h>
 
 using namespace ze;
 
@@ -89,6 +93,7 @@ void Runtime::Init(HINSTANCE hInstance, int nCmdShow, uint32_t width, uint32_t h
     PointLightManager::CreateInstance();
     SpotLightManager::CreateInstance();
     MeshRendererManager::CreateInstance();
+    SkinnedMeshRendererManager::CreateInstance();
     TerrainManager::CreateInstance();
     MonoBehaviourManager::CreateInstance();
     SceneManager::CreateInstance();
@@ -112,6 +117,7 @@ void Runtime::Init(HINSTANCE hInstance, int nCmdShow, uint32_t width, uint32_t h
     PointLightManager::GetInstance()->Init();
     SpotLightManager::GetInstance()->Init();
     MeshRendererManager::GetInstance()->Init();
+    SkinnedMeshRendererManager::GetInstance()->Init();
     TerrainManager::GetInstance()->Init();
     MonoBehaviourManager::GetInstance()->Init();
     SceneManager::GetInstance()->Init(startScene);
@@ -145,6 +151,7 @@ void Runtime::InitEditor(HINSTANCE hInstance, HWND hMainFrameWnd, HWND hViewWnd,
     PointLightManager::CreateInstance();
     SpotLightManager::CreateInstance();
     MeshRendererManager::CreateInstance();
+    SkinnedMeshRendererManager::CreateInstance();
     TerrainManager::CreateInstance();
     MonoBehaviourManager::CreateInstance();
     SceneManager::CreateInstance();
@@ -166,6 +173,7 @@ void Runtime::InitEditor(HINSTANCE hInstance, HWND hMainFrameWnd, HWND hViewWnd,
     PointLightManager::GetInstance()->Init();
     SpotLightManager::GetInstance()->Init();
     MeshRendererManager::GetInstance()->Init();
+    SkinnedMeshRendererManager::GetInstance()->Init();
     TerrainManager::GetInstance()->Init();
     MonoBehaviourManager::GetInstance()->Init();
     SceneManager::GetInstance()->Init(nullptr);
@@ -177,6 +185,7 @@ void Runtime::UnInit()
     SceneManager::GetInstance()->UnInit();
     MonoBehaviourManager::GetInstance()->UnInit();
     TerrainManager::GetInstance()->UnInit();
+    SkinnedMeshRendererManager::GetInstance()->UnInit();
     MeshRendererManager::GetInstance()->UnInit();
     SpotLightManager::GetInstance()->UnInit();
     PointLightManager::GetInstance()->UnInit();
@@ -197,6 +206,7 @@ void Runtime::UnInit()
     SceneManager::DestroyInstance();
     MonoBehaviourManager::DestroyInstance();
     TerrainManager::DestroyInstance();
+    SkinnedMeshRendererManager::DestroyInstance();
     MeshRendererManager::DestroyInstance();
     SpotLightManager::DestroyInstance();
     PointLightManager::DestroyInstance();
@@ -282,6 +292,25 @@ void Runtime::OnIdle()
     MonoBehaviourManager::GetInstance()->LateUpdate();
 
     RemoveDestroyedComponentsAndObjects();
+
+    // Update animation time cursor
+    for (IComponent* pComponent : SkinnedMeshRendererManager::GetInstance()->m_directAccessGroup)
+    {
+        SkinnedMeshRenderer* pSkinnedMeshRenderer = static_cast<SkinnedMeshRenderer*>(pComponent);
+        const Animation* pCurrAnim = pSkinnedMeshRenderer->GetCurrentAnimation();
+        if (pCurrAnim)
+        {
+            float newAnimTimeCursor =
+                pSkinnedMeshRenderer->GetAnimationTimeCursor() + Time::GetInstance()->GetDeltaTime() * pSkinnedMeshRenderer->GetAnimationSpeed();
+
+            if (pSkinnedMeshRenderer->IsLoopAnimation())
+                newAnimTimeCursor = Math::WrapFloat(newAnimTimeCursor, pCurrAnim->GetDuration());
+            else
+                newAnimTimeCursor = Math::Clamp(newAnimTimeCursor, 0.0f, pCurrAnim->GetDuration());
+
+            pSkinnedMeshRenderer->SetAnimationTimeCursor(newAnimTimeCursor);
+        }
+    }
 
     // Render
     if (m_render)
@@ -490,6 +519,7 @@ void Runtime::RemoveDestroyedComponentsAndObjects()
     MonoBehaviourManager::GetInstance()->RemoveDestroyedComponents();   // 가장 먼저 수행하여 오브젝트 및 컴포넌트에 대해 최대한의 접근도 보장
     TerrainManager::GetInstance()->RemoveDestroyedComponents();
     MeshRendererManager::GetInstance()->RemoveDestroyedComponents();
+    SkinnedMeshRendererManager::GetInstance()->RemoveDestroyedComponents();
     SpotLightManager::GetInstance()->RemoveDestroyedComponents();
     PointLightManager::GetInstance()->RemoveDestroyedComponents();
     DirectionalLightManager::GetInstance()->RemoveDestroyedComponents();

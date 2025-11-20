@@ -34,7 +34,7 @@ namespace ze
 		virtual ~ConstantBuffer() = default;
 
 		void Init(ID3D11Device* pDevice) { InitImpl(pDevice, sizeof(T)); }
-		void Update(ID3D11DeviceContext* pDeviceContext, const T* pData) { ConstantBuffer::UpdateImpl(pDeviceContext, pData, sizeof(T)); }
+		void Update(ID3D11DeviceContext* pDeviceContext, const T* pData) { UpdateImpl(pDeviceContext, pData, sizeof(T)); }
 	};
 
 	// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
@@ -192,6 +192,12 @@ namespace ze
 		XMFLOAT4X4A wInvTr;		// Inversed world transform matrix (비균등 스케일링 시 올바른 노말 벡터 변환을 위해 필요)
 	};
 
+	hlslstruct CbShadowMapInfo
+	{
+		FLOAT shadowMapSize;
+		FLOAT shadowMapTexelSize;
+	};
+
 	hlslstruct CbPerTerrain
 	{
 		FLOAT maxHeight;
@@ -237,5 +243,10 @@ namespace ze
 		XMFLOAT2 size;
 		XMFLOAT2 position;
 		uint32_t shadeIndex;	// [0] not pressed, [1] pressed
+	};
+
+	hlslstruct CbPerArmature
+	{
+		XMFLOAT4X4A finalTransform[96];
 	};
 }

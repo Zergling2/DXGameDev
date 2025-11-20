@@ -7,6 +7,63 @@
 
 using namespace ze;
 
+int Math::WrapInt(int val, int min, int max)
+{
+	const int range = max - min;
+	if (range == 0)
+		return val;
+
+	int newVal = (val - min) % range;
+	if (newVal < 0)
+		newVal += range;
+
+	return min + newVal;
+}
+
+float Math::WrapFloat(float val, float max)
+{
+	float newVal = std::fmodf(val, max);
+	if (newVal < 0.0f)
+		newVal += max;
+
+	return newVal;
+}
+
+float Math::WrapFloat(float val, float min, float max)
+{
+	const float range = max - min;
+	if (range == 0.0f)
+		return val;
+
+	float newVal = std::fmodf(val - min, range);
+	if (newVal < 0.0f)
+		newVal += range;
+
+	return min + newVal;
+}
+
+double Math::WrapDouble(double val, double max)
+{
+	double newVal = std::fmod(val, max);
+	if (newVal < 0.0f)
+		newVal += max;
+
+	return newVal;
+}
+
+double Math::WrapDouble(double val, double min, double max)
+{
+	const double range = max - min;
+	if (range == 0.0)
+		return val;
+
+	double newVal = std::fmod(val - min, range);
+	if (newVal < 0.0)
+		newVal += range;
+
+	return min + newVal;
+}
+
 XMVECTOR XM_CALLCONV Math::QuaternionToEulerNormal(FXMVECTOR quaternion) noexcept
 {
 	float qx = XMVectorGetX(quaternion);

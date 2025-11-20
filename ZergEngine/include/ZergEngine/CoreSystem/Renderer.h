@@ -7,6 +7,7 @@
 #include <ZergEngine\CoreSystem\Effect\BasicEffectPT.h>
 #include <ZergEngine\CoreSystem\Effect\BasicEffectPNT.h>
 #include <ZergEngine\CoreSystem\Effect\BasicEffectPNTT.h>
+#include <ZergEngine\CoreSystem\Effect\BasicEffectPNTTSkinned.h>
 #include <ZergEngine\CoreSystem\Effect\TerrainEffect.h>
 #include <ZergEngine\CoreSystem\Effect\SkyboxEffect.h>
 #include <ZergEngine\CoreSystem\Effect\DrawQuadWithMSTextureEffect.h>
@@ -17,6 +18,7 @@
 namespace ze
 {
 	class MeshRenderer;
+	class SkinnedMeshRenderer;
 	class Terrain;
 	class IUIObject;
 	class Panel;
@@ -48,6 +50,7 @@ namespace ze
 		void RenderVFPositionTexCoordMesh(const MeshRenderer* pMeshRenderer);
 		void RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshRenderer);
 		void RenderVFPositionNormalTangentTexCoordMesh(const MeshRenderer* pMeshRenderer);
+		void RenderVFPositionNormalTangentTexCoordSkinnedMesh(const SkinnedMeshRenderer* pSkinnedMeshRenderer);
 		void RenderTerrain(const Terrain* pTerrain);
 		void RenderSkybox(ID3D11ShaderResourceView* pSkyboxCubeMapSRV);
 		void RenderPanel(const Panel* pPanel);
@@ -72,12 +75,18 @@ namespace ze
 
 		EffectDeviceContext m_effectImmediateContext;
 
+		// 123
+		XMFLOAT4X4A* m_pAnimFinalTransformBufferSpace;
+		XMFLOAT4X4A* m_pAnimFinalTransformIdentity;
+		XMFLOAT4X4A* m_pAnimFinalTransformBuffer;
+
 		BasicEffectP m_basicEffectP;
 		BasicEffectPC m_basicEffectPC;
 		BasicEffectPN m_basicEffectPN;
 		BasicEffectPT m_basicEffectPT;
 		BasicEffectPNT m_basicEffectPNT;
 		BasicEffectPNTT m_basicEffectPNTT;
+		BasicEffectPNTTSkinned m_basicEffectPNTTSkinned;
 		TerrainEffect m_terrainEffect;
 		SkyboxEffect m_skyboxEffect;
 		DrawQuadWithMSTextureEffect m_drawQuadWithMSTextureEffect;

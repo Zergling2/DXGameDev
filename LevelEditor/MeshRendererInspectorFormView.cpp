@@ -105,7 +105,7 @@ void CMeshRendererInspectorFormView::OnCbnSelchangeComboSelectMesh()
 	if (!m_comboSelectMaterial.IsWindowEnabled())
 		m_comboSelectMaterial.EnableWindow(TRUE);
 
-	ATVItemMesh* pATVItemMesh = reinterpret_cast<ATVItemMesh*>(m_comboSelectMesh.GetItemData(sel));
+	ATVItemStaticMesh* pATVItemMesh = reinterpret_cast<ATVItemStaticMesh*>(m_comboSelectMesh.GetItemData(sel));
 
 	ze::MeshRenderer* pMeshRenderer = this->GetCLVItemToModify()->GetMeshRenderer();
 	pMeshRenderer->SetMesh(pATVItemMesh->m_spMesh);

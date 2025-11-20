@@ -21,9 +21,9 @@ void IConstantBuffer::InitImpl(ID3D11Device* pDevice, size_t bufferSize)
 	descConstantBuffer.StructureByteStride = 0;
 
 	assert(m_cpBuffer == nullptr);
-	HRESULT hr = pDevice->CreateBuffer(&descConstantBuffer, nullptr, m_cpBuffer.GetAddressOf());
+	HRESULT hr = pDevice->CreateBuffer(&descConstantBuffer, nullptr, m_cpBuffer.ReleaseAndGetAddressOf());
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTMessageBox(L"Failed to create a constant buffer.", hr);
+		Debug::ForceCrashWithHRESULTMessageBox(L"Failed to create constant buffer.", hr);
 }
 
 void IConstantBuffer::UpdateImpl(ID3D11DeviceContext* pDeviceContext, const void* pData, size_t size)

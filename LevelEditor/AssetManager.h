@@ -4,7 +4,7 @@
 
 class ATVItemMaterial;
 class ATVItemTexture;
-class ATVItemMesh;
+class ATVItemStaticMesh;
 
 class AssetManager
 {

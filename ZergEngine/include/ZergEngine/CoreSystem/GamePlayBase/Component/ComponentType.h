@@ -7,6 +7,7 @@ namespace ze
 		// 3D GameObject Components
 		Camera,
 		MeshRenderer,
+		SkinnedMeshRenderer,
 		DirectionalLight,
 		PointLight,
 		SpotLight,

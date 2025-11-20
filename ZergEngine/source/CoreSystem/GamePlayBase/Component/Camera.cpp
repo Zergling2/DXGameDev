@@ -57,7 +57,7 @@ void Camera::SetFieldOfView(uint8_t degree)
 	// 백 버퍼는 그대로 사용 가능.
 	// 투영 행렬만 업데이트하면 된다.
 
-	Math::Clamp(degree, static_cast<uint8_t>(50), static_cast<uint8_t>(120));
+	degree = Math::Clamp(degree, static_cast<uint8_t>(50), static_cast<uint8_t>(120));
 	m_fov = degree;
 
 	this->UpdateProjectionMatrix(

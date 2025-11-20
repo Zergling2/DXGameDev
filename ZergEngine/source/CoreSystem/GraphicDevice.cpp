@@ -22,6 +22,7 @@ static PCWSTR VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::COUNT)] 
 	L"VSTransformPTToHCS.cso",
 	L"VSTransformPNTToHCS.cso",
 	L"VSTransformPNTTToHCS.cso",
+	L"VSTransformPNTTSkinnedToHCS.cso",
 	L"VSTransformButtonToHCS.cso",
 	L"VSTransformPTQuadToHCS.cso",
 	L"VSTransformCameraMergeQuad.cso"
@@ -411,20 +412,20 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	WCHAR targetPath[MAX_PATH];
 
 	// VERTEX SHADERS
-	// TRANSFORM_SKYBOX_TO_HCS (No Input Layout required)
+	// TransformSkyboxToHCS (No Input Layout required)
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
-	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TRANSFORM_SKYBOX_TO_HCS)]);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TransformSkyboxToHCS)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
 		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
-	m_vs[static_cast<size_t>(VertexShaderType::TRANSFORM_SKYBOX_TO_HCS)].Init(pDevice, pByteCode, byteCodeSize);
+	m_vs[static_cast<size_t>(VertexShaderType::TransformSkyboxToHCS)].Init(pDevice, pByteCode, byteCodeSize);
 	delete[] pByteCode;
 
-	// TRANSFORM_TERRAIN_PATCH_CTRL_PT (POSITION, TEXCOORD0, TEXCOORD1)
+	// TransformTerrainPatchCtrlPt (POSITION, TEXCOORD0, TEXCOORD1)
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
-	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TRANSFORM_TERRAIN_PATCH_CTRL_PT)]);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TransformTerrainPatchCtrlPt)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
 		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
-	m_vs[static_cast<size_t>(VertexShaderType::TRANSFORM_TERRAIN_PATCH_CTRL_PT)].Init(pDevice, pByteCode, byteCodeSize);
+	m_vs[static_cast<size_t>(VertexShaderType::TransformTerrainPatchCtrlPt)].Init(pDevice, pByteCode, byteCodeSize);
 	// ┗━ Create compatible Input Layout
 	m_il[static_cast<size_t>(VertexFormatType::TerrainPatchCtrlPt)].Init(
 		pDevice,
@@ -435,12 +436,12 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	);
 	delete[] pByteCode;
 
-	// TRANSFORM_P_TO_HCS (POSITION)
+	// TransformPToHCS (POSITION)
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
-	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TRANSFORM_P_TO_HCS)]);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TransformPToHCS)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
 		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
-	m_vs[static_cast<size_t>(VertexShaderType::TRANSFORM_P_TO_HCS)].Init(pDevice, pByteCode, byteCodeSize);
+	m_vs[static_cast<size_t>(VertexShaderType::TransformPToHCS)].Init(pDevice, pByteCode, byteCodeSize);
 	// ┗━ Create compatible Input Layout
 	m_il[static_cast<size_t>(VertexFormatType::Position)].Init(
 		pDevice,
@@ -451,12 +452,12 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	);
 	delete[] pByteCode;
 
-	// TRANSFORM_PC_TO_HCS (POSITION, COLOR0)
+	// TransformPCToHCS (POSITION, COLOR0)
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
-	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TRANSFORM_PC_TO_HCS)]);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TransformPCToHCS)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
 		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
-	m_vs[static_cast<size_t>(VertexShaderType::TRANSFORM_PC_TO_HCS)].Init(pDevice, pByteCode, byteCodeSize);
+	m_vs[static_cast<size_t>(VertexShaderType::TransformPCToHCS)].Init(pDevice, pByteCode, byteCodeSize);
 	// ┗━ Create compatible Input Layout
 	m_il[static_cast<size_t>(VertexFormatType::PositionColor)].Init(
 		pDevice,
@@ -467,12 +468,12 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	);
 	delete[] pByteCode;
 
-	// TRANSFORM_PN_TO_HCS (POSITION, NORMAL)
+	// TransformPNToHCS (POSITION, NORMAL)
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
-	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TRANSFORM_PN_TO_HCS)]);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TransformPNToHCS)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
 		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
-	m_vs[static_cast<size_t>(VertexShaderType::TRANSFORM_PN_TO_HCS)].Init(pDevice, pByteCode, byteCodeSize);
+	m_vs[static_cast<size_t>(VertexShaderType::TransformPNToHCS)].Init(pDevice, pByteCode, byteCodeSize);
 	// ┗━ Create compatible Input Layout
 	m_il[static_cast<size_t>(VertexFormatType::PositionNormal)].Init(
 		pDevice,
@@ -483,12 +484,12 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	);
 	delete[] pByteCode;
 
-	// TRANSFORM_PT_TO_HCS (POSITION, TEXCOORD0)
+	// TransformPTToHCS (POSITION, TEXCOORD0)
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
-	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TRANSFORM_PT_TO_HCS)]);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TransformPTToHCS)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
 		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
-	m_vs[static_cast<size_t>(VertexShaderType::TRANSFORM_PT_TO_HCS)].Init(pDevice, pByteCode, byteCodeSize);
+	m_vs[static_cast<size_t>(VertexShaderType::TransformPTToHCS)].Init(pDevice, pByteCode, byteCodeSize);
 	// ┗━ Create compatible Input Layout
 	m_il[static_cast<size_t>(VertexFormatType::PositionTexCoord)].Init(
 		pDevice,
@@ -499,12 +500,12 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	);
 	delete[] pByteCode;
 
-	// TRANSFORM_PNT_TO_HCS (POSITION, NORMAL, TEXCOORD)
+	// TransformPNTToHCS (POSITION, NORMAL, TEXCOORD)
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
-	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TRANSFORM_PNT_TO_HCS)]);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TransformPNTToHCS)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
 		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
-	m_vs[static_cast<size_t>(VertexShaderType::TRANSFORM_PNT_TO_HCS)].Init(pDevice, pByteCode, byteCodeSize);
+	m_vs[static_cast<size_t>(VertexShaderType::TransformPNTToHCS)].Init(pDevice, pByteCode, byteCodeSize);
 	// ┗━ Create compatible Input Layout
 	m_il[static_cast<size_t>(VertexFormatType::PositionNormalTexCoord)].Init(
 		pDevice,
@@ -515,12 +516,12 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	);
 	delete[] pByteCode;
 
-	// TRANSFORM_PNTT_TO_HCS (POSITION, NORMAL, TANGENT, TEXCOORD)
+	// TransformPNTTToHCS (POSITION, NORMAL, TANGENT, TEXCOORD)
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
-	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TRANSFORM_PNTT_TO_HCS)]);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TransformPNTTToHCS)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
 		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
-	m_vs[static_cast<size_t>(VertexShaderType::TRANSFORM_PNTT_TO_HCS)].Init(pDevice, pByteCode, byteCodeSize);
+	m_vs[static_cast<size_t>(VertexShaderType::TransformPNTTToHCS)].Init(pDevice, pByteCode, byteCodeSize);
 	// ┗━ Create compatible Input Layout
 	m_il[static_cast<size_t>(VertexFormatType::PositionNormalTangentTexCoord)].Init(
 		pDevice,
@@ -531,12 +532,28 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	);
 	delete[] pByteCode;
 
-	// TRANSFORM_BUTTON_TO_HCS (POSITION, TEXCOORD0, COLOR0)
+	// TransformPNTTSkinnedToHCS (POSITION, NORMAL, TANGENT, TEXCOORD, WEIGHTS, BONEINDICES)
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
-	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TRANSFORM_BUTTON_TO_HCS)]);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TransformPNTTSkinnedToHCS)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
 		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
-	m_vs[static_cast<size_t>(VertexShaderType::TRANSFORM_BUTTON_TO_HCS)].Init(pDevice, pByteCode, byteCodeSize);
+	m_vs[static_cast<size_t>(VertexShaderType::TransformPNTTSkinnedToHCS)].Init(pDevice, pByteCode, byteCodeSize);
+	// ┗━ Create compatible Input Layout
+	m_il[static_cast<size_t>(VertexFormatType::PositionNormalTangentTexCoordSkinned)].Init(
+		pDevice,
+		VFPositionNormalTangentTexCoordSkinned::GetInputElementDescriptor(),
+		VFPositionNormalTangentTexCoordSkinned::GetInputElementCount(),
+		pByteCode,
+		byteCodeSize
+	);
+	delete[] pByteCode;
+
+	// TransformButtonToHCS (POSITION, TEXCOORD0, COLOR0)
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TransformButtonToHCS)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
+	m_vs[static_cast<size_t>(VertexShaderType::TransformButtonToHCS)].Init(pDevice, pByteCode, byteCodeSize);
 	// ┗━ Create compatible Input Layout
 	m_il[static_cast<size_t>(VertexFormatType::ButtonPt)].Init(
 		pDevice,
@@ -547,20 +564,20 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	);
 	delete[] pByteCode;
 
-	// TRANSFORM_PT_QUAD_TO_HCS
+	// TransformPTQuadToHCS
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
-	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TRANSFORM_PT_QUAD_TO_HCS)]);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TransformPTQuadToHCS)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
 		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
-	m_vs[static_cast<size_t>(VertexShaderType::TRANSFORM_PT_QUAD_TO_HCS)].Init(pDevice, pByteCode, byteCodeSize);
+	m_vs[static_cast<size_t>(VertexShaderType::TransformPTQuadToHCS)].Init(pDevice, pByteCode, byteCodeSize);
 	delete[] pByteCode;
 
-	// TRANSFORM_CAMERA_MERGE_QUAD (No Input Layout required)
+	// TransformCameraMergeQuad (No Input Layout required)
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
-	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TRANSFORM_CAMERA_MERGE_QUAD)]);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TransformCameraMergeQuad)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
 		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
-	m_vs[static_cast<size_t>(VertexShaderType::TRANSFORM_CAMERA_MERGE_QUAD)].Init(pDevice, pByteCode, byteCodeSize);
+	m_vs[static_cast<size_t>(VertexShaderType::TransformCameraMergeQuad)].Init(pDevice, pByteCode, byteCodeSize);
 	// No input layout required.
 	delete[] pByteCode;
 
@@ -691,52 +708,96 @@ void GraphicDevice::CreateRasterizerStates()
 {
 	ID3D11Device* pDevice = m_cpDevice.Get();
 
-	D3D11_RASTERIZER_DESC descRS;
-	ZeroMemory(&descRS, sizeof(descRS));
-	descRS.MultisampleEnable = TRUE;
+	D3D11_RASTERIZER_DESC rasterDesc;
 
-	descRS.FillMode = D3D11_FILL_WIREFRAME;
-	descRS.CullMode = D3D11_CULL_NONE;
-	m_rs[static_cast<size_t>(RasterizerFillMode::Wireframe)][static_cast<size_t>(RasterizerCullMode::None)].Init(
-		pDevice, &descRS
+	ZeroMemory(&rasterDesc, sizeof(rasterDesc));
+	rasterDesc.FillMode = D3D11_FILL_WIREFRAME;
+	rasterDesc.CullMode = D3D11_CULL_NONE;
+
+	rasterDesc.MultisampleEnable = TRUE;
+	m_rs[static_cast<size_t>(RasterizerMode::WireframeMultisample)].Init(
+		pDevice, &rasterDesc
+	);
+	rasterDesc.MultisampleEnable = FALSE;
+	m_rs[static_cast<size_t>(RasterizerMode::WireframeNoMultisample)].Init(
+		pDevice, &rasterDesc
 	);
 
-	descRS.FillMode = D3D11_FILL_WIREFRAME;
-	descRS.CullMode = D3D11_CULL_FRONT;
-	m_rs[static_cast<size_t>(RasterizerFillMode::Wireframe)][static_cast<size_t>(RasterizerCullMode::Front)].Init(
-		pDevice, &descRS
+
+	ZeroMemory(&rasterDesc, sizeof(rasterDesc));
+	rasterDesc.FillMode = D3D11_FILL_SOLID;
+	rasterDesc.CullMode = D3D11_CULL_NONE;
+
+	rasterDesc.MultisampleEnable = TRUE;
+	m_rs[static_cast<size_t>(RasterizerMode::SolidCullNoneMultisample)].Init(
+		pDevice, &rasterDesc
+	);
+	rasterDesc.MultisampleEnable = FALSE;
+	m_rs[static_cast<size_t>(RasterizerMode::SolidCullNoneNoMultisample)].Init(
+		pDevice, &rasterDesc
 	);
 
-	descRS.FillMode = D3D11_FILL_WIREFRAME;
-	descRS.CullMode = D3D11_CULL_BACK;
-	m_rs[static_cast<size_t>(RasterizerFillMode::Wireframe)][static_cast<size_t>(RasterizerCullMode::Back)].Init(
-		pDevice, &descRS
+
+	ZeroMemory(&rasterDesc, sizeof(rasterDesc));
+	rasterDesc.FillMode = D3D11_FILL_SOLID;
+	rasterDesc.CullMode = D3D11_CULL_FRONT;
+
+	rasterDesc.MultisampleEnable = TRUE;
+	m_rs[static_cast<size_t>(RasterizerMode::SolidCullFrontMultisample)].Init(
+		pDevice, &rasterDesc
+	);
+	rasterDesc.MultisampleEnable = FALSE;
+	m_rs[static_cast<size_t>(RasterizerMode::SolidCullFrontNoMultisample)].Init(
+		pDevice, &rasterDesc
 	);
 
-	descRS.FillMode = D3D11_FILL_SOLID;
-	descRS.CullMode = D3D11_CULL_NONE;
-	m_rs[static_cast<size_t>(RasterizerFillMode::Solid)][static_cast<size_t>(RasterizerCullMode::None)].Init(
-		pDevice, &descRS
+
+	ZeroMemory(&rasterDesc, sizeof(rasterDesc));
+	rasterDesc.FillMode = D3D11_FILL_SOLID;
+	rasterDesc.CullMode = D3D11_CULL_BACK;
+
+	rasterDesc.MultisampleEnable = TRUE;
+	m_rs[static_cast<size_t>(RasterizerMode::SolidCullBackMultisample)].Init(
+		pDevice, &rasterDesc
+	);
+	rasterDesc.MultisampleEnable = FALSE;
+	m_rs[static_cast<size_t>(RasterizerMode::SolidCullBackNoMultisample)].Init(
+		pDevice, &rasterDesc
 	);
 
-	descRS.FillMode = D3D11_FILL_SOLID;
-	descRS.CullMode = D3D11_CULL_FRONT;
-	m_rs[static_cast<size_t>(RasterizerFillMode::Solid)][static_cast<size_t>(RasterizerCullMode::Front)].Init(
-		pDevice, &descRS
-	);
 
-	descRS.FillMode = D3D11_FILL_SOLID;
-	descRS.CullMode = D3D11_CULL_BACK;
-	m_rs[static_cast<size_t>(RasterizerFillMode::Solid)][static_cast<size_t>(RasterizerCullMode::Back)].Init(
-		pDevice, &descRS
+	/*
+	* One of the artifacts with shadow buffer based shadows is shadow acne,
+	* or a surface shadowing itself due to minor differences between the depth computation in a shader,
+	* and the depth of the same surface in the shadow buffer.
+	* 
+	* One way to alleviate this is to use DepthBias and SlopeScaledDepthBias when rendering a shadow buffer.
+	* The idea is to push surfaces out enough while rendering a shadow buffer so that the 
+	* comparison result (between the shadow buffer z and the shader z) is consistent across the surface, and avoid local self-shadowing.
+	*/
+	ZeroMemory(&rasterDesc, sizeof(rasterDesc));
+	rasterDesc.FillMode = D3D11_FILL_SOLID;
+	rasterDesc.CullMode = D3D11_CULL_BACK;
+	rasterDesc.DepthBias = 100000;	// Bias = (float)DepthBias * r + SlopeScaledDepthBias * MaxDepthSlope;	(UNORM 깊이 버퍼일 경우 계산식)
+	/*
+	* if(DepthBiasClamp > 0)
+    *	Bias = min(DepthBiasClamp, Bias)
+	* else if(DepthBiasClamp < 0)
+    *	Bias = max(DepthBiasClamp, Bias)
+	*/
+	rasterDesc.DepthBiasClamp = 0.0f;
+	rasterDesc.SlopeScaledDepthBias = 1.0f;
+	// rasterDesc.MultisampleEnable = FALSE;
+	// rasterDesc.AntialiasedLineEnable = FALSE;
+	m_rs[static_cast<size_t>(RasterizerMode::ShadowMap)].Init(
+		pDevice, &rasterDesc
 	);
 }
 
 void GraphicDevice::ReleaseRasterizerStates()
 {
-	for (size_t i = 0; i < static_cast<size_t>(RasterizerFillMode::COUNT); ++i)
-		for (size_t j = 0; j < static_cast<size_t>(RasterizerCullMode::COUNT); ++j)
-			m_rs[i][j].Release();
+	for (size_t i = 0; i < static_cast<size_t>(RasterizerMode::COUNT); ++i)
+		m_rs[i].Release();
 }
 
 void GraphicDevice::CreateSamplerStates()
@@ -795,6 +856,22 @@ void GraphicDevice::CreateSamplerStates()
 
 	samplerDesc.MaxAnisotropy = 16;
 	m_ss[static_cast<size_t>(TextureFilteringMode::Anisotropic16x)].Init(pDevice, &samplerDesc);
+
+
+	// Shadow map sampler
+	ZeroMemory(&samplerDesc, sizeof(samplerDesc));
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	samplerDesc.BorderColor[0] = 0.0f;
+	samplerDesc.BorderColor[1] = 0.0f;
+	samplerDesc.BorderColor[2] = 0.0f;
+	samplerDesc.BorderColor[3] = 0.0f;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
+	samplerDesc.MinLOD = 0.0f;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	m_ss[static_cast<size_t>(TextureFilteringMode::ShadowMapSampling)].Init(pDevice, &samplerDesc);
 }
 
 void GraphicDevice::ReleaseSamplerStates()

@@ -1,4 +1,4 @@
-#include <ZergEngine\CoreSystem\Effect\BasicEffectPNTT.h>
+#include <ZergEngine\CoreSystem\Effect\BasicEffectPNTTSkinned.h>
 #include <ZergEngine\CoreSystem\GraphicDevice.h>
 #include <ZergEngine\CoreSystem\Math.h>
 #include <ZergEngine\CoreSystem\Resource\Texture.h>
@@ -8,35 +8,38 @@
 
 using namespace ze;
 
-// BasicPNTT Effect
-// 1. VertexShader: VSTransformPNTTToHCS
+// BasicPNTTSkinned Effect
+// 1. VertexShader: VSTransformPNTTSkinnedToHCS
 // 2. PixelShader: PSColorPNTTFragment
 
-void BasicEffectPNTT::Init()
+void BasicEffectPNTTSkinned::Init()
 {
 	m_dirtyFlag = DIRTY_FLAG::ALL;
 
-	m_pInputLayout = GraphicDevice::GetInstance()->GetILComInterface(VertexFormatType::PositionNormalTangentTexCoord);
-	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::TransformPNTTToHCS);
+	m_pInputLayout = GraphicDevice::GetInstance()->GetILComInterface(VertexFormatType::PositionNormalTangentTexCoordSkinned);
+	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::TransformPNTTSkinnedToHCS);
 	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::ColorPositionNormalTangentTexCoordFragment);
 
-	m_cbPerFrame.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
-	m_cbPerCamera.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
-	m_cbPerMesh.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
-	m_cbPerSubset.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
+	ID3D11Device* pDevice = GraphicDevice::GetInstance()->GetDeviceComInterface();
+	m_cbPerFrame.Init(pDevice);
+	m_cbPerCamera.Init(pDevice);
+	m_cbPerMesh.Init(pDevice);
+	m_cbPerArmature.Init(pDevice);
+	m_cbPerSubset.Init(pDevice);
 
 	ClearTextureSRVArray();
 }
 
-void BasicEffectPNTT::Release()
+void BasicEffectPNTTSkinned::Release()
 {
 	m_cbPerFrame.Release();
 	m_cbPerCamera.Release();
 	m_cbPerMesh.Release();
+	m_cbPerArmature.Release();
 	m_cbPerSubset.Release();
 }
 
-void BasicEffectPNTT::SetDirectionalLight(const DirectionalLightData* pLights, uint32_t count) noexcept
+void BasicEffectPNTTSkinned::SetDirectionalLight(const DirectionalLightData* pLights, uint32_t count) noexcept
 {
 	assert(count <= 4);
 
@@ -47,7 +50,7 @@ void BasicEffectPNTT::SetDirectionalLight(const DirectionalLightData* pLights, u
 	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_FRAME;
 }
 
-void BasicEffectPNTT::SetPointLight(const PointLightData* pLights, uint32_t count) noexcept
+void BasicEffectPNTTSkinned::SetPointLight(const PointLightData* pLights, uint32_t count) noexcept
 {
 	assert(count <= 4);
 
@@ -58,7 +61,7 @@ void BasicEffectPNTT::SetPointLight(const PointLightData* pLights, uint32_t coun
 	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_FRAME;
 }
 
-void BasicEffectPNTT::SetSpotLight(const SpotLightData* pLights, uint32_t count) noexcept
+void BasicEffectPNTTSkinned::SetSpotLight(const SpotLightData* pLights, uint32_t count) noexcept
 {
 	assert(count <= 4);
 
@@ -69,7 +72,7 @@ void BasicEffectPNTT::SetSpotLight(const SpotLightData* pLights, uint32_t count)
 	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_FRAME;
 }
 
-void BasicEffectPNTT::SetCamera(const Camera* pCamera) noexcept
+void BasicEffectPNTTSkinned::SetCamera(const Camera* pCamera) noexcept
 {
 	const GameObject* pCameraOwner = pCamera->m_pGameObject;
 	assert(pCameraOwner != nullptr);
@@ -88,7 +91,7 @@ void BasicEffectPNTT::SetCamera(const Camera* pCamera) noexcept
 	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_CAMERA;
 }
 
-void XM_CALLCONV BasicEffectPNTT::SetWorldMatrix(FXMMATRIX w) noexcept
+void XM_CALLCONV BasicEffectPNTTSkinned::SetWorldMatrix(FXMMATRIX w) noexcept
 {
 	XMStoreFloat4x4A(&m_cbPerMeshCache.w, ConvertToHLSLMatrix(w));			// HLSL 전치
 	XMStoreFloat4x4A(&m_cbPerMeshCache.wInvTr, XMMatrixInverse(nullptr, w));	// 역행렬의 전치의 HLSL 전치
@@ -96,7 +99,16 @@ void XM_CALLCONV BasicEffectPNTT::SetWorldMatrix(FXMMATRIX w) noexcept
 	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_MESH;
 }
 
-void BasicEffectPNTT::UseMaterial(bool b) noexcept
+void BasicEffectPNTTSkinned::SetArmatureFinalTransform(const XMFLOAT4X4A* pFinalTransforms, size_t count)
+{
+	assert(count <= MAX_BONE_COUNT);
+
+	memcpy(m_cbPerArmatureCache.finalTransform, pFinalTransforms, sizeof(XMFLOAT4X4A) * count);
+
+	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_ARMATURE;
+}
+
+void BasicEffectPNTTSkinned::UseMaterial(bool b) noexcept
 {
 	if (b)
 		m_cbPerSubsetCache.mtl.mtlFlag |= static_cast<uint32_t>(MATERIAL_FLAG::UseMaterial);
@@ -106,35 +118,35 @@ void BasicEffectPNTT::UseMaterial(bool b) noexcept
 	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_SUBSET;
 }
 
-void XM_CALLCONV BasicEffectPNTT::SetAmbientColor(FXMVECTOR ambient) noexcept
+void XM_CALLCONV BasicEffectPNTTSkinned::SetAmbientColor(FXMVECTOR ambient) noexcept
 {
 	XMStoreFloat4A(&m_cbPerSubsetCache.mtl.ambient, ambient);
 
 	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_SUBSET;
 }
 
-void XM_CALLCONV BasicEffectPNTT::SetDiffuseColor(FXMVECTOR diffuse) noexcept
+void XM_CALLCONV BasicEffectPNTTSkinned::SetDiffuseColor(FXMVECTOR diffuse) noexcept
 {
 	XMStoreFloat4A(&m_cbPerSubsetCache.mtl.diffuse, diffuse);
 
 	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_SUBSET;
 }
 
-void XM_CALLCONV BasicEffectPNTT::SetSpecularColor(FXMVECTOR specular) noexcept
+void XM_CALLCONV BasicEffectPNTTSkinned::SetSpecularColor(FXMVECTOR specular) noexcept
 {
 	XMStoreFloat4A(&m_cbPerSubsetCache.mtl.specular, specular);
 
 	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_SUBSET;
 }
 
-void XM_CALLCONV BasicEffectPNTT::SetReflection(FXMVECTOR reflect) noexcept
+void XM_CALLCONV BasicEffectPNTTSkinned::SetReflection(FXMVECTOR reflect) noexcept
 {
 	XMStoreFloat4A(&m_cbPerSubsetCache.mtl.reflect, reflect);
 
 	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_SUBSET;
 }
 
-void BasicEffectPNTT::SetDiffuseMap(ID3D11ShaderResourceView* pDiffuseMap) noexcept
+void BasicEffectPNTTSkinned::SetDiffuseMap(ID3D11ShaderResourceView* pDiffuseMap) noexcept
 {
 	m_pTextureSRVArray[0] = pDiffuseMap;
 
@@ -144,7 +156,7 @@ void BasicEffectPNTT::SetDiffuseMap(ID3D11ShaderResourceView* pDiffuseMap) noexc
 		m_cbPerSubsetCache.mtl.mtlFlag &= ~static_cast<uint32_t>(MATERIAL_FLAG::UseDiffuseMap);
 }
 
-void BasicEffectPNTT::SetSpecularMap(ID3D11ShaderResourceView* pSpecularMap) noexcept
+void BasicEffectPNTTSkinned::SetSpecularMap(ID3D11ShaderResourceView* pSpecularMap) noexcept
 {
 	m_pTextureSRVArray[1] = pSpecularMap;
 
@@ -154,7 +166,7 @@ void BasicEffectPNTT::SetSpecularMap(ID3D11ShaderResourceView* pSpecularMap) noe
 		m_cbPerSubsetCache.mtl.mtlFlag &= ~static_cast<uint32_t>(MATERIAL_FLAG::UseSpecularMap);
 }
 
-void BasicEffectPNTT::SetNormalMap(ID3D11ShaderResourceView* pNormalMap) noexcept
+void BasicEffectPNTTSkinned::SetNormalMap(ID3D11ShaderResourceView* pNormalMap) noexcept
 {
 	m_pTextureSRVArray[2] = pNormalMap;
 
@@ -164,7 +176,7 @@ void BasicEffectPNTT::SetNormalMap(ID3D11ShaderResourceView* pNormalMap) noexcep
 		m_cbPerSubsetCache.mtl.mtlFlag &= ~static_cast<uint32_t>(MATERIAL_FLAG::UseNormalMap);
 }
 
-void BasicEffectPNTT::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
+void BasicEffectPNTTSkinned::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
 {
 	DWORD index;
 
@@ -190,6 +202,9 @@ void BasicEffectPNTT::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
 		case DIRTY_FLAG::CONSTANTBUFFER_PER_MESH:
 			ApplyPerMeshConstantBuffer(pDeviceContext);
 			break;
+		case DIRTY_FLAG::CONSTANTBUFFER_PER_ARMATURE:
+			ApplyPerArmatureConstantBuffer(pDeviceContext);
+			break;
 		case DIRTY_FLAG::CONSTANTBUFFER_PER_SUBSET:
 			ApplyPerSubsetConstantBuffer(pDeviceContext);
 			break;
@@ -213,14 +228,14 @@ void BasicEffectPNTT::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
 	ClearTextureSRVArray();
 }
 
-void BasicEffectPNTT::KickedOutOfDeviceContext() noexcept
+void BasicEffectPNTTSkinned::KickedOutOfDeviceContext() noexcept
 {
 	ClearTextureSRVArray();
 
 	m_dirtyFlag = DIRTY_FLAG::ALL;
 }
 
-void BasicEffectPNTT::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
+void BasicEffectPNTTSkinned::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
 {
 	pDeviceContext->VSSetShader(m_pVertexShader, nullptr, 0);
 	pDeviceContext->HSSetShader(nullptr, nullptr, 0);
@@ -229,7 +244,7 @@ void BasicEffectPNTT::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
 	pDeviceContext->PSSetShader(m_pPixelShader, nullptr, 0);
 }
 
-void BasicEffectPNTT::ApplyPerFrameConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
+void BasicEffectPNTTSkinned::ApplyPerFrameConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
 	m_cbPerFrame.Update(pDeviceContext, &m_cbPerFrameCache);
 	ID3D11Buffer* const cbs[] = { m_cbPerFrame.GetComInterface() };
@@ -239,7 +254,7 @@ void BasicEffectPNTT::ApplyPerFrameConstantBuffer(ID3D11DeviceContext* pDeviceCo
 	pDeviceContext->PSSetConstantBuffers(startSlot, 1, cbs);
 }
 
-void BasicEffectPNTT::ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
+void BasicEffectPNTTSkinned::ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
 	m_cbPerCamera.Update(pDeviceContext, &m_cbPerCameraCache);
 	ID3D11Buffer* const cbs[] = { m_cbPerCamera.GetComInterface() };
@@ -251,7 +266,7 @@ void BasicEffectPNTT::ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceC
 	pDeviceContext->PSSetConstantBuffers(psStartSlot, 1, cbs);
 }
 
-void BasicEffectPNTT::ApplyPerMeshConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
+void BasicEffectPNTTSkinned::ApplyPerMeshConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
 	m_cbPerMesh.Update(pDeviceContext, &m_cbPerMeshCache);
 	ID3D11Buffer* const cbs[] = { m_cbPerMesh.GetComInterface() };
@@ -261,7 +276,17 @@ void BasicEffectPNTT::ApplyPerMeshConstantBuffer(ID3D11DeviceContext* pDeviceCon
 	pDeviceContext->VSSetConstantBuffers(startSlot, 1, cbs);
 }
 
-void BasicEffectPNTT::ApplyPerSubsetConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
+void BasicEffectPNTTSkinned::ApplyPerArmatureConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
+{
+	m_cbPerArmature.Update(pDeviceContext, &m_cbPerArmatureCache);
+	ID3D11Buffer* const cbs[] = { m_cbPerArmature.GetComInterface() };
+
+	// PerArmature 상수버퍼 사용 셰이더
+	constexpr UINT startSlot = 2;
+	pDeviceContext->VSSetConstantBuffers(startSlot, 1, cbs);
+}
+
+void BasicEffectPNTTSkinned::ApplyPerSubsetConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
 	m_cbPerSubset.Update(pDeviceContext, &m_cbPerSubsetCache);
 	ID3D11Buffer* const cbs[] = { m_cbPerSubset.GetComInterface() };
@@ -271,7 +296,7 @@ void BasicEffectPNTT::ApplyPerSubsetConstantBuffer(ID3D11DeviceContext* pDeviceC
 	pDeviceContext->PSSetConstantBuffers(startSlot, 1, cbs);
 }
 
-void BasicEffectPNTT::ClearTextureSRVArray() noexcept
+void BasicEffectPNTTSkinned::ClearTextureSRVArray() noexcept
 {
 	for (size_t i = 0; i < _countof(m_pTextureSRVArray); ++i)
 		m_pTextureSRVArray[i] = nullptr;

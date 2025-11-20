@@ -10,21 +10,20 @@ namespace ze
 	constexpr uint32_t CELLS_PER_TERRAIN_PATCH = 64;
 	constexpr uint32_t MAX_GLOBAL_LIGHT_COUNT = 4;
 	constexpr uint16_t MAX_CAMERA_COUNT = 4;
+	constexpr uint8_t MAX_BONE_COUNT = 96;
 
-	enum class RasterizerFillMode
+	enum class RasterizerMode
 	{
-		Wireframe,
-		Solid,
-		// 收收收收收收收收收收收收收收收收收收收收收收
-		COUNT
-	};
+		WireframeMultisample,
+		WireframeNoMultisample,
+		SolidCullNoneMultisample,
+		SolidCullNoneNoMultisample,
+		SolidCullFrontMultisample,
+		SolidCullFrontNoMultisample,
+		SolidCullBackMultisample,
+		SolidCullBackNoMultisample,
+		ShadowMap,	// No multisample
 
-	enum class RasterizerCullMode
-	{
-		None,
-		Front,
-		Back,
-		// 收收收收收收收收收收收收收收收收收收收收收收
 		COUNT
 	};
 
@@ -37,23 +36,25 @@ namespace ze
 		Anisotropic4x,
 		Anisotropic8x,
 		Anisotropic16x,
+		ShadowMapSampling,
 		// 收收收收收收收收收收收收收收收收收收收收收收
 		COUNT
 	};
 
 	enum class VertexShaderType
 	{
-		TRANSFORM_SKYBOX_TO_HCS,
-		TRANSFORM_TERRAIN_PATCH_CTRL_PT,
-		TRANSFORM_P_TO_HCS,
-		TRANSFORM_PC_TO_HCS,
-		TRANSFORM_PN_TO_HCS,
-		TRANSFORM_PT_TO_HCS,
-		TRANSFORM_PNT_TO_HCS,
-		TRANSFORM_PNTT_TO_HCS,
-		TRANSFORM_BUTTON_TO_HCS,
-		TRANSFORM_PT_QUAD_TO_HCS,
-		TRANSFORM_CAMERA_MERGE_QUAD,
+		TransformSkyboxToHCS,
+		TransformTerrainPatchCtrlPt,
+		TransformPToHCS,
+		TransformPCToHCS,
+		TransformPNToHCS,
+		TransformPTToHCS,
+		TransformPNTToHCS,
+		TransformPNTTToHCS,
+		TransformPNTTSkinnedToHCS,
+		TransformButtonToHCS,
+		TransformPTQuadToHCS,
+		TransformCameraMergeQuad,
 		// 收收收收收收收收收收收收收收收收收收收收收收
 		COUNT
 	};
@@ -127,6 +128,7 @@ namespace ze
 		PositionTexCoord,
 		PositionNormalTexCoord,
 		PositionNormalTangentTexCoord,
+		PositionNormalTangentTexCoordSkinned,
 		TerrainPatchCtrlPt,
 		ButtonPt,
 		// 收收收收收收收收收收收收收收收收收收收收收收

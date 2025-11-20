@@ -2,7 +2,7 @@
 
 #include "framework.h"
 
-class ATVItemMesh;
+class ATVItemStaticMesh;
 
 // CMeshInspectorFormView form view
 
@@ -24,10 +24,10 @@ public:
 	virtual void Dump(CDumpContext& dc) const;
 #endif
 #endif
-	void SetATVItemToModify(ATVItemMesh* pItem) { m_pItem = pItem; }
-	ATVItemMesh* GetATVItemToModify() const { return m_pItem; }
+	void SetATVItemToModify(ATVItemStaticMesh* pItem) { m_pItem = pItem; }
+	ATVItemStaticMesh* GetATVItemToModify() const { return m_pItem; }
 private:
-	ATVItemMesh* m_pItem;
+	ATVItemStaticMesh* m_pItem;
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 

@@ -1,11 +1,11 @@
 #include "ATVItemMesh.h"
 #include "..\MainFrm.h"
 #include "..\MeshInspectorFormView.h"
-#include <ZergEngine\CoreSystem\Resource\Mesh.h>
+#include <ZergEngine\CoreSystem\Resource\StaticMesh.h>
 #include <ZergEngine\CoreSystem\InputLayout.h>
 #include <ZergEngine\CoreSystem\Debug.h>
 
-void ATVItemMesh::OnSelect()
+void ATVItemStaticMesh::OnSelect()
 {
 	CMainFrame* pMainFrame = static_cast<CMainFrame*>(AfxGetMainWnd());
 
@@ -28,9 +28,9 @@ void ATVItemMesh::OnSelect()
 
 	pInspector->m_staticMeshName = m_spMesh->GetName();
 
-	pInspector->m_staticMeshVertexCount = vbDesc.ByteWidth / ze::InputLayoutHelper::GetStructureByteStride(m_spMesh->GetVertexFormatType());
+	pInspector->m_staticMeshVertexCount = vbDesc.ByteWidth / ze::InputLayoutHelper::GetStructureByteStride(ze::VertexFormatType::PositionNormalTangentTexCoord);
 
-	pInspector->m_staticMeshVertexFormatType = ze::Debug::VertexFormatToString(m_spMesh->GetVertexFormatType());
+	pInspector->m_staticMeshVertexFormatType = ze::Debug::VertexFormatToString(ze::VertexFormatType::PositionNormalTangentTexCoord);
 
 	// 변수 -> 컨트롤로 업데이트
 	pInspector->UpdateData(FALSE);

@@ -70,7 +70,7 @@ void EditorCameraScript::MoveCamera()
 		XMStoreFloat3A(&rotationEuler, temp);
 
 		rotationEuler.x += XMConvertToRadians(static_cast<float>(my) * SENSITIVITY);
-		ze::Math::Clamp(rotationEuler.x, XMConvertToRadians(-HEAD_CLAMP_ANGLE), XMConvertToRadians(+HEAD_CLAMP_ANGLE));
+		rotationEuler.x = ze::Math::Clamp(rotationEuler.x, XMConvertToRadians(-HEAD_CLAMP_ANGLE), XMConvertToRadians(+HEAD_CLAMP_ANGLE));
 		rotationEuler.y += XMConvertToRadians(static_cast<float>(mx) * SENSITIVITY);
 		rotationEuler.z = 0.0f;
 

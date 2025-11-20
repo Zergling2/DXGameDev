@@ -147,6 +147,16 @@ struct PSInputPNTTFragment
     float2 texCoord : TEXCOORD;
 };
 
+struct PSInputPNTTShadowFragment
+{
+    float4 posH : SV_Position;
+    float3 posW : POSITION; // World space position
+    float3 normalW : NORMAL;
+    float3 tangentW : TANGENT;
+    float2 texCoord : TEXCOORD0;
+    float4 shadowPosH : TEXCOORD1;
+};
+
 struct PSInputSkyboxFragment
 {
     float4 posH : SV_Position;
@@ -201,6 +211,11 @@ hlslstruct CbPerCamera
     XMFLOAT4A worldSpaceFrustumPlane[6];
 
     XMFLOAT4X4A vp; // View * Proj
+};
+
+hlslstruct CbPerArmature
+{
+    XMFLOAT4X4A finalTransform[96];
 };
 
 hlslstruct CbPerMesh

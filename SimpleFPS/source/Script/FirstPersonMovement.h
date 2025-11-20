@@ -16,5 +16,4 @@ public:
 public:
 	ze::GameObjectHandle m_hWeapons[4];
 	bool m_ui;
-	ze::GameObjectHandle m_hDestroyTest;
 };

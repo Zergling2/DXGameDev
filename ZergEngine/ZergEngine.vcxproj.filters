@@ -78,7 +78,7 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Material.h">
       <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Mesh.h">
+    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\StaticMesh.h">
       <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Texture.h">
@@ -318,6 +318,27 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Platform.h">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Armature.h">
+      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\SkinnedMesh.h">
+      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\MeshSubset.h">
+      <Filter>Files\ZergEngine\CoreSystem\DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\SkinnedMeshRendererManager.h">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Animation.h">
+      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\SkinnedMeshRenderer.h">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPNTTSkinned.h">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\CoreSystem\Time.cpp">
@@ -338,7 +359,7 @@
     <ClCompile Include="source\CoreSystem\Resource\Material.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
     </ClCompile>
-    <ClCompile Include="source\CoreSystem\Resource\Mesh.cpp">
+    <ClCompile Include="source\CoreSystem\Resource\StaticMesh.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\Resource\Texture.cpp">
@@ -551,6 +572,24 @@
     <ClCompile Include="source\CoreSystem\Helper.cpp">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClCompile>
+    <ClCompile Include="source\CoreSystem\Resource\Armature.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Resource\SkinnedMesh.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\SkinnedMeshRendererManager.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Resource\Animation.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\GamePlayBase\Component\SkinnedMeshRenderer.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Effect\BasicEffectPNTTSkinned.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="source\CoreSystem\ShaderCode\ShaderCommon.hlsli">
@@ -631,6 +670,12 @@
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
     <FxCompile Include="source\CoreSystem\ShaderCode\VSPerspectiveShadowMap.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
+    </FxCompile>
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSShadowMapAlphaClipping.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
+    </FxCompile>
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformPNTTSkinnedToHCS.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
   </ItemGroup>

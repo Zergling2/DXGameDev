@@ -387,11 +387,12 @@ void OnCreateAssetWavefrontOBJ()
 
 	CString filePath = fd.GetPathName(); // 선택된 파일 경로
 	// std::vector<std::shared_ptr<ze::Mesh>> meshes = ze::ResourceLoader::GetInstance()->LoadWavefrontOBJ(filePath.GetString());
-	std::vector<std::shared_ptr<ze::Mesh>> meshes = ze::ResourceLoader::GetInstance()->LoadMesh(filePath.GetString());
+	ze::ModelData md = ze::ResourceLoader::GetInstance()->LoadModel(filePath.GetString());
+	auto& meshes = md.staticMeshes;
 	HTREEITEM hParent = hSelectedItem;
 
 	// 첫 번째 메시를 선택된 상태로 세팅
-	ATVItemMesh* pATVItemMesh = new ATVItemMesh();
+	ATVItemStaticMesh* pATVItemMesh = new ATVItemStaticMesh();
 	pATVItemMesh->m_spMesh = meshes[0];
 
 	const HTREEITEM hNewItem = tc.InsertItem(pATVItemMesh->m_spMesh->GetName(),
@@ -410,7 +411,7 @@ void OnCreateAssetWavefrontOBJ()
 	// 나머지 메시들도 항목 생성
 	for (size_t i = 1; i < meshes.size(); ++i)
 	{
-		ATVItemMesh* pATVItemMesh = new ATVItemMesh();
+		ATVItemStaticMesh* pATVItemMesh = new ATVItemStaticMesh();
 		pATVItemMesh->m_spMesh = meshes[i];
 
 		const HTREEITEM hNewItem = tc.InsertItem(meshes[i]->GetName(),

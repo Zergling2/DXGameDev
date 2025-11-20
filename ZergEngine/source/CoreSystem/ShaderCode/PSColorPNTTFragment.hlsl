@@ -43,7 +43,11 @@ PSOutput main(PSInputPNTTFragment input)
             // Local -> Tangent 행렬의 역행렬을 만든다. 기저벡터 T, B, N을 column major로 배치하면 Local -> Tangent 행렬이 되는데
             // T, B, N은 직교행렬이므로 단순히 전치시켜서 row major로 배치시키는 것만으로 역행렬인 Tangent -> Local 행렬을 구할 수 있다.
             // 그런데 사실 T, B, N이 버텍스 셰이더에서 월드 공간으로 변환되어져서 넘어왔으므로 이건 Tangent -> World 행렬이 된다.
-            float3x3 tbn = float3x3(input.tangentW, bitangentW, input.normalW);         // Tangent -> World
+            float3x3 tbn = float3x3(
+                input.tangentW,
+                bitangentW,
+                input.normalW
+            );         // Tangent -> World
     
             float3 normalT = tex2d_normalMap.Sample(ss_normalMap, input.texCoord).rgb * 2.0f - 1.0f; // [0, 1] -> [-1, 1]
             normalW = normalize(mul(normalT, tbn)); // 노말맵 샘플을 월드 탄젠트 스페이스에서 월드 스페이스로

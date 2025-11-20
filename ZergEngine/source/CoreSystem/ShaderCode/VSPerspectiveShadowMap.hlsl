@@ -16,19 +16,20 @@ cbuffer Cb1 : register(b1)
     CbPerMesh cb_perMesh;
 }
 
-struct VSInput
+struct VSInputVertexPNTT
 {
-    float3 position : POSITION;
-    float3 normalL : NORMAL;
-    float3 tangentL : TANGENT;
+    float3 posL : POSITION;
+    float3 normalL : NORMAL; // Local space normal vector
+    float3 tangentL : TANGENT; // Local space tangent vector
     float2 texCoord : TEXCOORD;
 };
 
-PSInputPFragment main(VSInput input)
+PSInputPTFragment main(VSInputVertexPNTT input)
 {
-    PSInputPFragment output;
+    PSInputPTFragment output;
     
-    output.posH = mul(float4(input.position, 1.0f), mul(cb_perMesh.w, cb_perCamera.vp));
+    output.posH = mul(float4(input.posL, 1.0f), mul(cb_perMesh.w, cb_perCamera.vp));
+    output.texCoord = input.texCoord;   // 섀도우 맵 렌더링 시 알파 클리핑을 하는 경우 텍스처 참조시 필요
 
     return output;
 }

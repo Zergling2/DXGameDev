@@ -4,17 +4,17 @@
 
 namespace ze
 {
-	class Mesh;
+	class StaticMesh;
 }
 
-class ATVItemMesh : public IATVItem
+class ATVItemStaticMesh : public IATVItem
 {
 public:
-	ATVItemMesh() = default;
-	virtual ~ATVItemMesh() = default;
+	ATVItemStaticMesh() = default;
+	virtual ~ATVItemStaticMesh() = default;
 
-	virtual ATVItemType GetType() const override { return ATVItemType::Mesh; }
+	virtual ATVItemType GetType() const override { return ATVItemType::StaticMesh; }
 	virtual void OnSelect() override;
 public:
-	std::shared_ptr<ze::Mesh> m_spMesh;
+	std::shared_ptr<ze::StaticMesh> m_spMesh;
 };

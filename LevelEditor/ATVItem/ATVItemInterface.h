@@ -8,7 +8,9 @@ enum class ATVItemType
 	Folder,
 	Material,
 	Texture,
-	Mesh
+	StaticMesh,
+	Animation,
+	SkinnedMesh
 };
 
 class IATVItem abstract

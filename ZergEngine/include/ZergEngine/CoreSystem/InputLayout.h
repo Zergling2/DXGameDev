@@ -163,6 +163,43 @@ namespace ze
 		XMFLOAT2 m_texCoord;
 	};
 
+	class VFPositionNormalTangentTexCoordSkinned
+	{
+	public:
+		VFPositionNormalTangentTexCoordSkinned()
+		{
+			XMStoreFloat3(&m_position, XMVectorZero());
+			XMStoreFloat3(&m_normal, XMVectorZero());
+			XMStoreFloat3(&m_tangent, XMVectorZero());
+			XMStoreFloat2(&m_texCoord, XMVectorZero());
+			m_weights[0] = 0.0f;
+			m_weights[1] = 0.0f;
+			m_weights[2] = 0.0f;
+			m_weights[3] = 0.0f;
+			m_boneIndices[0] = 0;	// 항상 유효한 인덱스이긴 해야 함. (뼈를 참조하지 않더라도 weight가 0이면 영향을 없앨 수 있으므로)
+			m_boneIndices[1] = 0;
+			m_boneIndices[2] = 0;
+			m_boneIndices[3] = 0;
+		}
+		VFPositionNormalTangentTexCoordSkinned(const VFPositionNormalTangentTexCoordSkinned&) = default;
+		VFPositionNormalTangentTexCoordSkinned& operator=(const VFPositionNormalTangentTexCoordSkinned&) = default;
+
+		bool AddSkinningData(BYTE boneIndex, float weight);
+
+		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
+		static constexpr uint32_t GetInputElementCount() { return VFPositionNormalTangentTexCoordSkinned::INPUT_ELEMENT_COUNT; }
+	private:
+		static constexpr size_t INPUT_ELEMENT_COUNT = 6;
+		static const D3D11_INPUT_ELEMENT_DESC s_ied[INPUT_ELEMENT_COUNT];
+	public:
+		XMFLOAT3 m_position;
+		XMFLOAT3 m_normal;
+		XMFLOAT3 m_tangent;
+		XMFLOAT2 m_texCoord;
+		FLOAT m_weights[4];
+		BYTE m_boneIndices[4];
+	};
+
 	struct VFTerrainPatchControlPoint
 	{
 	public:

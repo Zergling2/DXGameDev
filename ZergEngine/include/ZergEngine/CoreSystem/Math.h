@@ -62,13 +62,28 @@ namespace ze
 			static XMVECTOR Zero() { return g_XMZero; }
 		};
 
+		class Quaternion
+		{
+		public:
+			static XMVECTOR Identity() { return g_XMIdentityR3; }
+		};
+
+		
+		static int WrapInt(int val, int min, int max);
+		static float WrapFloat(float val, float max);
+		static float WrapFloat(float val, float min, float max);
+		static double WrapDouble(double val, double max);
+		static double WrapDouble(double val, double min, double max);
+
 		template<typename T>
-		static inline void Clamp(T& val, T min, T max)
+		static T Clamp(T val, T min, T max)
 		{
 			if (val < min)
-				val = min;
+				return min;
 			else if (val > max)
-				val = max;
+				return max;
+			else
+				return val;
 		}
 
 		template <typename T>

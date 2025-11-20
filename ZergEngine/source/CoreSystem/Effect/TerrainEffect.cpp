@@ -13,7 +13,7 @@ void TerrainEffect::Init()
 	m_dirtyFlag = DIRTY_FLAG::ALL;
 
 	m_pInputLayout = GraphicDevice::GetInstance()->GetILComInterface(VertexFormatType::TerrainPatchCtrlPt);
-	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::TRANSFORM_TERRAIN_PATCH_CTRL_PT);
+	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::TransformTerrainPatchCtrlPt);
 	m_pHullShader = GraphicDevice::GetInstance()->GetHSComInterface(HullShaderType::CalcTerrainTessFactor);
 	m_pDomainShader = GraphicDevice::GetInstance()->GetDSComInterface(DomainShaderType::SampleTerrainHeightMap);
 	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::ColorTerrainFragment);
