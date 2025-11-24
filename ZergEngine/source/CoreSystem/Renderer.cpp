@@ -46,11 +46,11 @@ Renderer::Renderer()
 	, m_effectImmediateContext()
 	, m_pAnimFinalTransformIdentity(nullptr)
 	, m_pAnimFinalTransformBuffer(nullptr)
-	, m_basicEffectP()
-	, m_basicEffectPC()
-	, m_basicEffectPN()
-	, m_basicEffectPT()
-	, m_basicEffectPNT()
+	// , m_basicEffectP()
+	// , m_basicEffectPC()
+	// , m_basicEffectPN()
+	// , m_basicEffectPT()
+	// , m_basicEffectPNT()
 	, m_basicEffectPNTT()
 	, m_basicEffectPNTTSkinned()
 	, m_terrainEffect()
@@ -107,11 +107,11 @@ void Renderer::Init()
 	m_pButtonVB = GraphicDevice::GetInstance()->GetVBComInterface(VertexBufferType::ButtonPt);	// Read only vertex buffer
 
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ INITIALIZE EFFECTS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-	m_basicEffectP.Init();
-	m_basicEffectPC.Init();
-	m_basicEffectPN.Init();
-	m_basicEffectPT.Init();
-	m_basicEffectPNT.Init();
+	// m_basicEffectP.Init();
+	// m_basicEffectPC.Init();
+	// m_basicEffectPN.Init();
+	// m_basicEffectPT.Init();
+	// m_basicEffectPNT.Init();
 	m_basicEffectPNTT.Init();
 	m_basicEffectPNTTSkinned.Init();
 	m_terrainEffect.Init();
@@ -128,11 +128,11 @@ void Renderer::Init()
 void Renderer::UnInit()
 {
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ RELEASE EFFECTS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-	m_basicEffectP.Release();
-	m_basicEffectPC.Release();
-	m_basicEffectPN.Release();
-	m_basicEffectPT.Release();
-	m_basicEffectPNT.Release();
+	// m_basicEffectP.Release();
+	// m_basicEffectPC.Release();
+	// m_basicEffectPN.Release();
+	// m_basicEffectPT.Release();
+	// m_basicEffectPNT.Release();
 	m_basicEffectPNTT.Release();
 	m_basicEffectPNTTSkinned.Release();
 	m_terrainEffect.Release();
@@ -198,9 +198,9 @@ void Renderer::RenderFrame()
 
 		// m_basicEffectP.SetDirectionalLight(light, lightCount);
 		// m_basicEffectPC.SetDirectionalLight(light, lightCount);
-		m_basicEffectPN.SetDirectionalLight(light, lightCount);
+		// m_basicEffectPN.SetDirectionalLight(light, lightCount);
 		// m_basicEffectPT.SetDirectionalLight(light, lightCount);
-		m_basicEffectPNT.SetDirectionalLight(light, lightCount);
+		// m_basicEffectPNT.SetDirectionalLight(light, lightCount);
 		m_basicEffectPNTT.SetDirectionalLight(light, lightCount);
 		m_basicEffectPNTTSkinned.SetDirectionalLight(light, lightCount);
 		// m_skyboxEffect.SetDirectionalLight(light, lightCount);
@@ -235,9 +235,9 @@ void Renderer::RenderFrame()
 
 		// m_basicEffectP.SetPointLight(light, lightCount);
 		// m_basicEffectPC.SetPointLight(light, lightCount);
-		m_basicEffectPN.SetPointLight(light, lightCount);
+		// m_basicEffectPN.SetPointLight(light, lightCount);
 		// m_basicEffectPT.SetPointLight(light, lightCount);
-		m_basicEffectPNT.SetPointLight(light, lightCount);
+		// m_basicEffectPNT.SetPointLight(light, lightCount);
 		m_basicEffectPNTT.SetPointLight(light, lightCount);
 		m_basicEffectPNTTSkinned.SetPointLight(light, lightCount);
 		// m_skyboxEffect.SetPointLight(light, lightCount);
@@ -284,9 +284,9 @@ void Renderer::RenderFrame()
 
 		// m_basicEffectP.SetSpotLight(light, lightCount);
 		// m_basicEffectPC.SetSpotLight(light, lightCount);
-		m_basicEffectPN.SetSpotLight(light, lightCount);
+		// m_basicEffectPN.SetSpotLight(light, lightCount);
 		// m_basicEffectPT.SetSpotLight(light, lightCount);
-		m_basicEffectPNT.SetSpotLight(light, lightCount);
+		// m_basicEffectPNT.SetSpotLight(light, lightCount);
 		m_basicEffectPNTT.SetSpotLight(light, lightCount);
 		m_basicEffectPNTTSkinned.SetSpotLight(light, lightCount);
 		// m_skyboxEffect.SetSpotLight(light, lightCount);
@@ -320,11 +320,11 @@ void Renderer::RenderFrame()
 		pImmContext->OMSetRenderTargets(_countof(rtvs), rtvs, pDepthStencilBufferDSV);
 		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 		// PerCamera 상수버퍼 업데이트 및 바인딩
-		m_basicEffectP.SetCamera(pCamera);
-		m_basicEffectPC.SetCamera(pCamera);
-		m_basicEffectPN.SetCamera(pCamera);
-		m_basicEffectPT.SetCamera(pCamera);
-		m_basicEffectPNT.SetCamera(pCamera);
+		// m_basicEffectP.SetCamera(pCamera);
+		// m_basicEffectPC.SetCamera(pCamera);
+		// m_basicEffectPN.SetCamera(pCamera);
+		// m_basicEffectPT.SetCamera(pCamera);
+		// m_basicEffectPNT.SetCamera(pCamera);
 		m_basicEffectPNTT.SetCamera(pCamera);
 		m_basicEffectPNTTSkinned.SetCamera(pCamera);
 		m_skyboxEffect.SetCamera(pCamera);
@@ -344,7 +344,6 @@ void Renderer::RenderFrame()
 			if (!Math::TestFrustumAabbCollision(worldSpaceFrustum, worldSpaceAabb))
 				continue;
 
-			RenderVFPositionNormalTangentTexCoordMesh(pMeshRenderer);
 			/*
 			switch (pMesh->GetVertexFormatType())
 			{
@@ -373,6 +372,7 @@ void Renderer::RenderFrame()
 				break;
 			}
 			*/
+			RenderVFPositionNormalTangentTexCoordMesh(pMeshRenderer);
 		}
 
 		for (const IComponent* pComponent : SkinnedMeshRendererManager::GetInstance()->m_directAccessGroup)
@@ -537,6 +537,7 @@ void Renderer::RenderFrame()
 	HRESULT hr = GraphicDevice::GetInstance()->GetSwapChainComInterface()->Present(1, 0);
 }
 
+/*
 void Renderer::RenderVFPositionMesh(const MeshRenderer* pMeshRenderer)
 {
 	const StaticMesh* pMesh = pMeshRenderer->GetMeshPtr();
@@ -569,7 +570,9 @@ void Renderer::RenderVFPositionMesh(const MeshRenderer* pMeshRenderer)
 		m_effectImmediateContext.DrawIndexed(subset.GetIndexCount(), subset.GetStartIndexLocation(), 0);
 	}
 }
+*/
 
+/*
 void Renderer::RenderVFPositionColorMesh(const MeshRenderer* pMeshRenderer)
 {
 	const StaticMesh* pMesh = pMeshRenderer->GetMeshPtr();
@@ -602,7 +605,9 @@ void Renderer::RenderVFPositionColorMesh(const MeshRenderer* pMeshRenderer)
 		m_effectImmediateContext.DrawIndexed(subset.GetIndexCount(), subset.GetStartIndexLocation(), 0);
 	}
 }
+*/
 
+/*
 void Renderer::RenderVFPositionNormalMesh(const MeshRenderer* pMeshRenderer)
 {
 	const StaticMesh* pMesh = pMeshRenderer->GetMeshPtr();
@@ -650,7 +655,9 @@ void Renderer::RenderVFPositionNormalMesh(const MeshRenderer* pMeshRenderer)
 		m_effectImmediateContext.DrawIndexed(currentSubset.GetIndexCount(), currentSubset.GetStartIndexLocation(), 0);
 	}
 }
+*/
 
+/*
 void Renderer::RenderVFPositionTexCoordMesh(const MeshRenderer* pMeshRenderer)
 {
 	const StaticMesh* pMesh = pMeshRenderer->GetMeshPtr();
@@ -691,7 +698,9 @@ void Renderer::RenderVFPositionTexCoordMesh(const MeshRenderer* pMeshRenderer)
 		m_effectImmediateContext.DrawIndexed(currentSubset.GetIndexCount(), currentSubset.GetStartIndexLocation(), 0);
 	}
 }
+*/
 
+/*
 void Renderer::RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshRenderer)
 {
 	const StaticMesh* pMesh = pMeshRenderer->GetMeshPtr();
@@ -741,6 +750,7 @@ void Renderer::RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshRende
 		m_effectImmediateContext.DrawIndexed(currentSubset.GetIndexCount(), currentSubset.GetStartIndexLocation(), 0);
 	}
 }
+*/
 
 void Renderer::RenderVFPositionNormalTangentTexCoordMesh(const MeshRenderer* pMeshRenderer)
 {

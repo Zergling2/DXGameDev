@@ -14,7 +14,7 @@ void Warehouse::OnLoadScene()
 		pSun->m_transform.SetRotationEuler(XMVectorSet(XMConvertToRadians(45), XMConvertToRadians(150), 0.0f, 0.0f));
 		ComponentHandle<DirectionalLight> hLight = pSun->AddComponent<DirectionalLight>();
 		DirectionalLight* pLight = hLight.ToPtr();
-		XMStoreFloat4A(&pLight->m_ambient, Math::Vector3::One());
+		XMStoreFloat4A(&pLight->m_ambient, XMVectorScale(Math::Vector3::One(), 0.75f));
 		XMStoreFloat4A(&pLight->m_diffuse, Math::Vector3::One());
 		XMStoreFloat4A(&pLight->m_specular, Math::Vector3::One());
 	}
@@ -164,12 +164,6 @@ void Warehouse::OnLoadScene()
 
 
 	// Resources
-
-	ModelData mdMaleBase = ResourceLoader::GetInstance()->LoadModel(L"Resource\\Models\\Characters\\MaleBaseMesh.glb");
-	std::shared_ptr<SkinnedMesh> meshMaleBase = mdMaleBase.skinnedMeshes[0];
-	std::shared_ptr<Armature> armaMaleBase = mdMaleBase.armatures[0];
-
-
 	std::shared_ptr<StaticMesh> meshClosedContainer = ResourceLoader::GetInstance()->LoadModel(L"Resource\\Models\\Props\\ClosedContainer\\ClosedContainer.obj").staticMeshes[0];
 	std::shared_ptr<StaticMesh> meshClosedLongContainer = ResourceLoader::GetInstance()->LoadModel(L"Resource\\Models\\Props\\ClosedContainer\\ClosedLongContainer.obj").staticMeshes[0];
 	std::shared_ptr<StaticMesh> meshOpenContainer1 = ResourceLoader::GetInstance()->LoadModel(L"Resource\\Models\\Props\\OpenContainer\\OpenContainer1.obj").staticMeshes[0];
@@ -349,16 +343,45 @@ void Warehouse::OnLoadScene()
 
 	// Ä³¸¯ÅÍ Skinned Mesh Test
 	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Character");
+		ModelData mdMaleBase = ResourceLoader::GetInstance()->LoadModel(L"Resource\\Models\\Characters\\Steven\\steven.glb");
+		std::shared_ptr<SkinnedMesh> meshSteven = mdMaleBase.skinnedMeshes[0];
+		std::shared_ptr<Armature> armaSteven = mdMaleBase.armatures[0];
+
+		GameObjectHandle hGameObject = CreateGameObject(L"Steven");
 		GameObject* pGameObject = hGameObject.ToPtr();
 		pGameObject->m_transform.SetPosition(XMVectorZero());
 
 		ComponentHandle<SkinnedMeshRenderer> hMeshRenderer = pGameObject->AddComponent<SkinnedMeshRenderer>();
 		SkinnedMeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshMaleBase);
-		pMeshRenderer->SetMaterial(0, matClosedContainer);
-		pMeshRenderer->SetArmature(armaMaleBase);
-		pMeshRenderer->PlayAnimation("Stand_Walk_Rifle", 1.0f, true, 0.0f);
+
+		auto matBody = ResourceLoader::GetInstance()->CreateMaterial();
+		XMStoreFloat4A(&matBody->m_ambient, XMVectorScale(Math::Vector3::One(), 0.3f));
+		XMStoreFloat4A(&matBody->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.9f));
+		XMStoreFloat4A(&matBody->m_specular, XMVectorScale(Math::Vector3::One(), 0.1f));
+		matBody->m_specular.w = 4.0f;
+		matBody->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Characters\\Steven\\textures\\body.png");
+		
+		auto matSuit = ResourceLoader::GetInstance()->CreateMaterial();
+		XMStoreFloat4A(&matSuit->m_ambient, XMVectorScale(Math::Vector3::One(), 0.5f));
+		XMStoreFloat4A(&matSuit->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.9f));
+		XMStoreFloat4A(&matSuit->m_specular, XMVectorScale(Math::Vector3::One(), 0.1f));
+		matSuit->m_specular.w = 4.0f;
+		matSuit->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Characters\\Steven\\textures\\suit_diffuse.png");
+		matSuit->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Characters\\Steven\\textures\\suit_normal.png");
+		
+		auto matShoes = ResourceLoader::GetInstance()->CreateMaterial();
+		XMStoreFloat4A(&matShoes->m_ambient, XMVectorScale(Math::Vector3::One(), 0.25f));
+		XMStoreFloat4A(&matShoes->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.5f));
+		XMStoreFloat4A(&matShoes->m_specular, XMVectorScale(Math::Vector3::One(), 0.25f));
+		matShoes->m_specular.w = 4.0f;
+		
+		pMeshRenderer->SetMesh(meshSteven);
+		pMeshRenderer->SetMaterial(0, matBody);
+		pMeshRenderer->SetMaterial(1, matSuit);
+		pMeshRenderer->SetMaterial(2, matShoes);
+
+		pMeshRenderer->SetArmature(armaSteven);
+		pMeshRenderer->PlayAnimation("Stand_Idle_Rifle", 1.0f, true, 0.0f);
 	}
 	{
 		GameObjectHandle hContainer = CreateGameObject(L"Closed Long Container");

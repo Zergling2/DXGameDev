@@ -6,7 +6,6 @@
 namespace ze
 {
 	class Camera;
-	class Terrain;
 
 	class TerrainEffect : public IEffect
 	{
