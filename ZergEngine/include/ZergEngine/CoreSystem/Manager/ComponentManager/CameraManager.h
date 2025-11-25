@@ -22,8 +22,7 @@ namespace ze
 		virtual void RemoveDestroyedComponents() override;
 
 		void Update();
-		void ResizeBuffer(uint32_t width, uint32_t height);
-		void OnResize();
+		bool ResizeBuffer(uint32_t width, uint32_t height);
 	private:
 		static CameraManager* s_pInstance;
 	};

@@ -1,5 +1,5 @@
 #include <ZergEngine\CoreSystem\GraphicDevice.h>
-#include <ZergEngine\CoreSystem\Debug.h>
+#include <ZergEngine\CoreSystem\Runtime.h>
 #include <ZergEngine\CoreSystem\Window.h>
 #include <ZergEngine\CoreSystem\FileSystem.h>
 #include <ZergEngine\CoreSystem\InputLayout.h>
@@ -11,6 +11,10 @@ GraphicDevice* GraphicDevice::s_pInstance = nullptr;
 
 PCWSTR SHADER_LOAD_FAIL_MSG_FMT = L"Failed to open compiled shader object.\n%s";
 PCWSTR SHADER_PATH = L"Engine\\Bin\\Shader\\";
+// constexpr float allows only one floating point constant to exist in memory, even if it is not encoded in a x86 command.
+constexpr uint32_t SWAP_CHAIN_FLAG = 0;
+constexpr DXGI_FORMAT SWAP_CHAIN_FORMAT = DXGI_FORMAT_B8G8R8A8_UNORM;
+constexpr DXGI_FORMAT SWAP_CHAIN_RTV_FORMAT = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
 
 static PCWSTR VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::COUNT)] =
 {
@@ -27,17 +31,14 @@ static PCWSTR VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::COUNT)] 
 	L"VSTransformPTQuadToHCS.cso",
 	L"VSTransformCameraMergeQuad.cso"
 };
-
 static PCWSTR HULL_SHADER_FILES[static_cast<size_t>(HullShaderType::COUNT)] =
 {
 	L"HSCalcTerrainTessFactor.cso"
 };
-
 static PCWSTR DOMAIN_SHADER_FILES[static_cast<size_t>(DomainShaderType::COUNT)] =
 {
 	L"DSSampleTerrainHeightMap.cso"
 };
-
 static PCWSTR PIXEL_SHADER_FILES[static_cast<size_t>(PixelShaderType::COUNT)] =
 {
 	L"PSColorSkyboxFragment.cso",
@@ -51,13 +52,8 @@ static PCWSTR PIXEL_SHADER_FILES[static_cast<size_t>(PixelShaderType::COUNT)] =
 	L"PSColorPNTTFragment.cso"
 };
 
-// constexpr float allows only one floating point constant to exist in memory, even if it is not encoded in a x86 command.
-constexpr uint32_t SWAP_CHAIN_FLAG = 0;
-constexpr DXGI_FORMAT BACK_BUFFER_FORMAT = DXGI_FORMAT_B8G8R8A8_UNORM;
-
 GraphicDevice::GraphicDevice()
-	: m_backBufferFormat(BACK_BUFFER_FORMAT)
-	, m_descAdapter()
+	: m_descAdapter()
 	, m_descSwapChain()
 	, m_swapChainSizeFlt(0.0f, 0.0f)
 	, m_swapChainHalfSizeFlt(0.0f, 0.0f)
@@ -107,9 +103,12 @@ void GraphicDevice::DestroyInstance()
 	s_pInstance = nullptr;
 }
 
-void GraphicDevice::Init(HWND hWnd, uint32_t width, uint32_t height, bool fullscreen)
+bool GraphicDevice::Init(HWND hWnd, uint32_t width, uint32_t height, bool fullscreen)
 {
+	SyncFileLogger& sfl = Runtime::GetInstance()->GetSyncFileLogger();
 	HRESULT hr;
+
+	sfl.Write(L"Initializing GraphicDevice...\n");
 
 	// A. D3D11 µð¹ÙÀÌ½º ¹× ÄÁÅØ½ºÆ® »ý¼º
 	// https://learn.microsoft.com/en-us/windows/win32/api/d2d1/nf-d2d1-id2d1factory-createdxgisurfacerendertarget(idxgisurface_constd2d1_render_target_properties__id2d1rendertarget)?devlangs=cpp&f1url=%3FappId%3DDev17IDEF1%26l%3DEN-US%26k%3Dk(D2D1%2FID2D1Factory%3A%3ACreateDxgiSurfaceRenderTarget)%3Bk(ID2D1Factory%3A%3ACreateDxgiSurfaceRenderTarget)%3Bk(CreateDxgiSurfaceRenderTarget)%3Bk(DevLang-C%2B%2B)%3Bk(TargetOS-Windows)%26rd%3Dtrue
@@ -141,23 +140,34 @@ void GraphicDevice::Init(HWND hWnd, uint32_t width, uint32_t height, bool fullsc
 		m_cpImmediateContext.GetAddressOf()
 	);
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTMessageBox(L"D3D11CreateDevice()", hr);
+	{
+		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"D3D11CreateDevice", hr);
+		return false;
+	}
 
 	if (maxSupportedFeatureLevel < D3D_FEATURE_LEVEL_11_1)
-		Debug::ForceCrashWithMessageBox(L"Fail", L"Device does not support DirectX 11.1 feature level.");
+	{
+		sfl.Write(L"Device does not support DirectX 11.1 feature level.");
+		return false;
+	}
 
 	// B. D2D Factory »ý¼º
 	assert(m_cpD2DFactory == nullptr);
 	hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, __uuidof(ID2D1Factory), reinterpret_cast<void**>(m_cpD2DFactory.GetAddressOf()));
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTMessageBox(L"D2D1CreateFactory()", hr);
+	{
+		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"D2D1CreateFactory", hr);
+		return false;
+	}
 
 	// C. DWrite Factory »ý¼º ¹× ±âº» ÅØ½ºÆ®Æ÷¸Ë »ý¼º
 	assert(m_cpDWriteFactory == nullptr);
 	hr = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), reinterpret_cast<IUnknown**>(m_cpDWriteFactory.GetAddressOf()));
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTMessageBox(L"DWriteCreateFactory()", hr);
-
+	{
+		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"DWriteCreateFactory", hr);
+		return false;
+	}
 
 	// Áö¿øµÇ´Â ÇØ»óµµ ¸ñ·Ï °Ë»ö
 	this->CreateSupportedResolutionInfo();
@@ -175,7 +185,7 @@ void GraphicDevice::Init(HWND hWnd, uint32_t width, uint32_t height, bool fullsc
 	descSwapChain.BufferDesc.Height = height;
 	descSwapChain.BufferDesc.RefreshRate.Numerator = 1;
 	descSwapChain.BufferDesc.RefreshRate.Denominator = 144;
-	descSwapChain.BufferDesc.Format = this->GetBackBufferFormat();
+	descSwapChain.BufferDesc.Format = SWAP_CHAIN_FORMAT;
 	descSwapChain.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 	descSwapChain.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 	descSwapChain.SampleDesc.Count = 1;
@@ -187,21 +197,6 @@ void GraphicDevice::Init(HWND hWnd, uint32_t width, uint32_t height, bool fullsc
 	descSwapChain.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;	// Windows 10ºÎÅÍ Áö¿ø (This flag cannot be used with multisampling and partial presentation.)
 	descSwapChain.Flags = SWAP_CHAIN_FLAG;
 
-	D3D11_TEXTURE2D_DESC descDepthStencil;
-	ZeroMemory(&descDepthStencil, sizeof(descDepthStencil));
-	// Depth/Stencil buffer (¹öÆÛ Å©±â´Â ¹Ýµå½Ã ½º¿Ò Ã¼ÀÎÀÇ ¹é ¹öÆÛ¿Í ÀÏÄ¡ÇØ¾ß ÇÔ)
-	descDepthStencil.Width = descSwapChain.BufferDesc.Width;
-	descDepthStencil.Height = descSwapChain.BufferDesc.Height;
-	descDepthStencil.MipLevels = 1;
-	descDepthStencil.ArraySize = 1;
-	descDepthStencil.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	// Must match with swap chain's MSAA setting!
-	descDepthStencil.SampleDesc = descSwapChain.SampleDesc;
-	descDepthStencil.Usage = D3D11_USAGE_DEFAULT;
-	descDepthStencil.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-	descDepthStencil.CPUAccessFlags = 0;
-	descDepthStencil.MiscFlags = 0;
-
 	// ½º¿Ò Ã¼ÀÎ »ý¼º
 	// First, Get IDXGIFactory instance
 	// DirectX Graphics Infrastructure(DXGI)
@@ -211,101 +206,75 @@ void GraphicDevice::Init(HWND hWnd, uint32_t width, uint32_t height, bool fullsc
 
 	// Use the IDXGIFactory instance that was used to create the device! (by COM queries)
 	// Device °´Ã¼¿Í ¿¬°áµÈ IDXGIFactory ÀÎÅÍÆäÀÌ½º °´Ã¼¸¦ È¹µæÇØ¼­ ½º¿Ò Ã¼ÀÎÀ» »ý¼ºÇØ¾ß ÇÑ´Ù.
-	do
+	// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
+	hr = m_cpDevice->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void**>(cpDXGIDevice.GetAddressOf()));
+	if (FAILED(hr))
 	{
-		// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
-		hr = m_cpDevice->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void**>(cpDXGIDevice.GetAddressOf()));
-		if (FAILED(hr))
-			break;
+		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"ID3D11Device::QueryInterface", hr);
+		return false;
+	}
 
-		hr = cpDXGIDevice->GetParent(__uuidof(IDXGIAdapter), reinterpret_cast<void**>(cpDXGIAdapter.GetAddressOf()));
-		if (FAILED(hr))
-			break;
+	hr = cpDXGIDevice->GetParent(__uuidof(IDXGIAdapter), reinterpret_cast<void**>(cpDXGIAdapter.GetAddressOf()));
+	if (FAILED(hr))
+	{
+		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"IDXGIDevice::GetParent", hr);
+		return false;
+	}
 
-		// ¾î´ðÅÍ Á¤º¸ È¹µæ
-		hr = cpDXGIAdapter->GetDesc(&m_descAdapter);
-		if (FAILED(hr))
-			break;
+	// ¾î´ðÅÍ Á¤º¸ È¹µæ
+	hr = cpDXGIAdapter->GetDesc(&m_descAdapter);
+	if (FAILED(hr))
+	{
+		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"IDXGIAdapter::GetDesc", hr);
+		return false;
+	}
 
-		hr = cpDXGIAdapter->GetParent(__uuidof(IDXGIFactory), reinterpret_cast<void**>(cpDXGIFactory.GetAddressOf()));
-		if (FAILED(hr))
-			break;
+	hr = cpDXGIAdapter->GetParent(__uuidof(IDXGIFactory), reinterpret_cast<void**>(cpDXGIFactory.GetAddressOf()));
+	if (FAILED(hr))
+	{
+		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"IDXGIAdapter::GetParent", hr);
+		return false;
+	}
 
-		// ½º¿Ò Ã¼ÀÎ »ý¼º
-		assert(m_cpSwapChain == nullptr);
-		hr = cpDXGIFactory->CreateSwapChain(m_cpDevice.Get(), &descSwapChain, m_cpSwapChain.GetAddressOf());
-		if (FAILED(hr))
-			break;
+	// ½º¿Ò Ã¼ÀÎ »ý¼º
+	assert(m_cpSwapChain == nullptr);
+	hr = cpDXGIFactory->CreateSwapChain(m_cpDevice.Get(), &descSwapChain, m_cpSwapChain.GetAddressOf());
+	if (FAILED(hr))
+	{
+		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"IDXGIFactory::CreateSwapChain", hr);
+		return false;
+	}
 
-		// ¸¸µé¾îÁø ½º¿Ò Ã¼ÀÎÀÇ Á¤º¸ ÀúÀå
-		m_cpSwapChain->GetDesc(&m_descSwapChain);
-		m_swapChainSizeFlt = XMFLOAT2(static_cast<FLOAT>(m_descSwapChain.BufferDesc.Width), static_cast<FLOAT>(m_descSwapChain.BufferDesc.Height));
-		m_swapChainHalfSizeFlt = XMFLOAT2(m_swapChainSizeFlt.x * 0.5f, m_swapChainSizeFlt.y * 0.5f);
-		// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
-		
-		
-		// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
-		// ½º¿Ò Ã¼ÀÎÀÇ ¹é¹öÆÛ¿¡ ´ëÇÑ ·»´õ Å¸°Ù ºä Àç»ý¼º
-		ComPtr<ID3D11Texture2D> cpBackBuffer;
-		hr = m_cpSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(cpBackBuffer.GetAddressOf()));
-		if (FAILED(hr))
-			break;
+	// ½º¿Ò Ã¼ÀÎ Á¤º¸ ÀúÀå
+	hr = m_cpSwapChain->GetDesc(&m_descSwapChain);
+	if (FAILED(hr))
+	{
+		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"IDXGISwapChain::GetDesc", hr);
+		return false;
+	}
 
-		assert(m_cpSwapChainRTV == nullptr);
-		hr = m_cpDevice->CreateRenderTargetView(cpBackBuffer.Get(), nullptr, m_cpSwapChainRTV.GetAddressOf());
-		if (FAILED(hr))
-			break;
-		// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
+	m_swapChainSizeFlt = XMFLOAT2(static_cast<FLOAT>(m_descSwapChain.BufferDesc.Width), static_cast<FLOAT>(m_descSwapChain.BufferDesc.Height));
+	m_swapChainHalfSizeFlt = XMFLOAT2(m_swapChainSizeFlt.x * 0.5f, m_swapChainSizeFlt.y * 0.5f);
 
-		// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
-		// ½º¿Ò Ã¼ÀÎ¿¡ ´ëÇÑ ·»´õ¸µ¿¡ »ç¿ëÇÒ µª½º ½ºÅÙ½Ç ºä Àç»ý¼º
-		ComPtr<ID3D11Texture2D> cpDepthStencilBuffer;
-		hr = m_cpDevice->CreateTexture2D(&descDepthStencil, nullptr, cpDepthStencilBuffer.GetAddressOf());
-		if (FAILED(hr))
-			break;
-		cpDepthStencilBuffer->GetDesc(&m_descDepthStencil);
+	// ÀüÃ¼ ½º¿Ò Ã¼ÀÎ ¿µ¿ªÀ» ³ªÅ¸³»´Â ºäÆ÷Æ® ±¸Á¶Ã¼ ¾÷µ¥ÀÌÆ®
+	m_entireSwapChainViewport.TopLeftX = 0.0f;
+	m_entireSwapChainViewport.TopLeftY = 0.0f;
+	m_entireSwapChainViewport.Width = static_cast<FLOAT>(m_descSwapChain.BufferDesc.Width);
+	m_entireSwapChainViewport.Height = static_cast<FLOAT>(m_descSwapChain.BufferDesc.Height);
+	m_entireSwapChainViewport.MinDepth = 0.0f;
+	m_entireSwapChainViewport.MaxDepth = 1.0f;
 
-		assert(m_cpSwapChainDSV == nullptr);
-		hr = m_cpDevice->CreateDepthStencilView(cpDepthStencilBuffer.Get(), nullptr, m_cpSwapChainDSV.GetAddressOf());
-		if (FAILED(hr))
-			break;
-		// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
-		
-		// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
-		// D2D ¸®¼Ò½º »ý¼º
-		// 
-		// ½º¿Ò Ã¼ÀÎÀÇ ¹é ¹öÆÛ¿¡ ´ëÇÑ Direct2D¿ë DXGI Surface ·»´õ Å¸°Ù »ý¼º
-		ComPtr<IDXGISurface> cpBackBufferSurface;
-		hr = m_cpSwapChain->GetBuffer(0, IID_PPV_ARGS(cpBackBufferSurface.GetAddressOf()));
-		if (FAILED(hr))
-			break;
-
-		assert(m_cpD2DRenderTarget == nullptr);
-		const D2D1_RENDER_TARGET_PROPERTIES props =	D2D1::RenderTargetProperties(
-			D2D1_RENDER_TARGET_TYPE_DEFAULT,
-			D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED)
-		);
-		// Create a Direct2D render target that can draw into the surface in the swap chain
-		hr = m_cpD2DFactory->CreateDxgiSurfaceRenderTarget(
-			cpBackBufferSurface.Get(),
-			&props,
-			m_cpD2DRenderTarget.GetAddressOf()
-		);
-		if (FAILED(hr))
-			break;
-
-		assert(m_cpD2DSolidColorBrush == nullptr);
-		hr = m_cpD2DRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White, 1.0f), m_cpD2DSolidColorBrush.GetAddressOf());
-		if (FAILED(hr))
-			break;
-	} while (false);
-
-	this->UpdateEntireSwapChainViewport(m_descSwapChain.BufferDesc.Width, m_descSwapChain.BufferDesc.Height);
+	// ½º¿Ò Ã¼ÀÎ Á¤º¸ ±â¹ÝÀ¸·Î ¸®¼Ò½ºµé »ý¼º
+	if (!this->CreateGraphicDeviceResources())
+		return false;
 
 	// DXGI ÆíÀÇ±â´É ºñÈ°¼ºÈ­
 	hr = cpDXGIFactory->MakeWindowAssociation(hWnd, DXGI_MWA_NO_WINDOW_CHANGES | DXGI_MWA_NO_ALT_ENTER);
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTMessageBox(L"MakeWindowAssociation()", hr);
+	{
+		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"IDXGIFactory::MakeWindowAssociation", hr);
+		return false;
+	}
 
 	// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬ CREATE SHADERS AND INPUT LAYOUTS ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
 	this->CreateShaderAndInputLayout();
@@ -324,6 +293,10 @@ void GraphicDevice::Init(HWND hWnd, uint32_t width, uint32_t height, bool fullsc
 
 	// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬ CREATE COMMON VERTEX BUFFERS ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
 	this->CreateCommonVertexBuffers();
+
+	sfl.Write(L"GraphicDevice init completed.\n");
+
+	return true;
 }
 
 void GraphicDevice::UnInit()
@@ -994,16 +967,6 @@ UINT GraphicDevice::GetMSAAMaximumQuality(MultisamplingAntiAliasingMode sampleCo
 	return quality;
 }
 
-void GraphicDevice::UpdateEntireSwapChainViewport(uint32_t width, uint32_t height)
-{
-	m_entireSwapChainViewport.TopLeftX = 0.0f;
-	m_entireSwapChainViewport.TopLeftY = 0.0f;
-	m_entireSwapChainViewport.Width = static_cast<FLOAT>(width);
-	m_entireSwapChainViewport.Height = static_cast<FLOAT>(height);
-	m_entireSwapChainViewport.MinDepth = 0.0f;
-	m_entireSwapChainViewport.MaxDepth = 1.0f;
-}
-
 std::shared_ptr<DWriteTextFormatWrapper> GraphicDevice::GetDWriteTextFormatWrapper(const TextFormat& tf)
 {
 	HRESULT hr;
@@ -1103,12 +1066,12 @@ void GraphicDevice::CreateSupportedResolutionInfo()
 	// Áö¿øµÇ´Â ÇØ»óµµ ¸ñ·Ï °¡Á®¿À±â
 	// ¸ÕÀú °³¼ö È¹µæ
 	UINT numModes = 0;
-	hr = cpOutput->GetDisplayModeList(this->GetBackBufferFormat(), 0, &numModes, nullptr);
+	hr = cpOutput->GetDisplayModeList(SWAP_CHAIN_FORMAT, 0, &numModes, nullptr);
 	if (FAILED(hr))
 		Debug::ForceCrashWithHRESULTMessageBox(L"Failed to load display mode list.", hr);
 
 	m_supportedResolution.resize(numModes);
-	hr = cpOutput->GetDisplayModeList(this->GetBackBufferFormat(), 0, &numModes, m_supportedResolution.data());
+	hr = cpOutput->GetDisplayModeList(SWAP_CHAIN_FORMAT, 0, &numModes, m_supportedResolution.data());
 	if (FAILED(hr))
 		Debug::ForceCrashWithHRESULTMessageBox(L"Failed to load display mode list.", hr);
 }
@@ -1126,11 +1089,141 @@ void GraphicDevice::CreateSupportedMSAAQualityInfo()
 	for (UINT i = 0; i < _countof(sc); ++i)
 	{
 		UINT quality;
-		hr = m_cpDevice->CheckMultisampleQualityLevels(this->GetBackBufferFormat(), static_cast<UINT>(sc[i]), &quality);
+		hr = m_cpDevice->CheckMultisampleQualityLevels(SWAP_CHAIN_FORMAT, static_cast<UINT>(sc[i]), &quality);
 
 		if (SUCCEEDED(hr) && quality != 0)
 			m_supportedMSAA.push_back(std::make_pair(sc[i], quality - 1));
 	}
+}
+
+void GraphicDevice::ReleaseGraphicDeviceResources()
+{
+	// https://learn.microsoft.com/en-us/windows/win32/api/dxgi/nf-dxgi-idxgiswapchain-resizebuffers
+	// [Remarks] MSDN ³»¿ë
+	// You can't resize a swap chain unless you release all outstanding references to its back buffers. <- Áß¿ä
+	// 
+	// You must release all of its 'direct' and 'indirect' references on the back buffers in order for ResizeBuffers to succeed.
+	// (Á÷Á¢ ÂüÁ¶)
+	// 'Direct references' are held by the application after it calls AddRef on a resource.
+	// 
+	// (°£Á¢ ÂüÁ¶)
+	// 'Indirect references' are held by views to a resource, binding a view of the resource to a device context,
+	// a command list that used the resource, a command list that used a view to that resource,
+	// a command list that executed another command list that used the resource, and so on.
+
+	// ½º¿Ò Ã¼ÀÎ¿¡ °üÇÑ ¸®¼Ò½º¸¦ ¸ðµÎ ÇØÁ¦
+	// D2D ¸®¼Ò½ºµé
+	m_cpD2DSolidColorBrush.Reset();
+	m_cpD2DRenderTarget.Reset();
+	// D3D ¸®¼Ò½ºµé
+	m_cpSwapChainDSV.Reset();
+	m_cpSwapChainRTV.Reset();
+}
+
+bool GraphicDevice::CreateGraphicDeviceResources()
+{
+	SyncFileLogger& sfl = Runtime::GetInstance()->GetSyncFileLogger();
+	HRESULT hr;
+
+	sfl.Write(L"Creating graphic device resources...\n");
+	// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
+	// D3D ¸®¼Ò½º Àç»ý¼º
+	// ½º¿Ò Ã¼ÀÎÀÇ ¹é¹öÆÛ¿¡ ´ëÇÑ ·»´õ Å¸°Ù ºä Àç»ý¼º
+	ComPtr<ID3D11Texture2D> cpBackBuffer;
+	hr = m_cpSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(cpBackBuffer.GetAddressOf()));
+	if (FAILED(hr))
+	{
+		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"IDXGISwapChain::GetBuffer", hr);
+		return false;
+	}
+
+	assert(m_cpSwapChainRTV == nullptr);
+	D3D11_RENDER_TARGET_VIEW_DESC swapChainRTVDesc;
+	ZeroMemory(&swapChainRTVDesc, sizeof(swapChainRTVDesc));
+	swapChainRTVDesc.Format = SWAP_CHAIN_RTV_FORMAT;
+	swapChainRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+	swapChainRTVDesc.Texture2D.MipSlice = 0;
+
+	hr = m_cpDevice->CreateRenderTargetView(cpBackBuffer.Get(), &swapChainRTVDesc, m_cpSwapChainRTV.GetAddressOf());
+	if (FAILED(hr))
+	{
+		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"ID3D11Device::CreateRenderTargetView", hr);
+		return false;
+	}
+
+	// ½º¿Ò Ã¼ÀÎ¿¡ ´ëÇÑ ·»´õ¸µ¿¡ »ç¿ëÇÒ µª½º ½ºÅÙ½Ç ¹öÆÛ ¹× ºä Àç»ý¼º
+	// µª½º½ºÅÙ½Ç ¹öÆÛ Àç»ý¼ºÀ» À§ÇØ µð½ºÅ©¸³ÅÍ ¼¼ÆÃ
+	D3D11_TEXTURE2D_DESC descDepthStencil;
+	ZeroMemory(&descDepthStencil, sizeof(descDepthStencil));
+	descDepthStencil.Width = m_descSwapChain.BufferDesc.Width;
+	descDepthStencil.Height = m_descSwapChain.BufferDesc.Height;
+	descDepthStencil.MipLevels = 1;
+	descDepthStencil.ArraySize = 1;
+	descDepthStencil.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	// Must match with swap chain's MSAA setting!
+	descDepthStencil.SampleDesc = m_descSwapChain.SampleDesc;
+	descDepthStencil.Usage = D3D11_USAGE_DEFAULT;
+	descDepthStencil.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	descDepthStencil.CPUAccessFlags = 0;
+	descDepthStencil.MiscFlags = 0;
+
+	ComPtr<ID3D11Texture2D> cpDepthStencilBuffer;	// DSV°¡ µª½º ½ºÅÙ½Ç ¹öÆÛ¸¦ °£Á¢ ÂüÁ¶ÇÏ¹Ç·Î Áö¿ª ComPtr·Î µÎ¾îµµ µÊ
+	hr = m_cpDevice->CreateTexture2D(&descDepthStencil, nullptr, cpDepthStencilBuffer.GetAddressOf());
+	if (FAILED(hr))
+	{
+		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"ID3D11Device::CreateTexture2D", hr);
+		return false;
+	}
+
+	assert(m_cpSwapChainDSV == nullptr);
+	cpDepthStencilBuffer->GetDesc(&m_descDepthStencil);
+	hr = m_cpDevice->CreateDepthStencilView(cpDepthStencilBuffer.Get(), nullptr, m_cpSwapChainDSV.GetAddressOf());
+	if (FAILED(hr))
+	{
+		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"ID3D11Device::CreateDepthStencilView", hr);
+		return false;
+	}
+	// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
+
+	// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
+	// D2D ¸®¼Ò½º Àç»ý¼º
+	// ½º¿Ò Ã¼ÀÎÀÇ ¹é ¹öÆÛ¿¡ ´ëÇÑ Direct2D¿ë DXGI Surface ·»´õ Å¸°Ù »ý¼º
+	ComPtr<IDXGISurface> cpBackBufferSurface;
+	hr = m_cpSwapChain->GetBuffer(0, IID_PPV_ARGS(cpBackBufferSurface.GetAddressOf()));
+	if (FAILED(hr))
+	{
+		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"IDXGISwapChain::GetBuffer", hr);
+		return false;
+	}
+
+	assert(m_cpD2DRenderTarget == nullptr);
+	const D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties(
+		D2D1_RENDER_TARGET_TYPE_DEFAULT,
+		D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED)
+	);
+	// Create a Direct2D render target that can draw into the surface in the swap chain
+	hr = m_cpD2DFactory->CreateDxgiSurfaceRenderTarget(
+		cpBackBufferSurface.Get(),
+		&props,
+		m_cpD2DRenderTarget.GetAddressOf()
+	);
+	if (FAILED(hr))
+	{
+		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"ID2D1Factory::CreateDxgiSurfaceRenderTarget", hr);
+		return false;
+	}
+
+	assert(m_cpD2DSolidColorBrush == nullptr);
+	hr = m_cpD2DRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White, 1.0f), m_cpD2DSolidColorBrush.GetAddressOf());
+	if (FAILED(hr))
+	{
+		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"ID2D1RenderTarget::CreateSolidColorBrush", hr);
+		return false;
+	}
+
+	sfl.Write(L"Completed creating graphic device resources.\n");
+
+	return true;
 }
 
 void GraphicDevice::CreateCommonVertexBuffers()
@@ -1271,53 +1364,32 @@ void GraphicDevice::ReleaseCommonVertexBuffers()
 		m_vb[i].Release();
 }
 
-void GraphicDevice::ResizeBuffer(uint32_t width, uint32_t height)
+bool GraphicDevice::ResizeBuffer(uint32_t width, uint32_t height)
 {
+	SyncFileLogger& sfl = Runtime::GetInstance()->GetSyncFileLogger();
 	HRESULT hr;
 
+	this->ReleaseGraphicDeviceResources();
 	/*
-		m_cpImmContext->ClearState();
-
-		This method resets any device context to the default settings.
-		This sets
-		1. all input / output resource slots
-		2. shaders
-		3. input layouts
-		4. predications
-		5. scissor rectangles
-		6. depth - stencil state
-		7. rasterizer state
-		8. blend state
-		9. sampler state
-		10. viewports
-		to NULL.
-		The primitive topology is set to UNDEFINED.
-		For a scenario where you would like to clear a list of commands recorded so far,
-		call ID3D11DeviceContext::FinishCommandList and throw away the resulting ID3D11CommandList.
+	* m_cpImmContext->ClearState();
+	* 
+	* This method resets any device context to the default settings.
+	* This sets
+	* 1. all input / output resource slots
+	* 2. shaders
+	* 3. input layouts
+	* 4. predications
+	* 5. scissor rectangles
+	* 6. depth - stencil state
+	* 7. rasterizer state
+	* 8. blend state
+	* 9. sampler state
+	* 10. viewports
+	* to NULL.
+	* The primitive topology is set to UNDEFINED.
+	* For a scenario where you would like to clear a list of commands recorded so far,
+	* call ID3D11DeviceContext::FinishCommandList and throw away the resulting ID3D11CommandList.
 	*/
-
-	// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
-	// https://learn.microsoft.com/en-us/windows/win32/api/dxgi/nf-dxgi-idxgiswapchain-resizebuffers
-	// [Remarks] MSDN ³»¿ë
-	// You can't resize a swap chain unless you release all outstanding references to its back buffers. <- Áß¿ä
-	// 
-	// You must release all of its 'direct' and 'indirect' references on the back buffers in order for ResizeBuffers to succeed.
-	// (Á÷Á¢ ÂüÁ¶)
-	// 'Direct references' are held by the application after it calls AddRef on a resource.
-	// 
-	// (°£Á¢ ÂüÁ¶)
-	// 'Indirect references' are held by views to a resource, binding a view of the resource to a device context,
-	// a command list that used the resource, a command list that used a view to that resource,
-	// a command list that executed another command list that used the resource, and so on.
-
-	// ½º¿Ò Ã¼ÀÎ¿¡ °üÇÑ ¸®¼Ò½º¸¦ ¸ðµÎ ÇØÁ¦
-	// D2D ¸®¼Ò½ºµé
-	m_cpD2DSolidColorBrush.Reset();
-	m_cpD2DRenderTarget.Reset();
-	// D3D ¸®¼Ò½ºµé
-	m_cpSwapChainDSV.Reset();
-	m_cpSwapChainRTV.Reset();
-	// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
 
 	// ¸ðµå º¯°æ
 	// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
@@ -1326,13 +1398,13 @@ void GraphicDevice::ResizeBuffer(uint32_t width, uint32_t height)
 	// Ã¢ ¸ðµåÇü ½º¿Ò Ã¼ÀÎÀ» »ý¼ºÇÏ°í ÃÖÁ¾ »ç¿ëÀÚ°¡ SetFullscreenState¸¦ ÅëÇØ ½º¿Ò Ã¼ÀÎÀ» ÀüÃ¼ È­¸éÀ¸·Î º¯°æÇÒ ¼ö ÀÖµµ·Ï ÇÏ´Â °ÍÀÌ ÁÁ½À´Ï´Ù.
 	// Áï, ½º¿Ò Ã¼ÀÎÀ» ÀüÃ¼ È­¸éÀ¸·Î °­Á¦·Î ¼³Á¤ÇÏ±â À§ÇØ DXGI_SWAP_CHAIN_DESC ÀÇ Windowed ¸â¹ö¸¦ FALSE·Î ¼³Á¤ÇÏÁö ¸¶½Ê½Ã¿À.
 	// ±×·¯³ª ½º¿Ò Ã¼ÀÎÀ» ÀüÃ¼ È­¸éÀ¸·Î »ý¼ºÇÏ´Â °æ¿ì ÃÖÁ¾ »ç¿ëÀÚ¿¡°Ô Áö¿øµÇ´Â µð½ºÇÃ·¹ÀÌ ¸ðµå ¸ñ·Ïµµ Á¦°øÇØ¾ß ÇÕ´Ï´Ù.
-	// Áö¿øµÇÁö ¾Ê´Â µð½ºÇÃ·¹ÀÌ ¸ðµå·Î »ý¼ºµÈ ½º¿Ò Ã¼ÀÎÀº µð½ºÇÃ·¹ÀÌ°¡ °Ë°Ô º¯ÇÏ°í ÃÖÁ¾ »ç¿ëÀÚ°¡ ¾Æ¹«°Íµµ º¼ ¼ö ¾ø°Ô ¸¸µé ¼ö ÀÖ±â ¶§¹®ÀÔ´Ï´Ù. (Áß¿ä!)
+	// Áö¿øµÇÁö ¾Ê´Â µð½ºÇÃ·¹ÀÌ ¸ðµå·Î »ý¼ºµÈ ½º¿Ò Ã¼ÀÎÀº µð½ºÇÃ·¹ÀÌ°¡ °Ë°Ô º¯ÇÏ°í ÃÖÁ¾ »ç¿ëÀÚ°¡ ¾Æ¹«°Íµµ º¼ ¼ö ¾ø°Ô ¸¸µé ¼ö ÀÖ±â ¶§¹®ÀÔ´Ï´Ù.
 	// ¶ÇÇÑ ÃÖÁ¾ »ç¿ëÀÚ°¡ µð½ºÇÃ·¹ÀÌ ¸ðµå¸¦ º¯°æÇÒ ¼ö ÀÖµµ·Ï Çã¿ëÇÒ ¶§ ½Ã°£ ÃÊ°ú È®ÀÎ È­¸éÀÌ³ª ±âÅ¸ ´ëÃ¼ ¸ÞÄ¿´ÏÁòÀ» °®´Â °ÍÀÌ ÁÁ½À´Ï´Ù.
 	// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
 
 	// ½º¿ÒÃ¼ÀÎ Å©±â º¯°æ
 	// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
-	// m_pSwapChain->Resize_target();
+	// IDXGISwapChain::ResizeTarget()
 	hr = m_cpSwapChain->ResizeBuffers(
 		0,							// Set this number to zero to preserve the existing number of buffers in the swap chain.
 		width,
@@ -1341,94 +1413,36 @@ void GraphicDevice::ResizeBuffer(uint32_t width, uint32_t height)
 		SWAP_CHAIN_FLAG
 	);
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTMessageBox(L"IDXGISwapChain::ResizeBuffers", hr);
+	{
+		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"IDXGISwapChain::ResizeBuffers", hr);
+		return false;
+	}
 
-	// º¯°æµÈ ½º¿Ò Ã¼ÀÎÀÇ Á¤º¸ È¹µæ
+	// ½º¿Ò Ã¼ÀÎ Á¤º¸ ÀúÀå
 	hr = m_cpSwapChain->GetDesc(&m_descSwapChain);
 	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTMessageBox(L"IDXGISwapChain::GetDesc", hr);
+	{
+		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"IDXGISwapChain::GetDesc", hr);
+		return false;
+	}
 
 	m_swapChainSizeFlt = XMFLOAT2(static_cast<FLOAT>(m_descSwapChain.BufferDesc.Width), static_cast<FLOAT>(m_descSwapChain.BufferDesc.Height));
 	m_swapChainHalfSizeFlt = XMFLOAT2(m_swapChainSizeFlt.x * 0.5f, m_swapChainSizeFlt.y * 0.5f);
 
-	// µª½º½ºÅÙ½Ç ¹öÆÛ Àç»ý¼ºÀ» À§ÇØ µð½ºÅ©¸³ÅÍ ¼¼ÆÃ
-	D3D11_TEXTURE2D_DESC descDepthStencil;
-	ZeroMemory(&descDepthStencil, sizeof(descDepthStencil));
-	descDepthStencil.Width = m_descSwapChain.BufferDesc.Width;
-	descDepthStencil.Height = m_descSwapChain.BufferDesc.Height;
-	descDepthStencil.MipLevels = 1;
-	descDepthStencil.ArraySize = 1;
-	descDepthStencil.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	// Must match with swap chain's MSAA setting!
-	descDepthStencil.SampleDesc = m_descSwapChain.SampleDesc;
-	descDepthStencil.Usage = D3D11_USAGE_DEFAULT;
-	descDepthStencil.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-	descDepthStencil.CPUAccessFlags = 0;
-	descDepthStencil.MiscFlags = 0;
-
-	do
-	{
-		// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
-		// D3D ¸®¼Ò½º Àç»ý¼º
-		// ½º¿Ò Ã¼ÀÎÀÇ ¹é¹öÆÛ¿¡ ´ëÇÑ ·»´õ Å¸°Ù ºä Àç»ý¼º
-		ComPtr<ID3D11Texture2D> cpBackBuffer;
-		hr = m_cpSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(cpBackBuffer.GetAddressOf()));
-		if (FAILED(hr))
-			break;
-
-		assert(m_cpSwapChainRTV == nullptr);
-		hr = m_cpDevice->CreateRenderTargetView(cpBackBuffer.Get(), nullptr, m_cpSwapChainRTV.GetAddressOf());
-		if (FAILED(hr))
-			break;
-
-		// ½º¿Ò Ã¼ÀÎ¿¡ ´ëÇÑ ·»´õ¸µ¿¡ »ç¿ëÇÒ µª½º ½ºÅÙ½Ç ¹öÆÛ ¹× ºä Àç»ý¼º
-		ComPtr<ID3D11Texture2D> cpDepthStencilBuffer;	// DSV°¡ µª½º ½ºÅÙ½Ç ¹öÆÛ¸¦ °£Á¢ ÂüÁ¶ÇÏ¹Ç·Î Áö¿ª ComPtr·Î µÎ¾îµµ µÊ
-		hr = m_cpDevice->CreateTexture2D(&descDepthStencil, nullptr, cpDepthStencilBuffer.GetAddressOf());
-		if (FAILED(hr))
-			break;
-
-		assert(m_cpSwapChainDSV == nullptr);
-		cpDepthStencilBuffer->GetDesc(&m_descDepthStencil);
-		hr = m_cpDevice->CreateDepthStencilView(cpDepthStencilBuffer.Get(), nullptr, m_cpSwapChainDSV.GetAddressOf());
-		if (FAILED(hr))
-			break;
-		// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
-
-		// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
-		// D2D ¸®¼Ò½º Àç»ý¼º
-		// ½º¿Ò Ã¼ÀÎÀÇ ¹é ¹öÆÛ¿¡ ´ëÇÑ Direct2D¿ë DXGI Surface ·»´õ Å¸°Ù »ý¼º
-		ComPtr<IDXGISurface> cpBackBufferSurface;
-		hr = m_cpSwapChain->GetBuffer(0, IID_PPV_ARGS(cpBackBufferSurface.GetAddressOf()));
-		if (FAILED(hr))
-			break;
-
-		assert(m_cpD2DRenderTarget == nullptr);
-		const D2D1_RENDER_TARGET_PROPERTIES props =	D2D1::RenderTargetProperties(
-			D2D1_RENDER_TARGET_TYPE_DEFAULT,
-			D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED)
-		);
-		// Create a Direct2D render target that can draw into the surface in the swap chain
-		hr = m_cpD2DFactory->CreateDxgiSurfaceRenderTarget(
-			cpBackBufferSurface.Get(),
-			&props,
-			m_cpD2DRenderTarget.GetAddressOf()
-		);
-		if (FAILED(hr))
-			break;
-
-		assert(m_cpD2DSolidColorBrush == nullptr);
-		hr = m_cpD2DRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White, 1.0f), m_cpD2DSolidColorBrush.GetAddressOf());
-		if (FAILED(hr))
-			break;
-		// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
-	} while (false);
-
-	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTMessageBox(L"Failed to resize back buffer!", hr);
-	// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
-
 	// ÀüÃ¼ ½º¿Ò Ã¼ÀÎ ¿µ¿ªÀ» ³ªÅ¸³»´Â ºäÆ÷Æ® ±¸Á¶Ã¼ ¾÷µ¥ÀÌÆ®
-	this->UpdateEntireSwapChainViewport(m_descSwapChain.BufferDesc.Width, m_descSwapChain.BufferDesc.Height);
+	m_entireSwapChainViewport.TopLeftX = 0.0f;
+	m_entireSwapChainViewport.TopLeftY = 0.0f;
+	m_entireSwapChainViewport.Width = static_cast<FLOAT>(m_descSwapChain.BufferDesc.Width);
+	m_entireSwapChainViewport.Height = static_cast<FLOAT>(m_descSwapChain.BufferDesc.Height);
+	m_entireSwapChainViewport.MinDepth = 0.0f;
+	m_entireSwapChainViewport.MaxDepth = 1.0f;
+
+
+	// º¯°æµÈ ½º¿Ò Ã¼ÀÎ Á¤º¸ ±â¹ÝÀ¸·Î ¸®¼Ò½ºµé Àç»ý¼º
+	if (!this->CreateGraphicDeviceResources())
+		return false;
+
+	return true;
 }
 
 HRESULT GraphicDevice::SetFullscreenState(BOOL fullscreen)

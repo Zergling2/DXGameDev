@@ -64,7 +64,7 @@ Renderer::Renderer()
 
 	constexpr size_t XMFLOAT4X4A_ALIGNMENT = 16;
 
-	m_pAnimFinalTransformBufferSpace = reinterpret_cast<XMFLOAT4X4A*>(_aligned_malloc(sizeof(XMFLOAT4X4A) * MAX_BONE_COUNT * 2, XMFLOAT4X4A_ALIGNMENT));
+	m_pAnimFinalTransformBufferSpace = reinterpret_cast<XMFLOAT4X4A*>(_aligned_malloc_dbg(sizeof(XMFLOAT4X4A) * MAX_BONE_COUNT * 2, XMFLOAT4X4A_ALIGNMENT, __FILE__, __LINE__));
 	m_pAnimFinalTransformIdentity = m_pAnimFinalTransformBufferSpace;
 	m_pAnimFinalTransformBuffer = m_pAnimFinalTransformIdentity + MAX_BONE_COUNT;
 
@@ -74,7 +74,7 @@ Renderer::Renderer()
 
 Renderer::~Renderer()
 {
-	_aligned_free(m_pAnimFinalTransformBufferSpace);
+	_aligned_free_dbg(m_pAnimFinalTransformBufferSpace);
 }
 
 void Renderer::CreateInstance()

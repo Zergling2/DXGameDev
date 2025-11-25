@@ -7,6 +7,8 @@
 
 namespace ze
 {
+	extern const wchar_t* HRESULT_ERROR_LOG_FMT;
+
 	class Debug
 	{
 	public:

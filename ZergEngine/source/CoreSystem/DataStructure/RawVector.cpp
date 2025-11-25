@@ -1,5 +1,6 @@
 #include <ZergEngine\CoreSystem\DataStructure\RawVector.h>
 #include <cstring>
+#include <crtdbg.h>
 
 using namespace ze;
 
@@ -9,7 +10,7 @@ RawVector::RawVector()
 	: m_byteSize(0)
 	, m_capacity(INITIAL_SIZE)
 {
-	m_pMemBegin = reinterpret_cast<char*>(_aligned_malloc(m_capacity, 16));
+	m_pMemBegin = reinterpret_cast<char*>(_aligned_malloc_dbg(m_capacity, 16, __FILE__, __LINE__));
 	m_pWritePtr = m_pMemBegin;
 	m_pMemEnd = m_pMemBegin + m_capacity;
 }
@@ -17,7 +18,7 @@ RawVector::RawVector()
 RawVector::~RawVector()
 {
 	if (m_pMemBegin)
-		_aligned_free(m_pMemBegin);
+		_aligned_free_dbg(m_pMemBegin);
 }
 
 void RawVector::PushBack(const void* ptr, size_t size)
@@ -40,7 +41,7 @@ void RawVector::Resize(size_t size)
 	if (size == 0 || size == m_capacity)
 		return;
 
-	char* pNewMem  = reinterpret_cast<char*>(_aligned_malloc(size, 16));
+	char* pNewMem  = reinterpret_cast<char*>(_aligned_malloc_dbg(size, 16, __FILE__, __LINE__));
 
 	if (size >= m_byteSize)
 		memcpy_s(pNewMem, size, m_pMemBegin, m_byteSize);
@@ -50,7 +51,7 @@ void RawVector::Resize(size_t size)
 		m_byteSize = size;
 	}
 
-	_aligned_free(m_pMemBegin);
+	_aligned_free_dbg(m_pMemBegin);
 
 	m_capacity = size;
 	m_pMemBegin = pNewMem;

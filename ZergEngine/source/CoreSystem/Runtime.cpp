@@ -46,6 +46,8 @@ Runtime::Runtime()
     , m_nCmdShow(0)
     , m_window()
     , m_hGameWnd(NULL)
+    , m_sfl()
+    , m_afl()
 {
 }
 
@@ -53,14 +55,17 @@ void Runtime::CreateInstance()
 {
     assert(s_pInstance == nullptr);
 
-    s_pInstance = new Runtime();
+    s_pInstance = reinterpret_cast<Runtime*>(_aligned_malloc_dbg(sizeof(Runtime), 64, __FILE__, __LINE__));
+    new(s_pInstance) Runtime();
 }
 
 void Runtime::DestroyInstance()
 {
     assert(s_pInstance != nullptr);
 
-    delete s_pInstance;
+    s_pInstance->~Runtime();
+
+    _aligned_free_dbg(s_pInstance);
     s_pInstance = nullptr;
 }
 
@@ -102,6 +107,8 @@ void Runtime::Init(HINSTANCE hInstance, int nCmdShow, uint32_t width, uint32_t h
     m_hGameWnd = m_window.GetHandle();
 
     MemoryAllocator::GetInstance()->Init();
+    this->CreateLoggers();
+
     FileSystem::GetInstance()->Init();
     Time::GetInstance()->Init();
     Input::GetInstance()->Init(hInstance, m_window.GetHandle());
@@ -158,6 +165,8 @@ void Runtime::InitEditor(HINSTANCE hInstance, HWND hMainFrameWnd, HWND hViewWnd,
 
     m_hGameWnd = hViewWnd;
     MemoryAllocator::GetInstance()->Init();
+    this->CreateLoggers();
+
     FileSystem::GetInstance()->Init();
     Time::GetInstance()->Init();
     Input::GetInstance()->Init(hInstance, hMainFrameWnd);
@@ -201,6 +210,8 @@ void Runtime::UnInit()
     Input::GetInstance()->UnInit();
     Time::GetInstance()->UnInit();
     FileSystem::GetInstance()->UnInit();
+
+    this->ReleaseLoggers();
     MemoryAllocator::GetInstance()->UnInit();
 
     SceneManager::DestroyInstance();
@@ -389,10 +400,47 @@ void Runtime::OnSize(UINT nType, int cx, int cy)
         const uint32_t newHeight = static_cast<uint32_t>(cy);
 
         // SwapChain Resize 및 Depth/Stencil Buffer Resize
-        GraphicDevice::GetInstance()->ResizeBuffer(newWidth, newHeight);
+        constexpr int GDR_CREATION_RETRY_COUNT = 3;
 
-        // Camera Color Buffer & Depth/Stencil Buffer Resize & Projection Matrix Update
-        CameraManager::GetInstance()->ResizeBuffer(newWidth, newHeight);
+        // 그래픽디바이스 시스템 리소스들 재생성
+        int retryInterval = 500;
+        bool success = false;
+        for (int retry = 0; retry < GDR_CREATION_RETRY_COUNT; ++retry)
+        {
+            bool result = GraphicDevice::GetInstance()->ResizeBuffer(newWidth, newHeight);
+            if (result)
+            {
+                success = true;
+                break;
+            }
+
+            Sleep(retryInterval);
+            retryInterval <<= 1;
+        }
+
+        if (!success)
+            Debug::ForceCrashWithMessageBox(L"Error", L"GraphicDevice::ResizeBuffer failed.");
+
+
+        // 카메라의 그래픽 리소스들 재생성
+        retryInterval = 500;
+        success = false;
+        for (int retry = 0; retry < GDR_CREATION_RETRY_COUNT; ++retry)
+        {
+            // Camera Color Buffer & Depth/Stencil Buffer Resize & Projection Matrix Update
+            bool result = CameraManager::GetInstance()->ResizeBuffer(newWidth, newHeight);
+            if (result)
+            {
+                success = true;
+                break;
+            }
+
+            Sleep(retryInterval);
+            retryInterval <<= 1;
+        }
+
+        if (!success)
+            Debug::ForceCrashWithMessageBox(L"Error", L"CameraManager::ResizeBuffer failed.");
 
         // 만약 Lock 모드 또는 Confined 모드였다면 커서 클립 영역을 재계산해야 하므로 설정.
         Cursor::SetLockState(Cursor::GetLockState());
@@ -553,6 +601,52 @@ void Runtime::OutputDXGIDebugLog() const
         OutputDebugStringW(L"Failed to get dxgidebug.dll module handle.\n");
     }
 #endif
+}
+
+void Runtime::CreateLoggers()
+{
+    LPCWSTR logDirName = L"logs";
+    BOOL ret = CreateDirectoryW(logDirName, nullptr);
+
+    if ((ret == FALSE) && (GetLastError() != ERROR_ALREADY_EXISTS))
+        Debug::ForceCrashWithMessageBox(L"Error", L"Failed to create log directory.");
+
+    __time64_t now = _time64(nullptr);
+    tm localTime;
+    localtime_s(&localTime, &now);
+    WCHAR logFileName[64];
+
+#if defined(DEBUG) || defined(_DEBUG)
+    StringCbPrintfW(logFileName, sizeof(logFileName), L"logs\\syslog_dbg_%02d%02d%02d_%02d%02d%02d.log",
+        (localTime.tm_year + 1900) % 100, localTime.tm_mon + 1, localTime.tm_mday,
+        localTime.tm_hour, localTime.tm_min, localTime.tm_sec
+    );
+#else
+    StringCbPrintfW(logFileName, sizeof(logFileName), L"logs\\syslog_%02d%02d%02d_%02d%02d%02d.log",
+        (localTime.tm_year + 1900) % 100, localTime.tm_mon + 1, localTime.tm_mday,
+        localTime.tm_hour, localTime.tm_min, localTime.tm_sec
+    );
+#endif
+    m_sfl.Init(logFileName);
+
+#if defined(DEBUG) || defined(_DEBUG)
+    StringCbPrintfW(logFileName, sizeof(logFileName), L"logs\\asynclog_dbg_%02d%02d%02d_%02d%02d%02d.log",
+        (localTime.tm_year + 1900) % 100, localTime.tm_mon + 1, localTime.tm_mday,
+        localTime.tm_hour, localTime.tm_min, localTime.tm_sec
+    );
+#else
+    StringCbPrintfW(logFileName, sizeof(logFileName), L"logs\\asynclog_%02d%02d%02d_%02d%02d%02d.log",
+        (localTime.tm_year + 1900) % 100, localTime.tm_mon + 1, localTime.tm_mday,
+        localTime.tm_hour, localTime.tm_min, localTime.tm_sec
+    );
+#endif
+    m_afl.Init(logFileName);
+}
+
+void Runtime::ReleaseLoggers()
+{
+    m_sfl.Release();
+    m_afl.Release();
 }
 
 bool Runtime::SetResolution(uint32_t width, uint32_t height, DISPLAY_MODE mode)

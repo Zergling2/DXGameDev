@@ -18,7 +18,7 @@ Armature::Armature(BYTE boneCount)
 
 	// 행렬 배열 메모리 공간 할당
 	constexpr size_t XMFLOAT4X4A_ALIGNMENT = 16;
-	m_pMdInvArray = reinterpret_cast<XMFLOAT4X4A*>(_aligned_malloc(sizeof(XMFLOAT4X4A) * m_boneCount, XMFLOAT4X4A_ALIGNMENT));
+	m_pMdInvArray = reinterpret_cast<XMFLOAT4X4A*>(_aligned_malloc_dbg(sizeof(XMFLOAT4X4A) * m_boneCount, XMFLOAT4X4A_ALIGNMENT, __FILE__, __LINE__));
 }
 
 Armature::~Armature()
@@ -28,11 +28,11 @@ Armature::~Armature()
 	/*
 	// MdInv & Mp 배열 메모리 해제
 	if (m_pMatrixArray)
-		_aligned_free(m_pMatrixArray);
+		_aligned_free_dbg(m_pMatrixArray);
 	*/
 
 	if (m_pMdInvArray)
-		_aligned_free(m_pMdInvArray);
+		_aligned_free_dbg(m_pMdInvArray);
 }
 
 Animation* Armature::AddNewAnimation(const char* animName, float duration)

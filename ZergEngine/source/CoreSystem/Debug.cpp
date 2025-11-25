@@ -3,6 +3,8 @@
 
 using namespace ze;
 
+const wchar_t* ze::HRESULT_ERROR_LOG_FMT = L"%s failed. HRESULT: 0x%x\n";
+
 static VOID NTAPI WakeUpThread(ULONG_PTR parameter)
 {
 	// Do nothing.

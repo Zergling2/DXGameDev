@@ -3,6 +3,7 @@
 #include <ZergEngine\CoreSystem\DisplayMode.h>
 #include <ZergEngine\CoreSystem\Window.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Handle.h>
+#include <ZergEngine\CoreSystem\Debug.h>
 
 namespace ze
 {
@@ -27,6 +28,8 @@ namespace ze
 		void OnIdle();
 		bool IsEditor() const { return m_isEditor; }
 		HWND GetGameWindowHandle() const { return m_hGameWnd; }
+		SyncFileLogger& GetSyncFileLogger() { return m_sfl; }
+		AsyncFileLogger& GetAsyncFileLogger() { return m_afl; }
 
 		// mode가 DISPLAY_MODE::BORDERLESS_WINDOWED일 경우 width, height는 무시됩니다.
 		// mode가 DISPLAY_MODE::FULLSCREEN일 경우 width, height는 각각 전체화면 해상도의 너비, 높이값이 됩니다.
@@ -84,6 +87,8 @@ namespace ze
 	protected:
 		void OutputDXGIDebugLog() const;
 	private:
+		void CreateLoggers();
+		void ReleaseLoggers();
 		void LoadNextScene(IScene* pNextScene);
 	private:
 		static Runtime* s_pInstance;
@@ -93,5 +98,7 @@ namespace ze
 		int m_nCmdShow;
 		Window m_window;
 		HWND m_hGameWnd;
+		SyncFileLogger m_sfl;
+		AsyncFileLogger m_afl;
 	};
 }

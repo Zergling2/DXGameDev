@@ -23,7 +23,7 @@ namespace ze
 		static void CreateInstance();
 		static void DestroyInstance();
 
-		void Init(HWND hWnd, uint32_t width, uint32_t height, bool fullscreen);
+		bool Init(HWND hWnd, uint32_t width, uint32_t height, bool fullscreen);
 		void UnInit();
 
 		bool LoadShaderByteCode(PCWSTR path, byte** ppByteCode, size_t* pSize);
@@ -46,19 +46,25 @@ namespace ze
 		void CreateCommonVertexBuffers();
 		void ReleaseCommonVertexBuffers();
 
-		void ResizeBuffer(uint32_t width, uint32_t height);
+		bool ResizeBuffer(uint32_t width, uint32_t height);
 		HRESULT SetFullscreenState(BOOL fullscreen);
 		HRESULT GetFullscreenState(BOOL* pFullscreen);
 
 		void CreateSupportedResolutionInfo();
 		void CreateSupportedMSAAQualityInfo();
+
+		void ReleaseGraphicDeviceResources();
+		bool CreateGraphicDeviceResources();
 	public:
+		LPCWSTR GetAdapterDescription() const { return m_descAdapter.Description; }
+		size_t GetAdapterDedicatedVideoMemory() const { return m_descAdapter.DedicatedVideoMemory; }
+		size_t GetAdapterDedicatedSystemMemory() const { return m_descAdapter.DedicatedSystemMemory; }
+		size_t GetAdapterSharedSystemMemory() const { return m_descAdapter.SharedSystemMemory; }
+
 		// Return max quality level
-		DXGI_FORMAT GetBackBufferFormat() const { return m_backBufferFormat; }
 		UINT GetMSAAMaximumQuality(MultisamplingAntiAliasingMode sampleCount);
 		const DXGI_SWAP_CHAIN_DESC& GetSwapChainDesc() { return m_descSwapChain; }
 		const D3D11_VIEWPORT& GetEntireSwapChainViewport() const { return m_entireSwapChainViewport; }
-		void UpdateEntireSwapChainViewport(uint32_t width, uint32_t height);
 		uint32_t GetSwapChainWidth() const { return m_descSwapChain.BufferDesc.Width; }
 		uint32_t GetSwapChainHeight() const { return m_descSwapChain.BufferDesc.Height; }
 		float GetSwapChainWidthFlt() const { return m_swapChainSizeFlt.x; }
@@ -103,7 +109,6 @@ namespace ze
 		}
 	private:
 		static GraphicDevice* s_pInstance;
-		DXGI_FORMAT m_backBufferFormat;
 		DXGI_ADAPTER_DESC m_descAdapter;
 		DXGI_SWAP_CHAIN_DESC m_descSwapChain;
 		XMFLOAT2 m_swapChainSizeFlt;

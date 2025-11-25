@@ -4,6 +4,7 @@
 #include <ZergEngine\CoreSystem\Math.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Transform.h>
+#include <ZergEngine\CoreSystem\Runtime.h>
 
 using namespace ze;
 
@@ -23,6 +24,7 @@ constexpr float CAMERA_TESSELLATION_MIN_DIST_DEFAULT = 50.0f;
 constexpr float CAMERA_TESSELLATION_MAX_DIST_DEFAULT = 400.0f;
 constexpr float CAMERA_MIN_TESSELLATION_EXP_DEFAULT = 0.0f;
 constexpr float CAMERA_MAX_TESSELLATION_EXP_DEFAULT = 6.0f;	// 2 ^ 6 = 64 (최대 테셀레이션)
+constexpr DXGI_FORMAT CAMERA_BUFFER_FORMAT = DXGI_FORMAT_B8G8R8A8_UNORM;
 
 Camera::Camera() noexcept
 	: IComponent(CameraManager::GetInstance()->AssignUniqueId())
@@ -141,86 +143,102 @@ bool Camera::SetMaximumTessellationExponent(float exponent)
 	return true;
 }
 
-HRESULT Camera::CreateBuffer(uint32_t width, uint32_t height)
+bool Camera::CreateBuffer(uint32_t width, uint32_t height)
 {
-	HRESULT hr = S_OK;
+	SyncFileLogger& sfl = Runtime::GetInstance()->GetSyncFileLogger();
+
+	HRESULT hr;
 	const float bufferWidth = static_cast<float>(width) * m_viewportRect.m_width;
 	const float bufferHeight = static_cast<float>(height) * m_viewportRect.m_height;
 
-	do
+	m_cpColorBufferRTV.Reset();
+	m_cpColorBufferSRV.Reset();
+	m_cpDepthStencilBufferDSV.Reset();
+
+	ComPtr<ID3D11RenderTargetView> cpColorBufferRTV;
+	ComPtr<ID3D11ShaderResourceView> cpColorBufferSRV;
+	ComPtr<ID3D11DepthStencilView> cpDepthStencilBufferDSV;
+
+	D3D11_TEXTURE2D_DESC colorBufferDesc;
+	ZeroMemory(&colorBufferDesc, sizeof(colorBufferDesc));
+	// 컬러 버퍼 생성 및 컬러 버퍼에 대한 렌더 타겟 뷰 및 셰이더 리소스 뷰 생성
+	colorBufferDesc.Width = static_cast<UINT>(bufferWidth);
+	colorBufferDesc.Height = static_cast<UINT>(bufferHeight);
+	colorBufferDesc.MipLevels = 1;
+	colorBufferDesc.ArraySize = 1;
+	colorBufferDesc.Format = CAMERA_BUFFER_FORMAT;
+	colorBufferDesc.SampleDesc.Count = static_cast<UINT>(MultisamplingAntiAliasingMode::x4);	// (테스트) 4X MSAA에 maximum quailty를 고정으로 사용
+	colorBufferDesc.SampleDesc.Quality = GraphicDevice::GetInstance()->GetMSAAMaximumQuality(MultisamplingAntiAliasingMode::x4);	// Use max quality level
+	colorBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	colorBufferDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;		// 렌더링 + 카메라 병합 셰이더 리소스
+	colorBufferDesc.CPUAccessFlags = 0;
+	colorBufferDesc.MiscFlags = 0;
+
+	ID3D11Device* pDevice = GraphicDevice::GetInstance()->GetDeviceComInterface();
+
+	ComPtr<ID3D11Texture2D> colorBuffer;
+	hr = pDevice->CreateTexture2D(&colorBufferDesc, nullptr, colorBuffer.GetAddressOf());
+	if (FAILED(hr))
 	{
-		m_cpColorBufferRTV.Reset();
-		m_cpColorBufferSRV.Reset();
-		m_cpDepthStencilBufferDSV.Reset();
+		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"ID3D11Device::CreateTexture2D", hr);
+		return false;
+	}
 
-		ComPtr<ID3D11RenderTargetView> cpColorBufferRTV;
-		ComPtr<ID3D11ShaderResourceView> cpColorBufferSRV;
-		ComPtr<ID3D11DepthStencilView> cpDepthStencilBufferDSV;
+	hr = pDevice->CreateRenderTargetView(colorBuffer.Get(), nullptr, cpColorBufferRTV.GetAddressOf());
+	if (FAILED(hr))
+	{
+		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"ID3D11Device::CreateRenderTargetView", hr);
+		return false;
+	}
 
-		D3D11_TEXTURE2D_DESC descColorBuffer;
-		ZeroMemory(&descColorBuffer, sizeof(descColorBuffer));
-		// 컬러 버퍼 생성 및 컬러 버퍼에 대한 렌더 타겟 뷰 및 셰이더 리소스 뷰 생성
-		descColorBuffer.Width = static_cast<UINT>(bufferWidth);
-		descColorBuffer.Height = static_cast<UINT>(bufferHeight);
-		descColorBuffer.MipLevels = 1;
-		descColorBuffer.ArraySize = 1;
-		descColorBuffer.Format = GraphicDevice::GetInstance()->GetBackBufferFormat();
-		descColorBuffer.SampleDesc.Count = static_cast<UINT>(MultisamplingAntiAliasingMode::x4);	// (테스트) 4X MSAA에 maximum quailty를 고정으로 사용
-		descColorBuffer.SampleDesc.Quality = GraphicDevice::GetInstance()->GetMSAAMaximumQuality(MultisamplingAntiAliasingMode::x4);	// Use max quality level
-		descColorBuffer.Usage = D3D11_USAGE_DEFAULT;
-		descColorBuffer.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;		// 렌더링 + 카메라 병합 셰이더 리소스
-		descColorBuffer.CPUAccessFlags = 0;
-		descColorBuffer.MiscFlags = 0;
+	D3D11_SHADER_RESOURCE_VIEW_DESC colorBufferSRVDesc;
+	ZeroMemory(&colorBufferSRVDesc, sizeof(colorBufferSRVDesc));
+	colorBufferSRVDesc.Format = colorBufferDesc.Format;
+	colorBufferSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMS;
+	hr = pDevice->CreateShaderResourceView(colorBuffer.Get(), &colorBufferSRVDesc, cpColorBufferSRV.GetAddressOf());
+	if (FAILED(hr))
+	{
+		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"ID3D11Device::CreateShaderResourceView", hr);
+		return false;
+	}
 
-		ComPtr<ID3D11Texture2D> colorBuffer;
-		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateTexture2D(&descColorBuffer, nullptr, colorBuffer.GetAddressOf());
-		if (FAILED(hr))
-			break;
+	D3D11_TEXTURE2D_DESC depthStencilBufferDesc;
+	ZeroMemory(&depthStencilBufferDesc, sizeof(depthStencilBufferDesc));
+	// 뎁스/스텐실 버퍼 생성 및 뎁스스텐실뷰 생성
+	depthStencilBufferDesc.Width = colorBufferDesc.Width;
+	depthStencilBufferDesc.Height = colorBufferDesc.Height;
+	depthStencilBufferDesc.MipLevels = 1;
+	depthStencilBufferDesc.ArraySize = 1;
+	depthStencilBufferDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	depthStencilBufferDesc.SampleDesc = colorBufferDesc.SampleDesc;
+	depthStencilBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	depthStencilBufferDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	depthStencilBufferDesc.CPUAccessFlags = 0;
+	depthStencilBufferDesc.MiscFlags = 0;
 
-		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateRenderTargetView(colorBuffer.Get(), nullptr, cpColorBufferRTV.GetAddressOf());
-		if (FAILED(hr))
-			break;
+	ComPtr<ID3D11Texture2D> depthStencilBuffer;
+	hr = pDevice->CreateTexture2D(&depthStencilBufferDesc, nullptr, depthStencilBuffer.GetAddressOf());
+	if (FAILED(hr))
+	{
+		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"ID3D11Device::CreateTexture2D", hr);
+		return false;
+	}
 
-		D3D11_SHADER_RESOURCE_VIEW_DESC descColorBufferSRV;
-		ZeroMemory(&descColorBufferSRV, sizeof(descColorBufferSRV));
-		descColorBufferSRV.Format = descColorBuffer.Format;
-		descColorBufferSRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMS;
-		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateShaderResourceView(colorBuffer.Get(), &descColorBufferSRV, cpColorBufferSRV.GetAddressOf());
-		if (FAILED(hr))
-			break;
+	hr = pDevice->CreateDepthStencilView(depthStencilBuffer.Get(), nullptr, cpDepthStencilBufferDSV.GetAddressOf());
+	if (FAILED(hr))
+	{
+		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"ID3D11Device::CreateDepthStencilView", hr);
+		return false;
+	}
 
-		D3D11_TEXTURE2D_DESC descDepthStencilBuffer;
-		ZeroMemory(&descDepthStencilBuffer, sizeof(descDepthStencilBuffer));
-		// 뎁스/스텐실 버퍼 생성 및 뎁스스텐실뷰 생성
-		descDepthStencilBuffer.Width = descColorBuffer.Width;
-		descDepthStencilBuffer.Height = descColorBuffer.Height;
-		descDepthStencilBuffer.MipLevels = 1;
-		descDepthStencilBuffer.ArraySize = 1;
-		descDepthStencilBuffer.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-		descDepthStencilBuffer.SampleDesc = descColorBuffer.SampleDesc;
-		descDepthStencilBuffer.Usage = D3D11_USAGE_DEFAULT;
-		descDepthStencilBuffer.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-		descDepthStencilBuffer.CPUAccessFlags = 0;
-		descDepthStencilBuffer.MiscFlags = 0;
+	// 필요한 리소스 생성이 모두 성공한 경우에 멤버로 이동
+	m_cpColorBufferRTV = std::move(cpColorBufferRTV);
+	m_cpColorBufferSRV = std::move(cpColorBufferSRV);
+	m_cpDepthStencilBufferDSV = std::move(cpDepthStencilBufferDSV);
 
-		ComPtr<ID3D11Texture2D> depthStencilBuffer;
-		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateTexture2D(&descDepthStencilBuffer, nullptr, depthStencilBuffer.GetAddressOf());
-		if (FAILED(hr))
-			break;
+	this->UpdateEntireBufferViewport(width, height);
 
-		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateDepthStencilView(depthStencilBuffer.Get(), nullptr, cpDepthStencilBufferDSV.GetAddressOf());
-		if (FAILED(hr))
-			break;
-
-		// 필요한 리소스 생성이 모두 성공한 경우에 멤버로 이동
-		m_cpColorBufferRTV = std::move(cpColorBufferRTV);
-		m_cpColorBufferSRV = std::move(cpColorBufferSRV);
-		m_cpDepthStencilBufferDSV = std::move(cpDepthStencilBufferDSV);
-
-		this->UpdateEntireBufferViewport(width, height);
-	} while (false);
-
-	return hr;
+	return true;
 }
 
 XMMATRIX XM_CALLCONV Camera::GetViewportMatrix()

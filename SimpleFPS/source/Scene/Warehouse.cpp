@@ -246,8 +246,8 @@ void Warehouse::OnLoadScene()
 
 	std::shared_ptr<Material> matHouseFrame = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matHouseFrame->m_ambient, XMVectorScale(Math::Vector3::One(), 0.2f));
-	XMStoreFloat4A(&matHouseFrame->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.2f));
-	XMStoreFloat4A(&matHouseFrame->m_specular, XMVectorSetW(Math::Vector3::OneHalf(), 32.0f));
+	XMStoreFloat4A(&matHouseFrame->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.4f));
+	XMStoreFloat4A(&matHouseFrame->m_specular, XMVectorSetW(Math::Vector3::OneHalf(), 4.0f));
 
 
 	std::shared_ptr<Material> matHouseSideWall = ResourceLoader::GetInstance()->CreateMaterial();
@@ -258,15 +258,15 @@ void Warehouse::OnLoadScene()
 
 
 	std::shared_ptr<Material> matWoodenBox = ResourceLoader::GetInstance()->CreateMaterial();
-	XMStoreFloat4A(&matWoodenBox->m_ambient, Math::Vector3::OneHalf());
-	XMStoreFloat4A(&matWoodenBox->m_diffuse, Math::Vector3::One());
+	XMStoreFloat4A(&matWoodenBox->m_ambient, XMVectorScale(Math::Vector3::One(), 0.2f));
+	XMStoreFloat4A(&matWoodenBox->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.6f));
 	XMStoreFloat4A(&matWoodenBox->m_specular, XMVectorSetW(Math::Vector3::Zero(), 4.0f));
 	matWoodenBox->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Props\\Box\\WoodenBox.png");
 
 
 	std::shared_ptr<Material> matPaperBox = ResourceLoader::GetInstance()->CreateMaterial();
-	XMStoreFloat4A(&matPaperBox->m_ambient, Math::Vector3::OneHalf());
-	XMStoreFloat4A(&matPaperBox->m_diffuse, Math::Vector3::One());
+	XMStoreFloat4A(&matPaperBox->m_ambient, XMVectorScale(Math::Vector3::One(), 0.2f));
+	XMStoreFloat4A(&matPaperBox->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.6f));
 	XMStoreFloat4A(&matPaperBox->m_specular, XMVectorSetW(Math::Vector3::Zero(), 4.0f));
 	matPaperBox->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Props\\Box\\PaperBox.png");
 
@@ -292,13 +292,11 @@ void Warehouse::OnLoadScene()
 	// matRustedSteelHotspot->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\metals\\RustedSteel\\RustedSteel_Normal.png");
 
 
-	std::shared_ptr<Material> matGranite = ResourceLoader::GetInstance()->CreateMaterial();
-	XMStoreFloat4A(&matGranite->m_ambient, XMVectorScale(Math::Vector3::One(), 0.25f));
-	XMStoreFloat4A(&matGranite->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.75f));
-	XMStoreFloat4A(&matGranite->m_specular, XMVectorSetW(Math::Vector3::OneHalf(), 8.0f));
-	matGranite->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\rocks\\granite\\GreyWhite2_Diffuse.jpg");
-	matGranite->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\rocks\\granite\\GreyWhite2_Normal.jpg");
-
+	std::shared_ptr<Material> matConcrete = ResourceLoader::GetInstance()->CreateMaterial();
+	XMStoreFloat4A(&matConcrete->m_ambient, XMVectorScale(Math::Vector3::One(), 0.2f));
+	XMStoreFloat4A(&matConcrete->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.6f));
+	XMStoreFloat4A(&matConcrete->m_specular, XMVectorSetW(Math::Vector3::Zero(), 1.0f));
+	matConcrete->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\concrete\\01murocrep512.png");
 
 	std::shared_ptr<Material> matHouseWallNorth[4];
 	{
@@ -355,22 +353,22 @@ void Warehouse::OnLoadScene()
 		SkinnedMeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 
 		auto matBody = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matBody->m_ambient, XMVectorScale(Math::Vector3::One(), 0.3f));
-		XMStoreFloat4A(&matBody->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.9f));
+		XMStoreFloat4A(&matBody->m_ambient, XMVectorScale(Math::Vector3::One(), 0.25f));
+		XMStoreFloat4A(&matBody->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.8f));
 		XMStoreFloat4A(&matBody->m_specular, XMVectorScale(Math::Vector3::One(), 0.1f));
 		matBody->m_specular.w = 4.0f;
 		matBody->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Characters\\Steven\\textures\\body.png");
 		
 		auto matSuit = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matSuit->m_ambient, XMVectorScale(Math::Vector3::One(), 0.5f));
-		XMStoreFloat4A(&matSuit->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.9f));
+		XMStoreFloat4A(&matSuit->m_ambient, XMVectorScale(Math::Vector3::One(), 0.25f));
+		XMStoreFloat4A(&matSuit->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.8f));
 		XMStoreFloat4A(&matSuit->m_specular, XMVectorScale(Math::Vector3::One(), 0.1f));
 		matSuit->m_specular.w = 4.0f;
 		matSuit->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Characters\\Steven\\textures\\suit_diffuse.png");
 		matSuit->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Characters\\Steven\\textures\\suit_normal.png");
 		
 		auto matShoes = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matShoes->m_ambient, XMVectorScale(Math::Vector3::One(), 0.25f));
+		XMStoreFloat4A(&matShoes->m_ambient, XMVectorScale(Math::Vector3::One(), 0.125f));
 		XMStoreFloat4A(&matShoes->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.5f));
 		XMStoreFloat4A(&matShoes->m_specular, XMVectorScale(Math::Vector3::One(), 0.25f));
 		matShoes->m_specular.w = 4.0f;
@@ -1183,7 +1181,7 @@ void Warehouse::OnLoadScene()
 		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
 		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 		pMeshRenderer->SetMesh(meshHouseFloor);
-		pMeshRenderer->SetMaterial(0, matGranite);
+		pMeshRenderer->SetMaterial(0, matConcrete);
 	}
 
 
@@ -1194,9 +1192,9 @@ void Warehouse::OnLoadScene()
 	std::shared_ptr<StaticMesh> meshSTANAG30Rds = 
 		ResourceLoader::GetInstance()->LoadModel(L"Resource\\Models\\Weapons\\Magazine\\STANAG\\STANAG30Rds.obj").staticMeshes[0];
 	auto matSTANAG30Rds = ResourceLoader::GetInstance()->CreateMaterial();
-	XMStoreFloat4A(&matSTANAG30Rds->m_ambient, XMVectorScale(Math::Vector3::One(), 0.15f));
-	XMStoreFloat4A(&matSTANAG30Rds->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.2f));
-	XMStoreFloat4A(&matSTANAG30Rds->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.9f), 2.0f));
+	XMStoreFloat4A(&matSTANAG30Rds->m_ambient, XMVectorScale(Math::Vector3::One(), 0.05f));
+	XMStoreFloat4A(&matSTANAG30Rds->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.05f));
+	XMStoreFloat4A(&matSTANAG30Rds->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.1f), 4.0f));
 	{
 		GameObjectHandle hPrimaryWeapon = CreateGameObject(L"Primary Weapon");
 		pFirstPersonMovement->m_hWeapons[0] = hPrimaryWeapon;	// 1번 슬롯
@@ -1210,18 +1208,18 @@ void Warehouse::OnLoadScene()
 		pMeshRenderer->SetMesh(meshM16A1);
 		// 재질 설정
 		auto matM16A1Receiver = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matM16A1Receiver->m_ambient, Math::Vector3::OneHalf());
-		XMStoreFloat4A(&matM16A1Receiver->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.5f));
-		XMStoreFloat4A(&matM16A1Receiver->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.25f), 4.0f));
+		XMStoreFloat4A(&matM16A1Receiver->m_ambient, XMVectorScale(Math::Vector3::One(), 0.15f));
+		XMStoreFloat4A(&matM16A1Receiver->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.15f));
+		XMStoreFloat4A(&matM16A1Receiver->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.15f), 4.0f));
 		matM16A1Receiver->m_diffuseMap = 
 			ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M16A1\\Textures\\M16A1Receiver_Diffuse.jpg");
 		matM16A1Receiver->m_normalMap = 
 			ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M16A1\\Textures\\M16A1Receiver_Normal.jpg");
 
 		auto matM16A1Furniture = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matM16A1Furniture->m_ambient, Math::Vector3::OneHalf());
-		XMStoreFloat4A(&matM16A1Furniture->m_diffuse, Math::Vector3::One());
-		XMStoreFloat4A(&matM16A1Furniture->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.25f), 4.0f));
+		XMStoreFloat4A(&matM16A1Furniture->m_ambient, XMVectorScale(Math::Vector3::One(), 0.1f));
+		XMStoreFloat4A(&matM16A1Furniture->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.1f));
+		XMStoreFloat4A(&matM16A1Furniture->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.1f), 4.0f));
 		matM16A1Furniture->m_diffuseMap = 
 			ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M16A1\\Textures\\M16A1Furniture_Diffuse.jpg");
 		matM16A1Furniture->m_normalMap = 
@@ -1261,8 +1259,8 @@ void Warehouse::OnLoadScene()
 		pMeshRenderer->SetMesh(meshM9A1);
 		// 재질 설정
 		auto matM9A1 = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matM9A1->m_ambient, XMVectorScale(Math::Vector3::One(), 0.5f));
-		XMStoreFloat4A(&matM9A1->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.5f));
+		XMStoreFloat4A(&matM9A1->m_ambient, XMVectorScale(Math::Vector3::One(), 0.2f));
+		XMStoreFloat4A(&matM9A1->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.2f));
 		XMStoreFloat4A(&matM9A1->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.25f), 4.0f));
 		matM9A1->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M9A1\\Textures\\M9A1_Diffuse.png");
 		matM9A1->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M9A1\\Textures\\M9A1_Normal.png");
@@ -1281,9 +1279,9 @@ void Warehouse::OnLoadScene()
 			pMeshRenderer->SetMesh(meshX300U);
 			// 재질 설정
 			auto matX300U = ResourceLoader::GetInstance()->CreateMaterial();
-			XMStoreFloat4A(&matX300U->m_ambient, XMVectorScale(Math::Vector3::One(), 0.75f));
-			XMStoreFloat4A(&matX300U->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.75f));
-			XMStoreFloat4A(&matX300U->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.25f), 4.0f));
+			XMStoreFloat4A(&matX300U->m_ambient, XMVectorScale(Math::Vector3::One(), 0.2f));
+			XMStoreFloat4A(&matX300U->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.2f));
+			XMStoreFloat4A(&matX300U->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.15f), 4.0f));
 			matX300U->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\X300U\\Textures\\Body_Black_albedo.jpg");
 			pMeshRenderer->SetMaterial(0, matX300U);
 
@@ -1306,20 +1304,20 @@ void Warehouse::OnLoadScene()
 		pMeshRenderer->SetMesh(meshM4A1);
 		// 재질 설정
 		auto matM4A1Receiver = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matM4A1Receiver->m_ambient, XMVectorScale(Math::Vector3::One(), 2.5f));
-		XMStoreFloat4A(&matM4A1Receiver->m_diffuse, XMVectorScale(Math::Vector3::One(), 2.5f));
+		XMStoreFloat4A(&matM4A1Receiver->m_ambient, XMVectorScale(Math::Vector3::One(), 0.2f));
+		XMStoreFloat4A(&matM4A1Receiver->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.2f));
 		XMStoreFloat4A(&matM4A1Receiver->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.25f), 4.0f));
 		matM4A1Receiver->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M4A1\\Textures\\Receiver_Diffuse.png");
 		matM4A1Receiver->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M4A1\\Textures\\Receiver_Normal.png");
 		auto matM4A1Furniture = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matM4A1Furniture->m_ambient, Math::Vector3::OneHalf());
-		XMStoreFloat4A(&matM4A1Furniture->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.5f));
+		XMStoreFloat4A(&matM4A1Furniture->m_ambient, XMVectorScale(Math::Vector3::One(), 0.1f));
+		XMStoreFloat4A(&matM4A1Furniture->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.1f));
 		XMStoreFloat4A(&matM4A1Furniture->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.25f), 4.0f));
 		matM4A1Furniture->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M4A1\\Textures\\Furniture_Diffuse.png");
 		matM4A1Furniture->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M4A1\\Textures\\Furniture_Normal.png");
 		auto matKACRearSight = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matKACRearSight->m_ambient, Math::Vector3::OneHalf());
-		XMStoreFloat4A(&matKACRearSight->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.5f));
+		XMStoreFloat4A(&matKACRearSight->m_ambient, XMVectorScale(Math::Vector3::One(), 0.1f));
+		XMStoreFloat4A(&matKACRearSight->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.1f));
 		XMStoreFloat4A(&matKACRearSight->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.05f), 4.0f));
 		matKACRearSight->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M4A1\\Textures\\RearSight_Diffuse.png");
 		matKACRearSight->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M4A1\\Textures\\RearSight_Normal.png");
@@ -1359,21 +1357,21 @@ void Warehouse::OnLoadScene()
 		pMeshRenderer->SetMesh(mesh);
 		// 재질 설정
 		auto matReceiver = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matReceiver->m_ambient, XMVectorScale(Math::Vector3::One(), 0.4f));
-		XMStoreFloat4A(&matReceiver->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.85f));
-		XMStoreFloat4A(&matReceiver->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.15f), 4.0f));
+		XMStoreFloat4A(&matReceiver->m_ambient, XMVectorScale(Math::Vector3::One(), 0.2f));
+		XMStoreFloat4A(&matReceiver->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.2f));
+		XMStoreFloat4A(&matReceiver->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.3f), 4.0f));
 		matReceiver->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M762\\Textures\\Receiver_Albedo.png");
 		matReceiver->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M762\\Textures\\Receiver_Normal.png");
 		auto matFurniture = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matFurniture->m_ambient, XMVectorScale(Math::Vector3::One(), 0.25f));
-		XMStoreFloat4A(&matFurniture->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.85f));
-		XMStoreFloat4A(&matFurniture->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.05f), 2.0f));
+		XMStoreFloat4A(&matFurniture->m_ambient, XMVectorScale(Math::Vector3::One(), 0.2f));
+		XMStoreFloat4A(&matFurniture->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.2f));
+		XMStoreFloat4A(&matFurniture->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.15f), 2.0f));
 		matFurniture->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M762\\Textures\\Furniture_Albedo.png");
 		matFurniture->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M762\\Textures\\Furniture_Normal.png");
 		auto matRail = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matRail->m_ambient, XMVectorScale(Math::Vector3::One(), 0.25f));
-		XMStoreFloat4A(&matRail->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.65f));
-		XMStoreFloat4A(&matRail->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.25f), 4.0f));
+		XMStoreFloat4A(&matRail->m_ambient, XMVectorScale(Math::Vector3::One(), 0.2f));
+		XMStoreFloat4A(&matRail->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.2f));
+		XMStoreFloat4A(&matRail->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.3f), 4.0f));
 		matRail->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M762\\Textures\\Rail_Albedo.png");
 		matRail->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M762\\Textures\\Rail_Normal.png");
 		
@@ -1398,9 +1396,9 @@ void Warehouse::OnLoadScene()
 
 			// 재질 설정
 			auto matMagazine = ResourceLoader::GetInstance()->CreateMaterial();
-			XMStoreFloat4A(&matMagazine->m_ambient, XMVectorScale(Math::Vector3::One(), 0.15f));
-			XMStoreFloat4A(&matMagazine->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.2f));
-			XMStoreFloat4A(&matMagazine->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.9f), 2.0f));
+			XMStoreFloat4A(&matMagazine->m_ambient, XMVectorScale(Math::Vector3::One(), 0.05f));
+			XMStoreFloat4A(&matMagazine->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.05f));
+			XMStoreFloat4A(&matMagazine->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.1f), 4.0f));
 			pMeshRenderer->SetMaterial(0, matMagazine);
 
 			pPWMagazine->m_transform.SetParent(&pPrimaryWeapon->m_transform);

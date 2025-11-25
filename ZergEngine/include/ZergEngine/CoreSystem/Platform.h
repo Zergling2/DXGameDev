@@ -9,6 +9,7 @@
 #include <strsafe.h>
 #include <tchar.h>
 #include <wrl.h>
+#include <ctime>
 
 #define _CRTDBG_MAP_ALLOC
 #include <crtdbg.h>
