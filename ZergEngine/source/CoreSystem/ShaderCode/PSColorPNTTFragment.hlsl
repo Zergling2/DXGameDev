@@ -38,11 +38,31 @@ PSOutput main(PSInputPNTTFragment input)
             // 래스터라이저 보간으로 인해 비정규화 되었을 수 있으므로 노말을 다시 정규화
             input.normalW = normalize(input.normalW);
             input.tangentW = input.tangentW - dot(input.tangentW, input.normalW) * input.normalW;
+
+            // T, B, N이 모두 정규화된 벡터일 경우
+            // T x B = N
+            // B x N = T
+            // N x T = B
+            // 이 성립한다.
+            // (T x B = N, B x N = T, N x T = B)
             float3 bitangentW = cross(input.normalW, input.tangentW);
-    
-            // Local -> Tangent 행렬의 역행렬을 만든다. 기저벡터 T, B, N을 column major로 배치하면 Local -> Tangent 행렬이 되는데
-            // T, B, N은 직교행렬이므로 단순히 전치시켜서 row major로 배치시키는 것만으로 역행렬인 Tangent -> Local 행렬을 구할 수 있다.
-            // 그런데 사실 T, B, N이 버텍스 셰이더에서 월드 공간으로 변환되어져서 넘어왔으므로 이건 Tangent -> World 행렬이 된다.
+            
+            // input에 들어온 Normal과 Tangent는 월드 공간 기준의 벡터이다. (버텍스 셰이더에서 월드 변환시켜서 넘어옴.)
+            // 따라서 T, B, N을 열으로 배치하여 행렬
+            // Tx Bx Nx
+            // Ty By Ny
+            // Tz Bz Nz
+            // 을 만들면 이 행렬은 (월드 공간 -> 탄젠트 공간) 변환 행렬이 된다.
+            
+            // 그런데 지금 필요한 것은 노말 텍스쳐에서 샘플링한 벡터(탄젠트 공간에서의 노말)를 월드 공간으로 변환하는 것이므로
+            // 위의 행렬의 역행렬이 필요하다.
+            // 그런데 위 행렬은 정규직교 행렬이었으므로 전치하는 것만으로 빠르게 역행렬을 구할 수 있다.
+            
+            // 따라서 위 행렬을 전치시킨 행렬
+            // Tx Ty Tz
+            // Bx By Bz
+            // Nx Ny Nz
+            // 는 (탄젠트 공간 -> 월드 공간) 변환 행렬이 된다.
             float3x3 tbn = float3x3(
                 input.tangentW,
                 bitangentW,
@@ -50,12 +70,12 @@ PSOutput main(PSInputPNTTFragment input)
             );         // Tangent -> World
     
             float3 normalT = tex2d_normalMap.Sample(ss_normalMap, input.texCoord).rgb * 2.0f - 1.0f; // [0, 1] -> [-1, 1]
-            normalW = normalize(mul(normalT, tbn)); // 노말맵 샘플을 월드 탄젠트 스페이스에서 월드 스페이스로
-            // normalW = mul(normalT, tbn); // 노말맵 샘플을 월드 탄젠트 스페이스에서 월드 스페이스로
+            // normalW = normalize(mul(normalT, tbn)); // 노말맵 샘플을 월드 탄젠트 스페이스에서 월드 스페이스로
+            normalW = mul(normalT, tbn); // 노말맵 샘플을 월드 탄젠트 스페이스에서 월드 스페이스로
         }
         else
         {
-            normalW = input.normalW;
+            normalW = normalize(input.normalW);
         }
         
         // 라이팅 계산
@@ -96,7 +116,7 @@ PSOutput main(PSInputPNTTFragment input)
         else
             output.color = (ambient + diffuse) + specular;
     
-        output.color.a = cb_perSubset.mtl.diffuse.a; // 알파 값은 재질의 diffuse 속성에서 추출 (tr map 미사용시..)
+        output.color.a = cb_perSubset.mtl.diffuse.a;
         output.color = saturate(output.color);
     }
     else

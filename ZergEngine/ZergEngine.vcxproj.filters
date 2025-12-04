@@ -339,6 +339,12 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPNTTSkinned.h">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\ShaderResource\IndexBuffer.h">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderResource</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\ShaderResource\DX11Buffer.h">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderResource</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\CoreSystem\Time.cpp">
@@ -454,9 +460,6 @@
     </ClCompile>
     <ClCompile Include="source\CoreSystem\Manager\UIObjectManager.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Manager</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\ShaderResource\VertexBuffer.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\ShaderResource</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\DataStructure\Ray.cpp">
       <Filter>Files\ZergEngine\CoreSystem\DataStructure</Filter>
@@ -589,6 +592,15 @@
     </ClCompile>
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectPNTTSkinned.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\ShaderResource\DX11Buffer.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderResource</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\ShaderResource\IndexBuffer.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderResource</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\ShaderResource\VertexBuffer.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderResource</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

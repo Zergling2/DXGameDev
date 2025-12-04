@@ -88,14 +88,6 @@ namespace ze
 		COUNT
 	};
 
-	enum class VertexBufferType
-	{
-		ButtonPt,
-		// ImageButtonPt,	// (셰이더 지역변수로 처리 가능)
-		// ━━━━━━━━━━━━━━━━━━━━━━
-		COUNT
-	};
-
 	enum class MultisamplingAntiAliasingMode
 	{
 		Off	= 1,

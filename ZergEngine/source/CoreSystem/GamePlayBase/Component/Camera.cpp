@@ -12,7 +12,7 @@ constexpr uint8_t CAMERA_FIELD_OF_VIEW_DEFAULT = 92;
 constexpr int8_t CAMERA_DEPTH_DEFAULT = 0;
 constexpr ProjectionMethod CAMERA_PROJECTION_METHOD_DEFAULT = ProjectionMethod::Perspective;
 constexpr ClearFlag CAMERA_CLEAR_FLAG_DEFAULT = ClearFlag::SolidColor;
-const XMVECTORF32 CAMERA_BACKGROUND_COLOR_DEFAULT = Colors::Blue;
+const XMVECTORF32 CAMERA_BACKGROUND_COLOR_DEFAULT = ColorsLinear::Blue;
 
 constexpr float CAMERA_CLIPPING_NEAR_PLANE_DEFAULT = 0.3f;
 constexpr float CAMERA_CLIPPING_FAR_PLANE_DEFAULT = 1000.0f;

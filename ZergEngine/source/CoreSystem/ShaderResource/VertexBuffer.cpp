@@ -3,19 +3,10 @@
 
 using namespace ze;
 
-void VertexBuffer::Init(ID3D11Device* pDevice, const D3D11_BUFFER_DESC* pDesc, const D3D11_SUBRESOURCE_DATA* pInitialData)
+bool VertexBuffer::Init(ID3D11Device* pDevice, const D3D11_BUFFER_DESC* pDesc, const D3D11_SUBRESOURCE_DATA* pInitialData)
 {
-	this->Release();
+	if (pDesc->BindFlags != D3D11_BIND_VERTEX_BUFFER)
+		Debug::ForceCrashWithMessageBox(L"Debug", L"Invalid bind flag passed.");
 
-	HRESULT hr;
-
-	assert(m_cpBuffer == nullptr);
-	hr = pDevice->CreateBuffer(pDesc, pInitialData, m_cpBuffer.GetAddressOf());
-	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateBuffer()", hr);
-}
-
-void VertexBuffer::Release()
-{
-	m_cpBuffer.Reset();
+	return IDX11Buffer::Init(pDevice, pDesc, pInitialData);
 }

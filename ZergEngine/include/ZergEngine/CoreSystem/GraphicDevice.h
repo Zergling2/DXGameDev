@@ -4,6 +4,7 @@
 #include <ZergEngine\CoreSystem\InputLayout.h>
 #include <ZergEngine\CoreSystem\RenderState.h>
 #include <ZergEngine\CoreSystem\ShaderResource\VertexBuffer.h>
+#include <ZergEngine\CoreSystem\ShaderResource\IndexBuffer.h>
 #include <ZergEngine\CoreSystem\Resource\Font.h>
 #include <memory>
 #include <vector>
@@ -43,8 +44,8 @@ namespace ze
 		void CreateBlendStates();
 		void ReleaseBlendStates();
 
-		void CreateCommonVertexBuffers();
-		void ReleaseCommonVertexBuffers();
+		bool CreateCommonGraphicResources();
+		void ReleaseCommonGraphicResources();
 
 		bool ResizeBuffer(uint32_t width, uint32_t height);
 		HRESULT SetFullscreenState(BOOL fullscreen);
@@ -53,8 +54,8 @@ namespace ze
 		void CreateSupportedResolutionInfo();
 		void CreateSupportedMSAAQualityInfo();
 
-		void ReleaseGraphicDeviceResources();
 		bool CreateGraphicDeviceResources();
+		void ReleaseGraphicDeviceResources();
 	public:
 		LPCWSTR GetAdapterDescription() const { return m_descAdapter.Description; }
 		size_t GetAdapterDedicatedVideoMemory() const { return m_descAdapter.DedicatedVideoMemory; }
@@ -89,7 +90,6 @@ namespace ze
 		ID3D11DomainShader* GetDSComInterface(DomainShaderType type) { return m_ds[static_cast<size_t>(type)].GetComInterface(); }
 		ID3D11PixelShader* GetPSComInterface(PixelShaderType type) { return m_ps[static_cast<size_t>(type)].GetComInterface(); }
 		ID3D11InputLayout* GetILComInterface(VertexFormatType type) { return m_il[static_cast<size_t>(type)].GetComInterface(); }
-		ID3D11Buffer* GetVBComInterface(VertexBufferType type) { return m_vb[static_cast<size_t>(type)].GetComInterface(); }
 		// Render state getter
 		ID3D11RasterizerState* GetRSComInterface(RasterizerMode mode) const
 		{
@@ -107,6 +107,11 @@ namespace ze
 		{
 			return m_bs[static_cast<size_t>(type)].GetComInterface();
 		}
+		ID3D11Buffer* GetButtonMeshVB() const { return m_buttonMeshVB.GetComInterface(); }
+		ID3D11Buffer* GetPLVMeshVB() const { return m_plvMeshVB.GetComInterface(); }
+		ID3D11Buffer* GetPLVMeshIB() const { return m_plvMeshIB.GetComInterface(); }
+		ID3D11Buffer* GetSLVMeshVB() const { return m_slvMeshVB.GetComInterface(); }
+		ID3D11Buffer* GetSLVMeshIB() const { return m_slvMeshIB.GetComInterface(); }
 	private:
 		static GraphicDevice* s_pInstance;
 		DXGI_ADAPTER_DESC m_descAdapter;
@@ -136,11 +141,16 @@ namespace ze
 		DomainShader m_ds[static_cast<size_t>(DomainShaderType::COUNT)];
 		PixelShader m_ps[static_cast<size_t>(PixelShaderType::COUNT)];
 		InputLayout m_il[static_cast<size_t>(VertexFormatType::COUNT)];
-		VertexBuffer m_vb[static_cast<size_t>(VertexBufferType::COUNT)];
 
 		RasterizerState m_rs[static_cast<size_t>(RasterizerMode::COUNT)];
 		SamplerState m_ss[static_cast<size_t>(TextureFilteringMode::COUNT)];
 		DepthStencilState m_dss[static_cast<size_t>(DepthStencilStateType::COUNT)];
 		BlendState m_bs[static_cast<size_t>(BlendStateType::COUNT)];
+
+		VertexBuffer m_buttonMeshVB;
+		VertexBuffer m_plvMeshVB;
+		IndexBuffer m_plvMeshIB;
+		VertexBuffer m_slvMeshVB;
+		IndexBuffer m_slvMeshIB;
 	};
 }

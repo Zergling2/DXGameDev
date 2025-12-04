@@ -76,11 +76,15 @@ GraphicDevice::GraphicDevice()
 	, m_ds{}
 	, m_ps{}
 	, m_il{}
-	, m_vb{}
 	, m_rs{}
 	, m_ss{}
 	, m_dss{}
 	, m_bs{}
+	, m_buttonMeshVB()
+	, m_plvMeshVB()
+	, m_plvMeshIB()
+	, m_slvMeshVB()
+	, m_slvMeshIB()
 {
 }
 
@@ -292,7 +296,8 @@ bool GraphicDevice::Init(HWND hWnd, uint32_t width, uint32_t height, bool fullsc
 	this->CreateBlendStates();
 
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━ CREATE COMMON VERTEX BUFFERS ━━━━━━━━━━━━━━━━━━━━━━━━━━━
-	this->CreateCommonVertexBuffers();
+	if (!this->CreateCommonGraphicResources())
+		return false;
 
 	sfl.Write(L"GraphicDevice init completed.\n");
 
@@ -304,7 +309,7 @@ void GraphicDevice::UnInit()
 	HRESULT hr;
 
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━ RELEASE COMMON VERTEX BUFFERS ━━━━━━━━━━━━━━━━━━━━━━━━━━━
-	this->ReleaseCommonVertexBuffers();
+	this->ReleaseCommonGraphicResources();
 
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ RELEASE BLEND STATES ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	this->ReleaseBlendStates();
@@ -949,22 +954,277 @@ void GraphicDevice::ReleaseBlendStates()
 		m_bs[i].Release();
 }
 
-UINT GraphicDevice::GetMSAAMaximumQuality(MultisamplingAntiAliasingMode sampleCount)
+bool GraphicDevice::CreateCommonGraphicResources()
 {
-	UINT quality = 0;
+	ID3D11Device* pDevice = this->GetDeviceComInterface();
 
-	// first = Sample count
-	// second = Quality level
-	for (const auto& info : m_supportedMSAA)
+	// 1. Button VB
 	{
-		if (info.first == sampleCount)
-		{
-			quality = info.second;
-			break;
-		}
+		const XMFLOAT2 ltShade = XMFLOAT2(+0.5f, -0.5f);			// 음영 처리값
+		const XMFLOAT2 rbShade = XMFLOAT2(ltShade.y, ltShade.x);	// 음영 처리값
+		const XMFLOAT2 centerShade = XMFLOAT2(0.0f, 0.0f);
+		const float offsetValue = 2.0f;		// 버튼 입체감 모서리 오프셋
+		VFButton v[30];
+
+		// Top shaded
+		v[0].m_position = XMFLOAT2(-0.5f, +0.5f);
+		v[0].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[0].m_shade = ltShade;
+		v[1].m_position = XMFLOAT2(+0.5f, +0.5f);
+		v[1].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[1].m_shade = ltShade;
+		v[2].m_position = XMFLOAT2(-0.5f, +0.5f);
+		v[2].m_offset = XMFLOAT2(+offsetValue, -offsetValue);
+		v[2].m_shade = ltShade;
+		v[3].m_position = XMFLOAT2(-0.5f, +0.5f);
+		v[3].m_offset = XMFLOAT2(+offsetValue, -offsetValue);
+		v[3].m_shade = ltShade;
+		v[4].m_position = XMFLOAT2(+0.5f, +0.5f);
+		v[4].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[4].m_shade = ltShade;
+		v[5].m_position = XMFLOAT2(+0.5f, +0.5f);
+		v[5].m_offset = XMFLOAT2(-offsetValue, -offsetValue);
+		v[5].m_shade = ltShade;
+
+		// Left shaded
+		v[6].m_position = XMFLOAT2(-0.5f, +0.5f);
+		v[6].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[6].m_shade = ltShade;
+		v[7].m_position = XMFLOAT2(-0.5f, +0.5f);
+		v[7].m_offset = XMFLOAT2(+offsetValue, -offsetValue);
+		v[7].m_shade = ltShade;
+		v[8].m_position = XMFLOAT2(-0.5f, -0.5f);
+		v[8].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[8].m_shade = ltShade;
+		v[9].m_position = XMFLOAT2(-0.5f, -0.5f);
+		v[9].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[9].m_shade = ltShade;
+		v[10].m_position = XMFLOAT2(-0.5f, +0.5f);
+		v[10].m_offset = XMFLOAT2(+offsetValue, -offsetValue);
+		v[10].m_shade = ltShade;
+		v[11].m_position = XMFLOAT2(-0.5f, -0.5f);
+		v[11].m_offset = XMFLOAT2(+offsetValue, +offsetValue);
+		v[11].m_shade = ltShade;
+
+		// Right shaded
+		v[12].m_position = XMFLOAT2(+0.5f, -0.5f);
+		v[12].m_offset = XMFLOAT2(-offsetValue, +offsetValue);
+		v[12].m_shade = rbShade;
+		v[13].m_position = XMFLOAT2(+0.5f, +0.5f);
+		v[13].m_offset = XMFLOAT2(-offsetValue, -offsetValue);
+		v[13].m_shade = rbShade;
+		v[14].m_position = XMFLOAT2(+0.5f, -0.5f);
+		v[14].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[14].m_shade = rbShade;
+		v[15].m_position = XMFLOAT2(+0.5f, -0.5f);
+		v[15].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[15].m_shade = rbShade;
+		v[16].m_position = XMFLOAT2(+0.5f, +0.5f);
+		v[16].m_offset = XMFLOAT2(-offsetValue, -offsetValue);
+		v[16].m_shade = rbShade;
+		v[17].m_position = XMFLOAT2(+0.5f, +0.5f);
+		v[17].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[17].m_shade = rbShade;
+
+		// Bottom shaded
+		v[18].m_position = XMFLOAT2(-0.5f, -0.5f);
+		v[18].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[18].m_shade = rbShade;
+		v[19].m_position = XMFLOAT2(-0.5f, -0.5f);
+		v[19].m_offset = XMFLOAT2(+offsetValue, +offsetValue);
+		v[19].m_shade = rbShade;
+		v[20].m_position = XMFLOAT2(+0.5f, -0.5f);
+		v[20].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[20].m_shade = rbShade;
+		v[21].m_position = XMFLOAT2(+0.5f, -0.5f);
+		v[21].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[21].m_shade = rbShade;
+		v[22].m_position = XMFLOAT2(-0.5f, -0.5f);
+		v[22].m_offset = XMFLOAT2(+offsetValue, +offsetValue);
+		v[22].m_shade = rbShade;
+		v[23].m_position = XMFLOAT2(+0.5f, -0.5f);
+		v[23].m_offset = XMFLOAT2(-offsetValue, +offsetValue);
+		v[23].m_shade = rbShade;
+
+		// Center
+		v[24].m_position = XMFLOAT2(-0.5f, -0.5f);
+		v[24].m_offset = XMFLOAT2(+offsetValue, +offsetValue);
+		v[24].m_shade = centerShade;
+		v[25].m_position = XMFLOAT2(-0.5f, +0.5f);
+		v[25].m_offset = XMFLOAT2(+offsetValue, -offsetValue);
+		v[25].m_shade = centerShade;
+		v[26].m_position = XMFLOAT2(+0.5f, -0.5f);
+		v[26].m_offset = XMFLOAT2(-offsetValue, +offsetValue);
+		v[26].m_shade = centerShade;
+		v[27].m_position = XMFLOAT2(+0.5f, -0.5f);
+		v[27].m_offset = XMFLOAT2(-offsetValue, +offsetValue);
+		v[27].m_shade = centerShade;
+		v[28].m_position = XMFLOAT2(-0.5f, +0.5f);
+		v[28].m_offset = XMFLOAT2(+offsetValue, -offsetValue);
+		v[28].m_shade = centerShade;
+		v[29].m_position = XMFLOAT2(+0.5f, +0.5f);
+		v[29].m_offset = XMFLOAT2(-offsetValue, -offsetValue);
+		v[29].m_shade = centerShade;
+
+		// Create a vertex buffer
+		D3D11_BUFFER_DESC bufferDesc;
+		ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+		bufferDesc.ByteWidth = sizeof(v);
+		bufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
+		bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+		bufferDesc.CPUAccessFlags = 0;
+		bufferDesc.MiscFlags = 0;
+		bufferDesc.StructureByteStride = sizeof(VFButton);
+
+		D3D11_SUBRESOURCE_DATA subrcData;
+		ZeroMemory(&subrcData, sizeof(subrcData));
+		subrcData.pSysMem = v;
+		// subrcData.SysMemPitch = 0;		// unused
+		// subrcData.SysMemSlicePitch = 0;	// unused
+
+		if (!m_buttonMeshVB.Init(pDevice, &bufferDesc, &subrcData))
+			return false;
 	}
 
-	return quality;
+	// 2. Light volume meshes
+	{
+		FILE* pFile = nullptr;
+		size_t numItemsRead;
+		int32_t vertexCount;
+		int32_t indexCount;
+
+		// ############################################################################
+		// Load point light volume mesh
+		errno_t e = _wfopen_s(&pFile, L"Engine\\Bin\\Data\\plvmesh", L"rb");
+		if (e != 0 || pFile == nullptr)
+			Debug::ForceCrashWithMessageBox(L"Error", L"plvmesh file not found");
+
+		// 정점 개수 읽기
+		numItemsRead = static_cast<size_t>(fread_s(&vertexCount, sizeof(vertexCount), sizeof(vertexCount), 1, pFile));
+		assert(numItemsRead == 1);	// 4바이트 읽혔는지 체크
+
+		// 정점 바이너리 데이터 읽기
+		std::vector<VFPosition> vertices(vertexCount);
+		numItemsRead = static_cast<size_t>(fread_s(vertices.data(), sizeof(VFPosition) * vertices.size(), sizeof(VFPosition), vertexCount, pFile));
+		assert(numItemsRead == vertexCount);
+
+		// 인덱스 개수 읽기
+		numItemsRead = static_cast<size_t>(fread_s(&indexCount, sizeof(indexCount), sizeof(indexCount), 1, pFile));
+		assert(numItemsRead == 1);	// 4바이트 읽혔는지 체크
+
+		// 인덱스 바이너리 데이터 읽기
+		std::vector<uint32_t> indices(indexCount);
+		numItemsRead = static_cast<size_t>(fread_s(indices.data(), sizeof(uint32_t) * indices.size(), sizeof(uint32_t), indexCount, pFile));
+		assert(numItemsRead == indexCount);
+
+		fclose(pFile);
+
+		// Create a vertex buffer
+		D3D11_BUFFER_DESC bufferDesc;
+		ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+		bufferDesc.ByteWidth = static_cast<UINT>(sizeof(VFPosition) * vertices.size());
+		bufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
+		bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+		// bufferDesc.CPUAccessFlags = 0;
+		// bufferDesc.MiscFlags = 0;
+		bufferDesc.StructureByteStride = sizeof(VFPosition);
+
+		D3D11_SUBRESOURCE_DATA subrcData;
+		ZeroMemory(&subrcData, sizeof(subrcData));
+		subrcData.pSysMem = vertices.data();
+		// subrcData.SysMemPitch = 0;		// unused
+		// subrcData.SysMemSlicePitch = 0;	// unused
+
+		if (!m_plvMeshVB.Init(pDevice, &bufferDesc, &subrcData))
+			return false;
+
+		// Create an index buffer
+		ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+		bufferDesc.ByteWidth = static_cast<UINT>(sizeof(uint32_t) * indices.size());
+		bufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
+		bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+		// bufferDesc.CPUAccessFlags = 0;
+		// bufferDesc.MiscFlags = 0;
+		bufferDesc.StructureByteStride = sizeof(VFPosition);
+
+		ZeroMemory(&subrcData, sizeof(subrcData));
+		subrcData.pSysMem = indices.data();
+		// subrcData.SysMemPitch = 0;		// unused
+		// subrcData.SysMemSlicePitch = 0;	// unused
+		if (!m_plvMeshIB.Init(pDevice, &bufferDesc, &subrcData))
+			return false;
+
+
+		// ############################################################################
+		// Load spot light volume mesh
+		e = _wfopen_s(&pFile, L"Engine\\Bin\\Data\\slvmesh", L"rb");
+		if (e != 0 || pFile == nullptr)
+			Debug::ForceCrashWithMessageBox(L"Error", L"slvmesh file not found");
+		
+		// 정점 개수 읽기
+		numItemsRead = static_cast<size_t>(fread_s(&vertexCount, sizeof(vertexCount), sizeof(vertexCount), 1, pFile));
+		assert(numItemsRead == 1);	// 4바이트 읽혔는지 체크
+
+		// 정점 바이너리 데이터 읽기
+		vertices.resize(vertexCount);
+		numItemsRead = static_cast<size_t>(fread_s(vertices.data(), sizeof(VFPosition) * vertices.size(), sizeof(VFPosition), vertexCount, pFile));
+		assert(numItemsRead == vertexCount);
+
+		// 인덱스 개수 읽기
+		numItemsRead = static_cast<size_t>(fread_s(&indexCount, sizeof(indexCount), sizeof(indexCount), 1, pFile));
+		assert(numItemsRead == 1);	// 4바이트 읽혔는지 체크
+
+		// 인덱스 바이너리 데이터 읽기
+		indices.resize(indexCount);
+		numItemsRead = static_cast<size_t>(fread_s(indices.data(), sizeof(uint32_t) * indices.size(), sizeof(uint32_t), indexCount, pFile));
+		assert(numItemsRead == indexCount);
+
+		fclose(pFile);
+
+		// Create a vertex buffer
+		ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+		bufferDesc.ByteWidth = static_cast<UINT>(sizeof(VFPosition) * vertices.size());
+		bufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
+		bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+		// bufferDesc.CPUAccessFlags = 0;
+		// bufferDesc.MiscFlags = 0;
+		bufferDesc.StructureByteStride = sizeof(VFPosition);
+
+		ZeroMemory(&subrcData, sizeof(subrcData));
+		subrcData.pSysMem = vertices.data();
+		// subrcData.SysMemPitch = 0;		// unused
+		// subrcData.SysMemSlicePitch = 0;	// unused
+
+		if (!m_slvMeshVB.Init(pDevice, &bufferDesc, &subrcData))
+			return false;
+
+		// Create an index buffer
+		ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+		bufferDesc.ByteWidth = static_cast<UINT>(sizeof(uint32_t) * indices.size());
+		bufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
+		bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+		// bufferDesc.CPUAccessFlags = 0;
+		// bufferDesc.MiscFlags = 0;
+		bufferDesc.StructureByteStride = sizeof(VFPosition);
+
+		ZeroMemory(&subrcData, sizeof(subrcData));
+		subrcData.pSysMem = indices.data();
+		// subrcData.SysMemPitch = 0;		// unused
+		// subrcData.SysMemSlicePitch = 0;	// unused
+		if (!m_slvMeshIB.Init(pDevice, &bufferDesc, &subrcData))
+			return false;
+	}
+
+	return true;
+}
+
+void GraphicDevice::ReleaseCommonGraphicResources()
+{
+	m_buttonMeshVB.Release();
+	m_plvMeshVB.Release();
+	m_plvMeshIB.Release();
+	m_slvMeshVB.Release();
+	m_slvMeshIB.Release();
 }
 
 std::shared_ptr<DWriteTextFormatWrapper> GraphicDevice::GetDWriteTextFormatWrapper(const TextFormat& tf)
@@ -1096,30 +1356,6 @@ void GraphicDevice::CreateSupportedMSAAQualityInfo()
 	}
 }
 
-void GraphicDevice::ReleaseGraphicDeviceResources()
-{
-	// https://learn.microsoft.com/en-us/windows/win32/api/dxgi/nf-dxgi-idxgiswapchain-resizebuffers
-	// [Remarks] MSDN 내용
-	// You can't resize a swap chain unless you release all outstanding references to its back buffers. <- 중요
-	// 
-	// You must release all of its 'direct' and 'indirect' references on the back buffers in order for ResizeBuffers to succeed.
-	// (직접 참조)
-	// 'Direct references' are held by the application after it calls AddRef on a resource.
-	// 
-	// (간접 참조)
-	// 'Indirect references' are held by views to a resource, binding a view of the resource to a device context,
-	// a command list that used the resource, a command list that used a view to that resource,
-	// a command list that executed another command list that used the resource, and so on.
-
-	// 스왑 체인에 관한 리소스를 모두 해제
-	// D2D 리소스들
-	m_cpD2DSolidColorBrush.Reset();
-	m_cpD2DRenderTarget.Reset();
-	// D3D 리소스들
-	m_cpSwapChainDSV.Reset();
-	m_cpSwapChainRTV.Reset();
-}
-
 bool GraphicDevice::CreateGraphicDeviceResources()
 {
 	SyncFileLogger& sfl = Runtime::GetInstance()->GetSyncFileLogger();
@@ -1207,6 +1443,7 @@ bool GraphicDevice::CreateGraphicDeviceResources()
 		&props,
 		m_cpD2DRenderTarget.GetAddressOf()
 	);
+	
 	if (FAILED(hr))
 	{
 		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"ID2D1Factory::CreateDxgiSurfaceRenderTarget", hr);
@@ -1226,142 +1463,46 @@ bool GraphicDevice::CreateGraphicDeviceResources()
 	return true;
 }
 
-void GraphicDevice::CreateCommonVertexBuffers()
+void GraphicDevice::ReleaseGraphicDeviceResources()
 {
-	ID3D11Device* pDevice = m_cpDevice.Get();
+	// https://learn.microsoft.com/en-us/windows/win32/api/dxgi/nf-dxgi-idxgiswapchain-resizebuffers
+	// [Remarks] MSDN 내용
+	// You can't resize a swap chain unless you release all outstanding references to its back buffers. <- 중요
+	// 
+	// You must release all of its 'direct' and 'indirect' references on the back buffers in order for ResizeBuffers to succeed.
+	// (직접 참조)
+	// 'Direct references' are held by the application after it calls AddRef on a resource.
+	// 
+	// (간접 참조)
+	// 'Indirect references' are held by views to a resource, binding a view of the resource to a device context,
+	// a command list that used the resource, a command list that used a view to that resource,
+	// a command list that executed another command list that used the resource, and so on.
 
-	// 1. Button VB
-	{
-		const XMFLOAT2 ltShade = XMFLOAT2(+0.5f, -0.5f);			// 음영 처리값
-		const XMFLOAT2 rbShade = XMFLOAT2(ltShade.y, ltShade.x);	// 음영 처리값
-		const XMFLOAT2 centerShade = XMFLOAT2(0.0f, 0.0f);
-		const float offsetValue = 2.0f;		// 버튼 입체감 모서리 오프셋
-		VFButton v[30];
-
-		// Top shaded
-		v[0].m_position = XMFLOAT2(-0.5f, +0.5f);
-		v[0].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[0].m_shade = ltShade;
-		v[1].m_position = XMFLOAT2(+0.5f, +0.5f);
-		v[1].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[1].m_shade = ltShade;
-		v[2].m_position = XMFLOAT2(-0.5f, +0.5f);
-		v[2].m_offset = XMFLOAT2(+offsetValue, -offsetValue);
-		v[2].m_shade = ltShade;
-		v[3].m_position = XMFLOAT2(-0.5f, +0.5f);
-		v[3].m_offset = XMFLOAT2(+offsetValue, -offsetValue);
-		v[3].m_shade = ltShade;
-		v[4].m_position = XMFLOAT2(+0.5f, +0.5f);
-		v[4].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[4].m_shade = ltShade;
-		v[5].m_position = XMFLOAT2(+0.5f, +0.5f);
-		v[5].m_offset = XMFLOAT2(-offsetValue, -offsetValue);
-		v[5].m_shade = ltShade;
-
-		// Left shaded
-		v[6].m_position = XMFLOAT2(-0.5f, +0.5f);
-		v[6].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[6].m_shade = ltShade;
-		v[7].m_position = XMFLOAT2(-0.5f, +0.5f);
-		v[7].m_offset = XMFLOAT2(+offsetValue, -offsetValue);
-		v[7].m_shade = ltShade;
-		v[8].m_position = XMFLOAT2(-0.5f, -0.5f);
-		v[8].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[8].m_shade = ltShade;
-		v[9].m_position = XMFLOAT2(-0.5f, -0.5f);
-		v[9].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[9].m_shade = ltShade;
-		v[10].m_position = XMFLOAT2(-0.5f, +0.5f);
-		v[10].m_offset = XMFLOAT2(+offsetValue, -offsetValue);
-		v[10].m_shade = ltShade;
-		v[11].m_position = XMFLOAT2(-0.5f, -0.5f);
-		v[11].m_offset = XMFLOAT2(+offsetValue, +offsetValue);
-		v[11].m_shade = ltShade;
-
-		// Right shaded
-		v[12].m_position = XMFLOAT2(+0.5f, -0.5f);
-		v[12].m_offset = XMFLOAT2(-offsetValue, +offsetValue);
-		v[12].m_shade = rbShade;
-		v[13].m_position = XMFLOAT2(+0.5f, +0.5f);
-		v[13].m_offset = XMFLOAT2(-offsetValue, -offsetValue);
-		v[13].m_shade = rbShade;
-		v[14].m_position = XMFLOAT2(+0.5f, -0.5f);
-		v[14].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[14].m_shade = rbShade;
-		v[15].m_position = XMFLOAT2(+0.5f, -0.5f);
-		v[15].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[15].m_shade = rbShade;
-		v[16].m_position = XMFLOAT2(+0.5f, +0.5f);
-		v[16].m_offset = XMFLOAT2(-offsetValue, -offsetValue);
-		v[16].m_shade = rbShade;
-		v[17].m_position = XMFLOAT2(+0.5f, +0.5f);
-		v[17].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[17].m_shade = rbShade;
-
-		// Bottom shaded
-		v[18].m_position = XMFLOAT2(-0.5f, -0.5f);
-		v[18].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[18].m_shade = rbShade;
-		v[19].m_position = XMFLOAT2(-0.5f, -0.5f);
-		v[19].m_offset = XMFLOAT2(+offsetValue, +offsetValue);
-		v[19].m_shade = rbShade;
-		v[20].m_position = XMFLOAT2(+0.5f, -0.5f);
-		v[20].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[20].m_shade = rbShade;
-		v[21].m_position = XMFLOAT2(+0.5f, -0.5f);
-		v[21].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[21].m_shade = rbShade;
-		v[22].m_position = XMFLOAT2(-0.5f, -0.5f);
-		v[22].m_offset = XMFLOAT2(+offsetValue, +offsetValue);
-		v[22].m_shade = rbShade;
-		v[23].m_position = XMFLOAT2(+0.5f, -0.5f);
-		v[23].m_offset = XMFLOAT2(-offsetValue, +offsetValue);
-		v[23].m_shade = rbShade;
-
-		// Center
-		v[24].m_position = XMFLOAT2(-0.5f, -0.5f);
-		v[24].m_offset = XMFLOAT2(+offsetValue, +offsetValue);
-		v[24].m_shade = centerShade;
-		v[25].m_position = XMFLOAT2(-0.5f, +0.5f);
-		v[25].m_offset = XMFLOAT2(+offsetValue, -offsetValue);
-		v[25].m_shade = centerShade;
-		v[26].m_position = XMFLOAT2(+0.5f, -0.5f);
-		v[26].m_offset = XMFLOAT2(-offsetValue, +offsetValue);
-		v[26].m_shade = centerShade;
-		v[27].m_position = XMFLOAT2(+0.5f, -0.5f);
-		v[27].m_offset = XMFLOAT2(-offsetValue, +offsetValue);
-		v[27].m_shade = centerShade;
-		v[28].m_position = XMFLOAT2(-0.5f, +0.5f);
-		v[28].m_offset = XMFLOAT2(+offsetValue, -offsetValue);
-		v[28].m_shade = centerShade;
-		v[29].m_position = XMFLOAT2(+0.5f, +0.5f);
-		v[29].m_offset = XMFLOAT2(-offsetValue, -offsetValue);
-		v[29].m_shade = centerShade;
-
-		// Create a vertex buffer
-		D3D11_BUFFER_DESC descBuffer;
-		ZeroMemory(&descBuffer, sizeof(descBuffer));
-		descBuffer.ByteWidth = sizeof(v);
-		descBuffer.Usage = D3D11_USAGE_IMMUTABLE;
-		descBuffer.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-		descBuffer.CPUAccessFlags = 0;
-		descBuffer.MiscFlags = 0;
-		descBuffer.StructureByteStride = sizeof(VFButton);
-
-		D3D11_SUBRESOURCE_DATA sbrcBuffer;
-		ZeroMemory(&sbrcBuffer, sizeof(sbrcBuffer));
-		sbrcBuffer.pSysMem = v;
-		// sbrcBuffer.SysMemPitch = 0;		// unused
-		// sbrcBuffer.SysMemSlicePitch = 0;	// unused
-
-		m_vb[static_cast<size_t>(VertexBufferType::ButtonPt)].Init(pDevice, &descBuffer, &sbrcBuffer);
-	}
+	// 스왑 체인에 관한 리소스를 모두 해제
+	// D2D 리소스들
+	m_cpD2DSolidColorBrush.Reset();
+	m_cpD2DRenderTarget.Reset();
+	// D3D 리소스들
+	m_cpSwapChainDSV.Reset();
+	m_cpSwapChainRTV.Reset();
 }
 
-void GraphicDevice::ReleaseCommonVertexBuffers()
+UINT GraphicDevice::GetMSAAMaximumQuality(MultisamplingAntiAliasingMode sampleCount)
 {
-	for (size_t i = 0; i < static_cast<size_t>(VertexBufferType::COUNT); ++i)
-		m_vb[i].Release();
+	UINT quality = 0;
+
+	// first = Sample count
+	// second = Quality level
+	for (const auto& info : m_supportedMSAA)
+	{
+		if (info.first == sampleCount)
+		{
+			quality = info.second;
+			break;
+		}
+	}
+
+	return quality;
 }
 
 bool GraphicDevice::ResizeBuffer(uint32_t width, uint32_t height)

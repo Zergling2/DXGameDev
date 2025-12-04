@@ -75,8 +75,8 @@ namespace ze
 		// 거리의 제곱에 반비례하는 점 광원 (0.0f, 0.0f, 1.0f)
 		XMFLOAT3 m_att;		// LitColor = Kspot(A + (KdD + KsS) / (m_att.x + m_att.y * d + m_att.z * d^2))
 
-		// 스포트라이트 콘 크기 조절 (8.0f -> 대략 45도)
-		FLOAT m_spotExp;		// Kspot = max(-L dot dir, 0) ^ m_spot
+		// 
+		FLOAT m_spotExp;		// Kspot = max(-L dot dir, 0) ^ m_spotExp
 
 		FLOAT m_range;
 	};

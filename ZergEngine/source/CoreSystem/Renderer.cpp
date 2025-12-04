@@ -104,7 +104,7 @@ void Renderer::Init()
 	m_pOpaqueBS = GraphicDevice::GetInstance()->GetBSComInterface(BlendStateType::Opaque);
 	m_pAlphaBlendBS = GraphicDevice::GetInstance()->GetBSComInterface(BlendStateType::AlphaBlend);
 	m_pNoColorWriteBS = GraphicDevice::GetInstance()->GetBSComInterface(BlendStateType::NoColorWrite);
-	m_pButtonVB = GraphicDevice::GetInstance()->GetVBComInterface(VertexBufferType::ButtonPt);	// Read only vertex buffer
+	m_pButtonVB = GraphicDevice::GetInstance()->GetButtonMeshVB();	// Read only vertex buffer
 
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ INITIALIZE EFFECTS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	// m_basicEffectP.Init();
@@ -372,6 +372,7 @@ void Renderer::RenderFrame()
 				break;
 			}
 			*/
+
 			RenderVFPositionNormalTangentTexCoordMesh(pMeshRenderer);
 		}
 
@@ -410,7 +411,7 @@ void Renderer::RenderFrame()
 	}
 
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-	// 카메라 렌더링 결과 병합 및 UI 렌더링
+	// 카메라 렌더링 결과 병합 및 스왑체인 버퍼에 UI 렌더링
 	// Rasterizer State
 	pImmContext->RSSetState(m_pCullNoneRS);	// Quad 렌더링 뿐이므로 후면 컬링 끄기
 	
@@ -425,7 +426,7 @@ void Renderer::RenderFrame()
 	// 렌더타겟 바인딩
 	ID3D11RenderTargetView* pColorBufferRTV = GraphicDevice::GetInstance()->GetSwapChainRTVComInterface();
 	ID3D11DepthStencilView* pDepthStencilBufferDSV = GraphicDevice::GetInstance()->GetSwapChainDSVComInterface();
-	pImmContext->ClearRenderTargetView(pColorBufferRTV, DirectX::Colors::Blue);
+	pImmContext->ClearRenderTargetView(pColorBufferRTV, DirectX::ColorsLinear::Blue);
 	pImmContext->ClearDepthStencilView(pDepthStencilBufferDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 	ID3D11RenderTargetView* const rtvs[] = { pColorBufferRTV };
 	pImmContext->OMSetRenderTargets(_countof(rtvs), rtvs, pDepthStencilBufferDSV);
@@ -816,25 +817,26 @@ void Renderer::RenderVFPositionNormalTangentTexCoordSkinnedMesh(const SkinnedMes
 	m_basicEffectPNTTSkinned.SetWorldMatrix(pGameObject->m_transform.GetWorldTransformMatrix());
 	
 	const Animation* pCurrAnim = pSkinnedMeshRenderer->GetCurrentAnimation();
+	const Armature* pArmature = pSkinnedMeshRenderer->GetArmaturePtr();
 	if (pCurrAnim)
 	{
 		pCurrAnim->ComputeFinalTransform(
 			pSkinnedMeshRenderer->GetAnimationTimeCursor(),
 			m_pAnimFinalTransformBuffer,
-			pSkinnedMeshRenderer->GetArmaturePtr()->GetBoneCount()
+			pArmature->GetBoneCount()
 		);
 
-		for (size_t i = 0; i < pSkinnedMeshRenderer->GetArmaturePtr()->GetBoneCount(); ++i)
+		for (size_t i = 0; i < pArmature->GetBoneCount(); ++i)
 		{
 			XMMATRIX m = XMLoadFloat4x4A(&m_pAnimFinalTransformBuffer[i]);
 			m = ConvertToHLSLMatrix(m);
 			XMStoreFloat4x4A(&m_pAnimFinalTransformBuffer[i], m);
 		}
-		m_basicEffectPNTTSkinned.SetArmatureFinalTransform(m_pAnimFinalTransformBuffer, pSkinnedMeshRenderer->GetArmaturePtr()->GetBoneCount());
+		m_basicEffectPNTTSkinned.SetArmatureFinalTransform(m_pAnimFinalTransformBuffer, pArmature->GetBoneCount());
 	}
 	else
 	{
-		m_basicEffectPNTTSkinned.SetArmatureFinalTransform(m_pAnimFinalTransformIdentity, pSkinnedMeshRenderer->GetArmaturePtr()->GetBoneCount());
+		m_basicEffectPNTTSkinned.SetArmatureFinalTransform(m_pAnimFinalTransformIdentity, pArmature->GetBoneCount());
 	}
 
 	// 버텍스 버퍼 설정

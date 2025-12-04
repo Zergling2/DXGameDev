@@ -14,9 +14,7 @@ namespace ze
 
 		virtual UIOBJECT_TYPE GetType() const override { return UIOBJECT_TYPE::TEXT; }
 
-		void SetText(PCWSTR text) { m_text = text; }
-		void SetText(const std::wstring& text) { m_text = text; }
-		void SetText(std::wstring&& text) { m_text = std::move(text); }
+		void SetText(std::wstring text) { m_text = std::move(text); }
 		PCWSTR GetText() const { return m_text.c_str(); }
 		size_t GetTextLength() const { return m_text.length(); }
 		TextFormat& GetTextFormat() { return m_tf; }

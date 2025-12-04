@@ -9,7 +9,7 @@ PSOutput main(PSInputPTFragment input)
     
     float width;
     float height;
-    uint sampleCount;   // 멀티샘플링 텍스쳐이므로 하나의 칸에 여러 개의 색상이 들어있음.
+    uint sampleCount;   // 멀티샘플 텍스쳐 샘플 개수
     tex2dms_tex0.GetDimensions(width, height, sampleCount);
     
     for (uint i = 0; i < sampleCount; ++i)

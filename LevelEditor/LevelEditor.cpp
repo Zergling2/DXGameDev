@@ -195,7 +195,7 @@ BOOL CLevelEditorApp::InitInstance()
 	// 카메라 컴포넌트 추가
 	ze::ComponentHandle<ze::Camera> hCamera = pEditorCameraObject->AddComponent<ze::Camera>();
 	ze::Camera* pCamera = hCamera.ToPtr();
-	pCamera->SetBackgroundColor(DirectX::Colors::ForestGreen);
+	pCamera->SetBackgroundColor(ColorsLinear::ForestGreen);
 	// 카메라 제어 스크립트 추가
 	ze::ComponentHandle<EditorCameraScript> hEditorCameraScript = pEditorCameraObject->AddComponent<EditorCameraScript>();
 

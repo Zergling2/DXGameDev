@@ -97,6 +97,8 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\SkinnedMesh.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\SceneTable.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\ShaderResource\ConstantBuffer.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\ShaderResource\DX11Buffer.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\ShaderResource\IndexBuffer.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\ShaderResource\VertexBuffer.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\SlimRWLock.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GraphicDevice.h" />
@@ -173,6 +175,8 @@
     <ClCompile Include="source\CoreSystem\Resource\SkinnedMesh.cpp" />
     <ClCompile Include="source\CoreSystem\SceneTable.cpp" />
     <ClCompile Include="source\CoreSystem\ShaderResource\ConstantBuffer.cpp" />
+    <ClCompile Include="source\CoreSystem\ShaderResource\DX11Buffer.cpp" />
+    <ClCompile Include="source\CoreSystem\ShaderResource\IndexBuffer.cpp" />
     <ClCompile Include="source\CoreSystem\ShaderResource\VertexBuffer.cpp" />
     <ClCompile Include="source\CoreSystem\SlimRWLock.cpp" />
     <ClCompile Include="source\CoreSystem\Resource\Material.cpp" />

@@ -895,6 +895,58 @@ bool ResourceLoader::CreateHeightMapFromRawData(Texture2D& heightMap, const uint
 	return true;
 }
 
+/*
+std::vector<std::shared_ptr<StaticMesh>> ResourceLoader::LoadWavefrontOBJ(PCWSTR path)
+{
+	FILE* pMeshFile = nullptr;
+	std::vector<std::shared_ptr<StaticMesh>> meshes;
+
+	do
+	{
+		VertexPack vp;
+
+		// UTF-8 -> UTF-16 자동 인코딩 변환하는 것으로 확인
+		// HexEditor로 열었을 때와 이 함수로 읽어들였을 때 값이 다름. (변환이 됨)
+		errno_t e;
+		e = _wfopen_s(&pMeshFile, path, L"rt, ccs=UTF-8");
+		if (e != 0)
+			Debug::ForceCrashWithMessageBox(L"Error", L"Failed to open mesh file.\n%s", path);
+
+		// Wavefront OBJ parsing
+		WCHAR line[MAX_LINE_LENGTH];
+		PWSTR nextToken = nullptr;
+		PCWSTR token;
+		while (fgetws(line, _countof(line), pMeshFile))
+		{
+			token = wcstok_s(line, OBJ_MTL_DELIM, &nextToken);
+			const WCHAR firstChar = token ? token[0] : L'\0';
+
+			if (!token || firstChar == L'#')
+				continue;
+
+			if (firstChar == L'o' && !wcscmp(token, L"o"))
+			{
+				token = wcstok_s(nullptr, OBJ_MTL_DELIM, &nextToken);		// token = object name
+				if (token != nullptr)
+				{
+					std::shared_ptr<StaticMesh> spMesh = std::make_shared<StaticMesh>(token);
+					StaticMesh* pMesh = spMesh.get();
+					meshes.push_back(std::move(spMesh));
+					long ofpos;
+					if (ResourceLoader::ParseWavefrontOBJObject(pMeshFile, &ofpos, vp, pMesh))
+						fseek(pMeshFile, ofpos, SEEK_SET);
+				}
+			}
+		}
+	} while (false);
+
+	if (pMeshFile)
+		fclose(pMeshFile);
+
+	return meshes;
+}
+*/
+
 HRESULT ResourceLoader::GenerateMipMapsForBCFormat(const ScratchImage& src, ScratchImage& result)
 {
 	// Block compressed (BC) 포맷일 경우 Decompress 후 밉맵 생성 및 다시 Compress 필요
@@ -1081,7 +1133,7 @@ bool ResourceLoader::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, Verte
 				else										// v/vt/vn
 					vft = VertexFormatType::PositionNormalTexCoord;
 
-				pMesh->m_vft = vft;
+				// pMesh->m_vft = vft;
 			}
 
 			fseek(pOBJFile, fpos, SEEK_SET);
@@ -1093,8 +1145,9 @@ bool ResourceLoader::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, Verte
 		fpos = ftell(pOBJFile);	// save file stream pointer
 	}
 
-	assert(pMesh->m_vft != VertexFormatType::UNKNOWN);
+	// assert(pMesh->m_vft != VertexFormatType::UNKNOWN);
 
+	
 	{
 		// AABB 정보 생성
 		ptrdiff_t stride;
@@ -1148,6 +1201,8 @@ bool ResourceLoader::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, Verte
 		pMesh->m_aabb.Center = center;
 		pMesh->m_aabb.Extents = extent;
 	}
+	
+
 
 	{
 		// Create a vertex buffer
@@ -1206,9 +1261,9 @@ bool ResourceLoader::ParseWavefrontOBJFaces(FILE* pOBJFile, long* pnffpos, Verte
 	bool ret_nf = false;		// not f
 
 	// Create a subset
-	pMesh->m_subsets.push_back(Subset());
+	pMesh->m_subsets.push_back(MeshSubset());
 	const size_t currentSubsetIndex = pMesh->m_subsets.size() - 1;
-	Subset& currentSubset = pMesh->m_subsets[currentSubsetIndex];
+	MeshSubset& currentSubset = pMesh->m_subsets[currentSubsetIndex];
 	currentSubset.m_startIndexLocation = static_cast<uint32_t>(tempIB.size());		// Set index base
 
 	long fpos = ftell(pOBJFile);
@@ -1353,106 +1408,6 @@ bool ResourceLoader::ParseWavefrontOBJFaces(FILE* pOBJFile, long* pnffpos, Verte
 	currentSubset.m_indexCount = indexCount;		// Set index count
 
 	return ret_nf;
-}
-
-Texture2D ResourceLoader::LoadCubeMapTexture(PCWSTR path)
-{
-	HRESULT hr;
-
-	WCHAR filePath[MAX_PATH];
-	hr = FileSystem::GetInstance()->RelativePathToFullPath(path, filePath, sizeof(filePath));
-	if (FAILED(hr))
-		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to create full file path.\n%s", path);
-
-	PCWSTR ext = wcsrchr(filePath, L'.');
-	if (ext == nullptr)
-		Debug::ForceCrashWithMessageBox(L"Error", L"Unknown file extension: %s", path);
-
-	// 이미지 로드
-	ScratchImage mipChain;
-
-	if (wcscmp(L".dds", ext) != 0 && wcscmp(L".DDS", ext) != 0)
-		Debug::ForceCrashWithMessageBox(L"Error", L"%s is not supported file format for cubemap texture.", path);
-
-	hr = LoadFromDDSFile(filePath, DDS_FLAGS::DDS_FLAGS_NONE, nullptr, mipChain);	// dds, DDS
-	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTMessageBox(L"LoadCubeMapTexture() > LoadFromDDSFile()", hr);
-
-	// 디스크립터 세팅
-	const TexMetadata& metadata = mipChain.GetMetadata();
-	if (!metadata.IsCubemap())
-		Debug::ForceCrashWithMessageBox(L"Error", L"%s is not a cubemap texture.", path);
-
-	D3D11_TEXTURE2D_DESC textureDesc;
-	ZeroMemory(&textureDesc, sizeof(textureDesc));
-	textureDesc.Width = static_cast<UINT>(metadata.width);
-	textureDesc.Height = static_cast<UINT>(metadata.height);
-	textureDesc.MipLevels = static_cast<UINT>(metadata.mipLevels);
-	textureDesc.ArraySize = static_cast<UINT>(metadata.arraySize);
-	textureDesc.Format = metadata.format;
-	textureDesc.SampleDesc.Count = 1;		// 렌더타겟용 큐브맵이 아니므로 안티앨리어싱 X
-	textureDesc.SampleDesc.Quality = 0;		// 렌더타겟용 큐브맵이 아니므로 안티앨리어싱 X
-	textureDesc.Usage = D3D11_USAGE_IMMUTABLE;
-	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-	textureDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;		// 스카이박스 큐브 텍스쳐
-
-	// 텍스처 생성
-	ComPtr<ID3D11Texture2D> cpTex2D;
-	{
-
-		// CreateTexture2D creates a 2D texture resource, which can contain a number of 2D subresources.
-		// The number of textures is specified in the texture description.
-		// All textures in a resource must have the same format, size, and number of mipmap levels.
-		//
-		// All resources are made up of one or more subresources. To load data into the texture,
-		// applications can supply the data initially as an 'array of D3D11_SUBRESOURCE_DATA structures' pointed to by pInitialData,
-		// or it may use one of the D3DX texture functions such as D3DX11CreateTextureFromFile. (D3DX 함수는 UWP 사용 불가...)
-		// For a 32 x 32 texture with a full mipmap chain, the pInitialData array has the following 6 elements:
-		//
-		// (텍스쳐 배열의 경우 0번 이미지의 밉맵 포인터 나열 후 1번 이미지의 밉맵 포인터 나열, ...)
-		// pInitialData[0] = 32x32		pInitialData[6] = 32x32
-		// pInitialData[1] = 16x16		pInitialData[7] = 16x16
-		// pInitialData[2] = 8x8		pInitialData[8] = 8x8
-		// pInitialData[3] = 4x4		pInitialData[9] = 4x4
-		// pInitialData[4] = 2x2		pInitialData[10] = 2x2
-		// pInitialData[5] = 1x1		pInitialData[11] = 1x1
-
-		std::vector<D3D11_SUBRESOURCE_DATA> initialData(metadata.arraySize * metadata.mipLevels);
-		for (size_t i = 0; i < metadata.arraySize; ++i)
-		{
-			for (size_t j = 0; j < metadata.mipLevels; ++j)
-			{
-				const size_t index = i * metadata.mipLevels + j;
-				const Image* pImg = mipChain.GetImage(j, i, 0);
-
-				initialData[index].pSysMem = pImg->pixels;
-				initialData[index].SysMemPitch = static_cast<UINT>(pImg->rowPitch);// 텍스쳐 너비 * 텍셀 당 바이트 크기
-				// initialData[index].SysMemSlicePitch = 0;		// 3D 텍스쳐에서만 의미 있음
-			}
-		}
-
-		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateTexture2D(
-			&textureDesc, initialData.data(), cpTex2D.GetAddressOf()
-		);
-		if (FAILED(hr))
-			Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateTexture2D()", hr);
-	}
-
-	// 셰이더 리소스 뷰 생성
-	ComPtr<ID3D11ShaderResourceView> cpSRV;
-	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-	ZeroMemory(&srvDesc, sizeof(srvDesc));
-	srvDesc.Format = textureDesc.Format;
-	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
-	srvDesc.TextureCube.MostDetailedMip = 0;	// 사용할 가장 디테일한 밉 레벨
-	srvDesc.TextureCube.MipLevels = -1;		// -1로 설정 시 MostDetailedMip에 설정한 밉 레벨부터 최소 퀄리티 밉맵까지 사용
-	hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateShaderResourceView(
-		cpTex2D.Get(), &srvDesc, cpSRV.GetAddressOf()
-	);
-	if (FAILED(hr))
-		Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateShaderResourceView()", hr);
-
-	return Texture2D(cpTex2D, cpSRV);
 }
 */
 
@@ -1786,294 +1741,10 @@ bool Resource::ReadObject_deprecated(FILE* pOBJFile, long* pofpos, VertexPack& v
 	return ret_o;
 }
 
+*/
 
-std::vector<std::shared_ptr<StaticMesh>> ResourceLoader::LoadWavefrontOBJ(PCWSTR path)
-{
-	FILE* pMeshFile = nullptr;
-	std::vector<std::shared_ptr<StaticMesh>> meshes;
 
-	do
-	{
-		VertexPack vp;
-
-		// UTF-8 -> UTF-16 자동 인코딩 변환하는 것으로 확인
-		// HexEditor로 열었을 때와 이 함수로 읽어들였을 때 값이 다름. (변환이 됨)
-		errno_t e;
-		e = _wfopen_s(&pMeshFile, path, L"rt, ccs=UTF-8");
-		if (e != 0)
-			Debug::ForceCrashWithMessageBox(L"Error", L"Failed to open mesh file.\n%s", path);
-
-		// Wavefront OBJ parsing
-		WCHAR line[MAX_LINE_LENGTH];
-		PWSTR nextToken = nullptr;
-		PCWSTR token;
-		while (fgetws(line, _countof(line), pMeshFile))
-		{
-			token = wcstok_s(line, OBJ_MTL_DELIM, &nextToken);
-			const WCHAR firstChar = token ? token[0] : L'\0';
-
-			if (!token || firstChar == L'#')
-				continue;
-
-			if (firstChar == L'o' && !wcscmp(token, L"o"))
-			{
-				token = wcstok_s(nullptr, OBJ_MTL_DELIM, &nextToken);		// token = object name
-				if (token != nullptr)
-				{
-					std::shared_ptr<StaticMesh> spMesh = std::make_shared<StaticMesh>(token);
-					StaticMesh* pMesh = spMesh.get();
-					meshes.push_back(std::move(spMesh));
-					long ofpos;
-					if (ResourceLoader::ParseWavefrontOBJObject(pMeshFile, &ofpos, vp, pMesh))
-						fseek(pMeshFile, ofpos, SEEK_SET);
-				}
-			}
-		}
-	} while (false);
-
-	if (pMeshFile)
-		fclose(pMeshFile);
-
-	return meshes;
-}
-
-std::vector<std::shared_ptr<StaticMesh>> Resource::LoadWavefrontOBJ_deprecated(PCWSTR path, bool importTexture)
-{
-	std::vector<std::shared_ptr<StaticMesh>> meshes;
-	VertexPack vp;
-
-	errno_t e;
-	wchar_t filePath[MAX_PATH];
-	filePath[0] = L'\0';
-	wchar_t texPath[MAX_PATH];
-	StringCbCopyW(texPath, sizeof(texPath), path);
-	wchar_t* rchr = wcsrchr(texPath, L'\\');
-	wchar_t* texPathInitPtr;
-	if (rchr)		// Resource\etc\...\...\xxx.png
-	{
-		texPathInitPtr = rchr + 1;
-		*texPathInitPtr = L'\0';
-	}
-	else			// Resource\xxx.png
-	{
-		texPathInitPtr = texPath;
-		*texPathInitPtr = L'\0';
-	}
-
-	// Open OBJ file
-	e = wcscpy_s(filePath, FileSystem::GetInstance()->GetResourcePath());
-	if (e != 0)
-		return meshes;
-
-	e = wcscat_s(filePath, path);
-	if (e != 0)
-		return meshes;
-
-	FILE* file = nullptr;
-	e = _wfopen_s(&file, filePath, L"rt, ccs=UTF-8");
-	if (e != 0)
-		return meshes;
-
-	// OBJ parsing
-	wchar_t line[MAX_LINE_LENGTH];
-	wchar_t* nextToken = nullptr;
-	wchar_t* convEnd;
-	const wchar_t* token;
-	bool usemtllib = false;
-	std::vector<DeferredMtlLinkingData> dml;
-
-	while (fgetws(line, _countof(line), file))
-	{
-		token = wcstok_s(line, OBJ_MTL_DELIM, &nextToken);
-		const wchar_t firstChar = token ? token[0] : L'\0';
-
-		if (!token || firstChar == L'#')
-			continue;
-
-		if (firstChar == L'o' && !wcscmp(token, L"o"))
-		{
-			token = wcstok_s(nullptr, OBJ_MTL_DELIM, &nextToken);		// token = object name
-			if (token != nullptr)
-			{
-				meshes.emplace_back(std::make_shared<StaticMesh>(token));
-				const size_t meshIndex = meshes.size() - 1;
-				StaticMesh& mesh = *meshes[meshIndex].get();
-				long ofpos;
-				if (Resource::ReadObject_deprecated(file, &ofpos, vp, mesh, meshIndex, dml))
-					fseek(file, ofpos, SEEK_SET);
-			}
-		}
-		else if (firstChar == L'm' && !wcscmp(token, L"mtllib"))
-		{
-			token = wcstok_s(nullptr, OBJ_MTL_DELIM, &nextToken);		// token = mtl file name
-			if (token != nullptr)
-			{
-				*(wcsrchr(filePath, L'\\') + 1) = L'\0';
-				StringCbCatW(filePath, sizeof(filePath), token);
-				usemtllib = true;
-			}
-		}
-	}
-
-	if (file != nullptr)
-	{
-		fclose(file);
-		file = nullptr;
-	}
-
-	std::unordered_map<std::wstring, std::shared_ptr<Material>> mtls;
-	// Open MTL file
-	if (usemtllib)
-	{
-		e = _wfopen_s(&file, filePath, L"rt, ccs=UTF-8");
-		if (e != 0)
-		{
-			meshes.clear();
-			return meshes;
-		}
-
-		// MTL parsing
-		std::shared_ptr<Material> currentMaterial;
-		while (fgetws(line, _countof(line), file))
-		{
-			token = wcstok_s(line, OBJ_MTL_DELIM, &nextToken);
-
-			if (!token || token[0] == L'#')
-			{
-			}
-			else if (!wcscmp(token, L"newmtl"))
-			{
-				token = wcstok_s(nullptr, OBJ_MTL_DELIM, &nextToken);	// token = material name
-				if (!token)
-				{
-					currentMaterial.reset();
-					continue;
-				}
-				else
-				{
-					auto insertedPair = mtls.emplace(std::wstring(token), std::make_shared<Material>());
-					assert(insertedPair.second == true);
-					currentMaterial = insertedPair.first->second;
-				}
-			}
-			else if (!wcscmp(token, L"Ns"))
-			{
-				if (currentMaterial)
-				{
-					token = wcstok_s(nullptr, OBJ_MTL_DELIM, &nextToken);
-					const FLOAT p = wcstof(token, &convEnd);
-
-					currentMaterial->m_specular.w = p;
-				}
-			}
-			else if (!wcscmp(token, L"Ka"))
-			{
-				if (currentMaterial)
-				{
-					token = wcstok_s(nullptr, OBJ_MTL_DELIM, &nextToken);
-					currentMaterial->m_ambient.x = wcstof(token, &convEnd);
-					token = wcstok_s(nullptr, OBJ_MTL_DELIM, &nextToken);
-					currentMaterial->m_ambient.y = wcstof(token, &convEnd);
-					token = wcstok_s(nullptr, OBJ_MTL_DELIM, &nextToken);
-					currentMaterial->m_ambient.z = wcstof(token, &convEnd);
-				}
-			}
-			else if (!wcscmp(token, L"Kd"))
-			{
-				if (currentMaterial)
-				{
-					token = wcstok_s(nullptr, OBJ_MTL_DELIM, &nextToken);
-					currentMaterial->m_diffuse.x = wcstof(token, &convEnd);
-					token = wcstok_s(nullptr, OBJ_MTL_DELIM, &nextToken);
-					currentMaterial->m_diffuse.y = wcstof(token, &convEnd);
-					token = wcstok_s(nullptr, OBJ_MTL_DELIM, &nextToken);
-					currentMaterial->m_diffuse.z = wcstof(token, &convEnd);
-				}
-			}
-			else if (!wcscmp(token, L"Ks"))
-			{
-				if (currentMaterial)
-				{
-					token = wcstok_s(nullptr, OBJ_MTL_DELIM, &nextToken);
-					currentMaterial->m_specular.x = wcstof(token, &convEnd);
-					token = wcstok_s(nullptr, OBJ_MTL_DELIM, &nextToken);
-					currentMaterial->m_specular.y = wcstof(token, &convEnd);
-					token = wcstok_s(nullptr, OBJ_MTL_DELIM, &nextToken);
-					currentMaterial->m_specular.z = wcstof(token, &convEnd);
-				}
-			}
-			else if (!wcscmp(token, L"d"))		// 0.0 = 완전 투명, 1.0 = 완전 불투명
-			{
-				if (currentMaterial)
-				{
-					token = wcstok_s(nullptr, OBJ_MTL_DELIM, &nextToken);
-					currentMaterial->m_diffuse.w = wcstof(token, &convEnd);
-				}
-			}
-			else if (!wcscmp(token, L"Tr"))		// 1.0 = 완전 투명, 0.0 = 완전 불투명
-			{
-				if (currentMaterial)
-				{
-					token = wcstok_s(nullptr, OBJ_MTL_DELIM, &nextToken);
-					currentMaterial->m_diffuse.w = 1.0f - wcstof(token, &convEnd);
-				}
-			}
-			else if (!wcscmp(token, L"illum"))
-			{
-				if (currentMaterial)
-				{
-					token = wcstok_s(nullptr, OBJ_MTL_DELIM, &nextToken);
-					const UINT illum = wcstol(token, &convEnd, 10);
-
-					currentMaterial->m_illum = illum;
-				}
-			}
-			else if (!wcscmp(token, L"map_Kd") && importTexture)
-			{
-				if (currentMaterial)
-				{
-					token = wcstok_s(nullptr, OBJ_MTL_DELIM, &nextToken);
-
-					*texPathInitPtr = L'\0';
-					StringCbCatW(texPath, sizeof(texPath), token);
-
-					currentMaterial->m_diffuseMap = Resource::LoadTexture_deprecated(texPath);
-				}
-				}
-			else
-			{
-				// Unknown keyword
-				}
-		}
-
-		// Link deferred subsets
-		for (const auto& waiting : dml)
-		{
-			const auto iter = mtls.find(waiting.m_mtlName);
-			assert(iter != mtls.end());
-			if (iter == mtls.end())
-			{
-				AsyncLogBuffer* pLogBuffer = AsyncFileLogger::GetLogBuffer();
-				StringCbPrintfW(pLogBuffer->buffer, AsyncLogBuffer::BUFFER_SIZE,
-					L"Cannot find material name '%s' in mtl file.", waiting.m_mtlName.c_str());
-				AsyncFileLogger::Write(pLogBuffer);
-			}
-			else
-			{
-				meshes[waiting.m_meshIndex]->m_subsets[waiting.m_subsetIndex].m_material = iter->second;
-			}
-		}
-	}
-
-	if (file != nullptr)
-	{
-		fclose(file);
-		file = nullptr;
-	}
-
-	return meshes;
-}
-
+/*
 std::vector<std::shared_ptr<StaticMesh>> Resource::LoadWavefrontOBJ(const wchar_t* path, bool importTexture)
 {
 	std::vector<std::shared_ptr<StaticMesh>> meshes;
@@ -2435,17 +2106,103 @@ std::shared_ptr<ShaderResourceTexture> Resource::LoadTexture_deprecated(PCWSTR p
 	return texture;
 }
 
-void Resource::ReleaseExpiredContainer()
+Texture2D ResourceLoader::LoadCubeMapTexture(PCWSTR path)
 {
-	auto iter = Resource::sTextureMap.begin();
-	auto end = Resource::sTextureMap.cend();
+	HRESULT hr;
 
-	while (iter != end)
+	WCHAR filePath[MAX_PATH];
+	hr = FileSystem::GetInstance()->RelativePathToFullPath(path, filePath, sizeof(filePath));
+	if (FAILED(hr))
+		Debug::ForceCrashWithMessageBox(L"Error", L"Failed to create full file path.\n%s", path);
+
+	PCWSTR ext = wcsrchr(filePath, L'.');
+	if (ext == nullptr)
+		Debug::ForceCrashWithMessageBox(L"Error", L"Unknown file extension: %s", path);
+
+	// 이미지 로드
+	ScratchImage mipChain;
+
+	if (wcscmp(L".dds", ext) != 0 && wcscmp(L".DDS", ext) != 0)
+		Debug::ForceCrashWithMessageBox(L"Error", L"%s is not supported file format for cubemap texture.", path);
+
+	hr = LoadFromDDSFile(filePath, DDS_FLAGS::DDS_FLAGS_NONE, nullptr, mipChain);	// dds, DDS
+	if (FAILED(hr))
+		Debug::ForceCrashWithHRESULTMessageBox(L"LoadCubeMapTexture() > LoadFromDDSFile()", hr);
+
+	// 디스크립터 세팅
+	const TexMetadata& metadata = mipChain.GetMetadata();
+	if (!metadata.IsCubemap())
+		Debug::ForceCrashWithMessageBox(L"Error", L"%s is not a cubemap texture.", path);
+
+	D3D11_TEXTURE2D_DESC textureDesc;
+	ZeroMemory(&textureDesc, sizeof(textureDesc));
+	textureDesc.Width = static_cast<UINT>(metadata.width);
+	textureDesc.Height = static_cast<UINT>(metadata.height);
+	textureDesc.MipLevels = static_cast<UINT>(metadata.mipLevels);
+	textureDesc.ArraySize = static_cast<UINT>(metadata.arraySize);
+	textureDesc.Format = metadata.format;
+	textureDesc.SampleDesc.Count = 1;		// 렌더타겟용 큐브맵이 아니므로 안티앨리어싱 X
+	textureDesc.SampleDesc.Quality = 0;		// 렌더타겟용 큐브맵이 아니므로 안티앨리어싱 X
+	textureDesc.Usage = D3D11_USAGE_IMMUTABLE;
+	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	textureDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;		// 스카이박스 큐브 텍스쳐
+
+	// 텍스처 생성
+	ComPtr<ID3D11Texture2D> cpTex2D;
 	{
-		if (iter->second.expired())
-			iter = Resource::sTextureMap.erase(iter);
-		else
-			++iter;
+
+		// CreateTexture2D creates a 2D texture resource, which can contain a number of 2D subresources.
+		// The number of textures is specified in the texture description.
+		// All textures in a resource must have the same format, size, and number of mipmap levels.
+		//
+		// All resources are made up of one or more subresources. To load data into the texture,
+		// applications can supply the data initially as an 'array of D3D11_SUBRESOURCE_DATA structures' pointed to by pInitialData,
+		// or it may use one of the D3DX texture functions such as D3DX11CreateTextureFromFile. (D3DX 함수는 UWP 사용 불가...)
+		// For a 32 x 32 texture with a full mipmap chain, the pInitialData array has the following 6 elements:
+		//
+		// (텍스쳐 배열의 경우 0번 이미지의 밉맵 포인터 나열 후 1번 이미지의 밉맵 포인터 나열, ...)
+		// pInitialData[0] = 32x32		pInitialData[6] = 32x32
+		// pInitialData[1] = 16x16		pInitialData[7] = 16x16
+		// pInitialData[2] = 8x8		pInitialData[8] = 8x8
+		// pInitialData[3] = 4x4		pInitialData[9] = 4x4
+		// pInitialData[4] = 2x2		pInitialData[10] = 2x2
+		// pInitialData[5] = 1x1		pInitialData[11] = 1x1
+
+		std::vector<D3D11_SUBRESOURCE_DATA> initialData(metadata.arraySize * metadata.mipLevels);
+		for (size_t i = 0; i < metadata.arraySize; ++i)
+		{
+			for (size_t j = 0; j < metadata.mipLevels; ++j)
+			{
+				const size_t index = i * metadata.mipLevels + j;
+				const Image* pImg = mipChain.GetImage(j, i, 0);
+
+				initialData[index].pSysMem = pImg->pixels;
+				initialData[index].SysMemPitch = static_cast<UINT>(pImg->rowPitch);// 텍스쳐 너비 * 텍셀 당 바이트 크기
+				// initialData[index].SysMemSlicePitch = 0;		// 3D 텍스쳐에서만 의미 있음
+			}
+		}
+
+		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateTexture2D(
+			&textureDesc, initialData.data(), cpTex2D.GetAddressOf()
+		);
+		if (FAILED(hr))
+			Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateTexture2D()", hr);
 	}
+
+	// 셰이더 리소스 뷰 생성
+	ComPtr<ID3D11ShaderResourceView> cpSRV;
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+	ZeroMemory(&srvDesc, sizeof(srvDesc));
+	srvDesc.Format = textureDesc.Format;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+	srvDesc.TextureCube.MostDetailedMip = 0;	// 사용할 가장 디테일한 밉 레벨
+	srvDesc.TextureCube.MipLevels = -1;		// -1로 설정 시 MostDetailedMip에 설정한 밉 레벨부터 최소 퀄리티 밉맵까지 사용
+	hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateShaderResourceView(
+		cpTex2D.Get(), &srvDesc, cpSRV.GetAddressOf()
+	);
+	if (FAILED(hr))
+		Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateShaderResourceView()", hr);
+
+	return Texture2D(cpTex2D, cpSRV);
 }
 */

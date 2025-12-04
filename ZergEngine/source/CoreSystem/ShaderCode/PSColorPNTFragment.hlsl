@@ -69,7 +69,7 @@ PSOutput main(PSInputPNTFragment input)
         else
             output.color = (ambient + diffuse) + specular;
     
-        output.color.a = cb_perSubset.mtl.diffuse.a; // 알파 값은 재질의 diffuse 속성에서 추출 (tr map 미사용시..)
+        output.color.a = cb_perSubset.mtl.diffuse.a;
         output.color = saturate(output.color);
     }
     else

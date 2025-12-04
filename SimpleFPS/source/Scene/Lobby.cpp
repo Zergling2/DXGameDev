@@ -88,8 +88,8 @@ void Lobby::OnLoadScene()
 		pInputField0->SetShape(INPUT_FIELD_SHAPE::ROUNDED_RECTANGLE);
 		pInputField0->SetRadiusX(8.0f);
 		pInputField0->SetRadiusY(8.0f);
-		pInputField0->SetBkColor(Colors::LightGray);
-		pInputField0->SetColor(Colors::Blue);
+		pInputField0->SetBkColor(ColorsLinear::LightGray);
+		pInputField0->SetColor(ColorsLinear::Blue);
 		pInputField0->GetTextFormat().SetSize(16);
 		pInputField0->Apply();
 		pInputField0->m_transform.SetParent(&pPanel->m_transform);
@@ -104,8 +104,8 @@ void Lobby::OnLoadScene()
 		pInputField1->SetShape(INPUT_FIELD_SHAPE::ROUNDED_RECTANGLE);
 		pInputField1->SetRadiusX(8.0f);
 		pInputField1->SetRadiusY(8.0f);
-		pInputField1->SetBkColor(Colors::Yellow);
-		pInputField1->SetColor(Colors::Black);
+		pInputField1->SetBkColor(ColorsLinear::Yellow);
+		pInputField1->SetColor(ColorsLinear::Black);
 		pInputField1->GetTextFormat().SetSize(14);
 		pInputField1->SetPassword(true);
 		pInputField1->Apply();
@@ -118,7 +118,7 @@ void Lobby::OnLoadScene()
 		pMainCamera->m_transform.SetPosition(XMVectorSet(0.0f, 0.0f, -5.0f, 0.0f));
 		ComponentHandle<Camera> hMainCameraComponent = pMainCamera->AddComponent<Camera>();	// 카메라 컴포넌트 추가
 		Camera* pMainCameraComponent = hMainCameraComponent.ToPtr();
-		pMainCameraComponent->SetBackgroundColor(Colors::Gray);
+		pMainCameraComponent->SetBackgroundColor(ColorsLinear::Gray);
 		pMainCameraComponent->SetDepth(0);
 		pMainCameraComponent->SetFieldOfView(92);
 		pMainCameraComponent->SetClippingPlanes(0.3f, 500.0f);

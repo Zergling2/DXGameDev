@@ -3,6 +3,11 @@
 
 #include "ShaderCommon.hlsli"
 
+float Attenuation(float3 att, float dist)
+{
+    return 1.0f / dot(att, float3(1.0f, dist, dist * dist));
+}
+
 void ComputeDirectionalLight(DirectionalLightData dl, MaterialData mtl, float3 normal, float3 toEye,
     out float4 oA, out float4 oD, out float4 oS)
 {
@@ -27,7 +32,8 @@ void ComputeDirectionalLight(DirectionalLightData dl, MaterialData mtl, float3 n
 void ComputePointLight(PointLightData pl, MaterialData mtl, float3 pos, float3 normal, float3 toEye,
     out float4 oA, out float4 oD, out float4 oS)
 {
-    oA = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    // oA = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    oA = pl.ambient * mtl.ambient;
     oD = float4(0.0f, 0.0f, 0.0f, 0.0f);
     oS = float4(0.0f, 0.0f, 0.0f, 0.0f);
     
@@ -40,8 +46,6 @@ void ComputePointLight(PointLightData pl, MaterialData mtl, float3 pos, float3 n
     // Normalize
     toLight /= d;
     
-    oA = pl.ambient * mtl.ambient;
-    
     const float kd = dot(toLight, normal);
     
     [flatten]
@@ -53,7 +57,7 @@ void ComputePointLight(PointLightData pl, MaterialData mtl, float3 pos, float3 n
         const float4 diffuse = pl.diffuse * mtl.diffuse;
         const float4 specular = pl.specular * mtl.specular;
         
-        const float att = 1.0f / dot(pl.att, float3(1.0f, d, d * d));
+        const float att = Attenuation(pl.att, d);
         
         oD = att * kd * diffuse;
         oS = att * ks * specular;
@@ -63,7 +67,8 @@ void ComputePointLight(PointLightData pl, MaterialData mtl, float3 pos, float3 n
 void ComputeSpotLight(SpotLightData sl, MaterialData mtl, float3 pos, float3 normal, float3 toEye,
     out float4 oA, out float4 oD, out float4 oS)
 {
-    oA = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    // oA = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    oA = sl.ambient * mtl.ambient;
     oD = float4(0.0f, 0.0f, 0.0f, 0.0f);
     oS = float4(0.0f, 0.0f, 0.0f, 0.0f);
     
@@ -77,9 +82,6 @@ void ComputeSpotLight(SpotLightData sl, MaterialData mtl, float3 pos, float3 nor
     toLight /= d;
     
     const float kd = dot(toLight, normal);
-    const float kspot = pow(max(dot(-toLight, sl.directionW), 0.0f), sl.spotExp);
-    
-    oA = kspot * sl.ambient * mtl.ambient;
     
     [flatten]
     if (kd > 0.0f)
@@ -90,7 +92,8 @@ void ComputeSpotLight(SpotLightData sl, MaterialData mtl, float3 pos, float3 nor
         const float4 diffuse = sl.diffuse * mtl.diffuse;
         const float4 specular = sl.specular * mtl.specular;
         
-        const float att = 1.0f / dot(sl.att, float3(1.0f, d, d * d));
+        const float att = Attenuation(sl.att, d);
+        const float kspot = pow(max(dot(-toLight, sl.directionW), 0.0f), sl.spotExp);
         
         oD = kspot * att * kd * diffuse;
         oS = kspot * att * ks * specular;

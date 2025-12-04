@@ -16,7 +16,7 @@ void Animation::ComputeFinalTransform(float time, XMFLOAT4X4A* pOutFinalTransfor
 {
 	const XMFLOAT4X4A* pMdInvArray = m_armature.GetMdInvArray();
 
-	// Assimp로 로드한 키 프레임은 뼈의 로컬 변환에 to parent 성분이 포함된 값을 갖고 있어서 Mp 행렬이 필요가 없음.
+	// Assimp로 로드한 키 프레임 = Ml * Mp (리깅 시 애니메이션 프레임에서 뼈의 스케일링 & 회전 & 이동은 Ml * Mp이다.)
 	// const XMFLOAT4X4A* pMpArray = m_armature.GetMpArray();
 
 	const BYTE* pBoneHierarchy = m_armature.GetBoneHierarchy();
@@ -46,13 +46,10 @@ void Animation::ComputeFinalTransform(float time, XMFLOAT4X4A* pOutFinalTransfor
 		if (parentBoneIndex == currBoneIndex)
 		{
 			assert(currBoneIndex == 0);
-
-			// Ma = Ml * Mp;	// Line 19 주석을 이유로
 			Ma = MlMp;
 		}
 		else
 		{
-			// Ma = Ml * Mp * XMLoadFloat4x4A(&MaArray[parentBoneIndex]);	// Line 19 주석을 이유로
 			Ma = MlMp * XMLoadFloat4x4A(&MaArray[parentBoneIndex]);
 		}
 
