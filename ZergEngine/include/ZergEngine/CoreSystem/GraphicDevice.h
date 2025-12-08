@@ -63,11 +63,11 @@ namespace ze
 		size_t GetAdapterSharedSystemMemory() const { return m_descAdapter.SharedSystemMemory; }
 
 		// Return max quality level
-		UINT GetMSAAMaximumQuality(MultisamplingAntiAliasingMode sampleCount);
-		const DXGI_SWAP_CHAIN_DESC& GetSwapChainDesc() { return m_descSwapChain; }
+		UINT GetMSAAMaximumQuality(MSAAMode sampleCount);
+		const DXGI_SWAP_CHAIN_DESC& GetSwapChainDesc() { return m_swapChainDesc; }
 		const D3D11_VIEWPORT& GetEntireSwapChainViewport() const { return m_entireSwapChainViewport; }
-		uint32_t GetSwapChainWidth() const { return m_descSwapChain.BufferDesc.Width; }
-		uint32_t GetSwapChainHeight() const { return m_descSwapChain.BufferDesc.Height; }
+		uint32_t GetSwapChainWidth() const { return m_swapChainDesc.BufferDesc.Width; }
+		uint32_t GetSwapChainHeight() const { return m_swapChainDesc.BufferDesc.Height; }
 		float GetSwapChainWidthFlt() const { return m_swapChainSizeFlt.x; }
 		float GetSwapChainHeightFlt() const { return m_swapChainSizeFlt.y; }
 		float GetSwapChainHalfWidthFlt() const { return m_swapChainHalfSizeFlt.x; }
@@ -115,13 +115,12 @@ namespace ze
 	private:
 		static GraphicDevice* s_pInstance;
 		DXGI_ADAPTER_DESC m_descAdapter;
-		DXGI_SWAP_CHAIN_DESC m_descSwapChain;
+		DXGI_SWAP_CHAIN_DESC m_swapChainDesc;
 		XMFLOAT2 m_swapChainSizeFlt;
 		XMFLOAT2 m_swapChainHalfSizeFlt;
-		D3D11_TEXTURE2D_DESC m_descDepthStencil;
 		D3D11_VIEWPORT m_entireSwapChainViewport;
 		std::vector<DXGI_MODE_DESC> m_supportedResolution;
-		std::vector<std::pair<MultisamplingAntiAliasingMode, UINT>> m_supportedMSAA;
+		std::vector<std::pair<MSAAMode, UINT>> m_supportedMSAA;
 		ComPtr<ID3D11Device> m_cpDevice;
 		ComPtr<ID3D11DeviceContext> m_cpImmediateContext;
 		ComPtr<ID2D1Factory> m_cpD2DFactory;

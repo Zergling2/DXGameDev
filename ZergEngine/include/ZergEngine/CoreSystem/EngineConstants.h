@@ -54,7 +54,7 @@ namespace ze
 		TransformPNTTSkinnedToHCS,
 		TransformButtonToHCS,
 		TransformPTQuadToHCS,
-		TransformCameraMergeQuad,
+		TransformScreenRatioQuad,	// Out: PosH, TexCoord
 		// 收收收收收收收收收收收收收收收收收收收收收收
 		COUNT
 	};
@@ -88,7 +88,7 @@ namespace ze
 		COUNT
 	};
 
-	enum class MultisamplingAntiAliasingMode
+	enum class MSAAMode
 	{
 		Off	= 1,
 		x2	= 2,

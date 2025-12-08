@@ -5,32 +5,32 @@
 
 namespace ze
 {
-	class DrawQuadWithMSTextureEffect : public IEffect
+	class DrawScreenRatioQuadWithMSTextureEffect : public IEffect
 	{
 	private:
 		enum DIRTY_FLAG : DWORD
 		{
-			PRIMITIVE_TOPOLOGY					= 1 << 0,
-			INPUT_LAYOUT						= 1 << 1,
-			SHADER								= 1 << 2,
-			CONSTANTBUFFER_PER_DRAW_QUAD		= 1 << 3,
+			PRIMITIVE_TOPOLOGY						= 1 << 0,
+			INPUT_LAYOUT							= 1 << 1,
+			SHADER									= 1 << 2,
+			CONSTANTBUFFER_PER_SCREEN_RATIO_QUAD	= 1 << 3,
 
 			COUNT,
 
 			ALL = ((COUNT - 1) << 1) - 1
 		};
 	public:
-		DrawQuadWithMSTextureEffect() noexcept
+		DrawScreenRatioQuadWithMSTextureEffect() noexcept
 			: m_dirtyFlag(ALL)
 			, m_pInputLayout(nullptr)
 			, m_pVertexShader(nullptr)
 			, m_pPixelShader(nullptr)
-			, m_cbPerDrawQuad()
-			, m_cbPerDrawQuadCache()
+			, m_cbPerScreenRatioQuad()
+			, m_cbPerScreenRatioQuadCache()
 			, m_pTextureSRVArray{ nullptr }
 		{
 		}
-		virtual ~DrawQuadWithMSTextureEffect() = default;
+		virtual ~DrawScreenRatioQuadWithMSTextureEffect() = default;
 
 		virtual void Init() override;
 		virtual void Release() override;
@@ -52,8 +52,8 @@ namespace ze
 		ID3D11VertexShader* m_pVertexShader;
 		ID3D11PixelShader* m_pPixelShader;
 
-		ConstantBuffer<CbPerDrawQuad> m_cbPerDrawQuad;
-		CbPerDrawQuad m_cbPerDrawQuadCache;
+		ConstantBuffer<CbPerScreenRatioQuad> m_cbPerScreenRatioQuad;
+		CbPerScreenRatioQuad m_cbPerScreenRatioQuadCache;
 
 		// [0] RENDER_RESULT
 		ID3D11ShaderResourceView* m_pTextureSRVArray[1];

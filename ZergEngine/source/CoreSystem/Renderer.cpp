@@ -55,7 +55,7 @@ Renderer::Renderer()
 	, m_basicEffectPNTTSkinned()
 	, m_terrainEffect()
 	, m_skyboxEffect()
-	, m_drawQuadWithMSTextureEffect()
+	, m_drawScreenQuadMSTex()
 	, m_buttonEffect()
 	, m_imageEffect()
 	, m_uiRenderQueue()
@@ -116,7 +116,7 @@ void Renderer::Init()
 	m_basicEffectPNTTSkinned.Init();
 	m_terrainEffect.Init();
 	m_skyboxEffect.Init();
-	m_drawQuadWithMSTextureEffect.Init();
+	m_drawScreenQuadMSTex.Init();
 	m_buttonEffect.Init();
 	m_imageEffect.Init();
 
@@ -137,7 +137,7 @@ void Renderer::UnInit()
 	m_basicEffectPNTTSkinned.Release();
 	m_terrainEffect.Release();
 	m_skyboxEffect.Release();
-	m_drawQuadWithMSTextureEffect.Release();
+	m_drawScreenQuadMSTex.Release();
 	m_buttonEffect.Release();
 	m_imageEffect.Release();
 }
@@ -437,15 +437,15 @@ void Renderer::RenderFrame()
 		if (!pCamera->IsEnabled())
 			continue;
 	
-		m_drawQuadWithMSTextureEffect.SetQuadParameters(
+		m_drawScreenQuadMSTex.SetQuadParameters(
 			pCamera->m_viewportRect.m_width,
 			pCamera->m_viewportRect.m_height,
 			pCamera->m_viewportRect.m_x,
 			pCamera->m_viewportRect.m_y
 		);
-		m_drawQuadWithMSTextureEffect.SetTexture(pCamera->GetColorBufferSRVComInterface());
+		m_drawScreenQuadMSTex.SetTexture(pCamera->GetColorBufferSRVComInterface());
 	
-		m_effectImmediateContext.Apply(&m_drawQuadWithMSTextureEffect);
+		m_effectImmediateContext.Apply(&m_drawScreenQuadMSTex);
 	
 		m_effectImmediateContext.Draw(4, 0);
 	}

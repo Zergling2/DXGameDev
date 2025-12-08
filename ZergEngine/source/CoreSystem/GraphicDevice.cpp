@@ -29,7 +29,7 @@ static PCWSTR VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::COUNT)] 
 	L"VSTransformPNTTSkinnedToHCS.cso",
 	L"VSTransformButtonToHCS.cso",
 	L"VSTransformPTQuadToHCS.cso",
-	L"VSTransformCameraMergeQuad.cso"
+	L"VSTransformScreenRatioQuad.cso"
 };
 static PCWSTR HULL_SHADER_FILES[static_cast<size_t>(HullShaderType::COUNT)] =
 {
@@ -54,10 +54,9 @@ static PCWSTR PIXEL_SHADER_FILES[static_cast<size_t>(PixelShaderType::COUNT)] =
 
 GraphicDevice::GraphicDevice()
 	: m_descAdapter()
-	, m_descSwapChain()
+	, m_swapChainDesc()
 	, m_swapChainSizeFlt(0.0f, 0.0f)
 	, m_swapChainHalfSizeFlt(0.0f, 0.0f)
-	, m_descDepthStencil()
 	, m_entireSwapChainViewport()
 	, m_supportedResolution()
 	, m_supportedMSAA()
@@ -182,7 +181,6 @@ bool GraphicDevice::Init(HWND hWnd, uint32_t width, uint32_t height, bool fullsc
 	this->CreateSupportedMSAAQualityInfo();
 
 	// 스왑 체인 디스크립터 및 뎁스스텐실 버퍼 디스크립터 초기화
-	// Initialize SwapChain descriptor.
 	DXGI_SWAP_CHAIN_DESC descSwapChain;
 	ZeroMemory(&descSwapChain, sizeof(descSwapChain));
 	descSwapChain.BufferDesc.Width = width;
@@ -250,21 +248,21 @@ bool GraphicDevice::Init(HWND hWnd, uint32_t width, uint32_t height, bool fullsc
 	}
 
 	// 스왑 체인 정보 저장
-	hr = m_cpSwapChain->GetDesc(&m_descSwapChain);
+	hr = m_cpSwapChain->GetDesc(&m_swapChainDesc);
 	if (FAILED(hr))
 	{
 		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"IDXGISwapChain::GetDesc", hr);
 		return false;
 	}
 
-	m_swapChainSizeFlt = XMFLOAT2(static_cast<FLOAT>(m_descSwapChain.BufferDesc.Width), static_cast<FLOAT>(m_descSwapChain.BufferDesc.Height));
+	m_swapChainSizeFlt = XMFLOAT2(static_cast<FLOAT>(m_swapChainDesc.BufferDesc.Width), static_cast<FLOAT>(m_swapChainDesc.BufferDesc.Height));
 	m_swapChainHalfSizeFlt = XMFLOAT2(m_swapChainSizeFlt.x * 0.5f, m_swapChainSizeFlt.y * 0.5f);
 
 	// 전체 스왑 체인 영역을 나타내는 뷰포트 구조체 업데이트
 	m_entireSwapChainViewport.TopLeftX = 0.0f;
 	m_entireSwapChainViewport.TopLeftY = 0.0f;
-	m_entireSwapChainViewport.Width = static_cast<FLOAT>(m_descSwapChain.BufferDesc.Width);
-	m_entireSwapChainViewport.Height = static_cast<FLOAT>(m_descSwapChain.BufferDesc.Height);
+	m_entireSwapChainViewport.Width = static_cast<FLOAT>(m_swapChainDesc.BufferDesc.Width);
+	m_entireSwapChainViewport.Height = static_cast<FLOAT>(m_swapChainDesc.BufferDesc.Height);
 	m_entireSwapChainViewport.MinDepth = 0.0f;
 	m_entireSwapChainViewport.MaxDepth = 1.0f;
 
@@ -550,12 +548,12 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	m_vs[static_cast<size_t>(VertexShaderType::TransformPTQuadToHCS)].Init(pDevice, pByteCode, byteCodeSize);
 	delete[] pByteCode;
 
-	// TransformCameraMergeQuad (No Input Layout required)
+	// TransformScreenRatioQuad (No Input Layout required)
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
-	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TransformCameraMergeQuad)]);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TransformScreenRatioQuad)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
 		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
-	m_vs[static_cast<size_t>(VertexShaderType::TransformCameraMergeQuad)].Init(pDevice, pByteCode, byteCodeSize);
+	m_vs[static_cast<size_t>(VertexShaderType::TransformScreenRatioQuad)].Init(pDevice, pByteCode, byteCodeSize);
 	// No input layout required.
 	delete[] pByteCode;
 
@@ -908,11 +906,11 @@ void GraphicDevice::CreateBlendStates()
 {
 	ID3D11Device* pDevice = m_cpDevice.Get();
 
-	D3D11_BLEND_DESC descBlend;
-	ZeroMemory(&descBlend, sizeof(descBlend));
-	descBlend.AlphaToCoverageEnable = FALSE;
-	descBlend.IndependentBlendEnable = FALSE;
-	D3D11_RENDER_TARGET_BLEND_DESC& descRenderTargetBlend = descBlend.RenderTarget[0];
+	D3D11_BLEND_DESC blendDesc;
+	ZeroMemory(&blendDesc, sizeof(blendDesc));
+	blendDesc.AlphaToCoverageEnable = FALSE;
+	blendDesc.IndependentBlendEnable = FALSE;
+	D3D11_RENDER_TARGET_BLEND_DESC& descRenderTargetBlend = blendDesc.RenderTarget[0];
 
 	// 1. Opaque
 	descRenderTargetBlend.BlendEnable = FALSE;
@@ -923,7 +921,7 @@ void GraphicDevice::CreateBlendStates()
 	descRenderTargetBlend.DestBlendAlpha = D3D11_BLEND_ZERO;
 	descRenderTargetBlend.BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	descRenderTargetBlend.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-	m_bs[static_cast<size_t>(BlendStateType::Opaque)].Init(pDevice, &descBlend);
+	m_bs[static_cast<size_t>(BlendStateType::Opaque)].Init(pDevice, &blendDesc);
 
 	// 2. AlphaBlend
 	descRenderTargetBlend.BlendEnable = TRUE;
@@ -934,7 +932,7 @@ void GraphicDevice::CreateBlendStates()
 	descRenderTargetBlend.DestBlendAlpha = D3D11_BLEND_ZERO;
 	descRenderTargetBlend.BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	descRenderTargetBlend.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-	m_bs[static_cast<size_t>(BlendStateType::AlphaBlend)].Init(pDevice, &descBlend);
+	m_bs[static_cast<size_t>(BlendStateType::AlphaBlend)].Init(pDevice, &blendDesc);
 
 	// 3. No color write
 	descRenderTargetBlend.BlendEnable = TRUE;
@@ -945,7 +943,7 @@ void GraphicDevice::CreateBlendStates()
 	descRenderTargetBlend.DestBlendAlpha = D3D11_BLEND_ONE;
 	descRenderTargetBlend.BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	descRenderTargetBlend.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-	m_bs[static_cast<size_t>(BlendStateType::NoColorWrite)].Init(pDevice, &descBlend);
+	m_bs[static_cast<size_t>(BlendStateType::NoColorWrite)].Init(pDevice, &blendDesc);
 }
 
 void GraphicDevice::ReleaseBlendStates()
@@ -1340,10 +1338,10 @@ void GraphicDevice::CreateSupportedMSAAQualityInfo()
 {
 	HRESULT hr;
 
-	const MultisamplingAntiAliasingMode sc[6] = 
+	const MSAAMode sc[6] = 
 	{
-		MultisamplingAntiAliasingMode::Off, MultisamplingAntiAliasingMode::x2, MultisamplingAntiAliasingMode::x4,
-		MultisamplingAntiAliasingMode::x8, MultisamplingAntiAliasingMode::x16, MultisamplingAntiAliasingMode::x32
+		MSAAMode::Off, MSAAMode::x2, MSAAMode::x4,
+		MSAAMode::x8, MSAAMode::x16, MSAAMode::x32
 	};
 
 	for (UINT i = 0; i < _countof(sc); ++i)
@@ -1376,7 +1374,7 @@ bool GraphicDevice::CreateGraphicDeviceResources()
 	assert(m_cpSwapChainRTV == nullptr);
 	D3D11_RENDER_TARGET_VIEW_DESC swapChainRTVDesc;
 	ZeroMemory(&swapChainRTVDesc, sizeof(swapChainRTVDesc));
-	swapChainRTVDesc.Format = SWAP_CHAIN_RTV_FORMAT;
+	swapChainRTVDesc.Format = SWAP_CHAIN_RTV_FORMAT;		// sRGB
 	swapChainRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 	swapChainRTVDesc.Texture2D.MipSlice = 0;
 
@@ -1389,22 +1387,22 @@ bool GraphicDevice::CreateGraphicDeviceResources()
 
 	// 스왑 체인에 대한 렌더링에 사용할 뎁스 스텐실 버퍼 및 뷰 재생성
 	// 뎁스스텐실 버퍼 재생성을 위해 디스크립터 세팅
-	D3D11_TEXTURE2D_DESC descDepthStencil;
-	ZeroMemory(&descDepthStencil, sizeof(descDepthStencil));
-	descDepthStencil.Width = m_descSwapChain.BufferDesc.Width;
-	descDepthStencil.Height = m_descSwapChain.BufferDesc.Height;
-	descDepthStencil.MipLevels = 1;
-	descDepthStencil.ArraySize = 1;
-	descDepthStencil.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	D3D11_TEXTURE2D_DESC depthStencilBufferDesc;
+	ZeroMemory(&depthStencilBufferDesc, sizeof(depthStencilBufferDesc));
+	depthStencilBufferDesc.Width = m_swapChainDesc.BufferDesc.Width;
+	depthStencilBufferDesc.Height = m_swapChainDesc.BufferDesc.Height;
+	depthStencilBufferDesc.MipLevels = 1;
+	depthStencilBufferDesc.ArraySize = 1;
+	depthStencilBufferDesc.Format = DXGI_FORMAT_D16_UNORM;
 	// Must match with swap chain's MSAA setting!
-	descDepthStencil.SampleDesc = m_descSwapChain.SampleDesc;
-	descDepthStencil.Usage = D3D11_USAGE_DEFAULT;
-	descDepthStencil.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-	descDepthStencil.CPUAccessFlags = 0;
-	descDepthStencil.MiscFlags = 0;
+	depthStencilBufferDesc.SampleDesc = m_swapChainDesc.SampleDesc;
+	depthStencilBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	depthStencilBufferDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	depthStencilBufferDesc.CPUAccessFlags = 0;
+	depthStencilBufferDesc.MiscFlags = 0;
 
 	ComPtr<ID3D11Texture2D> cpDepthStencilBuffer;	// DSV가 뎁스 스텐실 버퍼를 간접 참조하므로 지역 ComPtr로 두어도 됨
-	hr = m_cpDevice->CreateTexture2D(&descDepthStencil, nullptr, cpDepthStencilBuffer.GetAddressOf());
+	hr = m_cpDevice->CreateTexture2D(&depthStencilBufferDesc, nullptr, cpDepthStencilBuffer.GetAddressOf());
 	if (FAILED(hr))
 	{
 		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"ID3D11Device::CreateTexture2D", hr);
@@ -1412,7 +1410,6 @@ bool GraphicDevice::CreateGraphicDeviceResources()
 	}
 
 	assert(m_cpSwapChainDSV == nullptr);
-	cpDepthStencilBuffer->GetDesc(&m_descDepthStencil);
 	hr = m_cpDevice->CreateDepthStencilView(cpDepthStencilBuffer.Get(), nullptr, m_cpSwapChainDSV.GetAddressOf());
 	if (FAILED(hr))
 	{
@@ -1487,7 +1484,7 @@ void GraphicDevice::ReleaseGraphicDeviceResources()
 	m_cpSwapChainRTV.Reset();
 }
 
-UINT GraphicDevice::GetMSAAMaximumQuality(MultisamplingAntiAliasingMode sampleCount)
+UINT GraphicDevice::GetMSAAMaximumQuality(MSAAMode sampleCount)
 {
 	UINT quality = 0;
 
@@ -1560,21 +1557,21 @@ bool GraphicDevice::ResizeBuffer(uint32_t width, uint32_t height)
 	}
 
 	// 스왑 체인 정보 저장
-	hr = m_cpSwapChain->GetDesc(&m_descSwapChain);
+	hr = m_cpSwapChain->GetDesc(&m_swapChainDesc);
 	if (FAILED(hr))
 	{
 		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"IDXGISwapChain::GetDesc", hr);
 		return false;
 	}
 
-	m_swapChainSizeFlt = XMFLOAT2(static_cast<FLOAT>(m_descSwapChain.BufferDesc.Width), static_cast<FLOAT>(m_descSwapChain.BufferDesc.Height));
+	m_swapChainSizeFlt = XMFLOAT2(static_cast<FLOAT>(m_swapChainDesc.BufferDesc.Width), static_cast<FLOAT>(m_swapChainDesc.BufferDesc.Height));
 	m_swapChainHalfSizeFlt = XMFLOAT2(m_swapChainSizeFlt.x * 0.5f, m_swapChainSizeFlt.y * 0.5f);
 
 	// 전체 스왑 체인 영역을 나타내는 뷰포트 구조체 업데이트
 	m_entireSwapChainViewport.TopLeftX = 0.0f;
 	m_entireSwapChainViewport.TopLeftY = 0.0f;
-	m_entireSwapChainViewport.Width = static_cast<FLOAT>(m_descSwapChain.BufferDesc.Width);
-	m_entireSwapChainViewport.Height = static_cast<FLOAT>(m_descSwapChain.BufferDesc.Height);
+	m_entireSwapChainViewport.Width = static_cast<FLOAT>(m_swapChainDesc.BufferDesc.Width);
+	m_entireSwapChainViewport.Height = static_cast<FLOAT>(m_swapChainDesc.BufferDesc.Height);
 	m_entireSwapChainViewport.MinDepth = 0.0f;
 	m_entireSwapChainViewport.MaxDepth = 1.0f;
 

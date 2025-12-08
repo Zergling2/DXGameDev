@@ -7,6 +7,16 @@
 
 namespace ze
 {
+	struct GBuffer
+	{
+		ComPtr<ID3D11RenderTargetView> m_cpDiffuseBufferRTV;
+		ComPtr<ID3D11ShaderResourceView> m_cpDiffuseBufferSRV;
+		ComPtr<ID3D11RenderTargetView> m_cpSpecularBufferRTV;
+		ComPtr<ID3D11ShaderResourceView> m_cpSpecularBufferSRV;
+		ComPtr<ID3D11RenderTargetView> m_cpNormalBufferRTV;
+		ComPtr<ID3D11ShaderResourceView> m_cpNormalBufferSRV;
+	};
+
 	// 비동기 씬 로드 중 카메라 컴포넌트 생성 시 주의해야 할 사항
 	// 메인 스레드에서 창 크기 변경하는 시점에 백 버퍼 접근 및 백 버퍼의 크기 정보를 얻어와서
 	// Depth/Stencil 버퍼나 렌더 타겟을 만드는 경우에 실제 창과 버퍼 크기 불일치 문제, 또는 백 버퍼 Resize도중 접근으로 인한 크래시
@@ -91,6 +101,7 @@ namespace ze
 		ClearFlag m_clearFlag;
 		float m_nearPlane;
 		float m_farPlane;
+		MSAAMode m_msaaMode;
 		ViewportRect m_viewportRect;
 		XMFLOAT4X4A m_viewMatrix;
 		XMFLOAT4X4A m_projMatrix;

@@ -206,7 +206,7 @@ namespace ze
 		uint32_t layerFlag;
 	};
 
-	hlslstruct CbPerDrawQuad
+	hlslstruct CbPerScreenRatioQuad
 	{
 		FLOAT width;
 		FLOAT height;

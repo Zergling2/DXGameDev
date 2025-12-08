@@ -1,47 +1,46 @@
-#include <ZergEngine\CoreSystem\Effect\DrawQuadWithMSTextureEffect.h>
+#include <ZergEngine\CoreSystem\Effect\DrawScreenRatioQuadWithMSTextureEffect.h>
 #include <ZergEngine\CoreSystem\GraphicDevice.h>
-#include <ZergEngine\CoreSystem\Math.h>
 
 using namespace ze;
 
 // MSCameraMerge Effect
-// 1. VertexShader: VSTransformCameraMergeQuad
+// 1. VertexShader: VSTransformNDCRatioQuad
 // 2. PixelShader: PSColorPTFragmentSingleMSTexture
 
-void DrawQuadWithMSTextureEffect::Init()
+void DrawScreenRatioQuadWithMSTextureEffect::Init()
 {
 	m_dirtyFlag = DIRTY_FLAG::ALL;
 
 	m_pInputLayout = nullptr;
-	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::TransformCameraMergeQuad);
+	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::TransformScreenRatioQuad);
 	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::ColorPositionTexCoordFragmentWithSingleMSTexture);
 
-	m_cbPerDrawQuad.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
+	m_cbPerScreenRatioQuad.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
 
 	ClearTextureSRVArray();
 }
 
-void DrawQuadWithMSTextureEffect::Release()
+void DrawScreenRatioQuadWithMSTextureEffect::Release()
 {
-	m_cbPerDrawQuad.Release();
+	m_cbPerScreenRatioQuad.Release();
 }
 
-void DrawQuadWithMSTextureEffect::SetQuadParameters(float width, float height, float topLeftX, float topLeftY) noexcept
+void DrawScreenRatioQuadWithMSTextureEffect::SetQuadParameters(float width, float height, float topLeftX, float topLeftY) noexcept
 {
-	m_cbPerDrawQuadCache.width = width;
-	m_cbPerDrawQuadCache.height = height;
-	m_cbPerDrawQuadCache.topLeftX = topLeftX;
-	m_cbPerDrawQuadCache.topLeftY = topLeftY;
+	m_cbPerScreenRatioQuadCache.width = width;
+	m_cbPerScreenRatioQuadCache.height = height;
+	m_cbPerScreenRatioQuadCache.topLeftX = topLeftX;
+	m_cbPerScreenRatioQuadCache.topLeftY = topLeftY;
 
-	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_DRAW_QUAD;
+	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_SCREEN_RATIO_QUAD;
 }
 
-void DrawQuadWithMSTextureEffect::SetTexture(ID3D11ShaderResourceView* pTextureSRV)
+void DrawScreenRatioQuadWithMSTextureEffect::SetTexture(ID3D11ShaderResourceView* pTextureSRV)
 {
 	m_pTextureSRVArray[0] = pTextureSRV;
 }
 
-void DrawQuadWithMSTextureEffect::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
+void DrawScreenRatioQuadWithMSTextureEffect::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
 {
 	DWORD index;
 
@@ -58,7 +57,7 @@ void DrawQuadWithMSTextureEffect::ApplyImpl(ID3D11DeviceContext* pDeviceContext)
 		case DIRTY_FLAG::SHADER:
 			ApplyShader(pDeviceContext);
 			break;
-		case DIRTY_FLAG::CONSTANTBUFFER_PER_DRAW_QUAD:
+		case DIRTY_FLAG::CONSTANTBUFFER_PER_SCREEN_RATIO_QUAD:
 			ApplyPerDrawQuadConstantBuffer(pDeviceContext);
 			break;
 		default:
@@ -79,14 +78,14 @@ void DrawQuadWithMSTextureEffect::ApplyImpl(ID3D11DeviceContext* pDeviceContext)
 	ClearTextureSRVArray();
 }
 
-void DrawQuadWithMSTextureEffect::KickedOutOfDeviceContext() noexcept
+void DrawScreenRatioQuadWithMSTextureEffect::KickedOutOfDeviceContext() noexcept
 {
 	ClearTextureSRVArray();
 
 	m_dirtyFlag = DIRTY_FLAG::ALL;
 }
 
-void DrawQuadWithMSTextureEffect::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
+void DrawScreenRatioQuadWithMSTextureEffect::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
 {
 	pDeviceContext->VSSetShader(m_pVertexShader, nullptr, 0);
 	pDeviceContext->HSSetShader(nullptr, nullptr, 0);
@@ -95,17 +94,17 @@ void DrawQuadWithMSTextureEffect::ApplyShader(ID3D11DeviceContext* pDeviceContex
 	pDeviceContext->PSSetShader(m_pPixelShader, nullptr, 0);
 }
 
-void DrawQuadWithMSTextureEffect::ApplyPerDrawQuadConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
+void DrawScreenRatioQuadWithMSTextureEffect::ApplyPerDrawQuadConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	m_cbPerDrawQuad.Update(pDeviceContext, &m_cbPerDrawQuadCache);
-	ID3D11Buffer* const cbs[] = { m_cbPerDrawQuad.GetComInterface() };
+	m_cbPerScreenRatioQuad.Update(pDeviceContext, &m_cbPerScreenRatioQuadCache);
+	ID3D11Buffer* const cbs[] = { m_cbPerScreenRatioQuad.GetComInterface() };
 
 	// PerFrame 상수버퍼 사용 셰이더
 	constexpr UINT startSlot = 0;
 	pDeviceContext->VSSetConstantBuffers(startSlot, 1, cbs);
 }
 
-void DrawQuadWithMSTextureEffect::ClearTextureSRVArray()
+void DrawScreenRatioQuadWithMSTextureEffect::ClearTextureSRVArray()
 {
 	for (size_t i = 0; i < _countof(m_pTextureSRVArray); ++i)
 		m_pTextureSRVArray[i] = nullptr;

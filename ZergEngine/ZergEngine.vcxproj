@@ -41,7 +41,7 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPT.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\ButtonEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\ImageEffect.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DrawQuadWithMSTextureEffect.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DrawScreenRatioQuadWithMSTextureEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DummyEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\EffectInterface.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\SkyboxEffect.h" />
@@ -131,7 +131,7 @@
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectPT.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\ButtonEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\ImageEffect.cpp" />
-    <ClCompile Include="source\CoreSystem\Effect\DrawQuadWithMSTextureEffect.cpp" />
+    <ClCompile Include="source\CoreSystem\Effect\DrawScreenRatioQuadWithMSTextureEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\DummyEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\SkyboxEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\TerrainEffect.cpp" />
@@ -356,7 +356,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformCameraMergeQuad.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformScreenRatioQuad.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>

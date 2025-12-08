@@ -171,7 +171,7 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPT.h">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DrawQuadWithMSTextureEffect.h">
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DrawScreenRatioQuadWithMSTextureEffect.h">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\ButtonEffect.h">
@@ -452,7 +452,7 @@
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectPT.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClCompile>
-    <ClCompile Include="source\CoreSystem\Effect\DrawQuadWithMSTextureEffect.cpp">
+    <ClCompile Include="source\CoreSystem\Effect\DrawScreenRatioQuadWithMSTextureEffect.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\Effect\ButtonEffect.cpp">
@@ -648,7 +648,7 @@
     <FxCompile Include="source\CoreSystem\ShaderCode\PSColorPTFragmentSingleTexture.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformCameraMergeQuad.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformScreenRatioQuad.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
     <FxCompile Include="source\CoreSystem\ShaderCode\PSColorPTFragmentSingleMSTexture.hlsl">

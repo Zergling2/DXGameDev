@@ -8,17 +8,7 @@ namespace ze
 	class Material
 	{
 	public:
-		Material()
-			: m_lightMap()
-			, m_diffuseMap()
-			, m_normalMap()
-			, m_specularMap()
-		{
-			XMStoreFloat4A(&m_ambient, g_XMOneHalf);
-			XMStoreFloat4A(&m_diffuse, XMVectorSplatOne());
-			XMStoreFloat4A(&m_specular, XMVectorSplatOne());
-			m_specular.w = 4.0f;
-		}
+		Material();
 		~Material() = default;
 	public:
 		XMFLOAT4A m_ambient;	// R/G/B/A

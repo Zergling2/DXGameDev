@@ -38,6 +38,7 @@ Camera::Camera() noexcept
 	, m_clearFlag(CAMERA_CLEAR_FLAG_DEFAULT)
 	, m_nearPlane(CAMERA_CLIPPING_NEAR_PLANE_DEFAULT)
 	, m_farPlane(CAMERA_CLIPPING_FAR_PLANE_DEFAULT)
+	, m_msaaMode(MSAAMode::x4)
 	, m_viewportRect(CAMERA_VIEWPORT_X_DEFAULT, CAMERA_VIEWPORT_Y_DEFAULT, CAMERA_VIEWPORT_WIDTH_DEFAULT, CAMERA_VIEWPORT_HEIGHT_DEFAULT)
 	, m_viewMatrix()
 	, m_projMatrix()
@@ -155,20 +156,16 @@ bool Camera::CreateBuffer(uint32_t width, uint32_t height)
 	m_cpColorBufferSRV.Reset();
 	m_cpDepthStencilBufferDSV.Reset();
 
-	ComPtr<ID3D11RenderTargetView> cpColorBufferRTV;
-	ComPtr<ID3D11ShaderResourceView> cpColorBufferSRV;
-	ComPtr<ID3D11DepthStencilView> cpDepthStencilBufferDSV;
-
+	// 컬러 버퍼 / 뷰 생성 (렌더링용 RTV, 카메라 병합용 SRV)
 	D3D11_TEXTURE2D_DESC colorBufferDesc;
 	ZeroMemory(&colorBufferDesc, sizeof(colorBufferDesc));
-	// 컬러 버퍼 생성 및 컬러 버퍼에 대한 렌더 타겟 뷰 및 셰이더 리소스 뷰 생성
 	colorBufferDesc.Width = static_cast<UINT>(bufferWidth);
 	colorBufferDesc.Height = static_cast<UINT>(bufferHeight);
 	colorBufferDesc.MipLevels = 1;
 	colorBufferDesc.ArraySize = 1;
 	colorBufferDesc.Format = CAMERA_BUFFER_FORMAT;
-	colorBufferDesc.SampleDesc.Count = static_cast<UINT>(MultisamplingAntiAliasingMode::x4);	// (테스트) 4X MSAA에 maximum quailty를 고정으로 사용
-	colorBufferDesc.SampleDesc.Quality = GraphicDevice::GetInstance()->GetMSAAMaximumQuality(MultisamplingAntiAliasingMode::x4);	// Use max quality level
+	colorBufferDesc.SampleDesc.Count = static_cast<UINT>(m_msaaMode);	// (테스트) 4X MSAA에 maximum quailty를 고정으로 사용
+	colorBufferDesc.SampleDesc.Quality = GraphicDevice::GetInstance()->GetMSAAMaximumQuality(m_msaaMode);	// Use max quality level
 	colorBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	colorBufferDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;		// 렌더링 + 카메라 병합 셰이더 리소스
 	colorBufferDesc.CPUAccessFlags = 0;
@@ -184,6 +181,7 @@ bool Camera::CreateBuffer(uint32_t width, uint32_t height)
 		return false;
 	}
 
+	ComPtr<ID3D11RenderTargetView> cpColorBufferRTV;
 	hr = pDevice->CreateRenderTargetView(colorBuffer.Get(), nullptr, cpColorBufferRTV.GetAddressOf());
 	if (FAILED(hr))
 	{
@@ -191,40 +189,40 @@ bool Camera::CreateBuffer(uint32_t width, uint32_t height)
 		return false;
 	}
 
-	D3D11_SHADER_RESOURCE_VIEW_DESC colorBufferSRVDesc;
-	ZeroMemory(&colorBufferSRVDesc, sizeof(colorBufferSRVDesc));
-	colorBufferSRVDesc.Format = colorBufferDesc.Format;
-	colorBufferSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMS;
-	hr = pDevice->CreateShaderResourceView(colorBuffer.Get(), &colorBufferSRVDesc, cpColorBufferSRV.GetAddressOf());
+	ComPtr<ID3D11ShaderResourceView> cpColorBufferSRV;
+	hr = pDevice->CreateShaderResourceView(colorBuffer.Get(), nullptr, cpColorBufferSRV.GetAddressOf());
 	if (FAILED(hr))
 	{
 		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"ID3D11Device::CreateShaderResourceView", hr);
 		return false;
 	}
 
+
+
+	// 뎁스 스텐실 버퍼 / 뷰 생성
 	D3D11_TEXTURE2D_DESC depthStencilBufferDesc;
 	ZeroMemory(&depthStencilBufferDesc, sizeof(depthStencilBufferDesc));
-	// 뎁스/스텐실 버퍼 생성 및 뎁스스텐실뷰 생성
 	depthStencilBufferDesc.Width = colorBufferDesc.Width;
 	depthStencilBufferDesc.Height = colorBufferDesc.Height;
 	depthStencilBufferDesc.MipLevels = 1;
 	depthStencilBufferDesc.ArraySize = 1;
-	depthStencilBufferDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	depthStencilBufferDesc.Format = DXGI_FORMAT_D32_FLOAT;
 	depthStencilBufferDesc.SampleDesc = colorBufferDesc.SampleDesc;
 	depthStencilBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	depthStencilBufferDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 	depthStencilBufferDesc.CPUAccessFlags = 0;
 	depthStencilBufferDesc.MiscFlags = 0;
 
-	ComPtr<ID3D11Texture2D> depthStencilBuffer;
-	hr = pDevice->CreateTexture2D(&depthStencilBufferDesc, nullptr, depthStencilBuffer.GetAddressOf());
+	ComPtr<ID3D11Texture2D> cpDepthStencilBuffer;
+	hr = pDevice->CreateTexture2D(&depthStencilBufferDesc, nullptr, cpDepthStencilBuffer.GetAddressOf());
 	if (FAILED(hr))
 	{
 		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"ID3D11Device::CreateTexture2D", hr);
 		return false;
 	}
 
-	hr = pDevice->CreateDepthStencilView(depthStencilBuffer.Get(), nullptr, cpDepthStencilBufferDSV.GetAddressOf());
+	ComPtr<ID3D11DepthStencilView> cpDepthStencilBufferDSV;
+	hr = pDevice->CreateDepthStencilView(cpDepthStencilBuffer.Get(), nullptr, cpDepthStencilBufferDSV.GetAddressOf());
 	if (FAILED(hr))
 	{
 		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"ID3D11Device::CreateDepthStencilView", hr);
