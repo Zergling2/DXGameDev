@@ -87,7 +87,9 @@ namespace ze
 		void SetDistAtt(const XMFLOAT3& distAtt) { m_distAtt = distAtt; }
 		void SetDistAtt(const XMFLOAT3A& distAtt) { m_distAtt = distAtt; }
 		FLOAT GetInnerConeAngle() const { return m_innerConeAngle; }
+		void SetInnerConeAngle(FLOAT angle) { m_innerConeAngle = angle; }
 		FLOAT GetOuterConeAngle() const { return m_outerConeAngle; }
+		void SetOuterConeAngle(FLOAT angle) { m_outerConeAngle = angle; }
 		FLOAT GetRange() const { return m_range; }
 		void SetRange(FLOAT range);
 	private:
