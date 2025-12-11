@@ -8,16 +8,16 @@ ZE_IMPLEMENT_SCENE(Warehouse);
 void Warehouse::OnLoadScene()
 {
 	// Lights
-	{
-		GameObjectHandle hSun = CreateGameObject(L"Sun");
-		GameObject* pSun = hSun.ToPtr();
-		pSun->m_transform.SetRotationEuler(XMVectorSet(XMConvertToRadians(45), XMConvertToRadians(150), 0.0f, 0.0f));
-		ComponentHandle<DirectionalLight> hLight = pSun->AddComponent<DirectionalLight>();
-		DirectionalLight* pLight = hLight.ToPtr();
-		XMStoreFloat4A(&pLight->m_ambient, XMVectorScale(Math::Vector3::One(), 0.1f));
-		XMStoreFloat4A(&pLight->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.6f));
-		XMStoreFloat4A(&pLight->m_specular, Math::Vector3::One());
-	}
+	// {
+	// 	GameObjectHandle hSun = CreateGameObject(L"Sun");
+	// 	GameObject* pSun = hSun.ToPtr();
+	// 	pSun->m_transform.SetRotationEuler(XMVectorSet(XMConvertToRadians(45), XMConvertToRadians(150), 0.0f, 0.0f));
+	// 	ComponentHandle<DirectionalLight> hLight = pSun->AddComponent<DirectionalLight>();
+	// 	DirectionalLight* pLight = hLight.ToPtr();
+	// 	XMStoreFloat4A(&pLight->m_ambient, XMVectorScale(Math::Vector3::One(), 0.1f));
+	// 	XMStoreFloat4A(&pLight->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.6f));
+	// 	XMStoreFloat4A(&pLight->m_specular, Math::Vector3::One());
+	// }
 
 	GameObjectHandle hFlashLight = CreateGameObject(L"¼ÕÀüµî");
 	{
@@ -30,26 +30,19 @@ void Warehouse::OnLoadScene()
 
 		ComponentHandle<SpotLight> hSpotLight = pFL->AddComponent<SpotLight>();
 		SpotLight* pSpotLight = hSpotLight.ToPtr();
-		XMStoreFloat4A(&pSpotLight->m_ambient, XMVectorScale(ColorsLinear::LightYellow, 0.02f));
-		XMStoreFloat4A(&pSpotLight->m_diffuse, XMVectorScale(ColorsLinear::LightYellow, 1.0f));
-		XMStoreFloat4A(&pSpotLight->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::LightYellow, 1.0f), 1.0f));
-		XMStoreFloat3(&pSpotLight->m_att, XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
-		pSpotLight->m_range = 20.0f;
-		pSpotLight->m_spotExp = 32.0f;
+		XMStoreFloat4A(&pSpotLight->m_ambient, XMVectorScale(ColorsLinear::White, 0.02f));
+		XMStoreFloat4A(&pSpotLight->m_diffuse, XMVectorScale(ColorsLinear::White, 1.0f));
+		XMStoreFloat4A(&pSpotLight->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 1.0f), 1.0f));
+		pSpotLight->SetDistAtt(0.0f, 1.0f, 0.0f);
+		pSpotLight->SetRange(50.0f);
 
-		// ComponentHandle<DirectionalLight> hDL = pFL->AddComponent<DirectionalLight>();
-		// DirectionalLight* pDL = hDL.ToPtr();
-		// XMStoreFloat4A(&pDL->m_ambient, XMVectorScale(ColorsLinear::GreenYellow, 0.02f));
-		// XMStoreFloat4A(&pDL->m_diffuse, XMVectorScale(ColorsLinear::GreenYellow, 0.6f));
-		// XMStoreFloat4A(&pDL->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::GreenYellow, 0.2f), 2.0f));
-		// 
-		// ComponentHandle<PointLight> hPointLight = pFL->AddComponent<PointLight>();
-		// PointLight* pPointLight = hPointLight.ToPtr();
-		// XMStoreFloat4A(&pPointLight->m_ambient, XMVectorScale(ColorsLinear::GreenYellow, 0.02f));
-		// XMStoreFloat4A(&pPointLight->m_diffuse, XMVectorScale(ColorsLinear::GreenYellow, 0.6f));
-		// XMStoreFloat4A(&pPointLight->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::GreenYellow, 0.2f), 2.0f));
-		// XMStoreFloat3(&pPointLight->m_att, XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
-		// pPointLight->m_range = 3.0f;
+		ComponentHandle<PointLight> hPointLight = pFL->AddComponent<PointLight>();
+		PointLight* pPointLight = hPointLight.ToPtr();
+		XMStoreFloat4A(&pPointLight->m_ambient, XMVectorScale(ColorsLinear::GreenYellow, 0.02f));
+		XMStoreFloat4A(&pPointLight->m_diffuse, XMVectorScale(ColorsLinear::GreenYellow, 0.6f));
+		XMStoreFloat4A(&pPointLight->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::GreenYellow, 0.2f), 2.0f));
+		pPointLight->SetDistAtt(0.0f, 1.0f, 0.0f);
+		pPointLight->SetRange(3.0f);
 	}
 
 	// Main Camera
@@ -63,7 +56,6 @@ void Warehouse::OnLoadScene()
 
 		ComponentHandle<Camera> hCameraComponent = pMainCamera->AddComponent<Camera>();
 		Camera* pCameraComponent = hCameraComponent.ToPtr();
-		pCameraComponent->SetBackgroundColor(ColorsLinear::Gray);
 		pCameraComponent->SetDepth(0);
 		pCameraComponent->SetFieldOfView(85);
 		pCameraComponent->SetClippingPlanes(0.03f, 300.0f);
@@ -78,28 +70,21 @@ void Warehouse::OnLoadScene()
 		GameObject* pGameObject = hGameObject.ToPtr();
 		pGameObject->m_transform.SetParent(&pMainCamera->m_transform);
 
-		// ComponentHandle<SpotLight> hSpotLight = pGameObject->AddComponent<SpotLight>();
-		// SpotLight* pSpotLight = hSpotLight.ToPtr();
-		// XMStoreFloat4A(&pSpotLight->m_ambient, XMVectorScale(ColorsLinear::LightBlue, 0.02f));
-		// XMStoreFloat4A(&pSpotLight->m_diffuse, XMVectorScale(ColorsLinear::LightBlue, 5.0f));
-		// XMStoreFloat4A(&pSpotLight->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::LightBlue, 1.0f), 0.0f));
-		// XMStoreFloat3(&pSpotLight->m_att, XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
-		// pSpotLight->m_range = 15.0f;
-		// pSpotLight->m_spotExp = 32.0f;
+		ComponentHandle<SpotLight> hSpotLight = pGameObject->AddComponent<SpotLight>();
+		SpotLight* pSpotLight = hSpotLight.ToPtr();
+		XMStoreFloat4A(&pSpotLight->m_ambient, XMVectorScale(ColorsLinear::White, 0.02f));
+		XMStoreFloat4A(&pSpotLight->m_diffuse, XMVectorScale(ColorsLinear::White, 1.0f));
+		XMStoreFloat4A(&pSpotLight->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 1.0f), 1.0f));
+		pSpotLight->SetDistAtt(0.0f, 1.0f, 0.0f);
+		pSpotLight->SetRange(40.0f);
 
-		// ComponentHandle<DirectionalLight> hDL = pGameObject->AddComponent<DirectionalLight>();
-		// DirectionalLight* pDL = hDL.ToPtr();
-		// XMStoreFloat4A(&pDL->m_ambient, XMVectorScale(ColorsLinear::GreenYellow, 0.02f));
-		// XMStoreFloat4A(&pDL->m_diffuse, XMVectorScale(ColorsLinear::GreenYellow, 0.6f));
-		// XMStoreFloat4A(&pDL->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::GreenYellow, 0.2f), 2.0f));
-		
 		ComponentHandle<PointLight> hPointLight = pGameObject->AddComponent<PointLight>();
 		PointLight* pPointLight = hPointLight.ToPtr();
 		XMStoreFloat4A(&pPointLight->m_ambient, XMVectorScale(ColorsLinear::GreenYellow, 0.02f));
 		XMStoreFloat4A(&pPointLight->m_diffuse, XMVectorScale(ColorsLinear::GreenYellow, 1.0f));
 		XMStoreFloat4A(&pPointLight->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::GreenYellow, 0.2f), 2.0f));
-		XMStoreFloat3(&pPointLight->m_att, XMVectorSet(0.0f, 0.05f, 0.0f, 0.0f));
-		pPointLight->m_range = 10.0f;
+		pPointLight->SetDistAtt(0.0f, 1.0f, 0.0f);
+		pPointLight->SetRange(5.0f);
 	}
 	
 	{
@@ -418,11 +403,18 @@ void Warehouse::OnLoadScene()
 	matSprayedWall1->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\wall\\sprayed-wall1_normal.png");
 
 	std::shared_ptr<Material> matVentedMetalPanel1 = ResourceLoader::GetInstance()->CreateMaterial();
-	XMStoreFloat4A(&matVentedMetalPanel1->m_ambient, XMVectorScale(Math::Vector3::One(), 0.2f));
-	XMStoreFloat4A(&matVentedMetalPanel1->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.4f));
-	XMStoreFloat4A(&matVentedMetalPanel1->m_specular, XMVectorSetW(Math::Vector3::OneHalf(), 1.0f));
+	XMStoreFloat4A(&matVentedMetalPanel1->m_ambient, XMVectorScale(Math::Vector3::One(), 0.15f));
+	XMStoreFloat4A(&matVentedMetalPanel1->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.7f));
+	XMStoreFloat4A(&matVentedMetalPanel1->m_specular, XMVectorSetW(XMVectorScale(Math::Vector3::One(), 0.5f), 4.0f));
 	matVentedMetalPanel1->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\metal\\vented-metal-panel1_diffuse.png");
 	matVentedMetalPanel1->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\metal\\vented-metal-panel1_normal.png");
+
+	// std::shared_ptr<Material> matMetalVentilation1 = ResourceLoader::GetInstance()->CreateMaterial();
+	// XMStoreFloat4A(&matMetalVentilation1->m_ambient, XMVectorScale(Math::Vector3::One(), 0.2f));
+	// XMStoreFloat4A(&matMetalVentilation1->m_diffuse, XMVectorScale(Math::Vector3::One(), 0.4f));
+	// XMStoreFloat4A(&matMetalVentilation1->m_specular, XMVectorSetW(Math::Vector3::OneHalf(), 1.0f));
+	// matMetalVentilation1->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\metal\\metal-ventilation1-diffuse.png");
+	// matMetalVentilation1->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\metal\\metal-ventilation1-normal.png");
 
 	std::shared_ptr<Material> matNarrowbrick1 = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matNarrowbrick1->m_ambient, XMVectorScale(Math::Vector3::One(), 0.15f));
@@ -1545,6 +1537,6 @@ void Warehouse::OnLoadScene()
 	// Skybox
 	{
 		Texture2D skybox = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Skybox\\sky27.dds", false);
-		RenderSettings::GetInstance()->SetSkybox(skybox);
+		// RenderSettings::GetInstance()->SetSkybox(skybox);
 	}
 }

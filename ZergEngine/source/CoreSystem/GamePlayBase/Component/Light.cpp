@@ -18,9 +18,17 @@ IComponentManager* DirectionalLight::GetComponentManager() const
 
 PointLight::PointLight()
 	: ILight(PointLightManager::GetInstance()->AssignUniqueId())
-	, m_range(10.0f)
-	, m_att(0.0f, 1.0f, 0.0f)
+	, m_range(5.0f)
+	, m_distAtt(0.0f, 1.0f, 0.0f)
 {
+}
+
+void PointLight::SetRange(FLOAT range)
+{
+	if (range < 0.05f)
+		range = 0.05f;
+
+	m_range = range;
 }
 
 IComponentManager* PointLight::GetComponentManager() const
@@ -31,9 +39,18 @@ IComponentManager* PointLight::GetComponentManager() const
 SpotLight::SpotLight()
 	: ILight(SpotLightManager::GetInstance()->AssignUniqueId())
 	, m_range(25.0f)
-	, m_spotExp(32.0f)
-	, m_att(0.0f, 1.0f, 0.0f)
+	, m_innerConeAngle(XMConvertToRadians(10.0f))
+	, m_outerConeAngle(XMConvertToRadians(22.5f))
+	, m_distAtt(0.0f, 1.0f, 0.0f)
 {
+}
+
+void SpotLight::SetRange(FLOAT range)
+{
+	if (range < 0.05f)
+		range = 0.05f;
+
+	m_range = range;
 }
 
 IComponentManager* SpotLight::GetComponentManager() const

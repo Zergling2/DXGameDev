@@ -20,11 +20,16 @@ namespace ze
 		void Init();
 		void UnInit();
 	public:
-		void SetSkybox(const Texture2D& cubeMapTexture) { m_skyboxCubeMap = cubeMapTexture; }
 		Texture2D GetSkybox() const { return m_skyboxCubeMap; }
-		void DetachSkybox() { m_skyboxCubeMap.Reset(); }
+		void SetSkybox(Texture2D cubeMapTexture) { m_skyboxCubeMap = std::move(cubeMapTexture); }
+		void SetAmbientLightColor(const XMFLOAT3& color) { m_ambientLightColor = color; }
+		XMFLOAT3 GetAmbientLightColor() const { return m_ambientLightColor; }
+		void SetAmbientLightIntensity(FLOAT intensity) { m_ambientLightIntensity = intensity; }
+		FLOAT GetAmbientLightIntensity() const { return m_ambientLightIntensity; }
 	private:
 		static RenderSettings* s_pInstance;
 		Texture2D m_skyboxCubeMap;
+		XMFLOAT3 m_ambientLightColor;
+		FLOAT m_ambientLightIntensity;
 	};
 }

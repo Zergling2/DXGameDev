@@ -25,115 +25,67 @@ Texture2DArray<float4> tex2d_diffuseMapLayer : register(t0);
 Texture2DArray<float4> tex2d_normalMapLayer : register(t1);
 Texture2D<float4> tex2d_blendMap : register(t2);
 
-void ComputeTerrainFragmentDirectionalLighting(DirectionalLightData dl, float3 normalW, out float4 oD)
-{
-    oD = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    
-    const float kd = max(dot(-dl.directionW, normalW), 0.0f);
-    
-    // 난반사광이 닿지 않는 표면에는 정반사광이 존재하지 않는다.
-    [flatten]
-    if (kd > 0.0f)
-        oD = kd * dl.diffuse;
-}
-
-void ComputeTerrainFragmentPointLighting(PointLightData pl, float3 posW, float3 normalW, out float4 oD)
-{
-    oD = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    
-    float3 toLight = pl.positionW - posW;
-    const float d = length(toLight);
-    
-    if (d > pl.range)
-        return;
-    
-    // Normalize
-    toLight /= d;
-    
-    const float kd = dot(toLight, normalW);
-    
-    [flatten]
-    if (kd > 0.0f)
-    {
-        const float att = 1.0f / dot(pl.att, float3(1.0f, d, d * d));
-        
-        oD = att * kd * pl.diffuse;
-    }
-}
-
-void ComputeTerrainFragmentSpotLighting(SpotLightData sl, float3 posW, float3 normalW, float3 toEye, out float4 oD)
-{
-    oD = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    
-    float3 toLight = sl.positionW - posW;
-    const float d = length(toLight);
-    
-    if (d > sl.range)
-        return;
-    
-    // Normalize
-    toLight /= d;
-    
-    const float kd = dot(toLight, normalW);
-    const float kspot = pow(max(dot(-toLight, sl.directionW), 0.0f), sl.spotExp);
-    
-    [flatten]
-    if (kd > 0.0f)
-    {
-        const float att = 1.0f / dot(sl.att, float3(1.0f, d, d * d));
-        
-        oD = kspot * att * kd * sl.diffuse;
-    }
-}
-
 PSOutput main(PSInputTerrainFragment input)
 {
     PSOutput output;
     
-    uint i;
-    const float3 toEye = normalize(cb_perCamera.cameraPosW - input.posW);
+    float4 blendFactor = tex2d_blendMap.Sample(ss_bilinear, input.texCoord);
+    const float blendFactors[4] = { blendFactor.r, blendFactor.g, blendFactor.b, blendFactor.a };
     
+    uint i;
     float index = 0.0f;
     
-    float4 bf = tex2d_blendMap.Sample(ss_bilinear, input.texCoord);
-    float bfArr[4] = { bf.r, bf.g, bf.b, bf.a };
-    
-    float4 diffuse = tex2d_diffuseMapLayer.Sample(ss_common, float3(input.tiledTexCoord, index)); // 레이어 0으로 초기화
-    for (i = 1; i < cb_perTerrain.layerArraySize; ++i)
+    float4 terrainMaterialDiffuse = tex2d_diffuseMapLayer.Sample(ss_common, float3(input.tiledTexCoord, index)); // 레이어 0으로 초기화
+    for (i = 1; i < cb_perTerrain.layerArraySize; ++i)  // 나머지 레이어(레이어 1 ~ ) 보간
     {
         index += 1.0f;
 
-        float4 nextDiffuse = tex2d_diffuseMapLayer.Sample(ss_common, float3(input.tiledTexCoord, index));
-        diffuse = lerp(diffuse, nextDiffuse, bfArr[i - 1]);
+        float4 nextTerrainMaterialDiffuse = tex2d_diffuseMapLayer.Sample(ss_common, float3(input.tiledTexCoord, index));
+        terrainMaterialDiffuse = lerp(terrainMaterialDiffuse, nextTerrainMaterialDiffuse, blendFactors[i - 1]);
     }
     
-    float4 diffuseLight = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    input.normalW = normalize(input.normalW);
+    
+    const float3 toEyeW = normalize(cb_perCamera.cameraPosW - input.posW);
+    
+    float4 ambient = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    float4 diffuse = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    float4 specular = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    
+    MaterialData md;
+    md.ambient = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    md.diffuse = terrainMaterialDiffuse;
+    md.specular = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    
+    float4 oA;
+    float4 oD;
+    float4 oS;
     for (i = 0; i < cb_perFrame.dlCount; ++i)
     {
-        float4 oD;
-        ComputeTerrainFragmentDirectionalLighting(cb_perFrame.dl[i], input.normalW, oD);
-        
-        diffuseLight += oD;
+        ComputeDirectionalLight(cb_perFrame.dl[i], md, input.normalW, toEyeW, oA, oD, oS);
+        ambient += oA;
+        diffuse += oD;
+        specular += oS;
     }
     
     for (i = 0; i < cb_perFrame.plCount; ++i)
     {
-        float4 oD;
-        ComputeTerrainFragmentPointLighting(cb_perFrame.pl[i], input.posW, input.normalW, oD);
-        
-        diffuseLight += oD;
+        ComputePointLight(cb_perFrame.pl[i], md, input.posW, input.normalW, toEyeW, oA, oD, oS);
+        ambient += oA;
+        diffuse += oD;
+        specular += oS;
     }
     
     for (i = 0; i < cb_perFrame.slCount; ++i)
     {
-        float4 oD;
-        ComputeTerrainFragmentSpotLighting(cb_perFrame.sl[i], input.posW, input.normalW, toEye, oD);
-        
-        diffuseLight += oD;
+        ComputeSpotLight(cb_perFrame.sl[i], md, input.posW, input.normalW, toEyeW, oA, oD, oS);
+        ambient += oA;
+        diffuse += oD;
+        specular += oS;
     }
     
-    output.color = diffuse * diffuseLight;
-    output.color.a = 1.0f;
+    output.color = (ambient + diffuse) + specular;
+    output.color = saturate(output.color);
     
     return output;
 }

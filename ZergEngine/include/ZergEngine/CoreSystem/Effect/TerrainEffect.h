@@ -81,10 +81,10 @@ namespace ze
 		ID3D11DomainShader* m_pDomainShader;
 		ID3D11PixelShader* m_pPixelShader;
 
-		ConstantBuffer<CbPerFrame> m_cbPerFrame;
+		ConstantBuffer<CbPerForwardRenderingFrame> m_cbPerFrame;
 		ConstantBuffer<CbPerCamera> m_cbPerCamera;
 		ConstantBuffer<CbPerTerrain> m_cbPerTerrain;
-		CbPerFrame m_cbPerFrameCache;
+		CbPerForwardRenderingFrame m_cbPerFrameCache;
 		CbPerCamera m_cbPerCameraCache;
 		CbPerTerrain m_cbPerTerrainCache;
 

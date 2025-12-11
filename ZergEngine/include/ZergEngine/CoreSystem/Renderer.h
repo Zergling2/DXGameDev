@@ -10,6 +10,7 @@
 #include <ZergEngine\CoreSystem\Effect\BasicEffectPNTTSkinned.h>
 #include <ZergEngine\CoreSystem\Effect\TerrainEffect.h>
 #include <ZergEngine\CoreSystem\Effect\SkyboxEffect.h>
+#include <ZergEngine\CoreSystem\Effect\DrawScreenRatioQuadWithTextureEffect.h>
 #include <ZergEngine\CoreSystem\Effect\DrawScreenRatioQuadWithMSTextureEffect.h>
 #include <ZergEngine\CoreSystem\Effect\ButtonEffect.h>
 #include <ZergEngine\CoreSystem\Effect\ImageEffect.h>
@@ -89,6 +90,7 @@ namespace ze
 		BasicEffectPNTTSkinned m_basicEffectPNTTSkinned;
 		TerrainEffect m_terrainEffect;
 		SkyboxEffect m_skyboxEffect;
+		DrawScreenRatioQuadWithTextureEffect m_drawScreenQuadTex;
 		DrawScreenRatioQuadWithMSTextureEffect m_drawScreenQuadMSTex;
 		ButtonEffect m_buttonEffect;
 		ImageEffect m_imageEffect;

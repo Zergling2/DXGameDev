@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\MeshSubset.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPNTTSkinned.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DrawScreenRatioQuadWithTextureEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\SkinnedMeshRenderer.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\SkinnedMeshRendererManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Platform.h" />
@@ -120,6 +121,7 @@
     <ClCompile Include="source\CoreSystem\DataStructure\Ray.cpp" />
     <ClCompile Include="source\CoreSystem\DataStructure\Triangle.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectPNTTSkinned.cpp" />
+    <ClCompile Include="source\CoreSystem\Effect\DrawScreenRatioQuadWithTextureEffect.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\SkinnedMeshRenderer.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\SkinnedMeshRendererManager.cpp" />
     <ClCompile Include="source\CoreSystem\RenderContext\EffectDeviceContext.cpp" />

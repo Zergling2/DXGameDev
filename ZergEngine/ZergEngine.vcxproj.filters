@@ -345,6 +345,9 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\ShaderResource\DX11Buffer.h">
       <Filter>Files\ZergEngine\CoreSystem\ShaderResource</Filter>
     </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DrawScreenRatioQuadWithTextureEffect.h">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\CoreSystem\Time.cpp">
@@ -601,6 +604,9 @@
     </ClCompile>
     <ClCompile Include="source\CoreSystem\ShaderResource\VertexBuffer.cpp">
       <Filter>Files\ZergEngine\CoreSystem\ShaderResource</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Effect\DrawScreenRatioQuadWithTextureEffect.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

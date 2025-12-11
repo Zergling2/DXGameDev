@@ -87,12 +87,12 @@ namespace ze
 		ID3D11VertexShader* m_pVertexShader;
 		ID3D11PixelShader* m_pPixelShader;
 
-		ConstantBuffer<CbPerFrame> m_cbPerFrame;
+		ConstantBuffer<CbPerForwardRenderingFrame> m_cbPerFrame;
 		ConstantBuffer<CbPerCamera> m_cbPerCamera;
 		ConstantBuffer<CbPerMesh> m_cbPerMesh;
 		ConstantBuffer<CbPerArmature> m_cbPerArmature;
 		ConstantBuffer<CbPerSubset> m_cbPerSubset;
-		CbPerFrame m_cbPerFrameCache;
+		CbPerForwardRenderingFrame m_cbPerFrameCache;
 		CbPerCamera m_cbPerCameraCache;
 		CbPerMesh m_cbPerMeshCache;
 		CbPerArmature m_cbPerArmatureCache;

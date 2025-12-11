@@ -55,6 +55,7 @@ Renderer::Renderer()
 	, m_basicEffectPNTTSkinned()
 	, m_terrainEffect()
 	, m_skyboxEffect()
+	, m_drawScreenQuadTex()
 	, m_drawScreenQuadMSTex()
 	, m_buttonEffect()
 	, m_imageEffect()
@@ -99,7 +100,7 @@ void Renderer::Init()
 	m_pWireFrameRS = GraphicDevice::GetInstance()->GetRSComInterface(RasterizerMode::WireframeMultisample);
 	m_pDefaultDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DepthStencilStateType::Default);
 	m_pSkyboxDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DepthStencilStateType::Skybox);
-	m_pDepthReadOnlyDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DepthStencilStateType::DepthReadOnly);
+	m_pDepthReadOnlyDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DepthStencilStateType::DepthReadOnlyLess);
 	m_pNoDepthStencilTestDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DepthStencilStateType::NoDepthStencilTest);
 	m_pOpaqueBS = GraphicDevice::GetInstance()->GetBSComInterface(BlendStateType::Opaque);
 	m_pAlphaBlendBS = GraphicDevice::GetInstance()->GetBSComInterface(BlendStateType::AlphaBlend);
@@ -116,6 +117,7 @@ void Renderer::Init()
 	m_basicEffectPNTTSkinned.Init();
 	m_terrainEffect.Init();
 	m_skyboxEffect.Init();
+	m_drawScreenQuadTex.Init();
 	m_drawScreenQuadMSTex.Init();
 	m_buttonEffect.Init();
 	m_imageEffect.Init();
@@ -137,6 +139,7 @@ void Renderer::UnInit()
 	m_basicEffectPNTTSkinned.Release();
 	m_terrainEffect.Release();
 	m_skyboxEffect.Release();
+	m_drawScreenQuadTex.Release();
 	m_drawScreenQuadMSTex.Release();
 	m_buttonEffect.Release();
 	m_imageEffect.Release();
@@ -190,7 +193,7 @@ void Renderer::RenderFrame()
 			light[index].specular = pLight->m_specular;
 			XMStoreFloat3(
 				&light[index].directionW,
-				XMVector3Rotate(Math::Vector3::Forward(), rotation)
+				XMVector3Normalize(XMVector3Rotate(Math::Vector3::Forward(), rotation))
 			);
 
 			++index;
@@ -226,9 +229,9 @@ void Renderer::RenderFrame()
 			light[index].specular = pLight->m_specular;
 
 			XMStoreFloat3(&light[index].positionW, pGameObject->m_transform.GetWorldPosition());
-			light[index].range = pLight->m_range;
+			light[index].range = pLight->GetRange();
 
-			light[index].att = pLight->m_att;
+			light[index].att = pLight->GetDistAtt();
 
 			++index;
 		}
@@ -269,15 +272,16 @@ void Renderer::RenderFrame()
 			light[index].specular = pLight->m_specular;
 
 			XMStoreFloat3(&light[index].positionW, translation);
-			light[index].range = pLight->m_range;
+			light[index].range = pLight->GetRange();
 
 			XMStoreFloat3(
 				&light[index].directionW,
-				XMVector3Rotate(Math::Vector3::Forward(), rotation)
+				XMVector3Normalize(XMVector3Rotate(Math::Vector3::Forward(), rotation))
 			);
-			light[index].spotExp = pLight->m_spotExp;
 
-			light[index].att = pLight->m_att;
+			light[index].att = pLight->GetDistAtt();
+			light[index].innerConeCos = std::cos(pLight->GetInnerConeAngle());
+			light[index].outerConeCos = std::cos(pLight->GetOuterConeAngle());
 
 			++index;
 		}
@@ -436,18 +440,35 @@ void Renderer::RenderFrame()
 		const Camera* pCamera = static_cast<const Camera*>(pComponent);
 		if (!pCamera->IsEnabled())
 			continue;
-	
-		m_drawScreenQuadMSTex.SetQuadParameters(
-			pCamera->m_viewportRect.m_width,
-			pCamera->m_viewportRect.m_height,
-			pCamera->m_viewportRect.m_x,
-			pCamera->m_viewportRect.m_y
-		);
-		m_drawScreenQuadMSTex.SetTexture(pCamera->GetColorBufferSRVComInterface());
-	
-		m_effectImmediateContext.Apply(&m_drawScreenQuadMSTex);
-	
-		m_effectImmediateContext.Draw(4, 0);
+
+		if (pCamera->m_msaaMode != MSAAMode::Off)
+		{
+			m_drawScreenQuadMSTex.SetQuadParameters(
+				pCamera->m_viewportRect.m_width,
+				pCamera->m_viewportRect.m_height,
+				pCamera->m_viewportRect.m_x,
+				pCamera->m_viewportRect.m_y
+			);
+			m_drawScreenQuadMSTex.SetTexture(pCamera->GetColorBufferSRVComInterface());
+
+			m_effectImmediateContext.Apply(&m_drawScreenQuadMSTex);
+
+			m_effectImmediateContext.Draw(4, 0);
+		}
+		else
+		{
+			m_drawScreenQuadTex.SetQuadParameters(
+				pCamera->m_viewportRect.m_width,
+				pCamera->m_viewportRect.m_height,
+				pCamera->m_viewportRect.m_x,
+				pCamera->m_viewportRect.m_y
+			);
+			m_drawScreenQuadTex.SetTexture(pCamera->GetColorBufferSRVComInterface());
+
+			m_effectImmediateContext.Apply(&m_drawScreenQuadTex);
+
+			m_effectImmediateContext.Draw(4, 0);
+		}
 	}
 
 	{

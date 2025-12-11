@@ -232,7 +232,7 @@ void CSpotLightInspectorFormView::OnEnChangeEditSpotLightSpotExp()
 
 	// TODO:  Add your control notification handler code here
 	ze::SpotLight* pSpotLight = this->GetCLVItemToModify()->GetSpotLight();
-	pSpotLight->m_spotExp = m_editSpotExp.GetValue();
+	// pSpotLight->m_spotExp = m_editSpotExp.GetValue();
 }
 
 void CSpotLightInspectorFormView::OnEnChangeEditSpotLightRange()
@@ -244,7 +244,7 @@ void CSpotLightInspectorFormView::OnEnChangeEditSpotLightRange()
 
 	// TODO:  Add your control notification handler code here
 	ze::SpotLight* pSpotLight = this->GetCLVItemToModify()->GetSpotLight();
-	pSpotLight->m_range = m_editRange.GetValue();
+	pSpotLight->SetRange(m_editRange.GetValue());
 }
 
 void CSpotLightInspectorFormView::OnEnChangeEditSpotLightAttX()
@@ -256,7 +256,7 @@ void CSpotLightInspectorFormView::OnEnChangeEditSpotLightAttX()
 
 	// TODO:  Add your control notification handler code here
 	ze::SpotLight* pSpotLight = this->GetCLVItemToModify()->GetSpotLight();
-	pSpotLight->m_att.x = m_editAttX.GetValue();
+	pSpotLight->SetDistAttConstant(m_editAttX.GetValue());
 }
 
 void CSpotLightInspectorFormView::OnEnChangeEditSpotLightAttY()
@@ -268,7 +268,7 @@ void CSpotLightInspectorFormView::OnEnChangeEditSpotLightAttY()
 
 	// TODO:  Add your control notification handler code here
 	ze::SpotLight* pSpotLight = this->GetCLVItemToModify()->GetSpotLight();
-	pSpotLight->m_att.y = m_editAttY.GetValue();
+	pSpotLight->SetDistAttLinear(m_editAttY.GetValue());
 }
 
 void CSpotLightInspectorFormView::OnEnChangeEditSpotLightAttZ()
@@ -280,5 +280,5 @@ void CSpotLightInspectorFormView::OnEnChangeEditSpotLightAttZ()
 
 	// TODO:  Add your control notification handler code here
 	ze::SpotLight* pSpotLight = this->GetCLVItemToModify()->GetSpotLight();
-	pSpotLight->m_att.z = m_editAttZ.GetValue();
+	pSpotLight->SetDistAttSquare(m_editAttZ.GetValue());
 }

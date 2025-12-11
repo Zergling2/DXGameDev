@@ -8,22 +8,23 @@
 
 using namespace ze;
 
-constexpr uint8_t CAMERA_FIELD_OF_VIEW_DEFAULT = 92;
-constexpr int8_t CAMERA_DEPTH_DEFAULT = 0;
-constexpr ProjectionMethod CAMERA_PROJECTION_METHOD_DEFAULT = ProjectionMethod::Perspective;
-constexpr ClearFlag CAMERA_CLEAR_FLAG_DEFAULT = ClearFlag::SolidColor;
-const XMVECTORF32 CAMERA_BACKGROUND_COLOR_DEFAULT = ColorsLinear::Blue;
+constexpr uint8_t CAMERA_DEFAULT_FOV = 92;
+constexpr int8_t CAMERA_DEFAULT_DEPTH = 0;
+constexpr ProjectionMethod CAMERA_DEFAULT_PROJECTION_METHOD = ProjectionMethod::Perspective;
+constexpr ClearFlag CAMERA_DEFAULT_CLEAR_FLAG = ClearFlag::SolidColor;
+const XMVECTORF32 CAMERA_DEFAULT_BACKGROUND_COLOR = ColorsLinear::Gray;
+constexpr float CAMERA_DEFAULT_CLIPPING_NEAR_PLANE = 0.3f;
+constexpr float CAMERA_DEFAULT_CLIPPING_FAR_PLANE = 1000.0f;
+constexpr MSAAMode CAMERA_DEFAULT_MSAA_MODE = MSAAMode::Off;
+constexpr float CAMERA_DEFAULT_VIEWPORT_X = 0.0f;
+constexpr float CAMERA_DEFAULT_VIEWPORT_Y = 0.0f;
+constexpr float CAMERA_DEFAULT_VIEWPORT_WIDTH = 1.0f;
+constexpr float CAMERA_DEFAULT_VIEWPORT_HEIGHT = 1.0f;
+constexpr float CAMERA_DEFAULT_TESSELLATION_MIN_DIST = 50.0f;
+constexpr float CAMERA_DEFAULT_TESSELLATION_MAX_DIST = 400.0f;
+constexpr float CAMERA_DEFAULT_MIN_TESSELLATION_EXP = 0.0f;
+constexpr float CAMERA_DEFAULT_MAX_TESSELLATION_EXP = 6.0f;	// 2 ^ 6 = 64 (최대 테셀레이션)
 
-constexpr float CAMERA_CLIPPING_NEAR_PLANE_DEFAULT = 0.3f;
-constexpr float CAMERA_CLIPPING_FAR_PLANE_DEFAULT = 1000.0f;
-constexpr float CAMERA_VIEWPORT_X_DEFAULT = 0.0f;
-constexpr float CAMERA_VIEWPORT_Y_DEFAULT = 0.0f;
-constexpr float CAMERA_VIEWPORT_WIDTH_DEFAULT = 1.0f;
-constexpr float CAMERA_VIEWPORT_HEIGHT_DEFAULT = 1.0f;
-constexpr float CAMERA_TESSELLATION_MIN_DIST_DEFAULT = 50.0f;
-constexpr float CAMERA_TESSELLATION_MAX_DIST_DEFAULT = 400.0f;
-constexpr float CAMERA_MIN_TESSELLATION_EXP_DEFAULT = 0.0f;
-constexpr float CAMERA_MAX_TESSELLATION_EXP_DEFAULT = 6.0f;	// 2 ^ 6 = 64 (최대 테셀레이션)
 constexpr DXGI_FORMAT CAMERA_BUFFER_FORMAT = DXGI_FORMAT_B8G8R8A8_UNORM;
 
 Camera::Camera() noexcept
@@ -31,22 +32,22 @@ Camera::Camera() noexcept
 	, m_cpColorBufferRTV(nullptr)
 	, m_cpColorBufferSRV(nullptr)
 	, m_cpDepthStencilBufferDSV(nullptr)
-	, m_backgroundColor(CAMERA_BACKGROUND_COLOR_DEFAULT)
-	, m_fov(CAMERA_FIELD_OF_VIEW_DEFAULT)
-	, m_depth(CAMERA_DEPTH_DEFAULT)
-	, m_projMethod(CAMERA_PROJECTION_METHOD_DEFAULT)
-	, m_clearFlag(CAMERA_CLEAR_FLAG_DEFAULT)
-	, m_nearPlane(CAMERA_CLIPPING_NEAR_PLANE_DEFAULT)
-	, m_farPlane(CAMERA_CLIPPING_FAR_PLANE_DEFAULT)
-	, m_msaaMode(MSAAMode::x4)
-	, m_viewportRect(CAMERA_VIEWPORT_X_DEFAULT, CAMERA_VIEWPORT_Y_DEFAULT, CAMERA_VIEWPORT_WIDTH_DEFAULT, CAMERA_VIEWPORT_HEIGHT_DEFAULT)
+	, m_backgroundColor(CAMERA_DEFAULT_BACKGROUND_COLOR)
+	, m_fov(CAMERA_DEFAULT_FOV)
+	, m_depth(CAMERA_DEFAULT_DEPTH)
+	, m_projMethod(CAMERA_DEFAULT_PROJECTION_METHOD)
+	, m_clearFlag(CAMERA_DEFAULT_CLEAR_FLAG)
+	, m_nearPlane(CAMERA_DEFAULT_CLIPPING_NEAR_PLANE)
+	, m_farPlane(CAMERA_DEFAULT_CLIPPING_FAR_PLANE)
+	, m_msaaMode(CAMERA_DEFAULT_MSAA_MODE)
+	, m_viewportRect(CAMERA_DEFAULT_VIEWPORT_X, CAMERA_DEFAULT_VIEWPORT_Y, CAMERA_DEFAULT_VIEWPORT_WIDTH, CAMERA_DEFAULT_VIEWPORT_HEIGHT)
 	, m_viewMatrix()
 	, m_projMatrix()
 	, m_entireBufferViewport()
-	, m_tessMinDist(CAMERA_TESSELLATION_MIN_DIST_DEFAULT)
-	, m_tessMaxDist(CAMERA_TESSELLATION_MAX_DIST_DEFAULT)
-	, m_minTessExponent(CAMERA_MIN_TESSELLATION_EXP_DEFAULT)
-	, m_maxTessExponent(CAMERA_MAX_TESSELLATION_EXP_DEFAULT)
+	, m_tessMinDist(CAMERA_DEFAULT_TESSELLATION_MIN_DIST)
+	, m_tessMaxDist(CAMERA_DEFAULT_TESSELLATION_MAX_DIST)
+	, m_minTessExponent(CAMERA_DEFAULT_MIN_TESSELLATION_EXP)
+	, m_maxTessExponent(CAMERA_DEFAULT_MAX_TESSELLATION_EXP)
 {
 	this->CreateBuffer(
 		GraphicDevice::GetInstance()->GetSwapChainWidth(),

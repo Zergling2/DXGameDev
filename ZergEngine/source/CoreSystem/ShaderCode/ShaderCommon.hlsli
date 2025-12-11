@@ -75,10 +75,10 @@ hlslstruct SpotLightData
 	FLOAT range;
 
 	XMFLOAT3 directionW;
-	FLOAT spotExp;
+	FLOAT innerConeCos;
 
 	XMFLOAT3 att; // a0/a1/a2     a0 + a1d + a2d^2
-	HLSLPad pad;
+	FLOAT outerConeCos;
 };
 
 hlslstruct Aabb

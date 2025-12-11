@@ -93,9 +93,7 @@ namespace ze
 		Off	= 1,
 		x2	= 2,
 		x4	= 4,
-		x8	= 8,
-		x16	= 16,
-		x32	= 32
+		x8	= 8
 	};
 
 	enum class ProjectionMethod : int8_t

@@ -629,7 +629,7 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	m_ps[static_cast<size_t>(PixelShaderType::ColorPositionNormalFragment)].Init(pDevice, pByteCode, byteCodeSize);
 	delete[] pByteCode;
 
-	// ColorPositionTexCoordFragmentWithSingleTextur
+	// ColorPositionTexCoordFragmentWithSingleTexture
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
 	StringCbCatW(targetPath, sizeof(targetPath), PIXEL_SHADER_FILES[static_cast<size_t>(PixelShaderType::ColorPositionTexCoordFragmentWithSingleTexture)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
@@ -862,14 +862,14 @@ void GraphicDevice::CreateDepthStencilStates()
 
 	D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
 	ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
-	// 1. Default
+	// Default
 	depthStencilDesc.DepthEnable = TRUE;							// 뎁스 테스트 활성화
 	depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;	// 깊이 값 기록 허용
 	depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;				// 더 가까운 픽셀만 그리기
 	depthStencilDesc.StencilEnable = FALSE;							// 스텐실 비활성화
 	m_dss[static_cast<size_t>(DepthStencilStateType::Default)].Init(pDevice, &depthStencilDesc);
 
-	// 2. 스카이박스 렌더링
+	// 스카이박스 렌더링
 	ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
 	depthStencilDesc.DepthEnable = TRUE;
 	depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
@@ -877,17 +877,21 @@ void GraphicDevice::CreateDepthStencilStates()
 	depthStencilDesc.StencilEnable = FALSE;
 	m_dss[static_cast<size_t>(DepthStencilStateType::Skybox)].Init(pDevice, &depthStencilDesc);
 
-	// 3. 거울 렌더링용
-	// ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
-	// ...
-
-	// 4. Depth read only
+	// Depth read only (D3D11_COMPARISON_LESS)
 	ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
 	depthStencilDesc.DepthEnable = TRUE;
 	depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
 	depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
 	depthStencilDesc.StencilEnable = FALSE;
-	m_dss[static_cast<size_t>(DepthStencilStateType::DepthReadOnly)].Init(pDevice, &depthStencilDesc);
+	m_dss[static_cast<size_t>(DepthStencilStateType::DepthReadOnlyLess)].Init(pDevice, &depthStencilDesc);
+
+	// Depth read only (D3D11_COMPARISON_LESS_EQUAL)
+	ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
+	depthStencilDesc.DepthEnable = TRUE;
+	depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	depthStencilDesc.StencilEnable = FALSE;
+	m_dss[static_cast<size_t>(DepthStencilStateType::DepthReadOnlyLessEqual)].Init(pDevice, &depthStencilDesc);
 
 	// 5. No Depth/Stencil test (카메라 병합 등...)
 	ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
@@ -1338,11 +1342,7 @@ void GraphicDevice::CreateSupportedMSAAQualityInfo()
 {
 	HRESULT hr;
 
-	const MSAAMode sc[6] = 
-	{
-		MSAAMode::Off, MSAAMode::x2, MSAAMode::x4,
-		MSAAMode::x8, MSAAMode::x16, MSAAMode::x32
-	};
+	const MSAAMode sc[] = { MSAAMode::Off, MSAAMode::x2, MSAAMode::x4, MSAAMode::x8 };
 
 	for (UINT i = 0; i < _countof(sc); ++i)
 	{

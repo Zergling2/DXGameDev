@@ -38,30 +38,32 @@ PSOutput main(PSInputPNTFragment input)
         float4 diffuse = float4(0.0f, 0.0f, 0.0f, 0.0f);
         float4 specular = float4(0.0f, 0.0f, 0.0f, 0.0f);
     
-        float4 addA, addD, addS;
+        float4 oA;
+        float4 oD;
+        float4 oS;
         uint i;
         for (i = 0; i < cb_perFrame.dlCount; ++i)
         {
-            ComputeDirectionalLight(cb_perFrame.dl[i], cb_perSubset.mtl, input.normalW, toEyeW, addA, addD, addS);
-            ambient += addA;
-            diffuse += addD;
-            specular += addS;
+            ComputeDirectionalLight(cb_perFrame.dl[i], cb_perSubset.mtl, input.normalW, toEyeW, oA, oD, oS);
+            ambient += oA;
+            diffuse += oD;
+            specular += oS;
         }
     
         for (i = 0; i < cb_perFrame.plCount; ++i)
         {
-            ComputePointLight(cb_perFrame.pl[i], cb_perSubset.mtl, input.posW, input.normalW, toEyeW, addA, addD, addS);
-            ambient += addA;
-            diffuse += addD;
-            specular += addS;
+            ComputePointLight(cb_perFrame.pl[i], cb_perSubset.mtl, input.posW, input.normalW, toEyeW, oA, oD, oS);
+            ambient += oA;
+            diffuse += oD;
+            specular += oS;
         }
     
         for (i = 0; i < cb_perFrame.slCount; ++i)
         {
-            ComputeSpotLight(cb_perFrame.sl[i], cb_perSubset.mtl, input.posW, input.normalW, toEyeW, addA, addD, addS);
-            ambient += addA;
-            diffuse += addD;
-            specular += addS;
+            ComputeSpotLight(cb_perFrame.sl[i], cb_perSubset.mtl, input.posW, input.normalW, toEyeW, oA, oD, oS);
+            ambient += oA;
+            diffuse += oD;
+            specular += oS;
         }
         
         if (IsUsingDiffuseMap(cb_perSubset.mtl.mtlFlag))

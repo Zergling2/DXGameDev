@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ZergEngine\CoreSystem\Platform.h>
+#include <cmath>
 
 /*
 	XMVECTOR, XMMATRIX 전달 규칙

@@ -49,19 +49,20 @@ void CLVItemSpotLight::OnSelect()
 	pInspector->m_editSpecularExp.SetWindowText(buf);
 
 	// Spot Exp
-	StringCbPrintf(buf, sizeof(buf), _T("%f"), pSpotLight->m_spotExp);
+	StringCbPrintf(buf, sizeof(buf), _T("%f"), 777.0f);
 	pInspector->m_editSpotExp.SetWindowText(buf);
 
 	// Range
-	StringCbPrintf(buf, sizeof(buf), _T("%f"), pSpotLight->m_range);
+	StringCbPrintf(buf, sizeof(buf), _T("%f"), pSpotLight->GetRange());
 	pInspector->m_editRange.SetWindowText(buf);
 
 	// Att
-	StringCbPrintf(buf, sizeof(buf), _T("%f"), pSpotLight->m_att.x);
+	const XMFLOAT3 att = pSpotLight->GetDistAtt();
+	StringCbPrintf(buf, sizeof(buf), _T("%f"), att.x);
 	pInspector->m_editAttX.SetWindowText(buf);
-	StringCbPrintf(buf, sizeof(buf), _T("%f"), pSpotLight->m_att.y);
+	StringCbPrintf(buf, sizeof(buf), _T("%f"), att.y);
 	pInspector->m_editAttY.SetWindowText(buf);
-	StringCbPrintf(buf, sizeof(buf), _T("%f"), pSpotLight->m_att.z);
+	StringCbPrintf(buf, sizeof(buf), _T("%f"), att.z);
 	pInspector->m_editAttZ.SetWindowText(buf);
 
 	// 변수 -> 컨트롤로 업데이트

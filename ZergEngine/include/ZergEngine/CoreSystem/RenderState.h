@@ -41,10 +41,9 @@ namespace ze
 		// StencilEnable = FALSE
 		Skybox,
 
-		Mirror,
-
-		// Depth read only, No write
-		DepthReadOnly,
+		
+		DepthReadOnlyLess,
+		DepthReadOnlyLessEqual,
 
 		// DepthEnable = FALSE
 		// StencilEnable = FALSE

@@ -140,9 +140,10 @@ namespace ze
 			range = 0.0f;
 
 			XMStoreFloat3(&directionW, XMVectorZero());
-			spotExp = 0.0f;
+			innerConeCos = 0.0f;
 
 			XMStoreFloat3(&att, XMVectorZero());
+			outerConeCos = 0.0f;
 #endif
 		}
 		XMFLOAT4A ambient;
@@ -153,13 +154,13 @@ namespace ze
 		FLOAT range;
 
 		XMFLOAT3 directionW;	// Need to be normalized!
-		FLOAT spotExp;
+		FLOAT innerConeCos;
 
 		XMFLOAT3 att;     // a0/a1/a2     a0 + a1d + a2d^2
-		HLSLPad pad;
+		FLOAT outerConeCos;
 	};
 
-	hlslstruct CbPerFrame
+	hlslstruct CbPerForwardRenderingFrame
 	{
 		uint32_t dlCount;
 		uint32_t plCount;
@@ -169,6 +170,12 @@ namespace ze
 		DirectionalLightData dl[MAX_GLOBAL_LIGHT_COUNT];
 		PointLightData pl[MAX_GLOBAL_LIGHT_COUNT];
 		SpotLightData sl[MAX_GLOBAL_LIGHT_COUNT];
+	};
+
+	hlslstruct CbPerDeferredRenderingFrame
+	{
+		XMFLOAT3 ambientLightColor;
+		FLOAT ambientLightIntensity;
 	};
 
 	hlslstruct CbPerCamera
@@ -247,6 +254,6 @@ namespace ze
 
 	hlslstruct CbPerArmature
 	{
-		XMFLOAT4X4A finalTransform[96];
+		XMFLOAT4X4A finalTransform[MAX_BONE_COUNT];
 	};
 }

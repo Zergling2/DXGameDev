@@ -230,7 +230,7 @@ void CPointLightInspectorFormView::OnEnChangeEditPointLightRange()
 
 	// TODO:  Add your control notification handler code here
 	ze::PointLight* pPointLight = this->GetCLVItemToModify()->GetPointLight();
-	pPointLight->m_range = m_editRange.GetValue();
+	pPointLight->SetRange(m_editRange.GetValue());
 }
 
 void CPointLightInspectorFormView::OnEnChangeEditPointLightAttX()
@@ -242,7 +242,7 @@ void CPointLightInspectorFormView::OnEnChangeEditPointLightAttX()
 
 	// TODO:  Add your control notification handler code here
 	ze::PointLight* pPointLight = this->GetCLVItemToModify()->GetPointLight();
-	pPointLight->m_att.x = m_editAttX.GetValue();
+	pPointLight->SetDistAttConstant(m_editAttX.GetValue());
 }
 
 void CPointLightInspectorFormView::OnEnChangeEditPointLightAttY()
@@ -254,7 +254,7 @@ void CPointLightInspectorFormView::OnEnChangeEditPointLightAttY()
 
 	// TODO:  Add your control notification handler code here
 	ze::PointLight* pPointLight = this->GetCLVItemToModify()->GetPointLight();
-	pPointLight->m_att.y= m_editAttY.GetValue();
+	pPointLight->SetDistAttLinear(m_editAttY.GetValue());
 }
 
 void CPointLightInspectorFormView::OnEnChangeEditPointLightAttZ()
@@ -266,5 +266,5 @@ void CPointLightInspectorFormView::OnEnChangeEditPointLightAttZ()
 
 	// TODO:  Add your control notification handler code here
 	ze::PointLight* pPointLight = this->GetCLVItemToModify()->GetPointLight();
-	pPointLight->m_att.z = m_editAttZ.GetValue();
+	pPointLight->SetDistAttSquare(m_editAttZ.GetValue());
 }

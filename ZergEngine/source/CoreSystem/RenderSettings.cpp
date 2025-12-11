@@ -6,6 +6,8 @@ RenderSettings* RenderSettings::s_pInstance = nullptr;
 
 RenderSettings::RenderSettings()
 	: m_skyboxCubeMap()
+	, m_ambientLightColor(0.1f, 0.1f, 0.1f)
+	, m_ambientLightIntensity(1.0f)
 {
 }
 
