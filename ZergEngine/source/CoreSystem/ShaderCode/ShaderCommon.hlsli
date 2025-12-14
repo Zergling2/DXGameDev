@@ -36,7 +36,6 @@ hlslstruct MaterialData
 	HLSLPad pad2;
 
 	// Material
-	XMFLOAT4A ambient;
 	XMFLOAT4A diffuse;
 	XMFLOAT4A specular; // r/g/b/p
 	XMFLOAT4A reflect;
@@ -44,17 +43,15 @@ hlslstruct MaterialData
 
 hlslstruct DirectionalLightData
 {
-    XMFLOAT4A ambient;
 	XMFLOAT4A diffuse;
 	XMFLOAT4A specular;
 
 	XMFLOAT3 directionW;
-	HLSLPad pad;
+	HLSLPad pad0;
 };
 
 hlslstruct PointLightData
 {
-    XMFLOAT4A ambient;
 	XMFLOAT4A diffuse;
 	XMFLOAT4A specular;
 
@@ -62,12 +59,11 @@ hlslstruct PointLightData
     FLOAT range;
 
 	XMFLOAT3 att; // a0/a1/a2     a0 + a1d + a2d^2
-	HLSLPad pad;
+	HLSLPad pad0;
 };
 
 hlslstruct SpotLightData
 {
-    XMFLOAT4A ambient;
 	XMFLOAT4A diffuse;
 	XMFLOAT4A specular;
 
@@ -79,6 +75,103 @@ hlslstruct SpotLightData
 
 	XMFLOAT3 att; // a0/a1/a2     a0 + a1d + a2d^2
 	FLOAT outerConeCos;
+};
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Constant Buffers
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+hlslstruct CbPerForwardRenderingFrame
+{
+	uint32_t dlCount;
+	uint32_t plCount;
+	uint32_t slCount;
+	HLSLPad pad0;
+
+	XMFLOAT3 ambientLight;
+	HLSLPad pad1;
+
+    DirectionalLightData dl[MAX_GLOBAL_LIGHT_COUNT];
+    PointLightData pl[MAX_GLOBAL_LIGHT_COUNT];
+    SpotLightData sl[MAX_GLOBAL_LIGHT_COUNT];
+};
+
+hlslstruct CbPerDeferredRenderingFrame
+{
+	XMFLOAT3 ambientLight;
+	HLSLPad pad0;
+};
+
+hlslstruct CbPerCamera
+{
+	XMFLOAT3 cameraPosW;
+	HLSLPad pad0;
+
+	FLOAT tessMinDist;
+	FLOAT tessMaxDist;
+	FLOAT minTessExponent;
+	FLOAT maxTessExponent;
+
+    XMFLOAT4A worldSpaceFrustumPlane[6];
+
+    XMFLOAT4X4A vp; // View * Proj
+};
+
+hlslstruct CbPerArmature
+{
+    XMFLOAT4X4A finalTransform[96];
+};
+
+hlslstruct CbPerMesh
+{
+	XMFLOAT4X4A w; // World
+	XMFLOAT4X4A wInvTr; // Inversed world transform matrix (비균등 스케일링 시 올바른 노말 벡터 변환을 위해 필요)
+};
+
+hlslstruct CbPerTerrain
+{
+	FLOAT maxHeight;
+	FLOAT tilingScale;
+	uint32_t layerArraySize;
+	uint32_t layerFlag;
+};
+
+hlslstruct CbPerCameraMerge
+{
+	FLOAT width;
+	FLOAT height;
+	FLOAT topLeftX;
+	FLOAT topLeftY;
+};
+
+hlslstruct CbPerSubset
+{
+    MaterialData mtl;
+};
+
+hlslstruct CbPerUIRender
+{
+    XMFLOAT2 toNDCSpaceRatio;
+};
+
+hlslstruct CbPerPCQuad
+{
+	XMFLOAT4A color;
+	XMFLOAT2 size;
+	XMFLOAT2 position;
+};
+
+hlslstruct CbPerPTQuad
+{
+	XMFLOAT2 size;
+	XMFLOAT2 position;
+};
+
+hlslstruct CbPerButton
+{
+    XMFLOAT4A color;
+	XMFLOAT2 size;
+	XMFLOAT2 position;
+	uint32_t shadeIndex; // [0] not pressed, [1] pressed
 };
 
 hlslstruct Aabb
@@ -181,94 +274,6 @@ struct PSInputButtonFragment
 struct PSOutput
 {
     float4 color : SV_Target;
-};
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Constant Buffers
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-hlslstruct CbPerFrame
-{
-	uint32_t dlCount;
-	uint32_t plCount;
-	uint32_t slCount;
-	HLSLPad pad0;
-	
-    DirectionalLightData dl[MAX_GLOBAL_LIGHT_COUNT];
-    PointLightData pl[MAX_GLOBAL_LIGHT_COUNT];
-    SpotLightData sl[MAX_GLOBAL_LIGHT_COUNT];
-};
-
-hlslstruct CbPerCamera
-{
-	XMFLOAT3 cameraPosW;
-	HLSLPad pad0;
-
-	FLOAT tessMinDist;
-	FLOAT tessMaxDist;
-	FLOAT minTessExponent;
-	FLOAT maxTessExponent;
-
-    XMFLOAT4A worldSpaceFrustumPlane[6];
-
-    XMFLOAT4X4A vp; // View * Proj
-};
-
-hlslstruct CbPerArmature
-{
-    XMFLOAT4X4A finalTransform[96];
-};
-
-hlslstruct CbPerMesh
-{
-	XMFLOAT4X4A w; // World
-	XMFLOAT4X4A wInvTr; // Inversed world transform matrix (비균등 스케일링 시 올바른 노말 벡터 변환을 위해 필요)
-};
-
-hlslstruct CbPerTerrain
-{
-	FLOAT maxHeight;
-	FLOAT tilingScale;
-	uint32_t layerArraySize;
-	uint32_t layerFlag;
-};
-
-hlslstruct CbPerCameraMerge
-{
-	FLOAT width;
-	FLOAT height;
-	FLOAT topLeftX;
-	FLOAT topLeftY;
-};
-
-hlslstruct CbPerSubset
-{
-    MaterialData mtl;
-};
-
-hlslstruct CbPerUIRender
-{
-    XMFLOAT2 toNDCSpaceRatio;
-};
-
-hlslstruct CbPerPCQuad
-{
-	XMFLOAT4A color;
-	XMFLOAT2 size;
-	XMFLOAT2 position;
-};
-
-hlslstruct CbPerPTQuad
-{
-	XMFLOAT2 size;
-	XMFLOAT2 position;
-};
-
-hlslstruct CbPerButton
-{
-    XMFLOAT4A color;
-	XMFLOAT2 size;
-	XMFLOAT2 position;
-	uint32_t shadeIndex; // [0] not pressed, [1] pressed
 };
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

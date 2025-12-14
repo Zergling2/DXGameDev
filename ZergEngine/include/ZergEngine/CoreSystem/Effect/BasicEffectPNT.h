@@ -6,7 +6,6 @@
 namespace ze
 {
 	class Camera;
-	class Texture2D;
 
 	class BasicEffectPNT : public IEffect
 	{
@@ -47,6 +46,8 @@ namespace ze
 		virtual void Init() override;
 		virtual void Release() override;
 
+		void XM_CALLCONV SetAmbientLight(FXMVECTOR ambientLight) noexcept;
+
 		// count는 4보다 같거나 작아야 합니다.
 		void SetDirectionalLight(const DirectionalLightData* pLights, uint32_t count) noexcept;
 		void SetPointLight(const PointLightData* pLights, uint32_t count) noexcept;
@@ -58,7 +59,6 @@ namespace ze
 		void XM_CALLCONV SetWorldMatrix(FXMMATRIX w) noexcept;
 
 		void UseMaterial(bool b) noexcept;
-		void XM_CALLCONV SetAmbientColor(FXMVECTOR ambient) noexcept;
 		void XM_CALLCONV SetDiffuseColor(FXMVECTOR diffuse) noexcept;
 		void XM_CALLCONV SetSpecularColor(FXMVECTOR specular) noexcept;
 		void XM_CALLCONV SetReflection(FXMVECTOR reflect) noexcept;

@@ -19,6 +19,7 @@
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\SpotLightManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\MeshRendererManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\SkinnedMeshRendererManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\BillboardManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\TerrainManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\MonoBehaviourManager.h>
 #include <ZergEngine\CoreSystem\Manager\SceneManager.h>
@@ -99,6 +100,7 @@ void Runtime::Init(HINSTANCE hInstance, int nCmdShow, uint32_t width, uint32_t h
     SpotLightManager::CreateInstance();
     MeshRendererManager::CreateInstance();
     SkinnedMeshRendererManager::CreateInstance();
+    BillboardManager::CreateInstance();
     TerrainManager::CreateInstance();
     MonoBehaviourManager::CreateInstance();
     SceneManager::CreateInstance();
@@ -125,6 +127,7 @@ void Runtime::Init(HINSTANCE hInstance, int nCmdShow, uint32_t width, uint32_t h
     SpotLightManager::GetInstance()->Init();
     MeshRendererManager::GetInstance()->Init();
     SkinnedMeshRendererManager::GetInstance()->Init();
+    BillboardManager::GetInstance()->Init();
     TerrainManager::GetInstance()->Init();
     MonoBehaviourManager::GetInstance()->Init();
     SceneManager::GetInstance()->Init(startScene);
@@ -159,6 +162,7 @@ void Runtime::InitEditor(HINSTANCE hInstance, HWND hMainFrameWnd, HWND hViewWnd,
     SpotLightManager::CreateInstance();
     MeshRendererManager::CreateInstance();
     SkinnedMeshRendererManager::CreateInstance();
+    BillboardManager::CreateInstance();
     TerrainManager::CreateInstance();
     MonoBehaviourManager::CreateInstance();
     SceneManager::CreateInstance();
@@ -183,6 +187,7 @@ void Runtime::InitEditor(HINSTANCE hInstance, HWND hMainFrameWnd, HWND hViewWnd,
     SpotLightManager::GetInstance()->Init();
     MeshRendererManager::GetInstance()->Init();
     SkinnedMeshRendererManager::GetInstance()->Init();
+    BillboardManager::GetInstance()->Init();
     TerrainManager::GetInstance()->Init();
     MonoBehaviourManager::GetInstance()->Init();
     SceneManager::GetInstance()->Init(nullptr);
@@ -194,6 +199,7 @@ void Runtime::UnInit()
     SceneManager::GetInstance()->UnInit();
     MonoBehaviourManager::GetInstance()->UnInit();
     TerrainManager::GetInstance()->UnInit();
+    BillboardManager::GetInstance()->UnInit();
     SkinnedMeshRendererManager::GetInstance()->UnInit();
     MeshRendererManager::GetInstance()->UnInit();
     SpotLightManager::GetInstance()->UnInit();
@@ -217,6 +223,7 @@ void Runtime::UnInit()
     SceneManager::DestroyInstance();
     MonoBehaviourManager::DestroyInstance();
     TerrainManager::DestroyInstance();
+    BillboardManager::DestroyInstance();
     SkinnedMeshRendererManager::DestroyInstance();
     MeshRendererManager::DestroyInstance();
     SpotLightManager::DestroyInstance();
@@ -565,12 +572,17 @@ void Runtime::RemoveDestroyedComponentsAndObjects()
 {
     // 컴포넌트 제거 작업
     MonoBehaviourManager::GetInstance()->RemoveDestroyedComponents();   // 가장 먼저 수행하여 오브젝트 및 컴포넌트에 대해 최대한의 접근도 보장
+    // RigidbodyManager::GetInstance()->RemoveDestroyedComponents();
+    // BoxColliderManager::GetInstance()->RemoveDestroyedComponents();
+    // SphereCollider::GetInstance()->RemoveDestroyedComponents();
+    // MeshCollider::GetInstance()->RemoveDestroyedComponents();
     TerrainManager::GetInstance()->RemoveDestroyedComponents();
     MeshRendererManager::GetInstance()->RemoveDestroyedComponents();
     SkinnedMeshRendererManager::GetInstance()->RemoveDestroyedComponents();
-    SpotLightManager::GetInstance()->RemoveDestroyedComponents();
-    PointLightManager::GetInstance()->RemoveDestroyedComponents();
+    BillboardManager::GetInstance()->RemoveDestroyedComponents();
     DirectionalLightManager::GetInstance()->RemoveDestroyedComponents();
+    PointLightManager::GetInstance()->RemoveDestroyedComponents();
+    SpotLightManager::GetInstance()->RemoveDestroyedComponents();
     CameraManager::GetInstance()->RemoveDestroyedComponents();
     AudioSourceManager::GetInstance()->RemoveDestroyedComponents();
 
@@ -608,7 +620,7 @@ void Runtime::CreateLoggers()
     LPCWSTR logDirName = L"logs";
     BOOL ret = CreateDirectoryW(logDirName, nullptr);
 
-    if ((ret == FALSE) && (GetLastError() != ERROR_ALREADY_EXISTS))
+    if (ret == FALSE && GetLastError() != ERROR_ALREADY_EXISTS)
         Debug::ForceCrashWithMessageBox(L"Error", L"Failed to create log directory.");
 
     __time64_t now = _time64(nullptr);

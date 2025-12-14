@@ -20,18 +20,14 @@ CPointLightInspectorFormView::~CPointLightInspectorFormView()
 void CPointLightInspectorFormView::DoDataExchange(CDataExchange* pDX)
 {
 	CFormView::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_EDIT_AMBIENT_R, m_editAmbientR);
-	DDX_Control(pDX, IDC_EDIT_AMBIENT_G, m_editAmbientG);
-	DDX_Control(pDX, IDC_EDIT_AMBIENT_B, m_editAmbientB);
-	DDX_Control(pDX, IDC_EDIT_AMBIENT_A, m_editAmbientA);
-	DDX_Control(pDX, IDC_EDIT_DIFFUSE_R, m_editDiffuseR);
-	DDX_Control(pDX, IDC_EDIT_DIFFUSE_G, m_editDiffuseG);
-	DDX_Control(pDX, IDC_EDIT_DIFFUSE_B, m_editDiffuseB);
-	DDX_Control(pDX, IDC_EDIT_DIFFUSE_A, m_editDiffuseA);
-	DDX_Control(pDX, IDC_EDIT_SPECULAR_R, m_editSpecularR);
-	DDX_Control(pDX, IDC_EDIT_SPECULAR_G, m_editSpecularG);
-	DDX_Control(pDX, IDC_EDIT_SPECULAR_B, m_editSpecularB);
-	DDX_Control(pDX, IDC_EDIT_SPECULAR_EXPONENT, m_editSpecularExp);
+	DDX_Control(pDX, IDC_EDIT_POINT_LIGHT_DIFFUSE_R, m_editDiffuseR);
+	DDX_Control(pDX, IDC_EDIT_POINT_LIGHT_DIFFUSE_G, m_editDiffuseG);
+	DDX_Control(pDX, IDC_EDIT_POINT_LIGHT_DIFFUSE_B, m_editDiffuseB);
+	DDX_Control(pDX, IDC_EDIT_POINT_LIGHT_DIFFUSE_A, m_editDiffuseA);
+	DDX_Control(pDX, IDC_EDIT_POINT_LIGHT_SPECULAR_R, m_editSpecularR);
+	DDX_Control(pDX, IDC_EDIT_POINT_LIGHT_SPECULAR_G, m_editSpecularG);
+	DDX_Control(pDX, IDC_EDIT_POINT_LIGHT_SPECULAR_B, m_editSpecularB);
+	DDX_Control(pDX, IDC_EDIT_POINT_LIGHT_SPECULAR_EXPONENT, m_editSpecularExp);
 	DDX_Control(pDX, IDC_EDIT_POINT_LIGHT_RANGE, m_editRange);
 	DDX_Control(pDX, IDC_EDIT_POINT_LIGHT_ATT_X, m_editAttX);
 	DDX_Control(pDX, IDC_EDIT_POINT_LIGHT_ATT_Y, m_editAttY);
@@ -39,18 +35,14 @@ void CPointLightInspectorFormView::DoDataExchange(CDataExchange* pDX)
 }
 
 BEGIN_MESSAGE_MAP(CPointLightInspectorFormView, CFormView)
-	ON_EN_CHANGE(IDC_EDIT_AMBIENT_R, &CPointLightInspectorFormView::OnEnChangeEditAmbientR)
-	ON_EN_CHANGE(IDC_EDIT_AMBIENT_G, &CPointLightInspectorFormView::OnEnChangeEditAmbientG)
-	ON_EN_CHANGE(IDC_EDIT_AMBIENT_B, &CPointLightInspectorFormView::OnEnChangeEditAmbientB)
-	ON_EN_CHANGE(IDC_EDIT_AMBIENT_A, &CPointLightInspectorFormView::OnEnChangeEditAmbientA)
-	ON_EN_CHANGE(IDC_EDIT_DIFFUSE_R, &CPointLightInspectorFormView::OnEnChangeEditDiffuseR)
-	ON_EN_CHANGE(IDC_EDIT_DIFFUSE_G, &CPointLightInspectorFormView::OnEnChangeEditDiffuseG)
-	ON_EN_CHANGE(IDC_EDIT_DIFFUSE_B, &CPointLightInspectorFormView::OnEnChangeEditDiffuseB)
-	ON_EN_CHANGE(IDC_EDIT_DIFFUSE_A, &CPointLightInspectorFormView::OnEnChangeEditDiffuseA)
-	ON_EN_CHANGE(IDC_EDIT_SPECULAR_R, &CPointLightInspectorFormView::OnEnChangeEditSpecularR)
-	ON_EN_CHANGE(IDC_EDIT_SPECULAR_G, &CPointLightInspectorFormView::OnEnChangeEditSpecularG)
-	ON_EN_CHANGE(IDC_EDIT_SPECULAR_B, &CPointLightInspectorFormView::OnEnChangeEditSpecularB)
-	ON_EN_CHANGE(IDC_EDIT_SPECULAR_EXPONENT, &CPointLightInspectorFormView::OnEnChangeEditSpecularExponent)
+	ON_EN_CHANGE(IDC_EDIT_POINT_LIGHT_DIFFUSE_R, &CPointLightInspectorFormView::OnEnChangeEditDiffuseR)
+	ON_EN_CHANGE(IDC_EDIT_POINT_LIGHT_DIFFUSE_G, &CPointLightInspectorFormView::OnEnChangeEditDiffuseG)
+	ON_EN_CHANGE(IDC_EDIT_POINT_LIGHT_DIFFUSE_B, &CPointLightInspectorFormView::OnEnChangeEditDiffuseB)
+	ON_EN_CHANGE(IDC_EDIT_POINT_LIGHT_DIFFUSE_A, &CPointLightInspectorFormView::OnEnChangeEditDiffuseA)
+	ON_EN_CHANGE(IDC_EDIT_POINT_LIGHT_SPECULAR_R, &CPointLightInspectorFormView::OnEnChangeEditSpecularR)
+	ON_EN_CHANGE(IDC_EDIT_POINT_LIGHT_SPECULAR_G, &CPointLightInspectorFormView::OnEnChangeEditSpecularG)
+	ON_EN_CHANGE(IDC_EDIT_POINT_LIGHT_SPECULAR_B, &CPointLightInspectorFormView::OnEnChangeEditSpecularB)
+	ON_EN_CHANGE(IDC_EDIT_POINT_LIGHT_SPECULAR_EXPONENT, &CPointLightInspectorFormView::OnEnChangeEditSpecularExponent)
 	ON_EN_CHANGE(IDC_EDIT_POINT_LIGHT_RANGE, &CPointLightInspectorFormView::OnEnChangeEditPointLightRange)
 	ON_EN_CHANGE(IDC_EDIT_POINT_LIGHT_ATT_X, &CPointLightInspectorFormView::OnEnChangeEditPointLightAttX)
 	ON_EN_CHANGE(IDC_EDIT_POINT_LIGHT_ATT_Y, &CPointLightInspectorFormView::OnEnChangeEditPointLightAttY)
@@ -76,54 +68,6 @@ void CPointLightInspectorFormView::Dump(CDumpContext& dc) const
 
 
 // CPointLightInspectorFormView message handlers
-
-void CPointLightInspectorFormView::OnEnChangeEditAmbientR()
-{
-	// TODO:  If this is a RICHEDIT control, the control will not
-	// send this notification unless you override the CFormView::OnInitDialog()
-	// function and call CRichEditCtrl().SetEventMask()
-	// with the ENM_CHANGE flag ORed into the mask.
-
-	// TODO:  Add your control notification handler code here
-	ze::PointLight* pPointLight = this->GetCLVItemToModify()->GetPointLight();
-	pPointLight->m_ambient.x = m_editAmbientR.GetValue();
-}
-
-void CPointLightInspectorFormView::OnEnChangeEditAmbientG()
-{
-	// TODO:  If this is a RICHEDIT control, the control will not
-	// send this notification unless you override the CFormView::OnInitDialog()
-	// function and call CRichEditCtrl().SetEventMask()
-	// with the ENM_CHANGE flag ORed into the mask.
-
-	// TODO:  Add your control notification handler code here
-	ze::PointLight* pPointLight = this->GetCLVItemToModify()->GetPointLight();
-	pPointLight->m_ambient.y = m_editAmbientG.GetValue();
-}
-
-void CPointLightInspectorFormView::OnEnChangeEditAmbientB()
-{
-	// TODO:  If this is a RICHEDIT control, the control will not
-	// send this notification unless you override the CFormView::OnInitDialog()
-	// function and call CRichEditCtrl().SetEventMask()
-	// with the ENM_CHANGE flag ORed into the mask.
-
-	// TODO:  Add your control notification handler code here
-	ze::PointLight* pPointLight = this->GetCLVItemToModify()->GetPointLight();
-	pPointLight->m_ambient.z = m_editAmbientB.GetValue();
-}
-
-void CPointLightInspectorFormView::OnEnChangeEditAmbientA()
-{
-	// TODO:  If this is a RICHEDIT control, the control will not
-	// send this notification unless you override the CFormView::OnInitDialog()
-	// function and call CRichEditCtrl().SetEventMask()
-	// with the ENM_CHANGE flag ORed into the mask.
-
-	// TODO:  Add your control notification handler code here
-	ze::PointLight* pPointLight = this->GetCLVItemToModify()->GetPointLight();
-	pPointLight->m_ambient.w = m_editAmbientA.GetValue();
-}
 
 void CPointLightInspectorFormView::OnEnChangeEditDiffuseR()
 {

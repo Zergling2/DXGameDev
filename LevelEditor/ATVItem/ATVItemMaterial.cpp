@@ -17,16 +17,6 @@ void ATVItemMaterial::OnSelect()
 	// 2. º¯°æµÈ ÀÎ½ºÆåÅÍ Æû ºä¿¡ Material Á¤º¸ º¸¿©ÁÖ±â
 	TCHAR str[32];
 
-	// Ambient
-	StringCbPrintf(str, sizeof(str), _T("%f"), m_spMaterial->m_ambient.x);
-	pInspector->m_editAmbientR.SetWindowText(str);
-	StringCbPrintf(str, sizeof(str), _T("%f"), m_spMaterial->m_ambient.y);
-	pInspector->m_editAmbientG.SetWindowText(str);
-	StringCbPrintf(str, sizeof(str), _T("%f"), m_spMaterial->m_ambient.z);
-	pInspector->m_editAmbientB.SetWindowText(str);
-	StringCbPrintf(str, sizeof(str), _T("%f"), m_spMaterial->m_ambient.w);
-	pInspector->m_editAmbientA.SetWindowText(str);
-
 	// Diffuse
 	StringCbPrintf(str, sizeof(str), _T("%f"), m_spMaterial->m_diffuse.x);
 	pInspector->m_editDiffuseR.SetWindowText(str);

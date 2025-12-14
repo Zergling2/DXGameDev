@@ -34,10 +34,6 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 public:
-	CFloatEdit m_editAmbientR;
-	CFloatEdit m_editAmbientG;
-	CFloatEdit m_editAmbientB;
-	CFloatEdit m_editAmbientA;
 	CFloatEdit m_editDiffuseR;
 	CFloatEdit m_editDiffuseG;
 	CFloatEdit m_editDiffuseB;
@@ -47,10 +43,6 @@ public:
 	CFloatEdit m_editSpecularB;
 	CFloatEdit m_editSpecularExp;
 public:
-	afx_msg void OnEnChangeEditAmbientR();
-	afx_msg void OnEnChangeEditAmbientG();
-	afx_msg void OnEnChangeEditAmbientB();
-	afx_msg void OnEnChangeEditAmbientA();
 	afx_msg void OnEnChangeEditDiffuseR();
 	afx_msg void OnEnChangeEditDiffuseG();
 	afx_msg void OnEnChangeEditDiffuseB();

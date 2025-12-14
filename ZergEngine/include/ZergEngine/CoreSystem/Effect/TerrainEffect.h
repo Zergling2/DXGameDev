@@ -49,6 +49,8 @@ namespace ze
 		virtual void Init() override;
 		virtual void Release() override;
 
+		void XM_CALLCONV SetAmbientLight(FXMVECTOR ambientLight) noexcept;
+
 		// count는 4보다 같거나 작아야 합니다.
 		void SetDirectionalLight(const DirectionalLightData* pLights, uint32_t count) noexcept;
 		void SetPointLight(const PointLightData* pLights, uint32_t count) noexcept;

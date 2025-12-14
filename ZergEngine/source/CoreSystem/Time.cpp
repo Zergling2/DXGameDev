@@ -36,7 +36,7 @@ void Time::Init()
 		Debug::ForceCrashWithMessageBox(L"FixedUpdateHz Error", L"Hardware counters are not supported at 50 Hz.");
 
 	m_spc = 1.0f / static_cast<float>(freq.QuadPart);
-	mTs = 1.0f;
+	m_ts = 1.0f;
 	m_fdt = FIXED_DELTA_TIME;
 	m_udt = 0.0f;
 	m_dt = 0.0f;
@@ -63,7 +63,7 @@ void Time::SetTimeScale(float ts)
 	if (ts < 0.0f)
 		return;
 
-	mTs = ts;
+	m_ts = ts;
 }
 
 bool Time::SetFixedDeltaTime(float fdt)
@@ -83,7 +83,7 @@ void Time::Update()
 		m_deltaPC.QuadPart = 0;
 
 	m_udt = static_cast<float>(m_deltaPC.QuadPart) * m_spc;
-	m_dt = m_udt * mTs;
+	m_dt = m_udt * m_ts;
 
 	m_prevPC = m_currPC;
 }

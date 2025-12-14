@@ -12,6 +12,13 @@ using namespace ze;
 // 1. VertexShader: VSTransformPNTTToHCS
 // 2. PixelShader: PSColorPNTTFragment
 
+enum class TextureMapIndex
+{
+	DiffuseMap = 0,
+	SpecularMap,
+	NormalMap
+};
+
 void BasicEffectPNTT::Init()
 {
 	m_dirtyFlag = DIRTY_FLAG::ALL;
@@ -34,6 +41,13 @@ void BasicEffectPNTT::Release()
 	m_cbPerCamera.Release();
 	m_cbPerMesh.Release();
 	m_cbPerSubset.Release();
+}
+
+void XM_CALLCONV BasicEffectPNTT::SetAmbientLight(FXMVECTOR ambientLight) noexcept
+{
+	XMStoreFloat3(&m_cbPerFrameCache.ambientLight, ambientLight);
+
+	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_FRAME;
 }
 
 void BasicEffectPNTT::SetDirectionalLight(const DirectionalLightData* pLights, uint32_t count) noexcept
@@ -106,13 +120,6 @@ void BasicEffectPNTT::UseMaterial(bool b) noexcept
 	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_SUBSET;
 }
 
-void XM_CALLCONV BasicEffectPNTT::SetAmbientColor(FXMVECTOR ambient) noexcept
-{
-	XMStoreFloat4A(&m_cbPerSubsetCache.mtl.ambient, ambient);
-
-	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_SUBSET;
-}
-
 void XM_CALLCONV BasicEffectPNTT::SetDiffuseColor(FXMVECTOR diffuse) noexcept
 {
 	XMStoreFloat4A(&m_cbPerSubsetCache.mtl.diffuse, diffuse);
@@ -136,7 +143,7 @@ void XM_CALLCONV BasicEffectPNTT::SetReflection(FXMVECTOR reflect) noexcept
 
 void BasicEffectPNTT::SetDiffuseMap(ID3D11ShaderResourceView* pDiffuseMap) noexcept
 {
-	m_pTextureSRVArray[0] = pDiffuseMap;
+	m_pTextureSRVArray[static_cast<size_t>(TextureMapIndex::DiffuseMap)] = pDiffuseMap;
 
 	if (pDiffuseMap)
 		m_cbPerSubsetCache.mtl.mtlFlag |= static_cast<uint32_t>(MATERIAL_FLAG::UseDiffuseMap);
@@ -146,7 +153,7 @@ void BasicEffectPNTT::SetDiffuseMap(ID3D11ShaderResourceView* pDiffuseMap) noexc
 
 void BasicEffectPNTT::SetSpecularMap(ID3D11ShaderResourceView* pSpecularMap) noexcept
 {
-	m_pTextureSRVArray[1] = pSpecularMap;
+	m_pTextureSRVArray[static_cast<size_t>(TextureMapIndex::SpecularMap)] = pSpecularMap;
 
 	if (pSpecularMap)
 		m_cbPerSubsetCache.mtl.mtlFlag |= static_cast<uint32_t>(MATERIAL_FLAG::UseSpecularMap);
@@ -156,7 +163,7 @@ void BasicEffectPNTT::SetSpecularMap(ID3D11ShaderResourceView* pSpecularMap) noe
 
 void BasicEffectPNTT::SetNormalMap(ID3D11ShaderResourceView* pNormalMap) noexcept
 {
-	m_pTextureSRVArray[2] = pNormalMap;
+	m_pTextureSRVArray[static_cast<size_t>(TextureMapIndex::NormalMap)] = pNormalMap;
 
 	if (pNormalMap)
 		m_cbPerSubsetCache.mtl.mtlFlag |= static_cast<uint32_t>(MATERIAL_FLAG::UseNormalMap);

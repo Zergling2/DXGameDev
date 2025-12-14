@@ -348,6 +348,15 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DrawScreenRatioQuadWithTextureEffect.h">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\Billboard.h">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\BillboardManager.h">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BillboardEffect.h">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\CoreSystem\Time.cpp">
@@ -608,6 +617,15 @@
     <ClCompile Include="source\CoreSystem\Effect\DrawScreenRatioQuadWithTextureEffect.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClCompile>
+    <ClCompile Include="source\CoreSystem\GamePlayBase\Component\Billboard.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\BillboardManager.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Effect\BillboardEffect.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="source\CoreSystem\ShaderCode\ShaderCommon.hlsli">
@@ -678,7 +696,7 @@
     <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformButtonToHCS.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformPTQuadToHCS.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformUIQuadToHCS.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
     <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformPNTTToHCS.hlsl">
@@ -694,6 +712,9 @@
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
     <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformPNTTSkinnedToHCS.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
+    </FxCompile>
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformBillboardQuadToHCS.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
   </ItemGroup>

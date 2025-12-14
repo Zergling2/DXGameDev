@@ -2,9 +2,16 @@
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\DirectionalLightManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\PointLightManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\SpotLightManager.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
+#include <ZergEngine\CoreSystem\Math.h>
 
 using namespace ze;
+
+ILight::ILight(uint64_t id)
+	: IComponent(id)
+{
+	XMStoreFloat4A(&m_diffuse, Math::Vector3::One());
+	XMStoreFloat4A(&m_specular, Math::Vector3::One());
+}
 
 DirectionalLight::DirectionalLight()
 	: ILight(DirectionalLightManager::GetInstance()->AssignUniqueId())

@@ -39,6 +39,13 @@ void BasicEffectPNTTSkinned::Release()
 	m_cbPerSubset.Release();
 }
 
+void XM_CALLCONV BasicEffectPNTTSkinned::SetAmbientLight(FXMVECTOR ambientLight) noexcept
+{
+	XMStoreFloat3(&m_cbPerFrameCache.ambientLight, ambientLight);
+
+	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_FRAME;
+}
+
 void BasicEffectPNTTSkinned::SetDirectionalLight(const DirectionalLightData* pLights, uint32_t count) noexcept
 {
 	assert(count <= 4);
@@ -114,13 +121,6 @@ void BasicEffectPNTTSkinned::UseMaterial(bool b) noexcept
 		m_cbPerSubsetCache.mtl.mtlFlag |= static_cast<uint32_t>(MATERIAL_FLAG::UseMaterial);
 	else
 		m_cbPerSubsetCache.mtl.mtlFlag = static_cast<uint32_t>(MATERIAL_FLAG::None);
-
-	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_SUBSET;
-}
-
-void XM_CALLCONV BasicEffectPNTTSkinned::SetAmbientColor(FXMVECTOR ambient) noexcept
-{
-	XMStoreFloat4A(&m_cbPerSubsetCache.mtl.ambient, ambient);
 
 	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_SUBSET;
 }

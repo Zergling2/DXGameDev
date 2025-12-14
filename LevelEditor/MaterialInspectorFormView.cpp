@@ -23,40 +23,32 @@ CMaterialInspectorFormView::~CMaterialInspectorFormView()
 void CMaterialInspectorFormView::DoDataExchange(CDataExchange* pDX)
 {
 	CFormView::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_EDIT_AMBIENT_R, m_editAmbientR);
-	DDX_Control(pDX, IDC_EDIT_AMBIENT_G, m_editAmbientG);
-	DDX_Control(pDX, IDC_EDIT_AMBIENT_B, m_editAmbientB);
-	DDX_Control(pDX, IDC_EDIT_AMBIENT_A, m_editAmbientA);
-	DDX_Control(pDX, IDC_EDIT_DIFFUSE_R, m_editDiffuseR);
-	DDX_Control(pDX, IDC_EDIT_DIFFUSE_G, m_editDiffuseG);
-	DDX_Control(pDX, IDC_EDIT_DIFFUSE_B, m_editDiffuseB);
-	DDX_Control(pDX, IDC_EDIT_DIFFUSE_A, m_editDiffuseA);
-	DDX_Control(pDX, IDC_EDIT_SPECULAR_R, m_editSpecularR);
-	DDX_Control(pDX, IDC_EDIT_SPECULAR_G, m_editSpecularG);
-	DDX_Control(pDX, IDC_EDIT_SPECULAR_B, m_editSpecularB);
-	DDX_Control(pDX, IDC_EDIT_SPECULAR_EXPONENT, m_editSpecularExp);
-	DDX_Control(pDX, IDC_COMBO_DIFFUSE_MAP, m_comboDiffuseMap);
-	DDX_Control(pDX, IDC_COMBO_NORMAL_MAP, m_comboNormalMap);
-	DDX_Control(pDX, IDC_COMBO_SPECULAR_MAP, m_comboSpecularMap);
+	DDX_Control(pDX, IDC_EDIT_MATERIAL_DIFFUSE_R, m_editDiffuseR);
+	DDX_Control(pDX, IDC_EDIT_MATERIAL_DIFFUSE_G, m_editDiffuseG);
+	DDX_Control(pDX, IDC_EDIT_MATERIAL_DIFFUSE_B, m_editDiffuseB);
+	DDX_Control(pDX, IDC_EDIT_MATERIAL_DIFFUSE_A, m_editDiffuseA);
+	DDX_Control(pDX, IDC_EDIT_MATERIAL_SPECULAR_R, m_editSpecularR);
+	DDX_Control(pDX, IDC_EDIT_MATERIAL_SPECULAR_G, m_editSpecularG);
+	DDX_Control(pDX, IDC_EDIT_MATERIAL_SPECULAR_B, m_editSpecularB);
+	DDX_Control(pDX, IDC_EDIT_MATERIAL_SPECULAR_EXPONENT, m_editSpecularExp);
+	DDX_Control(pDX, IDC_COMBO_MATERIAL_DIFFUSE_MAP, m_comboDiffuseMap);
+	DDX_Control(pDX, IDC_COMBO_MATERIAL_NORMAL_MAP, m_comboNormalMap);
+	DDX_Control(pDX, IDC_COMBO_MATERIAL_SPECULAR_MAP, m_comboSpecularMap);
 }
 
 BEGIN_MESSAGE_MAP(CMaterialInspectorFormView, CFormView)
-	ON_EN_CHANGE(IDC_EDIT_AMBIENT_R, &CMaterialInspectorFormView::OnEnChangeEditAmbientR)
-	ON_EN_CHANGE(IDC_EDIT_AMBIENT_G, &CMaterialInspectorFormView::OnEnChangeEditAmbientG)
-	ON_EN_CHANGE(IDC_EDIT_AMBIENT_B, &CMaterialInspectorFormView::OnEnChangeEditAmbientB)
-	ON_EN_CHANGE(IDC_EDIT_AMBIENT_A, &CMaterialInspectorFormView::OnEnChangeEditAmbientA)
-	ON_EN_CHANGE(IDC_EDIT_DIFFUSE_R, &CMaterialInspectorFormView::OnEnChangeEditDiffuseR)
-	ON_EN_CHANGE(IDC_EDIT_DIFFUSE_G, &CMaterialInspectorFormView::OnEnChangeEditDiffuseG)
-	ON_EN_CHANGE(IDC_EDIT_DIFFUSE_B, &CMaterialInspectorFormView::OnEnChangeEditDiffuseB)
-	ON_EN_CHANGE(IDC_EDIT_DIFFUSE_A, &CMaterialInspectorFormView::OnEnChangeEditDiffuseA)
-	ON_EN_CHANGE(IDC_EDIT_SPECULAR_R, &CMaterialInspectorFormView::OnEnChangeEditSpecularR)
-	ON_EN_CHANGE(IDC_EDIT_SPECULAR_G, &CMaterialInspectorFormView::OnEnChangeEditSpecularG)
-	ON_EN_CHANGE(IDC_EDIT_SPECULAR_B, &CMaterialInspectorFormView::OnEnChangeEditSpecularB)
-	ON_EN_CHANGE(IDC_EDIT_SPECULAR_EXPONENT, &CMaterialInspectorFormView::OnEnChangeEditSpecularExponent)
-	ON_CBN_SELCHANGE(IDC_COMBO_DIFFUSE_MAP, &CMaterialInspectorFormView::OnCbnSelchangeComboDiffuseMap)
-	ON_CBN_DROPDOWN(IDC_COMBO_DIFFUSE_MAP, &CMaterialInspectorFormView::OnCbnDropdownComboDiffuseMap)
-	ON_CBN_SELCHANGE(IDC_COMBO_NORMAL_MAP, &CMaterialInspectorFormView::OnCbnSelchangeComboNormalMap)
-	ON_CBN_DROPDOWN(IDC_COMBO_NORMAL_MAP, &CMaterialInspectorFormView::OnCbnDropdownComboNormalMap)
+	ON_EN_CHANGE(IDC_EDIT_MATERIAL_DIFFUSE_R, &CMaterialInspectorFormView::OnEnChangeEditDiffuseR)
+	ON_EN_CHANGE(IDC_EDIT_MATERIAL_DIFFUSE_G, &CMaterialInspectorFormView::OnEnChangeEditDiffuseG)
+	ON_EN_CHANGE(IDC_EDIT_MATERIAL_DIFFUSE_B, &CMaterialInspectorFormView::OnEnChangeEditDiffuseB)
+	ON_EN_CHANGE(IDC_EDIT_MATERIAL_DIFFUSE_A, &CMaterialInspectorFormView::OnEnChangeEditDiffuseA)
+	ON_EN_CHANGE(IDC_EDIT_MATERIAL_SPECULAR_R, &CMaterialInspectorFormView::OnEnChangeEditSpecularR)
+	ON_EN_CHANGE(IDC_EDIT_MATERIAL_SPECULAR_G, &CMaterialInspectorFormView::OnEnChangeEditSpecularG)
+	ON_EN_CHANGE(IDC_EDIT_MATERIAL_SPECULAR_B, &CMaterialInspectorFormView::OnEnChangeEditSpecularB)
+	ON_EN_CHANGE(IDC_EDIT_MATERIAL_SPECULAR_EXPONENT, &CMaterialInspectorFormView::OnEnChangeEditSpecularExponent)
+	ON_CBN_SELCHANGE(IDC_COMBO_MATERIAL_DIFFUSE_MAP, &CMaterialInspectorFormView::OnCbnSelchangeComboDiffuseMap)
+	ON_CBN_DROPDOWN(IDC_COMBO_MATERIAL_DIFFUSE_MAP, &CMaterialInspectorFormView::OnCbnDropdownComboDiffuseMap)
+	ON_CBN_SELCHANGE(IDC_COMBO_MATERIAL_NORMAL_MAP, &CMaterialInspectorFormView::OnCbnSelchangeComboNormalMap)
+	ON_CBN_DROPDOWN(IDC_COMBO_MATERIAL_NORMAL_MAP, &CMaterialInspectorFormView::OnCbnDropdownComboNormalMap)
 END_MESSAGE_MAP()
 
 
@@ -79,62 +71,6 @@ void CMaterialInspectorFormView::Dump(CDumpContext& dc) const
 
 // CMaterialInspectorFormView message handlers
 
-void CMaterialInspectorFormView::OnEnChangeEditAmbientR()
-{
-	// TODO:  If this is a RICHEDIT control, the control will not
-	// send this notification unless you override the CFormView::OnInitDialog()
-	// function and call CRichEditCtrl().SetEventMask()
-	// with the ENM_CHANGE flag ORed into the mask.
-
-	// TODO:  Add your control notification handler code here
-	m_editAmbientR.UpdateData(TRUE);
-
-	ze::Material* pMaterial = this->GetATVItemToModify()->GetMaterialPtr();
-	pMaterial->m_ambient.x = m_editAmbientR.GetValue();
-}
-
-void CMaterialInspectorFormView::OnEnChangeEditAmbientG()
-{
-	// TODO:  If this is a RICHEDIT control, the control will not
-	// send this notification unless you override the CFormView::OnInitDialog()
-	// function and call CRichEditCtrl().SetEventMask()
-	// with the ENM_CHANGE flag ORed into the mask.
-
-	// TODO:  Add your control notification handler code here
-	m_editAmbientG.UpdateData(TRUE);
-
-	ze::Material* pMaterial = this->GetATVItemToModify()->GetMaterialPtr();
-	pMaterial->m_ambient.y = m_editAmbientG.GetValue();
-}
-
-void CMaterialInspectorFormView::OnEnChangeEditAmbientB()
-{
-	// TODO:  If this is a RICHEDIT control, the control will not
-	// send this notification unless you override the CFormView::OnInitDialog()
-	// function and call CRichEditCtrl().SetEventMask()
-	// with the ENM_CHANGE flag ORed into the mask.
-
-	// TODO:  Add your control notification handler code here
-	m_editAmbientB.UpdateData(TRUE);
-
-	ze::Material* pMaterial = this->GetATVItemToModify()->GetMaterialPtr();
-	pMaterial->m_ambient.z = m_editAmbientB.GetValue();
-}
-
-void CMaterialInspectorFormView::OnEnChangeEditAmbientA()
-{
-	// TODO:  If this is a RICHEDIT control, the control will not
-	// send this notification unless you override the CFormView::OnInitDialog()
-	// function and call CRichEditCtrl().SetEventMask()
-	// with the ENM_CHANGE flag ORed into the mask.
-
-	// TODO:  Add your control notification handler code here
-	m_editAmbientA.UpdateData(TRUE);
-
-	ze::Material* pMaterial = this->GetATVItemToModify()->GetMaterialPtr();
-	pMaterial->m_ambient.w = m_editAmbientA.GetValue();
-}
-
 void CMaterialInspectorFormView::OnEnChangeEditDiffuseR()
 {
 	// TODO:  If this is a RICHEDIT control, the control will not
@@ -143,7 +79,8 @@ void CMaterialInspectorFormView::OnEnChangeEditDiffuseR()
 	// with the ENM_CHANGE flag ORed into the mask.
 
 	// TODO:  Add your control notification handler code here
-	m_editDiffuseR.UpdateData(TRUE);
+	
+	// m_editDiffuseR.UpdateData(TRUE);	// 컨트롤 타입은 최신 값 들어있어서 UpdateData 호출 불필요
 
 	ze::Material* pMaterial = this->GetATVItemToModify()->GetMaterialPtr();
 	pMaterial->m_diffuse.x = m_editDiffuseR.GetValue();
@@ -157,7 +94,8 @@ void CMaterialInspectorFormView::OnEnChangeEditDiffuseG()
 	// with the ENM_CHANGE flag ORed into the mask.
 
 	// TODO:  Add your control notification handler code here
-	m_editDiffuseG.UpdateData(TRUE);
+	
+	// m_editDiffuseG.UpdateData(TRUE);
 
 	ze::Material* pMaterial = this->GetATVItemToModify()->GetMaterialPtr();
 	pMaterial->m_diffuse.y = m_editDiffuseG.GetValue();
@@ -171,7 +109,8 @@ void CMaterialInspectorFormView::OnEnChangeEditDiffuseB()
 	// with the ENM_CHANGE flag ORed into the mask.
 
 	// TODO:  Add your control notification handler code here
-	m_editDiffuseB.UpdateData(TRUE);
+	
+	// m_editDiffuseB.UpdateData(TRUE);
 
 	ze::Material* pMaterial = this->GetATVItemToModify()->GetMaterialPtr();
 	pMaterial->m_diffuse.z = m_editDiffuseB.GetValue();
@@ -185,7 +124,8 @@ void CMaterialInspectorFormView::OnEnChangeEditDiffuseA()
 	// with the ENM_CHANGE flag ORed into the mask.
 
 	// TODO:  Add your control notification handler code here
-	m_editDiffuseA.UpdateData(TRUE);
+	
+	// m_editDiffuseA.UpdateData(TRUE);
 
 	ze::Material* pMaterial = this->GetATVItemToModify()->GetMaterialPtr();
 	pMaterial->m_diffuse.w = m_editDiffuseA.GetValue();
@@ -199,7 +139,8 @@ void CMaterialInspectorFormView::OnEnChangeEditSpecularR()
 	// with the ENM_CHANGE flag ORed into the mask.
 
 	// TODO:  Add your control notification handler code here
-	m_editSpecularR.UpdateData(TRUE);
+
+	// m_editSpecularR.UpdateData(TRUE);
 
 	ze::Material* pMaterial = this->GetATVItemToModify()->GetMaterialPtr();
 	pMaterial->m_specular.x = m_editSpecularR.GetValue();
@@ -213,7 +154,8 @@ void CMaterialInspectorFormView::OnEnChangeEditSpecularG()
 	// with the ENM_CHANGE flag ORed into the mask.
 
 	// TODO:  Add your control notification handler code here
-	m_editSpecularG.UpdateData(TRUE);
+
+	// m_editSpecularG.UpdateData(TRUE);
 
 	ze::Material* pMaterial = this->GetATVItemToModify()->GetMaterialPtr();
 	pMaterial->m_specular.y = m_editSpecularG.GetValue();
@@ -227,7 +169,8 @@ void CMaterialInspectorFormView::OnEnChangeEditSpecularB()
 	// with the ENM_CHANGE flag ORed into the mask.
 
 	// TODO:  Add your control notification handler code here
-	m_editSpecularB.UpdateData(TRUE);
+
+	// m_editSpecularB.UpdateData(TRUE);
 
 	ze::Material* pMaterial = this->GetATVItemToModify()->GetMaterialPtr();
 	pMaterial->m_specular.z = m_editSpecularB.GetValue();
@@ -241,7 +184,8 @@ void CMaterialInspectorFormView::OnEnChangeEditSpecularExponent()
 	// with the ENM_CHANGE flag ORed into the mask.
 
 	// TODO:  Add your control notification handler code here
-	m_editSpecularExp.UpdateData(TRUE);
+
+	// m_editSpecularExp.UpdateData(TRUE);
 
 	ze::Material* pMaterial = this->GetATVItemToModify()->GetMaterialPtr();
 	pMaterial->m_specular.w = m_editSpecularExp.GetValue();

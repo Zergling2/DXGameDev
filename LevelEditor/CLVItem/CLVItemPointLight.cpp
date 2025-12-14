@@ -18,16 +18,6 @@ void CLVItemPointLight::OnSelect()
 	ze::PointLight* pPointLight = this->GetPointLight();
 	TCHAR buf[32];
 
-	// Ambient
-	StringCbPrintf(buf, sizeof(buf), _T("%f"), pPointLight->m_ambient.x);
-	pInspector->m_editAmbientR.SetWindowText(buf);
-	StringCbPrintf(buf, sizeof(buf), _T("%f"), pPointLight->m_ambient.y);
-	pInspector->m_editAmbientG.SetWindowText(buf);
-	StringCbPrintf(buf, sizeof(buf), _T("%f"), pPointLight->m_ambient.z);
-	pInspector->m_editAmbientB.SetWindowText(buf);
-	StringCbPrintf(buf, sizeof(buf), _T("%f"), pPointLight->m_ambient.w);
-	pInspector->m_editAmbientA.SetWindowText(buf);
-
 	// Diffuse
 	StringCbPrintf(buf, sizeof(buf), _T("%f"), pPointLight->m_diffuse.x);
 	pInspector->m_editDiffuseR.SetWindowText(buf);

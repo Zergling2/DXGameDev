@@ -188,7 +188,6 @@ void Renderer::RenderFrame()
 			XMVECTOR translation;
 			XMMatrixDecompose(&scale, &rotation, &translation, w);
 
-			light[index].ambient = pLight->m_ambient;
 			light[index].diffuse = pLight->m_diffuse;
 			light[index].specular = pLight->m_specular;
 			XMStoreFloat3(
@@ -224,7 +223,6 @@ void Renderer::RenderFrame()
 			const GameObject* pGameObject = pLight->m_pGameObject;
 			assert(pGameObject != nullptr);
 
-			light[index].ambient = pLight->m_ambient;
 			light[index].diffuse = pLight->m_diffuse;
 			light[index].specular = pLight->m_specular;
 
@@ -267,7 +265,6 @@ void Renderer::RenderFrame()
 			XMVECTOR translation;
 			XMMatrixDecompose(&scale, &rotation, &translation, w);
 
-			light[index].ambient = pLight->m_ambient;
 			light[index].diffuse = pLight->m_diffuse;
 			light[index].specular = pLight->m_specular;
 
@@ -296,6 +293,20 @@ void Renderer::RenderFrame()
 		// m_skyboxEffect.SetSpotLight(light, lightCount);
 		m_terrainEffect.SetSpotLight(light, lightCount);
 	}
+
+	XMVECTOR ambientLight = XMVectorScale(
+		XMLoadFloat3(&RenderSettings::GetInstance()->GetAmbientLightColor()),
+		RenderSettings::GetInstance()->GetAmbientLightIntensity()
+	);
+	// m_basicEffectP.SetAmbientLight(ambientLight);
+	// m_basicEffectPC.SetAmbientLight(ambientLight);
+	// m_basicEffectPN.SetAmbientLight(ambientLight);
+	// m_basicEffectPT.SetAmbientLight(ambientLight);
+	// m_basicEffectPNT.SetAmbientLight(ambientLight);
+	m_basicEffectPNTT.SetAmbientLight(ambientLight);
+	m_basicEffectPNTTSkinned.SetAmbientLight(ambientLight);
+	// m_skyboxEffect.SetAmbientLight(ambientLightt);
+	m_terrainEffect.SetAmbientLight(ambientLight);
 
 	// Camera마다 프레임 렌더링
 	for (IComponent* pComponent : CameraManager::GetInstance()->m_directAccessGroup)
@@ -662,7 +673,6 @@ void Renderer::RenderVFPositionNormalMesh(const MeshRenderer* pMeshRenderer)
 		if (pMaterial != nullptr)
 		{
 			m_basicEffectPN.UseMaterial(true);
-			m_basicEffectPN.SetAmbientColor(XMLoadFloat4A(&pMaterial->m_ambient));
 			m_basicEffectPN.SetDiffuseColor(XMLoadFloat4A(&pMaterial->m_diffuse));
 			m_basicEffectPN.SetSpecularColor(XMLoadFloat4A(&pMaterial->m_specular));
 		}
@@ -755,7 +765,6 @@ void Renderer::RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshRende
 		if (pMaterial != nullptr)
 		{
 			m_basicEffectPNT.UseMaterial(true);
-			m_basicEffectPNT.SetAmbientColor(XMLoadFloat4A(&pMaterial->m_ambient));
 			m_basicEffectPNT.SetDiffuseColor(XMLoadFloat4A(&pMaterial->m_diffuse));
 			m_basicEffectPNT.SetSpecularColor(XMLoadFloat4A(&pMaterial->m_specular));
 			m_basicEffectPNT.SetDiffuseMap(pMaterial->m_diffuseMap.GetSRVComInterface());
@@ -806,7 +815,6 @@ void Renderer::RenderVFPositionNormalTangentTexCoordMesh(const MeshRenderer* pMe
 		if (pMaterial != nullptr)
 		{
 			m_basicEffectPNTT.UseMaterial(true);
-			m_basicEffectPNTT.SetAmbientColor(XMLoadFloat4A(&pMaterial->m_ambient));
 			m_basicEffectPNTT.SetDiffuseColor(XMLoadFloat4A(&pMaterial->m_diffuse));
 			m_basicEffectPNTT.SetSpecularColor(XMLoadFloat4A(&pMaterial->m_specular));
 			m_basicEffectPNTT.SetDiffuseMap(pMaterial->m_diffuseMap.GetSRVComInterface());
@@ -879,7 +887,6 @@ void Renderer::RenderVFPositionNormalTangentTexCoordSkinnedMesh(const SkinnedMes
 		if (pMaterial != nullptr)
 		{
 			m_basicEffectPNTTSkinned.UseMaterial(true);
-			m_basicEffectPNTTSkinned.SetAmbientColor(XMLoadFloat4A(&pMaterial->m_ambient));
 			m_basicEffectPNTTSkinned.SetDiffuseColor(XMLoadFloat4A(&pMaterial->m_diffuse));
 			m_basicEffectPNTTSkinned.SetSpecularColor(XMLoadFloat4A(&pMaterial->m_specular));
 			m_basicEffectPNTTSkinned.SetDiffuseMap(pMaterial->m_diffuseMap.GetSRVComInterface());

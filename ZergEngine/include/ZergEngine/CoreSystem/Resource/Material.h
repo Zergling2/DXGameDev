@@ -11,7 +11,6 @@ namespace ze
 		Material();
 		~Material() = default;
 	public:
-		XMFLOAT4A m_ambient;	// R/G/B/A
 		XMFLOAT4A m_diffuse;
 		XMFLOAT4A m_specular;	// R/G/B/Specular power exponent
 		Texture2D m_lightMap;

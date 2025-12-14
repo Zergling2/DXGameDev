@@ -1,6 +1,7 @@
 #pragma once
-#include "afxdialogex.h"
 
+#include "afxdialogex.h"
+#include "Edit\FloatEdit.h"
 
 // CLightingEnvironmentSettingsDialog dialog
 
@@ -18,11 +19,20 @@ public:
 #endif
 public:
 	CComboBox m_comboEnvironmentSkyboxTexture;
+	CFloatEdit m_editAmbientLightColorR;
+	CFloatEdit m_editAmbientLightColorG;
+	CFloatEdit m_editAmbientLightColorB;
+	CFloatEdit m_editAmbientLightIntensity;
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
 	DECLARE_MESSAGE_MAP()
 public:
+	virtual BOOL OnInitDialog();
 	afx_msg void OnCbnSelchangeComboEnvironmentSkyboxTexture();
 	afx_msg void OnCbnDropdownComboEnvironmentSkyboxTexture();
+	afx_msg void OnEnChangeEditAmbientLightColorR();
+	afx_msg void OnEnChangeEditAmbientLightColorG();
+	afx_msg void OnEnChangeEditAmbientLightColorB();
+	afx_msg void OnEnChangeEditAmbientLightIntensity();
 };

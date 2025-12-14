@@ -62,7 +62,6 @@ namespace ze
 			: mtlFlag(static_cast<uint32_t>(MATERIAL_FLAG::None))
 		{
 #if defined(DEBUG) || defined(_DEBUG)
-			XMStoreFloat4A(&ambient, XMVectorZero());
 			XMStoreFloat4A(&diffuse, XMVectorZero());
 			XMStoreFloat4A(&specular, XMVectorZero());
 			XMStoreFloat4A(&reflect, XMVectorZero());
@@ -75,7 +74,6 @@ namespace ze
 		HLSLPad pad2;
 
 		// Material
-		XMFLOAT4A ambient;
 		XMFLOAT4A diffuse;
 		XMFLOAT4A specular; // r/g/b/p
 		XMFLOAT4A reflect;
@@ -86,19 +84,17 @@ namespace ze
 		DirectionalLightData()
 		{
 #if defined(DEBUG) || defined(_DEBUG)
-			XMStoreFloat4A(&ambient, XMVectorZero());
 			XMStoreFloat4A(&diffuse, XMVectorZero());
 			XMStoreFloat4A(&specular, XMVectorZero());
 
 			XMStoreFloat3(&directionW, XMVectorZero());
 #endif
 		}
-		XMFLOAT4A ambient;
 		XMFLOAT4A diffuse;
 		XMFLOAT4A specular;
 
 		XMFLOAT3 directionW;	// Need to be normalized!
-		HLSLPad pad;
+		HLSLPad pad0;
 	};
 
 	hlslstruct PointLightData
@@ -106,7 +102,6 @@ namespace ze
 		PointLightData()
 		{
 #if defined(DEBUG) || defined(_DEBUG)
-			XMStoreFloat4A(&ambient, XMVectorZero());
 			XMStoreFloat4A(&diffuse, XMVectorZero());
 			XMStoreFloat4A(&specular, XMVectorZero());
 
@@ -116,7 +111,6 @@ namespace ze
 			XMStoreFloat3(&att, XMVectorZero());	// 0, 0, 1, 0
 #endif
 		}
-		XMFLOAT4A ambient;
 		XMFLOAT4A diffuse;
 		XMFLOAT4A specular;
 
@@ -124,7 +118,7 @@ namespace ze
 		FLOAT range;
 
 		XMFLOAT3 att;     // a0/a1/a2     a0 + a1d + a2d^2
-		HLSLPad pad;
+		HLSLPad pad0;
 	};
 
 	hlslstruct SpotLightData
@@ -132,7 +126,6 @@ namespace ze
 		SpotLightData()
 		{
 #if defined(DEBUG) || defined(_DEBUG)
-			XMStoreFloat4A(&ambient, XMVectorZero());
 			XMStoreFloat4A(&diffuse, XMVectorZero());
 			XMStoreFloat4A(&specular, XMVectorZero());
 
@@ -146,7 +139,6 @@ namespace ze
 			outerConeCos = 0.0f;
 #endif
 		}
-		XMFLOAT4A ambient;
 		XMFLOAT4A diffuse;
 		XMFLOAT4A specular;
 
@@ -165,7 +157,10 @@ namespace ze
 		uint32_t dlCount;
 		uint32_t plCount;
 		uint32_t slCount;
-		HLSLPad pad;
+		HLSLPad pad0;
+
+		XMFLOAT3 ambientLight;
+		HLSLPad pad1;
 
 		DirectionalLightData dl[MAX_GLOBAL_LIGHT_COUNT];
 		PointLightData pl[MAX_GLOBAL_LIGHT_COUNT];
@@ -174,8 +169,8 @@ namespace ze
 
 	hlslstruct CbPerDeferredRenderingFrame
 	{
-		XMFLOAT3 ambientLightColor;
-		FLOAT ambientLightIntensity;
+		XMFLOAT3 ambientLight;
+		HLSLPad pad0;
 	};
 
 	hlslstruct CbPerCamera
@@ -224,6 +219,13 @@ namespace ze
 	hlslstruct CbPerSubset
 	{
 		MaterialData mtl;
+	};
+
+	hlslstruct CbPerBillboard
+	{
+		XMFLOAT4X4A w;
+		XMFLOAT4X4A wInvTr;
+		XMFLOAT4X4A vp;
 	};
 
 	hlslstruct CbPerUIRender

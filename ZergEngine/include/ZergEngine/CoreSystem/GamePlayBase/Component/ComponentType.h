@@ -8,6 +8,7 @@ namespace ze
 		Camera,
 		MeshRenderer,
 		SkinnedMeshRenderer,
+		Billboard,
 		DirectionalLight,
 		PointLight,
 		SpotLight,

@@ -30,6 +30,14 @@ void TerrainEffect::Release()
 	m_cbPerTerrain.Release();
 }
 
+
+void XM_CALLCONV TerrainEffect::SetAmbientLight(FXMVECTOR ambientLight) noexcept
+{
+	XMStoreFloat3(&m_cbPerFrameCache.ambientLight, ambientLight);
+
+	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_FRAME;
+}
+
 void TerrainEffect::SetDirectionalLight(const DirectionalLightData* pLights, uint32_t count) noexcept
 {
 	assert(count <= 4);

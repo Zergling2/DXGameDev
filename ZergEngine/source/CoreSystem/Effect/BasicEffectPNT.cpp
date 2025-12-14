@@ -12,6 +12,12 @@ using namespace ze;
 // 1. VertexShader: VSTransformPNTToHCS
 // 2. PixelShader: PSColorPNTFragment
 
+enum class TextureMapIndex
+{
+	DiffuseMap = 0,
+	SpecularMap
+};
+
 void BasicEffectPNT::Init()
 {
 	m_dirtyFlag = DIRTY_FLAG::ALL;
@@ -34,6 +40,13 @@ void BasicEffectPNT::Release()
 	m_cbPerCamera.Release();
 	m_cbPerMesh.Release();
 	m_cbPerSubset.Release();
+}
+
+void XM_CALLCONV BasicEffectPNT::SetAmbientLight(FXMVECTOR ambientLight) noexcept
+{
+	XMStoreFloat3(&m_cbPerFrameCache.ambientLight, ambientLight);
+
+	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_FRAME;
 }
 
 void BasicEffectPNT::SetDirectionalLight(const DirectionalLightData* pLights, uint32_t count) noexcept
@@ -106,13 +119,6 @@ void BasicEffectPNT::UseMaterial(bool b) noexcept
 	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_SUBSET;
 }
 
-void XM_CALLCONV BasicEffectPNT::SetAmbientColor(FXMVECTOR ambient) noexcept
-{
-	XMStoreFloat4A(&m_cbPerSubsetCache.mtl.ambient, ambient);
-
-	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_SUBSET;
-}
-
 void XM_CALLCONV BasicEffectPNT::SetDiffuseColor(FXMVECTOR diffuse) noexcept
 {
 	XMStoreFloat4A(&m_cbPerSubsetCache.mtl.diffuse, diffuse);
@@ -136,7 +142,7 @@ void XM_CALLCONV BasicEffectPNT::SetReflection(FXMVECTOR reflect) noexcept
 
 void BasicEffectPNT::SetDiffuseMap(ID3D11ShaderResourceView* pDiffuseMap) noexcept
 {
-	m_pTextureSRVArray[0] = pDiffuseMap;
+	m_pTextureSRVArray[static_cast<size_t>(TextureMapIndex::DiffuseMap)] = pDiffuseMap;
 
 	if (pDiffuseMap)
 		m_cbPerSubsetCache.mtl.mtlFlag |= static_cast<uint32_t>(MATERIAL_FLAG::UseDiffuseMap);
@@ -146,7 +152,7 @@ void BasicEffectPNT::SetDiffuseMap(ID3D11ShaderResourceView* pDiffuseMap) noexce
 
 void BasicEffectPNT::SetSpecularMap(ID3D11ShaderResourceView* pSpecularMap) noexcept
 {
-	m_pTextureSRVArray[1] = pSpecularMap;
+	m_pTextureSRVArray[static_cast<size_t>(TextureMapIndex::SpecularMap)] = pSpecularMap;
 
 	if (pSpecularMap)
 		m_cbPerSubsetCache.mtl.mtlFlag |= static_cast<uint32_t>(MATERIAL_FLAG::UseSpecularMap);

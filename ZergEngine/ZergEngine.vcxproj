@@ -21,8 +21,11 @@
   <ItemGroup>
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\MeshSubset.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPNTTSkinned.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BillboardEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DrawScreenRatioQuadWithTextureEffect.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\Billboard.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\SkinnedMeshRenderer.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\BillboardManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\SkinnedMeshRendererManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Platform.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DisplayMode.h" />
@@ -121,8 +124,11 @@
     <ClCompile Include="source\CoreSystem\DataStructure\Ray.cpp" />
     <ClCompile Include="source\CoreSystem\DataStructure\Triangle.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectPNTTSkinned.cpp" />
+    <ClCompile Include="source\CoreSystem\Effect\BillboardEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\DrawScreenRatioQuadWithTextureEffect.cpp" />
+    <ClCompile Include="source\CoreSystem\GamePlayBase\Component\Billboard.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\SkinnedMeshRenderer.cpp" />
+    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\BillboardManager.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\SkinnedMeshRendererManager.cpp" />
     <ClCompile Include="source\CoreSystem\RenderContext\EffectDeviceContext.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectP.cpp" />
@@ -348,6 +354,16 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformBillboardQuadToHCS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
     <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformButtonToHCS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
@@ -388,7 +404,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformPTQuadToHCS.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformUIQuadToHCS.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>

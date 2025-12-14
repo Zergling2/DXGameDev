@@ -45,7 +45,7 @@ namespace ze
 
 		void RenderFrame();
 
-		void RenderVFPositionMesh(const MeshRenderer* pMeshRenderer);
+		// void RenderVFPositionMesh(const MeshRenderer* pMeshRenderer);
 		// void RenderVFPositionColorMesh(const MeshRenderer* pMeshRenderer);
 		// void RenderVFPositionNormalMesh(const MeshRenderer* pMeshRenderer);
 		// void RenderVFPositionTexCoordMesh(const MeshRenderer* pMeshRenderer);

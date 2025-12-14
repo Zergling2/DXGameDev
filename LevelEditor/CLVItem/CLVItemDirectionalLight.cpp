@@ -18,16 +18,6 @@ void CLVItemDirectionalLight::OnSelect()
 	ze::DirectionalLight* pDirectionalLight = this->GetDirectionalLight();
 	TCHAR buf[32];
 
-	// Ambient
-	StringCbPrintf(buf, sizeof(buf), _T("%f"), pDirectionalLight->m_ambient.x);
-	pInspector->m_editAmbientR.SetWindowText(buf);
-	StringCbPrintf(buf, sizeof(buf), _T("%f"), pDirectionalLight->m_ambient.y);
-	pInspector->m_editAmbientG.SetWindowText(buf);
-	StringCbPrintf(buf, sizeof(buf), _T("%f"), pDirectionalLight->m_ambient.z);
-	pInspector->m_editAmbientB.SetWindowText(buf);
-	StringCbPrintf(buf, sizeof(buf), _T("%f"), pDirectionalLight->m_ambient.w);
-	pInspector->m_editAmbientA.SetWindowText(buf);
-
 	// Diffuse
 	StringCbPrintf(buf, sizeof(buf), _T("%f"), pDirectionalLight->m_diffuse.x);
 	pInspector->m_editDiffuseR.SetWindowText(buf);

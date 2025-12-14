@@ -7,7 +7,7 @@
 // [Constant Buffer]
 cbuffer Cb0 : register(b0)
 {
-    CbPerFrame cb_perFrame;
+    CbPerForwardRenderingFrame cb_perFrame;
 }
 
 cbuffer Cb1 : register(b1)
@@ -44,47 +44,47 @@ PSOutput main(PSInputTerrainFragment input)
         terrainMaterialDiffuse = lerp(terrainMaterialDiffuse, nextTerrainMaterialDiffuse, blendFactors[i - 1]);
     }
     
-    input.normalW = normalize(input.normalW);
+    float3 normalW = normalize(input.normalW);
     
     const float3 toEyeW = normalize(cb_perCamera.cameraPosW - input.posW);
     
-    float4 ambient = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    float4 diffuse = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    float4 specular = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    MaterialData mtl;
+    mtl.diffuse = terrainMaterialDiffuse;
+    mtl.specular = float4(0.0f, 0.0f, 0.0f, 0.0f);
     
-    MaterialData md;
-    md.ambient = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    md.diffuse = terrainMaterialDiffuse;
-    md.specular = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    
-    float4 oA;
-    float4 oD;
-    float4 oS;
+    float4 ambientLight = float4(cb_perFrame.ambientLight, 0.0f);
+    float4 diffuseLight = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    float4 specularLight = float4(0.0f, 0.0f, 0.0f, 0.0f);
+
+    float4 oDL;
+    float4 oSL;
     for (i = 0; i < cb_perFrame.dlCount; ++i)
     {
-        ComputeDirectionalLight(cb_perFrame.dl[i], md, input.normalW, toEyeW, oA, oD, oS);
-        ambient += oA;
-        diffuse += oD;
-        specular += oS;
+        ComputeDirectionalLight(cb_perFrame.dl[i], mtl.specular.w, normalW, toEyeW, oDL, oSL);
+        diffuseLight += oDL;
+        specularLight += oSL;
     }
     
     for (i = 0; i < cb_perFrame.plCount; ++i)
     {
-        ComputePointLight(cb_perFrame.pl[i], md, input.posW, input.normalW, toEyeW, oA, oD, oS);
-        ambient += oA;
-        diffuse += oD;
-        specular += oS;
+        ComputePointLight(cb_perFrame.pl[i], mtl.specular.w, input.posW, normalW, toEyeW, oDL, oSL);
+        diffuseLight += oDL;
+        specularLight += oSL;
     }
     
     for (i = 0; i < cb_perFrame.slCount; ++i)
     {
-        ComputeSpotLight(cb_perFrame.sl[i], md, input.posW, input.normalW, toEyeW, oA, oD, oS);
-        ambient += oA;
-        diffuse += oD;
-        specular += oS;
+        ComputeSpotLight(cb_perFrame.sl[i], mtl.specular.w, input.posW, normalW, toEyeW, oDL, oSL);
+        diffuseLight += oDL;
+        specularLight += oSL;
     }
     
-    output.color = (ambient + diffuse) + specular;
+    float4 diffuse = mtl.diffuse * (diffuseLight + ambientLight);
+    float4 specular = mtl.specular * specularLight;
+
+    output.color.rgb = (diffuse + specular).rgb;
+    output.color.a = diffuse.a; // 알파 채널은 diffuse 속성에서 가져온다.
+
     output.color = saturate(output.color);
     
     return output;

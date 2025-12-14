@@ -296,9 +296,13 @@ void ResourceLoader::AiLoadStaticMeshNode(TempModelData& tmd, const aiScene* pAi
 
 	// 정보 세팅
 	// 1. AABB 설정
+	// 부피가 없는 축의 경우 부피 생성
+	constexpr float AABB_EXTENT_MIN = 0.01f;
+	XMStoreFloat3(&finalAabb.Extents, XMVectorMax(XMLoadFloat3(&finalAabb.Extents), XMVectorReplicate(AABB_EXTENT_MIN)));
+	// 대입
 	mesh->m_aabb = finalAabb;
 
-	// 2. 최종적으로 모든 서브셋들이 공유할 버텍스버퍼, 인덱스버퍼 생성
+	// 2. 모든 서브셋들이 공유할 버텍스버퍼, 인덱스버퍼 생성
 	HRESULT hr;
 
 	// Create a vertex buffer

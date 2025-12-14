@@ -53,7 +53,7 @@ namespace ze
 		TransformPNTTToHCS,
 		TransformPNTTSkinnedToHCS,
 		TransformButtonToHCS,
-		TransformPTQuadToHCS,
+		TransformUIQuadToHCS,
 		TransformScreenRatioQuad,	// Out: PosH, TexCoord
 		// 收收收收收收收收收收收收收收收收收收收收收收
 		COUNT

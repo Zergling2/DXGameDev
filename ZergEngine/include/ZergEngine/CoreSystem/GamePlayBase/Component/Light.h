@@ -10,16 +10,9 @@ namespace ze
 	public:
 		static constexpr bool IsCreatable() { return true; }
 
-		ILight(uint64_t id)
-			: IComponent(id)
-			, m_ambient(1.0f, 1.0f, 1.0f, 1.0f)
-			, m_diffuse(1.0f, 1.0f, 1.0f, 1.0f)
-			, m_specular(1.0f, 1.0f, 1.0f, 1.0f)
-		{
-		}
+		ILight(uint64_t id);
 		virtual ~ILight() = default;
 	public:
-		XMFLOAT4A m_ambient;
 		XMFLOAT4A m_diffuse;
 		XMFLOAT4A m_specular;
 	};

@@ -26,7 +26,7 @@ namespace ze
 		LONGLONG GetFixedDeltaPerformanceCounter() const { return m_fdtPC.QuadPart; }
 		LONGLONG GetDeltaPerformanceCounter() const { return m_deltaPC.QuadPart; }
 	public:
-		float GetTimeScale() const { return mTs; }
+		float GetTimeScale() const { return m_ts; }
 		void SetTimeScale(float ts);
 		float GetFixedDeltaTime() const { return m_fdt; }
 		bool SetFixedDeltaTime(float fdt);
@@ -35,7 +35,7 @@ namespace ze
 	private:
 		static Time* s_pInstance;
 		float m_spc;				// seconds per count
-		float mTs;					// time scale
+		float m_ts;					// time scale
 		float m_fdt;				// fixed delta time
 		float m_udt;				// unscaled delta time
 		float m_dt;					// scaled delta time

@@ -34,10 +34,6 @@ protected:
 private:
 	CLVItemSpotLight* m_pItem;
 public:
-	CFloatEdit m_editAmbientR;
-	CFloatEdit m_editAmbientG;
-	CFloatEdit m_editAmbientB;
-	CFloatEdit m_editAmbientA;
 	CFloatEdit m_editDiffuseR;
 	CFloatEdit m_editDiffuseG;
 	CFloatEdit m_editDiffuseB;
@@ -46,16 +42,13 @@ public:
 	CFloatEdit m_editSpecularG;
 	CFloatEdit m_editSpecularB;
 	CFloatEdit m_editSpecularExp;
-	CFloatEdit m_editSpotExp;
+	CFloatEdit m_editInnerConeAngle;
+	CFloatEdit m_editOuterConeAngle;
 	CFloatEdit m_editRange;
 	CFloatEdit m_editAttX;
 	CFloatEdit m_editAttY;
 	CFloatEdit m_editAttZ;
 public:
-	afx_msg void OnEnChangeEditAmbientR();
-	afx_msg void OnEnChangeEditAmbientG();
-	afx_msg void OnEnChangeEditAmbientB();
-	afx_msg void OnEnChangeEditAmbientA();
 	afx_msg void OnEnChangeEditDiffuseR();
 	afx_msg void OnEnChangeEditDiffuseG();
 	afx_msg void OnEnChangeEditDiffuseB();
@@ -64,7 +57,8 @@ public:
 	afx_msg void OnEnChangeEditSpecularG();
 	afx_msg void OnEnChangeEditSpecularB();
 	afx_msg void OnEnChangeEditSpecularExponent();
-	afx_msg void OnEnChangeEditSpotLightSpotExp();
+	afx_msg void OnEnChangeEditSpotLightInnerConeAngle();
+	afx_msg void OnEnChangeEditSpotLightOuterConeAngle();
 	afx_msg void OnEnChangeEditSpotLightRange();
 	afx_msg void OnEnChangeEditSpotLightAttX();
 	afx_msg void OnEnChangeEditSpotLightAttY();

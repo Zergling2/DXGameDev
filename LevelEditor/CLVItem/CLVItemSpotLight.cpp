@@ -18,16 +18,6 @@ void CLVItemSpotLight::OnSelect()
 	ze::SpotLight* pSpotLight = this->GetSpotLight();
 	TCHAR buf[32];
 
-	// Ambient
-	StringCbPrintf(buf, sizeof(buf), _T("%f"), pSpotLight->m_ambient.x);
-	pInspector->m_editAmbientR.SetWindowText(buf);
-	StringCbPrintf(buf, sizeof(buf), _T("%f"), pSpotLight->m_ambient.y);
-	pInspector->m_editAmbientG.SetWindowText(buf);
-	StringCbPrintf(buf, sizeof(buf), _T("%f"), pSpotLight->m_ambient.z);
-	pInspector->m_editAmbientB.SetWindowText(buf);
-	StringCbPrintf(buf, sizeof(buf), _T("%f"), pSpotLight->m_ambient.w);
-	pInspector->m_editAmbientA.SetWindowText(buf);
-
 	// Diffuse
 	StringCbPrintf(buf, sizeof(buf), _T("%f"), pSpotLight->m_diffuse.x);
 	pInspector->m_editDiffuseR.SetWindowText(buf);
@@ -48,9 +38,13 @@ void CLVItemSpotLight::OnSelect()
 	StringCbPrintf(buf, sizeof(buf), _T("%f"), pSpotLight->m_specular.w);
 	pInspector->m_editSpecularExp.SetWindowText(buf);
 
-	// Spot Exp
-	StringCbPrintf(buf, sizeof(buf), _T("%f"), 777.0f);
-	pInspector->m_editSpotExp.SetWindowText(buf);
+	// Inner Cone Angle
+	StringCbPrintf(buf, sizeof(buf), _T("%f"), XMConvertToDegrees(pSpotLight->GetInnerConeAngle()));	// 에디터에서는 편의상 육십분법 지원
+	pInspector->m_editInnerConeAngle.SetWindowText(buf);
+
+	// Outer Cone Angle
+	StringCbPrintf(buf, sizeof(buf), _T("%f"), XMConvertToDegrees(pSpotLight->GetOuterConeAngle()));	// 에디터에서는 편의상 육십분법 지원
+	pInspector->m_editOuterConeAngle.SetWindowText(buf);
 
 	// Range
 	StringCbPrintf(buf, sizeof(buf), _T("%f"), pSpotLight->GetRange());

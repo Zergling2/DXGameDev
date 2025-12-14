@@ -28,7 +28,7 @@ static PCWSTR VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::COUNT)] 
 	L"VSTransformPNTTToHCS.cso",
 	L"VSTransformPNTTSkinnedToHCS.cso",
 	L"VSTransformButtonToHCS.cso",
-	L"VSTransformPTQuadToHCS.cso",
+	L"VSTransformUIQuadToHCS.cso",
 	L"VSTransformScreenRatioQuad.cso"
 };
 static PCWSTR HULL_SHADER_FILES[static_cast<size_t>(HullShaderType::COUNT)] =
@@ -540,12 +540,12 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	);
 	delete[] pByteCode;
 
-	// TransformPTQuadToHCS
+	// TransformUIQuadToHCS
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
-	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TransformPTQuadToHCS)]);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::TransformUIQuadToHCS)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
 		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
-	m_vs[static_cast<size_t>(VertexShaderType::TransformPTQuadToHCS)].Init(pDevice, pByteCode, byteCodeSize);
+	m_vs[static_cast<size_t>(VertexShaderType::TransformUIQuadToHCS)].Init(pDevice, pByteCode, byteCodeSize);
 	delete[] pByteCode;
 
 	// TransformScreenRatioQuad (No Input Layout required)
@@ -914,39 +914,39 @@ void GraphicDevice::CreateBlendStates()
 	ZeroMemory(&blendDesc, sizeof(blendDesc));
 	blendDesc.AlphaToCoverageEnable = FALSE;
 	blendDesc.IndependentBlendEnable = FALSE;
-	D3D11_RENDER_TARGET_BLEND_DESC& descRenderTargetBlend = blendDesc.RenderTarget[0];
+	D3D11_RENDER_TARGET_BLEND_DESC& renderTarget0BlendDesc = blendDesc.RenderTarget[0];
 
 	// 1. Opaque
-	descRenderTargetBlend.BlendEnable = FALSE;
-	descRenderTargetBlend.SrcBlend = D3D11_BLEND_ONE;
-	descRenderTargetBlend.DestBlend = D3D11_BLEND_ZERO;
-	descRenderTargetBlend.BlendOp = D3D11_BLEND_OP_ADD;
-	descRenderTargetBlend.SrcBlendAlpha = D3D11_BLEND_ONE;
-	descRenderTargetBlend.DestBlendAlpha = D3D11_BLEND_ZERO;
-	descRenderTargetBlend.BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	descRenderTargetBlend.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	renderTarget0BlendDesc.BlendEnable = FALSE;
+	renderTarget0BlendDesc.SrcBlend = D3D11_BLEND_ONE;
+	renderTarget0BlendDesc.DestBlend = D3D11_BLEND_ZERO;
+	renderTarget0BlendDesc.BlendOp = D3D11_BLEND_OP_ADD;
+	renderTarget0BlendDesc.SrcBlendAlpha = D3D11_BLEND_ONE;
+	renderTarget0BlendDesc.DestBlendAlpha = D3D11_BLEND_ZERO;
+	renderTarget0BlendDesc.BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	renderTarget0BlendDesc.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 	m_bs[static_cast<size_t>(BlendStateType::Opaque)].Init(pDevice, &blendDesc);
 
 	// 2. AlphaBlend
-	descRenderTargetBlend.BlendEnable = TRUE;
-	descRenderTargetBlend.SrcBlend = D3D11_BLEND_SRC_ALPHA;
-	descRenderTargetBlend.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;	
-	descRenderTargetBlend.BlendOp = D3D11_BLEND_OP_ADD;
-	descRenderTargetBlend.SrcBlendAlpha = D3D11_BLEND_ONE;
-	descRenderTargetBlend.DestBlendAlpha = D3D11_BLEND_ZERO;
-	descRenderTargetBlend.BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	descRenderTargetBlend.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	renderTarget0BlendDesc.BlendEnable = TRUE;
+	renderTarget0BlendDesc.SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	renderTarget0BlendDesc.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+	renderTarget0BlendDesc.BlendOp = D3D11_BLEND_OP_ADD;
+	renderTarget0BlendDesc.SrcBlendAlpha = D3D11_BLEND_ONE;
+	renderTarget0BlendDesc.DestBlendAlpha = D3D11_BLEND_ZERO;
+	renderTarget0BlendDesc.BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	renderTarget0BlendDesc.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 	m_bs[static_cast<size_t>(BlendStateType::AlphaBlend)].Init(pDevice, &blendDesc);
 
 	// 3. No color write
-	descRenderTargetBlend.BlendEnable = TRUE;
-	descRenderTargetBlend.SrcBlend = D3D11_BLEND_ZERO;
-	descRenderTargetBlend.DestBlend = D3D11_BLEND_ONE;
-	descRenderTargetBlend.BlendOp = D3D11_BLEND_OP_ADD;
-	descRenderTargetBlend.SrcBlendAlpha = D3D11_BLEND_ZERO;
-	descRenderTargetBlend.DestBlendAlpha = D3D11_BLEND_ONE;
-	descRenderTargetBlend.BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	descRenderTargetBlend.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	renderTarget0BlendDesc.BlendEnable = TRUE;
+	renderTarget0BlendDesc.SrcBlend = D3D11_BLEND_ZERO;
+	renderTarget0BlendDesc.DestBlend = D3D11_BLEND_ONE;
+	renderTarget0BlendDesc.BlendOp = D3D11_BLEND_OP_ADD;
+	renderTarget0BlendDesc.SrcBlendAlpha = D3D11_BLEND_ZERO;
+	renderTarget0BlendDesc.DestBlendAlpha = D3D11_BLEND_ONE;
+	renderTarget0BlendDesc.BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	renderTarget0BlendDesc.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 	m_bs[static_cast<size_t>(BlendStateType::NoColorWrite)].Init(pDevice, &blendDesc);
 }
 
