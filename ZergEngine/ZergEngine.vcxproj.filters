@@ -144,9 +144,6 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\EffectInterface.h">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPNT.h">
-      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
-    </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\ShaderResource\ConstantBuffer.h">
       <Filter>Files\ZergEngine\CoreSystem\ShaderResource</Filter>
     </ClInclude>
@@ -437,9 +434,6 @@
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\TerrainManager.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
     </ClCompile>
-    <ClCompile Include="source\CoreSystem\Effect\BasicEffectPNT.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
-    </ClCompile>
     <ClCompile Include="source\CoreSystem\ShaderResource\ConstantBuffer.cpp">
       <Filter>Files\ZergEngine\CoreSystem\ShaderResource</Filter>
     </ClCompile>
@@ -639,46 +633,43 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformPNTToHCS.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsPNT.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorPFragment.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSUnlitP.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorPNFragment.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSLitPN.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorPNTFragment.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSSkyboxFragment.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorSkyboxFragment.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsPN.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformPNToHCS.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsP.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformPToHCS.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsPC.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformPCToHCS.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSUnlitPC.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorPCFragment.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsPT.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformPTToHCS.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSUnlitPT1Tex.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorPTFragmentSingleTexture.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsScreenRatioQuad.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformScreenRatioQuad.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSUnlitPT1MSTex.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorPTFragmentSingleMSTexture.hlsl">
-      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
-    </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformTerrainPatchCtrlPt.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSTerrainPatchCtrlPt.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
     <FxCompile Include="source\CoreSystem\ShaderCode\HSCalcTerrainTessFactor.hlsl">
@@ -687,22 +678,19 @@
     <FxCompile Include="source\CoreSystem\ShaderCode\DSSampleTerrainHeightMap.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorTerrainFragment.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSLitTerrainFragment.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformSkyboxToHCS.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsSkybox.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformButtonToHCS.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsButton.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformUIQuadToHCS.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsUIQuad.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformPNTTToHCS.hlsl">
-      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
-    </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorPNTTFragment.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsPNTT.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
     <FxCompile Include="source\CoreSystem\ShaderCode\VSPerspectiveShadowMap.hlsl">
@@ -711,10 +699,40 @@
     <FxCompile Include="source\CoreSystem\ShaderCode\PSShadowMapAlphaClipping.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformPNTTSkinnedToHCS.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsPNTTSkinned.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\VSTransformBillboardQuadToHCS.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsBillboardQuad.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
+    </FxCompile>
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSLitPNTTDiffNormMapping.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
+    </FxCompile>
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSLitPNTTSpecNormMapping.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
+    </FxCompile>
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSUnlitPNTTNoMtl.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
+    </FxCompile>
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSLitPNTTNormMapping.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
+    </FxCompile>
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSLitPNTTDiffMapping.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
+    </FxCompile>
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSLitPNTTSpecMapping.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
+    </FxCompile>
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSLitPNTTDiffSpecMapping.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
+    </FxCompile>
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSLitPNTTDiffSpecNormMapping.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
+    </FxCompile>
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSUnlitPNNoMtl.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
+    </FxCompile>
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSLitPNTT.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
   </ItemGroup>

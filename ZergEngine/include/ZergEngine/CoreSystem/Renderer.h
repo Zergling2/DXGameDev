@@ -5,7 +5,6 @@
 #include <ZergEngine\CoreSystem\Effect\BasicEffectPC.h>
 #include <ZergEngine\CoreSystem\Effect\BasicEffectPN.h>
 #include <ZergEngine\CoreSystem\Effect\BasicEffectPT.h>
-#include <ZergEngine\CoreSystem\Effect\BasicEffectPNT.h>
 #include <ZergEngine\CoreSystem\Effect\BasicEffectPNTT.h>
 #include <ZergEngine\CoreSystem\Effect\BasicEffectPNTTSkinned.h>
 #include <ZergEngine\CoreSystem\Effect\TerrainEffect.h>

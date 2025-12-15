@@ -41,20 +41,40 @@ namespace ze
 		COUNT
 	};
 
+	// enum class VertexShaderType
+	// {
+	// 	TransformSkyboxToHCS,
+	// 	TransformTerrainPatchCtrlPt,
+	// 	TransformPToHCS,
+	// 	TransformPCToHCS,
+	// 	TransformPNToHCS,
+	// 	TransformPTToHCS,
+	// 	TransformPNTToHCS,
+	// 	TransformPNTTToHCS,
+	// 	TransformPNTTSkinnedToHCS,
+	// 	TransformButtonToHCS,
+	// 	TransformUIQuadToHCS,
+	// 	TransformScreenRatioQuad,	// Out: PosH, TexCoord
+	// 	// 收收收收收收收收收收收收收收收收收收收收收收
+	// 	COUNT
+	// };
+
 	enum class VertexShaderType
 	{
-		TransformSkyboxToHCS,
-		TransformTerrainPatchCtrlPt,
-		TransformPToHCS,
-		TransformPCToHCS,
-		TransformPNToHCS,
-		TransformPTToHCS,
-		TransformPNTToHCS,
-		TransformPNTTToHCS,
-		TransformPNTTSkinnedToHCS,
-		TransformButtonToHCS,
-		TransformUIQuadToHCS,
-		TransformScreenRatioQuad,	// Out: PosH, TexCoord
+		ToHcsP,
+		ToHcsPC,
+		ToHcsPN,
+		ToHcsPT,
+		ToHcsPNT,
+		ToHcsPNTT,
+		ToHcsPNTTSkinned,
+		TerrainPatchCtrlPt,
+		ToHcsSkybox,
+		ToHcsBillboardQuad,
+		ToHcsScreenRatioQuad,
+		ToHcsUIQuad,
+		ToHcsButton,
+		// PerspectiveShadowMap,
 		// 收收收收收收收收收收收收收收收收收收收收收收
 		COUNT
 	};
@@ -73,17 +93,33 @@ namespace ze
 		COUNT
 	};
 
+	// P: Position
+	// PC: Position, Color
+	// PN: Position, Normal
+	// PT: Position, TexCoord
+	// PNT: Position, Normal, TexCoord
+	// PNTT: Position, Normal, Tangent, TexCoord
 	enum class PixelShaderType
 	{
-		ColorSkyboxFragment,
-		ColorTerrainFragment,
-		ColorPositionFragment,
-		ColorPositionColorFragment,
-		ColorPositionNormalFragment,
-		ColorPositionTexCoordFragmentWithSingleTexture,
-		ColorPositionTexCoordFragmentWithSingleMSTexture,
-		ColorPositionNormalTexCoordFragment,
-		ColorPositionNormalTangentTexCoordFragment,
+		UnlitP,
+		UnlitPC,
+		UnlitPNNoMtl,
+		LitPN,
+		UnlitPT1Tex,
+		UnlitPT1MSTex,
+		// LitPNT,		// deprecated
+		UnlitPNTTNoMtl,
+		LitPNTT,
+		LitPNTTDiffMapping,
+		LitPNTTSpecMapping,
+		LitPNTTNormMapping,
+		LitPNTTDiffSpecMapping,
+		LitPNTTDiffNormMapping,
+		LitPNTTSpecNormMapping,
+		LitPNTTDiffSpecNormMapping,
+		SkyboxFragment,
+		LitTerrainFragment,
+		// ShadowMapAlphaClipping,
 		// 收收收收收收收收收收收收收收收收收收收收收收
 		COUNT
 	};

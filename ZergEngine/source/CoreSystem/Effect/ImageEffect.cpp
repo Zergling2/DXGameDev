@@ -4,13 +4,20 @@
 
 using namespace ze;
 
+// Image Effect
+// VertexShader:
+// - ToHcsUIQuad
+// 
+// PixelShader:
+// - UnlitPT1Tex
+
 void ImageEffect::Init()
 {
 	m_dirtyFlag = DIRTY_FLAG::ALL;
 
 	m_pInputLayout = nullptr;
-	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::TransformUIQuadToHCS);
-	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::ColorPositionTexCoordFragmentWithSingleTexture);
+	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::ToHcsUIQuad);
+	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::UnlitPT1Tex);
 
 	m_cbPerUIRender.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
 	m_cbPerImage.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());

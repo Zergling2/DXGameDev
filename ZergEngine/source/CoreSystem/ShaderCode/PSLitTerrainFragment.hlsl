@@ -21,9 +21,10 @@ cbuffer Cb2 : register(b2)
 }
 
 // [Texture]
-Texture2DArray<float4> tex2d_diffuseMapLayer : register(t0);
-Texture2DArray<float4> tex2d_normalMapLayer : register(t1);
-Texture2D<float4> tex2d_blendMap : register(t2);
+Texture2DArray tex2d_diffuseMapLayer : register(t0);
+Texture2DArray tex2d_specularMapLayer : register(t1);
+Texture2DArray tex2d_normalMapLayer : register(t2);
+Texture2D tex2d_blendMap : register(t3);
 
 PSOutput main(PSInputTerrainFragment input)
 {

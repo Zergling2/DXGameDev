@@ -20,21 +20,17 @@
 // 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
 // HLSL Structs
 // 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
-#define IsUsingMaterial(mtlFlag)    ((mtlFlag) & 0x80000000)
-#define IsUsingDiffuseMap(mtlFlag)  ((mtlFlag) & 0x00000001)
-#define IsUsingSpecularMap(mtlFlag) ((mtlFlag) & 0x00000002)
-#define IsUsingNormalMap(mtlFlag)   ((mtlFlag) & 0x00000004)
-
-#define IsUsingDiffuseLayer(layerFlag) ((layerFlag) & 0x00000001)
-#define IsUsingNormalLayer(layerFlag) ((layerFlag) & 0x00000002)
+// #define IsUsingMaterial(mtlFlag)    ((mtlFlag) & 0x80000000)
+// #define IsUsingDiffuseMap(mtlFlag)  ((mtlFlag) & 0x00000001)
+// #define IsUsingSpecularMap(mtlFlag) ((mtlFlag) & 0x00000002)
+// #define IsUsingNormalMap(mtlFlag)   ((mtlFlag) & 0x00000004)
+// 
+// #define IsUsingDiffuseLayer(layerFlag)	((layerFlag) & 0x00000001)
+// #define IsUsingSpecularLayer(layerFlag)	((layerFlag) & 0x00000002)
+// #define IsUsingNormalLayer(layerFlag)	((layerFlag) & 0x00000004)
 
 hlslstruct MaterialData
 {
-    uint32_t mtlFlag;
-	HLSLPad pad0;
-	HLSLPad pad1;
-	HLSLPad pad2;
-
 	// Material
 	XMFLOAT4A diffuse;
 	XMFLOAT4A specular; // r/g/b/p
@@ -132,7 +128,7 @@ hlslstruct CbPerTerrain
 	FLOAT maxHeight;
 	FLOAT tilingScale;
 	uint32_t layerArraySize;
-	uint32_t layerFlag;
+	HLSLPad pad0;
 };
 
 hlslstruct CbPerCameraMerge

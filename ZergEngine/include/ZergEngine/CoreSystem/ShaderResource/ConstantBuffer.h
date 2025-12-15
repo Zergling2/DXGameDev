@@ -40,7 +40,9 @@ namespace ze
 	// 旨收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收旬
 	// 早                CONSTANT BUFFER                早
 	// 曲收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收旭
-	enum class MATERIAL_FLAG : uint32_t
+
+	/*
+	enum class MaterialFlag : uint32_t
 	{
 		None			= 0,
 		UseMaterial		= 0x80000000,
@@ -48,18 +50,21 @@ namespace ze
 		UseSpecularMap	= 0x00000002,
 		UseNormalMap	= 0x00000004
 	};
+	*/
 
-	enum class TERRAIN_LAYER_FLAG : uint32_t
+	/*
+	enum class TerrainLayerFlag : uint32_t
 	{
 		None				= 0,
 		UseDiffuseLayer		= 0x00000001,
-		UseNormalLayer		= 0x00000002
+		UseSpecularLayer	= 0x00000002,
+		UseNormalLayer		= 0x00000004
 	};
+	*/
 
 	hlslstruct MaterialData
 	{
 		MaterialData()
-			: mtlFlag(static_cast<uint32_t>(MATERIAL_FLAG::None))
 		{
 #if defined(DEBUG) || defined(_DEBUG)
 			XMStoreFloat4A(&diffuse, XMVectorZero());
@@ -68,11 +73,6 @@ namespace ze
 #endif
 		}
 	public:
-		uint32_t mtlFlag;
-		HLSLPad pad0;
-		HLSLPad pad1;
-		HLSLPad pad2;
-
 		// Material
 		XMFLOAT4A diffuse;
 		XMFLOAT4A specular; // r/g/b/p
@@ -205,7 +205,7 @@ namespace ze
 		FLOAT maxHeight;
 		FLOAT tilingScale;
 		uint32_t layerArraySize;
-		uint32_t layerFlag;
+		HLSLPad pad0;
 	};
 
 	hlslstruct CbPerScreenRatioQuad

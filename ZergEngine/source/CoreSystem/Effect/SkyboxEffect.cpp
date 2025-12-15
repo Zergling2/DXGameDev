@@ -8,16 +8,19 @@
 using namespace ze;
 
 // Skybox Effect
-// 1. VertexShader: VSTransformSkyboxToHCS
-// 2. PixelShader: PSColorSkyboxFragment
+// VertexShader:
+// - ToHcsSkybox
+// 
+// PixelShader:
+// - SkyboxFragment
 
 void SkyboxEffect::Init()
 {
 	m_dirtyFlag = DIRTY_FLAG::ALL;
 
 	m_pInputLayout = nullptr;
-	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::TransformSkyboxToHCS);
-	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::ColorSkyboxFragment);
+	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::ToHcsSkybox);
+	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::SkyboxFragment);
 
 	m_cbPerCamera.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
 

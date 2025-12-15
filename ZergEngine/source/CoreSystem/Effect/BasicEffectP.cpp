@@ -7,9 +7,12 @@
 
 using namespace ze;
 
-// BasicP Effect
-// 1. VertexShader: VSTransformPToHCS
-// 2. PixelShader: PSColorPFragment
+// BasicEffectP Effect
+// VertexShader:
+// - ToHcsP
+// 
+// PixelShader:
+// - UnlitP
 
 void BasicEffectP::Init()
 {
@@ -17,8 +20,8 @@ void BasicEffectP::Init()
 	m_dirtyFlag = DIRTY_FLAG::ALL;
 
 	m_pInputLayout = GraphicDevice::GetInstance()->GetILComInterface(VertexFormatType::Position);
-	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::TransformPToHCS);
-	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::ColorPositionFragment);
+	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::ToHcsP);
+	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::UnlitP);
 
 	m_cbPerCamera.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
 	m_cbPerMesh.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());

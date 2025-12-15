@@ -35,20 +35,29 @@ static const float2 g_texCoords[4] =
     float2(1.0f, 0.0f)  // Right up (Tex coord system)
 };
 
+// Unity viewport origin (좌하단)
+static const float2 g_origin = float2(-1.0f, -1.0f);
+
 PSInputPTFragment main(uint vertexId : SV_VertexID)
 {
     PSInputPTFragment output;
     
-    // Perspective division 효과 없이 그대로 NDC 공간으로 (NDC공간 z = 0.0f인 평면에 모두 투영)
+    // Perspective division 효과 없이 그대로 NDC 공간으로 (w = 1.0f), NDC공간 z = 0.0f인 평면에 모두 투영
     // 모니터상에서의 뷰포트를 정규화된 값으로 나타내므로 손쉽게 변환 가능.
     
-    // Scaling & Translate (1사분면에 위치한 쿼드를 스케일링 후 ndc 공간 좌상단을 기준으로 한 topLeftX, topLeftY 가중치값만큼 이동)
-    float4 ndcPos = float4(
-        g_ndcQuad[vertexId].x * cb_perCameraMerge.width - 1.0f + DIRECTX_NDC_WIDTH * cb_perCameraMerge.topLeftX,
-        g_ndcQuad[vertexId].y * cb_perCameraMerge.height - 1.0f + DIRECTX_NDC_HEIGHT * cb_perCameraMerge.topLeftY,
-        0.0f,
-        1.0f
+    // 1. 1사분면에 NDC 크기만큼의 쿼드를 위치시키고 스케일링
+    float2 vertex = float2(g_ndcQuad[vertexId].x * cb_perCameraMerge.width, g_ndcQuad[vertexId].y * cb_perCameraMerge.height);
+    
+    float2 offset = float2(
+        DIRECTX_NDC_WIDTH * cb_perCameraMerge.topLeftX,
+        DIRECTX_NDC_HEIGHT * cb_perCameraMerge.topLeftY
     );
+    
+    // 2. NDC 좌하단 (-1.0, -1.0)을 기준으로 offset 값만큼 이동
+    vertex = vertex + g_origin + offset;
+    
+    float4 ndcPos = float4(vertex, 0.0f, 1.0f); // w = 1.0f, z = 0.0f
+    
     output.posH = ndcPos;
     output.texCoord = g_texCoords[vertexId];
     

@@ -1,4 +1,4 @@
-#include <ZergEngine\CoreSystem\Effect\BasicEffectPNT.h>
+#include <ZergEngine\CoreSystem\Effect\BasicEffectPNT_deprecated.h>
 #include <ZergEngine\CoreSystem\GraphicDevice.h>
 #include <ZergEngine\CoreSystem\Math.h>
 #include <ZergEngine\CoreSystem\Resource\Texture.h>

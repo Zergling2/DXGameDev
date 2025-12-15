@@ -1,6 +1,7 @@
 #include <ZergEngine\CoreSystem\Effect\BasicEffectPNTTSkinned.h>
 #include <ZergEngine\CoreSystem\GraphicDevice.h>
 #include <ZergEngine\CoreSystem\Math.h>
+#include <ZergEngine\CoreSystem\Resource\Material.h>
 #include <ZergEngine\CoreSystem\Resource\Texture.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Camera.h>
@@ -9,16 +10,52 @@
 using namespace ze;
 
 // BasicPNTTSkinned Effect
-// 1. VertexShader: VSTransformPNTTSkinnedToHCS
-// 2. PixelShader: PSColorPNTTFragment
+// VertexShader:
+// - ToHcsPNTTSkinned
+// 
+// PixelShader:
+// - UnlitPNTTNoMtl
+// - LitPNTTDiffMapping
+// - LitPNTTSpecMapping
+// - LitPNTTNormMapping
+// - LitPNTTDiffSpecMapping
+// - LitPNTTDiffNormMapping
+// - LitPNTTSpecNormMapping
+// - LitPNTTDiffSpecNormMapping
+
+static inline int PtrToZeroOrOne(const void* p)
+{
+	return p != nullptr;
+}
 
 void BasicEffectPNTTSkinned::Init()
 {
 	m_dirtyFlag = DIRTY_FLAG::ALL;
 
 	m_pInputLayout = GraphicDevice::GetInstance()->GetILComInterface(VertexFormatType::PositionNormalTangentTexCoordSkinned);
-	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::TransformPNTTSkinnedToHCS);
-	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::ColorPositionNormalTangentTexCoordFragment);
+	m_pVS = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::ToHcsPNTTSkinned);
+
+	m_pPSUnlitPNTTNoMtl = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::UnlitPNTTNoMtl);
+	ID3D11PixelShader* pPSLitPNTT = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::LitPNTT);
+	ID3D11PixelShader* pPSLitPNTTDiffMapping = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::LitPNTTDiffMapping);
+	ID3D11PixelShader* pPSLitPNTTSpecMapping = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::LitPNTTSpecMapping);
+	ID3D11PixelShader* pPSLitPNTTNormMapping = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::LitPNTTNormMapping);
+	ID3D11PixelShader* pPSLitPNTTDiffSpecMapping = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::LitPNTTDiffSpecMapping);
+	ID3D11PixelShader* pPSLitPNTTDiffNormMapping = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::LitPNTTDiffNormMapping);
+	ID3D11PixelShader* pPSLitPNTTSpecNormMapping = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::LitPNTTSpecNormMapping);
+	ID3D11PixelShader* pPSLitPNTTDiffSpecNormMapping = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::LitPNTTDiffSpecNormMapping);
+
+	// Pixel Shader 테이블 세팅
+	m_psTable[0][0][0] = pPSLitPNTT;
+	m_psTable[0][0][1] = pPSLitPNTTDiffMapping;
+	m_psTable[0][1][0] = pPSLitPNTTSpecMapping;
+	m_psTable[0][1][1] = pPSLitPNTTDiffSpecMapping;
+	m_psTable[1][0][0] = pPSLitPNTTNormMapping;
+	m_psTable[1][0][1] = pPSLitPNTTDiffNormMapping;
+	m_psTable[1][1][0] = pPSLitPNTTSpecNormMapping;
+	m_psTable[1][1][1] = pPSLitPNTTDiffSpecNormMapping;
+
+	m_pCurrPS = m_pPSUnlitPNTTNoMtl;
 
 	ID3D11Device* pDevice = GraphicDevice::GetInstance()->GetDeviceComInterface();
 	m_cbPerFrame.Init(pDevice);
@@ -115,65 +152,44 @@ void BasicEffectPNTTSkinned::SetArmatureFinalTransform(const XMFLOAT4X4A* pFinal
 	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_ARMATURE;
 }
 
-void BasicEffectPNTTSkinned::UseMaterial(bool b) noexcept
+void BasicEffectPNTTSkinned::SetMaterial(const Material* pMaterial)
 {
-	if (b)
-		m_cbPerSubsetCache.mtl.mtlFlag |= static_cast<uint32_t>(MATERIAL_FLAG::UseMaterial);
+	ID3D11PixelShader* pPS;
+
+	if (!pMaterial)
+	{
+		pPS = m_pPSUnlitPNTTNoMtl;
+	}
 	else
-		m_cbPerSubsetCache.mtl.mtlFlag = static_cast<uint32_t>(MATERIAL_FLAG::None);
+	{
+		ID3D11ShaderResourceView* pDiffuseMapSRV = pMaterial->m_diffuseMap.GetSRVComInterface();
+		ID3D11ShaderResourceView* pSpecularMapSRV = pMaterial->m_specularMap.GetSRVComInterface();
+		ID3D11ShaderResourceView* pNormalMapSRV = pMaterial->m_normalMap.GetSRVComInterface();
 
-	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_SUBSET;
-}
+		m_pTextureSRVArray[0] = pDiffuseMapSRV;
+		m_pTextureSRVArray[1] = pSpecularMapSRV;
+		m_pTextureSRVArray[2] = pNormalMapSRV;
 
-void XM_CALLCONV BasicEffectPNTTSkinned::SetDiffuseColor(FXMVECTOR diffuse) noexcept
-{
-	XMStoreFloat4A(&m_cbPerSubsetCache.mtl.diffuse, diffuse);
+		// 텍스쳐 매핑 기반 픽셀 셰이더 선택
+		const int useDiffuseMap = PtrToZeroOrOne(pDiffuseMapSRV);
+		const int useSpecularMap = PtrToZeroOrOne(pSpecularMapSRV);
+		const int useNormalMap = PtrToZeroOrOne(pNormalMapSRV);
 
-	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_SUBSET;
-}
+		pPS = m_psTable[useNormalMap][useSpecularMap][useDiffuseMap];
 
-void XM_CALLCONV BasicEffectPNTTSkinned::SetSpecularColor(FXMVECTOR specular) noexcept
-{
-	XMStoreFloat4A(&m_cbPerSubsetCache.mtl.specular, specular);
+		// 재질 값 설정
+		m_cbPerSubsetCache.mtl.diffuse = pMaterial->m_diffuse;
+		m_cbPerSubsetCache.mtl.specular = pMaterial->m_specular;
+		m_cbPerSubsetCache.mtl.reflect = pMaterial->m_reflect;
 
-	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_SUBSET;
-}
+		m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_SUBSET;
+	}
 
-void XM_CALLCONV BasicEffectPNTTSkinned::SetReflection(FXMVECTOR reflect) noexcept
-{
-	XMStoreFloat4A(&m_cbPerSubsetCache.mtl.reflect, reflect);
-
-	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_SUBSET;
-}
-
-void BasicEffectPNTTSkinned::SetDiffuseMap(ID3D11ShaderResourceView* pDiffuseMap) noexcept
-{
-	m_pTextureSRVArray[0] = pDiffuseMap;
-
-	if (pDiffuseMap)
-		m_cbPerSubsetCache.mtl.mtlFlag |= static_cast<uint32_t>(MATERIAL_FLAG::UseDiffuseMap);
-	else
-		m_cbPerSubsetCache.mtl.mtlFlag &= ~static_cast<uint32_t>(MATERIAL_FLAG::UseDiffuseMap);
-}
-
-void BasicEffectPNTTSkinned::SetSpecularMap(ID3D11ShaderResourceView* pSpecularMap) noexcept
-{
-	m_pTextureSRVArray[1] = pSpecularMap;
-
-	if (pSpecularMap)
-		m_cbPerSubsetCache.mtl.mtlFlag |= static_cast<uint32_t>(MATERIAL_FLAG::UseSpecularMap);
-	else
-		m_cbPerSubsetCache.mtl.mtlFlag &= ~static_cast<uint32_t>(MATERIAL_FLAG::UseSpecularMap);
-}
-
-void BasicEffectPNTTSkinned::SetNormalMap(ID3D11ShaderResourceView* pNormalMap) noexcept
-{
-	m_pTextureSRVArray[2] = pNormalMap;
-
-	if (pNormalMap)
-		m_cbPerSubsetCache.mtl.mtlFlag |= static_cast<uint32_t>(MATERIAL_FLAG::UseNormalMap);
-	else
-		m_cbPerSubsetCache.mtl.mtlFlag &= ~static_cast<uint32_t>(MATERIAL_FLAG::UseNormalMap);
+	if (m_pCurrPS != pPS)
+	{
+		m_pCurrPS = pPS;
+		m_dirtyFlag |= DIRTY_FLAG::PIXEL_SHADER;
+	}
 }
 
 void BasicEffectPNTTSkinned::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
@@ -192,6 +208,9 @@ void BasicEffectPNTTSkinned::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noex
 			break;
 		case DIRTY_FLAG::SHADER:
 			ApplyShader(pDeviceContext);
+			break;
+		case DIRTY_FLAG::PIXEL_SHADER:
+			ApplyPixelShader(pDeviceContext);
 			break;
 		case DIRTY_FLAG::CONSTANTBUFFER_PER_FRAME:
 			ApplyPerFrameConstantBuffer(pDeviceContext);
@@ -237,11 +256,16 @@ void BasicEffectPNTTSkinned::KickedOutOfDeviceContext() noexcept
 
 void BasicEffectPNTTSkinned::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	pDeviceContext->VSSetShader(m_pVertexShader, nullptr, 0);
+	pDeviceContext->VSSetShader(m_pVS, nullptr, 0);
 	pDeviceContext->HSSetShader(nullptr, nullptr, 0);
 	pDeviceContext->DSSetShader(nullptr, nullptr, 0);
 	pDeviceContext->GSSetShader(nullptr, nullptr, 0);
-	pDeviceContext->PSSetShader(m_pPixelShader, nullptr, 0);
+	pDeviceContext->PSSetShader(m_pCurrPS, nullptr, 0);
+}
+
+void BasicEffectPNTTSkinned::ApplyPixelShader(ID3D11DeviceContext* pDeviceContext) noexcept
+{
+	pDeviceContext->PSSetShader(m_pCurrPS, nullptr, 0);
 }
 
 void BasicEffectPNTTSkinned::ApplyPerFrameConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept

@@ -13,7 +13,7 @@ namespace ze
 	public:
 		XMFLOAT4A m_diffuse;
 		XMFLOAT4A m_specular;	// R/G/B/Specular power exponent
-		Texture2D m_lightMap;
+		XMFLOAT4A m_reflect;
 		Texture2D m_diffuseMap;
 		Texture2D m_normalMap;
 		Texture2D m_specularMap;

@@ -8,17 +8,20 @@
 
 using namespace ze;
 
-// BasicPT Effect
-// 1. VertexShader: VSTransformPTToHCS
-// 2. PixelShader: PSColorPTFragment
+// BasicEffectPT Effect
+// VertexShader:
+// - ToHcsPT
+// 
+// PixelShader:
+// - UnlitPT1Tex
 
 void BasicEffectPT::Init()
 {
 	m_dirtyFlag = DIRTY_FLAG::ALL;
 
 	m_pInputLayout = GraphicDevice::GetInstance()->GetILComInterface(VertexFormatType::PositionTexCoord);
-	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::TransformPTToHCS);
-	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::ColorPositionTexCoordFragmentWithSingleTexture);
+	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::ToHcsPT);
+	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::UnlitPT1Tex);
 
 	m_cbPerCamera.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
 	m_cbPerMesh.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());

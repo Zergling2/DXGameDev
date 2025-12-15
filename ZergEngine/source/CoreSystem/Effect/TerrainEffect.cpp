@@ -8,15 +8,28 @@
 
 using namespace ze;
 
+// Terrain Effect
+// VertexShader:
+// - TerrainPatchCtrlPt
+// 
+// Hull Shader:
+// - CalcTerrainTessFactor
+// 
+// Domain Shader:
+// - SampleTerrainHeightMap
+// 
+// PixelShader:
+// - LitTerrainFragment
+
 void TerrainEffect::Init()
 {
 	m_dirtyFlag = DIRTY_FLAG::ALL;
 
 	m_pInputLayout = GraphicDevice::GetInstance()->GetILComInterface(VertexFormatType::TerrainPatchCtrlPt);
-	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::TransformTerrainPatchCtrlPt);
+	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::TerrainPatchCtrlPt);
 	m_pHullShader = GraphicDevice::GetInstance()->GetHSComInterface(HullShaderType::CalcTerrainTessFactor);
 	m_pDomainShader = GraphicDevice::GetInstance()->GetDSComInterface(DomainShaderType::SampleTerrainHeightMap);
-	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::ColorTerrainFragment);
+	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::LitTerrainFragment);
 
 	m_cbPerFrame.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
 	m_cbPerCamera.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
@@ -29,7 +42,6 @@ void TerrainEffect::Release()
 	m_cbPerCamera.Release();
 	m_cbPerTerrain.Release();
 }
-
 
 void XM_CALLCONV TerrainEffect::SetAmbientLight(FXMVECTOR ambientLight) noexcept
 {
@@ -133,15 +145,17 @@ void TerrainEffect::SetLayerTexture(
 	m_pNormalMapLayerSRV = pNormalMapLayerSRV;
 	m_pBlendMapSRV = pBlendMapSRV;
 
+	/*
 	if (pDiffuseMapLayerSRV)
-		m_cbPerTerrainCache.layerFlag |= static_cast<uint32_t>(TERRAIN_LAYER_FLAG::UseDiffuseLayer);
+		m_cbPerTerrainCache.layerFlag |= static_cast<uint32_t>(TerrainLayerFlag::UseDiffuseLayer);
 	else
-		m_cbPerTerrainCache.layerFlag &= ~static_cast<uint32_t>(TERRAIN_LAYER_FLAG::UseDiffuseLayer);
+		m_cbPerTerrainCache.layerFlag &= ~static_cast<uint32_t>(TerrainLayerFlag::UseDiffuseLayer);
 
 	if (pNormalMapLayerSRV)
-		m_cbPerTerrainCache.layerFlag |= static_cast<uint32_t>(TERRAIN_LAYER_FLAG::UseNormalLayer);
+		m_cbPerTerrainCache.layerFlag |= static_cast<uint32_t>(TerrainLayerFlag::UseNormalLayer);
 	else
-		m_cbPerTerrainCache.layerFlag &= ~static_cast<uint32_t>(TERRAIN_LAYER_FLAG::UseNormalLayer);
+		m_cbPerTerrainCache.layerFlag &= ~static_cast<uint32_t>(TerrainLayerFlag::UseNormalLayer);
+	*/
 
 	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_TERRAIN;
 }
@@ -188,11 +202,12 @@ void TerrainEffect::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
 	// Texture2D tex2d_normalMap : register(t1);
 	// ÇÈ¼¿ ¼ÎÀÌ´õ
 	// »ç¿ë ÅØ½ºÃÄ
-	// Texture2DArray<float4> tex2d_diffuseMapLayer : register(t0);
-	// Texture2DArray<float4> tex2d_normalMapLayer : register(t1);
-	// Texture2D<float4> tex2d_blendMap : register(t2);
+	// Texture2DArray tex2d_diffuseMapLayer : register(t0);
+	// Texture2DArray tex2d_specularMapLayer : register(t1);
+	// Texture2DArray tex2d_normalMapLayer : register(t2);
+	// Texture2D tex2d_blendMap : register(t3);
 	ID3D11ShaderResourceView* dsSRVs[] = { m_pHeightMapSRV, m_pNormalMapSRV };
-	ID3D11ShaderResourceView* psSRVs[] = { m_pDiffuseMapLayerSRV, m_pNormalMapLayerSRV,	m_pBlendMapSRV };
+	ID3D11ShaderResourceView* psSRVs[] = { m_pDiffuseMapLayerSRV, m_pSpecularMapLayerSRV, m_pNormalMapLayerSRV,	m_pBlendMapSRV };
 
 	pDeviceContext->DSSetShaderResources(0, _countof(dsSRVs), dsSRVs);
 	pDeviceContext->PSSetShaderResources(0, _countof(psSRVs), psSRVs);

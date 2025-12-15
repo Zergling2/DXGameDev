@@ -7,17 +7,20 @@
 
 using namespace ze;
 
-// BasicPC Effect
-// 1. VertexShader: VSTransformPCToHCS
-// 2. PixelShader: PSColorPCFragment
+// BasicEffectPC Effect
+// VertexShader:
+// - ToHcsPC
+// 
+// PixelShader:
+// - UnlitPC
 
 void BasicEffectPC::Init()
 {
 	m_dirtyFlag = DIRTY_FLAG::ALL;
 
 	m_pInputLayout = GraphicDevice::GetInstance()->GetILComInterface(VertexFormatType::PositionColor);
-	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::TransformPCToHCS);
-	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::ColorPositionColorFragment);
+	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::ToHcsPC);
+	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::UnlitPC);
 
 	m_cbPerCamera.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
 	m_cbPerMesh.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());

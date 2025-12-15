@@ -6,19 +6,21 @@
 namespace ze
 {
 	class Camera;
+	class Material;
 
 	class BasicEffectPNTTSkinned : public IEffect
 	{
 		enum DIRTY_FLAG : DWORD
 		{
-			PRIMITIVE_TOPOLOGY = 1 << 0,
-			INPUT_LAYOUT = 1 << 1,
-			SHADER = 1 << 2,
-			CONSTANTBUFFER_PER_FRAME = 1 << 3,
-			CONSTANTBUFFER_PER_CAMERA = 1 << 4,
-			CONSTANTBUFFER_PER_MESH = 1 << 5,
-			CONSTANTBUFFER_PER_ARMATURE = 1 << 6,
-			CONSTANTBUFFER_PER_SUBSET = 1 << 7,
+			PRIMITIVE_TOPOLOGY			= 1 << 0,
+			INPUT_LAYOUT				= 1 << 1,
+			SHADER						= 1 << 2,
+			PIXEL_SHADER				= 1 << 3,
+			CONSTANTBUFFER_PER_FRAME	= 1 << 4,
+			CONSTANTBUFFER_PER_CAMERA	= 1 << 5,
+			CONSTANTBUFFER_PER_MESH		= 1 << 6,
+			CONSTANTBUFFER_PER_ARMATURE	= 1 << 7,
+			CONSTANTBUFFER_PER_SUBSET	= 1 << 8,
 
 			COUNT,
 
@@ -28,8 +30,9 @@ namespace ze
 		BasicEffectPNTTSkinned() noexcept
 			: m_dirtyFlag(ALL)
 			, m_pInputLayout(nullptr)
-			, m_pVertexShader(nullptr)
-			, m_pPixelShader(nullptr)
+			, m_pVS(nullptr)
+			, m_pCurrPS(nullptr)
+			, m_pPSUnlitPNTTNoMtl(nullptr)
 			, m_cbPerFrame()
 			, m_cbPerCamera()
 			, m_cbPerMesh()
@@ -41,6 +44,7 @@ namespace ze
 			, m_cbPerSubsetCache()
 			, m_pTextureSRVArray{ nullptr, nullptr, nullptr }
 		{
+			ZeroMemory(m_psTable, sizeof(m_psTable));
 		}
 		virtual ~BasicEffectPNTTSkinned() = default;
 
@@ -62,19 +66,13 @@ namespace ze
 		// Copy
 		void SetArmatureFinalTransform(const XMFLOAT4X4A* pFinalTransforms, size_t count);
 
-		void UseMaterial(bool b) noexcept;
-		void XM_CALLCONV SetDiffuseColor(FXMVECTOR diffuse) noexcept;
-		void XM_CALLCONV SetSpecularColor(FXMVECTOR specular) noexcept;
-		void XM_CALLCONV SetReflection(FXMVECTOR reflect) noexcept;
-
-		void SetDiffuseMap(ID3D11ShaderResourceView* pDiffuseMap) noexcept;
-		void SetSpecularMap(ID3D11ShaderResourceView* pSpecularMap) noexcept;
-		void SetNormalMap(ID3D11ShaderResourceView* pNormalMap) noexcept;
+		void SetMaterial(const Material* pMaterial);	// nullable
 	private:
 		virtual void ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept override;
 		virtual void KickedOutOfDeviceContext() noexcept override;
 
 		void ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept;
+		void ApplyPixelShader(ID3D11DeviceContext* pDeviceContext) noexcept;
 		void ApplyPerFrameConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
 		void ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
 		void ApplyPerMeshConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
@@ -85,8 +83,10 @@ namespace ze
 		DWORD m_dirtyFlag;
 
 		ID3D11InputLayout* m_pInputLayout;
-		ID3D11VertexShader* m_pVertexShader;
-		ID3D11PixelShader* m_pPixelShader;
+		ID3D11VertexShader* m_pVS;
+		ID3D11PixelShader* m_pCurrPS;
+		ID3D11PixelShader* m_pPSUnlitPNTTNoMtl;
+		ID3D11PixelShader* m_psTable[2][2][2];
 
 		ConstantBuffer<CbPerForwardRenderingFrame> m_cbPerFrame;
 		ConstantBuffer<CbPerCamera> m_cbPerCamera;

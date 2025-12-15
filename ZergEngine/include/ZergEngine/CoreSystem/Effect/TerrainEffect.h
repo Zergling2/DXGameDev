@@ -40,6 +40,7 @@ namespace ze
 			, m_pHeightMapSRV(nullptr)
 			, m_pNormalMapSRV(nullptr)
 			, m_pDiffuseMapLayerSRV(nullptr)
+			, m_pSpecularMapLayerSRV(nullptr)
 			, m_pNormalMapLayerSRV(nullptr)
 			, m_pBlendMapSRV(nullptr)
 		{
@@ -93,6 +94,7 @@ namespace ze
 		ID3D11ShaderResourceView* m_pHeightMapSRV;
 		ID3D11ShaderResourceView* m_pNormalMapSRV;
 		ID3D11ShaderResourceView* m_pDiffuseMapLayerSRV;
+		ID3D11ShaderResourceView* m_pSpecularMapLayerSRV;
 		ID3D11ShaderResourceView* m_pNormalMapLayerSRV;
 		ID3D11ShaderResourceView* m_pBlendMapSRV;
 	};

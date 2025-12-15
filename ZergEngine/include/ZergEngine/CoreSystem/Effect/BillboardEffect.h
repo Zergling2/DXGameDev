@@ -32,13 +32,6 @@ namespace ze
 
 		virtual void Init() override;
 		virtual void Release() override;
-
-		void SetScreenToNDCSpaceRatio(const XMFLOAT2& ratio) noexcept;
-
-		void XM_CALLCONV SetColor(FXMVECTOR color) noexcept;
-		void SetPressed(bool pressed) noexcept;
-		void XM_CALLCONV SetSize(FXMVECTOR size) noexcept;
-		void XM_CALLCONV SetPreNDCPosition(FXMVECTOR position) noexcept;	// 화면 중앙을 원점으로 하는 NDC 공간으로 변환 직전의 2D 위치 설정
 	private:
 		virtual void ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept override;
 		virtual void KickedOutOfDeviceContext() noexcept override;

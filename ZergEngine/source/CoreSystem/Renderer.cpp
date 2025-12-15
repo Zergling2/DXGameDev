@@ -808,23 +808,11 @@ void Renderer::RenderVFPositionNormalTangentTexCoordMesh(const MeshRenderer* pMe
 	// 서브셋들 순회하며 렌더링
 	assert(pMesh->m_subsets.size() == pMeshRenderer->GetMeshPtr()->m_subsets.size());
 	const size_t subsetCount = pMesh->m_subsets.size();
-	for (size_t i = 0; i < subsetCount; ++i)
+	for (size_t subsetIndex = 0; subsetIndex < subsetCount; ++subsetIndex)
 	{
-		const MeshSubset& currentSubset = pMesh->m_subsets[i];
-		const Material* pMaterial = pMeshRenderer->GetMaterialPtr(i);
-		if (pMaterial != nullptr)
-		{
-			m_basicEffectPNTT.UseMaterial(true);
-			m_basicEffectPNTT.SetDiffuseColor(XMLoadFloat4A(&pMaterial->m_diffuse));
-			m_basicEffectPNTT.SetSpecularColor(XMLoadFloat4A(&pMaterial->m_specular));
-			m_basicEffectPNTT.SetDiffuseMap(pMaterial->m_diffuseMap.GetSRVComInterface());
-			m_basicEffectPNTT.SetSpecularMap(pMaterial->m_specularMap.GetSRVComInterface());
-			m_basicEffectPNTT.SetNormalMap(pMaterial->m_normalMap.GetSRVComInterface());
-		}
-		else
-		{
-			m_basicEffectPNTT.UseMaterial(false);
-		}
+		const MeshSubset& currentSubset = pMesh->m_subsets[subsetIndex];
+		const Material* pMaterial = pMeshRenderer->GetMaterialPtr(subsetIndex);
+		m_basicEffectPNTT.SetMaterial(pMaterial);
 
 		m_effectImmediateContext.Apply(&m_basicEffectPNTT);
 
@@ -880,23 +868,11 @@ void Renderer::RenderVFPositionNormalTangentTexCoordSkinnedMesh(const SkinnedMes
 	// 서브셋들 순회하며 렌더링
 	assert(pMesh->m_subsets.size() == pSkinnedMeshRenderer->GetMeshPtr()->m_subsets.size());
 	const size_t subsetCount = pMesh->m_subsets.size();
-	for (size_t i = 0; i < subsetCount; ++i)
+	for (size_t subsetIndex = 0; subsetIndex < subsetCount; ++subsetIndex)
 	{
-		const MeshSubset& currentSubset = pMesh->m_subsets[i];
-		const Material* pMaterial = pSkinnedMeshRenderer->GetMaterialPtr(i);
-		if (pMaterial != nullptr)
-		{
-			m_basicEffectPNTTSkinned.UseMaterial(true);
-			m_basicEffectPNTTSkinned.SetDiffuseColor(XMLoadFloat4A(&pMaterial->m_diffuse));
-			m_basicEffectPNTTSkinned.SetSpecularColor(XMLoadFloat4A(&pMaterial->m_specular));
-			m_basicEffectPNTTSkinned.SetDiffuseMap(pMaterial->m_diffuseMap.GetSRVComInterface());
-			m_basicEffectPNTTSkinned.SetSpecularMap(pMaterial->m_specularMap.GetSRVComInterface());
-			m_basicEffectPNTTSkinned.SetNormalMap(pMaterial->m_normalMap.GetSRVComInterface());
-		}
-		else
-		{
-			m_basicEffectPNTTSkinned.UseMaterial(false);
-		}
+		const MeshSubset& currentSubset = pMesh->m_subsets[subsetIndex];
+		const Material* pMaterial = pSkinnedMeshRenderer->GetMaterialPtr(subsetIndex);
+		m_basicEffectPNTTSkinned.SetMaterial(pMaterial);
 
 		m_effectImmediateContext.Apply(&m_basicEffectPNTTSkinned);
 

@@ -1,6 +1,7 @@
 #include <ZergEngine\CoreSystem\Effect\BasicEffectPN.h>
 #include <ZergEngine\CoreSystem\GraphicDevice.h>
 #include <ZergEngine\CoreSystem\Math.h>
+#include <ZergEngine\CoreSystem\Resource\Material.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Camera.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Transform.h>
@@ -8,21 +9,30 @@
 using namespace ze;
 
 // BasicPN Effect
-// 1. VertexShader: VSTransformPNToHCS
-// 2. PixelShader: PSColorPNFragment
+// VertexShader:
+// - ToHcsPN
+// 
+// PixelShader:
+// - UnlitPNNoMtl
+// - LitPN
 
 void BasicEffectPN::Init()
 {
 	m_dirtyFlag = DIRTY_FLAG::ALL;
 
 	m_pInputLayout = GraphicDevice::GetInstance()->GetILComInterface(VertexFormatType::PositionNormal);
-	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::TransformPNToHCS);
-	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::ColorPositionNormalFragment);
+	m_pVS = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::ToHcsPN);
 
-	m_cbPerFrame.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
-	m_cbPerCamera.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
-	m_cbPerMesh.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
-	m_cbPerSubset.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
+	m_pPSUnlitPNNoMtl = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::UnlitPNNoMtl);
+	m_pPSLitPN = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::LitPN);
+
+	m_pCurrPS = m_pPSUnlitPNNoMtl;
+
+	ID3D11Device* pDevice = GraphicDevice::GetInstance()->GetDeviceComInterface();
+	m_cbPerFrame.Init(pDevice);
+	m_cbPerCamera.Init(pDevice);
+	m_cbPerMesh.Init(pDevice);
+	m_cbPerSubset.Init(pDevice);
 }
 
 void BasicEffectPN::Release()
@@ -100,38 +110,31 @@ void XM_CALLCONV BasicEffectPN::SetWorldMatrix(FXMMATRIX w) noexcept
 	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_MESH;
 }
 
-void BasicEffectPN::UseMaterial(bool b) noexcept
+void BasicEffectPN::SetMaterial(const Material* pMaterial)
 {
-	const bool oldMtlFlag = m_cbPerSubsetCache.mtl.mtlFlag & static_cast<uint32_t>(MATERIAL_FLAG::UseMaterial);
+	ID3D11PixelShader* pPS;
 
-	if (b)
-		m_cbPerSubsetCache.mtl.mtlFlag |= static_cast<uint32_t>(MATERIAL_FLAG::UseMaterial);
+	if (!pMaterial)
+	{
+		pPS = m_pPSUnlitPNNoMtl;
+	}
 	else
-		m_cbPerSubsetCache.mtl.mtlFlag &= ~static_cast<uint32_t>(MATERIAL_FLAG::UseMaterial);
+	{
+		pPS = m_pPSLitPN;
 
-	if (oldMtlFlag != b)
+		// 재질 값 설정
+		m_cbPerSubsetCache.mtl.diffuse = pMaterial->m_diffuse;
+		m_cbPerSubsetCache.mtl.specular = pMaterial->m_specular;
+		m_cbPerSubsetCache.mtl.reflect = pMaterial->m_reflect;
+
 		m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_SUBSET;
-}
+	}
 
-void XM_CALLCONV BasicEffectPN::SetDiffuseColor(FXMVECTOR diffuse) noexcept
-{
-	XMStoreFloat4A(&m_cbPerSubsetCache.mtl.diffuse, diffuse);
-
-	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_SUBSET;
-}
-
-void XM_CALLCONV BasicEffectPN::SetSpecularColor(FXMVECTOR specular) noexcept
-{
-	XMStoreFloat4A(&m_cbPerSubsetCache.mtl.specular, specular);
-
-	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_SUBSET;
-}
-
-void XM_CALLCONV BasicEffectPN::SetReflection(FXMVECTOR reflect) noexcept
-{
-	XMStoreFloat4A(&m_cbPerSubsetCache.mtl.reflect, reflect);
-
-	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_SUBSET;
+	if (m_pCurrPS != pPS)
+	{
+		m_pCurrPS = pPS;
+		m_dirtyFlag |= DIRTY_FLAG::PIXEL_SHADER;
+	}
 }
 
 void BasicEffectPN::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
@@ -150,6 +153,9 @@ void BasicEffectPN::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
 			break;
 		case DIRTY_FLAG::SHADER:
 			ApplyShader(pDeviceContext);
+			break;
+		case DIRTY_FLAG::PIXEL_SHADER:
+			ApplyPixelShader(pDeviceContext);
 			break;
 		case DIRTY_FLAG::CONSTANTBUFFER_PER_FRAME:
 			ApplyPerFrameConstantBuffer(pDeviceContext);
@@ -180,11 +186,16 @@ void BasicEffectPN::KickedOutOfDeviceContext() noexcept
 
 void BasicEffectPN::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	pDeviceContext->VSSetShader(m_pVertexShader, nullptr, 0);
+	pDeviceContext->VSSetShader(m_pVS, nullptr, 0);
 	pDeviceContext->HSSetShader(nullptr, nullptr, 0);
 	pDeviceContext->DSSetShader(nullptr, nullptr, 0);
 	pDeviceContext->GSSetShader(nullptr, nullptr, 0);
-	pDeviceContext->PSSetShader(m_pPixelShader, nullptr, 0);
+	pDeviceContext->PSSetShader(m_pCurrPS, nullptr, 0);
+}
+
+void BasicEffectPN::ApplyPixelShader(ID3D11DeviceContext* pDeviceContext) noexcept
+{
+	pDeviceContext->PSSetShader(m_pCurrPS, nullptr, 0);
 }
 
 void BasicEffectPN::ApplyPerFrameConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept

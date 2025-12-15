@@ -3,17 +3,20 @@
 
 using namespace ze;
 
-// MSCameraMerge Effect
-// 1. VertexShader: VSTransformNDCRatioQuad
-// 2. PixelShader: PSColorPTFragmentSingleMSTexture
+// DrawScreenRatioQuadWithTexture Effect
+// VertexShader:
+// - ToHcsScreenRatioQuad
+// 
+// PixelShader:
+// - UnlitPT1Tex
 
 void DrawScreenRatioQuadWithTextureEffect::Init()
 {
 	m_dirtyFlag = DIRTY_FLAG::ALL;
 
 	m_pInputLayout = nullptr;
-	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::TransformScreenRatioQuad);
-	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::ColorPositionTexCoordFragmentWithSingleTexture);
+	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::ToHcsScreenRatioQuad);
+	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::UnlitPT1Tex);
 
 	m_cbPerScreenRatioQuad.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
 

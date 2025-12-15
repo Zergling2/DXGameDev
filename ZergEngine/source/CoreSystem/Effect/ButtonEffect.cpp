@@ -3,13 +3,20 @@
 
 using namespace ze;
 
+// Button Effect
+// VertexShader:
+// - ToHcsButton
+// 
+// PixelShader:
+// - UnlitPC
+
 void ButtonEffect::Init()
 {
 	m_dirtyFlag = DIRTY_FLAG::ALL;
 
 	m_pInputLayout = GraphicDevice::GetInstance()->GetILComInterface(VertexFormatType::ButtonPt);
-	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::TransformButtonToHCS);
-	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::ColorPositionColorFragment);
+	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::ToHcsButton);
+	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::UnlitPC);
 
 	m_cbPerUIRender.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
 	m_cbPerButton.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());

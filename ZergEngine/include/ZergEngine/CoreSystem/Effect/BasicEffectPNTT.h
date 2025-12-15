@@ -6,6 +6,7 @@
 namespace ze
 {
 	class Camera;
+	class Material;
 
 	class BasicEffectPNTT : public IEffect
 	{
@@ -14,10 +15,11 @@ namespace ze
 			PRIMITIVE_TOPOLOGY			= 1 << 0,
 			INPUT_LAYOUT				= 1 << 1,
 			SHADER						= 1 << 2,
-			CONSTANTBUFFER_PER_FRAME	= 1 << 3,
-			CONSTANTBUFFER_PER_CAMERA	= 1 << 4,
-			CONSTANTBUFFER_PER_MESH		= 1 << 5,
-			CONSTANTBUFFER_PER_SUBSET	= 1 << 6,
+			PIXEL_SHADER				= 1 << 3,
+			CONSTANTBUFFER_PER_FRAME	= 1 << 4,
+			CONSTANTBUFFER_PER_CAMERA	= 1 << 5,
+			CONSTANTBUFFER_PER_MESH		= 1 << 6,
+			CONSTANTBUFFER_PER_SUBSET	= 1 << 7,
 
 			COUNT,
 
@@ -27,8 +29,9 @@ namespace ze
 		BasicEffectPNTT() noexcept
 			: m_dirtyFlag(ALL)
 			, m_pInputLayout(nullptr)
-			, m_pVertexShader(nullptr)
-			, m_pPixelShader(nullptr)
+			, m_pVS(nullptr)
+			, m_pCurrPS(nullptr)
+			, m_pPSUnlitPNTTNoMtl(nullptr)
 			, m_cbPerFrame()
 			, m_cbPerCamera()
 			, m_cbPerMesh()
@@ -39,6 +42,7 @@ namespace ze
 			, m_cbPerSubsetCache()
 			, m_pTextureSRVArray{ nullptr, nullptr, nullptr }
 		{
+			ZeroMemory(m_psTable, sizeof(m_psTable));
 		}
 		virtual ~BasicEffectPNTT() = default;
 
@@ -57,19 +61,13 @@ namespace ze
 
 		void XM_CALLCONV SetWorldMatrix(FXMMATRIX w) noexcept;
 
-		void UseMaterial(bool b) noexcept;
-		void XM_CALLCONV SetDiffuseColor(FXMVECTOR diffuse) noexcept;
-		void XM_CALLCONV SetSpecularColor(FXMVECTOR specular) noexcept;
-		void XM_CALLCONV SetReflection(FXMVECTOR reflect) noexcept;
-
-		void SetDiffuseMap(ID3D11ShaderResourceView* pDiffuseMap) noexcept;
-		void SetSpecularMap(ID3D11ShaderResourceView* pSpecularMap) noexcept;
-		void SetNormalMap(ID3D11ShaderResourceView* pNormalMap) noexcept;
+		void SetMaterial(const Material* pMaterial);	// nullable
 	private:
 		virtual void ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept override;
 		virtual void KickedOutOfDeviceContext() noexcept override;
 
 		void ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept;
+		void ApplyPixelShader(ID3D11DeviceContext* pDeviceContext) noexcept;
 		void ApplyPerFrameConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
 		void ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
 		void ApplyPerMeshConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
@@ -79,8 +77,10 @@ namespace ze
 		DWORD m_dirtyFlag;
 
 		ID3D11InputLayout* m_pInputLayout;
-		ID3D11VertexShader* m_pVertexShader;
-		ID3D11PixelShader* m_pPixelShader;
+		ID3D11VertexShader* m_pVS;
+		ID3D11PixelShader* m_pCurrPS;
+		ID3D11PixelShader* m_pPSUnlitPNTTNoMtl;	// 재질이 없는 경우 PS
+		ID3D11PixelShader* m_psTable[2][2][2];	// 재질이 존재할 경우 PS Table
 
 		ConstantBuffer<CbPerForwardRenderingFrame> m_cbPerFrame;
 		ConstantBuffer<CbPerCamera> m_cbPerCamera;
