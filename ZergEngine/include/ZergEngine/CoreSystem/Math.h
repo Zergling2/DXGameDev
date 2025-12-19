@@ -117,37 +117,37 @@ namespace ze
 			return std::abs(a - b) < tolerance;
 		}
 
-		static bool XM_CALLCONV IsVector2LengthNear(XMVECTOR v, float length, float tolerance = 0.00001f)
+		static bool XM_CALLCONV IsVector2LengthNear(FXMVECTOR v, float length, float tolerance = 0.00001f)
 		{
 			return Math::IsNear(XMVectorGetX(XMVector2Length(v)), length, tolerance);
 		}
 
-		static bool XM_CALLCONV IsVector3LengthNear(XMVECTOR v, float length, float tolerance = 0.00001f)
+		static bool XM_CALLCONV IsVector3LengthNear(FXMVECTOR v, float length, float tolerance = 0.00001f)
 		{
 			return Math::IsNear(XMVectorGetX(XMVector3Length(v)), length, tolerance);
 		}
 
-		static bool XM_CALLCONV IsVector4LengthNear(XMVECTOR v, float length, float tolerance = 0.00001f)
+		static bool XM_CALLCONV IsVector4LengthNear(FXMVECTOR v, float length, float tolerance = 0.00001f)
 		{
 			return Math::IsNear(XMVectorGetX(XMVector4Length(v)), length, tolerance);
 		}
 
-		static bool XM_CALLCONV IsVector2LengthEstNear(XMVECTOR v, float length, float tolerance = 0.0001f)
+		static bool XM_CALLCONV IsVector2LengthEstNear(FXMVECTOR v, float length, float tolerance = 0.0001f)
 		{
 			return Math::IsNear(XMVectorGetX(XMVector2LengthEst(v)), length, tolerance);
 		}
 
-		static bool XM_CALLCONV IsVector3LengthEstNear(XMVECTOR v, float length, float tolerance = 0.0001f)
+		static bool XM_CALLCONV IsVector3LengthEstNear(FXMVECTOR v, float length, float tolerance = 0.0001f)
 		{
 			return Math::IsNear(XMVectorGetX(XMVector3LengthEst(v)), length, tolerance);
 		}
 
-		static bool XM_CALLCONV IsVector4LengthEstNear(XMVECTOR v, float length, float tolerance = 0.0001f)
+		static bool XM_CALLCONV IsVector4LengthEstNear(FXMVECTOR v, float length, float tolerance = 0.0001f)
 		{
 			return Math::IsNear(XMVectorGetX(XMVector4LengthEst(v)), length, tolerance);
 		}
 
-		static SphericalCoord XM_CALLCONV ToSphericalCoord(XMVECTOR v);
+		static SphericalCoord XM_CALLCONV ToSphericalCoord(FXMVECTOR v);
 
 		// 쿼터니언을 Z(Roll), X(Pitch), Y(Yaw) 변환 순서의 오일러 각도 모음으로 변환시킵니다.
 		// 각도 단위는 라디안입니다.
@@ -178,11 +178,11 @@ namespace ze
 		static XMVECTOR Identity() { return g_XMIdentityR3; }
 
 		// from 벡터를 to 벡터와 일치시키는 쿼터니언을 반환합니다.
-		static XMVECTOR XM_CALLCONV FromToRotation(XMVECTOR from, XMVECTOR to);
+		static XMVECTOR XM_CALLCONV FromToRotation(FXMVECTOR from, FXMVECTOR to);
 
 		// from 벡터를 to 벡터와 일치시키는 쿼터니언을 반환합니다.
 		// from 벡터와 to 벡터는 정규화 되어있는것으로 간주됩니다.
 		// from 벡터와 to 벡터가 정규화되어있지 않은 경우 올바른 계산 결과가 보장되지 않습니다.
-		static XMVECTOR XM_CALLCONV FromToRotationNorm(XMVECTOR from, XMVECTOR to);
+		static XMVECTOR XM_CALLCONV FromToRotationNorm(FXMVECTOR from, FXMVECTOR to);
 	};
 }

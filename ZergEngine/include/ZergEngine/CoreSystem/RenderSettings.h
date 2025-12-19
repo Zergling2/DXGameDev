@@ -22,6 +22,7 @@ namespace ze
 	public:
 		Texture2D GetSkybox() const { return m_skyboxCubeMap; }
 		void SetSkybox(Texture2D cubeMapTexture) { m_skyboxCubeMap = std::move(cubeMapTexture); }
+		void XM_CALLCONV SetAmbientLightColor(FXMVECTOR color) { XMStoreFloat3(&m_ambientLightColor, color); }
 		void SetAmbientLightColor(const XMFLOAT3& color) { m_ambientLightColor = color; }
 		const XMFLOAT3& GetAmbientLightColor() const { return m_ambientLightColor; }
 		void SetAmbientLightIntensity(FLOAT intensity) { m_ambientLightIntensity = intensity; }

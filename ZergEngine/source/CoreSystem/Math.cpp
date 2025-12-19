@@ -312,16 +312,12 @@ XMMATRIX XM_CALLCONV Math::ComputeBillboardScreenAlignedMatrix(FXMVECTOR billboa
 }
 */
 
-XMVECTOR XM_CALLCONV Quaternion::FromToRotation(XMVECTOR from, XMVECTOR to)
+XMVECTOR XM_CALLCONV Quaternion::FromToRotation(FXMVECTOR from, FXMVECTOR to)
 {
-	// ∫§≈Õ ¡§±‘»≠
-	from = XMVector3Normalize(from);
-	to = XMVector3Normalize(to);
-
-	return Quaternion::FromToRotationNorm(from, to);
+	return Quaternion::FromToRotationNorm(XMVector3Normalize(from), XMVector3Normalize(to));
 }
 
-XMVECTOR XM_CALLCONV Quaternion::FromToRotationNorm(XMVECTOR from, XMVECTOR to)
+XMVECTOR XM_CALLCONV Quaternion::FromToRotationNorm(FXMVECTOR from, FXMVECTOR to)
 {
 	assert(Math::IsVector3LengthNear(from, 1.0f) == true);
 	assert(Math::IsVector3LengthNear(to, 1.0f) == true);
@@ -379,7 +375,7 @@ XMVECTOR XM_CALLCONV Quaternion::FromToRotationNorm(XMVECTOR from, XMVECTOR to)
 	return XMQuaternionNormalize(q);
 }
 
-SphericalCoord XM_CALLCONV Math::ToSphericalCoord(XMVECTOR v)
+SphericalCoord XM_CALLCONV Math::ToSphericalCoord(FXMVECTOR v)
 {
 	SphericalCoord result;
 
