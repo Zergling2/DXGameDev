@@ -9,6 +9,7 @@
 #include <ZergEngine\CoreSystem\Effect\BasicEffectPNTTSkinned.h>
 #include <ZergEngine\CoreSystem\Effect\TerrainEffect.h>
 #include <ZergEngine\CoreSystem\Effect\SkyboxEffect.h>
+#include <ZergEngine\CoreSystem\Effect\BillboardEffect.h>
 #include <ZergEngine\CoreSystem\Effect\DrawScreenRatioQuadWithTextureEffect.h>
 #include <ZergEngine\CoreSystem\Effect\DrawScreenRatioQuadWithMSTextureEffect.h>
 #include <ZergEngine\CoreSystem\Effect\ButtonEffect.h>
@@ -20,12 +21,13 @@ namespace ze
 	class MeshRenderer;
 	class SkinnedMeshRenderer;
 	class Terrain;
-	class IUIObject;
+	class Billboard;
 	class Panel;
 	class Image;
 	class Text;
 	class Button;
 	class InputField;
+	class IUIObject;
 
 	class Renderer
 	{
@@ -44,15 +46,17 @@ namespace ze
 
 		void RenderFrame();
 
-		// void RenderVFPositionMesh(const MeshRenderer* pMeshRenderer);
-		// void RenderVFPositionColorMesh(const MeshRenderer* pMeshRenderer);
-		// void RenderVFPositionNormalMesh(const MeshRenderer* pMeshRenderer);
-		// void RenderVFPositionTexCoordMesh(const MeshRenderer* pMeshRenderer);
-		// void RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshRenderer);
-		void RenderVFPositionNormalTangentTexCoordMesh(const MeshRenderer* pMeshRenderer);
-		void RenderVFPositionNormalTangentTexCoordSkinnedMesh(const SkinnedMeshRenderer* pSkinnedMeshRenderer);
+		// void XM_CALLCONV RenderVFPositionMesh(const MeshRenderer* pMeshRenderer, FXMMATRIX worldMatrix);
+		// void XM_CALLCONV RenderVFPositionColorMesh(const MeshRenderer* pMeshRenderer, FXMMATRIX worldMatrix);
+		// void XM_CALLCONV RenderVFPositionNormalMesh(const MeshRenderer* pMeshRenderer, FXMMATRIX worldMatrix);
+		// void XM_CALLCONV RenderVFPositionTexCoordMesh(const MeshRenderer* pMeshRenderer, FXMMATRIX worldMatrix);
+		// void XM_CALLCONV RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshRenderer, FXMMATRIX worldMatrix);
+		void XM_CALLCONV RenderPNTTMesh(const MeshRenderer* pMeshRenderer, FXMMATRIX worldMatrix);
+		void XM_CALLCONV RenderPNTTSkinnedMesh(const SkinnedMeshRenderer* pSkinnedMeshRenderer, FXMMATRIX worldMatrix);
 		void RenderTerrain(const Terrain* pTerrain);
 		void RenderSkybox(ID3D11ShaderResourceView* pSkyboxCubeMapSRV);
+		void RenderBillboard(const Billboard* pBillboard);
+
 		void RenderPanel(const Panel* pPanel);
 		void RenderImage(const Image* pImage);
 		void RenderText(const Text* pText);
@@ -61,16 +65,19 @@ namespace ze
 	private:
 		static Renderer* s_pInstance;
 
-		ID3D11RasterizerState* m_pCullBackRS;
-		ID3D11RasterizerState* m_pCullNoneRS;
-		ID3D11RasterizerState* m_pWireFrameRS;
-		ID3D11DepthStencilState* m_pDefaultDSS;
-		ID3D11DepthStencilState* m_pSkyboxDSS;
-		ID3D11DepthStencilState* m_pDepthReadOnlyDSS;
-		ID3D11DepthStencilState* m_pNoDepthStencilTestDSS;
-		ID3D11BlendState* m_pOpaqueBS;
-		ID3D11BlendState* m_pAlphaBlendBS;
-		ID3D11BlendState* m_pNoColorWriteBS;
+		ID3D11RasterizerState* m_pRSSolidCullBack;
+		ID3D11RasterizerState* m_pRSMultisampleSolidCullBack;
+		ID3D11RasterizerState* m_pRSSolidCullNone;
+		ID3D11RasterizerState* m_pRSMultisampleSolidCullNone;
+		ID3D11RasterizerState* m_pRSWireframe;
+		ID3D11RasterizerState* m_pRSMultisampleWireframe;
+		ID3D11DepthStencilState* m_pDSSDefault;
+		ID3D11DepthStencilState* m_pDSSSkybox;
+		ID3D11DepthStencilState* m_pDSSDepthReadOnlyLess;
+		ID3D11DepthStencilState* m_pDSSNoDepthStencilTest;
+		ID3D11BlendState* m_pBSOpaque;
+		ID3D11BlendState* m_pBSAlphaBlend;
+		ID3D11BlendState* m_pBSNoColorWrite;
 		ID3D11Buffer* m_pButtonVB;
 
 		EffectDeviceContext m_effectImmediateContext;
@@ -89,10 +96,13 @@ namespace ze
 		BasicEffectPNTTSkinned m_basicEffectPNTTSkinned;
 		TerrainEffect m_terrainEffect;
 		SkyboxEffect m_skyboxEffect;
+		BillboardEffect m_billboardEffect;
 		DrawScreenRatioQuadWithTextureEffect m_drawScreenQuadTex;
 		DrawScreenRatioQuadWithMSTextureEffect m_drawScreenQuadMSTex;
 		ButtonEffect m_buttonEffect;
 		ImageEffect m_imageEffect;
+		std::wstring m_asteriskStr;
+		std::vector<std::pair<const Billboard*, float>> m_billboardRenderQueue;
 		std::vector<const IUIObject*> m_uiRenderQueue;
 	};
 }

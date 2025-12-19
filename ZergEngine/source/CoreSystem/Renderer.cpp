@@ -8,6 +8,7 @@
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\CameraManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\MeshRendererManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\SkinnedMeshRendererManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\BillboardManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\TerrainManager.h>
 #include <ZergEngine\CoreSystem\Manager\UIObjectManager.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
@@ -21,27 +22,41 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\MeshRenderer.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\SkinnedMeshRenderer.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Terrain.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\Billboard.h>
 #include <ZergEngine\CoreSystem\Resource\StaticMesh.h>
 #include <ZergEngine\CoreSystem\Resource\SkinnedMesh.h>
 #include <ZergEngine\CoreSystem\Resource\Animation.h>
 #include <ZergEngine\CoreSystem\Resource\Armature.h>
 #include <ZergEngine\CoreSystem\Resource\Material.h>
-
+#include <algorithm>
 
 using namespace ze;
 
 Renderer* Renderer::s_pInstance = nullptr;
 
+// 카메라로부터의 거리 제곱 내림차순 정렬
+struct BillboardComparator
+{
+	bool operator()(const std::pair<const Billboard*, float>& a, const std::pair<const Billboard*, float>& b) const
+	{
+		return a.second > b.second; // 내림차순
+	}
+};
+
 Renderer::Renderer()
-	: m_pCullBackRS(nullptr)
-	, m_pCullNoneRS(nullptr)
-	, m_pWireFrameRS(nullptr)
-	, m_pDefaultDSS(nullptr)
-	, m_pSkyboxDSS(nullptr)
-	, m_pDepthReadOnlyDSS(nullptr)
-	, m_pNoDepthStencilTestDSS(nullptr)
-	, m_pOpaqueBS(nullptr)
-	, m_pNoColorWriteBS(nullptr)
+	: m_pRSSolidCullBack(nullptr)
+	, m_pRSMultisampleSolidCullBack(nullptr)
+	, m_pRSSolidCullNone(nullptr)
+	, m_pRSMultisampleSolidCullNone(nullptr)
+	, m_pRSWireframe(nullptr)
+	, m_pRSMultisampleWireframe(nullptr)
+	, m_pDSSDefault(nullptr)
+	, m_pDSSSkybox(nullptr)
+	, m_pDSSDepthReadOnlyLess(nullptr)
+	, m_pDSSNoDepthStencilTest(nullptr)
+	, m_pBSOpaque(nullptr)
+	, m_pBSAlphaBlend(nullptr)
+	, m_pBSNoColorWrite(nullptr)
 	, m_pButtonVB(nullptr)
 	, m_effectImmediateContext()
 	, m_pAnimFinalTransformIdentity(nullptr)
@@ -55,10 +70,13 @@ Renderer::Renderer()
 	, m_basicEffectPNTTSkinned()
 	, m_terrainEffect()
 	, m_skyboxEffect()
+	, m_billboardEffect()
 	, m_drawScreenQuadTex()
 	, m_drawScreenQuadMSTex()
 	, m_buttonEffect()
 	, m_imageEffect()
+	, m_asteriskStr(L"********************************")	// L'*' x 32
+	, m_billboardRenderQueue()
 	, m_uiRenderQueue()
 {
 	m_uiRenderQueue.reserve(256);
@@ -95,17 +113,22 @@ void Renderer::DestroyInstance()
 
 void Renderer::Init()
 {
-	m_pCullBackRS = GraphicDevice::GetInstance()->GetRSComInterface(RasterizerMode::SolidCullBackMultisample);
-	m_pCullNoneRS = GraphicDevice::GetInstance()->GetRSComInterface(RasterizerMode::SolidCullNoneMultisample);
-	m_pWireFrameRS = GraphicDevice::GetInstance()->GetRSComInterface(RasterizerMode::WireframeMultisample);
-	m_pDefaultDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DepthStencilStateType::Default);
-	m_pSkyboxDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DepthStencilStateType::Skybox);
-	m_pDepthReadOnlyDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DepthStencilStateType::DepthReadOnlyLess);
-	m_pNoDepthStencilTestDSS = GraphicDevice::GetInstance()->GetDSSComInterface(DepthStencilStateType::NoDepthStencilTest);
-	m_pOpaqueBS = GraphicDevice::GetInstance()->GetBSComInterface(BlendStateType::Opaque);
-	m_pAlphaBlendBS = GraphicDevice::GetInstance()->GetBSComInterface(BlendStateType::AlphaBlend);
-	m_pNoColorWriteBS = GraphicDevice::GetInstance()->GetBSComInterface(BlendStateType::NoColorWrite);
-	m_pButtonVB = GraphicDevice::GetInstance()->GetButtonMeshVB();	// Read only vertex buffer
+	const GraphicDevice* pGraphicDevice = GraphicDevice::GetInstance();
+
+	m_pRSSolidCullBack = pGraphicDevice->GetRSComInterface(RasterizerMode::SolidCullBack);
+	m_pRSMultisampleSolidCullBack = pGraphicDevice->GetRSComInterface(RasterizerMode::MultisampleSolidCullBack);
+	m_pRSSolidCullNone = pGraphicDevice->GetRSComInterface(RasterizerMode::SolidCullNone);
+	m_pRSMultisampleSolidCullNone = pGraphicDevice->GetRSComInterface(RasterizerMode::MultisampleSolidCullNone);
+	m_pRSWireframe = pGraphicDevice->GetRSComInterface(RasterizerMode::Wireframe);
+	m_pRSMultisampleWireframe = pGraphicDevice->GetRSComInterface(RasterizerMode::MultisampleWireframe);
+	m_pDSSDefault = pGraphicDevice->GetDSSComInterface(DepthStencilStateType::Default);
+	m_pDSSSkybox = pGraphicDevice->GetDSSComInterface(DepthStencilStateType::Skybox);
+	m_pDSSDepthReadOnlyLess = pGraphicDevice->GetDSSComInterface(DepthStencilStateType::DepthReadOnlyLess);
+	m_pDSSNoDepthStencilTest = pGraphicDevice->GetDSSComInterface(DepthStencilStateType::NoDepthStencilTest);
+	m_pBSOpaque = pGraphicDevice->GetBSComInterface(BlendStateType::Opaque);
+	m_pBSAlphaBlend = pGraphicDevice->GetBSComInterface(BlendStateType::AlphaBlend);
+	m_pBSNoColorWrite = pGraphicDevice->GetBSComInterface(BlendStateType::NoColorWrite);
+	m_pButtonVB = pGraphicDevice->GetButtonMeshVB();	// Read only vertex buffer
 
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ INITIALIZE EFFECTS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	// m_basicEffectP.Init();
@@ -117,14 +140,15 @@ void Renderer::Init()
 	m_basicEffectPNTTSkinned.Init();
 	m_terrainEffect.Init();
 	m_skyboxEffect.Init();
+	m_billboardEffect.Init();
 	m_drawScreenQuadTex.Init();
 	m_drawScreenQuadMSTex.Init();
 	m_buttonEffect.Init();
 	m_imageEffect.Init();
 
 	// effect context 준비
-	assert(GraphicDevice::GetInstance()->GetImmediateContextComInterface() != nullptr);
-	m_effectImmediateContext.AttachDeviceContext(GraphicDevice::GetInstance()->GetImmediateContextComInterface());
+	assert(pGraphicDevice->GetImmediateContextComInterface() != nullptr);
+	m_effectImmediateContext.AttachDeviceContext(pGraphicDevice->GetImmediateContextComInterface());
 }
 
 void Renderer::UnInit()
@@ -139,6 +163,7 @@ void Renderer::UnInit()
 	m_basicEffectPNTTSkinned.Release();
 	m_terrainEffect.Release();
 	m_skyboxEffect.Release();
+	m_billboardEffect.Release();
 	m_drawScreenQuadTex.Release();
 	m_drawScreenQuadMSTex.Release();
 	m_buttonEffect.Release();
@@ -158,16 +183,24 @@ void Renderer::RenderFrame()
 	pImmContext->DSSetSamplers(0, _countof(ssArr), ssArr);
 	pImmContext->PSSetSamplers(0, _countof(ssArr), ssArr);
 
-	// Rasterizer State
-	pImmContext->RSSetState(m_pCullBackRS);		// 후면 컬링 설정
-
-	// DepthStencil State
-	pImmContext->OMSetDepthStencilState(m_pDefaultDSS, 0);
-
-	// BasicState
-	pImmContext->OMSetBlendState(m_pOpaqueBS, nullptr, 0xFFFFFFFF);
-
 	// PerFrame 상수버퍼 업데이트 및 바인딩
+	{
+		XMVECTOR ambientLight = XMVectorScale(
+			XMLoadFloat3(&RenderSettings::GetInstance()->GetAmbientLightColor()),
+			RenderSettings::GetInstance()->GetAmbientLightIntensity()
+		);
+		// m_basicEffectP.SetAmbientLight(ambientLight);
+		// m_basicEffectPC.SetAmbientLight(ambientLight);
+		// m_basicEffectPN.SetAmbientLight(ambientLight);
+		// m_basicEffectPT.SetAmbientLight(ambientLight);
+		// m_basicEffectPNT.SetAmbientLight(ambientLight);
+		m_basicEffectPNTT.SetAmbientLight(ambientLight);
+		m_basicEffectPNTTSkinned.SetAmbientLight(ambientLight);
+		// m_skyboxEffect.SetAmbientLight(ambientLightt);
+		m_terrainEffect.SetAmbientLight(ambientLight);
+		m_billboardEffect.SetAmbientLight(ambientLight);
+	}
+
 	{
 		DirectionalLightData light[MAX_GLOBAL_LIGHT_COUNT];
 		const uint32_t lightCount = static_cast<uint32_t>(DirectionalLightManager::GetInstance()->m_directAccessGroup.size());
@@ -182,17 +215,16 @@ void Renderer::RenderFrame()
 			const GameObject* pGameObject = pLight->m_pGameObject;
 			assert(pGameObject != nullptr);
 
-			const XMMATRIX w = pGameObject->m_transform.GetWorldTransformMatrix();
 			XMVECTOR scale;
-			XMVECTOR rotation;	// Quaternion
-			XMVECTOR translation;
-			XMMatrixDecompose(&scale, &rotation, &translation, w);
+			XMVECTOR rotationQuat;
+			XMVECTOR position;
+			pGameObject->m_transform.GetWorldTransform(&scale, &rotationQuat, &position);
 
 			light[index].diffuse = pLight->m_diffuse;
 			light[index].specular = pLight->m_specular;
 			XMStoreFloat3(
 				&light[index].directionW,
-				XMVector3Normalize(XMVector3Rotate(Math::Vector3::Forward(), rotation))
+				XMVector3Normalize(XMVector3Rotate(Vector3::Forward(), rotationQuat))
 			);
 
 			++index;
@@ -207,6 +239,7 @@ void Renderer::RenderFrame()
 		m_basicEffectPNTTSkinned.SetDirectionalLight(light, lightCount);
 		// m_skyboxEffect.SetDirectionalLight(light, lightCount);
 		m_terrainEffect.SetDirectionalLight(light, lightCount);
+		m_billboardEffect.SetDirectionalLight(light, lightCount);
 	}
 
 	{
@@ -243,6 +276,7 @@ void Renderer::RenderFrame()
 		m_basicEffectPNTTSkinned.SetPointLight(light, lightCount);
 		// m_skyboxEffect.SetPointLight(light, lightCount);
 		m_terrainEffect.SetPointLight(light, lightCount);
+		m_billboardEffect.SetPointLight(light, lightCount);
 	}
 
 	{
@@ -259,21 +293,20 @@ void Renderer::RenderFrame()
 			const GameObject* pGameObject = pLight->m_pGameObject;
 			assert(pGameObject != nullptr);
 
-			const XMMATRIX w = pGameObject->m_transform.GetWorldTransformMatrix();
 			XMVECTOR scale;
-			XMVECTOR rotation;	// Quaternion
-			XMVECTOR translation;
-			XMMatrixDecompose(&scale, &rotation, &translation, w);
+			XMVECTOR rotationQuat;
+			XMVECTOR position;
+			pGameObject->m_transform.GetWorldTransform(&scale, &rotationQuat, &position);
 
 			light[index].diffuse = pLight->m_diffuse;
 			light[index].specular = pLight->m_specular;
 
-			XMStoreFloat3(&light[index].positionW, translation);
+			XMStoreFloat3(&light[index].positionW, position);
 			light[index].range = pLight->GetRange();
 
 			XMStoreFloat3(
 				&light[index].directionW,
-				XMVector3Normalize(XMVector3Rotate(Math::Vector3::Forward(), rotation))
+				XMVector3Normalize(XMVector3Rotate(Vector3::Forward(), rotationQuat))
 			);
 
 			light[index].att = pLight->GetDistAtt();
@@ -292,23 +325,16 @@ void Renderer::RenderFrame()
 		m_basicEffectPNTTSkinned.SetSpotLight(light, lightCount);
 		// m_skyboxEffect.SetSpotLight(light, lightCount);
 		m_terrainEffect.SetSpotLight(light, lightCount);
+		m_billboardEffect.SetSpotLight(light, lightCount);
 	}
 
-	XMVECTOR ambientLight = XMVectorScale(
-		XMLoadFloat3(&RenderSettings::GetInstance()->GetAmbientLightColor()),
-		RenderSettings::GetInstance()->GetAmbientLightIntensity()
-	);
-	// m_basicEffectP.SetAmbientLight(ambientLight);
-	// m_basicEffectPC.SetAmbientLight(ambientLight);
-	// m_basicEffectPN.SetAmbientLight(ambientLight);
-	// m_basicEffectPT.SetAmbientLight(ambientLight);
-	// m_basicEffectPNT.SetAmbientLight(ambientLight);
-	m_basicEffectPNTT.SetAmbientLight(ambientLight);
-	m_basicEffectPNTTSkinned.SetAmbientLight(ambientLight);
-	// m_skyboxEffect.SetAmbientLight(ambientLightt);
-	m_terrainEffect.SetAmbientLight(ambientLight);
+
+
+
 
 	// Camera마다 프레임 렌더링
+
+	// DepthStencil State
 	for (IComponent* pComponent : CameraManager::GetInstance()->m_directAccessGroup)
 	{
 		Camera* pCamera = static_cast<Camera*>(pComponent);
@@ -316,9 +342,25 @@ void Renderer::RenderFrame()
 		if (!pCamera->IsEnabled())
 			continue;
 
+		// 불투명 패스
+		// Rasterizer State
+		if (pCamera->GetMSAAMode() == MSAAMode::Off)
+			pImmContext->RSSetState(m_pRSSolidCullBack);
+		else
+			pImmContext->RSSetState(m_pRSMultisampleSolidCullBack);	// 후면 컬링 설정
+
+		// DepthStencil State
+		pImmContext->OMSetDepthStencilState(m_pDSSDefault, 0);
+
+		// BasicState
+		pImmContext->OMSetBlendState(m_pBSOpaque, nullptr, 0xFFFFFFFF);
+
 		pCamera->UpdateViewMatrix();	// 뷰 변환 행렬 업데이트
-		Frustum worldSpaceFrustum;
-		Frustum(pCamera->GetProjMatrix(), false).Transform(worldSpaceFrustum, XMMatrixInverse(nullptr, pCamera->GetViewMatrix()));
+
+		// 월드 스페이스 절두체 생성
+		Frustum frustumW(pCamera->GetProjMatrix(), false);	// 원근 투영 기반 절두체
+		frustumW.Transform(frustumW, XMMatrixInverse(nullptr, pCamera->GetViewMatrix()));
+
 		// Frustum cameraFrustumW;			// 프러스텀 컬링용
 		// Math::CalcWorldFrustumFromViewProjMatrix(pCamera->GetViewMatrix()* pCamera->GetProjMatrix(), cameraFrustumW);
 
@@ -344,7 +386,9 @@ void Renderer::RenderFrame()
 		m_basicEffectPNTTSkinned.SetCamera(pCamera);
 		m_skyboxEffect.SetCamera(pCamera);
 		m_terrainEffect.SetCamera(pCamera);
+		m_billboardEffect.SetCamera(pCamera);
 
+		// <Mesh 렌더링>
 		for (const IComponent* pComponent : MeshRendererManager::GetInstance()->m_directAccessGroup)
 		{
 			const MeshRenderer* pMeshRenderer = static_cast<const MeshRenderer*>(pComponent);
@@ -354,9 +398,16 @@ void Renderer::RenderFrame()
 				continue;
 			
 			// 프러스텀 컬링
-			Aabb worldSpaceAabb;
-			pMesh->GetAabb().Transform(worldSpaceAabb, pMeshRenderer->m_pGameObject->m_transform.GetWorldTransformMatrix());
-			if (!Math::TestFrustumAabbCollision(worldSpaceFrustum, worldSpaceAabb))
+			const Aabb& aabbL = pMesh->GetAabb();
+			Obb obbW;
+			obbW.Center = aabbL.Center;
+			obbW.Extents = aabbL.Extents;
+			XMStoreFloat4(&obbW.Orientation, Quaternion::Identity());
+
+			XMMATRIX worldMatrix = pMeshRenderer->m_pGameObject->m_transform.GetWorldTransformMatrix();
+
+			obbW.Transform(obbW, worldMatrix);
+			if (!Math::TestFrustumObbCollision(frustumW, obbW))
 				continue;
 
 			/*
@@ -378,19 +429,20 @@ void Renderer::RenderFrame()
 				RenderVFPositionNormalTexCoordMesh(pMeshRenderer);
 				break;
 			case VertexFormatType::PositionNormalTangentTexCoord:
-				RenderVFPositionNormalTangentTexCoordMesh(pMeshRenderer);
+				RenderPNTTMesh(pMeshRenderer);
 				break;
 			case VertexFormatType::COUNT:
 				__fallthrough;
 			case VertexFormatType::UNKNOWN:
-				*reinterpret_cast<int*>(0) = 0;
+				*reinterpret_cast<int*>(0) = 0;		// Force crash
 				break;
 			}
 			*/
 
-			RenderVFPositionNormalTangentTexCoordMesh(pMeshRenderer);
+			RenderPNTTMesh(pMeshRenderer, worldMatrix);
 		}
 
+		// <SkinnedMesh 렌더링>
 		for (const IComponent* pComponent : SkinnedMeshRendererManager::GetInstance()->m_directAccessGroup)
 		{
 			const SkinnedMeshRenderer* pMeshRenderer = static_cast<const SkinnedMeshRenderer*>(pComponent);
@@ -400,12 +452,19 @@ void Renderer::RenderFrame()
 				continue;
 
 			// 프러스텀 컬링
-			// Aabb worldSpaceAabb;
-			// pMesh->GetAabb().Transform(worldSpaceAabb, pMeshRenderer->m_pGameObject->m_transform.GetWorldTransformMatrix());
-			// if (!Math::TestFrustumAabbCollision(worldSpaceFrustum, worldSpaceAabb))
+			// const Aabb& aabbL = pMesh->GetAabb();
+			// Obb obbW;
+			// obbW.Center = aabbL.Center;
+			// obbW.Extents = aabbL.Extents;
+			// XMStoreFloat4(&obbW.Orientation, Quaternion::Identity());
+
+			XMMATRIX worldMatrix = pMeshRenderer->m_pGameObject->m_transform.GetWorldTransformMatrix();
+
+			// obbW.Transform(obbW, worldMatrix);
+			// if (!Math::TestFrustumObbCollision(frustumW, obbW))
 			// 	continue;
 
-			RenderVFPositionNormalTangentTexCoordSkinnedMesh(pMeshRenderer);
+			RenderPNTTSkinnedMesh(pMeshRenderer, worldMatrix);
 		}
 
 		// 지형 렌더링
@@ -415,26 +474,119 @@ void Renderer::RenderFrame()
 			RenderTerrain(pTerrain);
 		}
 
-		// 스카이박스 렌더링
+		// <스카이박스 렌더링>
 		ID3D11ShaderResourceView* pSkyboxCubeMap = RenderSettings::GetInstance()->m_skyboxCubeMap.GetSRVComInterface();
 		if (pSkyboxCubeMap)
 		{
-			pImmContext->OMSetDepthStencilState(m_pSkyboxDSS, 0);
+			pImmContext->OMSetDepthStencilState(m_pDSSSkybox, 0);
 			RenderSkybox(pSkyboxCubeMap);
-			pImmContext->OMSetDepthStencilState(m_pDefaultDSS, 0);
+			pImmContext->OMSetDepthStencilState(m_pDSSDefault, 0);
 		}
+
+
+		// 투명 패스
+		// 
+		// <빌보드 렌더링>
+		// 파이프라인 상태 설정
+		// Rasterizer State
+		// 빌보드는 항상 카메라를 향하므로 컬링이 필요없음.
+		if (pCamera->GetMSAAMode() == MSAAMode::Off)
+			pImmContext->RSSetState(m_pRSSolidCullNone);
+		else
+			pImmContext->RSSetState(m_pRSMultisampleSolidCullNone);
+
+		// DepthStencil State
+		pImmContext->OMSetDepthStencilState(m_pDSSDepthReadOnlyLess, 0);
+
+		// Blend State
+		// D3D11_BLEND_BLEND_FACTOR 또는 D3D11_BLEND_INV_BLEND_FACTOR 미사용 (blend factor로 nullptr 전달)
+		pImmContext->OMSetBlendState(m_pBSAlphaBlend, nullptr, 0xFFFFFFFF);
+		// 
+		// 활성화된 빌보드 컴포넌트 검색 및 정렬 (큐에 포인터 이동 후 정렬, Manager 배열에서 정렬하면 groupIndex 업데이트 등 복잡해짐)
+		m_billboardRenderQueue.clear();
+		XMVECTOR cameraScaleW;
+		XMVECTOR cameraRotW;		// Quaternion
+		XMVECTOR cameraPosW;
+		pCamera->m_pGameObject->m_transform.GetWorldTransform(&cameraScaleW, &cameraRotW, &cameraPosW);
+		XMVECTOR cameraUpW = XMVector3Rotate(Vector3::Up(), cameraRotW);
+		XMVECTOR cameraForwardW = XMVector3Rotate(Vector3::Forward(), cameraRotW);
+
+		XMMATRIX screenAlignedBillboardRotationW;
+		{
+			// 빌보드의 기저 벡터 계산
+			XMVECTOR up = cameraUpW;	// up 벡터는 카메라의 up 벡터와 동일
+			XMVECTOR forward = XMVectorNegate(cameraForwardW);	// 빌보드의 forward는 camera의 forward와 반대방향
+			XMVECTOR right = XMVector3Cross(up, forward);	// right 벡터는 up, forward로 도출
+
+			screenAlignedBillboardRotationW.r[0] = right;
+			screenAlignedBillboardRotationW.r[1] = up;
+			screenAlignedBillboardRotationW.r[2] = forward;
+			screenAlignedBillboardRotationW.r[3] = Math::IdentityR3();
+		}
+		for (IComponent* pComponent : BillboardManager::GetInstance()->m_directAccessGroup)
+		{
+			Billboard* pBillboard = static_cast<Billboard*>(pComponent);
+			if (!pBillboard->IsEnabled() || pBillboard == nullptr)
+				continue;
+
+			// 프러스텀 컬링
+			XMVECTOR billboardScaleW = XMVectorMultiply(
+				XMVectorSet(pBillboard->GetBillboardQuadWidth(), pBillboard->GetBillboardQuadHeight(), 1.0f, 0.0f),
+				pBillboard->m_pGameObject->m_transform.GetWorldScale()
+			);
+
+			Obb obbW;
+			XMStoreFloat3(&obbW.Center, XMVectorZero());
+			XMStoreFloat3(&obbW.Extents, billboardScaleW);
+			obbW.Extents.z = BOUNDING_BOX_MIN_EXTENT;	// z 볼륨 0.01f
+			XMStoreFloat4(&obbW.Orientation, Quaternion::Identity());
+
+			XMVECTOR billboardPosW = pBillboard->m_pGameObject->m_transform.GetWorldPosition();
+			XMMATRIX worldMatrix;
+			switch (pBillboard->GetBillboardType())
+			{
+			case BillboardType::Spherical:
+				worldMatrix = Math::ComputeBillboardSphericalMatrix(billboardPosW, billboardScaleW, cameraPosW, cameraUpW);
+				break;
+			case BillboardType::CylindricalY:
+				worldMatrix = Math::ComputeBillboardCylindricalYMatrix(billboardPosW, billboardScaleW, cameraPosW);
+				break;
+			case BillboardType::ScreenAligned:
+				worldMatrix = Math::ComputeBillboardScreenAlignedMatrix(screenAlignedBillboardRotationW, billboardPosW, billboardScaleW);
+				break;
+			default:
+				*reinterpret_cast<int*>(0) = 0;	// Force crash
+				break;
+			}
+			obbW.Transform(obbW, worldMatrix);
+
+			if (!Math::TestFrustumObbCollision(frustumW, obbW))
+				continue;
+
+			// 프러스텀 컬링에 사용한 행렬이 렌더링 시에도 필요하므로 캐싱
+			pBillboard->CacheWorldMatrix(worldMatrix);
+
+			// 카메라로부터의 거리의 제곱 계산
+			XMVECTOR lengthSquared = XMVector3LengthSq(XMVectorSubtract(billboardPosW, cameraPosW));
+			m_billboardRenderQueue.push_back(std::make_pair(pBillboard, XMVectorGetX(lengthSquared)));	// 빌보드 포인터, 거리 제곱 pair
+		}
+
+		// 빌보드 정렬 및 렌더링
+		std::sort(m_billboardRenderQueue.begin(), m_billboardRenderQueue.end(), BillboardComparator());
+		for (const auto& pair : m_billboardRenderQueue)
+			RenderBillboard(pair.first);
 	}
 
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	// 카메라 렌더링 결과 병합 및 스왑체인 버퍼에 UI 렌더링
 	// Rasterizer State
-	pImmContext->RSSetState(m_pCullNoneRS);	// Quad 렌더링 뿐이므로 후면 컬링 끄기
+	pImmContext->RSSetState(m_pRSSolidCullNone);	// Quad 렌더링 뿐이므로 후면 컬링 끄기
 	
 	// DepthStencil State
-	pImmContext->OMSetDepthStencilState(m_pNoDepthStencilTestDSS, 0);
+	pImmContext->OMSetDepthStencilState(m_pDSSNoDepthStencilTest, 0);
 	
-	// BasicState
-	pImmContext->OMSetBlendState(m_pOpaqueBS, nullptr, 0xFFFFFFFF);
+	// Blend State
+	pImmContext->OMSetBlendState(m_pBSOpaque, nullptr, 0xFFFFFFFF);
 	
 	// 전체 백버퍼에 대한 뷰포트 설정
 	pImmContext->RSSetViewports(1, &GraphicDevice::GetInstance()->GetEntireSwapChainViewport());
@@ -492,13 +644,14 @@ void Renderer::RenderFrame()
 	// UI 렌더링
 	{
 		// Rasterizer State
-		pImmContext->RSSetState(m_pCullNoneRS);	// Quad 렌더링 뿐이므로 후면 컬링 끄기
+		pImmContext->RSSetState(m_pRSSolidCullNone);	// Quad 렌더링 뿐이므로 후면 컬링 끄기
 
 		// DepthStencil State
-		pImmContext->OMSetDepthStencilState(m_pNoDepthStencilTestDSS, 0);
+		pImmContext->OMSetDepthStencilState(m_pDSSNoDepthStencilTest, 0);
 
+		// Blend State
 		// D3D11_BLEND_BLEND_FACTOR 또는 D3D11_BLEND_INV_BLEND_FACTOR 미사용 (blend factor로 nullptr 전달)
-		pImmContext->OMSetBlendState(m_pAlphaBlendBS, nullptr, 0xFFFFFFFF);
+		pImmContext->OMSetBlendState(m_pBSAlphaBlend, nullptr, 0xFFFFFFFF);
 
 		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 		// 모든 UI Effect들에 대한 ScreenToNDCSpaceRatio 설정
@@ -571,7 +724,7 @@ void Renderer::RenderFrame()
 }
 
 /*
-void Renderer::RenderVFPositionMesh(const MeshRenderer* pMeshRenderer)
+void XM_CALLCONV Renderer::RenderVFPositionMesh(const MeshRenderer* pMeshRenderer, FXMMATRIX worldMatrix)
 {
 	const StaticMesh* pMesh = pMeshRenderer->GetMeshPtr();
 	if (!pMesh)
@@ -579,10 +732,7 @@ void Renderer::RenderVFPositionMesh(const MeshRenderer* pMeshRenderer)
 
 	// assert(pMesh->GetVertexFormatType() == VertexFormatType::Position);
 
-	const GameObject* pGameObject = pMeshRenderer->m_pGameObject;
-	assert(pGameObject != nullptr);
-
-	m_basicEffectP.SetWorldMatrix(pGameObject->m_transform.GetWorldTransformMatrix());
+	m_basicEffectP.SetWorldMatrix(worldMatrix);
 
 	// 버텍스 버퍼 설정
 	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(VertexFormatType::Position) };
@@ -606,7 +756,7 @@ void Renderer::RenderVFPositionMesh(const MeshRenderer* pMeshRenderer)
 */
 
 /*
-void Renderer::RenderVFPositionColorMesh(const MeshRenderer* pMeshRenderer)
+void XM_CALLCONV Renderer::RenderVFPositionColorMesh(const MeshRenderer* pMeshRenderer, FXMMATRIX worldMatrix)
 {
 	const StaticMesh* pMesh = pMeshRenderer->GetMeshPtr();
 	if (!pMesh)
@@ -614,10 +764,7 @@ void Renderer::RenderVFPositionColorMesh(const MeshRenderer* pMeshRenderer)
 
 	// assert(pMesh->GetVertexFormatType() == VertexFormatType::PositionColor);
 
-	const GameObject* pGameObject = pMeshRenderer->m_pGameObject;
-	assert(pGameObject != nullptr);
-
-	m_basicEffectPC.SetWorldMatrix(pGameObject->m_transform.GetWorldTransformMatrix());
+	m_basicEffectPC.SetWorldMatrix(worldMatrix);
 
 	// 버텍스 버퍼 설정
 	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(VertexFormatType::PositionColor) };
@@ -641,7 +788,7 @@ void Renderer::RenderVFPositionColorMesh(const MeshRenderer* pMeshRenderer)
 */
 
 /*
-void Renderer::RenderVFPositionNormalMesh(const MeshRenderer* pMeshRenderer)
+void XM_CALLCONV Renderer::RenderVFPositionNormalMesh(const MeshRenderer* pMeshRenderer, FXMMATRIX worldMatrix)
 {
 	const StaticMesh* pMesh = pMeshRenderer->GetMeshPtr();
 	if (!pMesh)
@@ -649,10 +796,7 @@ void Renderer::RenderVFPositionNormalMesh(const MeshRenderer* pMeshRenderer)
 
 	// assert(pMesh->GetVertexFormatType() == VertexFormatType::PositionNormal);
 
-	const GameObject* pGameObject = pMeshRenderer->m_pGameObject;
-	assert(pGameObject != nullptr);
-
-	m_basicEffectPN.SetWorldMatrix(pGameObject->m_transform.GetWorldTransformMatrix());
+	m_basicEffectPN.SetWorldMatrix(worldMatrix);
 
 	// 버텍스 버퍼 설정
 	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(VertexFormatType::PositionNormal) };
@@ -690,7 +834,7 @@ void Renderer::RenderVFPositionNormalMesh(const MeshRenderer* pMeshRenderer)
 */
 
 /*
-void Renderer::RenderVFPositionTexCoordMesh(const MeshRenderer* pMeshRenderer)
+void XM_CALLCONV Renderer::RenderVFPositionTexCoordMesh(const MeshRenderer* pMeshRenderer, FXMMATRIX worldMatrix)
 {
 	const StaticMesh* pMesh = pMeshRenderer->GetMeshPtr();
 	if (!pMesh)
@@ -698,10 +842,7 @@ void Renderer::RenderVFPositionTexCoordMesh(const MeshRenderer* pMeshRenderer)
 
 	// assert(pMesh->GetVertexFormatType() == VertexFormatType::PositionTexCoord);
 
-	const GameObject* pGameObject = pMeshRenderer->m_pGameObject;
-	assert(pGameObject != nullptr);
-
-	m_basicEffectPT.SetWorldMatrix(pGameObject->m_transform.GetWorldTransformMatrix());
+	m_basicEffectPT.SetWorldMatrix(worldMatrix);
 
 	// 버텍스 버퍼 설정
 	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(VertexFormatType::PositionTexCoord) };
@@ -733,7 +874,7 @@ void Renderer::RenderVFPositionTexCoordMesh(const MeshRenderer* pMeshRenderer)
 */
 
 /*
-void Renderer::RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshRenderer)
+void XM_CALLCONV Renderer::RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshRenderer, FXMMATRIX worldMatrix)
 {
 	const StaticMesh* pMesh = pMeshRenderer->GetMeshPtr();
 	if (!pMesh)
@@ -741,10 +882,7 @@ void Renderer::RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshRende
 
 	// assert(pMesh->GetVertexFormatType() == VertexFormatType::PositionNormalTexCoord);
 
-	const GameObject* pGameObject = pMeshRenderer->m_pGameObject;
-	assert(pGameObject != nullptr);
-
-	m_basicEffectPNT.SetWorldMatrix(pGameObject->m_transform.GetWorldTransformMatrix());
+	m_basicEffectPNT.SetWorldMatrix(worldMatrix);
 
 	// 버텍스 버퍼 설정
 	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(VertexFormatType::PositionNormalTexCoord) };
@@ -783,7 +921,7 @@ void Renderer::RenderVFPositionNormalTexCoordMesh(const MeshRenderer* pMeshRende
 }
 */
 
-void Renderer::RenderVFPositionNormalTangentTexCoordMesh(const MeshRenderer* pMeshRenderer)
+void XM_CALLCONV Renderer::RenderPNTTMesh(const MeshRenderer* pMeshRenderer, FXMMATRIX worldMatrix)
 {
 	const StaticMesh* pMesh = pMeshRenderer->GetMeshPtr();
 	if (!pMesh)
@@ -791,10 +929,7 @@ void Renderer::RenderVFPositionNormalTangentTexCoordMesh(const MeshRenderer* pMe
 
 	// assert(pMesh->GetVertexFormatType() == VertexFormatType::PositionNormalTangentTexCoord);
 
-	const GameObject* pGameObject = pMeshRenderer->m_pGameObject;
-	assert(pGameObject != nullptr);
-
-	m_basicEffectPNTT.SetWorldMatrix(pGameObject->m_transform.GetWorldTransformMatrix());
+	m_basicEffectPNTT.SetWorldMatrix(worldMatrix);
 
 	// 버텍스 버퍼 설정
 	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(VertexFormatType::PositionNormalTangentTexCoord) };
@@ -821,17 +956,13 @@ void Renderer::RenderVFPositionNormalTangentTexCoordMesh(const MeshRenderer* pMe
 	}
 }
 
-#include <ZergEngine\CoreSystem\Input.h>
-void Renderer::RenderVFPositionNormalTangentTexCoordSkinnedMesh(const SkinnedMeshRenderer* pSkinnedMeshRenderer)
+void XM_CALLCONV Renderer::RenderPNTTSkinnedMesh(const SkinnedMeshRenderer* pSkinnedMeshRenderer, FXMMATRIX worldMatrix)
 {
 	const SkinnedMesh* pMesh = pSkinnedMeshRenderer->GetMeshPtr();
 	if (!pMesh)
 		return;
 
-	const GameObject* pGameObject = pSkinnedMeshRenderer->m_pGameObject;
-	assert(pGameObject != nullptr);
-
-	m_basicEffectPNTTSkinned.SetWorldMatrix(pGameObject->m_transform.GetWorldTransformMatrix());
+	m_basicEffectPNTTSkinned.SetWorldMatrix(worldMatrix);
 	
 	const Animation* pCurrAnim = pSkinnedMeshRenderer->GetCurrentAnimation();
 	const Armature* pArmature = pSkinnedMeshRenderer->GetArmaturePtr();
@@ -918,13 +1049,22 @@ void Renderer::RenderSkybox(ID3D11ShaderResourceView* pSkyboxCubeMapSRV)
 	m_effectImmediateContext.Draw(36, 0);
 }
 
+void Renderer::RenderBillboard(const Billboard* pBillboard)
+{
+	m_billboardEffect.SetWorldMatrix(pBillboard->GetWorldMatrixCache());
+	m_billboardEffect.SetMaterial(pBillboard->GetMaterialPtr());
+
+	m_effectImmediateContext.Apply(&m_billboardEffect);
+	m_effectImmediateContext.Draw(4, 0);
+}
+
 void Renderer::RenderPanel(const Panel* pPanel)
 {
 	ID2D1RenderTarget* pD2DRenderTarget = GraphicDevice::GetInstance()->GetD2DRenderTarget();
 	ID2D1SolidColorBrush* pSolidColorBrush = GraphicDevice::GetInstance()->GetD2DSolidColorBrush();
 	const RectTransform& transform = pPanel->m_transform;
 	XMFLOAT2A windowsRectCenter;
-	XMStoreFloat2A(&windowsRectCenter, transform.GetWindowsScreenPosition());
+	XMStoreFloat2A(&windowsRectCenter, transform.GetScreenPosWindowsCoordSystem());
 
 	D2D1_ROUNDED_RECT shapeInfo;
 	shapeInfo.rect.left = windowsRectCenter.x - pPanel->m_halfSize.x;
@@ -935,15 +1075,15 @@ void Renderer::RenderPanel(const Panel* pPanel)
 	pSolidColorBrush->SetColor(reinterpret_cast<const D2D1_COLOR_F&>(pPanel->GetColor()));
 
 
-	// ################ BEGIN DRAW ################
+	// BeginDraw
 	pD2DRenderTarget->BeginDraw();
 
 	switch (pPanel->GetShape())
 	{
-	case PANEL_SHAPE::RECTANGLE:
+	case PanelShape::Rectangle:
 		pD2DRenderTarget->FillRectangle(&shapeInfo.rect, pSolidColorBrush);
 		break;
-	case PANEL_SHAPE::ROUNDED_RECTANGLE:
+	case PanelShape::RoundedRectangle:
 		shapeInfo.radiusX = pPanel->GetRadiusX();
 		shapeInfo.radiusY = pPanel->GetRadiusY();
 		pD2DRenderTarget->FillRoundedRectangle(&shapeInfo, pSolidColorBrush);
@@ -952,12 +1092,13 @@ void Renderer::RenderPanel(const Panel* pPanel)
 		break;
 	}
 
+	// EndDraw
 	HRESULT hr = pD2DRenderTarget->EndDraw();
 }
 
 void Renderer::RenderImage(const Image* pImage)
 {
-	m_imageEffect.SetPreNDCPosition(pImage->m_transform.GetPreNDCPosition());
+	m_imageEffect.SetPreNDCPosition(pImage->m_transform.GetHCSPosition());
 	m_imageEffect.SetSize(pImage->GetSizeVector());
 	m_imageEffect.SetImageTexture(pImage->GetTexture());
 
@@ -981,24 +1122,18 @@ void Renderer::RenderText(const Text* pText)
 
 	const RectTransform& transform = pText->m_transform;
 	D2D1_RECT_F layoutRect;
-	XMFLOAT2A windowsButtonCenter;
-	XMStoreFloat2A(&windowsButtonCenter, transform.GetWindowsScreenPosition());
+	XMVECTOR windowsButtonCenter = transform.GetScreenPosWindowsCoordSystem();
 	if (pText->GetType() == UIOBJECT_TYPE::BUTTON)
-	{
 		if (static_cast<const Button*>(pText)->IsPressed())	// 버튼이 눌린 상태이면 텍스트 위치도 살짝 우하단으로 내려서 입체감 부여
-		{
-			windowsButtonCenter.x += 1.0f;
-			windowsButtonCenter.y += 1.0f;
-		}
-	}
+			windowsButtonCenter = XMVectorAdd(windowsButtonCenter, XMVectorSplatOne());	// x, y에 1.0f씩 더하기
 
-	layoutRect.left = windowsButtonCenter.x - pText->m_halfSize.x;
+	layoutRect.left = XMVectorGetX(windowsButtonCenter) - pText->m_halfSize.x;
 	layoutRect.right = layoutRect.left + pText->m_size.x;
-	layoutRect.top = windowsButtonCenter.y - pText->m_halfSize.y;
+	layoutRect.top = XMVectorGetY(windowsButtonCenter) - pText->m_halfSize.y;
 	layoutRect.bottom = layoutRect.top + pText->m_size.y;
 
 
-	// ################ BEGIN DRAW ################
+	// BeginDraw
 	pD2DRenderTarget->BeginDraw();
 
 	pD2DRenderTarget->DrawTextW(
@@ -1009,6 +1144,7 @@ void Renderer::RenderText(const Text* pText)
 		pBrush
 	);
 
+	// EndDraw
 	HRESULT hr = pD2DRenderTarget->EndDraw();
 }
 
@@ -1016,14 +1152,14 @@ void Renderer::RenderButton(const Button* pButton)
 {
 	// 1. 버튼 프레임 렌더링
 	ID3D11Buffer* vbs[] = { m_pButtonVB };
-	UINT strides[] = { sizeof(VFButton) };
+	UINT strides[] = { sizeof(VFShaded2DQuad) };
 	UINT offsets[] = { 0 };
 
 	m_effectImmediateContext.IASetVertexBuffers(0, 1, vbs, strides, offsets);
 
 	m_buttonEffect.SetPressed(pButton->IsPressed());
 	m_buttonEffect.SetColor(pButton->GetButtonColorVector());
-	m_buttonEffect.SetPreNDCPosition(pButton->m_transform.GetPreNDCPosition());
+	m_buttonEffect.SetPreNDCPosition(pButton->m_transform.GetHCSPosition());
 	m_buttonEffect.SetSize(pButton->GetSizeVector());
 
 	m_effectImmediateContext.Apply(&m_buttonEffect);
@@ -1041,7 +1177,7 @@ void Renderer::RenderInputField(const InputField* pInputField)
 	// 1. Input Field 배경 렌더링
 	const RectTransform& transform = pInputField->m_transform;
 	XMFLOAT2A windowsRectCenter;
-	XMStoreFloat2A(&windowsRectCenter, transform.GetWindowsScreenPosition());
+	XMStoreFloat2A(&windowsRectCenter, transform.GetScreenPosWindowsCoordSystem());
 
 	D2D1_ROUNDED_RECT shapeInfo;
 	shapeInfo.rect.left = windowsRectCenter.x - pInputField->m_halfSize.x;
@@ -1051,8 +1187,9 @@ void Renderer::RenderInputField(const InputField* pInputField)
 
 	pBrush->SetColor(reinterpret_cast<const D2D1_COLOR_F&>(pInputField->GetBkColor()));
 
-	// ################ BEGIN DRAW ################
+	// BeginDraw
 	pD2DRenderTarget->BeginDraw();
+
 	do
 	{
 		switch (pInputField->GetShape())
@@ -1080,28 +1217,22 @@ void Renderer::RenderInputField(const InputField* pInputField)
 		pDWriteTextFormat->SetTextAlignment(pInputField->GetTextAlignment());
 		pDWriteTextFormat->SetParagraphAlignment(pInputField->GetParagraphAlignment());
 		const D2D1_RECT_F& layoutRect = shapeInfo.rect;
-		
-		static PCWSTR pwc = L"********************************";
-		constexpr size_t pwcl = 32;
+
 		PCTSTR pContent;
-		PWSTR pBuffer = nullptr;
+
 		if (pInputField->IsPassword())
 		{
-			if (textLength <= pwcl)	// 최대 32개의 *까지는 동적할당 X
-				pContent = pwc;
-			else
-			{
-				pBuffer = new WCHAR[textLength + 1];
-				for (size_t i = 0; i < textLength; ++i)
-					pBuffer[i] = L'*';
-				pBuffer[textLength] = L'\0';
-				pContent = pBuffer;
-			}
+			const INT32 diff = static_cast<INT32>(textLength) - static_cast<INT32>(m_asteriskStr.length());
+			if (diff > 0)
+				m_asteriskStr.append(diff, L'*');
+
+			pContent = m_asteriskStr.c_str();
 		}
 		else
 		{
 			pContent = pInputField->GetText();
 		}
+
 		pD2DRenderTarget->DrawTextW(
 			pContent,
 			textLength,
@@ -1109,10 +1240,8 @@ void Renderer::RenderInputField(const InputField* pInputField)
 			layoutRect,
 			pBrush
 		);
-
-		if (pBuffer != nullptr)
-			delete[] pBuffer;
 	} while (false);
 
+	// EndDraw
 	pD2DRenderTarget->EndDraw();
 }

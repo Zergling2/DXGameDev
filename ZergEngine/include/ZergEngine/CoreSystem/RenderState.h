@@ -43,7 +43,6 @@ namespace ze
 
 		
 		DepthReadOnlyLess,
-		DepthReadOnlyLessEqual,
 
 		// DepthEnable = FALSE
 		// StencilEnable = FALSE

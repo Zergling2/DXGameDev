@@ -69,10 +69,9 @@ ComponentHandleBase IComponentManager::RegisterToHandleTable(IComponent* pCompon
 
 		// 핸들 테이블의 빈 자리를 검색
 		uint32_t emptyIndex;
-		const size_t ehtIdxSize = m_emptyHandleTableIndex.size();
-		if (ehtIdxSize > 0)
+		if (!m_emptyHandleTableIndex.empty())
 		{
-			emptyIndex = m_emptyHandleTableIndex[ehtIdxSize - 1];
+			emptyIndex = m_emptyHandleTableIndex.back();
 			m_emptyHandleTableIndex.pop_back();
 		}
 		else

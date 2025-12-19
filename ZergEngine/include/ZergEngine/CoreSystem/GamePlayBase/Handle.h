@@ -1,8 +1,8 @@
 #pragma once
 
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\ComponentType.h>
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
 #include <limits>
 
 namespace ze
@@ -55,7 +55,7 @@ namespace ze
 
 			return *this;
 		}
-		GameObjectHandle& operator=(nullptr_t) noexcept
+		GameObjectHandle& operator=(std::nullptr_t) noexcept
 		{
 			m_tableIndex = 0;
 			m_id = INVALID_ID;
@@ -116,7 +116,7 @@ namespace ze
 
 			return *this;
 		}
-		UIObjectHandle& operator=(nullptr_t) noexcept
+		UIObjectHandle& operator=(std::nullptr_t) noexcept
 		{
 			m_tableIndex = 0;
 			m_id = INVALID_ID;
@@ -209,7 +209,7 @@ namespace ze
 
 			return *this;
 		}
-		UIObjectHandle& operator=(nullptr_t) noexcept
+		UIObjectHandle& operator=(std::nullptr_t) noexcept
 		{
 			m_tableIndex = 0;
 			m_id = INVALID_ID;

@@ -15,6 +15,7 @@ using namespace ze;
 // 
 // PixelShader:
 // - UnlitPNTTNoMtl
+// - LitPNTT
 // - LitPNTTDiffMapping
 // - LitPNTTSpecMapping
 // - LitPNTTNormMapping
@@ -30,7 +31,7 @@ static inline int PtrToZeroOrOne(const void* p)
 
 void BasicEffectPNTTSkinned::Init()
 {
-	m_dirtyFlag = DIRTY_FLAG::ALL;
+	m_dirtyFlag = DirtyFlag::ALL;
 
 	m_pInputLayout = GraphicDevice::GetInstance()->GetILComInterface(VertexFormatType::PositionNormalTangentTexCoordSkinned);
 	m_pVS = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::ToHcsPNTTSkinned);
@@ -62,7 +63,7 @@ void BasicEffectPNTTSkinned::Init()
 	m_cbPerCamera.Init(pDevice);
 	m_cbPerMesh.Init(pDevice);
 	m_cbPerArmature.Init(pDevice);
-	m_cbPerSubset.Init(pDevice);
+	m_cbMaterial.Init(pDevice);
 
 	ClearTextureSRVArray();
 }
@@ -73,14 +74,14 @@ void BasicEffectPNTTSkinned::Release()
 	m_cbPerCamera.Release();
 	m_cbPerMesh.Release();
 	m_cbPerArmature.Release();
-	m_cbPerSubset.Release();
+	m_cbMaterial.Release();
 }
 
 void XM_CALLCONV BasicEffectPNTTSkinned::SetAmbientLight(FXMVECTOR ambientLight) noexcept
 {
 	XMStoreFloat3(&m_cbPerFrameCache.ambientLight, ambientLight);
 
-	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_FRAME;
+	m_dirtyFlag |= DirtyFlag::CBPerFrame;
 }
 
 void BasicEffectPNTTSkinned::SetDirectionalLight(const DirectionalLightData* pLights, uint32_t count) noexcept
@@ -91,7 +92,7 @@ void BasicEffectPNTTSkinned::SetDirectionalLight(const DirectionalLightData* pLi
 	for (uint32_t i = 0; i < count; ++i)
 		m_cbPerFrameCache.dl[i] = pLights[i];
 
-	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_FRAME;
+	m_dirtyFlag |= DirtyFlag::CBPerFrame;
 }
 
 void BasicEffectPNTTSkinned::SetPointLight(const PointLightData* pLights, uint32_t count) noexcept
@@ -102,7 +103,7 @@ void BasicEffectPNTTSkinned::SetPointLight(const PointLightData* pLights, uint32
 	for (uint32_t i = 0; i < count; ++i)
 		m_cbPerFrameCache.pl[i] = pLights[i];
 
-	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_FRAME;
+	m_dirtyFlag |= DirtyFlag::CBPerFrame;
 }
 
 void BasicEffectPNTTSkinned::SetSpotLight(const SpotLightData* pLights, uint32_t count) noexcept
@@ -113,7 +114,7 @@ void BasicEffectPNTTSkinned::SetSpotLight(const SpotLightData* pLights, uint32_t
 	for (uint32_t i = 0; i < count; ++i)
 		m_cbPerFrameCache.sl[i] = pLights[i];
 
-	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_FRAME;
+	m_dirtyFlag |= DirtyFlag::CBPerFrame;
 }
 
 void BasicEffectPNTTSkinned::SetCamera(const Camera* pCamera) noexcept
@@ -122,7 +123,7 @@ void BasicEffectPNTTSkinned::SetCamera(const Camera* pCamera) noexcept
 	assert(pCameraOwner != nullptr);
 
 	XMMATRIX vp = pCamera->GetViewMatrix() * pCamera->GetProjMatrix();
-	Math::CalcFrustumPlanesFromViewProjMatrix(vp, m_cbPerCameraCache.worldSpaceFrustumPlane);
+	Math::ComputeFrustumPlanesFromViewProjMatrix(vp, m_cbPerCameraCache.worldSpaceFrustumPlane);
 
 	XMStoreFloat3(&m_cbPerCameraCache.cameraPosW, pCameraOwner->m_transform.GetWorldPosition());
 	m_cbPerCameraCache.tessMinDist = pCamera->GetMinDistanceTessellationToStart();
@@ -132,7 +133,7 @@ void BasicEffectPNTTSkinned::SetCamera(const Camera* pCamera) noexcept
 
 	XMStoreFloat4x4A(&m_cbPerCameraCache.vp, ConvertToHLSLMatrix(vp));
 
-	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_CAMERA;
+	m_dirtyFlag |= DirtyFlag::CBPerCamera;
 }
 
 void XM_CALLCONV BasicEffectPNTTSkinned::SetWorldMatrix(FXMMATRIX w) noexcept
@@ -140,7 +141,7 @@ void XM_CALLCONV BasicEffectPNTTSkinned::SetWorldMatrix(FXMMATRIX w) noexcept
 	XMStoreFloat4x4A(&m_cbPerMeshCache.w, ConvertToHLSLMatrix(w));			// HLSL 전치
 	XMStoreFloat4x4A(&m_cbPerMeshCache.wInvTr, XMMatrixInverse(nullptr, w));	// 역행렬의 전치의 HLSL 전치
 
-	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_MESH;
+	m_dirtyFlag |= DirtyFlag::CBPerMesh;
 }
 
 void BasicEffectPNTTSkinned::SetArmatureFinalTransform(const XMFLOAT4X4A* pFinalTransforms, size_t count)
@@ -149,7 +150,7 @@ void BasicEffectPNTTSkinned::SetArmatureFinalTransform(const XMFLOAT4X4A* pFinal
 
 	memcpy(m_cbPerArmatureCache.finalTransform, pFinalTransforms, sizeof(XMFLOAT4X4A) * count);
 
-	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_ARMATURE;
+	m_dirtyFlag |= DirtyFlag::CONSTANTBUFFER_PER_ARMATURE;
 }
 
 void BasicEffectPNTTSkinned::SetMaterial(const Material* pMaterial)
@@ -178,17 +179,17 @@ void BasicEffectPNTTSkinned::SetMaterial(const Material* pMaterial)
 		pPS = m_psTable[useNormalMap][useSpecularMap][useDiffuseMap];
 
 		// 재질 값 설정
-		m_cbPerSubsetCache.mtl.diffuse = pMaterial->m_diffuse;
-		m_cbPerSubsetCache.mtl.specular = pMaterial->m_specular;
-		m_cbPerSubsetCache.mtl.reflect = pMaterial->m_reflect;
+		m_cbMaterialCache.mtl.diffuse = pMaterial->m_diffuse;
+		m_cbMaterialCache.mtl.specular = pMaterial->m_specular;
+		m_cbMaterialCache.mtl.reflect = pMaterial->m_reflect;
 
-		m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_SUBSET;
+		m_dirtyFlag |= DirtyFlag::CBMaterial;
 	}
 
 	if (m_pCurrPS != pPS)
 	{
 		m_pCurrPS = pPS;
-		m_dirtyFlag |= DIRTY_FLAG::PIXEL_SHADER;
+		m_dirtyFlag |= DirtyFlag::PixelShader;
 	}
 }
 
@@ -200,32 +201,32 @@ void BasicEffectPNTTSkinned::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noex
 	{
 		switch (static_cast<DWORD>(1) << index)
 		{
-		case DIRTY_FLAG::PRIMITIVE_TOPOLOGY:
+		case DirtyFlag::PrimitiveTopology:
 			pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 			break;
-		case DIRTY_FLAG::INPUT_LAYOUT:
+		case DirtyFlag::InputLayout:
 			pDeviceContext->IASetInputLayout(m_pInputLayout);
 			break;
-		case DIRTY_FLAG::SHADER:
+		case DirtyFlag::Shader:
 			ApplyShader(pDeviceContext);
 			break;
-		case DIRTY_FLAG::PIXEL_SHADER:
+		case DirtyFlag::PixelShader:
 			ApplyPixelShader(pDeviceContext);
 			break;
-		case DIRTY_FLAG::CONSTANTBUFFER_PER_FRAME:
+		case DirtyFlag::CBPerFrame:
 			ApplyPerFrameConstantBuffer(pDeviceContext);
 			break;
-		case DIRTY_FLAG::CONSTANTBUFFER_PER_CAMERA:
+		case DirtyFlag::CBPerCamera:
 			ApplyPerCameraConstantBuffer(pDeviceContext);
 			break;
-		case DIRTY_FLAG::CONSTANTBUFFER_PER_MESH:
+		case DirtyFlag::CBPerMesh:
 			ApplyPerMeshConstantBuffer(pDeviceContext);
 			break;
-		case DIRTY_FLAG::CONSTANTBUFFER_PER_ARMATURE:
+		case DirtyFlag::CONSTANTBUFFER_PER_ARMATURE:
 			ApplyPerArmatureConstantBuffer(pDeviceContext);
 			break;
-		case DIRTY_FLAG::CONSTANTBUFFER_PER_SUBSET:
-			ApplyPerSubsetConstantBuffer(pDeviceContext);
+		case DirtyFlag::CBMaterial:
+			ApplyMaterialConstantBuffer(pDeviceContext);
 			break;
 		default:
 			assert(false);
@@ -251,7 +252,7 @@ void BasicEffectPNTTSkinned::KickedOutOfDeviceContext() noexcept
 {
 	ClearTextureSRVArray();
 
-	m_dirtyFlag = DIRTY_FLAG::ALL;
+	m_dirtyFlag = DirtyFlag::ALL;
 }
 
 void BasicEffectPNTTSkinned::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
@@ -284,10 +285,10 @@ void BasicEffectPNTTSkinned::ApplyPerCameraConstantBuffer(ID3D11DeviceContext* p
 	ID3D11Buffer* const cbs[] = { m_cbPerCamera.GetComInterface() };
 
 	// PerCamera 상수버퍼 사용 셰이더
-	constexpr UINT vsStartSlot = 0;
-	constexpr UINT psStartSlot = 1;
-	pDeviceContext->VSSetConstantBuffers(vsStartSlot, 1, cbs);
-	pDeviceContext->PSSetConstantBuffers(psStartSlot, 1, cbs);
+	constexpr UINT VS_SLOT = 0;
+	constexpr UINT PS_SLOT = 1;
+	pDeviceContext->VSSetConstantBuffers(VS_SLOT, 1, cbs);
+	pDeviceContext->PSSetConstantBuffers(PS_SLOT, 1, cbs);
 }
 
 void BasicEffectPNTTSkinned::ApplyPerMeshConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
@@ -310,12 +311,12 @@ void BasicEffectPNTTSkinned::ApplyPerArmatureConstantBuffer(ID3D11DeviceContext*
 	pDeviceContext->VSSetConstantBuffers(startSlot, 1, cbs);
 }
 
-void BasicEffectPNTTSkinned::ApplyPerSubsetConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
+void BasicEffectPNTTSkinned::ApplyMaterialConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	m_cbPerSubset.Update(pDeviceContext, &m_cbPerSubsetCache);
-	ID3D11Buffer* const cbs[] = { m_cbPerSubset.GetComInterface() };
+	m_cbMaterial.Update(pDeviceContext, &m_cbMaterialCache);
+	ID3D11Buffer* const cbs[] = { m_cbMaterial.GetComInterface() };
 
-	// PerSubset 상수버퍼 사용 셰이더
+	// Material 상수버퍼 사용 셰이더
 	constexpr UINT startSlot = 2;
 	pDeviceContext->PSSetConstantBuffers(startSlot, 1, cbs);
 }

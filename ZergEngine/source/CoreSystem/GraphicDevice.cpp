@@ -29,8 +29,8 @@ static PCWSTR VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::COUNT)] 
 	L"VSToHcsSkybox.cso",
 	L"VSToHcsBillboardQuad.cso",
 	L"VSToHcsScreenRatioQuad.cso",
-	L"VSToHcsUIQuad.cso",
-	L"VSToHcsButton.cso"
+	L"VSToHcs2DQuad.cso",
+	L"VSToHcsShaded2DQuad.cso"
 };
 static PCWSTR HULL_SHADER_FILES[static_cast<size_t>(HullShaderType::COUNT)] =
 {
@@ -551,25 +551,25 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	// No input layout required.
 	delete[] pByteCode;
 
-	// ToHcsUIQuad (No Input Layout required)
+	// ToHcs2DQuad (No Input Layout required)
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
-	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::ToHcsUIQuad)]);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::ToHcs2DQuad)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
 		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
-	m_vs[static_cast<size_t>(VertexShaderType::ToHcsUIQuad)].Init(pDevice, pByteCode, byteCodeSize);
+	m_vs[static_cast<size_t>(VertexShaderType::ToHcs2DQuad)].Init(pDevice, pByteCode, byteCodeSize);
 	delete[] pByteCode;
 
-	// ToHcsButton
+	// ToHcsShaded2DQuad
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
-	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::ToHcsButton)]);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::ToHcsShaded2DQuad)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
 		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
-	m_vs[static_cast<size_t>(VertexShaderType::ToHcsButton)].Init(pDevice, pByteCode, byteCodeSize);
+	m_vs[static_cast<size_t>(VertexShaderType::ToHcsShaded2DQuad)].Init(pDevice, pByteCode, byteCodeSize);
 	// ┗━ Create compatible Input Layout
-	m_il[static_cast<size_t>(VertexFormatType::ButtonPt)].Init(
+	m_il[static_cast<size_t>(VertexFormatType::Shaded2DQuad)].Init(
 		pDevice,
-		VFButton::GetInputElementDescriptor(),
-		VFButton::GetInputElementCount(),
+		VFShaded2DQuad::GetInputElementDescriptor(),
+		VFShaded2DQuad::GetInputElementCount(),
 		pByteCode,
 		byteCodeSize
 	);
@@ -775,61 +775,61 @@ void GraphicDevice::CreateRasterizerStates()
 {
 	ID3D11Device* pDevice = m_cpDevice.Get();
 
-	D3D11_RASTERIZER_DESC rasterDesc;
+	D3D11_RASTERIZER_DESC rasterizerDesc;
 
-	ZeroMemory(&rasterDesc, sizeof(rasterDesc));
-	rasterDesc.FillMode = D3D11_FILL_WIREFRAME;
-	rasterDesc.CullMode = D3D11_CULL_NONE;
+	ZeroMemory(&rasterizerDesc, sizeof(rasterizerDesc));
+	rasterizerDesc.FillMode = D3D11_FILL_WIREFRAME;
+	rasterizerDesc.CullMode = D3D11_CULL_NONE;
 
-	rasterDesc.MultisampleEnable = TRUE;
-	m_rs[static_cast<size_t>(RasterizerMode::WireframeMultisample)].Init(
-		pDevice, &rasterDesc
+	rasterizerDesc.MultisampleEnable = TRUE;
+	m_rs[static_cast<size_t>(RasterizerMode::MultisampleWireframe)].Init(
+		pDevice, &rasterizerDesc
 	);
-	rasterDesc.MultisampleEnable = FALSE;
-	m_rs[static_cast<size_t>(RasterizerMode::WireframeNoMultisample)].Init(
-		pDevice, &rasterDesc
-	);
-
-
-	ZeroMemory(&rasterDesc, sizeof(rasterDesc));
-	rasterDesc.FillMode = D3D11_FILL_SOLID;
-	rasterDesc.CullMode = D3D11_CULL_NONE;
-
-	rasterDesc.MultisampleEnable = TRUE;
-	m_rs[static_cast<size_t>(RasterizerMode::SolidCullNoneMultisample)].Init(
-		pDevice, &rasterDesc
-	);
-	rasterDesc.MultisampleEnable = FALSE;
-	m_rs[static_cast<size_t>(RasterizerMode::SolidCullNoneNoMultisample)].Init(
-		pDevice, &rasterDesc
+	rasterizerDesc.MultisampleEnable = FALSE;
+	m_rs[static_cast<size_t>(RasterizerMode::Wireframe)].Init(
+		pDevice, &rasterizerDesc
 	);
 
 
-	ZeroMemory(&rasterDesc, sizeof(rasterDesc));
-	rasterDesc.FillMode = D3D11_FILL_SOLID;
-	rasterDesc.CullMode = D3D11_CULL_FRONT;
+	ZeroMemory(&rasterizerDesc, sizeof(rasterizerDesc));
+	rasterizerDesc.FillMode = D3D11_FILL_SOLID;
+	rasterizerDesc.CullMode = D3D11_CULL_NONE;
 
-	rasterDesc.MultisampleEnable = TRUE;
-	m_rs[static_cast<size_t>(RasterizerMode::SolidCullFrontMultisample)].Init(
-		pDevice, &rasterDesc
+	rasterizerDesc.MultisampleEnable = TRUE;
+	m_rs[static_cast<size_t>(RasterizerMode::MultisampleSolidCullNone)].Init(
+		pDevice, &rasterizerDesc
 	);
-	rasterDesc.MultisampleEnable = FALSE;
-	m_rs[static_cast<size_t>(RasterizerMode::SolidCullFrontNoMultisample)].Init(
-		pDevice, &rasterDesc
+	rasterizerDesc.MultisampleEnable = FALSE;
+	m_rs[static_cast<size_t>(RasterizerMode::SolidCullNone)].Init(
+		pDevice, &rasterizerDesc
 	);
 
 
-	ZeroMemory(&rasterDesc, sizeof(rasterDesc));
-	rasterDesc.FillMode = D3D11_FILL_SOLID;
-	rasterDesc.CullMode = D3D11_CULL_BACK;
+	ZeroMemory(&rasterizerDesc, sizeof(rasterizerDesc));
+	rasterizerDesc.FillMode = D3D11_FILL_SOLID;
+	rasterizerDesc.CullMode = D3D11_CULL_FRONT;
 
-	rasterDesc.MultisampleEnable = TRUE;
-	m_rs[static_cast<size_t>(RasterizerMode::SolidCullBackMultisample)].Init(
-		pDevice, &rasterDesc
+	rasterizerDesc.MultisampleEnable = TRUE;
+	m_rs[static_cast<size_t>(RasterizerMode::MultisampleSolidCullFront)].Init(
+		pDevice, &rasterizerDesc
 	);
-	rasterDesc.MultisampleEnable = FALSE;
-	m_rs[static_cast<size_t>(RasterizerMode::SolidCullBackNoMultisample)].Init(
-		pDevice, &rasterDesc
+	rasterizerDesc.MultisampleEnable = FALSE;
+	m_rs[static_cast<size_t>(RasterizerMode::SolidCullFront)].Init(
+		pDevice, &rasterizerDesc
+	);
+
+
+	ZeroMemory(&rasterizerDesc, sizeof(rasterizerDesc));
+	rasterizerDesc.FillMode = D3D11_FILL_SOLID;
+	rasterizerDesc.CullMode = D3D11_CULL_BACK;
+
+	rasterizerDesc.MultisampleEnable = TRUE;
+	m_rs[static_cast<size_t>(RasterizerMode::MultisampleSolidCullBack)].Init(
+		pDevice, &rasterizerDesc
+	);
+	rasterizerDesc.MultisampleEnable = FALSE;
+	m_rs[static_cast<size_t>(RasterizerMode::SolidCullBack)].Init(
+		pDevice, &rasterizerDesc
 	);
 
 
@@ -842,22 +842,22 @@ void GraphicDevice::CreateRasterizerStates()
 	* The idea is to push surfaces out enough while rendering a shadow buffer so that the 
 	* comparison result (between the shadow buffer z and the shader z) is consistent across the surface, and avoid local self-shadowing.
 	*/
-	ZeroMemory(&rasterDesc, sizeof(rasterDesc));
-	rasterDesc.FillMode = D3D11_FILL_SOLID;
-	rasterDesc.CullMode = D3D11_CULL_BACK;
-	rasterDesc.DepthBias = 100000;	// Bias = (float)DepthBias * r + SlopeScaledDepthBias * MaxDepthSlope;	(UNORM 깊이 버퍼일 경우 계산식)
+	ZeroMemory(&rasterizerDesc, sizeof(rasterizerDesc));
+	rasterizerDesc.FillMode = D3D11_FILL_SOLID;
+	rasterizerDesc.CullMode = D3D11_CULL_BACK;
+	rasterizerDesc.DepthBias = 100000;	// Bias = (float)DepthBias * r + SlopeScaledDepthBias * MaxDepthSlope;	(UNORM 깊이 버퍼일 경우 계산식)
 	/*
 	* if(DepthBiasClamp > 0)
     *	Bias = min(DepthBiasClamp, Bias)
 	* else if(DepthBiasClamp < 0)
     *	Bias = max(DepthBiasClamp, Bias)
 	*/
-	rasterDesc.DepthBiasClamp = 0.0f;
-	rasterDesc.SlopeScaledDepthBias = 1.0f;
-	// rasterDesc.MultisampleEnable = FALSE;
-	// rasterDesc.AntialiasedLineEnable = FALSE;
+	rasterizerDesc.DepthBiasClamp = 0.0f;
+	rasterizerDesc.SlopeScaledDepthBias = 1.0f;
+	// rasterizerDesc.MultisampleEnable = FALSE;
+	// rasterizerDesc.AntialiasedLineEnable = FALSE;
 	m_rs[static_cast<size_t>(RasterizerMode::ShadowMap)].Init(
-		pDevice, &rasterDesc
+		pDevice, &rasterizerDesc
 	);
 }
 
@@ -976,14 +976,6 @@ void GraphicDevice::CreateDepthStencilStates()
 	depthStencilDesc.StencilEnable = FALSE;
 	m_dss[static_cast<size_t>(DepthStencilStateType::DepthReadOnlyLess)].Init(pDevice, &depthStencilDesc);
 
-	// Depth read only (D3D11_COMPARISON_LESS_EQUAL)
-	ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
-	depthStencilDesc.DepthEnable = TRUE;
-	depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-	depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
-	depthStencilDesc.StencilEnable = FALSE;
-	m_dss[static_cast<size_t>(DepthStencilStateType::DepthReadOnlyLessEqual)].Init(pDevice, &depthStencilDesc);
-
 	// 5. No Depth/Stencil test (카메라 병합 등...)
 	ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
 	depthStencilDesc.DepthEnable = FALSE;
@@ -1051,13 +1043,14 @@ bool GraphicDevice::CreateCommonGraphicResources()
 {
 	ID3D11Device* pDevice = this->GetDeviceComInterface();
 
-	// 1. Button VB
+	// 1. UI 렌더링용 음영 2D 사각형 버퍼 생성
 	{
-		const XMFLOAT2 ltShade = XMFLOAT2(+0.5f, -0.5f);			// 음영 처리값
-		const XMFLOAT2 rbShade = XMFLOAT2(ltShade.y, ltShade.x);	// 음영 처리값
+		const XMFLOAT2 ltShade = XMFLOAT2(+0.5f, -0.5f);
+		const XMFLOAT2 rbShade = XMFLOAT2(ltShade.y, ltShade.x);	// 좌상단과 음영 반전
 		const XMFLOAT2 centerShade = XMFLOAT2(0.0f, 0.0f);
-		const float offsetValue = 2.0f;		// 버튼 입체감 모서리 오프셋
-		VFButton v[30];
+
+		constexpr float SHADE_EDGE_OFFSET = 1.0f;		// 버튼 입체감 모서리 오프셋
+		VFShaded2DQuad v[30];
 
 		// Top shaded
 		v[0].m_position = XMFLOAT2(-0.5f, +0.5f);
@@ -1067,16 +1060,16 @@ bool GraphicDevice::CreateCommonGraphicResources()
 		v[1].m_offset = XMFLOAT2(0.0f, 0.0f);
 		v[1].m_shade = ltShade;
 		v[2].m_position = XMFLOAT2(-0.5f, +0.5f);
-		v[2].m_offset = XMFLOAT2(+offsetValue, -offsetValue);
+		v[2].m_offset = XMFLOAT2(+SHADE_EDGE_OFFSET, -SHADE_EDGE_OFFSET);
 		v[2].m_shade = ltShade;
 		v[3].m_position = XMFLOAT2(-0.5f, +0.5f);
-		v[3].m_offset = XMFLOAT2(+offsetValue, -offsetValue);
+		v[3].m_offset = XMFLOAT2(+SHADE_EDGE_OFFSET, -SHADE_EDGE_OFFSET);
 		v[3].m_shade = ltShade;
 		v[4].m_position = XMFLOAT2(+0.5f, +0.5f);
 		v[4].m_offset = XMFLOAT2(0.0f, 0.0f);
 		v[4].m_shade = ltShade;
 		v[5].m_position = XMFLOAT2(+0.5f, +0.5f);
-		v[5].m_offset = XMFLOAT2(-offsetValue, -offsetValue);
+		v[5].m_offset = XMFLOAT2(-SHADE_EDGE_OFFSET, -SHADE_EDGE_OFFSET);
 		v[5].m_shade = ltShade;
 
 		// Left shaded
@@ -1084,7 +1077,7 @@ bool GraphicDevice::CreateCommonGraphicResources()
 		v[6].m_offset = XMFLOAT2(0.0f, 0.0f);
 		v[6].m_shade = ltShade;
 		v[7].m_position = XMFLOAT2(-0.5f, +0.5f);
-		v[7].m_offset = XMFLOAT2(+offsetValue, -offsetValue);
+		v[7].m_offset = XMFLOAT2(+SHADE_EDGE_OFFSET, -SHADE_EDGE_OFFSET);
 		v[7].m_shade = ltShade;
 		v[8].m_position = XMFLOAT2(-0.5f, -0.5f);
 		v[8].m_offset = XMFLOAT2(0.0f, 0.0f);
@@ -1093,18 +1086,18 @@ bool GraphicDevice::CreateCommonGraphicResources()
 		v[9].m_offset = XMFLOAT2(0.0f, 0.0f);
 		v[9].m_shade = ltShade;
 		v[10].m_position = XMFLOAT2(-0.5f, +0.5f);
-		v[10].m_offset = XMFLOAT2(+offsetValue, -offsetValue);
+		v[10].m_offset = XMFLOAT2(+SHADE_EDGE_OFFSET, -SHADE_EDGE_OFFSET);
 		v[10].m_shade = ltShade;
 		v[11].m_position = XMFLOAT2(-0.5f, -0.5f);
-		v[11].m_offset = XMFLOAT2(+offsetValue, +offsetValue);
+		v[11].m_offset = XMFLOAT2(+SHADE_EDGE_OFFSET, +SHADE_EDGE_OFFSET);
 		v[11].m_shade = ltShade;
 
 		// Right shaded
 		v[12].m_position = XMFLOAT2(+0.5f, -0.5f);
-		v[12].m_offset = XMFLOAT2(-offsetValue, +offsetValue);
+		v[12].m_offset = XMFLOAT2(-SHADE_EDGE_OFFSET, +SHADE_EDGE_OFFSET);
 		v[12].m_shade = rbShade;
 		v[13].m_position = XMFLOAT2(+0.5f, +0.5f);
-		v[13].m_offset = XMFLOAT2(-offsetValue, -offsetValue);
+		v[13].m_offset = XMFLOAT2(-SHADE_EDGE_OFFSET, -SHADE_EDGE_OFFSET);
 		v[13].m_shade = rbShade;
 		v[14].m_position = XMFLOAT2(+0.5f, -0.5f);
 		v[14].m_offset = XMFLOAT2(0.0f, 0.0f);
@@ -1113,7 +1106,7 @@ bool GraphicDevice::CreateCommonGraphicResources()
 		v[15].m_offset = XMFLOAT2(0.0f, 0.0f);
 		v[15].m_shade = rbShade;
 		v[16].m_position = XMFLOAT2(+0.5f, +0.5f);
-		v[16].m_offset = XMFLOAT2(-offsetValue, -offsetValue);
+		v[16].m_offset = XMFLOAT2(-SHADE_EDGE_OFFSET, -SHADE_EDGE_OFFSET);
 		v[16].m_shade = rbShade;
 		v[17].m_position = XMFLOAT2(+0.5f, +0.5f);
 		v[17].m_offset = XMFLOAT2(0.0f, 0.0f);
@@ -1124,7 +1117,7 @@ bool GraphicDevice::CreateCommonGraphicResources()
 		v[18].m_offset = XMFLOAT2(0.0f, 0.0f);
 		v[18].m_shade = rbShade;
 		v[19].m_position = XMFLOAT2(-0.5f, -0.5f);
-		v[19].m_offset = XMFLOAT2(+offsetValue, +offsetValue);
+		v[19].m_offset = XMFLOAT2(+SHADE_EDGE_OFFSET, +SHADE_EDGE_OFFSET);
 		v[19].m_shade = rbShade;
 		v[20].m_position = XMFLOAT2(+0.5f, -0.5f);
 		v[20].m_offset = XMFLOAT2(0.0f, 0.0f);
@@ -1133,30 +1126,30 @@ bool GraphicDevice::CreateCommonGraphicResources()
 		v[21].m_offset = XMFLOAT2(0.0f, 0.0f);
 		v[21].m_shade = rbShade;
 		v[22].m_position = XMFLOAT2(-0.5f, -0.5f);
-		v[22].m_offset = XMFLOAT2(+offsetValue, +offsetValue);
+		v[22].m_offset = XMFLOAT2(+SHADE_EDGE_OFFSET, +SHADE_EDGE_OFFSET);
 		v[22].m_shade = rbShade;
 		v[23].m_position = XMFLOAT2(+0.5f, -0.5f);
-		v[23].m_offset = XMFLOAT2(-offsetValue, +offsetValue);
+		v[23].m_offset = XMFLOAT2(-SHADE_EDGE_OFFSET, +SHADE_EDGE_OFFSET);
 		v[23].m_shade = rbShade;
 
 		// Center
 		v[24].m_position = XMFLOAT2(-0.5f, -0.5f);
-		v[24].m_offset = XMFLOAT2(+offsetValue, +offsetValue);
+		v[24].m_offset = XMFLOAT2(+SHADE_EDGE_OFFSET, +SHADE_EDGE_OFFSET);
 		v[24].m_shade = centerShade;
 		v[25].m_position = XMFLOAT2(-0.5f, +0.5f);
-		v[25].m_offset = XMFLOAT2(+offsetValue, -offsetValue);
+		v[25].m_offset = XMFLOAT2(+SHADE_EDGE_OFFSET, -SHADE_EDGE_OFFSET);
 		v[25].m_shade = centerShade;
 		v[26].m_position = XMFLOAT2(+0.5f, -0.5f);
-		v[26].m_offset = XMFLOAT2(-offsetValue, +offsetValue);
+		v[26].m_offset = XMFLOAT2(-SHADE_EDGE_OFFSET, +SHADE_EDGE_OFFSET);
 		v[26].m_shade = centerShade;
 		v[27].m_position = XMFLOAT2(+0.5f, -0.5f);
-		v[27].m_offset = XMFLOAT2(-offsetValue, +offsetValue);
+		v[27].m_offset = XMFLOAT2(-SHADE_EDGE_OFFSET, +SHADE_EDGE_OFFSET);
 		v[27].m_shade = centerShade;
 		v[28].m_position = XMFLOAT2(-0.5f, +0.5f);
-		v[28].m_offset = XMFLOAT2(+offsetValue, -offsetValue);
+		v[28].m_offset = XMFLOAT2(+SHADE_EDGE_OFFSET, -SHADE_EDGE_OFFSET);
 		v[28].m_shade = centerShade;
 		v[29].m_position = XMFLOAT2(+0.5f, +0.5f);
-		v[29].m_offset = XMFLOAT2(-offsetValue, -offsetValue);
+		v[29].m_offset = XMFLOAT2(-SHADE_EDGE_OFFSET, -SHADE_EDGE_OFFSET);
 		v[29].m_shade = centerShade;
 
 		// Create a vertex buffer
@@ -1167,7 +1160,7 @@ bool GraphicDevice::CreateCommonGraphicResources()
 		bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 		bufferDesc.CPUAccessFlags = 0;
 		bufferDesc.MiscFlags = 0;
-		bufferDesc.StructureByteStride = sizeof(VFButton);
+		bufferDesc.StructureByteStride = sizeof(VFShaded2DQuad);
 
 		D3D11_SUBRESOURCE_DATA subrcData;
 		ZeroMemory(&subrcData, sizeof(subrcData));

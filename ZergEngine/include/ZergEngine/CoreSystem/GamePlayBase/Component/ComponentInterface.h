@@ -27,7 +27,6 @@ namespace ze
 		friend class MonoBehaviourManager;
 		friend class SceneManager;
 		friend class GameObject;
-		friend class Camera;
 		friend class Transform;
 		friend class Renderer;
 		friend class BasicEffectP;
@@ -39,6 +38,7 @@ namespace ze
 		friend class BasicEffectPNTTSkinned;
 		friend class SkyboxEffect;
 		friend class TerrainEffect;
+		friend class BillboardEffect;
 	public:
 		IComponent(uint64_t id) noexcept;
 		virtual ~IComponent() = default;
@@ -63,8 +63,9 @@ namespace ze
 		const ComponentHandleBase ToHandle() const;
 		void OnFlag(ComponentFlag flag) { m_flag = static_cast<ComponentFlag>(static_cast<cft>(m_flag) | static_cast<cft>(flag)); }
 		void OffFlag(ComponentFlag flag) { m_flag = static_cast<ComponentFlag>(static_cast<cft>(m_flag) & ~static_cast<cft>(flag)); }
-	private:
+	protected:
 		GameObject* m_pGameObject;
+	private:
 		uint64_t m_id;
 		uint32_t m_tableIndex;
 		uint32_t m_groupIndex;

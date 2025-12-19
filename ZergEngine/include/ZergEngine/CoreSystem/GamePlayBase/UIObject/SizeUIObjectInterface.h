@@ -13,10 +13,12 @@ namespace ze
 
 		XMVECTOR XM_CALLCONV GetSizeVector() const { return XMLoadFloat2(&m_size); }
 		XMFLOAT2 GetSize() const { return m_size; }
+		FLOAT GetSizeX() const { return m_size.x; }
+		FLOAT GetSizeY() const { return m_size.y; }
 		XMFLOAT2 GetHalfSize() const { return m_halfSize; }
 		void XM_CALLCONV SetSize(FXMVECTOR size);
-		void SetSize(const XMFLOAT2& size) { this->SetSize(XMLoadFloat2(&size)); }
-		void SetSize(const XMFLOAT2A& size) { this->SetSize(XMLoadFloat2A(&size)); }
+		void SetSize(FLOAT width, FLOAT height) { SetSize(XMVectorSet(width, height, 0.0f, 0.0f)); }
+		void SetSize(const XMFLOAT2& size) { SetSize(XMVectorSet(size.x, size.y, 0.0f, 0.0f)); }
 	protected:
 		virtual bool XM_CALLCONV HitTest(FXMVECTOR mousePosition) const override;
 	protected:

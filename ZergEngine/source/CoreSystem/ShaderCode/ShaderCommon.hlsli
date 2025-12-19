@@ -139,9 +139,15 @@ hlslstruct CbPerCameraMerge
 	FLOAT topLeftY;
 };
 
-hlslstruct CbPerSubset
+hlslstruct CbMaterial
 {
     MaterialData mtl;
+};
+
+hlslstruct CbPerBillboard
+{
+    XMFLOAT4X4A w;
+    XMFLOAT4X4A wInvTr;
 };
 
 hlslstruct CbPerUIRender
@@ -149,25 +155,18 @@ hlslstruct CbPerUIRender
     XMFLOAT2 toNDCSpaceRatio;
 };
 
-hlslstruct CbPerPCQuad
-{
-	XMFLOAT4A color;
-	XMFLOAT2 size;
-	XMFLOAT2 position;
-};
-
-hlslstruct CbPerPTQuad
+hlslstruct CbPer2DQuad
 {
 	XMFLOAT2 size;
 	XMFLOAT2 position;
 };
 
-hlslstruct CbPerButton
+hlslstruct CbPerShaded2DQuad
 {
     XMFLOAT4A color;
 	XMFLOAT2 size;
 	XMFLOAT2 position;
-	uint32_t shadeIndex; // [0] not pressed, [1] pressed
+	uint32_t shadeIndex; // [0] Convex shade [1] Concave shade
 };
 
 hlslstruct Aabb

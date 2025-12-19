@@ -32,43 +32,56 @@ namespace ze
 {
 	using Frustum = DirectX::BoundingFrustum;
 	using Aabb = DirectX::BoundingBox;
+	using Obb = DirectX::BoundingOrientedBox;
 	class Ray;
 	class Triangle;
+
+	struct SphericalCoord
+	{
+		float r;		// 원점과의 거리
+		float theta;	// Y축 기준 극각 [-PI / 2, +PI / 2]
+		float phi;		// XZ 평면에서의 방위각 [0, 2PI)
+	};
+
+	class Vector3
+	{
+	public:
+		// 1.0f, 0.0f, 0.0f, 0.0f
+		static XMVECTOR Right() { return g_XMIdentityR0; }
+
+		// 0.0f, 1.0f, 0.0f, 0.0f
+		static XMVECTOR Up() { return g_XMIdentityR1; }
+
+		// 0.0f, 0.0f, 1.0f, 0.0f
+		static XMVECTOR Forward() { return g_XMIdentityR2; }
+
+		// 1.0f, 1.0f, 1.0f, 1.0f
+		static XMVECTOR One() { return g_XMOne; }
+
+		// 1.0f, 1.0f, 1.0f, 0.0f
+		static XMVECTOR One3() { return g_XMOne3; }
+
+		// 0.5f, 0.5f, 0.5f, 0.5f
+		static XMVECTOR OneHalf() { return g_XMOneHalf; }
+
+		// 0.0f, 0.0f, 0.0f, 0.0f
+		static XMVECTOR Zero() { return g_XMZero; }
+	};
 
 	class Math
 	{
 	public:
-		class Vector3
-		{
-		public:
-			// 0.0f, 1.0f, 0.0f, 0.0f
-			static XMVECTOR Up() { return g_XMIdentityR1; }
+		// 1.0f, 0.0f, 0.0f, 0.0f
+		static XMVECTOR IdentityR0() { return g_XMIdentityR0; }
 
-			// 1.0f, 0.0f, 0.0f, 0.0f
-			static XMVECTOR Right() { return g_XMIdentityR0; }
+		// 0.0f, 1.0f, 0.0f, 0.0f
+		static XMVECTOR IdentityR1() { return g_XMIdentityR1; }
 
-			// 0.0f, 0.0f, 1.0f, 0.0f
-			static XMVECTOR Forward() { return g_XMIdentityR2; }
+		// 0.0f, 0.0f, 1.0f, 0.0f
+		static XMVECTOR IdentityR2() { return g_XMIdentityR2; }
 
-			// 1.0f, 1.0f, 1.0f, 1.0f
-			static XMVECTOR One() { return g_XMOne; }
-
-			// 1.0f, 1.0f, 1.0f, 0.0f
-			static XMVECTOR One3() { return g_XMOne3; }
-
-			// 0.5f, 0.5f, 0.5f, 0.5f
-			static XMVECTOR OneHalf() { return g_XMOneHalf; }
-
-			// 0.0f, 0.0f, 0.0f, 0.0f
-			static XMVECTOR Zero() { return g_XMZero; }
-		};
-
-		class Quaternion
-		{
-		public:
-			static XMVECTOR Identity() { return g_XMIdentityR3; }
-		};
-
+		// 0.0f, 0.0f, 0.0f, 1.0f
+		static XMVECTOR IdentityR3() { return g_XMIdentityR3; }
 		
 		static int WrapInt(int val, int min, int max);
 		static float WrapFloat(float val, float max);
@@ -99,6 +112,43 @@ namespace ze
 			return static_cast<T>(1) << n;
 		}
 
+		static bool IsNear(float a, float b, float tolerance = 0.0001f)
+		{
+			return std::abs(a - b) < tolerance;
+		}
+
+		static bool XM_CALLCONV IsVector2LengthNear(XMVECTOR v, float length, float tolerance = 0.00001f)
+		{
+			return Math::IsNear(XMVectorGetX(XMVector2Length(v)), length, tolerance);
+		}
+
+		static bool XM_CALLCONV IsVector3LengthNear(XMVECTOR v, float length, float tolerance = 0.00001f)
+		{
+			return Math::IsNear(XMVectorGetX(XMVector3Length(v)), length, tolerance);
+		}
+
+		static bool XM_CALLCONV IsVector4LengthNear(XMVECTOR v, float length, float tolerance = 0.00001f)
+		{
+			return Math::IsNear(XMVectorGetX(XMVector4Length(v)), length, tolerance);
+		}
+
+		static bool XM_CALLCONV IsVector2LengthEstNear(XMVECTOR v, float length, float tolerance = 0.0001f)
+		{
+			return Math::IsNear(XMVectorGetX(XMVector2LengthEst(v)), length, tolerance);
+		}
+
+		static bool XM_CALLCONV IsVector3LengthEstNear(XMVECTOR v, float length, float tolerance = 0.0001f)
+		{
+			return Math::IsNear(XMVectorGetX(XMVector3LengthEst(v)), length, tolerance);
+		}
+
+		static bool XM_CALLCONV IsVector4LengthEstNear(XMVECTOR v, float length, float tolerance = 0.0001f)
+		{
+			return Math::IsNear(XMVectorGetX(XMVector4LengthEst(v)), length, tolerance);
+		}
+
+		static SphericalCoord XM_CALLCONV ToSphericalCoord(XMVECTOR v);
+
 		// 쿼터니언을 Z(Roll), X(Pitch), Y(Yaw) 변환 순서의 오일러 각도 모음으로 변환시킵니다.
 		// 각도 단위는 라디안입니다.
 		static XMVECTOR XM_CALLCONV QuaternionToEuler(FXMVECTOR quaternion) { return Math::QuaternionToEulerNormal(XMQuaternionNormalize(quaternion)); }
@@ -110,12 +160,29 @@ namespace ze
 		// ============================================================================
 		// Graphics math
 		static bool TestRayAabbCollision(const Ray& ray, const Aabb& aabb);
-
 		static bool TestFrustumAabbCollision(const Frustum& frustum, const Aabb& aabb);
-
+		static bool TestFrustumObbCollision(const Frustum& frustum, const Obb& obb);
 		static bool TestRayTriangleCollision(const Ray& ray, const Triangle& tri);
 
-		static void XM_CALLCONV CalcFrustumPlanesFromViewProjMatrix(FXMMATRIX viewProj, XMFLOAT4* pPlanes);
-		static void XM_CALLCONV CalcFrustumPlanesFromViewProjMatrix(FXMMATRIX viewProj, XMFLOAT4A* pPlanes);
+		static void XM_CALLCONV ComputeFrustumPlanesFromViewProjMatrix(FXMMATRIX viewProj, XMFLOAT4* pPlanes);
+		static void XM_CALLCONV ComputeFrustumPlanesFromViewProjMatrix(FXMMATRIX viewProj, XMFLOAT4A* pPlanes);
+
+		static XMMATRIX XM_CALLCONV ComputeBillboardSphericalMatrix(FXMVECTOR billboardPosW, FXMVECTOR billboardScaleW, FXMVECTOR cameraPosW, GXMVECTOR cameraUpW);
+		static XMMATRIX XM_CALLCONV ComputeBillboardCylindricalYMatrix(FXMVECTOR billboardPosW, FXMVECTOR billboardScaleW, FXMVECTOR cameraPosW);
+		static XMMATRIX XM_CALLCONV ComputeBillboardScreenAlignedMatrix(FXMMATRIX billboardRotationW, HXMVECTOR billboardPosW, HXMVECTOR billboardScaleW);
+	};
+
+	class Quaternion
+	{
+	public:
+		static XMVECTOR Identity() { return g_XMIdentityR3; }
+
+		// from 벡터를 to 벡터와 일치시키는 쿼터니언을 반환합니다.
+		static XMVECTOR XM_CALLCONV FromToRotation(XMVECTOR from, XMVECTOR to);
+
+		// from 벡터를 to 벡터와 일치시키는 쿼터니언을 반환합니다.
+		// from 벡터와 to 벡터는 정규화 되어있는것으로 간주됩니다.
+		// from 벡터와 to 벡터가 정규화되어있지 않은 경우 올바른 계산 결과가 보장되지 않습니다.
+		static XMVECTOR XM_CALLCONV FromToRotationNorm(XMVECTOR from, XMVECTOR to);
 	};
 }

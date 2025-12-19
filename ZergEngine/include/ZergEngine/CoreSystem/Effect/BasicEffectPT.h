@@ -11,13 +11,13 @@ namespace ze
 	class BasicEffectPT : public IEffect
 	{
 	private:
-		enum DIRTY_FLAG : DWORD
+		enum DirtyFlag : DWORD
 		{
-			PRIMITIVE_TOPOLOGY			= 1 << 0,
-			INPUT_LAYOUT				= 1 << 1,
-			SHADER						= 1 << 2,
-			CONSTANTBUFFER_PER_CAMERA	= 1 << 3,
-			CONSTANTBUFFER_PER_MESH		= 1 << 4,
+			PrimitiveTopology			= 1 << 0,
+			InputLayout				= 1 << 1,
+			Shader						= 1 << 2,
+			CBPerCamera	= 1 << 3,
+			CBPerMesh		= 1 << 4,
 
 			COUNT,
 
@@ -52,7 +52,7 @@ namespace ze
 		void ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept;
 		void ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
 		void ApplyPerMeshConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
-		void ApplyPerSubsetConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
+		void ApplyMaterialConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
 
 		void ClearTextureSRVArray();
 	private:

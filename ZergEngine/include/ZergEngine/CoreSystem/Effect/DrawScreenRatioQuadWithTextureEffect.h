@@ -8,12 +8,12 @@ namespace ze
 	class DrawScreenRatioQuadWithTextureEffect : public IEffect
 	{
 	private:
-		enum DIRTY_FLAG : DWORD
+		enum DirtyFlag : DWORD
 		{
-			PRIMITIVE_TOPOLOGY						= 1 << 0,
-			INPUT_LAYOUT							= 1 << 1,
-			SHADER									= 1 << 2,
-			CONSTANTBUFFER_PER_SCREEN_RATIO_QUAD	= 1 << 3,
+			PrimitiveTopology		= 1 << 0,
+			InputLayout				= 1 << 1,
+			Shader					= 1 << 2,
+			CBPerScreenRatioQuad	= 1 << 3,
 
 			COUNT,
 

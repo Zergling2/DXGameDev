@@ -27,7 +27,7 @@ void MeshRenderer::SetMesh(std::shared_ptr<StaticMesh> spMesh)
 		m_materials.resize(m_spMesh->m_subsets.size());	// subset 개수만큼 재질 슬롯 할당
 }
 
-Material* MeshRenderer::GetMaterialPtr(size_t subsetIndex) const
+const Material* MeshRenderer::GetMaterialPtr(size_t subsetIndex) const
 {
 	assert(subsetIndex < m_materials.size());
 	return m_materials[subsetIndex].get();

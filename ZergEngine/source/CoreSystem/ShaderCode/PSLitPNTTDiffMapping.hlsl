@@ -16,7 +16,7 @@ cbuffer Cb1 : register(b1)
 
 cbuffer Cb2 : register(b2)
 {
-    CbPerSubset cb_perSubset;
+    CbMaterial cb_material;
 }
 
 // [Texture]
@@ -43,32 +43,35 @@ PSOutput main(PSInputPNTTFragment input)
     float4 oSL;
     for (i = 0; i < cb_perFrame.dlCount; ++i)
     {
-        ComputeDirectionalLight(cb_perFrame.dl[i], cb_perSubset.mtl.specular.w, normalW, toEyeW, oDL, oSL);
+        ComputeDirectionalLight(cb_perFrame.dl[i], cb_material.mtl.specular.w, normalW, toEyeW, oDL, oSL);
         diffuseLight += oDL;
         specularLight += oSL;
     }
     
     for (i = 0; i < cb_perFrame.plCount; ++i)
     {
-        ComputePointLight(cb_perFrame.pl[i], cb_perSubset.mtl.specular.w, input.posW, normalW, toEyeW, oDL, oSL);
+        ComputePointLight(cb_perFrame.pl[i], cb_material.mtl.specular.w, input.posW, normalW, toEyeW, oDL, oSL);
         diffuseLight += oDL;
         specularLight += oSL;
     }
     
     for (i = 0; i < cb_perFrame.slCount; ++i)
     {
-        ComputeSpotLight(cb_perFrame.sl[i], cb_perSubset.mtl.specular.w, input.posW, normalW, toEyeW, oDL, oSL);
+        ComputeSpotLight(cb_perFrame.sl[i], cb_material.mtl.specular.w, input.posW, normalW, toEyeW, oDL, oSL);
         diffuseLight += oDL;
         specularLight += oSL;
     }
     
-    float4 diffuse = cb_perSubset.mtl.diffuse * (diffuseLight + ambientLight);
-    float4 specular = cb_perSubset.mtl.specular * specularLight;
+    float4 diffuseMtl = cb_material.mtl.diffuse;
+    float4 specularMtl = cb_material.mtl.specular;
     
-    diffuse *= tex2d_diffuseMap.Sample(ss_common, input.texCoord);
-
-    output.color.rgb = (diffuse + specular).rgb;
-    output.color.a = diffuse.a; // 알파 채널은 diffuse 속성에서 가져온다.
+    diffuseMtl *= tex2d_diffuseMap.Sample(ss_common, input.texCoord);
+    
+    float4 diffuseColor = diffuseMtl * (diffuseLight + ambientLight);
+    float4 specularColor = specularMtl * specularLight;
+    
+    output.color = (diffuseColor + specularColor);
+    output.color.a = diffuseMtl.a; // 알파 채널은 재질의 diffuse 속성을 사용해야 함.
 
     output.color = saturate(output.color);
     

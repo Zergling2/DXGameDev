@@ -367,10 +367,14 @@ PCTSTR Debug::VertexFormatToString(VertexFormatType type)
 		return _T("Position\nTexCoord");
 	case VertexFormatType::PositionNormalTexCoord:
 		return _T("Position\nNormal\nTexCoord");
+	case VertexFormatType::PositionNormalTangentTexCoord:
+		return _T("Position\nNormal\nTangent\nTexCoord");
+	case VertexFormatType::PositionNormalTangentTexCoordSkinned:
+		return _T("Position\nNormal\nTangent\nTexCoord\nWEIGHTS\nBONEINDICES");
 	case VertexFormatType::TerrainPatchCtrlPt:
 		return _T("TerrainPatchCtrlPt");
-	case VertexFormatType::ButtonPt:
-		return _T("ButtonPt");
+	case VertexFormatType::Shaded2DQuad:
+		return _T("Shaded2DQuad");
 	default:
 		return _T("Unknown");
 	}

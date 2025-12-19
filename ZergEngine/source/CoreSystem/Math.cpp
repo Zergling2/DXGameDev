@@ -107,6 +107,11 @@ bool Math::TestFrustumAabbCollision(const Frustum& frustum, const Aabb& aabb)
 	return frustum.Intersects(aabb);
 }
 
+bool Math::TestFrustumObbCollision(const Frustum& frustum, const Obb& obb)
+{
+	return frustum.Intersects(obb);
+}
+
 bool Math::TestRayTriangleCollision(const Ray& ray, const Triangle& tri)
 {
 	XMVECTOR origin = XMLoadFloat3A(&ray.m_origin);
@@ -119,7 +124,7 @@ bool Math::TestRayTriangleCollision(const Ray& ray, const Triangle& tri)
 	return DirectX::TriangleTests::Intersects(origin, direction, v0, v1, v2, dist);
 }
 
-void XM_CALLCONV Math::CalcFrustumPlanesFromViewProjMatrix(FXMMATRIX viewProj, XMFLOAT4* pPlanes)
+void XM_CALLCONV Math::ComputeFrustumPlanesFromViewProjMatrix(FXMMATRIX viewProj, XMFLOAT4* pPlanes)
 {
 	XMFLOAT4X4A viewProjMatrix;
 	XMStoreFloat4x4A(&viewProjMatrix, viewProj);
@@ -167,7 +172,7 @@ void XM_CALLCONV Math::CalcFrustumPlanesFromViewProjMatrix(FXMMATRIX viewProj, X
 	}
 }
 
-void XM_CALLCONV Math::CalcFrustumPlanesFromViewProjMatrix(FXMMATRIX viewProj, XMFLOAT4A* pPlanes)
+void XM_CALLCONV Math::ComputeFrustumPlanesFromViewProjMatrix(FXMMATRIX viewProj, XMFLOAT4A* pPlanes)
 {
 	XMFLOAT4X4A viewProjMatrix;
 	XMStoreFloat4x4A(&viewProjMatrix, viewProj);
@@ -213,4 +218,189 @@ void XM_CALLCONV Math::CalcFrustumPlanesFromViewProjMatrix(FXMMATRIX viewProj, X
 		XMVECTOR v = XMPlaneNormalize(XMLoadFloat4A(&pPlanes[i]));	// 정규화해서 전달 (GPU에서 정규화 생략)
 		XMStoreFloat4A(&pPlanes[i], v);
 	}
+}
+
+XMMATRIX XM_CALLCONV Math::ComputeBillboardSphericalMatrix(FXMVECTOR billboardPosW, FXMVECTOR billboardScaleW, FXMVECTOR cameraPosW, GXMVECTOR cameraUpW)
+{
+	XMVECTOR dir = XMVector3Normalize(cameraPosW - billboardPosW);
+	SphericalCoord sc = Math::ToSphericalCoord(dir);
+	float pitch = -sc.theta;
+	// float yaw = -(sc.phi - XM_PIDIV2);	// 극좌표계 기준으로 빌보드가 이미 90도 회전한 상태이기 때문에 + 왼손좌표계 회전으로 변환 (negate)
+	float yaw = XM_PIDIV2 - sc.phi;	// 연산 최적화 (Subtract x1 + Multiply x1) -> Subtract x1
+	constexpr float roll = 0.0f;
+
+	XMMATRIX m = XMMatrixRotationRollPitchYaw(pitch, yaw, roll);	// 회전 순서: Roll(z) -> Pitch(x) -> Yaw(y)
+	
+	m = XMMatrixScalingFromVector(billboardScaleW) * m;	// S x R
+	m.r[3] = XMVectorSetW(billboardPosW, 1.0f);		// T 결합
+	
+	return m;
+}
+
+XMMATRIX XM_CALLCONV Math::ComputeBillboardCylindricalYMatrix(FXMVECTOR billboardPosW, FXMVECTOR billboardScaleW, FXMVECTOR cameraPosW)
+{
+	// 빌보드의 기저 벡터 계산
+	XMVECTOR up = Vector3::Up();	// up 벡터는 월드 up 벡터
+	XMVECTOR forward = XMVector3Normalize(XMVectorAndInt(cameraPosW - billboardPosW, g_XMSelect1011));	// XMVectorAndInt -> XMVectorSetY Zero
+	if (XMVector3Equal(forward, XMVectorZero()))
+		forward = Vector3::Forward();
+	XMVECTOR right = XMVector3Cross(up, forward);	// right 벡터는 up, forward로 도출
+
+	XMMATRIX m;
+	m.r[0] = right;
+	m.r[1] = up;
+	m.r[2] = forward;
+	m.r[3] = Math::IdentityR3();
+
+	m = XMMatrixScalingFromVector(billboardScaleW) * m;	// S x R
+	m.r[3] = XMVectorSetW(billboardPosW, 1.0f);		// T 결합
+
+	return m;
+}
+
+XMMATRIX XM_CALLCONV Math::ComputeBillboardScreenAlignedMatrix(FXMMATRIX billboardRotationW, HXMVECTOR billboardPosW, HXMVECTOR billboardScaleW)
+{
+	// Screen Aligned Billboard는 모든 빌보드가 단일 카메라에 대해 동일한 회전 행렬을 가진다.
+	// 따라서 외부에서 한번 계산한 값(billboardRotationW 매개변수)을 재활용해 계산한다.
+
+	XMMATRIX m = XMMatrixScalingFromVector(billboardScaleW) * billboardRotationW;	// S x R
+	m.r[3] = XMVectorSetW(billboardPosW, 1.0f);		// T 결합
+
+	return m;
+}
+
+/*
+XMMATRIX XM_CALLCONV Math::ComputeBillboardScreenAlignedMatrix(FXMVECTOR billboardPosW, FXMVECTOR billboardScaleW, CXMMATRIX viewMatrix)
+{
+	// 뷰 행렬 = 카메라의 월드 배치 행렬의 역행렬
+	// S * R * T ---Inverse---> T(Inv) * R(Inv) * S(Inv)
+	// 따라서 뷰 행렬의 역행렬은 카메라의 월드 배치 행렬이다.
+	// 그런데 필요한 것은 카메라 월드 배치 행렬의 '회전' 성분만이므로 3x3 부분의 역행렬만 구하면 된다.
+	// 그런데 3x3 부분은 직교 행렬이므로 이것만 추출해서 전치시키면 저비용으로 회전 성분들을 구할 수 있다.
+
+	// XMMATRIX invViewMatrix = XMMatrixInverse(nullptr, viewMatrix);
+	XMMATRIX invViewMatrix;
+	// 3x3 회전 성분만을 담은 뒤 전치시킨다.
+	invViewMatrix.r[0] = viewMatrix.r[0];
+	invViewMatrix.r[1] = viewMatrix.r[1];
+	invViewMatrix.r[2] = viewMatrix.r[2];
+	invViewMatrix.r[3] = Math::IdentityR3();	// 필요없는 부분
+	invViewMatrix = XMMatrixTranspose(invViewMatrix);
+
+	// invViewMatrix의 3x3 행렬은 카메라의 기저 벡터.
+
+
+	// 빌보드의 기저 벡터 계산
+	XMVECTOR up = invViewMatrix.r[1];	// up 벡터는 카메라의 up 벡터와 동일
+	XMVECTOR forward = XMVectorNegate(invViewMatrix.r[2]);	// 빌보드의 forward는 camera의 forward와 반대방향
+	XMVECTOR right = XMVector3Cross(up, forward);	// right 벡터는 up, forward로 도출
+	
+	assert(Math::IsVector3LengthEstNear(up, 1.0f) == true);
+	assert(Math::IsVector3LengthEstNear(forward, 1.0f) == true);
+	assert(Math::IsVector3LengthEstNear(right, 1.0f) == true);
+
+	XMMATRIX m;
+	m.r[0] = right;
+	m.r[1] = up;
+	m.r[2] = forward;
+	m.r[3] = Math::IdentityR3();
+
+	m = XMMatrixScalingFromVector(billboardScaleW) * m;	// S x R
+	m.r[3] = XMVectorSetW(billboardPosW, 1.0f);		// T 결합
+
+	return m;
+}
+*/
+
+XMVECTOR XM_CALLCONV Quaternion::FromToRotation(XMVECTOR from, XMVECTOR to)
+{
+	// 벡터 정규화
+	from = XMVector3Normalize(from);
+	to = XMVector3Normalize(to);
+
+	return Quaternion::FromToRotationNorm(from, to);
+}
+
+XMVECTOR XM_CALLCONV Quaternion::FromToRotationNorm(XMVECTOR from, XMVECTOR to)
+{
+	assert(Math::IsVector3LengthNear(from, 1.0f) == true);
+	assert(Math::IsVector3LengthNear(to, 1.0f) == true);
+
+	// 내적 결과 (코사인 각)[0.0, 0.05], [179.95, 180.0] 구간의 경우 예외처리
+	constexpr float EPSILON_COS_ANGLE = 0.99999964f;	// cos(0.05도)
+
+	// 내적 계산
+	const float cosRotAngle = XMVectorGetX(XMVector3Dot(from, to));
+
+	// 회전축 정의하기 힘든 경우 예외처리
+	// 1. 거의 같은 방향
+	if (cosRotAngle > EPSILON_COS_ANGLE)
+		return XMQuaternionIdentity();
+
+	// 2. 거의 정반대 방향
+	if (cosRotAngle < -EPSILON_COS_ANGLE)
+	{
+		// 회전축 생성 (from벡터를 가지고 from과 수직인 벡터를 생성)
+		// (x, y, z) -> (z, x, y) 오른쪽으로 한바퀴 로테이션 시키면 항상 수직인 벡터 획득
+		// 외적하면
+		// (x, y, z)
+		// (z, x, y)
+		// ---------
+		// (y^2 - xz, z^2 - xy, x^2 - yz) 이다.
+		
+		// 원본 벡터 (x, y, z)와 (y^2 - xz, z^2 - xy, x^2 - yz)를 내적해보면 xy^2 - x^2z + yz^2 - xy^2 + x^2z - yz^2 = 0이다.
+		// 내적 결과가 0이므로 두 벡터는 수직이다.
+		XMVECTOR rotationAxis = XMVectorSwizzle(from, 2, 0, 1, 3);	// from의 z, x, y, w 값을 선택
+		return XMQuaternionRotationNormal(rotationAxis, XM_PI);
+	}
+
+
+	// 일반적인 경우
+	// XMQuaternionRotationNormal 호출하려면 회전각도를 계산해야 하는데 arccos 함수 호출이 필요.
+	// 회전각을 a라고 할때,
+	// 쿼터니언은 (sin(a/2) * RotationAxis, cos(a/2))이다.
+	// 삼각함수 반각 공식을 활용해 cos(a)와 제곱근 연산만으로 cos(a/2)를 구할 수 있다.
+	// 
+	// 반각 공식 1
+	// sin(a/2)^2 = (1 - cos(a)) / 2
+	// 반각 공식 2
+	// cos(a/2)^2 = (1 + cos(a)) / 2
+	
+	XMVECTOR rotationAxis = XMVector3Normalize(XMVector3Cross(from, to));
+	XMVECTOR sincosHalfRotAngleSquared = XMVectorSet((1.0f - cosRotAngle) * 0.5f, (1.0f + cosRotAngle) * 0.5f, 0.0f, 0.0f);
+	XMVECTOR sincosHalfRotAngle = XMVectorSqrt(sincosHalfRotAngleSquared);	// sqrt 연산 한번에
+	
+	const float sinHalfRotAngle = XMVectorGetX(sincosHalfRotAngle);
+	const float cosHalfRotAngle = XMVectorGetY(sincosHalfRotAngle);
+	
+	XMVECTOR q = XMVectorScale(rotationAxis, sinHalfRotAngle);	// 쿼터니언 x, y, z 성분 먼저 계산
+	q = XMVectorSetW(q, cosHalfRotAngle);	// w성분 설정
+	
+	return XMQuaternionNormalize(q);
+}
+
+SphericalCoord XM_CALLCONV Math::ToSphericalCoord(XMVECTOR v)
+{
+	SphericalCoord result;
+
+	result.r = XMVectorGetX(XMVector3Length(v));
+
+	// 길이가 0인 경우 예외 처리
+	if (result.r == 0.0f)
+	{
+		result.theta = 0.0f;
+		result.phi = 0.0f;
+		return result;
+	}
+
+	XMFLOAT3A vec;
+	XMStoreFloat3A(&vec, v);
+
+	result.theta = std::asin(vec.y / result.r);
+	result.phi = std::atan2(vec.z, vec.x);
+
+	if (result.phi < 0.0f)
+		result.phi += XM_2PI;
+
+	return result;
 }

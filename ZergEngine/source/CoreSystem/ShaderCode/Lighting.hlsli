@@ -14,17 +14,13 @@ float ComputeSpotLightAngleAtt(float3 spotDirW, float3 toSurfaceW, float innerCo
 {
     // spotDir(Normalized)
     // toSurface(Normalized)
+    
+    
     const float angleCos = dot(spotDirW, toSurfaceW);
     
-    if (angleCos <= outerConeCos)
-        return 0.0f;
-    
-    if (angleCos >= innerConeCos)
-        return 1.0f;
-
     // innerConeAngle < outerConeAngle
     // innerConeCos > outerConeCos
-    const float t = saturate((angleCos - outerConeCos) / (innerConeCos - outerConeCos));    // [0,1]
+    const float t = saturate((angleCos - outerConeCos) / (innerConeCos - outerConeCos));    // [0, 1]
     
     return t * t;       // return pow(t, 2.0f); (지수값 증가로 inner cone <-> outer cone 페이드아웃 조절 가능)
 }

@@ -3,8 +3,8 @@
 
 using namespace ze;
 
-constexpr uint16_t MIN_UI_WIDTH = 8;
-constexpr uint16_t MIN_UI_HEIGHT = 8;
+constexpr uint16_t MIN_UI_WIDTH = 12;
+constexpr uint16_t MIN_UI_HEIGHT = 12;
 
 ISizeUIObject::ISizeUIObject(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name)
 	: IUIObject(id, flag, name)
@@ -16,7 +16,7 @@ ISizeUIObject::ISizeUIObject(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name)
 void XM_CALLCONV ISizeUIObject::SetSize(FXMVECTOR size)
 {
 	XMStoreFloat2(&m_size, size);
-	XMStoreFloat2(&m_halfSize, XMVectorMultiply(size, Math::Vector3::OneHalf()));
+	XMStoreFloat2(&m_halfSize, XMVectorMultiply(size, Vector3::OneHalf()));
 }
 
 bool XM_CALLCONV ISizeUIObject::HitTest(FXMVECTOR mousePosition) const
@@ -25,7 +25,7 @@ bool XM_CALLCONV ISizeUIObject::HitTest(FXMVECTOR mousePosition) const
 	// 스케일링이 일어나는 전체화면 모드에서는 아직 제대로 동작 X
 
 	// 마우스 포인터를 UI의 로컬 스페이스 공간으로 이동시킨 뒤 인바운드 검사를 한다
-	XMVECTOR mousePosInButtonLocalSpace = XMVectorSubtract(mousePosition, m_transform.GetWindowsScreenPosition());
+	XMVECTOR mousePosInButtonLocalSpace = XMVectorSubtract(mousePosition, m_transform.GetScreenPosWindowsCoordSystem());
 
 	XMVECTOR bound = XMLoadFloat2(&m_halfSize);
 

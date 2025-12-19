@@ -8,18 +8,18 @@ namespace ze
 {
 	class IUIObject;
 
-	enum class HORIZONTAL_ANCHOR : uint8_t
+	enum class HorizontalAnchor : uint8_t
 	{
-		LEFT,
-		CENTER,
-		RIGHT
+		Left,
+		Center,
+		Right
 	};
 
-	enum class VERTICAL_ANCHOR : uint8_t
+	enum class VerticalAnchor : uint8_t
 	{
-		TOP,
-		VCENTER,
-		BOTTOM
+		Top,
+		VCenter,
+		Bottom
 	};
 
 	class RectTransform
@@ -36,8 +36,8 @@ namespace ze
 			, m_pParentTransform(nullptr)
 			, m_children()
 			, m_position(0.0f, 0.0f)
-			, m_ha(HORIZONTAL_ANCHOR::CENTER)
-			, m_va(VERTICAL_ANCHOR::VCENTER)
+			, m_ha(HorizontalAnchor::Center)
+			, m_va(VerticalAnchor::VCenter)
 		{
 		}
 		RectTransform(const RectTransform&) = delete;
@@ -45,10 +45,10 @@ namespace ze
 		~RectTransform() = default;
 		RectTransform& operator=(const RectTransform&) = delete;
 
-		HORIZONTAL_ANCHOR GetHorizontalAnchor() const { return m_ha; }
-		VERTICAL_ANCHOR GetVerticalAnchor() const { return m_va; }
-		void SetHorizontalAnchor(HORIZONTAL_ANCHOR ha) { m_ha = ha; }
-		void SetVerticalAnchor(VERTICAL_ANCHOR va) { m_va = va; }
+		HorizontalAnchor GetHorizontalAnchor() const { return m_ha; }
+		VerticalAnchor GetVerticalAnchor() const { return m_va; }
+		void SetHorizontalAnchor(HorizontalAnchor ha) { m_ha = ha; }
+		void SetVerticalAnchor(VerticalAnchor va) { m_va = va; }
 		XMVECTOR GetLocalPosition() const { return XMLoadFloat2(&m_position); }
 
 		void XM_CALLCONV Translate(FXMVECTOR translation) { XMStoreFloat2(&m_position, XMVectorAdd(XMLoadFloat2(&m_position), translation)); }
@@ -62,15 +62,15 @@ namespace ze
 
 		// UIObjectHandle GetChild(uint32_t index);
 	private:
-		XMVECTOR GetPreNDCPosition() const;
-		XMVECTOR GetWindowsScreenPosition() const;
+		XMVECTOR GetHCSPosition() const;
+		XMVECTOR GetScreenPosWindowsCoordSystem() const;
 	private:
 		IUIObject* m_pUIObject;
 		RectTransform* m_pParentTransform;
 		std::vector<RectTransform*> m_children;
 	public:
 		XMFLOAT2 m_position;
-		HORIZONTAL_ANCHOR m_ha;
-		VERTICAL_ANCHOR m_va;
+		HorizontalAnchor m_ha;
+		VerticalAnchor m_va;
 	};
 }

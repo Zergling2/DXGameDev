@@ -25,8 +25,8 @@ UINT InputLayoutHelper::GetStructureByteStride(VertexFormatType vft)
 		return static_cast<UINT>(sizeof(VFPositionNormalTangentTexCoordSkinned));
 	case VertexFormatType::TerrainPatchCtrlPt:
 		return static_cast<UINT>(sizeof(VFTerrainPatchControlPoint));
-	case VertexFormatType::ButtonPt:
-		return static_cast<UINT>(sizeof(VFButton));
+	case VertexFormatType::Shaded2DQuad:
+		return static_cast<UINT>(sizeof(VFShaded2DQuad));
 	default:
 		Debug::ForceCrashWithMessageBox(
 			L"Error",
@@ -121,7 +121,6 @@ const D3D11_INPUT_ELEMENT_DESC VFPositionNormalTangentTexCoordSkinned::s_ied[] =
 };
 
 //--------------------------------------------------------------------------------------
-// Vertex struct holding position, texture mapping information and bounding volume.
 const D3D11_INPUT_ELEMENT_DESC VFTerrainPatchControlPoint::s_ied[] =
 {
 	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -130,8 +129,7 @@ const D3D11_INPUT_ELEMENT_DESC VFTerrainPatchControlPoint::s_ied[] =
 };
 
 //--------------------------------------------------------------------------------------
-// Vertex struct holding position, texture mapping information and bounding volume.
-const D3D11_INPUT_ELEMENT_DESC VFButton::s_ied[] =
+const D3D11_INPUT_ELEMENT_DESC VFShaded2DQuad::s_ied[] =
 {
 	{ "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },

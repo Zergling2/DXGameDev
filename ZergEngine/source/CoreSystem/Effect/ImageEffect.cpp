@@ -6,48 +6,47 @@ using namespace ze;
 
 // Image Effect
 // VertexShader:
-// - ToHcsUIQuad
+// - ToHcs2DQuad
 // 
 // PixelShader:
 // - UnlitPT1Tex
 
 void ImageEffect::Init()
 {
-	m_dirtyFlag = DIRTY_FLAG::ALL;
+	m_dirtyFlag = DirtyFlag::ALL;
 
-	m_pInputLayout = nullptr;
-	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::ToHcsUIQuad);
+	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::ToHcs2DQuad);
 	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::UnlitPT1Tex);
 
 	m_cbPerUIRender.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
-	m_cbPerImage.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
+	m_cbPer2DQuad.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
 }
 
 void ImageEffect::Release()
 {
 	m_cbPerUIRender.Release();
-	m_cbPerImage.Release();
+	m_cbPer2DQuad.Release();
 }
 
 void ImageEffect::SetScreenToNDCSpaceRatio(const XMFLOAT2& ratio) noexcept
 {
 	m_cbPerUIRenderCache.toNDCSpaceRatio = ratio;
 
-	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_UI_RENDER;
+	m_dirtyFlag |= DirtyFlag::CBPerUIRender;
 }
 
 void XM_CALLCONV ImageEffect::SetSize(FXMVECTOR size) noexcept
 {
-	XMStoreFloat2(&m_cbPerImageCache.size, size);
+	XMStoreFloat2(&m_cbPer2DQuadCache.size, size);
 
-	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_IMAGE;
+	m_dirtyFlag |= DirtyFlag::CBPer2DQuad;
 }
 
 void XM_CALLCONV ImageEffect::SetPreNDCPosition(FXMVECTOR position) noexcept
 {
-	XMStoreFloat2(&m_cbPerImageCache.position, position);
+	XMStoreFloat2(&m_cbPer2DQuadCache.position, position);
 
-	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_IMAGE;
+	m_dirtyFlag |= DirtyFlag::CBPer2DQuad;
 }
 
 void ImageEffect::SetImageTexture(const Texture2D& image) noexcept
@@ -63,19 +62,19 @@ void ImageEffect::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
 	{
 		switch (static_cast<DWORD>(1) << index)
 		{
-		case DIRTY_FLAG::PRIMITIVE_TOPOLOGY:
+		case DirtyFlag::PrimitiveTopology:
 			pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 			break;
-		case DIRTY_FLAG::INPUT_LAYOUT:
-			pDeviceContext->IASetInputLayout(m_pInputLayout);
+		case DirtyFlag::InputLayout:
+			pDeviceContext->IASetInputLayout(nullptr);
 			break;
-		case DIRTY_FLAG::SHADER:
+		case DirtyFlag::Shader:
 			ApplyShader(pDeviceContext);
 			break;
-		case DIRTY_FLAG::CONSTANTBUFFER_PER_UI_RENDER:
+		case DirtyFlag::CBPerUIRender:
 			ApplyPerUIRenderConstantBuffer(pDeviceContext);
 			break;
-		case DIRTY_FLAG::CONSTANTBUFFER_PER_IMAGE:
+		case DirtyFlag::CBPer2DQuad:
 			ApplyPerImageConstantBuffer(pDeviceContext);
 			break;
 		default:
@@ -98,7 +97,7 @@ void ImageEffect::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
 
 void ImageEffect::KickedOutOfDeviceContext() noexcept
 {
-	m_dirtyFlag = DIRTY_FLAG::ALL;
+	m_dirtyFlag = DirtyFlag::ALL;
 }
 
 void ImageEffect::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
@@ -122,10 +121,10 @@ void ImageEffect::ApplyPerUIRenderConstantBuffer(ID3D11DeviceContext* pDeviceCon
 
 void ImageEffect::ApplyPerImageConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	m_cbPerImage.Update(pDeviceContext, &m_cbPerImageCache);
-	ID3D11Buffer* const cbs[] = { m_cbPerImage.GetComInterface() };
+	m_cbPer2DQuad.Update(pDeviceContext, &m_cbPer2DQuadCache);
+	ID3D11Buffer* const cbs[] = { m_cbPer2DQuad.GetComInterface() };
 
-	// PerImage 상수버퍼 사용 셰이더
+	// Per2DQuad 상수버퍼 사용 셰이더
 	constexpr UINT startSlot = 1;
 	pDeviceContext->VSSetConstantBuffers(startSlot, 1, cbs);
 }

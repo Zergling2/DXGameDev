@@ -5,32 +5,32 @@
 
 using namespace ze;
 
-XMVECTOR RectTransform::GetPreNDCPosition() const
+XMVECTOR RectTransform::GetHCSPosition() const
 {
     XMFLOAT2A basis;
 
     switch (m_ha)
     {
-    case HORIZONTAL_ANCHOR::LEFT:
+    case HorizontalAnchor::Left:
         basis.x = -GraphicDevice::GetInstance()->GetSwapChainHalfWidthFlt();
         break;
-    case HORIZONTAL_ANCHOR::CENTER:
+    case HorizontalAnchor::Center:
         basis.x = 0.0f;
         break;
-    case HORIZONTAL_ANCHOR::RIGHT:
+    case HorizontalAnchor::Right:
         basis.x = +GraphicDevice::GetInstance()->GetSwapChainHalfWidthFlt();
         break;
     }
 
     switch (m_va)
     {
-    case VERTICAL_ANCHOR::TOP:
+    case VerticalAnchor::Top:
         basis.y = +GraphicDevice::GetInstance()->GetSwapChainHalfHeightFlt();
         break;
-    case VERTICAL_ANCHOR::VCENTER:
+    case VerticalAnchor::VCenter:
         basis.y = 0.0f;
         break;
-    case VERTICAL_ANCHOR::BOTTOM:
+    case VerticalAnchor::Bottom:
         basis.y = -GraphicDevice::GetInstance()->GetSwapChainHalfHeightFlt();
         break;
     }
@@ -38,33 +38,33 @@ XMVECTOR RectTransform::GetPreNDCPosition() const
     return XMVectorAdd(XMLoadFloat2A(&basis), XMLoadFloat2(&m_position));
 }
 
-XMVECTOR RectTransform::GetWindowsScreenPosition() const
+XMVECTOR RectTransform::GetScreenPosWindowsCoordSystem() const
 {
     XMFLOAT2A basis;
     XMFLOAT2A windowsPosition(m_position.x, -m_position.y);
 
     switch (m_ha)
     {
-    case HORIZONTAL_ANCHOR::LEFT:
+    case HorizontalAnchor::Left:
         basis.x = 0.0f;
         break;
-    case HORIZONTAL_ANCHOR::CENTER:
+    case HorizontalAnchor::Center:
         basis.x = GraphicDevice::GetInstance()->GetSwapChainHalfWidthFlt();
         break;
-    case HORIZONTAL_ANCHOR::RIGHT:
+    case HorizontalAnchor::Right:
         basis.x = GraphicDevice::GetInstance()->GetSwapChainWidthFlt();
         break;
     }
 
     switch (m_va)
     {
-    case VERTICAL_ANCHOR::TOP:
+    case VerticalAnchor::Top:
         basis.y = 0.0f;
         break;
-    case VERTICAL_ANCHOR::VCENTER:
+    case VerticalAnchor::VCenter:
         basis.y = GraphicDevice::GetInstance()->GetSwapChainHalfHeightFlt();
         break;
-    case VERTICAL_ANCHOR::BOTTOM:
+    case VerticalAnchor::Bottom:
         basis.y = GraphicDevice::GetInstance()->GetSwapChainHeightFlt();
         break;
     }

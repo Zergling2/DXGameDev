@@ -7,6 +7,8 @@ Button::Button(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name)
 	, m_pressed(false)
 	, m_buttonColor(Colors::Orange)
 {
+	this->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	this->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 }
 
 void Button::OnDetachedFromUIInteraction()

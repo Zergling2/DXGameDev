@@ -684,10 +684,10 @@
     <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsSkybox.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsButton.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsShaded2DQuad.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsUIQuad.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcs2DQuad.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
     <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsPNTT.hlsl">

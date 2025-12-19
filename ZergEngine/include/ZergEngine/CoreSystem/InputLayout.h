@@ -224,13 +224,13 @@ namespace ze
 		XMFLOAT2 m_boundsY;		// TEXCOORD1	(x: 지형 패치의 최소 높이값, y: 지형 패치의 최대 높이값)
 	};
 
-	class VFButton
+	class VFShaded2DQuad
 	{
 	public:
-		VFButton() = default;
-		VFButton(const VFButton&) = default;
-		VFButton& operator=(const VFButton&) = default;
-		VFButton(const XMFLOAT2& position, const XMFLOAT2& offset, const XMFLOAT2& shade) noexcept
+		VFShaded2DQuad() = default;
+		VFShaded2DQuad(const VFShaded2DQuad&) = default;
+		VFShaded2DQuad& operator=(const VFShaded2DQuad&) = default;
+		VFShaded2DQuad(const XMFLOAT2& position, const XMFLOAT2& offset, const XMFLOAT2& shade) noexcept
 			: m_position(position)
 			, m_offset(offset)
 			, m_shade(shade)
@@ -238,13 +238,13 @@ namespace ze
 		}
 
 		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
-		static constexpr uint32_t GetInputElementCount() { return VFButton::INPUT_ELEMENT_COUNT; }
+		static constexpr uint32_t GetInputElementCount() { return VFShaded2DQuad::INPUT_ELEMENT_COUNT; }
 	private:
 		static constexpr size_t INPUT_ELEMENT_COUNT = 3;
 		static const D3D11_INPUT_ELEMENT_DESC s_ied[INPUT_ELEMENT_COUNT];
 	public:
 		XMFLOAT2 m_position;	// POSITION
-		XMFLOAT2 m_offset;		// 버튼 정점 변환 오프셋
-		XMFLOAT2 m_shade;		// 버튼 음영 가중치 [0] 눌리지 않았을 때, [1] 눌렸을 때
+		XMFLOAT2 m_offset;		// 스케일링 후 이동 오프셋 (음영 모서리의 두께를 스케일링과 분리)
+		XMFLOAT2 m_shade;		// 음영 가중치 [0] Convex 상태 음영 가중치 [1] Concave 상태 음영 가중치
 	};
 }

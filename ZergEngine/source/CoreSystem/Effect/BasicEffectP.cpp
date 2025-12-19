@@ -17,7 +17,7 @@ using namespace ze;
 void BasicEffectP::Init()
 {
 
-	m_dirtyFlag = DIRTY_FLAG::ALL;
+	m_dirtyFlag = DirtyFlag::ALL;
 
 	m_pInputLayout = GraphicDevice::GetInstance()->GetILComInterface(VertexFormatType::Position);
 	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::ToHcsP);
@@ -39,7 +39,7 @@ void BasicEffectP::SetCamera(const Camera* pCamera) noexcept
 	assert(pCameraOwner != nullptr);
 
 	XMMATRIX vp = pCamera->GetViewMatrix() * pCamera->GetProjMatrix();
-	Math::CalcFrustumPlanesFromViewProjMatrix(vp, m_cbPerCameraCache.worldSpaceFrustumPlane);
+	Math::ComputeFrustumPlanesFromViewProjMatrix(vp, m_cbPerCameraCache.worldSpaceFrustumPlane);
 
 	XMStoreFloat3(&m_cbPerCameraCache.cameraPosW, pCameraOwner->m_transform.GetWorldPosition());
 	m_cbPerCameraCache.tessMinDist = pCamera->GetMinDistanceTessellationToStart();
@@ -49,7 +49,7 @@ void BasicEffectP::SetCamera(const Camera* pCamera) noexcept
 
 	XMStoreFloat4x4A(&m_cbPerCameraCache.vp, ConvertToHLSLMatrix(vp));
 
-	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_CAMERA;
+	m_dirtyFlag |= DirtyFlag::CBPerCamera;
 }
 
 void XM_CALLCONV BasicEffectP::SetWorldMatrix(FXMMATRIX w) noexcept
@@ -57,7 +57,7 @@ void XM_CALLCONV BasicEffectP::SetWorldMatrix(FXMMATRIX w) noexcept
 	XMStoreFloat4x4A(&m_cbPerMeshCache.w, ConvertToHLSLMatrix(w));			// HLSL 전치
 	XMStoreFloat4x4A(&m_cbPerMeshCache.wInvTr, XMMatrixInverse(nullptr, w));	// 역행렬의 전치의 HLSL 전치
 
-	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_MESH;
+	m_dirtyFlag |= DirtyFlag::CBPerMesh;
 }
 
 void BasicEffectP::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
@@ -68,19 +68,19 @@ void BasicEffectP::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
 	{
 		switch (static_cast<DWORD>(1) << index)
 		{
-		case DIRTY_FLAG::PRIMITIVE_TOPOLOGY:
+		case DirtyFlag::PrimitiveTopology:
 			pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 			break;
-		case DIRTY_FLAG::INPUT_LAYOUT:
+		case DirtyFlag::InputLayout:
 			pDeviceContext->IASetInputLayout(m_pInputLayout);
 			break;
-		case DIRTY_FLAG::SHADER:
+		case DirtyFlag::Shader:
 			ApplyShader(pDeviceContext);
 			break;
-		case DIRTY_FLAG::CONSTANTBUFFER_PER_CAMERA:
+		case DirtyFlag::CBPerCamera:
 			ApplyPerCameraConstantBuffer(pDeviceContext);
 			break;
-		case DIRTY_FLAG::CONSTANTBUFFER_PER_MESH:
+		case DirtyFlag::CBPerMesh:
 			ApplyPerMeshConstantBuffer(pDeviceContext);
 			break;
 		default:
@@ -95,7 +95,7 @@ void BasicEffectP::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
 
 void BasicEffectP::KickedOutOfDeviceContext() noexcept
 {
-	m_dirtyFlag = DIRTY_FLAG::ALL;
+	m_dirtyFlag = DirtyFlag::ALL;
 }
 
 void BasicEffectP::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept

@@ -110,10 +110,9 @@ UIObjectHandle UIObjectManager::RegisterToHandleTable(IUIObject* pUIObject)
 
 		// 핸들 테이블의 빈 자리를 검색
 		uint32_t emptyIndex;
-		const size_t ehtIdxSize = m_emptyHandleTableIndex.size();
-		if (ehtIdxSize > 0)
+		if (!m_emptyHandleTableIndex.empty())
 		{
-			emptyIndex = m_emptyHandleTableIndex[ehtIdxSize - 1];
+			emptyIndex = m_emptyHandleTableIndex.back();
 			m_emptyHandleTableIndex.pop_back();
 		}
 		else
@@ -460,7 +459,7 @@ bool UIObjectManager::SetParent(RectTransform* pTransform, RectTransform* pNewPa
 	return true;
 }
 
-IUIObject* XM_CALLCONV UIObjectManager::HitTest(FXMVECTOR mousePosition)
+IUIObject* XM_CALLCONV UIObjectManager::SearchForHitUI(FXMVECTOR mousePosition)
 {
 	// UI 오브젝트를 후위 순회하며 검색
 
@@ -510,7 +509,7 @@ void UIObjectManager::OnLButtonDown(POINT pt)
 {
 	XMVECTOR mousePosition = XMVectorSet(static_cast<FLOAT>(pt.x), static_cast<FLOAT>(pt.y), 0.0f, 0.0f);
 
-	IUIObject* pHitUI = this->HitTest(mousePosition);
+	IUIObject* pHitUI = this->SearchForHitUI(mousePosition);
 	if (pHitUI)
 	{
 		pHitUI->OnLButtonDown();
@@ -530,7 +529,7 @@ void UIObjectManager::OnLButtonUp(POINT pt)
 
 	XMVECTOR mousePosition = XMVectorSet(static_cast<FLOAT>(pt.x), static_cast<FLOAT>(pt.y), 0.0f, 0.0f);
 
-	IUIObject* pHitUI = this->HitTest(mousePosition);
+	IUIObject* pHitUI = this->SearchForHitUI(mousePosition);
 	if (pHitUI)
 		pHitUI->OnLButtonUp();
 	else
@@ -544,7 +543,7 @@ void UIObjectManager::OnMButtonDown(POINT pt)
 {
 	XMVECTOR mousePosition = XMVectorSet(static_cast<FLOAT>(pt.x), static_cast<FLOAT>(pt.y), 0.0f, 0.0f);
 
-	IUIObject* pHitUI = this->HitTest(mousePosition);
+	IUIObject* pHitUI = this->SearchForHitUI(mousePosition);
 	if (pHitUI)
 	{
 		pHitUI->OnMButtonDown();
@@ -564,7 +563,7 @@ void UIObjectManager::OnMButtonUp(POINT pt)
 
 	XMVECTOR mousePosition = XMVectorSet(static_cast<FLOAT>(pt.x), static_cast<FLOAT>(pt.y), 0.0f, 0.0f);
 
-	IUIObject* pHitUI = this->HitTest(mousePosition);
+	IUIObject* pHitUI = this->SearchForHitUI(mousePosition);
 	if (pHitUI)
 		pHitUI->OnMButtonUp();
 	else
@@ -578,7 +577,7 @@ void UIObjectManager::OnRButtonDown(POINT pt)
 {
 	XMVECTOR mousePosition = XMVectorSet(static_cast<FLOAT>(pt.x), static_cast<FLOAT>(pt.y), 0.0f, 0.0f);
 
-	IUIObject* pHitUI = this->HitTest(mousePosition);
+	IUIObject* pHitUI = this->SearchForHitUI(mousePosition);
 	if (pHitUI)
 	{
 		pHitUI->OnRButtonDown();
@@ -598,7 +597,7 @@ void UIObjectManager::OnRButtonUp(POINT pt)
 
 	XMVECTOR mousePosition = XMVectorSet(static_cast<FLOAT>(pt.x), static_cast<FLOAT>(pt.y), 0.0f, 0.0f);
 
-	IUIObject* pHitUI = this->HitTest(mousePosition);
+	IUIObject* pHitUI = this->SearchForHitUI(mousePosition);
 	if (pHitUI)
 		pHitUI->OnRButtonUp();
 	else

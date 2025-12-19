@@ -48,6 +48,8 @@ Camera::Camera() noexcept
 	, m_tessMaxDist(CAMERA_DEFAULT_TESSELLATION_MAX_DIST)
 	, m_minTessExponent(CAMERA_DEFAULT_MIN_TESSELLATION_EXP)
 	, m_maxTessExponent(CAMERA_DEFAULT_MAX_TESSELLATION_EXP)
+	, m_bufferWidth(0)
+	, m_bufferHeight(0)
 {
 	this->CreateBuffer(
 		GraphicDevice::GetInstance()->GetSwapChainWidth(),
@@ -64,7 +66,7 @@ void Camera::SetFieldOfView(uint8_t degree)
 	degree = Math::Clamp(degree, static_cast<uint8_t>(50), static_cast<uint8_t>(120));
 	m_fov = degree;
 
-	this->UpdateProjectionMatrix(
+	this->UpdateProjMatrix(
 		GraphicDevice::GetInstance()->GetSwapChainWidth(),
 		GraphicDevice::GetInstance()->GetSwapChainHeight()
 	);
@@ -82,7 +84,7 @@ void Camera::SetClippingPlanes(float nearPlane, float farPlane)
 	m_nearPlane = nearPlane;
 	m_farPlane = farPlane;
 
-	this->UpdateProjectionMatrix(
+	this->UpdateProjMatrix(
 		GraphicDevice::GetInstance()->GetSwapChainWidth(),
 		GraphicDevice::GetInstance()->GetSwapChainHeight()
 	);
@@ -110,7 +112,7 @@ void Camera::SetViewportRect(float x, float y, float w, float h)
 		GraphicDevice::GetInstance()->GetSwapChainWidth(),
 		GraphicDevice::GetInstance()->GetSwapChainHeight()
 	);
-	this->UpdateProjectionMatrix(
+	this->UpdateProjMatrix(
 		GraphicDevice::GetInstance()->GetSwapChainWidth(),
 		GraphicDevice::GetInstance()->GetSwapChainHeight()
 	);
@@ -150,8 +152,8 @@ bool Camera::CreateBuffer(uint32_t width, uint32_t height)
 	SyncFileLogger& sfl = Runtime::GetInstance()->GetSyncFileLogger();
 
 	HRESULT hr;
-	const float bufferWidth = static_cast<float>(width) * m_viewportRect.m_width;
-	const float bufferHeight = static_cast<float>(height) * m_viewportRect.m_height;
+	m_bufferWidth = static_cast<UINT>(static_cast<float>(width) * m_viewportRect.m_width);
+	m_bufferHeight = static_cast<UINT>(static_cast<float>(height) * m_viewportRect.m_height);
 
 	m_cpColorBufferRTV.Reset();
 	m_cpColorBufferSRV.Reset();
@@ -160,8 +162,8 @@ bool Camera::CreateBuffer(uint32_t width, uint32_t height)
 	// 컬러 버퍼 / 뷰 생성 (렌더링용 RTV, 카메라 병합용 SRV)
 	D3D11_TEXTURE2D_DESC colorBufferDesc;
 	ZeroMemory(&colorBufferDesc, sizeof(colorBufferDesc));
-	colorBufferDesc.Width = static_cast<UINT>(bufferWidth);
-	colorBufferDesc.Height = static_cast<UINT>(bufferHeight);
+	colorBufferDesc.Width = m_bufferWidth;
+	colorBufferDesc.Height = m_bufferHeight;
 	colorBufferDesc.MipLevels = 1;
 	colorBufferDesc.ArraySize = 1;
 	colorBufferDesc.Format = CAMERA_BUFFER_FORMAT;
@@ -240,7 +242,7 @@ bool Camera::CreateBuffer(uint32_t width, uint32_t height)
 	return true;
 }
 
-XMMATRIX XM_CALLCONV Camera::GetViewportMatrix()
+XMMATRIX Camera::GetViewportMatrix()
 {
 	const float dwHalfWidth = m_entireBufferViewport.Width * 0.5f;
 	const float dwHalfHeight = m_entireBufferViewport.Height * 0.5f;
@@ -307,36 +309,49 @@ IComponentManager* Camera::GetComponentManager() const
 
 void Camera::UpdateViewMatrix()
 {
-	const GameObject* pCameraOwner = m_pGameObject;
-	assert(pCameraOwner != nullptr);
+	assert(m_pGameObject != nullptr);
 
-	const XMMATRIX w = pCameraOwner->m_transform.GetWorldTransformMatrix();
-	XMVECTOR scale;
-	XMVECTOR rotation;		// Camera rotation quaternion
-	XMVECTOR translation;
+	XMVECTOR scaleW;
+	XMVECTOR rotationW;		// Quaternion
+	XMVECTOR positionW;
+	m_pGameObject->m_transform.GetWorldTransform(&scaleW, &rotationW, &positionW);
 
-	XMMatrixDecompose(&scale, &rotation, &translation, w);
+	XMVECTOR forward = XMVector3Rotate(Vector3::Forward(), rotationW);
+	XMVECTOR up = XMVector3Rotate(Vector3::Up(), rotationW);
 
-	const XMVECTOR forward = XMVector3Rotate(Math::Vector3::Forward(), rotation);
-	const XMVECTOR up = XMVector3Rotate(Math::Vector3::Up(), rotation);
-	const XMVECTOR eye = translation;
-	const XMVECTOR at = eye + forward;
-
-	XMStoreFloat4x4A(&m_viewMatrix, XMMatrixLookAtLH(eye, at, up));
+	XMStoreFloat4x4A(&m_viewMatrix, XMMatrixLookToLH(positionW, forward, up));
 }
 
-void Camera::UpdateProjectionMatrix(uint32_t width, uint32_t height)
+void Camera::UpdateProjMatrix(uint32_t width, uint32_t height)
 {
 	const float bufferWidth = static_cast<float>(width) * m_viewportRect.m_width;
 	const float bufferHeight = static_cast<float>(height) * m_viewportRect.m_height;
-	const float aspectRatio = bufferWidth / bufferHeight;
+	m_bufferWidth = static_cast<UINT>(bufferWidth);
+	m_bufferHeight = static_cast<UINT>(bufferHeight);
 
-	XMStoreFloat4x4A(&m_projMatrix, XMMatrixPerspectiveFovLH(
-		XMConvertToRadians(static_cast<float>(m_fov)),
-		aspectRatio,
-		m_nearPlane,
-		m_farPlane)
-	);
+	XMMATRIX projMatrix;
+	if (m_projMethod == ProjectionMethod::Perspective)
+	{
+		// For typical usage, NearZ is less than FarZ.
+		// However, if you flip these values so FarZ is less than NearZ, 
+		// the result is an inverted z buffer(also known as a "reverse z buffer") which can provide increased floating - point precision.
+		// NearZ and FarZ cannot be the same value and must be greater than 0.
+		// The default AspectRatio axis is horizontal, but recalculating FovAngleY 
+		// with AspectRatio controls the view scale direction : 2.0 * atan(tan(FovAngleY * 0.5) / AspectRatio).
+		projMatrix = XMMatrixPerspectiveFovLH(
+			XMConvertToRadians(static_cast<float>(m_fov)),
+			bufferWidth / bufferHeight,	// 종횡비
+			m_nearPlane,
+			m_farPlane
+		);
+	}
+	else
+	{
+		// All the parameters of XMMatrixOrthographicLH are distances in camera space.
+		projMatrix = XMMatrixOrthographicLH(bufferWidth, bufferHeight, m_nearPlane, m_farPlane);
+	}
+
+	XMStoreFloat4x4A(&m_projMatrix, projMatrix);
 }
 
 void Camera::UpdateEntireBufferViewport(uint32_t width, uint32_t height)

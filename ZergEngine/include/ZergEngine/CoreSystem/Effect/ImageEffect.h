@@ -10,13 +10,13 @@ namespace ze
 	class ImageEffect : public IEffect
 	{
 	private:
-		enum DIRTY_FLAG : DWORD
+		enum DirtyFlag : DWORD
 		{
-			PRIMITIVE_TOPOLOGY				= 1 << 0,
-			INPUT_LAYOUT					= 1 << 1,
-			SHADER							= 1 << 2,
-			CONSTANTBUFFER_PER_UI_RENDER	= 1 << 3,
-			CONSTANTBUFFER_PER_IMAGE		= 1 << 4,
+			PrimitiveTopology	= 1 << 0,
+			InputLayout			= 1 << 1,
+			Shader				= 1 << 2,
+			CBPerUIRender		= 1 << 3,
+			CBPer2DQuad			= 1 << 4,
 
 			COUNT,
 
@@ -25,13 +25,12 @@ namespace ze
 	public:
 		ImageEffect() noexcept
 			: m_dirtyFlag(ALL)
-			, m_pInputLayout(nullptr)
 			, m_pVertexShader(nullptr)
 			, m_pPixelShader(nullptr)
 			, m_cbPerUIRender()
-			, m_cbPerImage()
+			, m_cbPer2DQuad()
 			, m_cbPerUIRenderCache()
-			, m_cbPerImageCache()
+			, m_cbPer2DQuadCache()
 			, m_pTextureSRVArray{ nullptr }
 		{
 		}
@@ -58,14 +57,13 @@ namespace ze
 	private:
 		DWORD m_dirtyFlag;
 
-		ID3D11InputLayout* m_pInputLayout;
 		ID3D11VertexShader* m_pVertexShader;
 		ID3D11PixelShader* m_pPixelShader;
 
 		ConstantBuffer<CbPerUIRender> m_cbPerUIRender;
-		ConstantBuffer<CbPerPTQuad> m_cbPerImage;
+		ConstantBuffer<CbPer2DQuad> m_cbPer2DQuad;
 		CbPerUIRender m_cbPerUIRenderCache;
-		CbPerPTQuad m_cbPerImageCache;
+		CbPer2DQuad m_cbPer2DQuadCache;
 
 		ID3D11ShaderResourceView* m_pTextureSRVArray[1];
 	};

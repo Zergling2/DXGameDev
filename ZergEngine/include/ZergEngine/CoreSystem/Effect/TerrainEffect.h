@@ -10,18 +10,18 @@ namespace ze
 	class TerrainEffect : public IEffect
 	{
 	private:
-		enum DIRTY_FLAG : DWORD
+		enum DirtyFlag : DWORD
 		{
-			PRIMITIVE_TOPOLOGY				= 1 << 0,
-			INPUT_LAYOUT					= 1 << 1,
-			SHADER							= 1 << 2,
-			CONSTANTBUFFER_PER_FRAME		= 1 << 3,
-			CONSTANTBUFFER_PER_CAMERA		= 1 << 4,
-			CONSTANTBUFFER_PER_TERRAIN		= 1 << 5,
+			PrimitiveTopology		= 1 << 0,
+			InputLayout				= 1 << 1,
+			Shader					= 1 << 2,
+			CBPerFrame				= 1 << 3,
+			CBPerCamera				= 1 << 4,
+			CBPerTerrain			= 1 << 5,
 
 			COUNT,
 
-			ALL								= ((COUNT - 1) << 1) - 1
+			ALL = ((COUNT - 1) << 1) - 1
 		};
 	public:
 		TerrainEffect() noexcept

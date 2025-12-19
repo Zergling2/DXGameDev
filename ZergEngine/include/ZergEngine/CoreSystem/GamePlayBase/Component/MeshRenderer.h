@@ -31,7 +31,7 @@ namespace ze
 
 		size_t GetSubsetCount() const { return m_materials.size(); }
 		// 범위검사 생략 (엔진 렌더러에서 사용, subsetIndex에 유효하지 않은 인덱스 전달하지 않도록 주의)
-		Material* GetMaterialPtr(size_t subsetIndex) const;
+		const Material* GetMaterialPtr(size_t subsetIndex) const;
 
 		// 범위검사 포함 (컨텐츠 로직에서 사용 권장)
 		std::shared_ptr<Material> GetMaterial(size_t subsetIndex) const;

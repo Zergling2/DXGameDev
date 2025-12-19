@@ -21,6 +21,21 @@ namespace ze
 
 		XMMATRIX GetWorldTransformMatrix() const;
 
+		// pScale: 월드 스케일이 반환됩니다.
+		// pRotation: 월드 회전이 쿼터니언으로 반환됩니다.
+		// pPosition: 월드 위치가 반환됩니다.
+		void GetWorldTransform(XMFLOAT3* pScale, XMFLOAT4* pRotation, XMFLOAT3* pPosition) const;
+
+		// pScale: 월드 스케일이 반환됩니다.
+		// pRotation: 월드 회전이 쿼터니언으로 반환됩니다.
+		// pPosition: 월드 위치가 반환됩니다.
+		void GetWorldTransform(XMFLOAT3A* pScale, XMFLOAT4A* pRotation, XMFLOAT3A* pPosition) const;
+
+		// pScale: 월드 스케일이 반환됩니다.
+		// pRotation: 월드 회전이 쿼터니언으로 반환됩니다.
+		// pPosition: 월드 위치가 반환됩니다.
+		void GetWorldTransform(XMVECTOR* pScale, XMVECTOR* pRotation, XMVECTOR* pPosition) const;
+
 		// 현재 로컬 스케일을 반환합니다.
 		XMVECTOR GetScale() const { return XMLoadFloat3A(&m_scale); }
 
@@ -40,13 +55,19 @@ namespace ze
 		XMVECTOR GetWorldPosition() const;
 
 		// 현재 스케일 상태에 스케일링을 누적합니다.
-		void XM_CALLCONV Scale(FLOAT scale) { XMStoreFloat3A(&m_scale, XMVectorScale(XMLoadFloat3A(&m_scale), scale)); }
-
-		// 현재 스케일 상태에 스케일링을 누적합니다.
 		void XM_CALLCONV Scale(FXMVECTOR scale) { XMStoreFloat3A(&m_scale, XMVectorMultiply(XMLoadFloat3A(&m_scale), scale)); }
+		void Scale(FLOAT scale) { XMStoreFloat3A(&m_scale, XMVectorScale(XMLoadFloat3A(&m_scale), scale)); }
+		void Scale(FLOAT sx, FLOAT sy, FLOAT sz) { m_scale.x *= sx; m_scale.y *= sy; m_scale.z *= sz; }
+		void ScaleX(FLOAT sx) { m_scale.x *= sx; }
+		void ScaleY(FLOAT sy) { m_scale.y *= sy; }
+		void ScaleZ(FLOAT sz) { m_scale.z *= sz; }
 
 		// 로컬 스케일을 재설정합니다.
 		void XM_CALLCONV SetScale(FXMVECTOR scale) { XMStoreFloat3A(&m_scale, scale); }
+		void SetScale(FLOAT sx, FLOAT sy, FLOAT sz) { m_scale.x = sx; m_scale.y = sy; m_scale.z = sz; }
+		void SetScaleX(FLOAT sx) { m_scale.x = sx; }
+		void SetScaleY(FLOAT sy) { m_scale.y = sy; }
+		void SetScaleZ(FLOAT sz) { m_scale.z = sz; }
 
 		// 현재 상태에서 추가적으로 회전시킵니다.
 		void XM_CALLCONV RotateQuaternion(FXMVECTOR quaternion) { XMStoreFloat4A(&m_rotation, XMQuaternionNormalize(XMQuaternionMultiply(XMLoadFloat4A(&m_rotation), quaternion))); }
@@ -70,6 +91,11 @@ namespace ze
 		void XM_CALLCONV Translate(FXMVECTOR translation) { XMStoreFloat3A(&m_position, XMVectorAdd(XMLoadFloat3A(&m_position), translation)); }
 
 		void XM_CALLCONV SetPosition(FXMVECTOR position) { XMStoreFloat3A(&m_position, position); }
+		void SetPosition(FLOAT x, FLOAT y, FLOAT z) { m_position.x = x;	m_position.y = y; m_position.z = z;	}
+		void SetPositionX(FLOAT x) { m_position.x = x; }
+		void SetPositionY(FLOAT y) { m_position.y = y; }
+		void SetPositionZ(FLOAT z) { m_position.z = z; }
+
 
 		bool SetParent(Transform* pTransform);
 		bool IsDescendantOf(Transform* pTransform) const;

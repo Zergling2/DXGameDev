@@ -5,7 +5,7 @@ using namespace ze;
 constexpr float SENSITIVITY = 0.1f;
 constexpr float SPEED = 16.0f;
 constexpr float WALK_SPEED = SPEED * 0.25f;
-constexpr float HEAD_CLAMP_ANGLE = 89.0f;
+constexpr float HEAD_CLAMP_ANGLE = 89.5f;
 
 void FirstPersonMovement::Awake()
 {
@@ -81,8 +81,8 @@ void FirstPersonMovement::MovementProcess(ze::GameObject* pGameObject)
 {
 	const float dt = Time::GetInstance()->GetDeltaTime();
 	XMVECTOR localRotation = pGameObject->m_transform.GetRotation();
-	XMVECTOR worldForwardAxis = XMVector3Rotate(Math::Vector3::Forward(), localRotation);
-	XMVECTOR worldRightAxis = XMVector3Rotate(Math::Vector3::Right(), localRotation);
+	XMVECTOR worldForwardAxis = XMVector3Rotate(Vector3::Forward(), localRotation);
+	XMVECTOR worldRightAxis = XMVector3Rotate(Vector3::Right(), localRotation);
 
 	const int32_t mx = Input::GetInstance()->GetMouseAxisHorizontal();
 	const int32_t my = Input::GetInstance()->GetMouseAxisVertical();

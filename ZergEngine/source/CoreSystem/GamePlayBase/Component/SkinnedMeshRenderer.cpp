@@ -41,7 +41,7 @@ void SkinnedMeshRenderer::SetArmature(std::shared_ptr<Armature> spArmature)
 	this->StopAnimation();
 }
 
-Material* SkinnedMeshRenderer::GetMaterialPtr(size_t subsetIndex) const
+const Material* SkinnedMeshRenderer::GetMaterialPtr(size_t subsetIndex) const
 {
 	assert(subsetIndex < m_materials.size());
 	return m_materials[subsetIndex].get();

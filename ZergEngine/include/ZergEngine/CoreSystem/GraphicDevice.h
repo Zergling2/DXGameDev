@@ -72,8 +72,8 @@ namespace ze
 		float GetSwapChainHeightFlt() const { return m_swapChainSizeFlt.y; }
 		float GetSwapChainHalfWidthFlt() const { return m_swapChainHalfSizeFlt.x; }
 		float GetSwapChainHalfHeightFlt() const { return m_swapChainHalfSizeFlt.y; }
-		ID3D11Device* GetDeviceComInterface() { return m_cpDevice.Get(); }
-		ID3D11DeviceContext* GetImmediateContextComInterface() { return m_cpImmediateContext.Get(); }
+		ID3D11Device* GetDeviceComInterface() const { return m_cpDevice.Get(); }
+		ID3D11DeviceContext* GetImmediateContextComInterface() const { return m_cpImmediateContext.Get(); }
 
 		IDXGISwapChain* GetSwapChainComInterface() const { return m_cpSwapChain.Get(); }
 		ID3D11RenderTargetView* GetSwapChainRTVComInterface() const { return m_cpSwapChainRTV.Get(); }

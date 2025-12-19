@@ -10,12 +10,12 @@ namespace ze
 	class SkyboxEffect : public IEffect
 	{
 	private:
-		enum DIRTY_FLAG : DWORD
+		enum DirtyFlag : DWORD
 		{
-			PRIMITIVE_TOPOLOGY			= 1 << 0,
-			INPUT_LAYOUT				= 1 << 1,
-			SHADER						= 1 << 2,
-			CONSTANTBUFFER_PER_CAMERA	= 1 << 3,
+			PrimitiveTopology			= 1 << 0,
+			InputLayout				= 1 << 1,
+			Shader						= 1 << 2,
+			CBPerCamera	= 1 << 3,
 
 			COUNT,
 

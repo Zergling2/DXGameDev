@@ -9,8 +9,8 @@ using namespace ze;
 ILight::ILight(uint64_t id)
 	: IComponent(id)
 {
-	XMStoreFloat4A(&m_diffuse, Math::Vector3::One());
-	XMStoreFloat4A(&m_specular, Math::Vector3::One());
+	XMStoreFloat4A(&m_diffuse, Vector3::One());
+	XMStoreFloat4A(&m_specular, Vector3::One());
 }
 
 DirectionalLight::DirectionalLight()

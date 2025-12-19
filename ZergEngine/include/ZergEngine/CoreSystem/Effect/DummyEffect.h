@@ -4,7 +4,7 @@
 
 namespace ze
 {
-	// Apply() 함수 내 조건 분기 제거용 더미 이펙트 객체
+	// 분기 제거용 더미 이펙트 객체
 	class DummyEffect : public IEffect
 	{
 	public:

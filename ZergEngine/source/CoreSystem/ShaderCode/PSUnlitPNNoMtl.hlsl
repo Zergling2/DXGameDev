@@ -13,7 +13,7 @@
 // 
 // cbuffer Cb2 : register(b2)
 // {
-//     CbPerSubset cb_perSubset;
+//     CbMaterial cb_material;
 // }
 
 PSOutput main(PSInputPNFragment input)

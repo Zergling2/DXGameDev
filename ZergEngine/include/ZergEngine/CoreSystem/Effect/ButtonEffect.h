@@ -9,12 +9,12 @@ namespace ze
 	class ButtonEffect : public IEffect
 	{
 	private:
-		enum DIRTY_FLAG : DWORD
+		enum DirtyFlag : DWORD
 		{
-			PRIMITIVE_TOPOLOGY				= 1 << 0,
-			INPUT_LAYOUT					= 1 << 1,
-			SHADER							= 1 << 2,
-			CONSTANTBUFFER_PER_UI_RENDER	= 1 << 3,
+			PrimitiveTopology				= 1 << 0,
+			InputLayout						= 1 << 1,
+			Shader							= 1 << 2,
+			CBPerUIRender	= 1 << 3,
 			CONSTANTBUFFER_PER_BUTTON		= 1 << 4,
 
 			COUNT,
@@ -61,9 +61,9 @@ namespace ze
 		ID3D11PixelShader* m_pPixelShader;
 
 		ConstantBuffer<CbPerUIRender> m_cbPerUIRender;
-		ConstantBuffer<CbPerButton> m_cbPerButton;
+		ConstantBuffer<CbPerShaded2DQuad> m_cbPerButton;
 		CbPerUIRender m_cbPerUIRenderCache;
-		CbPerButton m_cbPerButtonCache;
+		CbPerShaded2DQuad m_cbPerButtonCache;
 		std::wstring m_text;
 	};
 }

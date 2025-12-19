@@ -74,7 +74,7 @@ void BoneAnimation::Interpolate(float time, XMFLOAT3* pOutScale, XMFLOAT4* pOutR
 	if (kfc == 0)
 	{
 		// 키 프레임이 0개이면 기본 값을 내보낸다.
-		XMStoreFloat3(pOutScale, Math::Vector3::One3());
+		XMStoreFloat3(pOutScale, Vector3::One3());
 	}
 	else if (kfc == 1)
 	{
@@ -125,7 +125,7 @@ void BoneAnimation::Interpolate(float time, XMFLOAT3* pOutScale, XMFLOAT4* pOutR
 	if (kfc == 0)
 	{
 		// 키 프레임이 0개이면 기본 값을 내보낸다.
-		XMStoreFloat4(pOutRotation, Math::Quaternion::Identity());
+		XMStoreFloat4(pOutRotation, Quaternion::Identity());
 	}
 	else if (kfc == 1)
 	{
@@ -176,7 +176,7 @@ void BoneAnimation::Interpolate(float time, XMFLOAT3* pOutScale, XMFLOAT4* pOutR
 	if (kfc == 0)
 	{
 		// 키 프레임이 0개이면 기본 값을 내보낸다.
-		XMStoreFloat3(pOutTranslate, Math::Vector3::Zero());
+		XMStoreFloat3(pOutTranslate, Vector3::Zero());
 	}
 	else if (kfc == 1)
 	{

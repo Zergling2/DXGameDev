@@ -12,7 +12,7 @@ using namespace ze;
 
 void DrawScreenRatioQuadWithMSTextureEffect::Init()
 {
-	m_dirtyFlag = DIRTY_FLAG::ALL;
+	m_dirtyFlag = DirtyFlag::ALL;
 
 	m_pInputLayout = nullptr;
 	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::ToHcsScreenRatioQuad);
@@ -35,7 +35,7 @@ void DrawScreenRatioQuadWithMSTextureEffect::SetQuadParameters(float width, floa
 	m_cbPerScreenRatioQuadCache.topLeftX = topLeftX;
 	m_cbPerScreenRatioQuadCache.topLeftY = topLeftY;
 
-	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_SCREEN_RATIO_QUAD;
+	m_dirtyFlag |= DirtyFlag::CBPerScreenRatioQuad;
 }
 
 void DrawScreenRatioQuadWithMSTextureEffect::SetTexture(ID3D11ShaderResourceView* pTextureSRV)
@@ -51,16 +51,16 @@ void DrawScreenRatioQuadWithMSTextureEffect::ApplyImpl(ID3D11DeviceContext* pDev
 	{
 		switch (static_cast<DWORD>(1) << index)
 		{
-		case DIRTY_FLAG::PRIMITIVE_TOPOLOGY:
+		case DirtyFlag::PrimitiveTopology:
 			pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);	// Triangle Strip
 			break;
-		case DIRTY_FLAG::INPUT_LAYOUT:
+		case DirtyFlag::InputLayout:
 			pDeviceContext->IASetInputLayout(m_pInputLayout);
 			break;
-		case DIRTY_FLAG::SHADER:
+		case DirtyFlag::Shader:
 			ApplyShader(pDeviceContext);
 			break;
-		case DIRTY_FLAG::CONSTANTBUFFER_PER_SCREEN_RATIO_QUAD:
+		case DirtyFlag::CBPerScreenRatioQuad:
 			ApplyPerDrawQuadConstantBuffer(pDeviceContext);
 			break;
 		default:
@@ -85,7 +85,7 @@ void DrawScreenRatioQuadWithMSTextureEffect::KickedOutOfDeviceContext() noexcept
 {
 	ClearTextureSRVArray();
 
-	m_dirtyFlag = DIRTY_FLAG::ALL;
+	m_dirtyFlag = DirtyFlag::ALL;
 }
 
 void DrawScreenRatioQuadWithMSTextureEffect::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept

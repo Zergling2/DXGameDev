@@ -67,7 +67,7 @@ namespace ze
 
 		uint64_t AssignUniqueId() { return InterlockedIncrement64(reinterpret_cast<LONG64*>(&m_uniqueId)); }
 
-		IUIObject* XM_CALLCONV HitTest(FXMVECTOR mousePosition);
+		IUIObject* XM_CALLCONV SearchForHitUI(FXMVECTOR mousePosition);
 		static IUIObject* XM_CALLCONV PostOrderHitTest(FXMVECTOR mousePosition, IUIObject* pUIObject);
 
 		InputField* GetActiveInputField() const { return m_pActiveInputField; }

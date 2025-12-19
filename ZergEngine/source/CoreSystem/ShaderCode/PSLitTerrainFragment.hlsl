@@ -80,11 +80,14 @@ PSOutput main(PSInputTerrainFragment input)
         specularLight += oSL;
     }
     
-    float4 diffuse = mtl.diffuse * (diffuseLight + ambientLight);
-    float4 specular = mtl.specular * specularLight;
-
-    output.color.rgb = (diffuse + specular).rgb;
-    output.color.a = diffuse.a; // 알파 채널은 diffuse 속성에서 가져온다.
+    float4 diffuseMtl = mtl.diffuse;
+    float4 specularMtl = mtl.specular;
+    
+    float4 diffuseColor = diffuseMtl * (diffuseLight + ambientLight);
+    float4 specularColor = specularMtl * specularLight;
+    
+    output.color = (diffuseColor + specularColor);
+    output.color.a = diffuseMtl.a; // 알파 채널은 재질의 diffuse 속성을 사용해야 함.
 
     output.color = saturate(output.color);
     

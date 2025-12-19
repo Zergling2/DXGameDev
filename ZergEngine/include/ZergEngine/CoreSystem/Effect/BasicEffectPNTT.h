@@ -10,16 +10,16 @@ namespace ze
 
 	class BasicEffectPNTT : public IEffect
 	{
-		enum DIRTY_FLAG : DWORD
+		enum DirtyFlag : DWORD
 		{
-			PRIMITIVE_TOPOLOGY			= 1 << 0,
-			INPUT_LAYOUT				= 1 << 1,
-			SHADER						= 1 << 2,
-			PIXEL_SHADER				= 1 << 3,
-			CONSTANTBUFFER_PER_FRAME	= 1 << 4,
-			CONSTANTBUFFER_PER_CAMERA	= 1 << 5,
-			CONSTANTBUFFER_PER_MESH		= 1 << 6,
-			CONSTANTBUFFER_PER_SUBSET	= 1 << 7,
+			PrimitiveTopology		= 1 << 0,
+			InputLayout				= 1 << 1,
+			Shader					= 1 << 2,
+			PixelShader				= 1 << 3,
+			CBPerFrame				= 1 << 4,
+			CBPerCamera				= 1 << 5,
+			CBPerMesh				= 1 << 6,
+			CBMaterial				= 1 << 7,
 
 			COUNT,
 
@@ -35,11 +35,11 @@ namespace ze
 			, m_cbPerFrame()
 			, m_cbPerCamera()
 			, m_cbPerMesh()
-			, m_cbPerSubset()
+			, m_cbMaterial()
 			, m_cbPerFrameCache()
 			, m_cbPerCameraCache()
 			, m_cbPerMeshCache()
-			, m_cbPerSubsetCache()
+			, m_cbMaterialCache()
 			, m_pTextureSRVArray{ nullptr, nullptr, nullptr }
 		{
 			ZeroMemory(m_psTable, sizeof(m_psTable));
@@ -71,7 +71,7 @@ namespace ze
 		void ApplyPerFrameConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
 		void ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
 		void ApplyPerMeshConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
-		void ApplyPerSubsetConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
+		void ApplyMaterialConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
 		void ClearTextureSRVArray() noexcept;
 	private:
 		DWORD m_dirtyFlag;
@@ -85,11 +85,11 @@ namespace ze
 		ConstantBuffer<CbPerForwardRenderingFrame> m_cbPerFrame;
 		ConstantBuffer<CbPerCamera> m_cbPerCamera;
 		ConstantBuffer<CbPerMesh> m_cbPerMesh;
-		ConstantBuffer<CbPerSubset> m_cbPerSubset;
+		ConstantBuffer<CbMaterial> m_cbMaterial;
 		CbPerForwardRenderingFrame m_cbPerFrameCache;
 		CbPerCamera m_cbPerCameraCache;
 		CbPerMesh m_cbPerMeshCache;
-		CbPerSubset m_cbPerSubsetCache;
+		CbMaterial m_cbMaterialCache;
 
 		// [0] DIFFUSE_MAP, [1] SPECULAR_MAP, [2] NORMAL_MAP
 		ID3D11ShaderResourceView* m_pTextureSRVArray[3];

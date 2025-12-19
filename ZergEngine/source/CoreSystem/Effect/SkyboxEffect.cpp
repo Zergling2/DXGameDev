@@ -16,7 +16,7 @@ using namespace ze;
 
 void SkyboxEffect::Init()
 {
-	m_dirtyFlag = DIRTY_FLAG::ALL;
+	m_dirtyFlag = DirtyFlag::ALL;
 
 	m_pInputLayout = nullptr;
 	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::ToHcsSkybox);
@@ -38,7 +38,7 @@ void SkyboxEffect::SetCamera(const Camera* pCamera) noexcept
 	assert(pCameraOwner != nullptr);
 
 	XMMATRIX vp = pCamera->GetViewMatrix() * pCamera->GetProjMatrix();
-	Math::CalcFrustumPlanesFromViewProjMatrix(vp, m_cbPerCameraCache.worldSpaceFrustumPlane);
+	Math::ComputeFrustumPlanesFromViewProjMatrix(vp, m_cbPerCameraCache.worldSpaceFrustumPlane);
 
 	XMStoreFloat3(&m_cbPerCameraCache.cameraPosW, pCameraOwner->m_transform.GetWorldPosition());
 	m_cbPerCameraCache.tessMinDist = pCamera->GetMinDistanceTessellationToStart();
@@ -48,7 +48,7 @@ void SkyboxEffect::SetCamera(const Camera* pCamera) noexcept
 
 	XMStoreFloat4x4A(&m_cbPerCameraCache.vp, ConvertToHLSLMatrix(vp));
 
-	m_dirtyFlag |= DIRTY_FLAG::CONSTANTBUFFER_PER_CAMERA;
+	m_dirtyFlag |= DirtyFlag::CBPerCamera;
 }
 
 void SkyboxEffect::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
@@ -59,16 +59,16 @@ void SkyboxEffect::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
 	{
 		switch (static_cast<DWORD>(1) << index)
 		{
-		case DIRTY_FLAG::PRIMITIVE_TOPOLOGY:
+		case DirtyFlag::PrimitiveTopology:
 			pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 			break;
-		case DIRTY_FLAG::INPUT_LAYOUT:
+		case DirtyFlag::InputLayout:
 			pDeviceContext->IASetInputLayout(m_pInputLayout);
 			break;
-		case DIRTY_FLAG::SHADER:
+		case DirtyFlag::Shader:
 			ApplyShader(pDeviceContext);
 			break;
-		case DIRTY_FLAG::CONSTANTBUFFER_PER_CAMERA:
+		case DirtyFlag::CBPerCamera:
 			ApplyPerCameraConstantBuffer(pDeviceContext);
 			break;
 		default:
@@ -93,7 +93,7 @@ void SkyboxEffect::KickedOutOfDeviceContext() noexcept
 {
 	ClearTextureSRVArray();
 
-	m_dirtyFlag = DIRTY_FLAG::ALL;
+	m_dirtyFlag = DirtyFlag::ALL;
 }
 
 void SkyboxEffect::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept

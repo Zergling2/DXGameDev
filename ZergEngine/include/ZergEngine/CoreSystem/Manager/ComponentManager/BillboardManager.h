@@ -7,6 +7,7 @@ namespace ze
 	class BillboardManager : public IComponentManager
 	{
 		friend class Runtime;
+		friend class Renderer;
 		friend class Billboard;
 	public:
 		static BillboardManager* GetInstance() { return s_pInstance; }

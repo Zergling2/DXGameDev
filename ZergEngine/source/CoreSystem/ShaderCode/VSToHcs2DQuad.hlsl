@@ -3,7 +3,7 @@
 /*
 [Constant Buffer]
 CbPerUIRender
-CbPerPTQuad
+CbPer2DQuad
 */
 
 cbuffer Cb0 : register(b0)
@@ -13,7 +13,7 @@ cbuffer Cb0 : register(b0)
 
 cbuffer Cb1 : register(b1)
 {
-    CbPerPTQuad cb_perPTQuad;
+    CbPer2DQuad cb_per2DQuad;
 }
 
 // TRIANGLESTRIP
@@ -39,10 +39,10 @@ PSInputPTFragment main(uint vertexId : SV_VertexID)
     PSInputPTFragment output;
     
     float4x4 m = float4x4(
-        float4(cb_perPTQuad.size.x,     0.0f,                       0.0f,   0.0f),
-        float4(0.0f,                    cb_perPTQuad.size.y,        0.0f,   0.0f),
-        float4(0.0f,                    0.0f,                       1.0f,   0.0f),
-        float4(cb_perPTQuad.position.x, cb_perPTQuad.position.y,    0.0f,   1.0f)
+        float4(cb_per2DQuad.size.x, 0.0f, 0.0f, 0.0f),
+        float4(0.0f, cb_per2DQuad.size.y, 0.0f, 0.0f),
+        float4(0.0f, 0.0f, 1.0f, 0.0f),
+        float4(cb_per2DQuad.position, 0.0f, 1.0f)
     );
     
     const float2 screenPos = mul(float4(g_quad[vertexId], 0.0f, 1.0f), m).xy;

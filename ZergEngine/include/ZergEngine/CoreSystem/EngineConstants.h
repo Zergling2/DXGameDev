@@ -11,17 +11,26 @@ namespace ze
 	constexpr uint32_t MAX_GLOBAL_LIGHT_COUNT = 4;
 	constexpr uint16_t MAX_CAMERA_COUNT = 4;
 	constexpr uint8_t MAX_BONE_COUNT = 96;
+	constexpr float BOUNDING_BOX_MIN_EXTENT = 0.005f;
 
 	enum class RasterizerMode
 	{
-		WireframeMultisample,
-		WireframeNoMultisample,
-		SolidCullNoneMultisample,
-		SolidCullNoneNoMultisample,
-		SolidCullFrontMultisample,
-		SolidCullFrontNoMultisample,
-		SolidCullBackMultisample,
-		SolidCullBackNoMultisample,
+		MultisampleWireframe,
+
+		Wireframe,
+
+		MultisampleSolidCullNone,
+
+		SolidCullNone,
+
+		MultisampleSolidCullFront,
+
+		SolidCullFront,
+
+		MultisampleSolidCullBack,
+
+		SolidCullBack,
+
 		ShadowMap,	// No multisample
 
 		COUNT
@@ -72,8 +81,8 @@ namespace ze
 		ToHcsSkybox,
 		ToHcsBillboardQuad,
 		ToHcsScreenRatioQuad,
-		ToHcsUIQuad,
-		ToHcsButton,
+		ToHcs2DQuad,
+		ToHcsShaded2DQuad,
 		// PerspectiveShadowMap,
 		// 收收收收收收收收收收收收收收收收收收收收收收
 		COUNT
@@ -156,7 +165,7 @@ namespace ze
 		PositionNormalTangentTexCoord,
 		PositionNormalTangentTexCoordSkinned,
 		TerrainPatchCtrlPt,
-		ButtonPt,
+		Shaded2DQuad,
 		// 收收收收收收收收收收收收收收收收收收收收收收
 		COUNT,
 		UNKNOWN

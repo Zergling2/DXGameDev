@@ -3,7 +3,6 @@
 #include "LevelEditorView.h"
 #include "TerrainInspectorFormView.h"
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\Component\Camera.h>
 #include <ZergEngine\CoreSystem\Input.h>
 #include <ZergEngine\CoreSystem\Time.h>
 #include <ZergEngine\CoreSystem\Math.h>
@@ -58,8 +57,8 @@ void EditorCameraScript::MoveCamera()
 	const float dt = ze::Time::GetInstance()->GetDeltaTime();
 
 	XMVECTOR localRotation = pGameObject->m_transform.GetRotation();
-	XMVECTOR worldForwardAxis = XMVector3Rotate(ze::Math::Vector3::Forward(), localRotation);
-	XMVECTOR worldRightAxis = XMVector3Rotate(ze::Math::Vector3::Right(), localRotation);
+	XMVECTOR worldForwardAxis = XMVector3Rotate(ze::Vector3::Forward(), localRotation);
+	XMVECTOR worldRightAxis = XMVector3Rotate(ze::Vector3::Right(), localRotation);
 
 	const int32_t mx = ze::Input::GetInstance()->GetMouseAxisHorizontal();
 	const int32_t my = ze::Input::GetInstance()->GetMouseAxisVertical();

@@ -40,12 +40,14 @@ namespace ze
 		void SetBackgroundColor(const XMFLOAT4A color) { m_backgroundColor = color; }
 		void XM_CALLCONV SetBackgroundColor(FXMVECTOR color) { XMStoreFloat4A(&m_backgroundColor, color); }
 		ProjectionMethod GetProjectionMethod() const { return m_projMethod; }
-		void SetProjectionMethod(ProjectionMethod method);
+		void SetProjectionMethod(ProjectionMethod pm) { m_projMethod = pm; }
 		uint32_t GetFieldOfView() const { return m_fov; }
 		void SetFieldOfView(uint8_t degree);
 		float GetNearPlane() const { return m_nearPlane; }
 		float GetFarPlane() const { return m_farPlane; }
 		void SetClippingPlanes(float nearPlane, float farPlane);
+		MSAAMode GetMSAAMode() const { return m_msaaMode; }
+		void SetMSAAMode(MSAAMode mode);
 
 		// x, y, w, h must be normalized value.
 		void SetViewportRect(float x, float y, float width, float height);
@@ -68,13 +70,16 @@ namespace ze
 		float GetMinimumTessellationExponent() const { return m_minTessExponent; }
 		float GetMaximumTessellationExponent() const { return m_maxTessExponent; }
 
+		UINT GetBufferWidth() const { return m_bufferWidth; }
+		UINT GetBufferHeight() const { return m_bufferHeight; }
+
 		ID3D11RenderTargetView* GetColorBufferRTVComInterface() const { return m_cpColorBufferRTV.Get(); }
 		ID3D11ShaderResourceView* GetColorBufferSRVComInterface() const { return m_cpColorBufferSRV.Get(); }
 		ID3D11DepthStencilView* GetDepthStencilBufferDSVComInterface() const { return m_cpDepthStencilBufferDSV.Get(); }
 
-		XMMATRIX XM_CALLCONV GetViewMatrix() const { return XMLoadFloat4x4A(&m_viewMatrix); }
-		XMMATRIX XM_CALLCONV GetProjMatrix() const { return XMLoadFloat4x4A(&m_projMatrix); }
-		XMMATRIX XM_CALLCONV GetViewportMatrix();
+		XMMATRIX GetViewMatrix() const { return XMLoadFloat4x4A(&m_viewMatrix); }
+		XMMATRIX GetProjMatrix() const { return XMLoadFloat4x4A(&m_projMatrix); }
+		XMMATRIX GetViewportMatrix();
 
 		POINT ScreenPointToCameraPoint(POINT pt) const;
 		Ray ScreenPointToRay(POINT pt);	// 월드 공간 기준 Ray를 반환합니다.
@@ -85,9 +90,9 @@ namespace ze
 
 		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 		// 매개변수로 전달되는 width, height 입력은 스왑 체인의 버퍼 크기. 따라서 카메라의 정규화뷰포트 크기를 바탕으로 만들어낼 버퍼 크기를 계산해야 함.
-		bool CreateBuffer(uint32_t width, uint32_t height);			// 컬러 버퍼, 렌더 타겟 뷰, 셰이더 리소스 뷰, 뎁스 스텐실 버퍼, 뎁스 스텐실 뷰 생성
+		bool CreateBuffer(uint32_t width, uint32_t height);		// 컬러 버퍼, 렌더 타겟 뷰, 셰이더 리소스 뷰, 뎁스 스텐실 버퍼, 뎁스 스텐실 뷰 생성
 		void UpdateViewMatrix();
-		void UpdateProjectionMatrix(uint32_t width, uint32_t height);			// FoV, 클리핑 평면(near, far plane)또는 창 크기 변경되었을 경우 호출 필요
+		void UpdateProjMatrix(uint32_t width, uint32_t height);	// FoV, 클리핑 평면(near, far plane)또는 창 크기 변경되었을 경우 호출 필요
 		void UpdateEntireBufferViewport(uint32_t width, uint32_t height);
 		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	private:
@@ -111,5 +116,8 @@ namespace ze
 		float m_tessMaxDist;		// 최소한으로 테셀레이션 되는 최대 거리 정의 ┛
 		float m_minTessExponent;
 		float m_maxTessExponent;
+
+		UINT m_bufferWidth;
+		UINT m_bufferHeight;
 	};
 }

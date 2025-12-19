@@ -16,44 +16,136 @@ Transform::Transform(GameObject* pGameObject)
 
 XMMATRIX Transform::GetWorldTransformMatrix() const
 {
-    assert(m_pGameObject != nullptr);
+    XMVECTOR s;
+    XMVECTOR r;
+    XMVECTOR t;
 
-    XMVECTOR scale = this->GetScale();
-    XMVECTOR rotation = this->GetRotation();
-    XMVECTOR translation = XMVectorSetW(this->GetPosition(), 1.0f); // 매우 중요
+    this->GetWorldTransform(&s, &r, &t);
 
-    XMMATRIX srt = XMMatrixMultiply(XMMatrixScalingFromVector(scale), XMMatrixRotationQuaternion(rotation));
-    srt.r[3] = translation;
+    XMMATRIX m = XMMatrixMultiply(XMMatrixScalingFromVector(s), XMMatrixRotationQuaternion(r));
+    m.r[3] = XMVectorSetW(t, 1.0f);
 
-    if (m_pParentTransform != nullptr)
-        srt = XMMatrixMultiply(srt, m_pParentTransform->GetWorldTransformMatrix());
+    return m;
+}
 
-    return srt;
+void Transform::GetWorldTransform(XMFLOAT3* pScale, XMFLOAT4* pRotation, XMFLOAT3* pPosition) const
+{
+    assert(pScale != nullptr);
+    assert(pRotation != nullptr);
+    assert(pPosition != nullptr);
+
+    XMVECTOR scale;
+    XMVECTOR rotation;	// Quaternion
+    XMVECTOR translation;
+    this->GetWorldTransform(&scale, &rotation, &translation);
+
+    XMStoreFloat3(pScale, scale);
+    XMStoreFloat4(pRotation, rotation);
+    XMStoreFloat3(pPosition, translation);
+}
+
+void Transform::GetWorldTransform(XMFLOAT3A* pScale, XMFLOAT4A* pRotation, XMFLOAT3A* pPosition) const
+{
+    assert(pScale != nullptr);
+    assert(pRotation != nullptr);
+    assert(pPosition != nullptr);
+
+    XMVECTOR scale;
+    XMVECTOR rotation;	// Quaternion
+    XMVECTOR translation;
+    this->GetWorldTransform(&scale, &rotation, &translation);
+
+    XMStoreFloat3A(pScale, scale);
+    XMStoreFloat4A(pRotation, rotation);
+    XMStoreFloat3A(pPosition, translation);
+}
+
+void Transform::GetWorldTransform(XMVECTOR* pScale, XMVECTOR* pRotation, XMVECTOR* pPosition) const
+{
+    assert(pScale != nullptr);
+    assert(pRotation != nullptr);
+    assert(pPosition != nullptr);
+
+    XMVECTOR scaleL = this->GetScale();
+    XMVECTOR rotationL = this->GetRotation();
+    XMVECTOR translationL = XMVectorSetW(this->GetPosition(), 1.0f);    // 매우 중요
+
+    if (!m_pParentTransform)
+    {
+        *pScale = scaleL;
+        *pRotation = rotationL;
+        *pPosition = translationL;
+    }
+    else
+    {
+        // 부모가 있는 경우 부모의 스케일, 회전, 이동을 누적
+
+        // 중요 포인트!
+        // 자식의 Translation 성분은 부모의 스케일 및 회전에 영향을 받는다.
+        // 자기 자신 로컬 스케일과 회전은 영향을 받지 않는다. (부모의 스케일 및 회전만 적용해야 함!!!)
+        // 부모의 스케일 값에 자식의 회전을 곱한 뒤 
+
+        // 자식의 스케일에는 부모의
+
+        XMVECTOR parentScaleW;
+        XMVECTOR parentRotationW;
+        XMVECTOR parentTranslationW;
+        m_pParentTransform->GetWorldTransform(&parentScaleW, &parentRotationW, &parentTranslationW);
+
+
+
+        XMVECTOR scaleW = XMVectorMultiply(scaleL, parentScaleW);
+
+        XMVECTOR rotationW = XMQuaternionMultiply(rotationL, parentRotationW);
+
+        // 1. 자식의 이동 성분이 부모의 스케일에 영향을 받는다.
+        XMVECTOR scaledTranslationL = XMVectorMultiply(translationL, parentScaleW);
+        // 2. 자식의 이동 성분은 부모의 회전에 영향을 받는다.
+        XMVECTOR rotatedTranslationL = XMVector3Rotate(scaledTranslationL, parentRotationW);
+        // 3. 계산된 자식의 Translation 성분은 부모의 월드 위치 기준 Translation 성분이다. 따라서 더해준다.
+        XMVECTOR translationW = XMVectorAdd(rotatedTranslationL, parentTranslationW);
+
+        *pScale = scaleW;
+        *pRotation = rotationW;
+        *pPosition = translationW;
+    }
 }
 
 XMVECTOR Transform::GetWorldScale() const
 {
-    XMVECTOR scale = this->GetScale();
+    XMVECTOR scaleW;
+    XMVECTOR scaleL = this->GetScale();
 
-    if (m_pParentTransform != nullptr)
-        scale = XMVectorMultiply(scale, m_pParentTransform->GetScale());
+    if (m_pParentTransform)
+        scaleW = XMVectorMultiply(scaleL, m_pParentTransform->GetWorldScale());
+    else
+        scaleW = scaleL;
 
-    return scale;
+    return scaleW;
 }
 
 XMVECTOR Transform::GetWorldRotation() const
 {
-    XMVECTOR rotation = this->GetRotation();
+    XMVECTOR rotationW;
+    XMVECTOR rotationL = this->GetRotation();
 
-    if (m_pParentTransform != nullptr)
-        rotation = XMQuaternionMultiply(rotation, m_pParentTransform->GetRotation());
+    if (m_pParentTransform)
+        rotationW = XMQuaternionMultiply(rotationL, m_pParentTransform->GetWorldRotation());
+    else
+        rotationW = rotationL;
 
-    return rotation;
+    return rotationW;
 }
 
 XMVECTOR Transform::GetWorldPosition() const
 {
-    return this->GetWorldTransformMatrix().r[3];
+    XMVECTOR scaleW;
+    XMVECTOR rotationW;
+    XMVECTOR positionW;
+
+    this->GetWorldTransform(&scaleW, &rotationW, &positionW);
+
+    return positionW;
 }
 
 // void XM_CALLCONV Transform::RotateAround(FXMVECTOR point, FXMVECTOR axis, FLOAT angle)

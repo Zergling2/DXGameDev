@@ -23,6 +23,7 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\MeshRenderer.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\SkinnedMeshRenderer.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Terrain.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\Billboard.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Panel.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Image.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Button.h>

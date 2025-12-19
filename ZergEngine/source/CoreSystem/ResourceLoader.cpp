@@ -129,14 +129,14 @@ void ResourceLoader::Init()
 	};
 	std::vector<R8G8B8A8> texels(width * height);	// DXGI_FORMAT_R8G8B8A8_UNORM
 	constexpr UINT CHECK_DOT_SIZE = 32;	// 256x256에서 32x32 픽셀 크기로 번갈아가며 색상 배열
-	bool magenta = false;
-	constexpr R8G8B8A8 MAGENTA{ 255, 0, 255, 255 };
-	constexpr R8G8B8A8 BLACK{ 0, 0, 0, 255 };
+	bool isMagenta = false;
+	constexpr R8G8B8A8 MAGENTA_COLOR{ 255, 0, 255, 255 };
+	constexpr R8G8B8A8 BLACK_COLOR{ 0, 0, 0, 255 };
 	for (UINT i = 0; i < width; i += CHECK_DOT_SIZE)
 	{
 		for (UINT j = 0; j < height; j += CHECK_DOT_SIZE)
 		{
-			const R8G8B8A8 texel = magenta ? MAGENTA : BLACK;
+			const R8G8B8A8 texel = isMagenta ? MAGENTA_COLOR : BLACK_COLOR;
 			for (UINT k = i; k < i + CHECK_DOT_SIZE; ++k)
 			{
 				for (UINT l = j; l < j + CHECK_DOT_SIZE; ++l)
@@ -144,9 +144,9 @@ void ResourceLoader::Init()
 					texels[k * width + l] = texel;
 				}
 			}
-			magenta = !magenta;
+			isMagenta = !isMagenta;
 		}
-		magenta = !magenta;
+		isMagenta = !isMagenta;
 	}
 	// D3D11_SUBRESOURCE_DATA initialData;
 	// initialData.pSysMem = texels.data();
@@ -297,9 +297,7 @@ void ResourceLoader::AiLoadStaticMeshNode(TempModelData& tmd, const aiScene* pAi
 	// 정보 세팅
 	// 1. AABB 설정
 	// 부피가 없는 축의 경우 부피 생성
-	constexpr float AABB_EXTENT_MIN = 0.01f;
-	XMStoreFloat3(&finalAabb.Extents, XMVectorMax(XMLoadFloat3(&finalAabb.Extents), XMVectorReplicate(AABB_EXTENT_MIN)));
-	// 대입
+	XMStoreFloat3(&finalAabb.Extents, XMVectorMax(XMLoadFloat3(&finalAabb.Extents), XMVectorReplicate(BOUNDING_BOX_MIN_EXTENT)));
 	mesh->m_aabb = finalAabb;
 
 	// 2. 모든 서브셋들이 공유할 버텍스버퍼, 인덱스버퍼 생성
