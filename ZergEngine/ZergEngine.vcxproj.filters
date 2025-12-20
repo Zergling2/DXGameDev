@@ -171,7 +171,7 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DrawScreenRatioQuadWithMSTextureEffect.h">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\ButtonEffect.h">
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\Shaded2DQuadEffect.h">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\UIObjectManager.h">
@@ -225,9 +225,6 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\Panel.h">
       <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\SizeColorUIObjectInterface.h">
-      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
-    </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\MeshRenderer.h">
       <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
     </ClInclude>
@@ -252,16 +249,10 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\SkyboxEffect.h">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\SizeUIObjectInterface.h">
-      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
-    </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\AudioSource.h">
       <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\InputField.h">
-      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\Text.h">
       <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\AudioSourceManager.h">
@@ -353,6 +344,12 @@
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BillboardEffect.h">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\Scrollbar.h">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\Text.h">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -461,7 +458,7 @@
     <ClCompile Include="source\CoreSystem\Effect\DrawScreenRatioQuadWithMSTextureEffect.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClCompile>
-    <ClCompile Include="source\CoreSystem\Effect\ButtonEffect.cpp">
+    <ClCompile Include="source\CoreSystem\Effect\Shaded2DQuadEffect.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\Manager\UIObjectManager.cpp">
@@ -509,9 +506,6 @@
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\Panel.cpp">
       <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
     </ClCompile>
-    <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\SizeColorUIObjectInterface.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
-    </ClCompile>
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\MeshRenderer.cpp">
       <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
     </ClCompile>
@@ -533,16 +527,10 @@
     <ClCompile Include="source\CoreSystem\Effect\SkyboxEffect.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClCompile>
-    <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\SizeUIObjectInterface.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
-    </ClCompile>
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\AudioSource.cpp">
       <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\InputField.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\Text.cpp">
       <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\AudioSourceManager.cpp">
@@ -619,6 +607,12 @@
     </ClCompile>
     <ClCompile Include="source\CoreSystem\Effect\BillboardEffect.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\Scrollbar.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\Text.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

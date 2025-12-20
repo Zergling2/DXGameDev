@@ -4,13 +4,14 @@
 
 namespace ze
 {
-	enum class UIOBJECT_TYPE : uint8_t
+	enum class UIObjectType
 	{
-		PANEL,
-		IMAGE,
-		TEXT,
-		INPUT_FIELD,
-		BUTTON,
-		IMAGE_BUTTON,
+		Panel,
+		Image,
+		Text,
+		InputField,
+		Button,
+		ImageButton,
+		Scrollbar
 	};
 }

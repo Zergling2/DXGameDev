@@ -6,35 +6,35 @@
 
 namespace ze
 {
-	class ButtonEffect : public IEffect
+	class Shaded2DQuadEffect : public IEffect
 	{
 	private:
 		enum DirtyFlag : DWORD
 		{
-			PrimitiveTopology				= 1 << 0,
-			InputLayout						= 1 << 1,
-			Shader							= 1 << 2,
-			CBPerUIRender	= 1 << 3,
-			CONSTANTBUFFER_PER_BUTTON		= 1 << 4,
+			PrimitiveTopology		= 1 << 0,
+			InputLayout				= 1 << 1,
+			Shader					= 1 << 2,
+			CBPerUIRender			= 1 << 3,
+			CBPerShaded2DQuad		= 1 << 4,
 
 			COUNT,
 
 			ALL = ((COUNT - 1) << 1) - 1
 		};
 	public:
-		ButtonEffect() noexcept
+		Shaded2DQuadEffect() noexcept
 			: m_dirtyFlag(ALL)
 			, m_pInputLayout(nullptr)
 			, m_pVertexShader(nullptr)
 			, m_pPixelShader(nullptr)
 			, m_cbPerUIRender()
-			, m_cbPerButton()
+			, m_cbPerShaded2DQuad()
 			, m_cbPerUIRenderCache()
-			, m_cbPerButtonCache()
+			, m_cbPerShaded2DQuadCache()
 			, m_text()
 		{
 		}
-		virtual ~ButtonEffect() = default;
+		virtual ~Shaded2DQuadEffect() = default;
 
 		virtual void Init() override;
 		virtual void Release() override;
@@ -42,9 +42,9 @@ namespace ze
 		void SetScreenToNDCSpaceRatio(const XMFLOAT2& ratio) noexcept;
 
 		void XM_CALLCONV SetColor(FXMVECTOR color) noexcept;
-		void SetPressed(bool pressed) noexcept;
-		void XM_CALLCONV SetSize(FXMVECTOR size) noexcept;
-		void XM_CALLCONV SetPreNDCPosition(FXMVECTOR position) noexcept;	// 화면 중앙을 원점으로 하는 NDC 공간으로 변환 직전의 2D 위치 설정
+		void SetShadeWeightIndex(uint32_t index) noexcept;
+		void SetSize(FLOAT width, FLOAT height) noexcept;
+		void SetHCSPosition(const XMFLOAT2& pos) noexcept;	// 화면 중앙을 원점으로 하는 NDC 공간으로 변환 직전의 2D 위치 설정
 		void SetText(PCWSTR text) { m_text = text; }
 	private:
 		virtual void ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept override;
@@ -52,7 +52,7 @@ namespace ze
 
 		void ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept;
 		void ApplyPerUIRenderConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
-		void ApplyPerButtonConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
+		void ApplyPerShaded2DQuadConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
 	private:
 		DWORD m_dirtyFlag;
 
@@ -61,9 +61,9 @@ namespace ze
 		ID3D11PixelShader* m_pPixelShader;
 
 		ConstantBuffer<CbPerUIRender> m_cbPerUIRender;
-		ConstantBuffer<CbPerShaded2DQuad> m_cbPerButton;
+		ConstantBuffer<CbPerShaded2DQuad> m_cbPerShaded2DQuad;
 		CbPerUIRender m_cbPerUIRenderCache;
-		CbPerShaded2DQuad m_cbPerButtonCache;
+		CbPerShaded2DQuad m_cbPerShaded2DQuadCache;
 		std::wstring m_text;
 	};
 }

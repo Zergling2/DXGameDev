@@ -10,7 +10,7 @@ PSOutput main(PSInputSkyboxFragment input)
 {
     PSOutput output;
     
-    output.color = texcube_skybox.Sample(ss_bilinear, input.posL);
+    output.color = texcube_skybox.Sample(ss_bilinear, input.texCoord);  
     
     return output;
 }

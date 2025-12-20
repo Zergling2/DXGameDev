@@ -41,8 +41,8 @@ namespace ze
 
 		void SetScreenToNDCSpaceRatio(const XMFLOAT2& ratio) noexcept;
 
-		void XM_CALLCONV SetSize(FXMVECTOR size) noexcept;
-		void XM_CALLCONV SetPreNDCPosition(FXMVECTOR position) noexcept;	// 화면 중앙을 원점으로 하는 NDC 공간으로 변환 직전의 2D 위치 설정
+		void SetSize(FLOAT width, FLOAT height) noexcept;
+		void SetHCSPosition(const XMFLOAT2& pos) noexcept;	// 화면 중앙을 원점으로 하는 NDC 공간으로 변환 직전의 2D 위치 설정
 
 		void SetImageTexture(const Texture2D& image) noexcept;
 	private:

@@ -61,9 +61,9 @@ namespace ze
 		bool IsDescendantOf(RectTransform* pTransform) const;
 
 		// UIObjectHandle GetChild(uint32_t index);
-	private:
-		XMVECTOR GetHCSPosition() const;
-		XMVECTOR GetScreenPosWindowsCoordSystem() const;
+
+		void GetHCSPosition(XMFLOAT2* pOut) const;
+		void GetWinCoordPosition(XMFLOAT2* pOut) const;
 	private:
 		IUIObject* m_pUIObject;
 		RectTransform* m_pParentTransform;

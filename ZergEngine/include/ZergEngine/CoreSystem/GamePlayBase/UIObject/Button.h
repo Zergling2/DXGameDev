@@ -1,34 +1,69 @@
 #pragma once
 
-#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Text.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\UIObjectInterface.h>
 
 namespace ze
 {
-	class Button : public Text
+	class Button : public IUIObject
 	{
 		friend class Renderer;
 	public:
 		Button(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name);
 		virtual ~Button() = default;
 
-		virtual UIOBJECT_TYPE GetType() const override { return UIOBJECT_TYPE::BUTTON; }
+		virtual UIObjectType GetType() const override { return UIObjectType::Button; }
 
-		XMVECTOR GetButtonColorVector() const { return XMLoadFloat4(&m_buttonColor); }
-		const XMFLOAT4& GetButtonColor() const { return m_buttonColor; }
-		void XM_CALLCONV SetButtonColor(FXMVECTOR color) { XMStoreFloat4(&m_buttonColor, color); }
-		void SetButtonColor(const XMFLOAT4A& color) { m_buttonColor = color; }
-		void SetButtonColor(const XMFLOAT4& color) { m_buttonColor = color; }
+		const XMFLOAT2& GetSize() const { return m_size.GetSize(); }
+		FLOAT GetSizeX() const { return m_size.GetSizeX(); }
+		FLOAT GetSizeY() const { return m_size.GetSizeY(); }
+		FLOAT GetWidth() const { return GetSizeX(); }
+		FLOAT GetHeight() const { return GetSizeY(); }
+		FLOAT GetHalfSizeX() const { return m_size.GetHalfSizeX(); }
+		FLOAT GetHalfSizeY() const { return m_size.GetHalfSizeY(); }
+		FLOAT GetHalfWidth() const { return GetHalfSizeX(); }
+		FLOAT GetHalfHeight() const { return GetHalfSizeY(); }
+		void SetSize(FLOAT width, FLOAT height) { m_size.SetSize(width, height); }
+		void SetSize(const XMFLOAT2& size) { m_size.SetSize(size); }
+		void XM_CALLCONV SetSize(FXMVECTOR size) { m_size.SetSize(size); }
+
+		XMVECTOR GetButtonColorVector() const { return m_buttonColor.GetColorVector(); }
+		const XMFLOAT4& GetButtonColor() const { return m_buttonColor.GetColor(); }
+		void XM_CALLCONV SetButtonColor(FXMVECTOR color) { m_buttonColor.SetColor(color); }
+		void SetButtonColor(const XMFLOAT4& color) { m_buttonColor.SetColor(color); }
+		void SetButtonColor(FLOAT r, FLOAT g, FLOAT b, FLOAT a) { m_buttonColor.SetColor(r, g, b, a); }
+
+		std::wstring& GetText() { return m_text.GetText(); }
+		const std::wstring& GetText() const { return m_text.GetText(); }
+		void SetText(PCWSTR text) { m_text.SetText(text); }
+		void SetText(std::wstring text) { m_text.SetText(std::move(text)); }
+		TextFormat& GetTextFormat() { return m_text.GetTextFormat(); }
+		const TextFormat& GetTextFormat() const { return m_text.GetTextFormat(); }
+		DWRITE_TEXT_ALIGNMENT GetTextAlignment() const { return m_text.GetTextAlignment(); }
+		void SetTextAlignment(DWRITE_TEXT_ALIGNMENT ta) { m_text.SetTextAlignment(ta); }
+		DWRITE_PARAGRAPH_ALIGNMENT GetParagraphAlignment() const { return m_text.GetParagraphAlignment(); }
+		void SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT pa) { m_text.SetParagraphAlignment(pa); }
+		IDWriteTextFormat* GetDWriteTextFormatComInterface() const { return m_text.GetDWriteTextFormatComInterface(); }
+		void ApplyTextFormat() { m_text.ApplyTextFormat(); }		// TextFormat을 변경한 후 호출해야 새로운 폰트로 갱신됩니다.
+
+		XMVECTOR GetTextColorVector() const { return m_textColor.GetColorVector(); }
+		const XMFLOAT4& GetTextColor() const { return m_textColor.GetColor(); }
+		void XM_CALLCONV SetTextColor(FXMVECTOR color) { m_textColor.SetColor(color); }
+		void SetTextColor(const XMFLOAT4& color) { m_textColor.SetColor(color); }
+		void SetTextColor(FLOAT r, FLOAT g, FLOAT b, FLOAT a) { m_textColor.SetColor(r, g, b, a); }
+
+		// Windows 좌표계 마우스 위치와 충돌 테스트 수행
+		virtual bool HitTest(const XMFLOAT2& mousePos) const override;
 	private:
-		virtual void OnDetachedFromUIInteraction() override;	// 시각적으로 눌린 상태를 해제한다.
-
 		virtual void OnLButtonDown() override;
 		virtual void OnLButtonUp() override;
 
 		// 렌더링 모양 결정을 위한 상태변수 (작동 로직과는 무관)
-		bool IsPressed() const { return m_pressed; }
-		void SetPressed(bool pressed) { m_pressed = pressed; }
+		bool IsPressed() const { return m_isPressed; }
 	private:
-		bool m_pressed;
-		XMFLOAT4 m_buttonColor;
+		bool m_isPressed;
+		UISize m_size;
+		UIColor m_buttonColor;
+		UIText m_text;
+		UIColor m_textColor;
 	};
 }

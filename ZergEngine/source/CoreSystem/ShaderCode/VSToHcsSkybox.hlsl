@@ -88,8 +88,10 @@ PSInputSkyboxFragment main(uint vertexId : SV_VertexID)
     );
     float4x4 wvp = mul(w, cb_perCamera.vp);
     
-    output.posH = mul(float4(g_skyboxVertices[vertexId], 1.0f), wvp).xyww; // z = w ==> z / w = 1.0f ==> far plane에 위치
-    output.posL = g_skyboxVertices[vertexId];
+    float3 posL = g_skyboxVertices[vertexId];
+    
+    output.posH = mul(float4(posL, 1.0f), wvp).xyww; // z = w ==> z / w = 1.0f ==> far plane에 위치
+    output.texCoord = posL; // 로컬 벡터를 그대로 큐브맵 샘플링 벡터로 사용
     
     return output;
 }

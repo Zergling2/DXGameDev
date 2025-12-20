@@ -1,22 +1,41 @@
 #pragma once
 
-#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\SizeColorUIObjectInterface.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\UIObjectInterface.h>
 
 namespace ze
 {
-	enum class PanelShape : uint8_t
+	enum class PanelShape
 	{
 		Rectangle,
 		RoundedRectangle
 	};
 
-	class Panel : public ISizeColorUIObject
+	class Panel : public IUIObject
 	{
 	public:
 		Panel(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name);
 		virtual ~Panel() = default;
 
-		virtual UIOBJECT_TYPE GetType() const override { return UIOBJECT_TYPE::PANEL; }
+		virtual UIObjectType GetType() const override { return UIObjectType::Panel; }
+
+		const XMFLOAT2& GetSize() const { return m_size.GetSize(); }
+		FLOAT GetSizeX() const { return m_size.GetSizeX(); }
+		FLOAT GetSizeY() const { return m_size.GetSizeY(); }
+		FLOAT GetWidth() const { return GetSizeX(); }
+		FLOAT GetHeight() const { return GetSizeY(); }
+		FLOAT GetHalfSizeX() const { return m_size.GetHalfSizeX(); }
+		FLOAT GetHalfSizeY() const { return m_size.GetHalfSizeY(); }
+		FLOAT GetHalfWidth() const { return GetHalfSizeX(); }
+		FLOAT GetHalfHeight() const { return GetHalfSizeY(); }
+		void SetSize(FLOAT width, FLOAT height) { m_size.SetSize(width, height); }
+		void SetSize(const XMFLOAT2& size) { m_size.SetSize(size); }
+		void XM_CALLCONV SetSize(FXMVECTOR size) { m_size.SetSize(size); }
+
+		XMVECTOR GetColorVector() const { return m_color.GetColorVector(); }
+		const XMFLOAT4& GetColor() const { return m_color.GetColor(); }
+		void XM_CALLCONV SetColor(FXMVECTOR color) { m_color.SetColor(color); }
+		void SetColor(const XMFLOAT4& color) { m_color.SetColor(color); }
+		void SetColor(FLOAT r, FLOAT g, FLOAT b, FLOAT a) { m_color.SetColor(r, g, b, a); }
 
 		void SetShape(PanelShape shape) { m_shape = shape; }
 		PanelShape GetShape() const { return m_shape; }
@@ -25,10 +44,13 @@ namespace ze
 		void SetRadiusY(float ry) { m_radius.y = ry; }
 		float GetRadiusX() const { return m_radius.x; }
 		float GetRadiusY() const { return m_radius.y; }
+
+		// Windows 좌표계 마우스 위치와 충돌 테스트 수행
+		virtual bool HitTest(const XMFLOAT2& mousePos) const override;
 	private:
+		UISize m_size;
+		UIColor m_color;
+		XMFLOAT2 m_radius;	// m_shape가 PanelShape::Rectangle로 설정된 경우에는 의미를 갖지 않습니다.
 		PanelShape m_shape;
-		// The x, y radius for the quarter ellipse that is drawn to replace every corner of the rectangle.
-		// 패널의 모양이 PANEL_SHAPE::RECTANGLE로 설정된 경우에는 의미를 갖지 않습니다.
-		XMFLOAT2 m_radius;
 	};
 }

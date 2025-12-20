@@ -52,7 +52,7 @@ void Lobby::OnLoadScene()
 		pButtonGameStart->m_transform.m_position.x = +0.0f;
 		pButtonGameStart->m_transform.m_position.y = +40.0f;
 		pButtonGameStart->SetText(L"게임 시작");
-		pButtonGameStart->SetColor(XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+		pButtonGameStart->SetButtonColor(ColorsLinear::Orange);
 		pButtonGameStart->GetTextFormat().SetSize(20);
 		pButtonGameStart->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_BOLD);
 		pButtonGameStart->ApplyTextFormat();
@@ -70,7 +70,7 @@ void Lobby::OnLoadScene()
 		pButtonGameExit->m_transform.m_position.x = +0.0f;
 		pButtonGameExit->m_transform.m_position.y = -40.0f;
 		pButtonGameExit->SetText(L"게임 종료");
-		pButtonGameExit->SetColor(XMFLOAT4(0.0f, 0.05f, 0.0f, 1.0f));
+		pButtonGameExit->SetButtonColor(ColorsLinear::Red);
 		pButtonGameExit->GetTextFormat().SetSize(20);
 		pButtonGameExit->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_BOLD);
 		pButtonGameExit->ApplyTextFormat();
@@ -85,11 +85,11 @@ void Lobby::OnLoadScene()
 		pInputField0->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 		pInputField0->m_transform.m_position.x = -40.0f;
 		pInputField0->m_transform.m_position.y = -100.0f;
-		pInputField0->SetShape(INPUT_FIELD_SHAPE::ROUNDED_RECTANGLE);
+		pInputField0->SetShape(InputFieldShape::RoundedRectangle);
 		pInputField0->SetRadiusX(8.0f);
 		pInputField0->SetRadiusY(8.0f);
 		pInputField0->SetBkColor(ColorsLinear::LightGray);
-		pInputField0->SetColor(ColorsLinear::Blue);
+		pInputField0->SetTextColor(ColorsLinear::Blue);
 		pInputField0->GetTextFormat().SetSize(16);
 		pInputField0->ApplyTextFormat();
 		pInputField0->m_transform.SetParent(&pPanel->m_transform);
@@ -101,11 +101,11 @@ void Lobby::OnLoadScene()
 		pInputField1->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 		pInputField1->m_transform.m_position.x = -40.0f;
 		pInputField1->m_transform.m_position.y = -140.0f;
-		pInputField1->SetShape(INPUT_FIELD_SHAPE::ROUNDED_RECTANGLE);
+		pInputField1->SetShape(InputFieldShape::RoundedRectangle);
 		pInputField1->SetRadiusX(8.0f);
 		pInputField1->SetRadiusY(8.0f);
 		pInputField1->SetBkColor(ColorsLinear::Yellow);
-		pInputField1->SetColor(ColorsLinear::Black);
+		pInputField1->SetTextColor(ColorsLinear::Black);
 		pInputField1->GetTextFormat().SetSize(14);
 		pInputField1->SetPassword(true);
 		pInputField1->ApplyTextFormat();

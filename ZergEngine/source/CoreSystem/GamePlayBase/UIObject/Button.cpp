@@ -2,32 +2,35 @@
 
 using namespace ze;
 
+constexpr float BUTTON_DEFAULT_WIDTH = 200.0f;
+constexpr float BUTTON_DEFAULT_HEIGHT = 75.0f;
+
 Button::Button(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name)
-	: Text(id, flag, name)
-	, m_pressed(false)
-	, m_buttonColor(Colors::Orange)
+	: IUIObject(id, flag, name)
+	, m_isPressed(false)
+	, m_size(BUTTON_DEFAULT_WIDTH, BUTTON_DEFAULT_HEIGHT)
+	, m_buttonColor(ColorsLinear::DarkOliveGreen)
+	, m_text()
+	, m_textColor(ColorsLinear::White)
 {
-	this->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-	this->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	m_text.SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	m_text.SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 }
 
-void Button::OnDetachedFromUIInteraction()
+bool Button::HitTest(const XMFLOAT2& mousePos) const
 {
-	Text::OnDetachedFromUIInteraction();
+	XMFLOAT2 wcp;
+	m_transform.GetWinCoordPosition(&wcp);
 
-	m_pressed = false;
+	return m_size.HitTest(mousePos, wcp);
 }
 
 void Button::OnLButtonDown()
 {
-	Text::OnLButtonDown();
-
-	this->SetPressed(true);
+	m_isPressed = true;
 }
 
 void Button::OnLButtonUp()
 {
-	Text::OnLButtonUp();
-
-	this->SetPressed(false);
+	m_isPressed = false;
 }

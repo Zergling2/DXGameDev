@@ -5,71 +5,72 @@
 
 using namespace ze;
 
-XMVECTOR RectTransform::GetHCSPosition() const
+void RectTransform::GetHCSPosition(XMFLOAT2* pOut) const
 {
-    XMFLOAT2A basis;
+    XMFLOAT2 base;
 
     switch (m_ha)
     {
     case HorizontalAnchor::Left:
-        basis.x = -GraphicDevice::GetInstance()->GetSwapChainHalfWidthFlt();
+        base.x = -GraphicDevice::GetInstance()->GetSwapChainHalfWidthFlt();
         break;
     case HorizontalAnchor::Center:
-        basis.x = 0.0f;
+        base.x = 0.0f;
         break;
     case HorizontalAnchor::Right:
-        basis.x = +GraphicDevice::GetInstance()->GetSwapChainHalfWidthFlt();
+        base.x = +GraphicDevice::GetInstance()->GetSwapChainHalfWidthFlt();
         break;
     }
 
     switch (m_va)
     {
     case VerticalAnchor::Top:
-        basis.y = +GraphicDevice::GetInstance()->GetSwapChainHalfHeightFlt();
+        base.y = +GraphicDevice::GetInstance()->GetSwapChainHalfHeightFlt();
         break;
     case VerticalAnchor::VCenter:
-        basis.y = 0.0f;
+        base.y = 0.0f;
         break;
     case VerticalAnchor::Bottom:
-        basis.y = -GraphicDevice::GetInstance()->GetSwapChainHalfHeightFlt();
+        base.y = -GraphicDevice::GetInstance()->GetSwapChainHalfHeightFlt();
         break;
     }
 
-    return XMVectorAdd(XMLoadFloat2A(&basis), XMLoadFloat2(&m_position));
+    pOut->x = base.x + m_position.x;
+    pOut->y = base.y + m_position.y;
 }
 
-XMVECTOR RectTransform::GetScreenPosWindowsCoordSystem() const
+void RectTransform::GetWinCoordPosition(XMFLOAT2* pOut) const
 {
-    XMFLOAT2A basis;
-    XMFLOAT2A windowsPosition(m_position.x, -m_position.y);
+    XMFLOAT2 base;
 
     switch (m_ha)
     {
     case HorizontalAnchor::Left:
-        basis.x = 0.0f;
+        base.x = 0.0f;
         break;
     case HorizontalAnchor::Center:
-        basis.x = GraphicDevice::GetInstance()->GetSwapChainHalfWidthFlt();
+        base.x = GraphicDevice::GetInstance()->GetSwapChainHalfWidthFlt();
         break;
     case HorizontalAnchor::Right:
-        basis.x = GraphicDevice::GetInstance()->GetSwapChainWidthFlt();
+        base.x = GraphicDevice::GetInstance()->GetSwapChainWidthFlt();
         break;
     }
 
     switch (m_va)
     {
     case VerticalAnchor::Top:
-        basis.y = 0.0f;
+        base.y = 0.0f;
         break;
     case VerticalAnchor::VCenter:
-        basis.y = GraphicDevice::GetInstance()->GetSwapChainHalfHeightFlt();
+        base.y = GraphicDevice::GetInstance()->GetSwapChainHalfHeightFlt();
         break;
     case VerticalAnchor::Bottom:
-        basis.y = GraphicDevice::GetInstance()->GetSwapChainHeightFlt();
+        base.y = GraphicDevice::GetInstance()->GetSwapChainHeightFlt();
         break;
     }
 
-    return XMVectorAdd(XMLoadFloat2A(&basis), XMLoadFloat2A(&windowsPosition));
+    pOut->x = base.x + m_position.x;
+    pOut->y = base.y - m_position.y;    // Windows 좌표계는 모니터 위쪽으로 갈수록 음수 값
 }
 
 bool RectTransform::SetParent(RectTransform* pTransform)

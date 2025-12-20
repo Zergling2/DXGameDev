@@ -12,7 +12,7 @@
 #include <ZergEngine\CoreSystem\Effect\BillboardEffect.h>
 #include <ZergEngine\CoreSystem\Effect\DrawScreenRatioQuadWithTextureEffect.h>
 #include <ZergEngine\CoreSystem\Effect\DrawScreenRatioQuadWithMSTextureEffect.h>
-#include <ZergEngine\CoreSystem\Effect\ButtonEffect.h>
+#include <ZergEngine\CoreSystem\Effect\Shaded2DQuadEffect.h>
 #include <ZergEngine\CoreSystem\Effect\ImageEffect.h>
 #include <vector>
 
@@ -57,11 +57,11 @@ namespace ze
 		void RenderSkybox(ID3D11ShaderResourceView* pSkyboxCubeMapSRV);
 		void RenderBillboard(const Billboard* pBillboard);
 
-		void RenderPanel(const Panel* pPanel);
+		void RenderPanel(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColorBrush* pBrush, const Panel* pPanel);
 		void RenderImage(const Image* pImage);
-		void RenderText(const Text* pText);
-		void RenderButton(const Button* pButton);
-		void RenderInputField(const InputField* pInputField);
+		void RenderText(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColorBrush* pBrush, const Text* pText);
+		void RenderButton(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColorBrush* pBrush, const Button* pButton);
+		void RenderInputField(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColorBrush* pBrush, const InputField* pInputField);
 	private:
 		static Renderer* s_pInstance;
 
@@ -99,7 +99,7 @@ namespace ze
 		BillboardEffect m_billboardEffect;
 		DrawScreenRatioQuadWithTextureEffect m_drawScreenQuadTex;
 		DrawScreenRatioQuadWithMSTextureEffect m_drawScreenQuadMSTex;
-		ButtonEffect m_buttonEffect;
+		Shaded2DQuadEffect m_shaded2DQuadEffect;
 		ImageEffect m_imageEffect;
 		std::wstring m_asteriskStr;
 		std::vector<std::pair<const Billboard*, float>> m_billboardRenderQueue;

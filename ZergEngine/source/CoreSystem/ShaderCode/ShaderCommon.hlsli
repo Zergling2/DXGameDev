@@ -166,7 +166,7 @@ hlslstruct CbPerShaded2DQuad
     XMFLOAT4A color;
 	XMFLOAT2 size;
 	XMFLOAT2 position;
-	uint32_t shadeIndex; // [0] Convex shade [1] Concave shade
+	uint32_t shadeWeightIndex; // [0] Convex shade [1] Concave shade
 };
 
 hlslstruct Aabb
@@ -248,7 +248,7 @@ struct PSInputPNTTShadowFragment
 struct PSInputSkyboxFragment
 {
     float4 posH : SV_Position;
-    float3 posL : POSITION;         // 로컬 벡터를 그대로 큐브맵 샘플링 벡터로 사용하면 됨
+    float3 texCoord : TEXCOORD;
 };
 
 struct PSInputTerrainFragment

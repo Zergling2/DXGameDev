@@ -73,7 +73,7 @@ Renderer::Renderer()
 	, m_billboardEffect()
 	, m_drawScreenQuadTex()
 	, m_drawScreenQuadMSTex()
-	, m_buttonEffect()
+	, m_shaded2DQuadEffect()
 	, m_imageEffect()
 	, m_asteriskStr(L"********************************")	// L'*' x 32
 	, m_billboardRenderQueue()
@@ -143,7 +143,7 @@ void Renderer::Init()
 	m_billboardEffect.Init();
 	m_drawScreenQuadTex.Init();
 	m_drawScreenQuadMSTex.Init();
-	m_buttonEffect.Init();
+	m_shaded2DQuadEffect.Init();
 	m_imageEffect.Init();
 
 	// effect context 준비
@@ -166,7 +166,7 @@ void Renderer::UnInit()
 	m_billboardEffect.Release();
 	m_drawScreenQuadTex.Release();
 	m_drawScreenQuadMSTex.Release();
-	m_buttonEffect.Release();
+	m_shaded2DQuadEffect.Release();
 	m_imageEffect.Release();
 }
 
@@ -606,7 +606,7 @@ void Renderer::RenderFrame()
 
 		if (pCamera->m_msaaMode != MSAAMode::Off)
 		{
-			m_drawScreenQuadMSTex.SetQuadParameters(
+			m_drawScreenQuadMSTex.SetScreenRatioQuadParam(
 				pCamera->m_viewportRect.m_width,
 				pCamera->m_viewportRect.m_height,
 				pCamera->m_viewportRect.m_x,
@@ -620,7 +620,7 @@ void Renderer::RenderFrame()
 		}
 		else
 		{
-			m_drawScreenQuadTex.SetQuadParameters(
+			m_drawScreenQuadTex.SetScreenRatioQuadParam(
 				pCamera->m_viewportRect.m_width,
 				pCamera->m_viewportRect.m_height,
 				pCamera->m_viewportRect.m_x,
@@ -659,10 +659,12 @@ void Renderer::RenderFrame()
 			2.0f / static_cast<float>(GraphicDevice::GetInstance()->GetSwapChainDesc().BufferDesc.Width),
 			2.0f / static_cast<float>(GraphicDevice::GetInstance()->GetSwapChainDesc().BufferDesc.Height)
 		);
-		m_buttonEffect.SetScreenToNDCSpaceRatio(screenToNDCSpaceRatio);
+		m_shaded2DQuadEffect.SetScreenToNDCSpaceRatio(screenToNDCSpaceRatio);
 		m_imageEffect.SetScreenToNDCSpaceRatio(screenToNDCSpaceRatio);
 		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+		ID2D1RenderTarget* pD2DRenderTarget = GraphicDevice::GetInstance()->GetD2DRenderTarget();
+		ID2D1SolidColorBrush* pBrush = GraphicDevice::GetInstance()->GetD2DSolidColorBrush();
 		// 모든 루트 UI오브젝트들부터 순회하며 자식 UI까지 렌더링
 		for (const IUIObject* pRootUIObject : UIObjectManager::GetInstance()->m_roots)
 		{
@@ -691,22 +693,24 @@ void Renderer::RenderFrame()
 
 				switch (pUIObject->GetType())
 				{
-				case UIOBJECT_TYPE::PANEL:
-					this->RenderPanel(static_cast<const Panel*>(pUIObject));
+				case UIObjectType::Panel:
+					this->RenderPanel(pD2DRenderTarget, pBrush, static_cast<const Panel*>(pUIObject));
 					break;
-				case UIOBJECT_TYPE::IMAGE:
+				case UIObjectType::Image:
 					this->RenderImage(static_cast<const Image*>(pUIObject));
 					break;
-				case UIOBJECT_TYPE::TEXT:
-					this->RenderText(static_cast<const Text*>(pUIObject));
+				case UIObjectType::Text:
+					this->RenderText(pD2DRenderTarget, pBrush, static_cast<const Text*>(pUIObject));
 					break;
-				case UIOBJECT_TYPE::INPUT_FIELD:
-					this->RenderInputField(static_cast<const InputField*>(pUIObject));
+				case UIObjectType::InputField:
+					this->RenderInputField(pD2DRenderTarget, pBrush, static_cast<const InputField*>(pUIObject));
 					break;
-				case UIOBJECT_TYPE::BUTTON:
-					this->RenderButton(static_cast<const Button*>(pUIObject));
+				case UIObjectType::Button:
+					this->RenderButton(pD2DRenderTarget, pBrush, static_cast<const Button*>(pUIObject));
 					break;
-				case UIOBJECT_TYPE::IMAGE_BUTTON:
+				case UIObjectType::ImageButton:
+					break;
+				case UIObjectType::Scrollbar:
 					break;
 				default:
 					break;
@@ -1058,22 +1062,18 @@ void Renderer::RenderBillboard(const Billboard* pBillboard)
 	m_effectImmediateContext.Draw(4, 0);
 }
 
-void Renderer::RenderPanel(const Panel* pPanel)
+void Renderer::RenderPanel(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColorBrush* pBrush, const Panel* pPanel)
 {
-	ID2D1RenderTarget* pD2DRenderTarget = GraphicDevice::GetInstance()->GetD2DRenderTarget();
-	ID2D1SolidColorBrush* pSolidColorBrush = GraphicDevice::GetInstance()->GetD2DSolidColorBrush();
-	const RectTransform& transform = pPanel->m_transform;
-	XMFLOAT2A windowsRectCenter;
-	XMStoreFloat2A(&windowsRectCenter, transform.GetScreenPosWindowsCoordSystem());
+	XMFLOAT2 wcp;
+	pPanel->m_transform.GetWinCoordPosition(&wcp);
 
-	D2D1_ROUNDED_RECT shapeInfo;
-	shapeInfo.rect.left = windowsRectCenter.x - pPanel->m_halfSize.x;
-	shapeInfo.rect.right = shapeInfo.rect.left + pPanel->m_size.x;
-	shapeInfo.rect.top = windowsRectCenter.y - pPanel->m_halfSize.y;
-	shapeInfo.rect.bottom = shapeInfo.rect.top + pPanel->m_size.y;
-
-	pSolidColorBrush->SetColor(reinterpret_cast<const D2D1_COLOR_F&>(pPanel->GetColor()));
-
+	D2D1_ROUNDED_RECT rect;
+	rect.rect.left = wcp.x - pPanel->GetHalfSizeX();
+	rect.rect.right = wcp.x + pPanel->GetHalfSizeX();
+	rect.rect.top = wcp.y - pPanel->GetHalfSizeY();
+	rect.rect.bottom = wcp.y + pPanel->GetHalfSizeY();
+	
+	pBrush->SetColor(reinterpret_cast<const D2D1_COLOR_F&>(pPanel->GetColor()));
 
 	// BeginDraw
 	pD2DRenderTarget->BeginDraw();
@@ -1081,12 +1081,12 @@ void Renderer::RenderPanel(const Panel* pPanel)
 	switch (pPanel->GetShape())
 	{
 	case PanelShape::Rectangle:
-		pD2DRenderTarget->FillRectangle(&shapeInfo.rect, pSolidColorBrush);
+		pD2DRenderTarget->FillRectangle(&rect.rect, pBrush);
 		break;
 	case PanelShape::RoundedRectangle:
-		shapeInfo.radiusX = pPanel->GetRadiusX();
-		shapeInfo.radiusY = pPanel->GetRadiusY();
-		pD2DRenderTarget->FillRoundedRectangle(&shapeInfo, pSolidColorBrush);
+		rect.radiusX = pPanel->GetRadiusX();
+		rect.radiusY = pPanel->GetRadiusY();
+		pD2DRenderTarget->FillRoundedRectangle(&rect, pBrush);
 		break;
 	default:
 		break;
@@ -1098,57 +1098,49 @@ void Renderer::RenderPanel(const Panel* pPanel)
 
 void Renderer::RenderImage(const Image* pImage)
 {
-	m_imageEffect.SetPreNDCPosition(pImage->m_transform.GetHCSPosition());
-	m_imageEffect.SetSize(pImage->GetSizeVector());
+	XMFLOAT2 hcsp;
+	pImage->m_transform.GetHCSPosition(&hcsp);
+	m_imageEffect.SetHCSPosition(hcsp);
+	m_imageEffect.SetSize(pImage->GetSizeX(), pImage->GetSizeY());
 	m_imageEffect.SetImageTexture(pImage->GetTexture());
 
 	m_effectImmediateContext.Apply(&m_imageEffect);
 	m_effectImmediateContext.Draw(4, 0);
 }
 
-void Renderer::RenderText(const Text* pText)
+void Renderer::RenderText(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColorBrush* pBrush, const Text* pText)
 {
-	UINT32 textLength = static_cast<UINT32>(pText->GetTextLength());
+	UINT32 textLength = static_cast<UINT32>(pText->GetText().length());
 	if (textLength == 0)
 		return;
 
-	ID2D1RenderTarget* pD2DRenderTarget = GraphicDevice::GetInstance()->GetD2DRenderTarget();
-	ID2D1SolidColorBrush* pBrush = GraphicDevice::GetInstance()->GetD2DSolidColorBrush();
 	IDWriteTextFormat* pDWriteTextFormat = pText->GetDWriteTextFormatComInterface();
-
-	pBrush->SetColor(reinterpret_cast<const D2D1_COLOR_F&>(pText->GetColor()));
 	pDWriteTextFormat->SetTextAlignment(pText->GetTextAlignment());
 	pDWriteTextFormat->SetParagraphAlignment(pText->GetParagraphAlignment());
+	pBrush->SetColor(reinterpret_cast<const D2D1_COLOR_F&>(pText->GetColor()));
 
-	const RectTransform& transform = pText->m_transform;
-	D2D1_RECT_F layoutRect;
-	XMVECTOR windowsButtonCenter = transform.GetScreenPosWindowsCoordSystem();
-	if (pText->GetType() == UIOBJECT_TYPE::BUTTON)
-		if (static_cast<const Button*>(pText)->IsPressed())	// 버튼이 눌린 상태이면 텍스트 위치도 살짝 우하단으로 내려서 입체감 부여
-			windowsButtonCenter = XMVectorAdd(windowsButtonCenter, XMVectorSplatOne());	// x, y에 1.0f씩 더하기
+	XMFLOAT2 wcp;
+	pText->m_transform.GetWinCoordPosition(&wcp);
+	D2D1_RECT_F layout;
+	layout.left = wcp.x - pText->GetHalfSizeX();
+	layout.right = wcp.x + pText->GetHalfSizeX();
+	layout.top = wcp.y - pText->GetHalfSizeY();
+	layout.bottom = wcp.y + pText->GetHalfSizeY();
 
-	layoutRect.left = XMVectorGetX(windowsButtonCenter) - pText->m_halfSize.x;
-	layoutRect.right = layoutRect.left + pText->m_size.x;
-	layoutRect.top = XMVectorGetY(windowsButtonCenter) - pText->m_halfSize.y;
-	layoutRect.bottom = layoutRect.top + pText->m_size.y;
-
-
-	// BeginDraw
 	pD2DRenderTarget->BeginDraw();
 
 	pD2DRenderTarget->DrawTextW(
-		pText->GetText(),
+		pText->GetText().c_str(),
 		textLength,
 		pDWriteTextFormat,
-		layoutRect,
+		&layout,
 		pBrush
 	);
 
-	// EndDraw
 	HRESULT hr = pD2DRenderTarget->EndDraw();
 }
 
-void Renderer::RenderButton(const Button* pButton)
+void Renderer::RenderButton(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColorBrush* pBrush, const Button* pButton)
 {
 	// 1. 버튼 프레임 렌더링
 	ID3D11Buffer* vbs[] = { m_pButtonVB };
@@ -1157,33 +1149,61 @@ void Renderer::RenderButton(const Button* pButton)
 
 	m_effectImmediateContext.IASetVertexBuffers(0, 1, vbs, strides, offsets);
 
-	m_buttonEffect.SetPressed(pButton->IsPressed());
-	m_buttonEffect.SetColor(pButton->GetButtonColorVector());
-	m_buttonEffect.SetPreNDCPosition(pButton->m_transform.GetHCSPosition());
-	m_buttonEffect.SetSize(pButton->GetSizeVector());
+	if (pButton->IsPressed())
+		m_shaded2DQuadEffect.SetShadeWeightIndex(SHADED_2DQUAD_SHADE_WEIGHT_INDEX_CONCAVE);
+	else
+		m_shaded2DQuadEffect.SetShadeWeightIndex(SHADED_2DQUAD_SHADE_WEIGHT_INDEX_CONVEX);
 
-	m_effectImmediateContext.Apply(&m_buttonEffect);
+	m_shaded2DQuadEffect.SetColor(pButton->GetButtonColorVector());
+	XMFLOAT2 hcsp;
+	pButton->m_transform.GetHCSPosition(&hcsp);
+	m_shaded2DQuadEffect.SetHCSPosition(hcsp);
+	m_shaded2DQuadEffect.SetSize(pButton->GetSizeX(), pButton->GetSizeY());
+
+	m_effectImmediateContext.Apply(&m_shaded2DQuadEffect);
 	m_effectImmediateContext.Draw(30, 0);
 
 	// 2. 버튼 텍스트 렌더링
-	this->RenderText(static_cast<const Text*>(pButton));
+	UINT32 textLength = static_cast<UINT32>(pButton->GetText().length());
+	if (textLength == 0)
+		return;
+
+	IDWriteTextFormat* pDWriteTextFormat = pButton->GetDWriteTextFormatComInterface();
+	pDWriteTextFormat->SetTextAlignment(pButton->GetTextAlignment());
+	pDWriteTextFormat->SetParagraphAlignment(pButton->GetParagraphAlignment());
+	pBrush->SetColor(reinterpret_cast<const D2D1_COLOR_F&>(pButton->GetTextColor()));
+
+	XMFLOAT2 wcp;
+	pButton->m_transform.GetWinCoordPosition(&wcp);
+	D2D1_RECT_F layout;
+	layout.left = wcp.x - pButton->GetHalfSizeX();
+	layout.right = wcp.x + pButton->GetHalfSizeX();
+	layout.top = wcp.y - pButton->GetHalfSizeY();
+	layout.bottom = wcp.y + pButton->GetHalfSizeY();
+
+	pD2DRenderTarget->BeginDraw();
+
+	pD2DRenderTarget->DrawTextW(
+		pButton->GetText().c_str(),
+		textLength,
+		pDWriteTextFormat,
+		&layout,
+		pBrush
+	);
+
+	HRESULT hr = pD2DRenderTarget->EndDraw();
 }
 
-void Renderer::RenderInputField(const InputField* pInputField)
+void Renderer::RenderInputField(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColorBrush* pBrush, const InputField* pInputField)
 {
-	ID2D1RenderTarget* pD2DRenderTarget = GraphicDevice::GetInstance()->GetD2DRenderTarget();
-	ID2D1SolidColorBrush* pBrush = GraphicDevice::GetInstance()->GetD2DSolidColorBrush();
-
 	// 1. Input Field 배경 렌더링
-	const RectTransform& transform = pInputField->m_transform;
-	XMFLOAT2A windowsRectCenter;
-	XMStoreFloat2A(&windowsRectCenter, transform.GetScreenPosWindowsCoordSystem());
-
-	D2D1_ROUNDED_RECT shapeInfo;
-	shapeInfo.rect.left = windowsRectCenter.x - pInputField->m_halfSize.x;
-	shapeInfo.rect.right = shapeInfo.rect.left + pInputField->m_size.x;
-	shapeInfo.rect.top = windowsRectCenter.y - pInputField->m_halfSize.y;
-	shapeInfo.rect.bottom = shapeInfo.rect.top + pInputField->m_size.y;
+	XMFLOAT2 wcp;
+	pInputField->m_transform.GetWinCoordPosition(&wcp);
+	D2D1_ROUNDED_RECT layout;
+	layout.rect.left = wcp.x - pInputField->GetHalfSizeX();
+	layout.rect.right = wcp.x + pInputField->GetHalfSizeX();
+	layout.rect.top = wcp.y - pInputField->GetHalfSizeY();
+	layout.rect.bottom = wcp.y + pInputField->GetHalfSizeY();
 
 	pBrush->SetColor(reinterpret_cast<const D2D1_COLOR_F&>(pInputField->GetBkColor()));
 
@@ -1194,29 +1214,28 @@ void Renderer::RenderInputField(const InputField* pInputField)
 	{
 		switch (pInputField->GetShape())
 		{
-		case INPUT_FIELD_SHAPE::RECTANGLE:
-			pD2DRenderTarget->FillRectangle(&shapeInfo.rect, pBrush);
+		case InputFieldShape::Rectangle:
+			pD2DRenderTarget->FillRectangle(&layout.rect, pBrush);
 			break;
-		case INPUT_FIELD_SHAPE::ROUNDED_RECTANGLE:
-			shapeInfo.radiusX = pInputField->GetRadiusX();
-			shapeInfo.radiusY = pInputField->GetRadiusY();
-			pD2DRenderTarget->FillRoundedRectangle(&shapeInfo, pBrush);
+		case InputFieldShape::RoundedRectangle:
+			layout.radiusX = pInputField->GetRadiusX();
+			layout.radiusY = pInputField->GetRadiusY();
+			pD2DRenderTarget->FillRoundedRectangle(&layout, pBrush);
 			break;
 		default:
 			break;
 		}
 
 		// 2. Text 렌더링
-		UINT32 textLength = static_cast<UINT32>(pInputField->GetTextLength());
+		UINT32 textLength = static_cast<UINT32>(pInputField->GetText().length());
 		if (textLength == 0)
 			break;
 
 		IDWriteTextFormat* pDWriteTextFormat = pInputField->GetDWriteTextFormatComInterface();
 
-		pBrush->SetColor(reinterpret_cast<const D2D1_COLOR_F&>(pInputField->GetColor()));
+		pBrush->SetColor(reinterpret_cast<const D2D1_COLOR_F&>(pInputField->GetTextColor()));
 		pDWriteTextFormat->SetTextAlignment(pInputField->GetTextAlignment());
 		pDWriteTextFormat->SetParagraphAlignment(pInputField->GetParagraphAlignment());
-		const D2D1_RECT_F& layoutRect = shapeInfo.rect;
 
 		PCTSTR pContent;
 
@@ -1230,14 +1249,14 @@ void Renderer::RenderInputField(const InputField* pInputField)
 		}
 		else
 		{
-			pContent = pInputField->GetText();
+			pContent = pInputField->GetText().c_str();
 		}
 
 		pD2DRenderTarget->DrawTextW(
 			pContent,
 			textLength,
 			pDWriteTextFormat,
-			layoutRect,
+			&layout.rect,
 			pBrush
 		);
 	} while (false);

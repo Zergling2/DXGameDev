@@ -233,7 +233,7 @@ namespace ze
 		VFShaded2DQuad(const XMFLOAT2& position, const XMFLOAT2& offset, const XMFLOAT2& shade) noexcept
 			: m_position(position)
 			, m_offset(offset)
-			, m_shade(shade)
+			, m_shadeWeights(shade)
 		{
 		}
 
@@ -243,8 +243,8 @@ namespace ze
 		static constexpr size_t INPUT_ELEMENT_COUNT = 3;
 		static const D3D11_INPUT_ELEMENT_DESC s_ied[INPUT_ELEMENT_COUNT];
 	public:
-		XMFLOAT2 m_position;	// POSITION
-		XMFLOAT2 m_offset;		// 스케일링 후 이동 오프셋 (음영 모서리의 두께를 스케일링과 분리)
-		XMFLOAT2 m_shade;		// 음영 가중치 [0] Convex 상태 음영 가중치 [1] Concave 상태 음영 가중치
+		XMFLOAT2 m_position;		// POSITION
+		XMFLOAT2 m_offset;			// 스케일링 후 이동 오프셋 (음영 모서리의 두께를 스케일링과 분리)
+		XMFLOAT2 m_shadeWeights;	// 음영 가중치 [0] Convex 상태 음영 가중치 [1] Concave 상태 음영 가중치
 	};
 }

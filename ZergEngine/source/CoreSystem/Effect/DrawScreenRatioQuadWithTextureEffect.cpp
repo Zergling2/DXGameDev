@@ -28,7 +28,7 @@ void DrawScreenRatioQuadWithTextureEffect::Release()
 	m_cbPerScreenRatioQuad.Release();
 }
 
-void DrawScreenRatioQuadWithTextureEffect::SetQuadParameters(float width, float height, float topLeftX, float topLeftY) noexcept
+void DrawScreenRatioQuadWithTextureEffect::SetScreenRatioQuadParam(float width, float height, float topLeftX, float topLeftY) noexcept
 {
 	m_cbPerScreenRatioQuadCache.width = width;
 	m_cbPerScreenRatioQuadCache.height = height;

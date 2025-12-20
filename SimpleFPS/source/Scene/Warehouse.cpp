@@ -235,8 +235,8 @@ void Warehouse::OnLoadScene()
 		Image* pHealthBgr = static_cast<Image*>(hHealthBgr.ToPtr());
 		pHealthBgr->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Sprites\\Health.png"));
 		pHealthBgr->SetNativeSize(true);
-		pHealthBgr->m_transform.m_position.x = pHealthBgr->GetHalfSize().x + 4;
-		pHealthBgr->m_transform.m_position.y = pHealthBgr->GetHalfSize().y + 4;
+		pHealthBgr->m_transform.m_position.x = pHealthBgr->GetHalfSizeX() + 4;
+		pHealthBgr->m_transform.m_position.y = pHealthBgr->GetHalfSizeY() + 4;
 		pHealthBgr->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
 		pHealthBgr->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
 
@@ -244,8 +244,8 @@ void Warehouse::OnLoadScene()
 		Image* pWeaponIndicatorBgr = static_cast<Image*>(hWeaponIndicatorBgr.ToPtr());
 		pWeaponIndicatorBgr->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Sprites\\WeaponInfoIndicator.png"));
 		pWeaponIndicatorBgr->SetNativeSize(true);
-		pWeaponIndicatorBgr->m_transform.m_position.x = -pWeaponIndicatorBgr->GetHalfSize().x - 4;
-		pWeaponIndicatorBgr->m_transform.m_position.y = pWeaponIndicatorBgr->GetHalfSize().y + 4;
+		pWeaponIndicatorBgr->m_transform.m_position.x = -pWeaponIndicatorBgr->GetHalfSizeX() - 4;
+		pWeaponIndicatorBgr->m_transform.m_position.y = pWeaponIndicatorBgr->GetHalfSizeY() + 4;
 		pWeaponIndicatorBgr->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
 		pWeaponIndicatorBgr->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
 
@@ -355,6 +355,23 @@ void Warehouse::OnLoadScene()
 			pPanel->m_transform.m_position.x = 70 + 10;
 
 			{
+				UIObjectHandle hInputField = CreateInputField();
+				InputField* pInputField = static_cast<InputField*>(hInputField.ToPtr());
+				pInputField->m_transform.SetParent(&pPanel->m_transform);
+
+				pInputField->SetSize(pPanel->GetSizeX() - 16, 20);
+				pInputField->SetBkColor(ColorsLinear::LightBlue);
+				pInputField->SetTextColor(ColorsLinear::Orange);
+				pInputField->SetText(L"테스트Test");
+				pInputField->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+				pInputField->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+				pInputField->m_transform.m_position.x = pPanel->m_transform.m_position.x;
+				pInputField->m_transform.m_position.y = -30;
+
+				pInputField->m_transform.SetParent(&pPanel->m_transform);
+			}
+
+			{
 				UIObjectHandle hText = CreateText();
 				Text* pText = static_cast<Text*>(hText.ToPtr());
 				pText->m_transform.SetParent(&pPanel->m_transform);
@@ -379,7 +396,7 @@ void Warehouse::OnLoadScene()
 				pButton->m_transform.SetParent(&pPanel->m_transform);
 
 				pButton->SetSize(40, 18);
-				pButton->SetColor(ColorsLinear::White);	// Text color
+				pButton->SetTextColor(ColorsLinear::White);	// Text color
 				pButton->SetButtonColor(ColorsLinear::DarkOliveGreen);	// Button color
 				pButton->SetText(L"교체");
 				pButton->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);

@@ -48,9 +48,9 @@ namespace ze
 	struct TextFormatHasher
 	{
 	public:
-		std::size_t operator()(const TextFormat& tf) const noexcept
+		size_t operator()(const TextFormat& tf) const noexcept
 		{
-			std::size_t h[5];
+			size_t h[5];
 			h[0] = std::hash<std::wstring>()(tf.GetFontFamilyName());
 			h[1] = std::hash<int>()(tf.GetWeight());
 			h[2] = std::hash<int>()(tf.GetStyle());

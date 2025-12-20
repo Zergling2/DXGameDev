@@ -2,10 +2,13 @@
 
 using namespace ze;
 
+constexpr float IMAGE_DEFAULT_SIZE = 256.0f;
+
 Image::Image(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name)
-	: ISizeColorUIObject(id, flag, name)
-	, m_nativeSize(false)
+	: IUIObject(id, flag, name)
+	, m_size(IMAGE_DEFAULT_SIZE, IMAGE_DEFAULT_SIZE)
 	, m_texture()
+	, m_nativeSize(false)
 {
 }
 
@@ -23,6 +26,14 @@ void Image::SetNativeSize(bool b)
 
 	if (m_nativeSize)
 		this->UpdateToNativeSize();
+}
+
+bool Image::HitTest(const XMFLOAT2& mousePos) const
+{
+	XMFLOAT2 wcp;
+	m_transform.GetWinCoordPosition(&wcp);
+
+	return m_size.HitTest(mousePos, wcp);
 }
 
 void Image::UpdateToNativeSize()

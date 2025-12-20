@@ -20,6 +20,9 @@ namespace ze
 		friend class InputField;
 	public:
 		static UIObjectManager* GetInstance() { return s_pInstance; }
+
+		IUIObject* GetFocusedUI() const { return m_pFocusedUIObject; }
+		void SetFocusedUI(IUIObject* pUIObject) { m_pFocusedUIObject = pUIObject; }
 	private:
 		UIObjectManager();
 		~UIObjectManager();
@@ -67,17 +70,9 @@ namespace ze
 
 		uint64_t AssignUniqueId() { return InterlockedIncrement64(reinterpret_cast<LONG64*>(&m_uniqueId)); }
 
-		IUIObject* XM_CALLCONV SearchForHitUI(FXMVECTOR mousePosition);
-		static IUIObject* XM_CALLCONV PostOrderHitTest(FXMVECTOR mousePosition, IUIObject* pUIObject);
+		IUIObject* XM_CALLCONV SearchForHitUI(const XMFLOAT2& mousePos);
+		static IUIObject* XM_CALLCONV PostOrderHitTest(const XMFLOAT2& mousePos, IUIObject* pUIObject);
 
-		InputField* GetActiveInputField() const { return m_pActiveInputField; }
-		void SetActiveInputField(InputField* pInputField) { m_pActiveInputField = pInputField; }
-		IUIObject* GetLButtonDownObject() const { return m_pLButtonDownObject; }
-		void SetLButtonDownObject(IUIObject* pUIObject) { m_pLButtonDownObject = pUIObject; }
-		IUIObject* GetMButtonDownObject() const { return m_pMButtonDownObject; }
-		void SetMButtonDownObject(IUIObject* pUIObject) { m_pMButtonDownObject = pUIObject; }
-		IUIObject* GetRButtonDownObject() const { return m_pRButtonDownObject; }
-		void SetRButtonDownObject(IUIObject* pUIObject) { m_pRButtonDownObject = pUIObject; }
 		// Windows Vista부터 Surrogate pair 전달 가능
 		void OnChar(WPARAM wParam, LPARAM lParam);
 		void OnLButtonDown(POINT pt);
@@ -86,6 +81,8 @@ namespace ze
 		void OnMButtonUp(POINT pt);
 		void OnRButtonDown(POINT pt);
 		void OnRButtonUp(POINT pt);
+
+		void DetachUIFromManager(IUIObject* pUIObject);
 	private:
 		static UIObjectManager* s_pInstance;
 
@@ -97,10 +94,10 @@ namespace ze
 		std::vector<IUIObject*> m_inactiveGroup;	// 비활성화된 오브젝트들 (검색 대상에서 제외)
 		std::vector<uint32_t> m_emptyHandleTableIndex;
 		std::vector<IUIObject*> m_handleTable;
-		IUIObject* m_pLButtonDownObject;
-		IUIObject* m_pMButtonDownObject;
-		IUIObject* m_pRButtonDownObject;
-		InputField* m_pActiveInputField;
+		IUIObject* m_pLButtonPressedObject;
+		IUIObject* m_pMButtonPressedObject;
+		IUIObject* m_pRButtonPressedObject;
+		IUIObject* m_pFocusedUIObject;
 	};
 
 	template<typename T>

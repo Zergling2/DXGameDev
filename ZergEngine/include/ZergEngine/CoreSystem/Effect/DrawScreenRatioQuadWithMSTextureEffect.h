@@ -35,7 +35,7 @@ namespace ze
 		virtual void Init() override;
 		virtual void Release() override;
 
-		void SetQuadParameters(float width, float height, float topLeftX, float topLeftY) noexcept;
+		void SetScreenRatioQuadParam(float width, float height, float topLeftX, float topLeftY) noexcept;
 		void SetTexture(ID3D11ShaderResourceView* pTextureSRV);
 	private:
 		virtual void ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept override;

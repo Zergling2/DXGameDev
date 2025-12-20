@@ -35,16 +35,17 @@ void ImageEffect::SetScreenToNDCSpaceRatio(const XMFLOAT2& ratio) noexcept
 	m_dirtyFlag |= DirtyFlag::CBPerUIRender;
 }
 
-void XM_CALLCONV ImageEffect::SetSize(FXMVECTOR size) noexcept
+void ImageEffect::SetSize(FLOAT width, FLOAT height) noexcept
 {
-	XMStoreFloat2(&m_cbPer2DQuadCache.size, size);
+	m_cbPer2DQuadCache.size.x = width;
+	m_cbPer2DQuadCache.size.y = height;
 
 	m_dirtyFlag |= DirtyFlag::CBPer2DQuad;
 }
 
-void XM_CALLCONV ImageEffect::SetPreNDCPosition(FXMVECTOR position) noexcept
+void ImageEffect::SetHCSPosition(const XMFLOAT2& pos) noexcept
 {
-	XMStoreFloat2(&m_cbPer2DQuadCache.position, position);
+	m_cbPer2DQuadCache.position = pos;
 
 	m_dirtyFlag |= DirtyFlag::CBPer2DQuad;
 }

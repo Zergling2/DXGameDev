@@ -1043,11 +1043,11 @@ bool GraphicDevice::CreateCommonGraphicResources()
 {
 	ID3D11Device* pDevice = this->GetDeviceComInterface();
 
-	// 1. UI 렌더링용 음영 2D 사각형 버퍼 생성
+	// UI 렌더링용 음영 2D 사각형 버퍼 생성
 	{
-		const XMFLOAT2 ltShade = XMFLOAT2(+0.5f, -0.5f);
-		const XMFLOAT2 rbShade = XMFLOAT2(ltShade.y, ltShade.x);	// 좌상단과 음영 반전
-		const XMFLOAT2 centerShade = XMFLOAT2(0.0f, 0.0f);
+		const XMFLOAT2 ltShadeWeight = XMFLOAT2(+0.5f, -0.5f);
+		const XMFLOAT2 rbShadeWeight = XMFLOAT2(ltShadeWeight.y, ltShadeWeight.x);	// 좌상단과 음영 반전
+		const XMFLOAT2 centerShadeWeight = XMFLOAT2(0.0f, 0.0f);
 
 		constexpr float SHADE_EDGE_OFFSET = 1.0f;		// 버튼 입체감 모서리 오프셋
 		VFShaded2DQuad v[30];
@@ -1055,102 +1055,102 @@ bool GraphicDevice::CreateCommonGraphicResources()
 		// Top shaded
 		v[0].m_position = XMFLOAT2(-0.5f, +0.5f);
 		v[0].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[0].m_shade = ltShade;
+		v[0].m_shadeWeights = ltShadeWeight;
 		v[1].m_position = XMFLOAT2(+0.5f, +0.5f);
 		v[1].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[1].m_shade = ltShade;
+		v[1].m_shadeWeights = ltShadeWeight;
 		v[2].m_position = XMFLOAT2(-0.5f, +0.5f);
 		v[2].m_offset = XMFLOAT2(+SHADE_EDGE_OFFSET, -SHADE_EDGE_OFFSET);
-		v[2].m_shade = ltShade;
+		v[2].m_shadeWeights = ltShadeWeight;
 		v[3].m_position = XMFLOAT2(-0.5f, +0.5f);
 		v[3].m_offset = XMFLOAT2(+SHADE_EDGE_OFFSET, -SHADE_EDGE_OFFSET);
-		v[3].m_shade = ltShade;
+		v[3].m_shadeWeights = ltShadeWeight;
 		v[4].m_position = XMFLOAT2(+0.5f, +0.5f);
 		v[4].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[4].m_shade = ltShade;
+		v[4].m_shadeWeights = ltShadeWeight;
 		v[5].m_position = XMFLOAT2(+0.5f, +0.5f);
 		v[5].m_offset = XMFLOAT2(-SHADE_EDGE_OFFSET, -SHADE_EDGE_OFFSET);
-		v[5].m_shade = ltShade;
+		v[5].m_shadeWeights = ltShadeWeight;
 
 		// Left shaded
 		v[6].m_position = XMFLOAT2(-0.5f, +0.5f);
 		v[6].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[6].m_shade = ltShade;
+		v[6].m_shadeWeights = ltShadeWeight;
 		v[7].m_position = XMFLOAT2(-0.5f, +0.5f);
 		v[7].m_offset = XMFLOAT2(+SHADE_EDGE_OFFSET, -SHADE_EDGE_OFFSET);
-		v[7].m_shade = ltShade;
+		v[7].m_shadeWeights = ltShadeWeight;
 		v[8].m_position = XMFLOAT2(-0.5f, -0.5f);
 		v[8].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[8].m_shade = ltShade;
+		v[8].m_shadeWeights = ltShadeWeight;
 		v[9].m_position = XMFLOAT2(-0.5f, -0.5f);
 		v[9].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[9].m_shade = ltShade;
+		v[9].m_shadeWeights = ltShadeWeight;
 		v[10].m_position = XMFLOAT2(-0.5f, +0.5f);
 		v[10].m_offset = XMFLOAT2(+SHADE_EDGE_OFFSET, -SHADE_EDGE_OFFSET);
-		v[10].m_shade = ltShade;
+		v[10].m_shadeWeights = ltShadeWeight;
 		v[11].m_position = XMFLOAT2(-0.5f, -0.5f);
 		v[11].m_offset = XMFLOAT2(+SHADE_EDGE_OFFSET, +SHADE_EDGE_OFFSET);
-		v[11].m_shade = ltShade;
+		v[11].m_shadeWeights = ltShadeWeight;
 
 		// Right shaded
 		v[12].m_position = XMFLOAT2(+0.5f, -0.5f);
 		v[12].m_offset = XMFLOAT2(-SHADE_EDGE_OFFSET, +SHADE_EDGE_OFFSET);
-		v[12].m_shade = rbShade;
+		v[12].m_shadeWeights = rbShadeWeight;
 		v[13].m_position = XMFLOAT2(+0.5f, +0.5f);
 		v[13].m_offset = XMFLOAT2(-SHADE_EDGE_OFFSET, -SHADE_EDGE_OFFSET);
-		v[13].m_shade = rbShade;
+		v[13].m_shadeWeights = rbShadeWeight;
 		v[14].m_position = XMFLOAT2(+0.5f, -0.5f);
 		v[14].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[14].m_shade = rbShade;
+		v[14].m_shadeWeights = rbShadeWeight;
 		v[15].m_position = XMFLOAT2(+0.5f, -0.5f);
 		v[15].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[15].m_shade = rbShade;
+		v[15].m_shadeWeights = rbShadeWeight;
 		v[16].m_position = XMFLOAT2(+0.5f, +0.5f);
 		v[16].m_offset = XMFLOAT2(-SHADE_EDGE_OFFSET, -SHADE_EDGE_OFFSET);
-		v[16].m_shade = rbShade;
+		v[16].m_shadeWeights = rbShadeWeight;
 		v[17].m_position = XMFLOAT2(+0.5f, +0.5f);
 		v[17].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[17].m_shade = rbShade;
+		v[17].m_shadeWeights = rbShadeWeight;
 
 		// Bottom shaded
 		v[18].m_position = XMFLOAT2(-0.5f, -0.5f);
 		v[18].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[18].m_shade = rbShade;
+		v[18].m_shadeWeights = rbShadeWeight;
 		v[19].m_position = XMFLOAT2(-0.5f, -0.5f);
 		v[19].m_offset = XMFLOAT2(+SHADE_EDGE_OFFSET, +SHADE_EDGE_OFFSET);
-		v[19].m_shade = rbShade;
+		v[19].m_shadeWeights = rbShadeWeight;
 		v[20].m_position = XMFLOAT2(+0.5f, -0.5f);
 		v[20].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[20].m_shade = rbShade;
+		v[20].m_shadeWeights = rbShadeWeight;
 		v[21].m_position = XMFLOAT2(+0.5f, -0.5f);
 		v[21].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[21].m_shade = rbShade;
+		v[21].m_shadeWeights = rbShadeWeight;
 		v[22].m_position = XMFLOAT2(-0.5f, -0.5f);
 		v[22].m_offset = XMFLOAT2(+SHADE_EDGE_OFFSET, +SHADE_EDGE_OFFSET);
-		v[22].m_shade = rbShade;
+		v[22].m_shadeWeights = rbShadeWeight;
 		v[23].m_position = XMFLOAT2(+0.5f, -0.5f);
 		v[23].m_offset = XMFLOAT2(-SHADE_EDGE_OFFSET, +SHADE_EDGE_OFFSET);
-		v[23].m_shade = rbShade;
+		v[23].m_shadeWeights = rbShadeWeight;
 
 		// Center
 		v[24].m_position = XMFLOAT2(-0.5f, -0.5f);
 		v[24].m_offset = XMFLOAT2(+SHADE_EDGE_OFFSET, +SHADE_EDGE_OFFSET);
-		v[24].m_shade = centerShade;
+		v[24].m_shadeWeights = centerShadeWeight;
 		v[25].m_position = XMFLOAT2(-0.5f, +0.5f);
 		v[25].m_offset = XMFLOAT2(+SHADE_EDGE_OFFSET, -SHADE_EDGE_OFFSET);
-		v[25].m_shade = centerShade;
+		v[25].m_shadeWeights = centerShadeWeight;
 		v[26].m_position = XMFLOAT2(+0.5f, -0.5f);
 		v[26].m_offset = XMFLOAT2(-SHADE_EDGE_OFFSET, +SHADE_EDGE_OFFSET);
-		v[26].m_shade = centerShade;
+		v[26].m_shadeWeights = centerShadeWeight;
 		v[27].m_position = XMFLOAT2(+0.5f, -0.5f);
 		v[27].m_offset = XMFLOAT2(-SHADE_EDGE_OFFSET, +SHADE_EDGE_OFFSET);
-		v[27].m_shade = centerShade;
+		v[27].m_shadeWeights = centerShadeWeight;
 		v[28].m_position = XMFLOAT2(-0.5f, +0.5f);
 		v[28].m_offset = XMFLOAT2(+SHADE_EDGE_OFFSET, -SHADE_EDGE_OFFSET);
-		v[28].m_shade = centerShade;
+		v[28].m_shadeWeights = centerShadeWeight;
 		v[29].m_position = XMFLOAT2(+0.5f, +0.5f);
 		v[29].m_offset = XMFLOAT2(-SHADE_EDGE_OFFSET, -SHADE_EDGE_OFFSET);
-		v[29].m_shade = centerShade;
+		v[29].m_shadeWeights = centerShadeWeight;
 
 		// Create a vertex buffer
 		D3D11_BUFFER_DESC bufferDesc;
@@ -1172,7 +1172,7 @@ bool GraphicDevice::CreateCommonGraphicResources()
 			return false;
 	}
 
-	// 2. Light volume meshes
+	// Light volume meshes
 	{
 		FILE* pFile = nullptr;
 		size_t numItemsRead;

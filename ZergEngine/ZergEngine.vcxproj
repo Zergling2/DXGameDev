@@ -25,6 +25,8 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DrawScreenRatioQuadWithTextureEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\Billboard.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\SkinnedMeshRenderer.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\Scrollbar.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\Text.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\BillboardManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\SkinnedMeshRendererManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Platform.h" />
@@ -42,7 +44,7 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPN.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPNTT.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPT.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\ButtonEffect.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\Shaded2DQuadEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\ImageEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DrawScreenRatioQuadWithMSTextureEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DummyEffect.h" />
@@ -53,14 +55,11 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\AudioSource.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\RectTransform.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\InputField.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\SizeUIObjectInterface.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\Text.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\UIObjectInterface.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\UIObjectType.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\Button.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\Image.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\Panel.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\SizeColorUIObjectInterface.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\AudioSourceManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\CameraManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\ComponentManagerInterface.h" />
@@ -127,6 +126,8 @@
     <ClCompile Include="source\CoreSystem\Effect\DrawScreenRatioQuadWithTextureEffect.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\Billboard.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\SkinnedMeshRenderer.cpp" />
+    <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\Scrollbar.cpp" />
+    <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\Text.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\BillboardManager.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\SkinnedMeshRendererManager.cpp" />
     <ClCompile Include="source\CoreSystem\RenderContext\EffectDeviceContext.cpp" />
@@ -135,7 +136,7 @@
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectPN.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectPNTT.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectPT.cpp" />
-    <ClCompile Include="source\CoreSystem\Effect\ButtonEffect.cpp" />
+    <ClCompile Include="source\CoreSystem\Effect\Shaded2DQuadEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\ImageEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\DrawScreenRatioQuadWithMSTextureEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\DummyEffect.cpp" />
@@ -144,13 +145,10 @@
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\AudioSource.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\RectTransform.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\InputField.cpp" />
-    <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\SizeUIObjectInterface.cpp" />
-    <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\Text.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\UIObjectInterface.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\Button.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\Image.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\Panel.cpp" />
-    <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\SizeColorUIObjectInterface.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\AudioSourceManager.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\ComponentManagerMap.cpp" />
     <ClCompile Include="source\CoreSystem\RenderContext\RenderContext.cpp" />

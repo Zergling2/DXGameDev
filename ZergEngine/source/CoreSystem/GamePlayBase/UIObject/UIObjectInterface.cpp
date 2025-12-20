@@ -1,4 +1,6 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\UIObjectInterface.h>
+#include <ZergEngine\CoreSystem\GraphicDevice.h>
+#include <ZergEngine\CoreSystem\Math.h>
 #include <ZergEngine\CoreSystem\Manager\UIObjectManager.h>
 
 using namespace ze;
@@ -29,105 +31,11 @@ void IUIObject::Destroy()
 
 void IUIObject::SetActive(bool active)
 {
+	// 자식 오브젝트들 재귀적 활성화
 	for (RectTransform* pChildTransform : m_transform.m_children)
 		pChildTransform->m_pUIObject->SetActive(active);
 
 	UIObjectManager::GetInstance()->SetActive(this, active);
-}
-
-void IUIObject::OnDetachedFromUIInteraction()
-{
-	UIObjectManager* pUIObjectManager = UIObjectManager::GetInstance();
-
-	if (pUIObjectManager->GetLButtonDownObject() == this)
-		pUIObjectManager->SetLButtonDownObject(nullptr);
-
-	if (pUIObjectManager->GetMButtonDownObject() == this)
-		pUIObjectManager->SetMButtonDownObject(nullptr);
-
-	if (pUIObjectManager->GetRButtonDownObject() == this)
-		pUIObjectManager->SetRButtonDownObject(nullptr);
-}
-
-void IUIObject::OnLButtonDown()
-{
-	UIObjectManager* pUIObjectManager = UIObjectManager::GetInstance();
-
-	pUIObjectManager->SetLButtonDownObject(this);
-	pUIObjectManager->SetActiveInputField(nullptr);
-}
-
-void IUIObject::OnLButtonUp()
-{
-	UIObjectManager* pUIObjectManager = UIObjectManager::GetInstance();
-
-	IUIObject* pLButtonDownObject = pUIObjectManager->GetLButtonDownObject();
-
-	if (pLButtonDownObject == this)
-	{
-		this->OnLButtonClick();
-	}
-	else
-	{
-		if (pLButtonDownObject)
-			pLButtonDownObject->OnLButtonUp();
-	}
-
-	pUIObjectManager->SetLButtonDownObject(nullptr);
-}
-
-void IUIObject::OnMButtonDown()
-{
-	UIObjectManager* pUIObjectManager = UIObjectManager::GetInstance();
-
-	pUIObjectManager->SetMButtonDownObject(this);
-	pUIObjectManager->SetActiveInputField(nullptr);
-}
-
-void IUIObject::OnMButtonUp()
-{
-	UIObjectManager* pUIObjectManager = UIObjectManager::GetInstance();
-
-	IUIObject* pMButtonDownObject = pUIObjectManager->GetMButtonDownObject();
-
-	if (pMButtonDownObject == this)
-	{
-		this->OnMButtonClick();
-	}
-	else
-	{
-		if (pMButtonDownObject)
-			pMButtonDownObject->OnMButtonUp();
-	}
-
-	pUIObjectManager->SetMButtonDownObject(nullptr);
-}
-
-void IUIObject::OnRButtonDown()
-{
-	UIObjectManager* pUIObjectManager = UIObjectManager::GetInstance();
-
-	pUIObjectManager->SetRButtonDownObject(this);
-	pUIObjectManager->SetActiveInputField(nullptr);
-}
-
-void IUIObject::OnRButtonUp()
-{
-	UIObjectManager* pUIObjectManager = UIObjectManager::GetInstance();
-
-	IUIObject* pRButtonDownObject = pUIObjectManager->GetRButtonDownObject();
-
-	if (pRButtonDownObject == this)
-	{
-		this->OnRButtonClick();
-	}
-	else
-	{
-		if (pRButtonDownObject)
-			pRButtonDownObject->OnRButtonUp();
-	}
-
-	pUIObjectManager->SetRButtonDownObject(nullptr);
 }
 
 const UIObjectHandle IUIObject::ToHandle() const
@@ -135,4 +43,78 @@ const UIObjectHandle IUIObject::ToHandle() const
 	assert(UIObjectManager::GetInstance()->m_handleTable[m_tableIndex] == this);
 
 	return UIObjectHandle(m_tableIndex, m_id);
+}
+
+constexpr float UI_SIZE_DEFAULT = 16.0f;
+
+UISize::UISize()
+	: m_size(UI_SIZE_DEFAULT, UI_SIZE_DEFAULT)
+	, m_halfSize(UI_SIZE_DEFAULT / 2.0f, UI_SIZE_DEFAULT / 2.0f)
+{
+}
+
+UISize::UISize(FLOAT width, FLOAT height)
+	: m_size(width, height)
+	, m_halfSize(width / 2.0f, height / 2.0f)
+{
+}
+
+bool UISize::HitTest(const XMFLOAT2& mousePos, const XMFLOAT2& winCoordPos) const
+{
+	const XMFLOAT2 mousePosInLocalSpace(mousePos.x - winCoordPos.x, mousePos.y - winCoordPos.y);
+
+	return std::abs(mousePosInLocalSpace.x) < this->GetHalfSizeX() && std::abs(mousePosInLocalSpace.y) < this->GetHalfSizeY();
+}
+
+void XM_CALLCONV UISize::SetSize(FXMVECTOR size)
+{
+	XMStoreFloat2(&m_size, size);
+	XMStoreFloat2(&m_halfSize, XMVectorMultiply(size, Vector3::OneHalf()));
+}
+
+void UISize::SetSize(FLOAT width, FLOAT height)
+{
+	m_size.x = width;
+	m_size.y = height;
+
+	m_halfSize.x = width / 2.0f;
+	m_halfSize.y = height / 2.0f;
+}
+
+UIColor::UIColor()
+	: m_color(ColorsLinear::LightGray)
+{
+}
+
+UIColor::UIColor(FLOAT r, FLOAT g, FLOAT b, FLOAT a)
+	: m_color(r, g, b, a)
+{
+}
+
+UIColor::UIColor(FXMVECTOR color)
+{
+	XMStoreFloat4(&m_color, color);
+}
+
+UIText::UIText()
+	: m_text()
+	, m_tf(L"", DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 12)
+	, m_textAlignment((DWRITE_TEXT_ALIGNMENT_LEADING))
+	, m_paragraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR)
+	, m_spDWriteTextFormatWrapper(GraphicDevice::GetInstance()->GetDWriteTextFormatWrapper(m_tf))
+{
+}
+
+UIText::UIText(std::wstring text)
+	: m_text(std::move(text))
+	, m_tf(L"", DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 12)
+	, m_textAlignment((DWRITE_TEXT_ALIGNMENT_LEADING))
+	, m_paragraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR)
+	, m_spDWriteTextFormatWrapper(GraphicDevice::GetInstance()->GetDWriteTextFormatWrapper(m_tf))
+{
+}
+
+void UIText::ApplyTextFormat()
+{
+	m_spDWriteTextFormatWrapper = GraphicDevice::GetInstance()->GetDWriteTextFormatWrapper(m_tf);
 }
