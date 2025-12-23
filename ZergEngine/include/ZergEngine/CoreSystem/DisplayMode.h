@@ -2,15 +2,15 @@
 
 namespace ze
 {
-	enum class DISPLAY_MODE
+	enum class DisplayMode
 	{
 		// Windowed Mode
-		WINDOWED,
+		Windowed,
 
 		// Borderless Fullscreen Windowed Mode
-		BORDERLESS_WINDOWED,
+		BorderlessWindowed,
 
 		// Exclusive fullscreen Mode
-		FULLSCREEN
+		Fullscreen
 	};
 }

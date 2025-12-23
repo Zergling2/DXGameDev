@@ -34,7 +34,7 @@ namespace ze
 		void SetNativeSize(bool b);
 
 		// Windows 좌표계 마우스 위치와 충돌 테스트 수행
-		virtual bool HitTest(const XMFLOAT2& mousePos) const override;
+		virtual bool HitTest(POINT pt) const override;
 	private:
 		void UpdateToNativeSize();
 	private:

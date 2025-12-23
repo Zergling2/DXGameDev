@@ -44,9 +44,12 @@ namespace ze
 		void XM_CALLCONV SetColor(FXMVECTOR color) { m_color.SetColor(color); }
 		void SetColor(const XMFLOAT4& color) { m_color.SetColor(color); }
 		void SetColor(FLOAT r, FLOAT g, FLOAT b, FLOAT a) { m_color.SetColor(r, g, b, a); }
+		void XM_CALLCONV SetColorRGB(FXMVECTOR rgb) { m_color.SetColorRGB(rgb); }
+		void SetColorRGB(FLOAT r, FLOAT g, FLOAT b) { m_color.SetColorRGB(r, g, b); }
+		void SetColorA(FLOAT a) { m_color.SetColorA(a); }
 
 		// Windows 좌표계 마우스 위치와 충돌 테스트 수행
-		virtual bool HitTest(const XMFLOAT2& mousePos) const override { return false; }
+		virtual bool HitTest(POINT pt) const override { return false; }
 	private:
 		UISize m_size;	// Text box size
 		UIText m_text;

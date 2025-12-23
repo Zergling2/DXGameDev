@@ -39,6 +39,40 @@ void RectTransform::GetHCSPosition(XMFLOAT2* pOut) const
     pOut->y = base.y + m_position.y;
 }
 
+void RectTransform::GetWinCoordPosition(POINT* pOut) const
+{
+    POINT base;
+
+    switch (m_ha)
+    {
+    case HorizontalAnchor::Left:
+        base.x = 0;
+        break;
+    case HorizontalAnchor::Center:
+        base.x = GraphicDevice::GetInstance()->GetSwapChainWidth() / 2U;
+        break;
+    case HorizontalAnchor::Right:
+        base.x = GraphicDevice::GetInstance()->GetSwapChainWidth();
+        break;
+    }
+
+    switch (m_va)
+    {
+    case VerticalAnchor::Top:
+        base.y = 0;
+        break;
+    case VerticalAnchor::VCenter:
+        base.y = GraphicDevice::GetInstance()->GetSwapChainHeight() / 2U;
+        break;
+    case VerticalAnchor::Bottom:
+        base.y = GraphicDevice::GetInstance()->GetSwapChainHeight();
+        break;
+    }
+
+    pOut->x = base.x + static_cast<LONG>(m_position.x);
+    pOut->y = base.y - static_cast<LONG>(m_position.y);    // Windows 좌표계는 모니터 위쪽으로 갈수록 음수 값
+}
+
 void RectTransform::GetWinCoordPosition(XMFLOAT2* pOut) const
 {
     XMFLOAT2 base;

@@ -1045,7 +1045,9 @@ bool GraphicDevice::CreateCommonGraphicResources()
 
 	// UI 렌더링용 음영 2D 사각형 버퍼 생성
 	{
-		const XMFLOAT2 ltShadeWeight = XMFLOAT2(+0.5f, -0.5f);
+		constexpr FLOAT SHADE_CONVEX_WEIGHT = 0.4f;
+		constexpr FLOAT SHADE_CONCAVE_WEIGHT = -0.6f;
+		const XMFLOAT2 ltShadeWeight = XMFLOAT2(SHADE_CONVEX_WEIGHT, SHADE_CONCAVE_WEIGHT);
 		const XMFLOAT2 rbShadeWeight = XMFLOAT2(ltShadeWeight.y, ltShadeWeight.x);	// 좌상단과 음영 반전
 		const XMFLOAT2 centerShadeWeight = XMFLOAT2(0.0f, 0.0f);
 

@@ -12,6 +12,6 @@ namespace ze
 		InputField,
 		Button,
 		ImageButton,
-		Scrollbar
+		SliderControl
 	};
 }

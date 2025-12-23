@@ -45,7 +45,7 @@ void Warehouse::OnLoadScene()
 
 	// Main Camera
 	GameObject* pMainCamera = nullptr;
-	FirstPersonMovement* pFirstPersonMovement = nullptr;
+	FirstPersonMovement* pScriptFPSMovement = nullptr;
 	{
 		GameObjectHandle hMainCamera = CreateGameObject(L"Main Camera");
 
@@ -59,7 +59,7 @@ void Warehouse::OnLoadScene()
 		pCameraComponent->SetClippingPlanes(0.03f, 300.0f);
 
 		ComponentHandle<FirstPersonMovement> hFirstPersonMovement = pMainCamera->AddComponent<FirstPersonMovement>();		// 1인칭 카메라 조작
-		pFirstPersonMovement = hFirstPersonMovement.ToPtr();
+		pScriptFPSMovement = hFirstPersonMovement.ToPtr();
 	}
 
 	std::shared_ptr<Material> treeBillboardMtl = ResourceLoader::GetInstance()->CreateMaterial();
@@ -348,12 +348,23 @@ void Warehouse::OnLoadScene()
 			UIObjectHandle hPanel = CreatePanel();
 			Panel* pPanel = static_cast<Panel*>(hPanel.ToPtr());
 			// pPanel->SetShape(PanelShape::RoundedRectangle);		// Default
-			pPanel->SetColor(0.0f, 0.0f, 0.0f, 0.3f);
-			pPanel->SetSize(140, 200);
+			pPanel->SetColor(ColorsLinear::DarkGray);
+			pPanel->SetColorA(0.5f);
+			pPanel->SetSize(180, 220);
 			pPanel->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 			pPanel->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-			pPanel->m_transform.m_position.x = 70 + 10;
+			pPanel->m_transform.m_position.x = pPanel->GetSizeX() / 2.0f + 5;
 
+
+			pScriptFPSMovement->m_hWeaponChangePanel = hPanel;
+			pPanel->SetActive(false);
+
+			constexpr float BUTTON_WIDTH = 40;
+			constexpr float BUTTON_HEIGHT = 18;
+			const float WEAPON_NAME_TEXT_WIDTH = pPanel->GetSizeX() - BUTTON_WIDTH - 10;
+			const float WEAPON_NAME_TEXT_HEIGHT = 20;
+			const float BUTTON_POS_X = pPanel->m_transform.m_position.x + pPanel->GetHalfSizeX() - 5 - (BUTTON_WIDTH / 2.0f);
+			const float WEAPON_NAME_TEXT_POS_X = pPanel->m_transform.m_position.x - pPanel->GetHalfSizeX() + 5 + (WEAPON_NAME_TEXT_WIDTH / 2.0f);
 			{
 				UIObjectHandle hInputField = CreateInputField();
 				InputField* pInputField = static_cast<InputField*>(hInputField.ToPtr());
@@ -367,8 +378,35 @@ void Warehouse::OnLoadScene()
 				pInputField->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
 				pInputField->m_transform.m_position.x = pPanel->m_transform.m_position.x;
 				pInputField->m_transform.m_position.y = -30;
+			}
 
-				pInputField->m_transform.SetParent(&pPanel->m_transform);
+			{
+				UIObjectHandle hHSlider = CreateSliderControl();
+				SliderControl* pHSlider = static_cast<SliderControl*>(hHSlider.ToPtr());
+				pHSlider->m_transform.SetParent(&pPanel->m_transform);
+				
+				pHSlider->SetRange(50, 60);
+				pHSlider->SetThumbColor(ColorsLinear::Green);
+				pHSlider->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+				pHSlider->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+				pHSlider->m_transform.m_position.x = pPanel->m_transform.m_position.x;
+				pHSlider->m_transform.m_position.y = -60;
+			}
+
+			{
+				UIObjectHandle hVSlider = CreateSliderControl();
+				SliderControl* pVSlider = static_cast<SliderControl*>(hVSlider.ToPtr());
+				pVSlider->m_transform.SetParent(&pPanel->m_transform);
+
+				pVSlider->SetSliderControlType(SliderControlType::Vertical);
+				pVSlider->SetThumbSize(16, 8);
+				pVSlider->SetThumbColor(ColorsLinear::Red);
+				pVSlider->SetTrackColor(ColorsLinear::YellowGreen);
+				pVSlider->SetRange(80, 100);
+				pVSlider->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+				pVSlider->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+				pVSlider->m_transform.m_position.x = pPanel->m_transform.m_position.x + 200;
+				pVSlider->m_transform.m_position.y = -60;
 			}
 
 			{
@@ -379,49 +417,97 @@ void Warehouse::OnLoadScene()
 				pText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 				pText->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_BOLD);
 				pText->ApplyTextFormat();
-				pText->SetSize(pPanel->GetSizeX() - 20, 20);
+				pText->SetSize(pPanel->GetSizeX() - 10, 20);
 				pText->SetColor(ColorsLinear::White);
 				pText->SetText(L"무기교체 (단축키: N)");
 				pText->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 				pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
 				pText->m_transform.m_position.x = pPanel->m_transform.m_position.x;
-				pText->m_transform.m_position.y = 85;
-
-				pText->m_transform.SetParent(&pPanel->m_transform);
+				pText->m_transform.m_position.y = pPanel->m_transform.m_position.y + pPanel->GetHalfSizeY() - 5 - pText->GetHalfSizeY();
 			}
 
 			{
-				UIObjectHandle hBtn = CreateButton();
-				Button* pButton = static_cast<Button*>(hBtn.ToPtr());
-				pButton->m_transform.SetParent(&pPanel->m_transform);
-
-				pButton->SetSize(40, 18);
-				pButton->SetTextColor(ColorsLinear::White);	// Text color
-				pButton->SetButtonColor(ColorsLinear::DarkOliveGreen);	// Button color
-				pButton->SetText(L"교체");
-				pButton->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
-				pButton->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-				pButton->m_transform.m_position.x = pPanel->m_transform.m_position.x + 42;
-				pButton->m_transform.m_position.y = 20;
-
-				pButton->m_transform.SetParent(&pPanel->m_transform);
-
-
-
 				UIObjectHandle hText = CreateText();
 				Text* pText = static_cast<Text*>(hText.ToPtr());
 				pText->m_transform.SetParent(&pPanel->m_transform);
 
 				pText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-				pText->SetSize(pPanel->GetSizeX() - 60, 18);
+				pText->SetSize(WEAPON_NAME_TEXT_WIDTH, WEAPON_NAME_TEXT_HEIGHT);
+				pText->SetColor(ColorsLinear::White);
+				pText->SetText(L"1. B.92Fs Black");
+				pText->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+				pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+				pText->m_transform.m_position.x = WEAPON_NAME_TEXT_POS_X;
+				pText->m_transform.m_position.y = 70;
+
+				UIObjectHandle hBtn = CreateButton();
+				Button* pButton = static_cast<Button*>(hBtn.ToPtr());
+				pButton->m_transform.SetParent(&pPanel->m_transform);
+
+				pButton->SetSize(BUTTON_WIDTH, BUTTON_HEIGHT);
+				pButton->SetTextColor(ColorsLinear::White);
+				pButton->SetButtonColor(ColorsLinear::Coral);
+				pButton->SetText(L"교체");
+				pButton->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+				pButton->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+				pButton->m_transform.m_position.x = BUTTON_POS_X;
+				pButton->m_transform.m_position.y = 70;
+			}
+
+			{
+				UIObjectHandle hText = CreateText();
+				Text* pText = static_cast<Text*>(hText.ToPtr());
+				pText->m_transform.SetParent(&pPanel->m_transform);
+
+				pText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+				pText->SetSize(WEAPON_NAME_TEXT_WIDTH, WEAPON_NAME_TEXT_HEIGHT);
+				pText->SetColor(ColorsLinear::White);
+				pText->SetText(L"2. M4A1 Carbine");
+				pText->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+				pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+				pText->m_transform.m_position.x = WEAPON_NAME_TEXT_POS_X;
+				pText->m_transform.m_position.y = 50;
+
+				UIObjectHandle hBtn = CreateButton();
+				Button* pButton = static_cast<Button*>(hBtn.ToPtr());
+				pButton->m_transform.SetParent(&pPanel->m_transform);
+
+				pButton->SetSize(BUTTON_WIDTH, BUTTON_HEIGHT);
+				pButton->SetTextColor(ColorsLinear::Black);
+				pButton->SetButtonColor(ColorsLinear::Orange);
+				pButton->SetText(L"교체");
+				pButton->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+				pButton->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+				pButton->m_transform.m_position.x = BUTTON_POS_X;
+				pButton->m_transform.m_position.y = 50;
+			}
+
+			{
+				UIObjectHandle hText = CreateText();
+				Text* pText = static_cast<Text*>(hText.ToPtr());
+				pText->m_transform.SetParent(&pPanel->m_transform);
+
+				pText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+				pText->SetSize(WEAPON_NAME_TEXT_WIDTH, WEAPON_NAME_TEXT_HEIGHT);
 				pText->SetColor(ColorsLinear::White);
 				pText->SetText(L"3. M16");
 				pText->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 				pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-				pText->m_transform.m_position.x = pPanel->m_transform.m_position.x - 25;
-				pText->m_transform.m_position.y = 20;
+				pText->m_transform.m_position.x = WEAPON_NAME_TEXT_POS_X;
+				pText->m_transform.m_position.y = 30;
 
-				pText->m_transform.SetParent(&pPanel->m_transform);
+				UIObjectHandle hBtn = CreateButton();
+				Button* pButton = static_cast<Button*>(hBtn.ToPtr());
+				pButton->m_transform.SetParent(&pPanel->m_transform);
+
+				pButton->SetSize(BUTTON_WIDTH, BUTTON_HEIGHT);
+				pButton->SetTextColor(ColorsLinear::White);
+				pButton->SetButtonColor(ColorsLinear::DarkOliveGreen);
+				pButton->SetText(L"교체");
+				pButton->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+				pButton->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+				pButton->m_transform.m_position.x = BUTTON_POS_X;
+				pButton->m_transform.m_position.y = 30;
 			}
 		}
 	}
@@ -1421,7 +1507,7 @@ void Warehouse::OnLoadScene()
 	XMStoreFloat4A(&matSTANAG30Rds->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 2.0f));
 	{
 		GameObjectHandle hPrimaryWeapon = CreateGameObject(L"Primary Weapon");
-		pFirstPersonMovement->m_hWeapons[0] = hPrimaryWeapon;	// 1번 슬롯
+		pScriptFPSMovement->m_hWeapons[0] = hPrimaryWeapon;	// 1번 슬롯
 
 		GameObject* pPrimaryWeapon = hPrimaryWeapon.ToPtr();
 		pPrimaryWeapon->m_transform.SetPosition(XMVectorSet(0.1f, -0.185f, 0.205f, 0.0f));
@@ -1469,7 +1555,7 @@ void Warehouse::OnLoadScene()
 	// Secondary weapon
 	{
 		GameObjectHandle hSecondaryWeapon = CreateGameObject(L"Secondary Weapon");
-		pFirstPersonMovement->m_hWeapons[1] = hSecondaryWeapon;		// 2번 슬롯
+		pScriptFPSMovement->m_hWeapons[1] = hSecondaryWeapon;		// 2번 슬롯
 
 		GameObject* pSecondaryWeapon = hSecondaryWeapon.ToPtr();
 		pSecondaryWeapon->SetActive(false);	// 안보이게 비활성화 상태로 초기화
@@ -1512,7 +1598,7 @@ void Warehouse::OnLoadScene()
 
 	{
 		GameObjectHandle hPrimaryWeapon = CreateGameObject(L"Primary Weapon");
-		pFirstPersonMovement->m_hWeapons[2] = hPrimaryWeapon;		// 3번 슬롯
+		pScriptFPSMovement->m_hWeapons[2] = hPrimaryWeapon;		// 3번 슬롯
 
 		GameObject* pPrimaryWeapon = hPrimaryWeapon.ToPtr();
 		pPrimaryWeapon->SetActive(false);	// 안보이게 비활성화 상태로 초기화
@@ -1562,7 +1648,7 @@ void Warehouse::OnLoadScene()
 
 	{
 		GameObjectHandle hPrimaryWeapon = CreateGameObject(L"Primary Weapon");
-		pFirstPersonMovement->m_hWeapons[3] = hPrimaryWeapon;		// 3번 슬롯
+		pScriptFPSMovement->m_hWeapons[3] = hPrimaryWeapon;		// 3번 슬롯
 
 		GameObject* pPrimaryWeapon = hPrimaryWeapon.ToPtr();
 		pPrimaryWeapon->SetActive(false);	// 안보이게 비활성화 상태로 초기화

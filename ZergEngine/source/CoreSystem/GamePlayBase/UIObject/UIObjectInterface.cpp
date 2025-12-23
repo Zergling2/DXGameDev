@@ -49,21 +49,23 @@ constexpr float UI_SIZE_DEFAULT = 16.0f;
 
 UISize::UISize()
 	: m_size(UI_SIZE_DEFAULT, UI_SIZE_DEFAULT)
-	, m_halfSize(UI_SIZE_DEFAULT / 2.0f, UI_SIZE_DEFAULT / 2.0f)
+	, m_halfSize(m_size.x / 2.0f, m_size.y / 2.0f)
 {
 }
 
 UISize::UISize(FLOAT width, FLOAT height)
 	: m_size(width, height)
-	, m_halfSize(width / 2.0f, height / 2.0f)
+	, m_halfSize(m_size.x / 2.0f, m_size.y / 2.0f)
 {
 }
 
-bool UISize::HitTest(const XMFLOAT2& mousePos, const XMFLOAT2& winCoordPos) const
+bool UISize::HitTest(POINT pt, POINT pos) const
 {
-	const XMFLOAT2 mousePosInLocalSpace(mousePos.x - winCoordPos.x, mousePos.y - winCoordPos.y);
+	POINT ptL;	// pt in local space
+	ptL.x = pt.x - pos.x;
+	ptL.y = pt.y - pos.y;
 
-	return std::abs(mousePosInLocalSpace.x) < this->GetHalfSizeX() && std::abs(mousePosInLocalSpace.y) < this->GetHalfSizeY();
+	return std::abs(ptL.x) < static_cast<LONG>(this->GetHalfSizeX()) && std::abs(ptL.y) < static_cast<LONG>(this->GetHalfSizeY());
 }
 
 void XM_CALLCONV UISize::SetSize(FXMVECTOR size)
@@ -77,8 +79,8 @@ void UISize::SetSize(FLOAT width, FLOAT height)
 	m_size.x = width;
 	m_size.y = height;
 
-	m_halfSize.x = width / 2.0f;
-	m_halfSize.y = height / 2.0f;
+	m_halfSize.x = m_size.x / 2.0f;
+	m_halfSize.y = m_size.y / 2.0f;
 }
 
 UIColor::UIColor()

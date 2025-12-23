@@ -31,6 +31,9 @@ namespace ze
 		void XM_CALLCONV SetButtonColor(FXMVECTOR color) { m_buttonColor.SetColor(color); }
 		void SetButtonColor(const XMFLOAT4& color) { m_buttonColor.SetColor(color); }
 		void SetButtonColor(FLOAT r, FLOAT g, FLOAT b, FLOAT a) { m_buttonColor.SetColor(r, g, b, a); }
+		void XM_CALLCONV SetButtonColorRGB(FXMVECTOR rgb) { m_buttonColor.SetColorRGB(rgb); }
+		void SetButtonColorRGB(FLOAT r, FLOAT g, FLOAT b) { m_buttonColor.SetColorRGB(r, g, b); }
+		void SetButtonColorA(FLOAT a) { m_buttonColor.SetColorA(a); }
 
 		std::wstring& GetText() { return m_text.GetText(); }
 		const std::wstring& GetText() const { return m_text.GetText(); }
@@ -52,10 +55,10 @@ namespace ze
 		void SetTextColor(FLOAT r, FLOAT g, FLOAT b, FLOAT a) { m_textColor.SetColor(r, g, b, a); }
 
 		// Windows 좌표계 마우스 위치와 충돌 테스트 수행
-		virtual bool HitTest(const XMFLOAT2& mousePos) const override;
+		virtual bool HitTest(POINT pt) const override;
 	private:
-		virtual void OnLButtonDown() override;
-		virtual void OnLButtonUp() override;
+		virtual void OnLButtonDown(POINT pt) override;
+		virtual void OnLButtonUp(POINT pt) override;
 
 		// 렌더링 모양 결정을 위한 상태변수 (작동 로직과는 무관)
 		bool IsPressed() const { return m_isPressed; }

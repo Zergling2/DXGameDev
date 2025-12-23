@@ -25,7 +25,7 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DrawScreenRatioQuadWithTextureEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\Billboard.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\SkinnedMeshRenderer.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\Scrollbar.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\SliderControl.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\Text.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\BillboardManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\SkinnedMeshRendererManager.h" />
@@ -126,7 +126,7 @@
     <ClCompile Include="source\CoreSystem\Effect\DrawScreenRatioQuadWithTextureEffect.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\Billboard.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\SkinnedMeshRenderer.cpp" />
-    <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\Scrollbar.cpp" />
+    <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\SliderControl.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\Text.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\BillboardManager.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\SkinnedMeshRendererManager.cpp" />

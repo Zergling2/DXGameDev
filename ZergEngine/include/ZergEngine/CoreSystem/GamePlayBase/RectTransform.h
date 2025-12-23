@@ -63,6 +63,7 @@ namespace ze
 		// UIObjectHandle GetChild(uint32_t index);
 
 		void GetHCSPosition(XMFLOAT2* pOut) const;
+		void GetWinCoordPosition(POINT* pOut) const;
 		void GetWinCoordPosition(XMFLOAT2* pOut) const;
 	private:
 		IUIObject* m_pUIObject;

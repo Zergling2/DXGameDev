@@ -36,6 +36,9 @@ namespace ze
 		void XM_CALLCONV SetColor(FXMVECTOR color) { m_color.SetColor(color); }
 		void SetColor(const XMFLOAT4& color) { m_color.SetColor(color); }
 		void SetColor(FLOAT r, FLOAT g, FLOAT b, FLOAT a) { m_color.SetColor(r, g, b, a); }
+		void XM_CALLCONV SetColorRGB(FXMVECTOR rgb) { m_color.SetColorRGB(rgb); }
+		void SetColorRGB(FLOAT r, FLOAT g, FLOAT b) { m_color.SetColorRGB(r, g, b); }
+		void SetColorA(FLOAT a) { m_color.SetColorA(a); }
 
 		void SetShape(PanelShape shape) { m_shape = shape; }
 		PanelShape GetShape() const { return m_shape; }
@@ -46,7 +49,7 @@ namespace ze
 		float GetRadiusY() const { return m_radius.y; }
 
 		// Windows 좌표계 마우스 위치와 충돌 테스트 수행
-		virtual bool HitTest(const XMFLOAT2& mousePos) const override;
+		virtual bool HitTest(POINT pt) const override;
 	private:
 		UISize m_size;
 		UIColor m_color;

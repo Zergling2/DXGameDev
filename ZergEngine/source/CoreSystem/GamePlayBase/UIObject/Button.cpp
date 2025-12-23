@@ -17,20 +17,20 @@ Button::Button(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name)
 	m_text.SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 }
 
-bool Button::HitTest(const XMFLOAT2& mousePos) const
+bool Button::HitTest(POINT pt) const
 {
-	XMFLOAT2 wcp;
+	POINT wcp;
 	m_transform.GetWinCoordPosition(&wcp);
 
-	return m_size.HitTest(mousePos, wcp);
+	return m_size.HitTest(pt, wcp);
 }
 
-void Button::OnLButtonDown()
+void Button::OnLButtonDown(POINT pt)
 {
 	m_isPressed = true;
 }
 
-void Button::OnLButtonUp()
+void Button::OnLButtonUp(POINT pt)
 {
 	m_isPressed = false;
 }

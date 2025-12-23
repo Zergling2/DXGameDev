@@ -28,12 +28,12 @@ void Image::SetNativeSize(bool b)
 		this->UpdateToNativeSize();
 }
 
-bool Image::HitTest(const XMFLOAT2& mousePos) const
+bool Image::HitTest(POINT pt) const
 {
-	XMFLOAT2 wcp;
+	POINT wcp;
 	m_transform.GetWinCoordPosition(&wcp);
 
-	return m_size.HitTest(mousePos, wcp);
+	return m_size.HitTest(pt, wcp);
 }
 
 void Image::UpdateToNativeSize()

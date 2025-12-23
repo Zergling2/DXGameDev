@@ -70,11 +70,13 @@ namespace ze
 
 		uint64_t AssignUniqueId() { return InterlockedIncrement64(reinterpret_cast<LONG64*>(&m_uniqueId)); }
 
-		IUIObject* XM_CALLCONV SearchForHitUI(const XMFLOAT2& mousePos);
-		static IUIObject* XM_CALLCONV PostOrderHitTest(const XMFLOAT2& mousePos, IUIObject* pUIObject);
+		// UI의 동작 호출은 검색이 끝난 뒤 호출되어야 반복자 손상을 피할 수 있음.
+		IUIObject* XM_CALLCONV SearchForHitUI(POINT pt);
+		static IUIObject* XM_CALLCONV PostOrderHitTest(POINT pt, const IUIObject* pUIObject);
 
 		// Windows Vista부터 Surrogate pair 전달 가능
 		void OnChar(WPARAM wParam, LPARAM lParam);
+		void OnMouseMove(UINT flags, POINT pt);
 		void OnLButtonDown(POINT pt);
 		void OnLButtonUp(POINT pt);
 		void OnMButtonDown(POINT pt);

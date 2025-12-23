@@ -43,24 +43,27 @@ namespace ze
 		void SetActive(bool active);
 
 		// Windows 좌표계 마우스 위치와 충돌 테스트 수행
-		virtual bool HitTest(const XMFLOAT2& mousePos) const = 0;
+		virtual bool HitTest(POINT pt) const = 0;
 	private:
-		virtual void OnLButtonDown() {}
-		virtual void OnLButtonUp() {}
-		virtual void OnLButtonClick() {}
-		virtual void OnMButtonDown() {}
-		virtual void OnMButtonUp() {}
-		virtual void OnMButtonClick() {}
-		virtual void OnRButtonDown() {}
-		virtual void OnRButtonUp() {}
-		virtual void OnRButtonClick() {}
 		virtual void OnChar(TCHAR ch) {}
-	private:
+		virtual void OnMouseMove(POINT pt) {}
+		virtual void OnLButtonDown(POINT pt) {}
+		virtual void OnLButtonUp(POINT pt) {}
+		virtual void OnLButtonClick(POINT pt) {}
+		virtual void OnMButtonDown(POINT pt) {}
+		virtual void OnMButtonUp(POINT pt) {}
+		virtual void OnMButtonClick(POINT pt) {}
+		virtual void OnRButtonDown(POINT pt) {}
+		virtual void OnRButtonUp(POINT pt) {}
+		virtual void OnRButtonClick(POINT pt) {}
+		
+
 		const UIObjectHandle ToHandle() const;
 
-		bool IsPending() const { return static_cast<uioft>(m_flag) & static_cast<uioft>(UIOBJECT_FLAG::PENDING); }
 		void OnFlag(UIOBJECT_FLAG flag) { m_flag = static_cast<UIOBJECT_FLAG>(static_cast<uioft>(m_flag) | static_cast<uioft>(flag)); }
 		void OffFlag(UIOBJECT_FLAG flag) { m_flag = static_cast<UIOBJECT_FLAG>(static_cast<uioft>(m_flag) & ~static_cast<uioft>(flag)); }
+	protected:
+		bool IsPending() const { return static_cast<uioft>(m_flag) & static_cast<uioft>(UIOBJECT_FLAG::PENDING); }
 		bool IsOnTheDestroyQueue() const { return static_cast<uioft>(m_flag) & static_cast<uioft>(UIOBJECT_FLAG::ON_DESTROY_QUEUE); }
 		bool IsRoot() const {return static_cast<uioft>(m_flag) & static_cast<uioft>(UIOBJECT_FLAG::REAL_ROOT); }
 	public:
@@ -79,7 +82,7 @@ namespace ze
 		UISize();
 		UISize(FLOAT width, FLOAT height);
 
-		bool HitTest(const XMFLOAT2& mousePos, const XMFLOAT2& winCoordPos) const;
+		bool HitTest(POINT pt, POINT pos) const;
 
 		XMVECTOR GetSizeVector() const { return XMLoadFloat2(&m_size); }
 		const XMFLOAT2& GetSize() const { return m_size; }
@@ -109,6 +112,9 @@ namespace ze
 		void SetColor(FLOAT r, FLOAT g, FLOAT b, FLOAT a) { m_color.x = r; m_color.y = g; m_color.z = b; m_color.w = a; }
 		void XM_CALLCONV SetColor(FXMVECTOR color) { XMStoreFloat4(&m_color, color); }
 		void SetColor(const XMFLOAT4& color) { m_color = color; }
+		void XM_CALLCONV SetColorRGB(FXMVECTOR rgb) { XMStoreFloat4(&m_color, XMVectorSetW(rgb, m_color.w)); }
+		void SetColorRGB(FLOAT r, FLOAT g, FLOAT b) { m_color.x = r; m_color.y = g; m_color.z = b; }
+		void SetColorA(FLOAT a) { m_color.w = a; }
 	private:
 		XMFLOAT4 m_color;
 	};

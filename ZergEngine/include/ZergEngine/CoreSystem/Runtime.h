@@ -1,9 +1,9 @@
 #pragma once
 
-#include <ZergEngine\CoreSystem\DisplayMode.h>
 #include <ZergEngine\CoreSystem\Window.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\Handle.h>
 #include <ZergEngine\CoreSystem\Debug.h>
+#include <ZergEngine\CoreSystem\DisplayMode.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Handle.h>
 
 namespace ze
 {
@@ -31,9 +31,9 @@ namespace ze
 		SyncFileLogger& GetSyncFileLogger() { return m_sfl; }
 		AsyncFileLogger& GetAsyncFileLogger() { return m_afl; }
 
-		// mode가 DISPLAY_MODE::BORDERLESS_WINDOWED일 경우 width, height는 무시됩니다.
-		// mode가 DISPLAY_MODE::FULLSCREEN일 경우 width, height는 각각 전체화면 해상도의 너비, 높이값이 됩니다.
-		bool SetResolution(uint32_t width, uint32_t height, DISPLAY_MODE mode);
+		// mode가 DisplayMode::BORDERLESS_WINDOWED일 경우 width, height는 무시됩니다.
+		// mode가 DisplayMode::FULLSCREEN일 경우 width, height는 각각 전체화면 해상도의 너비, 높이값이 됩니다.
+		bool SetResolution(uint32_t width, uint32_t height, DisplayMode mode);
 
 		// (이 함수는 스크립트에서만 호출해야 합니다.)
 		// 빈 게임 오브젝트를 생성합니다.
@@ -58,6 +58,10 @@ namespace ze
 		// (이 함수는 스크립트에서만 호출해야 합니다.)
 		// 루트 오브젝트로 입력 필드 UI를 생성합니다.
 		UIObjectHandle CreateInputField(PCWSTR name = L"New Input Field");
+
+		// (이 함수는 스크립트에서만 호출해야 합니다.)
+		// 루트 오브젝트로 슬라이더 컨트롤 UI를 생성합니다.
+		UIObjectHandle CreateSliderControl(PCWSTR name = L"New Slider Control");
 
 		GameObjectHandle Instantiate(const GameObjectHandle source);
 		// GameObjectHandle Instantiate(const GameObjectHandle source, GameObjectHandle parent);

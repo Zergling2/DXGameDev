@@ -6,6 +6,7 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Button.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Text.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\InputField.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\SliderControl.h>
 
 using namespace ze;
 
@@ -17,54 +18,63 @@ IScene::IScene()
 
 GameObjectHandle IScene::CreateGameObject(PCWSTR name)
 {
-	GameObject* pNewGameObject = nullptr;
-	GameObjectHandle hNewGameObject = GameObjectManager::GetInstance()->CreatePendingObject(&pNewGameObject, name);
-	m_pendingGameObjects.push_back(pNewGameObject);
+	GameObject* pGameObject = nullptr;
+	GameObjectHandle hGameObject = GameObjectManager::GetInstance()->CreatePendingObject(&pGameObject, name);
+	m_pendingGameObjects.push_back(pGameObject);
 
-	return hNewGameObject;
+	return hGameObject;
 }
 
 UIObjectHandle IScene::CreatePanel(PCWSTR name)
 {
-	Panel* pNewPanel = nullptr;
-	UIObjectHandle hNewPanel = UIObjectManager::GetInstance()->CreatePendingObject<Panel>(&pNewPanel, name);
-	m_pendingUIObjects.push_back(pNewPanel);
+	Panel* pPanel = nullptr;
+	UIObjectHandle hPanel = UIObjectManager::GetInstance()->CreatePendingObject<Panel>(&pPanel, name);
+	m_pendingUIObjects.push_back(pPanel);
 
-	return hNewPanel;
+	return hPanel;
 }
 
 UIObjectHandle IScene::CreateImage(PCWSTR name)
 {
-	Image* pNewImage = nullptr;
-	UIObjectHandle hNewImage = UIObjectManager::GetInstance()->CreatePendingObject<Image>(&pNewImage, name);
-	m_pendingUIObjects.push_back(pNewImage);
+	Image* pImage = nullptr;
+	UIObjectHandle hImage = UIObjectManager::GetInstance()->CreatePendingObject<Image>(&pImage, name);
+	m_pendingUIObjects.push_back(pImage);
 
-	return hNewImage;
+	return hImage;
 }
 
 UIObjectHandle IScene::CreateText(PCWSTR name)
 {
-	Text* pNewText = nullptr;
-	UIObjectHandle hNewText = UIObjectManager::GetInstance()->CreatePendingObject<Text>(&pNewText, name);
-	m_pendingUIObjects.push_back(pNewText);
+	Text* pText = nullptr;
+	UIObjectHandle hText = UIObjectManager::GetInstance()->CreatePendingObject<Text>(&pText, name);
+	m_pendingUIObjects.push_back(pText);
 
-	return hNewText;
+	return hText;
 }
 
 UIObjectHandle IScene::CreateButton(PCWSTR name)
 {
-	Button* pNewButton = nullptr;
-	UIObjectHandle hNewButton = UIObjectManager::GetInstance()->CreatePendingObject<Button>(&pNewButton, name);
-	m_pendingUIObjects.push_back(pNewButton);
+	Button* pButton = nullptr;
+	UIObjectHandle hButton = UIObjectManager::GetInstance()->CreatePendingObject<Button>(&pButton, name);
+	m_pendingUIObjects.push_back(pButton);
 
-	return hNewButton;
+	return hButton;
 }
 
 UIObjectHandle IScene::CreateInputField(PCWSTR name)
 {
 	InputField* pInputField = nullptr;
-	UIObjectHandle hNewInputField = UIObjectManager::GetInstance()->CreatePendingObject<InputField>(&pInputField, name);
+	UIObjectHandle hInputField = UIObjectManager::GetInstance()->CreatePendingObject<InputField>(&pInputField, name);
 	m_pendingUIObjects.push_back(pInputField);
 
-	return hNewInputField;
+	return hInputField;
+}
+
+UIObjectHandle IScene::CreateSliderControl(PCWSTR name)
+{
+	SliderControl* pSliderControl = nullptr;
+	UIObjectHandle hSliderControl = UIObjectManager::GetInstance()->CreatePendingObject<SliderControl>(&pSliderControl, name);
+	m_pendingUIObjects.push_back(pSliderControl);
+
+	return hSliderControl;
 }

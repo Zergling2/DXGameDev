@@ -30,6 +30,7 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Button.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Text.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\InputField.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\SliderControl.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\SkinnedMeshRenderer.h>
 #include <ZergEngine\CoreSystem\Resource\Animation.h>
 
@@ -368,6 +369,11 @@ UIObjectHandle Runtime::CreateInputField(PCWSTR name)
     return UIObjectManager::GetInstance()->CreateObject<InputField>(name);
 }
 
+UIObjectHandle Runtime::CreateSliderControl(PCWSTR name)
+{
+    return UIObjectManager::GetInstance()->CreateObject<SliderControl>(name);
+}
+
 void Runtime::OnDestroy(WPARAM wParam, LPARAM lParam)
 {
     this->DestroyAllObject();
@@ -496,6 +502,7 @@ void Runtime::OnChar(WPARAM wParam, LPARAM lParam)
 void Runtime::OnMouseMove(UINT flags, POINT pt)
 {
     Input::GetInstance()->SetMousePos(pt);
+    UIObjectManager::GetInstance()->OnMouseMove(flags, pt);
 }
 
 void Runtime::OnLButtonDown(UINT flags, POINT pt)
@@ -661,7 +668,7 @@ void Runtime::ReleaseLoggers()
     m_afl.Release();
 }
 
-bool Runtime::SetResolution(uint32_t width, uint32_t height, DISPLAY_MODE mode)
+bool Runtime::SetResolution(uint32_t width, uint32_t height, DisplayMode mode)
 {
     if (m_isEditor)
         return false;
@@ -672,11 +679,11 @@ bool Runtime::SetResolution(uint32_t width, uint32_t height, DISPLAY_MODE mode)
 
     switch (mode)
     {
-    case DISPLAY_MODE::WINDOWED:
+    case DisplayMode::Windowed:
         m_window.SetStyle(TITLEBAR_WINDOW_STYLE);
         result = m_window.Resize(width, height);
         break;
-    case DISPLAY_MODE::BORDERLESS_WINDOWED:
+    case DisplayMode::BorderlessWindowed:
         m_window.SetStyle(BORDERLESS_WINDOW_STYLE);
         ZeroMemory(&mi, sizeof(mi));
         mi.cbSize = sizeof(mi);
@@ -686,7 +693,7 @@ bool Runtime::SetResolution(uint32_t width, uint32_t height, DISPLAY_MODE mode)
         height = static_cast<uint32_t>(mi.rcMonitor.bottom - mi.rcMonitor.top);
         result = m_window.Resize(width, height);
         break;
-    case DISPLAY_MODE::FULLSCREEN:
+    case DisplayMode::Fullscreen:
         result = false;
         break;
     default:

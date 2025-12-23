@@ -13,10 +13,10 @@ Panel::Panel(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name)
 {
 }
 
-bool Panel::HitTest(const XMFLOAT2& mousePos) const
+bool Panel::HitTest(POINT pt) const
 {
-	XMFLOAT2 wcp;
+	POINT wcp;
 	m_transform.GetWinCoordPosition(&wcp);
 
-	return m_size.HitTest(mousePos, wcp);
+	return m_size.HitTest(pt, wcp);
 }

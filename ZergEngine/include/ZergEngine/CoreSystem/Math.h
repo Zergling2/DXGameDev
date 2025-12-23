@@ -92,6 +92,8 @@ namespace ze
 		template<typename T>
 		static T Clamp(T val, T min, T max)
 		{
+			assert(min <= max);
+
 			if (val < min)
 				return min;
 			else if (val > max)

@@ -15,8 +15,9 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Panel.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Button.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Image.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\InputField.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Text.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\InputField.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\SliderControl.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Light.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Camera.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\MeshRenderer.h>
@@ -57,7 +58,7 @@ Renderer::Renderer()
 	, m_pBSOpaque(nullptr)
 	, m_pBSAlphaBlend(nullptr)
 	, m_pBSNoColorWrite(nullptr)
-	, m_pButtonVB(nullptr)
+	, m_pVBShaded2DQuad(nullptr)
 	, m_effectImmediateContext()
 	, m_pAnimFinalTransformIdentity(nullptr)
 	, m_pAnimFinalTransformBuffer(nullptr)
@@ -128,7 +129,7 @@ void Renderer::Init()
 	m_pBSOpaque = pGraphicDevice->GetBSComInterface(BlendStateType::Opaque);
 	m_pBSAlphaBlend = pGraphicDevice->GetBSComInterface(BlendStateType::AlphaBlend);
 	m_pBSNoColorWrite = pGraphicDevice->GetBSComInterface(BlendStateType::NoColorWrite);
-	m_pButtonVB = pGraphicDevice->GetButtonMeshVB();	// Read only vertex buffer
+	m_pVBShaded2DQuad = pGraphicDevice->GetButtonMeshVB();	// Read only vertex buffer
 
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ INITIALIZE EFFECTS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	// m_basicEffectP.Init();
@@ -501,15 +502,19 @@ void Renderer::RenderFrame()
 		// Blend State
 		// D3D11_BLEND_BLEND_FACTOR 또는 D3D11_BLEND_INV_BLEND_FACTOR 미사용 (blend factor로 nullptr 전달)
 		pImmContext->OMSetBlendState(m_pBSAlphaBlend, nullptr, 0xFFFFFFFF);
-		// 
-		// 활성화된 빌보드 컴포넌트 검색 및 정렬 (큐에 포인터 이동 후 정렬, Manager 배열에서 정렬하면 groupIndex 업데이트 등 복잡해짐)
-		m_billboardRenderQueue.clear();
-		XMVECTOR cameraScaleW;
-		XMVECTOR cameraRotW;		// Quaternion
+
+
+
+		XMVECTOR cameraUpW;
+		XMVECTOR cameraForwardW;
 		XMVECTOR cameraPosW;
-		pCamera->m_pGameObject->m_transform.GetWorldTransform(&cameraScaleW, &cameraRotW, &cameraPosW);
-		XMVECTOR cameraUpW = XMVector3Rotate(Vector3::Up(), cameraRotW);
-		XMVECTOR cameraForwardW = XMVector3Rotate(Vector3::Forward(), cameraRotW);
+		{
+			XMVECTOR cameraScaleW;
+			XMVECTOR cameraRotW;		// Quaternion
+			pCamera->m_pGameObject->m_transform.GetWorldTransform(&cameraScaleW, &cameraRotW, &cameraPosW);
+			cameraUpW = XMVector3Rotate(Vector3::Up(), cameraRotW);
+			cameraForwardW = XMVector3Rotate(Vector3::Forward(), cameraRotW);
+		}
 
 		XMMATRIX screenAlignedBillboardRotationW;
 		{
@@ -523,6 +528,9 @@ void Renderer::RenderFrame()
 			screenAlignedBillboardRotationW.r[2] = forward;
 			screenAlignedBillboardRotationW.r[3] = Math::IdentityR3();
 		}
+
+		// 활성화된 빌보드 컴포넌트 검색 및 정렬 (큐에 포인터 이동 후 정렬, Manager 배열에서 정렬하면 groupIndex 업데이트 등 복잡해짐)
+		m_billboardRenderQueue.clear();
 		for (IComponent* pComponent : BillboardManager::GetInstance()->m_directAccessGroup)
 		{
 			Billboard* pBillboard = static_cast<Billboard*>(pComponent);
@@ -710,7 +718,8 @@ void Renderer::RenderFrame()
 					break;
 				case UIObjectType::ImageButton:
 					break;
-				case UIObjectType::Scrollbar:
+				case UIObjectType::SliderControl:
+					this->RenderSliderControl(static_cast<const SliderControl*>(pUIObject));
 					break;
 				default:
 					break;
@@ -1143,7 +1152,7 @@ void Renderer::RenderText(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColorBr
 void Renderer::RenderButton(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColorBrush* pBrush, const Button* pButton)
 {
 	// 1. 버튼 프레임 렌더링
-	ID3D11Buffer* vbs[] = { m_pButtonVB };
+	ID3D11Buffer* vbs[] = { m_pVBShaded2DQuad };
 	UINT strides[] = { sizeof(VFShaded2DQuad) };
 	UINT offsets[] = { 0 };
 
@@ -1263,4 +1272,46 @@ void Renderer::RenderInputField(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidC
 
 	// EndDraw
 	pD2DRenderTarget->EndDraw();
+}
+
+void Renderer::RenderSliderControl(const SliderControl* pSliderControl)
+{
+	// 공통사항 설정
+	ID3D11Buffer* vbs[] = { m_pVBShaded2DQuad };
+	UINT strides[] = { sizeof(VFShaded2DQuad) };
+	UINT offsets[] = { 0 };
+
+	m_effectImmediateContext.IASetVertexBuffers(0, 1, vbs, strides, offsets);
+
+	// Track 렌더링
+	XMFLOAT2 hcsp;
+	pSliderControl->m_transform.GetHCSPosition(&hcsp);
+	m_shaded2DQuadEffect.SetHCSPosition(hcsp);
+
+	m_shaded2DQuadEffect.SetShadeWeightIndex(SHADED_2DQUAD_SHADE_WEIGHT_INDEX_CONCAVE);
+	m_shaded2DQuadEffect.SetColor(pSliderControl->GetTrackColorVector());
+
+	if (pSliderControl->GetSliderControlType() == SliderControlType::Horizontal)
+		m_shaded2DQuadEffect.SetSize(pSliderControl->GetTrackLength(), pSliderControl->GetTrackThickness());
+	else
+		m_shaded2DQuadEffect.SetSize(pSliderControl->GetTrackThickness(), pSliderControl->GetTrackLength());
+
+	m_effectImmediateContext.Apply(&m_shaded2DQuadEffect);
+	m_effectImmediateContext.Draw(30, 0);
+
+	// Thumb 렌더링
+	XMFLOAT2 thumbHcsp;
+	XMFLOAT2 thumbOffset;
+	pSliderControl->ComputeHCSCoordThumbOffset(&thumbOffset);
+	thumbHcsp.x = hcsp.x + thumbOffset.x;
+	thumbHcsp.y = hcsp.y + thumbOffset.y;
+	m_shaded2DQuadEffect.SetHCSPosition(thumbHcsp);
+
+	m_shaded2DQuadEffect.SetShadeWeightIndex(SHADED_2DQUAD_SHADE_WEIGHT_INDEX_CONVEX);
+	m_shaded2DQuadEffect.SetColor(pSliderControl->GetThumbColorVector());
+
+	m_shaded2DQuadEffect.SetSize(pSliderControl->GetThumbSizeX(), pSliderControl->GetThumbSizeY());
+
+	m_effectImmediateContext.Apply(&m_shaded2DQuadEffect);
+	m_effectImmediateContext.Draw(30, 0);
 }

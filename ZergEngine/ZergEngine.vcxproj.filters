@@ -345,7 +345,7 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BillboardEffect.h">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\Scrollbar.h">
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\SliderControl.h">
       <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\Text.h">
@@ -608,7 +608,7 @@
     <ClCompile Include="source\CoreSystem\Effect\BillboardEffect.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClCompile>
-    <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\Scrollbar.cpp">
+    <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\SliderControl.cpp">
       <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\Text.cpp">

@@ -462,7 +462,7 @@ bool UIObjectManager::SetParent(RectTransform* pTransform, RectTransform* pNewPa
 	return true;
 }
 
-IUIObject* XM_CALLCONV UIObjectManager::SearchForHitUI(const XMFLOAT2& mousePos)
+IUIObject* XM_CALLCONV UIObjectManager::SearchForHitUI(POINT pt)
 {
 	// UI 오브젝트를 후위 순회하며 검색
 
@@ -470,7 +470,7 @@ IUIObject* XM_CALLCONV UIObjectManager::SearchForHitUI(const XMFLOAT2& mousePos)
 
 	for (IUIObject* pUIObject : m_roots)
 	{
-		pHitUI = UIObjectManager::PostOrderHitTest(mousePos, pUIObject);
+		pHitUI = const_cast<IUIObject*>(UIObjectManager::PostOrderHitTest(pt, pUIObject));
 		if (pHitUI != nullptr)
 			break;
 	}
@@ -478,7 +478,7 @@ IUIObject* XM_CALLCONV UIObjectManager::SearchForHitUI(const XMFLOAT2& mousePos)
 	return pHitUI;
 }
 
-IUIObject* XM_CALLCONV UIObjectManager::PostOrderHitTest(const XMFLOAT2& mousePos, IUIObject* pUIObject)
+IUIObject* XM_CALLCONV UIObjectManager::PostOrderHitTest(POINT pt, const IUIObject* pUIObject)
 {
 	if (!pUIObject->IsActive())
 		return nullptr;
@@ -488,14 +488,14 @@ IUIObject* XM_CALLCONV UIObjectManager::PostOrderHitTest(const XMFLOAT2& mousePo
 	for (auto it = children.rbegin(); it != children.rend(); ++it)
 	{
 		IUIObject* pChild = (*it)->m_pUIObject;
-		IUIObject* pHitUI = UIObjectManager::PostOrderHitTest(mousePos, pChild);
+		IUIObject* pHitUI = UIObjectManager::PostOrderHitTest(pt, pChild);
 		if (pHitUI)	// Hit UI가 있다면 반환
 			return pHitUI;
 	}
 
 	// 자식 UI들 중에서 Hit UI가 없다면 자신을 검사
-	if (pUIObject->HitTest(mousePos))
-		return pUIObject;
+	if (pUIObject->HitTest(pt))
+		return const_cast<IUIObject*>(pUIObject);
 	else
 		return nullptr;
 }
@@ -508,20 +508,30 @@ void UIObjectManager::OnChar(WPARAM wParam, LPARAM lParam)
 	this->GetFocusedUI()->OnChar(static_cast<TCHAR>(wParam));
 }
 
+void UIObjectManager::OnMouseMove(UINT flags, POINT pt)
+{
+	if (m_pLButtonPressedObject)
+		m_pLButtonPressedObject->OnMouseMove(pt);
+
+	if (m_pMButtonPressedObject)
+		m_pMButtonPressedObject->OnMouseMove(pt);
+
+	if (m_pRButtonPressedObject)
+		m_pRButtonPressedObject->OnMouseMove(pt);
+}
+
 void UIObjectManager::OnLButtonDown(POINT pt)
 {
 	this->SetFocusedUI(nullptr);
 
 	if (m_pLButtonPressedObject)
-		m_pLButtonPressedObject->OnLButtonUp();
+		m_pLButtonPressedObject->OnLButtonUp(pt);
 
-	const XMFLOAT2 mousePos(static_cast<FLOAT>(pt.x), static_cast<FLOAT>(pt.y));
-	IUIObject* pHitUI = this->SearchForHitUI(mousePos);
-
+	IUIObject* pHitUI = this->SearchForHitUI(pt);
 	if (pHitUI)
 	{
 		m_pLButtonPressedObject = pHitUI;
-		pHitUI->OnLButtonDown();
+		pHitUI->OnLButtonDown(pt);
 	}
 	else
 		m_pLButtonPressedObject = nullptr;
@@ -535,13 +545,12 @@ void UIObjectManager::OnLButtonUp(POINT pt)
 	IUIObject* const pLButtonPressedObject = m_pLButtonPressedObject;
 	m_pLButtonPressedObject = nullptr;
 	// Button Up은 무조건 Pressed Object에 대해서 호출
-	pLButtonPressedObject->OnLButtonUp();
+	pLButtonPressedObject->OnLButtonUp(pt);
 
-	const XMFLOAT2 mousePos(static_cast<FLOAT>(pt.x), static_cast<FLOAT>(pt.y));
-	IUIObject* pHitUI = this->SearchForHitUI(mousePos);
+	IUIObject* pHitUI = this->SearchForHitUI(pt);
 
 	if (pHitUI == pLButtonPressedObject)
-		pHitUI->OnLButtonClick();
+		pHitUI->OnLButtonClick(pt);
 }
 
 void UIObjectManager::OnMButtonDown(POINT pt)
@@ -549,14 +558,13 @@ void UIObjectManager::OnMButtonDown(POINT pt)
 	this->SetFocusedUI(nullptr);
 
 	if (m_pMButtonPressedObject)
-		m_pMButtonPressedObject->OnMButtonUp();
+		m_pMButtonPressedObject->OnMButtonUp(pt);
 
-	const XMFLOAT2 mousePos(static_cast<FLOAT>(pt.x), static_cast<FLOAT>(pt.y));
-	IUIObject* pHitUI = this->SearchForHitUI(mousePos);
+	IUIObject* pHitUI = this->SearchForHitUI(pt);
 	if (pHitUI)
 	{
 		m_pMButtonPressedObject = pHitUI;
-		pHitUI->OnMButtonDown();
+		pHitUI->OnMButtonDown(pt);
 	}
 	else
 		m_pMButtonPressedObject = nullptr;
@@ -570,13 +578,12 @@ void UIObjectManager::OnMButtonUp(POINT pt)
 	IUIObject* const pMButtonPressedObject = m_pMButtonPressedObject;
 	m_pMButtonPressedObject = nullptr;
 	// Button Up은 무조건 Pressed Object에 대해서 호출
-	pMButtonPressedObject->OnMButtonUp();
+	pMButtonPressedObject->OnMButtonUp(pt);
 
-	const XMFLOAT2 mousePos(static_cast<FLOAT>(pt.x), static_cast<FLOAT>(pt.y));
-	IUIObject* pHitUI = this->SearchForHitUI(mousePos);
+	IUIObject* pHitUI = this->SearchForHitUI(pt);
 
 	if (pHitUI == pMButtonPressedObject)
-		pHitUI->OnMButtonClick();
+		pHitUI->OnMButtonClick(pt);
 }
 
 void UIObjectManager::OnRButtonDown(POINT pt)
@@ -584,14 +591,13 @@ void UIObjectManager::OnRButtonDown(POINT pt)
 	this->SetFocusedUI(nullptr);
 
 	if (m_pRButtonPressedObject)
-		m_pRButtonPressedObject->OnRButtonUp();
+		m_pRButtonPressedObject->OnRButtonUp(pt);
 
-	const XMFLOAT2 mousePos(static_cast<FLOAT>(pt.x), static_cast<FLOAT>(pt.y));
-	IUIObject* pHitUI = this->SearchForHitUI(mousePos);
+	IUIObject* pHitUI = this->SearchForHitUI(pt);
 	if (pHitUI)
 	{
 		m_pRButtonPressedObject = pHitUI;
-		pHitUI->OnRButtonDown();
+		pHitUI->OnRButtonDown(pt);
 	}
 	else
 		m_pRButtonPressedObject = nullptr;
@@ -605,18 +611,22 @@ void UIObjectManager::OnRButtonUp(POINT pt)
 	IUIObject* const pRButtonPressedObject = m_pRButtonPressedObject;
 	m_pRButtonPressedObject = nullptr;
 	// Button Up은 무조건 Pressed Object에 대해서 호출
-	pRButtonPressedObject->OnRButtonUp();
+	pRButtonPressedObject->OnRButtonUp(pt);
 
-	const XMFLOAT2 mousePos(static_cast<FLOAT>(pt.x), static_cast<FLOAT>(pt.y));
-	IUIObject* pHitUI = this->SearchForHitUI(mousePos);
+	IUIObject* pHitUI = this->SearchForHitUI(pt);
 
 	if (pHitUI == pRButtonPressedObject)
-		pHitUI->OnRButtonClick();
+		pHitUI->OnRButtonClick(pt);
 }
 
 void UIObjectManager::DetachUIFromManager(IUIObject* pUIObject)
 {
 	// Detach from UI system
+
+	// dummy data
+	POINT pt;
+	pt.x = 0;
+	pt.y = 0;
 
 	if (m_pFocusedUIObject == pUIObject)
 	{
@@ -626,18 +636,18 @@ void UIObjectManager::DetachUIFromManager(IUIObject* pUIObject)
 	if (m_pLButtonPressedObject == pUIObject)
 	{
 		m_pLButtonPressedObject = nullptr;
-		pUIObject->OnLButtonUp();
+		pUIObject->OnLButtonUp(pt);
 	}
 
 	if (m_pMButtonPressedObject == pUIObject)
 	{
 		m_pMButtonPressedObject = nullptr;
-		pUIObject->OnMButtonUp();
+		pUIObject->OnMButtonUp(pt);
 	}
 
 	if (m_pRButtonPressedObject == pUIObject)
 	{
 		m_pRButtonPressedObject = nullptr;
-		pUIObject->OnRButtonUp();
+		pUIObject->OnRButtonUp(pt);
 	}
 }

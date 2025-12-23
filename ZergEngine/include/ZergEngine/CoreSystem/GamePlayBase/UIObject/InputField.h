@@ -46,12 +46,18 @@ namespace ze
 		void XM_CALLCONV SetBkColor(FXMVECTOR color) { m_bkColor.SetColor(color); }
 		void SetBkColor(const XMFLOAT4& color) { m_bkColor.SetColor(color); }
 		void SetBkColor(FLOAT r, FLOAT g, FLOAT b, FLOAT a) { m_bkColor.SetColor(r, g, b, a); }
+		void XM_CALLCONV SetBkColorRGB(FXMVECTOR rgb) { m_bkColor.SetColorRGB(rgb); }
+		void SetBkColorRGB(FLOAT r, FLOAT g, FLOAT b) { m_bkColor.SetColorRGB(r, g, b); }
+		void SetBkColorA(FLOAT a) { m_bkColor.SetColorA(a); }
 
 		const XMFLOAT4& GetTextColor() const { return m_textColor.GetColor(); }
 		XMVECTOR GetTextColorVector() const { return m_textColor.GetColorVector(); }
 		void XM_CALLCONV SetTextColor(FXMVECTOR color) { m_textColor.SetColor(color); }
 		void SetTextColor(const XMFLOAT4& color) { m_textColor.SetColor(color); }
 		void SetTextColor(FLOAT r, FLOAT g, FLOAT b, FLOAT a) { m_textColor.SetColor(r, g, b, a); }
+		void XM_CALLCONV SetTextColorRGB(FXMVECTOR rgb) { m_textColor.SetColorRGB(rgb); }
+		void SetTextColorRGB(FLOAT r, FLOAT g, FLOAT b) { m_textColor.SetColorRGB(r, g, b); }
+		void SetTextColorA(FLOAT a) { m_textColor.SetColorA(a); }
 
 		std::wstring& GetText() { return m_text.GetText(); }
 		const std::wstring& GetText() const { return m_text.GetText(); }
@@ -88,10 +94,10 @@ namespace ze
 		bool IsPassword() const { return m_iff & IFF_PASSWORD; }
 
 		// Windows 좌표계 마우스 위치와 충돌 테스트 수행
-		virtual bool HitTest(const XMFLOAT2& mousePos) const override;
+		virtual bool HitTest(POINT pt) const override;
 	protected:
-		virtual void OnLButtonClick() override;
 		virtual void OnChar(TCHAR ch) override;
+		virtual void OnLButtonClick(POINT pt) override;
 	private:
 		UISize m_size;
 		UIColor m_bkColor;

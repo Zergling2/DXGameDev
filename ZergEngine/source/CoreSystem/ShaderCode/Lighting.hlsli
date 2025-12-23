@@ -12,9 +12,8 @@ float DistAtt(float3 att, float dist)
 // 각도 기반 감쇠
 float ComputeSpotLightAngleAtt(float3 spotDirW, float3 toSurfaceW, float innerConeCos, float outerConeCos)
 {
-    // spotDir(Normalized)
-    // toSurface(Normalized)
-    
+    // spotDirW(Normalized)
+    // toSurfaceW(Normalized)
     
     const float angleCos = dot(spotDirW, toSurfaceW);
     
@@ -66,13 +65,13 @@ void ComputePointLight(PointLightData pl, float specExp, float3 pos, float3 norm
         const float3 r = reflect(-toLight, normal);
         const float ks = pow(max(dot(toEye, r), 0.0f), specExp);
         
-        float distAtt = DistAtt(pl.att, d);
-        const float falloff = saturate(1 - smoothstep(0.75f, 1.0f, d / pl.range));  // 하드 컷오프 제거
+        const float distAtt = DistAtt(pl.att, d);
+        const float fade = saturate(1 - smoothstep(0.9f, 1.0f, d / pl.range));  // 하드 컷오프 제거
         
-        distAtt *= falloff; // 거리 감쇠 성분에 하드 컷오프 제거 성분 추가
+        const float falloff = distAtt * fade;
         
-        oDL = distAtt * kd * pl.diffuse;
-        oSL = distAtt * ks * pl.specular;
+        oDL = falloff * kd * pl.diffuse;
+        oSL = falloff * ks * pl.specular;
     }
 }
 
@@ -98,15 +97,14 @@ void ComputeSpotLight(SpotLightData sl, float specExp, float3 pos, float3 normal
         const float3 r = reflect(-toLight, normal);
         const float ks = pow(max(dot(toEye, r), 0.0f), specExp);
         
-        float distAtt = DistAtt(sl.att, d);
-        const float falloff = saturate(1 - smoothstep(0.9f, 1.0f, d / sl.range)); // 하드 컷오프 제거
-        
-        distAtt *= falloff; // 거리 감쇠 성분에 하드 컷오프 제거 성분 추가
-        
+        const float distAtt = DistAtt(sl.att, d);
+        const float fade = saturate(1 - smoothstep(0.9f, 1.0f, d / sl.range)); // 하드 컷오프 제거
         const float angleAtt = ComputeSpotLightAngleAtt(sl.directionW, -toLight, sl.innerConeCos, sl.outerConeCos);
         
-        oDL = angleAtt * distAtt * kd * sl.diffuse;
-        oSL = angleAtt * distAtt * ks * sl.specular;
+        const float falloff = angleAtt * distAtt * fade;
+        
+        oDL = falloff * kd * sl.diffuse;
+        oSL = falloff * ks * sl.specular;
     }
 }
 

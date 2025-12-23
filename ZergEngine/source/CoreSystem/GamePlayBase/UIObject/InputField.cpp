@@ -53,29 +53,23 @@ void InputField::SetDigitOnly(bool b)
 		m_iff = m_iff & (~IFF_DIGIT);
 }
 
-bool InputField::HitTest(const XMFLOAT2& mousePos) const
+bool InputField::HitTest(POINT pt) const
 {
-	XMFLOAT2 wcp;
+	POINT wcp;
 	m_transform.GetWinCoordPosition(&wcp);
 
-	return m_size.HitTest(mousePos, wcp);
-}
-
-void InputField::OnLButtonClick()
-{
-	// 텍스트 입력을 받게 등록 요청
-	UIObjectManager::GetInstance()->SetFocusedUI(this);
+	return m_size.HitTest(pt, wcp);
 }
 
 void InputField::OnChar(TCHAR ch)
 {
-	constexpr uint32_t UNKNOWN		= (std::numeric_limits<uint32_t>::max)();
-	constexpr uint32_t RETURN		= 0;
-	constexpr uint32_t BACKSPACE	= 1;
-	constexpr uint32_t SPACE		= 2;
-	constexpr uint32_t ALPHA		= 3;
-	constexpr uint32_t DIGIT		= 4;
-	constexpr uint32_t PUNCT		= 5;
+	constexpr uint32_t UNKNOWN = (std::numeric_limits<uint32_t>::max)();
+	constexpr uint32_t RETURN = 0;
+	constexpr uint32_t BACKSPACE = 1;
+	constexpr uint32_t SPACE = 2;
+	constexpr uint32_t ALPHA = 3;
+	constexpr uint32_t DIGIT = 4;
+	constexpr uint32_t PUNCT = 5;
 
 	uint32_t ct = UNKNOWN;		// character type
 
@@ -122,3 +116,10 @@ void InputField::OnChar(TCHAR ch)
 		break;
 	}
 }
+
+void InputField::OnLButtonClick(POINT pt)
+{
+	// 텍스트 입력을 받게 등록 요청
+	UIObjectManager::GetInstance()->SetFocusedUI(this);
+}
+

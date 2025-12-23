@@ -27,6 +27,7 @@ namespace ze
 	class Text;
 	class Button;
 	class InputField;
+	class SliderControl;
 	class IUIObject;
 
 	class Renderer
@@ -57,11 +58,13 @@ namespace ze
 		void RenderSkybox(ID3D11ShaderResourceView* pSkyboxCubeMapSRV);
 		void RenderBillboard(const Billboard* pBillboard);
 
+		// D2D 렌더링 요소가 필요한 UI는 필요 인터페이스를 추가적으로 전달
 		void RenderPanel(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColorBrush* pBrush, const Panel* pPanel);
 		void RenderImage(const Image* pImage);
 		void RenderText(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColorBrush* pBrush, const Text* pText);
 		void RenderButton(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColorBrush* pBrush, const Button* pButton);
 		void RenderInputField(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColorBrush* pBrush, const InputField* pInputField);
+		void RenderSliderControl(const SliderControl* pSliderControl);
 	private:
 		static Renderer* s_pInstance;
 
@@ -78,7 +81,7 @@ namespace ze
 		ID3D11BlendState* m_pBSOpaque;
 		ID3D11BlendState* m_pBSAlphaBlend;
 		ID3D11BlendState* m_pBSNoColorWrite;
-		ID3D11Buffer* m_pButtonVB;
+		ID3D11Buffer* m_pVBShaded2DQuad;
 
 		EffectDeviceContext m_effectImmediateContext;
 

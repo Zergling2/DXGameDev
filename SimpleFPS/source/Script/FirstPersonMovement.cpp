@@ -10,6 +10,8 @@ constexpr float HEAD_CLAMP_ANGLE = 89.5f;
 void FirstPersonMovement::Awake()
 {
 	m_ui = false;
+	Cursor::SetVisible(false);
+	Cursor::SetLockState(CursorLockMode::Locked);
 }
 
 void FirstPersonMovement::Update()
@@ -18,23 +20,35 @@ void FirstPersonMovement::Update()
 	if (!pGameObject)
 		return;
 
-	this->MovementProcess(pGameObject);
-
-	if (Input::GetInstance()->GetKeyDown(KEY_NUMPAD5))
+	if (m_ui)
 	{
-		if (m_ui)
+		if (UIObjectManager::GetInstance()->GetFocusedUI() == nullptr)
 		{
-			Cursor::SetVisible(false);
-			Cursor::SetLockState(CursorLockMode::Locked);
-			m_ui = false;
+			if (Input::GetInstance()->GetKeyDown(KEY_N))
+			{
+				m_hWeaponChangePanel.ToPtr()->SetActive(false);
+
+				m_ui = false;
+				Cursor::SetVisible(false);
+				Cursor::SetLockState(CursorLockMode::Locked);
+			}
 		}
-		else
-		{
-			Cursor::SetVisible(true);
-			Cursor::SetLockState(CursorLockMode::None);
-			m_ui = true;
-		}
+		
+		return;
 	}
+
+	if (Input::GetInstance()->GetKeyDown(KEY_N))
+	{
+		m_hWeaponChangePanel.ToPtr()->SetActive(true);
+
+		m_ui = true;
+		Cursor::SetVisible(true);
+		Cursor::SetLockState(CursorLockMode::None);
+
+		return;
+	}
+
+	this->MovementProcess(pGameObject);
 
 	if (Input::GetInstance()->GetKeyDown(KEY_ESCAPE))
 		Runtime::GetInstance()->Exit();
@@ -61,6 +75,11 @@ void FirstPersonMovement::Update()
 		weaponChange = true;
 		weaponIndex = 3;
 	}
+	if (Input::GetInstance()->GetKeyDown(KEY_5))
+	{
+		weaponChange = true;
+		weaponIndex = 4;
+	}
 
 	if (weaponChange)
 	{
@@ -71,9 +90,12 @@ void FirstPersonMovement::Update()
 				pWeapon->SetActive(false);
 		}
 
-		GameObject* pCurrWeapon = m_hWeapons[weaponIndex].ToPtr();
-		if (pCurrWeapon)
-			pCurrWeapon->SetActive(true);
+		if (weaponIndex < _countof(m_hWeapons))
+		{
+			GameObject* pCurrWeapon = m_hWeapons[weaponIndex].ToPtr();
+			if (pCurrWeapon)
+				pCurrWeapon->SetActive(true);
+		}
 	}
 }
 

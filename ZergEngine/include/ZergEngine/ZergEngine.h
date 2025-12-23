@@ -16,6 +16,7 @@
 #include <ZergEngine\CoreSystem\Resource\SkinnedMesh.h>
 #include <ZergEngine\CoreSystem\Resource\Material.h>
 #include <ZergEngine\CoreSystem\Resource\Texture.h>
+#include <ZergEngine\CoreSystem\Manager\UIObjectManager.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\MonoBehaviour.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Camera.h>
@@ -29,3 +30,4 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Button.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Text.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\InputField.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\SliderControl.h>
