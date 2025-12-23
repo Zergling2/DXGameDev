@@ -22,9 +22,11 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\MeshSubset.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPNTTSkinned.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BillboardEffect.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\CheckboxEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DrawScreenRatioQuadWithTextureEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\Billboard.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\SkinnedMeshRenderer.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\Checkbox.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\SliderControl.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\Text.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\BillboardManager.h" />
@@ -123,9 +125,11 @@
     <ClCompile Include="source\CoreSystem\DataStructure\Triangle.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectPNTTSkinned.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\BillboardEffect.cpp" />
+    <ClCompile Include="source\CoreSystem\Effect\CheckboxEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\DrawScreenRatioQuadWithTextureEffect.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\Billboard.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\SkinnedMeshRenderer.cpp" />
+    <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\Checkbox.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\SliderControl.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\Text.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\BillboardManager.cpp" />
@@ -431,6 +435,16 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsBillboardQuad.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsCheckbox.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>

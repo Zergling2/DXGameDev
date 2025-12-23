@@ -7,6 +7,7 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Text.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\InputField.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\SliderControl.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Checkbox.h>
 
 using namespace ze;
 
@@ -77,4 +78,13 @@ UIObjectHandle IScene::CreateSliderControl(PCWSTR name)
 	m_pendingUIObjects.push_back(pSliderControl);
 
 	return hSliderControl;
+}
+
+UIObjectHandle IScene::CreateCheckbox(PCWSTR name)
+{
+	Checkbox* pCheckbox = nullptr;
+	UIObjectHandle hCheckbox = UIObjectManager::GetInstance()->CreatePendingObject<Checkbox>(&pCheckbox, name);
+	m_pendingUIObjects.push_back(pCheckbox);
+
+	return hCheckbox;
 }

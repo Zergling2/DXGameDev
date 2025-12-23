@@ -18,6 +18,7 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Text.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\InputField.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\SliderControl.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Checkbox.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Light.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Camera.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\MeshRenderer.h>
@@ -59,6 +60,7 @@ Renderer::Renderer()
 	, m_pBSAlphaBlend(nullptr)
 	, m_pBSNoColorWrite(nullptr)
 	, m_pVBShaded2DQuad(nullptr)
+	, m_pVBCheckbox(nullptr)
 	, m_effectImmediateContext()
 	, m_pAnimFinalTransformIdentity(nullptr)
 	, m_pAnimFinalTransformBuffer(nullptr)
@@ -75,6 +77,7 @@ Renderer::Renderer()
 	, m_drawScreenQuadTex()
 	, m_drawScreenQuadMSTex()
 	, m_shaded2DQuadEffect()
+	, m_checkboxEffect()
 	, m_imageEffect()
 	, m_asteriskStr(L"********************************")	// L'*' x 32
 	, m_billboardRenderQueue()
@@ -129,7 +132,8 @@ void Renderer::Init()
 	m_pBSOpaque = pGraphicDevice->GetBSComInterface(BlendStateType::Opaque);
 	m_pBSAlphaBlend = pGraphicDevice->GetBSComInterface(BlendStateType::AlphaBlend);
 	m_pBSNoColorWrite = pGraphicDevice->GetBSComInterface(BlendStateType::NoColorWrite);
-	m_pVBShaded2DQuad = pGraphicDevice->GetButtonMeshVB();	// Read only vertex buffer
+	m_pVBShaded2DQuad = pGraphicDevice->GetVBShaded2DQuad();	// Read only vertex buffer
+	m_pVBCheckbox = pGraphicDevice->GetVBCheckbox();
 
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ INITIALIZE EFFECTS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	// m_basicEffectP.Init();
@@ -145,6 +149,7 @@ void Renderer::Init()
 	m_drawScreenQuadTex.Init();
 	m_drawScreenQuadMSTex.Init();
 	m_shaded2DQuadEffect.Init();
+	m_checkboxEffect.Init();
 	m_imageEffect.Init();
 
 	// effect context 준비
@@ -168,6 +173,7 @@ void Renderer::UnInit()
 	m_drawScreenQuadTex.Release();
 	m_drawScreenQuadMSTex.Release();
 	m_shaded2DQuadEffect.Release();
+	m_checkboxEffect.Release();
 	m_imageEffect.Release();
 }
 
@@ -668,6 +674,7 @@ void Renderer::RenderFrame()
 			2.0f / static_cast<float>(GraphicDevice::GetInstance()->GetSwapChainDesc().BufferDesc.Height)
 		);
 		m_shaded2DQuadEffect.SetScreenToNDCSpaceRatio(screenToNDCSpaceRatio);
+		m_checkboxEffect.SetScreenToNDCSpaceRatio(screenToNDCSpaceRatio);
 		m_imageEffect.SetScreenToNDCSpaceRatio(screenToNDCSpaceRatio);
 		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -720,6 +727,9 @@ void Renderer::RenderFrame()
 					break;
 				case UIObjectType::SliderControl:
 					this->RenderSliderControl(static_cast<const SliderControl*>(pUIObject));
+					break;
+				case UIObjectType::Checkbox:
+					this->RenderCheckbox(pD2DRenderTarget, pBrush, static_cast<const Checkbox*>(pUIObject));
 					break;
 				default:
 					break;
@@ -1159,9 +1169,9 @@ void Renderer::RenderButton(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColor
 	m_effectImmediateContext.IASetVertexBuffers(0, 1, vbs, strides, offsets);
 
 	if (pButton->IsPressed())
-		m_shaded2DQuadEffect.SetShadeWeightIndex(SHADED_2DQUAD_SHADE_WEIGHT_INDEX_CONCAVE);
+		m_shaded2DQuadEffect.SetColorWeightIndex(SHADED_2DQUAD_COLOR_WEIGHT_INDEX_CONCAVE);
 	else
-		m_shaded2DQuadEffect.SetShadeWeightIndex(SHADED_2DQUAD_SHADE_WEIGHT_INDEX_CONVEX);
+		m_shaded2DQuadEffect.SetColorWeightIndex(SHADED_2DQUAD_COLOR_WEIGHT_INDEX_CONVEX);
 
 	m_shaded2DQuadEffect.SetColor(pButton->GetButtonColorVector());
 	XMFLOAT2 hcsp;
@@ -1170,7 +1180,7 @@ void Renderer::RenderButton(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColor
 	m_shaded2DQuadEffect.SetSize(pButton->GetSizeX(), pButton->GetSizeY());
 
 	m_effectImmediateContext.Apply(&m_shaded2DQuadEffect);
-	m_effectImmediateContext.Draw(30, 0);
+	m_effectImmediateContext.Draw(SHADED_2DQUAD_VERTEX_COUNT, 0);
 
 	// 2. 버튼 텍스트 렌더링
 	UINT32 textLength = static_cast<UINT32>(pButton->GetText().length());
@@ -1205,40 +1215,66 @@ void Renderer::RenderButton(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColor
 
 void Renderer::RenderInputField(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColorBrush* pBrush, const InputField* pInputField)
 {
-	// 1. Input Field 배경 렌더링
+	// Input Field 배경 렌더링
+	const InputFieldShape ifs = pInputField->GetShape();
+	if (ifs == InputFieldShape::ClientEdge)
+	{
+		ID3D11Buffer* vbs[] = { m_pVBShaded2DQuad };
+		UINT strides[] = { sizeof(VFShaded2DQuad) };
+		UINT offsets[] = { 0 };
+
+		m_effectImmediateContext.IASetVertexBuffers(0, 1, vbs, strides, offsets);
+
+		m_shaded2DQuadEffect.SetColorWeightIndex(SHADED_2DQUAD_COLOR_WEIGHT_INDEX_CONCAVE);
+		m_shaded2DQuadEffect.SetColor(pInputField->GetBkColorVector());
+		XMFLOAT2 hcsp;
+		pInputField->m_transform.GetHCSPosition(&hcsp);
+		m_shaded2DQuadEffect.SetHCSPosition(hcsp);
+		m_shaded2DQuadEffect.SetSize(pInputField->GetSizeX(), pInputField->GetSizeY());
+
+		m_effectImmediateContext.Apply(&m_shaded2DQuadEffect);
+		m_effectImmediateContext.Draw(SHADED_2DQUAD_VERTEX_COUNT, 0);
+	}
+
 	XMFLOAT2 wcp;
 	pInputField->m_transform.GetWinCoordPosition(&wcp);
+	// Text 렌더링 & D2D 프레임 타입 렌더링시 필요
 	D2D1_ROUNDED_RECT layout;
 	layout.rect.left = wcp.x - pInputField->GetHalfSizeX();
 	layout.rect.right = wcp.x + pInputField->GetHalfSizeX();
 	layout.rect.top = wcp.y - pInputField->GetHalfSizeY();
 	layout.rect.bottom = wcp.y + pInputField->GetHalfSizeY();
 
-	pBrush->SetColor(reinterpret_cast<const D2D1_COLOR_F&>(pInputField->GetBkColor()));
-
 	// BeginDraw
 	pD2DRenderTarget->BeginDraw();
 
-	do
+	if (ifs != InputFieldShape::ClientEdge)
 	{
-		switch (pInputField->GetShape())
+		pBrush->SetColor(reinterpret_cast<const D2D1_COLOR_F&>(pInputField->GetBkColor()));
+
+		if (ifs == InputFieldShape::Rectangle)
 		{
-		case InputFieldShape::Rectangle:
 			pD2DRenderTarget->FillRectangle(&layout.rect, pBrush);
-			break;
-		case InputFieldShape::RoundedRectangle:
+		}
+		else
+		{
 			layout.radiusX = pInputField->GetRadiusX();
 			layout.radiusY = pInputField->GetRadiusY();
 			pD2DRenderTarget->FillRoundedRectangle(&layout, pBrush);
-			break;
-		default:
-			break;
 		}
+	}
 
-		// 2. Text 렌더링
+	// do-while(false) for safe EndDraw
+	do
+	{
+		// Text 렌더링
 		UINT32 textLength = static_cast<UINT32>(pInputField->GetText().length());
 		if (textLength == 0)
 			break;
+
+		// 텍스트 레이아웃 여백
+		layout.rect.left += 2.0f;
+		layout.rect.right -= 2.0f;
 
 		IDWriteTextFormat* pDWriteTextFormat = pInputField->GetDWriteTextFormatComInterface();
 
@@ -1288,7 +1324,7 @@ void Renderer::RenderSliderControl(const SliderControl* pSliderControl)
 	pSliderControl->m_transform.GetHCSPosition(&hcsp);
 	m_shaded2DQuadEffect.SetHCSPosition(hcsp);
 
-	m_shaded2DQuadEffect.SetShadeWeightIndex(SHADED_2DQUAD_SHADE_WEIGHT_INDEX_CONCAVE);
+	m_shaded2DQuadEffect.SetColorWeightIndex(SHADED_2DQUAD_COLOR_WEIGHT_INDEX_CONCAVE);
 	m_shaded2DQuadEffect.SetColor(pSliderControl->GetTrackColorVector());
 
 	if (pSliderControl->GetSliderControlType() == SliderControlType::Horizontal)
@@ -1297,7 +1333,7 @@ void Renderer::RenderSliderControl(const SliderControl* pSliderControl)
 		m_shaded2DQuadEffect.SetSize(pSliderControl->GetTrackThickness(), pSliderControl->GetTrackLength());
 
 	m_effectImmediateContext.Apply(&m_shaded2DQuadEffect);
-	m_effectImmediateContext.Draw(30, 0);
+	m_effectImmediateContext.Draw(SHADED_2DQUAD_VERTEX_COUNT, 0);
 
 	// Thumb 렌더링
 	XMFLOAT2 thumbHcsp;
@@ -1307,11 +1343,71 @@ void Renderer::RenderSliderControl(const SliderControl* pSliderControl)
 	thumbHcsp.y = hcsp.y + thumbOffset.y;
 	m_shaded2DQuadEffect.SetHCSPosition(thumbHcsp);
 
-	m_shaded2DQuadEffect.SetShadeWeightIndex(SHADED_2DQUAD_SHADE_WEIGHT_INDEX_CONVEX);
+	m_shaded2DQuadEffect.SetColorWeightIndex(SHADED_2DQUAD_COLOR_WEIGHT_INDEX_CONVEX);
 	m_shaded2DQuadEffect.SetColor(pSliderControl->GetThumbColorVector());
 
 	m_shaded2DQuadEffect.SetSize(pSliderControl->GetThumbSizeX(), pSliderControl->GetThumbSizeY());
 
 	m_effectImmediateContext.Apply(&m_shaded2DQuadEffect);
-	m_effectImmediateContext.Draw(30, 0);
+	m_effectImmediateContext.Draw(SHADED_2DQUAD_VERTEX_COUNT, 0);
+}
+
+void Renderer::RenderCheckbox(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColorBrush* pBrush, const Checkbox* pCheckbox)
+{
+	// 체크박스 렌더링
+	ID3D11Buffer* vbs[] = { m_pVBCheckbox };
+	UINT strides[] = { sizeof(VFCheckbox) };
+	UINT offsets[] = { 0 };
+
+	m_effectImmediateContext.IASetVertexBuffers(0, 1, vbs, strides, offsets);
+
+	m_checkboxEffect.SetBoxColor(pCheckbox->GetBoxColorVector());
+	if (pCheckbox->IsChecked())
+		m_checkboxEffect.SetCheckColor(pCheckbox->GetCheckColorVector());
+	else
+		m_checkboxEffect.SetCheckColor(pCheckbox->GetBoxColorVector());	// 체크되지 않은 상태일 경우 체크 색상과 박스 색상을 일치
+
+	XMFLOAT2 hcsp;
+	pCheckbox->m_transform.GetHCSPosition(&hcsp);
+	m_checkboxEffect.SetHCSPosition(hcsp);
+	m_checkboxEffect.SetSize(pCheckbox->GetCheckboxSizeX(), pCheckbox->GetCheckboxSizeY());
+
+	m_effectImmediateContext.Apply(&m_checkboxEffect);
+	m_effectImmediateContext.Draw(CHECKBOX_VERTEX_COUNT, 0);
+
+	// 텍스트 렌더링
+	UINT32 textLength = static_cast<UINT32>(pCheckbox->GetText().length());
+	if (textLength == 0)
+		return;
+
+	IDWriteTextFormat* pDWriteTextFormat = pCheckbox->GetDWriteTextFormatComInterface();
+	pDWriteTextFormat->SetTextAlignment(pCheckbox->GetTextAlignment());
+	pDWriteTextFormat->SetParagraphAlignment(pCheckbox->GetParagraphAlignment());
+	pBrush->SetColor(reinterpret_cast<const D2D1_COLOR_F&>(pCheckbox->GetTextColor()));
+
+	constexpr FLOAT SPACE_BETWEEN_CHECKBOX_AND_TEXTBOX = 5.0f;
+	XMFLOAT2 wcp;
+	pCheckbox->m_transform.GetWinCoordPosition(&wcp);
+	FLOAT textboxOffsetX = pCheckbox->GetCheckboxHalfSizeX() + pCheckbox->GetTextboxHalfSizeX() + SPACE_BETWEEN_CHECKBOX_AND_TEXTBOX;
+	if (pCheckbox->IsLeftText())
+		textboxOffsetX = -textboxOffsetX;
+
+	wcp.x += textboxOffsetX;
+	D2D1_RECT_F layout;
+	layout.left = wcp.x - pCheckbox->GetTextboxHalfSizeX();
+	layout.right = wcp.x + pCheckbox->GetTextboxHalfSizeX();
+	layout.top = wcp.y - pCheckbox->GetTextboxHalfSizeY();
+	layout.bottom = wcp.y + pCheckbox->GetTextboxHalfSizeY();
+
+	pD2DRenderTarget->BeginDraw();
+
+	pD2DRenderTarget->DrawTextW(
+		pCheckbox->GetText().c_str(),
+		textLength,
+		pDWriteTextFormat,
+		&layout,
+		pBrush
+	);
+
+	HRESULT hr = pD2DRenderTarget->EndDraw();
 }

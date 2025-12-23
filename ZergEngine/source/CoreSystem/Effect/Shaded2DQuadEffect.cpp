@@ -44,11 +44,11 @@ void XM_CALLCONV Shaded2DQuadEffect::SetColor(FXMVECTOR color) noexcept
 	m_dirtyFlag |= DirtyFlag::CBPerShaded2DQuad;
 }
 
-void Shaded2DQuadEffect::SetShadeWeightIndex(uint32_t index) noexcept
+void Shaded2DQuadEffect::SetColorWeightIndex(uint32_t index) noexcept
 {
-	assert(index <= SHADED_2DQUAD_SHADE_WEIGHT_INDEX_CONCAVE);
+	assert(index <= SHADED_2DQUAD_COLOR_WEIGHT_INDEX_CONCAVE);
 
-	m_cbPerShaded2DQuadCache.shadeWeightIndex = index;
+	m_cbPerShaded2DQuadCache.colorWeightIndex = index;
 
 	m_dirtyFlag |= DirtyFlag::CBPerShaded2DQuad;
 }
@@ -121,8 +121,8 @@ void Shaded2DQuadEffect::ApplyPerUIRenderConstantBuffer(ID3D11DeviceContext* pDe
 	ID3D11Buffer* const cbs[] = { m_cbPerUIRender.GetComInterface() };
 
 	// PerUIRender 상수버퍼 사용 셰이더
-	constexpr UINT startSlot = 0;
-	pDeviceContext->VSSetConstantBuffers(startSlot, 1, cbs);
+	constexpr UINT VS_SLOT = 0;
+	pDeviceContext->VSSetConstantBuffers(VS_SLOT, 1, cbs);
 }
 
 void Shaded2DQuadEffect::ApplyPerShaded2DQuadConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
@@ -130,7 +130,7 @@ void Shaded2DQuadEffect::ApplyPerShaded2DQuadConstantBuffer(ID3D11DeviceContext*
 	m_cbPerShaded2DQuad.Update(pDeviceContext, &m_cbPerShaded2DQuadCache);
 	ID3D11Buffer* const cbs[] = { m_cbPerShaded2DQuad.GetComInterface() };
 
-	// PerButton 상수버퍼 사용 셰이더
-	constexpr UINT startSlot = 1;
-	pDeviceContext->VSSetConstantBuffers(startSlot, 1, cbs);
+	// PerShaded2DQuad 상수버퍼 사용 셰이더
+	constexpr UINT VS_SLOT = 1;
+	pDeviceContext->VSSetConstantBuffers(VS_SLOT, 1, cbs);
 }

@@ -38,6 +38,9 @@ namespace ze
 
 		// 루트 오브젝트로 슬라이더 컨트롤 UI를 생성합니다.
 		UIObjectHandle CreateSliderControl(PCWSTR name = L"New Slider Control");
+
+		// 루트 오브젝트로 체크박스 UI를 생성합니다.
+		UIObjectHandle CreateCheckbox(PCWSTR name = L"New Checkbox");
 	private:
 		// OnLoadScene 함수의 구현은 반드시 Runtime의 Create 함수들을 사용하지 말고 
 		// IScene 인터페이스에서 제공하는 Create 함수들을 사용하여 오브젝트를 생성해야 합니다.

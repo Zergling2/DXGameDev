@@ -3,7 +3,7 @@
 /*
 [Constant Buffer]
 CbPerUIRender
-CbPerButton
+CbPerShaded2DQuad
 */
 
 cbuffer Cb0 : register(b0)
@@ -16,18 +16,18 @@ cbuffer Cb1 : register(b1)
     CbPerShaded2DQuad cb_perShaded2DQuad;
 }
 
-struct VSInputButtonVertex
+struct VSInputShaded2DQuadVertex
 {
-    XMFLOAT2 position : POSITION;
-    XMFLOAT2 offset : TEXCOORD0;        // 버튼 정점 변환 오프셋
-    XMFLOAT2 shadeWeights : COLOR0;
+    float2 position : POSITION;
+    float2 offset : OFFSET;
+    float2 colorWeights : COLORWEIGHTS;
 };
 
-PSInputButtonFragment main(VSInputButtonVertex input)
+PSInputPCFragment main(VSInputShaded2DQuadVertex input)
 {
-    PSInputButtonFragment output;
+    PSInputPCFragment output;
     
-    const float shadeWeights[2] = { input.shadeWeights[0], input.shadeWeights[1] };
+    const float colorWeights[2] = { input.colorWeights[0], input.colorWeights[1] };
     
     float4x4 m = float4x4(
         float4(cb_perShaded2DQuad.size.x, 0.0f, 0.0f, 0.0f),
@@ -39,7 +39,7 @@ PSInputButtonFragment main(VSInputButtonVertex input)
     const float2 screenPos = mul(float4(input.position, 0.0f, 1.0f), m).xy;
     output.posH = float4(screenPos * cb_perUIRender.toNDCSpaceRatio, 0.0f, 1.0f);
     
-    const float3 rgb = cb_perShaded2DQuad.color.rgb + shadeWeights[cb_perShaded2DQuad.shadeWeightIndex].xxx;
+    const float3 rgb = cb_perShaded2DQuad.color.rgb + colorWeights[cb_perShaded2DQuad.colorWeightIndex].xxx;
     const float a = cb_perShaded2DQuad.color.a;
     output.color = saturate(float4(rgb, a));
     

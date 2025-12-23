@@ -164,9 +164,20 @@ hlslstruct CbPer2DQuad
 hlslstruct CbPerShaded2DQuad
 {
     XMFLOAT4A color;
+    
 	XMFLOAT2 size;
 	XMFLOAT2 position;
-	uint32_t shadeWeightIndex; // [0] Convex shade [1] Concave shade
+    
+	uint32_t colorWeightIndex; // [0] Convex shade [1] Concave shade
+};
+
+hlslstruct CbPerCheckbox
+{
+	XMFLOAT4A boxColor;
+	XMFLOAT4A checkColor;
+	
+	XMFLOAT2 size;
+	XMFLOAT2 position;
 };
 
 hlslstruct Aabb
@@ -178,8 +189,8 @@ hlslstruct Aabb
 struct HSInputTerrainPatchCtrlPt
 {
     float3 posW : POSITION;
-    float2 texCoord : TEXCOORD0;
-    float2 boundsY : TEXCOORD1;
+    float2 texCoord : TEXCOORD;
+    float2 boundsY : YBOUNDS;
 };
 
 struct DSInputQuadPatchTess
@@ -241,8 +252,8 @@ struct PSInputPNTTShadowFragment
     float3 posW : POSITION; // World space position
     float3 normalW : NORMAL;
     float3 tangentW : TANGENT;
-    float2 texCoord : TEXCOORD0;
-    float4 shadowPosH : TEXCOORD1;
+    float2 texCoord : TEXCOORD;
+    float4 shadowPosH : SHADOWPOS;
 };
 
 struct PSInputSkyboxFragment
@@ -258,12 +269,6 @@ struct PSInputTerrainFragment
     float3 normalW : NORMAL;
     float2 texCoord : TEXCOORD0;
     float2 tiledTexCoord : TEXCOORD1;
-};
-
-struct PSInputButtonFragment
-{
-    float4 posH : SV_Position;
-    float4 color : COLOR0;
 };
 
 struct PSOutput

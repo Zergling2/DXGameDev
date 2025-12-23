@@ -3,8 +3,8 @@
 struct VSInputTerrainPatchCtrlPt
 {
     float3 posL : POSITION;
-    float2 texCoord : TEXCOORD0;
-    float2 boundsY : TEXCOORD1;
+    float2 texCoord : TEXCOORD;
+    float2 boundsY : YBOUNDS;
 };
 
 HSInputTerrainPatchCtrlPt main(VSInputTerrainPatchCtrlPt input)

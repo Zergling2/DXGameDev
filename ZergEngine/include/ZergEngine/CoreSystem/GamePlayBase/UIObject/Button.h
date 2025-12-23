@@ -46,7 +46,7 @@ namespace ze
 		DWRITE_PARAGRAPH_ALIGNMENT GetParagraphAlignment() const { return m_text.GetParagraphAlignment(); }
 		void SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT pa) { m_text.SetParagraphAlignment(pa); }
 		IDWriteTextFormat* GetDWriteTextFormatComInterface() const { return m_text.GetDWriteTextFormatComInterface(); }
-		void ApplyTextFormat() { m_text.ApplyTextFormat(); }		// TextFormat을 변경한 후 호출해야 새로운 폰트로 갱신됩니다.
+		void ApplyTextFormat() { m_text.ApplyTextFormat(); }		// TextFormat을 변경한 후 이 함수를 호출해야 새로운 폰트가 적용됩니다.
 
 		XMVECTOR GetTextColorVector() const { return m_textColor.GetColorVector(); }
 		const XMFLOAT4& GetTextColor() const { return m_textColor.GetColor(); }
@@ -59,6 +59,7 @@ namespace ze
 	private:
 		virtual void OnLButtonDown(POINT pt) override;
 		virtual void OnLButtonUp(POINT pt) override;
+		// virtual void OnLButtonClick(POINT pt) override;
 
 		// 렌더링 모양 결정을 위한 상태변수 (작동 로직과는 무관)
 		bool IsPressed() const { return m_isPressed; }

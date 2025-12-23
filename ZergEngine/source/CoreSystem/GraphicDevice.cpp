@@ -30,7 +30,8 @@ static PCWSTR VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::COUNT)] 
 	L"VSToHcsBillboardQuad.cso",
 	L"VSToHcsScreenRatioQuad.cso",
 	L"VSToHcs2DQuad.cso",
-	L"VSToHcsShaded2DQuad.cso"
+	L"VSToHcsShaded2DQuad.cso",
+	L"VSToHcsCheckbox.cso"
 };
 static PCWSTR HULL_SHADER_FILES[static_cast<size_t>(HullShaderType::COUNT)] =
 {
@@ -89,7 +90,8 @@ GraphicDevice::GraphicDevice()
 	, m_ss{}
 	, m_dss{}
 	, m_bs{}
-	, m_buttonMeshVB()
+	, m_vbShaded2DQuad()
+	, m_vbCheckbox()
 	, m_plvMeshVB()
 	, m_plvMeshIB()
 	, m_slvMeshVB()
@@ -575,7 +577,21 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	);
 	delete[] pByteCode;
 
-
+	// ToHcsCheckbox
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::ToHcsCheckbox)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
+	m_vs[static_cast<size_t>(VertexShaderType::ToHcsCheckbox)].Init(pDevice, pByteCode, byteCodeSize);
+	// ┗━ Create compatible Input Layout
+	m_il[static_cast<size_t>(VertexFormatType::Checkbox)].Init(
+		pDevice,
+		VFCheckbox::GetInputElementDescriptor(),
+		VFCheckbox::GetInputElementCount(),
+		pByteCode,
+		byteCodeSize
+	);
+	delete[] pByteCode;
 
 
 	// HULL SHADERS
@@ -1045,114 +1061,114 @@ bool GraphicDevice::CreateCommonGraphicResources()
 
 	// UI 렌더링용 음영 2D 사각형 버퍼 생성
 	{
-		constexpr FLOAT SHADE_CONVEX_WEIGHT = 0.4f;
-		constexpr FLOAT SHADE_CONCAVE_WEIGHT = -0.6f;
-		const XMFLOAT2 ltShadeWeight = XMFLOAT2(SHADE_CONVEX_WEIGHT, SHADE_CONCAVE_WEIGHT);
-		const XMFLOAT2 rbShadeWeight = XMFLOAT2(ltShadeWeight.y, ltShadeWeight.x);	// 좌상단과 음영 반전
-		const XMFLOAT2 centerShadeWeight = XMFLOAT2(0.0f, 0.0f);
+		constexpr FLOAT SUNLIT_FACE_COLOR_WEIGHT = 0.5f;
+		constexpr FLOAT SHADED_FACE_COLOR_WEIGHT = -0.6f;
+		constexpr XMFLOAT2 LT_COLOR_WEIGHTS = XMFLOAT2(SUNLIT_FACE_COLOR_WEIGHT, SHADED_FACE_COLOR_WEIGHT);
+		constexpr XMFLOAT2 RB_SHADE_WEIGHTS = XMFLOAT2(LT_COLOR_WEIGHTS.y, LT_COLOR_WEIGHTS.x);	// 좌상단과 음영 반전
+		constexpr XMFLOAT2 CENTER_SHADE_WEIGHTS = XMFLOAT2(0.0f, 0.0f);
+		constexpr float SHADE_EDGE_THICKNESS = 1.0f;	// 음영 모서리 두께
 
-		constexpr float SHADE_EDGE_OFFSET = 1.0f;		// 버튼 입체감 모서리 오프셋
-		VFShaded2DQuad v[30];
+		VFShaded2DQuad v[SHADED_2DQUAD_VERTEX_COUNT];
 
-		// Top shaded
+		// Top side
 		v[0].m_position = XMFLOAT2(-0.5f, +0.5f);
 		v[0].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[0].m_shadeWeights = ltShadeWeight;
+		v[0].m_colorWeights = LT_COLOR_WEIGHTS;
 		v[1].m_position = XMFLOAT2(+0.5f, +0.5f);
 		v[1].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[1].m_shadeWeights = ltShadeWeight;
+		v[1].m_colorWeights = LT_COLOR_WEIGHTS;
 		v[2].m_position = XMFLOAT2(-0.5f, +0.5f);
-		v[2].m_offset = XMFLOAT2(+SHADE_EDGE_OFFSET, -SHADE_EDGE_OFFSET);
-		v[2].m_shadeWeights = ltShadeWeight;
+		v[2].m_offset = XMFLOAT2(+SHADE_EDGE_THICKNESS, -SHADE_EDGE_THICKNESS);
+		v[2].m_colorWeights = LT_COLOR_WEIGHTS;
 		v[3].m_position = XMFLOAT2(-0.5f, +0.5f);
-		v[3].m_offset = XMFLOAT2(+SHADE_EDGE_OFFSET, -SHADE_EDGE_OFFSET);
-		v[3].m_shadeWeights = ltShadeWeight;
+		v[3].m_offset = XMFLOAT2(+SHADE_EDGE_THICKNESS, -SHADE_EDGE_THICKNESS);
+		v[3].m_colorWeights = LT_COLOR_WEIGHTS;
 		v[4].m_position = XMFLOAT2(+0.5f, +0.5f);
 		v[4].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[4].m_shadeWeights = ltShadeWeight;
+		v[4].m_colorWeights = LT_COLOR_WEIGHTS;
 		v[5].m_position = XMFLOAT2(+0.5f, +0.5f);
-		v[5].m_offset = XMFLOAT2(-SHADE_EDGE_OFFSET, -SHADE_EDGE_OFFSET);
-		v[5].m_shadeWeights = ltShadeWeight;
+		v[5].m_offset = XMFLOAT2(-SHADE_EDGE_THICKNESS, -SHADE_EDGE_THICKNESS);
+		v[5].m_colorWeights = LT_COLOR_WEIGHTS;
 
-		// Left shaded
+		// Left side
 		v[6].m_position = XMFLOAT2(-0.5f, +0.5f);
 		v[6].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[6].m_shadeWeights = ltShadeWeight;
+		v[6].m_colorWeights = LT_COLOR_WEIGHTS;
 		v[7].m_position = XMFLOAT2(-0.5f, +0.5f);
-		v[7].m_offset = XMFLOAT2(+SHADE_EDGE_OFFSET, -SHADE_EDGE_OFFSET);
-		v[7].m_shadeWeights = ltShadeWeight;
+		v[7].m_offset = XMFLOAT2(+SHADE_EDGE_THICKNESS, -SHADE_EDGE_THICKNESS);
+		v[7].m_colorWeights = LT_COLOR_WEIGHTS;
 		v[8].m_position = XMFLOAT2(-0.5f, -0.5f);
 		v[8].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[8].m_shadeWeights = ltShadeWeight;
+		v[8].m_colorWeights = LT_COLOR_WEIGHTS;
 		v[9].m_position = XMFLOAT2(-0.5f, -0.5f);
 		v[9].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[9].m_shadeWeights = ltShadeWeight;
+		v[9].m_colorWeights = LT_COLOR_WEIGHTS;
 		v[10].m_position = XMFLOAT2(-0.5f, +0.5f);
-		v[10].m_offset = XMFLOAT2(+SHADE_EDGE_OFFSET, -SHADE_EDGE_OFFSET);
-		v[10].m_shadeWeights = ltShadeWeight;
+		v[10].m_offset = XMFLOAT2(+SHADE_EDGE_THICKNESS, -SHADE_EDGE_THICKNESS);
+		v[10].m_colorWeights = LT_COLOR_WEIGHTS;
 		v[11].m_position = XMFLOAT2(-0.5f, -0.5f);
-		v[11].m_offset = XMFLOAT2(+SHADE_EDGE_OFFSET, +SHADE_EDGE_OFFSET);
-		v[11].m_shadeWeights = ltShadeWeight;
+		v[11].m_offset = XMFLOAT2(+SHADE_EDGE_THICKNESS, +SHADE_EDGE_THICKNESS);
+		v[11].m_colorWeights = LT_COLOR_WEIGHTS;
 
-		// Right shaded
+		// Right side
 		v[12].m_position = XMFLOAT2(+0.5f, -0.5f);
-		v[12].m_offset = XMFLOAT2(-SHADE_EDGE_OFFSET, +SHADE_EDGE_OFFSET);
-		v[12].m_shadeWeights = rbShadeWeight;
+		v[12].m_offset = XMFLOAT2(-SHADE_EDGE_THICKNESS, +SHADE_EDGE_THICKNESS);
+		v[12].m_colorWeights = RB_SHADE_WEIGHTS;
 		v[13].m_position = XMFLOAT2(+0.5f, +0.5f);
-		v[13].m_offset = XMFLOAT2(-SHADE_EDGE_OFFSET, -SHADE_EDGE_OFFSET);
-		v[13].m_shadeWeights = rbShadeWeight;
+		v[13].m_offset = XMFLOAT2(-SHADE_EDGE_THICKNESS, -SHADE_EDGE_THICKNESS);
+		v[13].m_colorWeights = RB_SHADE_WEIGHTS;
 		v[14].m_position = XMFLOAT2(+0.5f, -0.5f);
 		v[14].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[14].m_shadeWeights = rbShadeWeight;
+		v[14].m_colorWeights = RB_SHADE_WEIGHTS;
 		v[15].m_position = XMFLOAT2(+0.5f, -0.5f);
 		v[15].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[15].m_shadeWeights = rbShadeWeight;
+		v[15].m_colorWeights = RB_SHADE_WEIGHTS;
 		v[16].m_position = XMFLOAT2(+0.5f, +0.5f);
-		v[16].m_offset = XMFLOAT2(-SHADE_EDGE_OFFSET, -SHADE_EDGE_OFFSET);
-		v[16].m_shadeWeights = rbShadeWeight;
+		v[16].m_offset = XMFLOAT2(-SHADE_EDGE_THICKNESS, -SHADE_EDGE_THICKNESS);
+		v[16].m_colorWeights = RB_SHADE_WEIGHTS;
 		v[17].m_position = XMFLOAT2(+0.5f, +0.5f);
 		v[17].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[17].m_shadeWeights = rbShadeWeight;
+		v[17].m_colorWeights = RB_SHADE_WEIGHTS;
 
-		// Bottom shaded
+		// Bottom side
 		v[18].m_position = XMFLOAT2(-0.5f, -0.5f);
 		v[18].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[18].m_shadeWeights = rbShadeWeight;
+		v[18].m_colorWeights = RB_SHADE_WEIGHTS;
 		v[19].m_position = XMFLOAT2(-0.5f, -0.5f);
-		v[19].m_offset = XMFLOAT2(+SHADE_EDGE_OFFSET, +SHADE_EDGE_OFFSET);
-		v[19].m_shadeWeights = rbShadeWeight;
+		v[19].m_offset = XMFLOAT2(+SHADE_EDGE_THICKNESS, +SHADE_EDGE_THICKNESS);
+		v[19].m_colorWeights = RB_SHADE_WEIGHTS;
 		v[20].m_position = XMFLOAT2(+0.5f, -0.5f);
 		v[20].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[20].m_shadeWeights = rbShadeWeight;
+		v[20].m_colorWeights = RB_SHADE_WEIGHTS;
 		v[21].m_position = XMFLOAT2(+0.5f, -0.5f);
 		v[21].m_offset = XMFLOAT2(0.0f, 0.0f);
-		v[21].m_shadeWeights = rbShadeWeight;
+		v[21].m_colorWeights = RB_SHADE_WEIGHTS;
 		v[22].m_position = XMFLOAT2(-0.5f, -0.5f);
-		v[22].m_offset = XMFLOAT2(+SHADE_EDGE_OFFSET, +SHADE_EDGE_OFFSET);
-		v[22].m_shadeWeights = rbShadeWeight;
+		v[22].m_offset = XMFLOAT2(+SHADE_EDGE_THICKNESS, +SHADE_EDGE_THICKNESS);
+		v[22].m_colorWeights = RB_SHADE_WEIGHTS;
 		v[23].m_position = XMFLOAT2(+0.5f, -0.5f);
-		v[23].m_offset = XMFLOAT2(-SHADE_EDGE_OFFSET, +SHADE_EDGE_OFFSET);
-		v[23].m_shadeWeights = rbShadeWeight;
+		v[23].m_offset = XMFLOAT2(-SHADE_EDGE_THICKNESS, +SHADE_EDGE_THICKNESS);
+		v[23].m_colorWeights = RB_SHADE_WEIGHTS;
 
 		// Center
 		v[24].m_position = XMFLOAT2(-0.5f, -0.5f);
-		v[24].m_offset = XMFLOAT2(+SHADE_EDGE_OFFSET, +SHADE_EDGE_OFFSET);
-		v[24].m_shadeWeights = centerShadeWeight;
+		v[24].m_offset = XMFLOAT2(+SHADE_EDGE_THICKNESS, +SHADE_EDGE_THICKNESS);
+		v[24].m_colorWeights = CENTER_SHADE_WEIGHTS;
 		v[25].m_position = XMFLOAT2(-0.5f, +0.5f);
-		v[25].m_offset = XMFLOAT2(+SHADE_EDGE_OFFSET, -SHADE_EDGE_OFFSET);
-		v[25].m_shadeWeights = centerShadeWeight;
+		v[25].m_offset = XMFLOAT2(+SHADE_EDGE_THICKNESS, -SHADE_EDGE_THICKNESS);
+		v[25].m_colorWeights = CENTER_SHADE_WEIGHTS;
 		v[26].m_position = XMFLOAT2(+0.5f, -0.5f);
-		v[26].m_offset = XMFLOAT2(-SHADE_EDGE_OFFSET, +SHADE_EDGE_OFFSET);
-		v[26].m_shadeWeights = centerShadeWeight;
+		v[26].m_offset = XMFLOAT2(-SHADE_EDGE_THICKNESS, +SHADE_EDGE_THICKNESS);
+		v[26].m_colorWeights = CENTER_SHADE_WEIGHTS;
 		v[27].m_position = XMFLOAT2(+0.5f, -0.5f);
-		v[27].m_offset = XMFLOAT2(-SHADE_EDGE_OFFSET, +SHADE_EDGE_OFFSET);
-		v[27].m_shadeWeights = centerShadeWeight;
+		v[27].m_offset = XMFLOAT2(-SHADE_EDGE_THICKNESS, +SHADE_EDGE_THICKNESS);
+		v[27].m_colorWeights = CENTER_SHADE_WEIGHTS;
 		v[28].m_position = XMFLOAT2(-0.5f, +0.5f);
-		v[28].m_offset = XMFLOAT2(+SHADE_EDGE_OFFSET, -SHADE_EDGE_OFFSET);
-		v[28].m_shadeWeights = centerShadeWeight;
+		v[28].m_offset = XMFLOAT2(+SHADE_EDGE_THICKNESS, -SHADE_EDGE_THICKNESS);
+		v[28].m_colorWeights = CENTER_SHADE_WEIGHTS;
 		v[29].m_position = XMFLOAT2(+0.5f, +0.5f);
-		v[29].m_offset = XMFLOAT2(-SHADE_EDGE_OFFSET, -SHADE_EDGE_OFFSET);
-		v[29].m_shadeWeights = centerShadeWeight;
+		v[29].m_offset = XMFLOAT2(-SHADE_EDGE_THICKNESS, -SHADE_EDGE_THICKNESS);
+		v[29].m_colorWeights = CENTER_SHADE_WEIGHTS;
 
 		// Create a vertex buffer
 		D3D11_BUFFER_DESC bufferDesc;
@@ -1167,12 +1183,355 @@ bool GraphicDevice::CreateCommonGraphicResources()
 		D3D11_SUBRESOURCE_DATA subrcData;
 		ZeroMemory(&subrcData, sizeof(subrcData));
 		subrcData.pSysMem = v;
-		// subrcData.SysMemPitch = 0;		// unused
-		// subrcData.SysMemSlicePitch = 0;	// unused
+		// initialData.SysMemPitch = 0;		// unused
+		// initialData.SysMemSlicePitch = 0;	// unused
 
-		if (!m_buttonMeshVB.Init(pDevice, &bufferDesc, &subrcData))
+		if (!m_vbShaded2DQuad.Init(pDevice, &bufferDesc, &subrcData))
 			return false;
 	}
+
+	// Checkbox용 정점 버퍼 생성
+	{
+		constexpr FLOAT SUNLIT_FACE_COLOR_WEIGHT = 0.5f;
+		constexpr FLOAT SHADED_FACE_COLOR_WEIGHT = -0.6f;
+		constexpr FLOAT CENTER_SHADE_WEIGHT = 0.0f;
+		constexpr float SHADE_EDGE_THICKNESS = 1.0f;	// 음영 모서리 두께
+		constexpr XMFLOAT2 V_PRESET[10] =
+		{
+			XMFLOAT2(-0.5f, 0.5f),		// 0
+			XMFLOAT2(0.5f, 0.5f),		// 1
+			XMFLOAT2(0.5f, -0.5f),		// 2
+			XMFLOAT2(-0.5f, -0.5f),		// 3
+			XMFLOAT2(-0.33f, -0.15f),	// 4
+			XMFLOAT2(-0.33f, 0.15f),	// 5
+			XMFLOAT2(-0.03f, -0.05f),	// 6
+			XMFLOAT2(-0.03f, -0.35f),	// 7
+			XMFLOAT2(0.35f, 0.0f),		// 8
+			XMFLOAT2(0.35f, 0.3f)		// 9
+		};
+
+		VFCheckbox v[CHECKBOX_VERTEX_COUNT];
+
+		// Top side
+		v[0].m_position = V_PRESET[0];
+		v[0].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[0].m_colorWeight = SHADED_FACE_COLOR_WEIGHT;
+		v[0].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[1].m_position = V_PRESET[1];
+		v[1].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[1].m_colorWeight = SHADED_FACE_COLOR_WEIGHT;
+		v[1].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[2].m_position = V_PRESET[0];
+		v[2].m_offset = XMFLOAT2(+SHADE_EDGE_THICKNESS, -SHADE_EDGE_THICKNESS);
+		v[2].m_colorWeight = SHADED_FACE_COLOR_WEIGHT;
+		v[2].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[3].m_position = V_PRESET[0];
+		v[3].m_offset = XMFLOAT2(+SHADE_EDGE_THICKNESS, -SHADE_EDGE_THICKNESS);
+		v[3].m_colorWeight = SHADED_FACE_COLOR_WEIGHT;
+		v[3].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[4].m_position = V_PRESET[1];
+		v[4].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[4].m_colorWeight = SHADED_FACE_COLOR_WEIGHT;
+		v[4].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[5].m_position = V_PRESET[1];
+		v[5].m_offset = XMFLOAT2(-SHADE_EDGE_THICKNESS, -SHADE_EDGE_THICKNESS);
+		v[5].m_colorWeight = SHADED_FACE_COLOR_WEIGHT;
+		v[5].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+
+		// Left side
+		v[6].m_position = V_PRESET[0];
+		v[6].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[6].m_colorWeight = SHADED_FACE_COLOR_WEIGHT;
+		v[6].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[7].m_position = V_PRESET[0];
+		v[7].m_offset = XMFLOAT2(+SHADE_EDGE_THICKNESS, -SHADE_EDGE_THICKNESS);
+		v[7].m_colorWeight = SHADED_FACE_COLOR_WEIGHT;
+		v[7].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[8].m_position = V_PRESET[3];
+		v[8].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[8].m_colorWeight = SHADED_FACE_COLOR_WEIGHT;
+		v[8].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[9].m_position = V_PRESET[3];
+		v[9].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[9].m_colorWeight = SHADED_FACE_COLOR_WEIGHT;
+		v[9].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[10].m_position = V_PRESET[0];
+		v[10].m_offset = XMFLOAT2(+SHADE_EDGE_THICKNESS, -SHADE_EDGE_THICKNESS);
+		v[10].m_colorWeight = SHADED_FACE_COLOR_WEIGHT;
+		v[10].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[11].m_position = V_PRESET[3];
+		v[11].m_offset = XMFLOAT2(+SHADE_EDGE_THICKNESS, +SHADE_EDGE_THICKNESS);
+		v[11].m_colorWeight = SHADED_FACE_COLOR_WEIGHT;
+		v[11].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+
+		// Right side
+		v[12].m_position = V_PRESET[2];
+		v[12].m_offset = XMFLOAT2(-SHADE_EDGE_THICKNESS, +SHADE_EDGE_THICKNESS);
+		v[12].m_colorWeight = SUNLIT_FACE_COLOR_WEIGHT;
+		v[12].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[13].m_position = V_PRESET[1];
+		v[13].m_offset = XMFLOAT2(-SHADE_EDGE_THICKNESS, -SHADE_EDGE_THICKNESS);
+		v[13].m_colorWeight = SUNLIT_FACE_COLOR_WEIGHT;
+		v[13].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[14].m_position = V_PRESET[2];
+		v[14].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[14].m_colorWeight = SUNLIT_FACE_COLOR_WEIGHT;
+		v[14].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[15].m_position = V_PRESET[2];
+		v[15].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[15].m_colorWeight = SUNLIT_FACE_COLOR_WEIGHT;
+		v[15].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[16].m_position = V_PRESET[1];
+		v[16].m_offset = XMFLOAT2(-SHADE_EDGE_THICKNESS, -SHADE_EDGE_THICKNESS);
+		v[16].m_colorWeight = SUNLIT_FACE_COLOR_WEIGHT;
+		v[16].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[17].m_position = V_PRESET[1];
+		v[17].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[17].m_colorWeight = SUNLIT_FACE_COLOR_WEIGHT;
+		v[17].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+
+		// Bottom side
+		v[18].m_position = V_PRESET[3];
+		v[18].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[18].m_colorWeight = SUNLIT_FACE_COLOR_WEIGHT;
+		v[18].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[19].m_position = V_PRESET[3];
+		v[19].m_offset = XMFLOAT2(+SHADE_EDGE_THICKNESS, +SHADE_EDGE_THICKNESS);
+		v[19].m_colorWeight = SUNLIT_FACE_COLOR_WEIGHT;
+		v[19].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[20].m_position = V_PRESET[2];
+		v[20].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[20].m_colorWeight = SUNLIT_FACE_COLOR_WEIGHT;
+		v[20].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[21].m_position = V_PRESET[2];
+		v[21].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[21].m_colorWeight = SUNLIT_FACE_COLOR_WEIGHT;
+		v[21].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[22].m_position = V_PRESET[3];
+		v[22].m_offset = XMFLOAT2(+SHADE_EDGE_THICKNESS, +SHADE_EDGE_THICKNESS);
+		v[22].m_colorWeight = SUNLIT_FACE_COLOR_WEIGHT;
+		v[22].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[23].m_position = V_PRESET[2];
+		v[23].m_offset = XMFLOAT2(-SHADE_EDGE_THICKNESS, +SHADE_EDGE_THICKNESS);
+		v[23].m_colorWeight = SUNLIT_FACE_COLOR_WEIGHT;
+		v[23].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+
+		// A
+		v[24].m_position = V_PRESET[0];
+		v[24].m_offset = XMFLOAT2(+SHADE_EDGE_THICKNESS, -SHADE_EDGE_THICKNESS);
+		v[24].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[24].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[25].m_position = V_PRESET[5];
+		v[25].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[25].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[25].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[26].m_position = V_PRESET[3];
+		v[26].m_offset = XMFLOAT2(+SHADE_EDGE_THICKNESS, +SHADE_EDGE_THICKNESS);
+		v[26].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[26].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+
+		// B
+		v[27].m_position = V_PRESET[3];
+		v[27].m_offset = XMFLOAT2(+SHADE_EDGE_THICKNESS, +SHADE_EDGE_THICKNESS);
+		v[27].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[27].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[28].m_position = V_PRESET[5];
+		v[28].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[28].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[28].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[29].m_position = V_PRESET[4];
+		v[29].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[29].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[29].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+
+		// C
+		v[30].m_position = V_PRESET[3];
+		v[30].m_offset = XMFLOAT2(+SHADE_EDGE_THICKNESS, +SHADE_EDGE_THICKNESS);
+		v[30].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[30].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[31].m_position = V_PRESET[4];
+		v[31].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[31].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[31].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[32].m_position = V_PRESET[7];
+		v[32].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[32].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[32].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+
+		// D
+		v[33].m_position = V_PRESET[3];
+		v[33].m_offset = XMFLOAT2(+SHADE_EDGE_THICKNESS, +SHADE_EDGE_THICKNESS);
+		v[33].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[33].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[34].m_position = V_PRESET[7];
+		v[34].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[34].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[34].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[35].m_position = V_PRESET[2];
+		v[35].m_offset = XMFLOAT2(-SHADE_EDGE_THICKNESS, +SHADE_EDGE_THICKNESS);
+		v[35].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[35].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+
+		// E
+		v[36].m_position = V_PRESET[2];
+		v[36].m_offset = XMFLOAT2(-SHADE_EDGE_THICKNESS, +SHADE_EDGE_THICKNESS);
+		v[36].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[36].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[37].m_position = V_PRESET[7];
+		v[37].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[37].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[37].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[38].m_position = V_PRESET[8];
+		v[38].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[38].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[38].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+
+		// F
+		v[39].m_position = V_PRESET[2];
+		v[39].m_offset = XMFLOAT2(-SHADE_EDGE_THICKNESS, +SHADE_EDGE_THICKNESS);
+		v[39].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[39].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[40].m_position = V_PRESET[8];
+		v[40].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[40].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[40].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[41].m_position = V_PRESET[1];
+		v[41].m_offset = XMFLOAT2(-SHADE_EDGE_THICKNESS, -SHADE_EDGE_THICKNESS);
+		v[41].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[41].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+
+		// G
+		v[42].m_position = V_PRESET[1];
+		v[42].m_offset = XMFLOAT2(-SHADE_EDGE_THICKNESS, -SHADE_EDGE_THICKNESS);
+		v[42].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[42].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[43].m_position = V_PRESET[8];
+		v[43].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[43].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[43].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[44].m_position = V_PRESET[9];
+		v[44].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[44].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[44].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+
+		// H
+		v[45].m_position = V_PRESET[1];
+		v[45].m_offset = XMFLOAT2(-SHADE_EDGE_THICKNESS, -SHADE_EDGE_THICKNESS);
+		v[45].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[45].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[46].m_position = V_PRESET[9];
+		v[46].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[46].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[46].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[47].m_position = V_PRESET[0];
+		v[47].m_offset = XMFLOAT2(+SHADE_EDGE_THICKNESS, -SHADE_EDGE_THICKNESS);
+		v[47].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[47].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+
+		// I
+		v[48].m_position = V_PRESET[9];
+		v[48].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[48].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[48].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[49].m_position = V_PRESET[5];
+		v[49].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[49].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[49].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[50].m_position = V_PRESET[0];
+		v[50].m_offset = XMFLOAT2(+SHADE_EDGE_THICKNESS, -SHADE_EDGE_THICKNESS);
+		v[50].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[50].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+
+		// J
+		v[51].m_position = V_PRESET[5];
+		v[51].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[51].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[51].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[52].m_position = V_PRESET[9];
+		v[52].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[52].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[52].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+		v[53].m_position = V_PRESET[6];
+		v[53].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[53].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[53].m_colorIndex = VFCheckbox::BOX_COLOR_INDEX;
+
+		// K
+		v[54].m_position = V_PRESET[5];
+		v[54].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[54].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[54].m_colorIndex = VFCheckbox::CHECK_COLOR_INDEX;
+		v[55].m_position = V_PRESET[6];
+		v[55].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[55].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[55].m_colorIndex = VFCheckbox::CHECK_COLOR_INDEX;
+		v[56].m_position = V_PRESET[4];
+		v[56].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[56].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[56].m_colorIndex = VFCheckbox::CHECK_COLOR_INDEX;
+
+		// L
+		v[57].m_position = V_PRESET[4];
+		v[57].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[57].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[57].m_colorIndex = VFCheckbox::CHECK_COLOR_INDEX;
+		v[58].m_position = V_PRESET[6];
+		v[58].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[58].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[58].m_colorIndex = VFCheckbox::CHECK_COLOR_INDEX;
+		v[59].m_position = V_PRESET[7];
+		v[59].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[59].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[59].m_colorIndex = VFCheckbox::CHECK_COLOR_INDEX;
+
+		// M
+		v[60].m_position = V_PRESET[7];
+		v[60].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[60].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[60].m_colorIndex = VFCheckbox::CHECK_COLOR_INDEX;
+		v[61].m_position = V_PRESET[6];
+		v[61].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[61].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[61].m_colorIndex = VFCheckbox::CHECK_COLOR_INDEX;
+		v[62].m_position = V_PRESET[8];
+		v[62].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[62].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[62].m_colorIndex = VFCheckbox::CHECK_COLOR_INDEX;
+
+		// N
+		v[63].m_position = V_PRESET[8];
+		v[63].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[63].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[63].m_colorIndex = VFCheckbox::CHECK_COLOR_INDEX;
+		v[64].m_position = V_PRESET[6];
+		v[64].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[64].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[64].m_colorIndex = VFCheckbox::CHECK_COLOR_INDEX;
+		v[65].m_position = V_PRESET[9];
+		v[65].m_offset = XMFLOAT2(0.0f, 0.0f);
+		v[65].m_colorWeight = CENTER_SHADE_WEIGHT;
+		v[65].m_colorIndex = VFCheckbox::CHECK_COLOR_INDEX;
+
+		// Create a vertex buffer
+		D3D11_BUFFER_DESC bufferDesc;
+		ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+		bufferDesc.ByteWidth = sizeof(v);
+		bufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
+		bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+		bufferDesc.CPUAccessFlags = 0;
+		bufferDesc.MiscFlags = 0;
+		bufferDesc.StructureByteStride = sizeof(VFCheckbox);
+
+		D3D11_SUBRESOURCE_DATA initialData;
+		ZeroMemory(&initialData, sizeof(initialData));
+		initialData.pSysMem = v;
+		// initialData.SysMemPitch = 0;		// unused
+		// initialData.SysMemSlicePitch = 0;	// unused
+
+		if (!m_vbCheckbox.Init(pDevice, &bufferDesc, &initialData))
+			return false;
+	}
+
 
 	// Light volume meshes
 	{
@@ -1220,8 +1579,8 @@ bool GraphicDevice::CreateCommonGraphicResources()
 		D3D11_SUBRESOURCE_DATA subrcData;
 		ZeroMemory(&subrcData, sizeof(subrcData));
 		subrcData.pSysMem = vertices.data();
-		// subrcData.SysMemPitch = 0;		// unused
-		// subrcData.SysMemSlicePitch = 0;	// unused
+		// initialData.SysMemPitch = 0;		// unused
+		// initialData.SysMemSlicePitch = 0;	// unused
 
 		if (!m_plvMeshVB.Init(pDevice, &bufferDesc, &subrcData))
 			return false;
@@ -1237,8 +1596,8 @@ bool GraphicDevice::CreateCommonGraphicResources()
 
 		ZeroMemory(&subrcData, sizeof(subrcData));
 		subrcData.pSysMem = indices.data();
-		// subrcData.SysMemPitch = 0;		// unused
-		// subrcData.SysMemSlicePitch = 0;	// unused
+		// initialData.SysMemPitch = 0;		// unused
+		// initialData.SysMemSlicePitch = 0;	// unused
 		if (!m_plvMeshIB.Init(pDevice, &bufferDesc, &subrcData))
 			return false;
 
@@ -1280,8 +1639,8 @@ bool GraphicDevice::CreateCommonGraphicResources()
 
 		ZeroMemory(&subrcData, sizeof(subrcData));
 		subrcData.pSysMem = vertices.data();
-		// subrcData.SysMemPitch = 0;		// unused
-		// subrcData.SysMemSlicePitch = 0;	// unused
+		// initialData.SysMemPitch = 0;		// unused
+		// initialData.SysMemSlicePitch = 0;	// unused
 
 		if (!m_slvMeshVB.Init(pDevice, &bufferDesc, &subrcData))
 			return false;
@@ -1297,8 +1656,8 @@ bool GraphicDevice::CreateCommonGraphicResources()
 
 		ZeroMemory(&subrcData, sizeof(subrcData));
 		subrcData.pSysMem = indices.data();
-		// subrcData.SysMemPitch = 0;		// unused
-		// subrcData.SysMemSlicePitch = 0;	// unused
+		// initialData.SysMemPitch = 0;		// unused
+		// initialData.SysMemSlicePitch = 0;	// unused
 		if (!m_slvMeshIB.Init(pDevice, &bufferDesc, &subrcData))
 			return false;
 	}
@@ -1308,7 +1667,8 @@ bool GraphicDevice::CreateCommonGraphicResources()
 
 void GraphicDevice::ReleaseCommonGraphicResources()
 {
-	m_buttonMeshVB.Release();
+	m_vbShaded2DQuad.Release();
+	m_vbCheckbox.Release();
 	m_plvMeshVB.Release();
 	m_plvMeshIB.Release();
 	m_slvMeshVB.Release();

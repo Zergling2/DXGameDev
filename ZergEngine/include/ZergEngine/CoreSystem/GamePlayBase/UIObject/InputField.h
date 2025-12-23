@@ -6,6 +6,7 @@ namespace ze
 {
 	enum class InputFieldShape : uint8_t
 	{
+		ClientEdge,
 		Rectangle,
 		RoundedRectangle
 	};
@@ -70,7 +71,7 @@ namespace ze
 		DWRITE_PARAGRAPH_ALIGNMENT GetParagraphAlignment() const { return m_text.GetParagraphAlignment(); }
 		void SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT pa) { m_text.SetParagraphAlignment(pa); }
 		IDWriteTextFormat* GetDWriteTextFormatComInterface() const { return m_text.GetDWriteTextFormatComInterface(); }
-		void ApplyTextFormat() { m_text.ApplyTextFormat(); }		// TextFormat을 변경한 후 호출해야 새로운 폰트로 갱신됩니다.
+		void ApplyTextFormat() { m_text.ApplyTextFormat(); }		// TextFormat을 변경한 후 이 함수를 호출해야 새로운 폰트가 적용됩니다.
 
 		void SetShape(InputFieldShape shape) { m_shape = shape; }
 		InputFieldShape GetShape() const { return m_shape; }
@@ -103,8 +104,7 @@ namespace ze
 		UIColor m_bkColor;
 		UIText m_text;
 		UIColor m_textColor;
-
-		XMFLOAT2 m_radius;	// m_shape가 InputFieldShape::Rectangle로 설정된 경우에는 의미를 갖지 않습니다.
+		XMFLOAT2 m_radius;	// Shape가 InputFieldShape::RoundedRectangle이 아닌 경우 의미를 갖지 않습니다.
 		uint32_t m_iff;	// FLAG
 		InputFieldShape m_shape;
 	};

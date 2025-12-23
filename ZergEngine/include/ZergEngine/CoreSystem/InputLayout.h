@@ -31,10 +31,6 @@ namespace ze
 		VFPosition() = default;
 		VFPosition(const VFPosition&) = default;
 		VFPosition& operator=(const VFPosition&) = default;
-		VFPosition(const XMFLOAT3& position) noexcept
-			: m_position(position)
-		{
-		}
 
 		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
 		static constexpr uint32_t GetInputElementCount() { return VFPosition::INPUT_ELEMENT_COUNT; }
@@ -52,11 +48,6 @@ namespace ze
 		VFPositionColor() = default;
 		VFPositionColor(const VFPositionColor&) = default;
 		VFPositionColor& operator=(const VFPositionColor&) = default;
-		VFPositionColor(const XMFLOAT3& position, const XMFLOAT4& color) noexcept
-			: m_position(position)
-			, m_color(color)
-		{
-		}
 
 		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
 		static constexpr uint32_t GetInputElementCount() { return VFPositionColor::INPUT_ELEMENT_COUNT; }
@@ -75,11 +66,6 @@ namespace ze
 		VFPositionNormal() = default;
 		VFPositionNormal(const VFPositionNormal&) = default;
 		VFPositionNormal& operator=(const VFPositionNormal&) = default;
-		VFPositionNormal(const XMFLOAT3& position, const XMFLOAT3& normal) noexcept
-			: m_position(position)
-			, m_normal(normal)
-		{
-		}
 
 		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
 		static constexpr uint32_t GetInputElementCount() { return VFPositionNormal::INPUT_ELEMENT_COUNT; }
@@ -97,11 +83,6 @@ namespace ze
 		VFPositionTexCoord() = default;
 		VFPositionTexCoord(const VFPositionTexCoord&) = default;
 		VFPositionTexCoord& operator=(const VFPositionTexCoord&) = default;
-		VFPositionTexCoord(const XMFLOAT3& position, const XMFLOAT2& texCoord) noexcept
-			: m_position(position)
-			, m_texCoord(texCoord)
-		{
-		}
 
 		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
 		static constexpr uint32_t GetInputElementCount() { return VFPositionTexCoord::INPUT_ELEMENT_COUNT; }
@@ -119,12 +100,6 @@ namespace ze
 		VFPositionNormalTexCoord() = default;
 		VFPositionNormalTexCoord(const VFPositionNormalTexCoord&) = default;
 		VFPositionNormalTexCoord& operator=(const VFPositionNormalTexCoord&) = default;
-		VFPositionNormalTexCoord(const XMFLOAT3& position, const XMFLOAT3& normal, const XMFLOAT2& texCoord) noexcept
-			: m_position(position)
-			, m_normal(normal)
-			, m_texCoord(texCoord)
-		{
-		}
 
 		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
 		static constexpr uint32_t GetInputElementCount() { return VFPositionNormalTexCoord::INPUT_ELEMENT_COUNT; }
@@ -143,13 +118,6 @@ namespace ze
 		VFPositionNormalTangentTexCoord() = default;
 		VFPositionNormalTangentTexCoord(const VFPositionNormalTangentTexCoord&) = default;
 		VFPositionNormalTangentTexCoord& operator=(const VFPositionNormalTangentTexCoord&) = default;
-		VFPositionNormalTangentTexCoord(const XMFLOAT3& position, const XMFLOAT3& normal, const XMFLOAT3& tangent, const XMFLOAT2& texCoord) noexcept
-			: m_position(position)
-			, m_normal(normal)
-			, m_tangent(tangent)
-			, m_texCoord(texCoord)
-		{
-		}
 
 		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
 		static constexpr uint32_t GetInputElementCount() { return VFPositionNormalTangentTexCoord::INPUT_ELEMENT_COUNT; }
@@ -206,12 +174,6 @@ namespace ze
 		VFTerrainPatchControlPoint() = default;
 		VFTerrainPatchControlPoint(const VFTerrainPatchControlPoint&) = default;
 		VFTerrainPatchControlPoint& operator=(const VFTerrainPatchControlPoint&) = default;
-		VFTerrainPatchControlPoint(const XMFLOAT3& position, const XMFLOAT2& texCoord, const XMFLOAT2& boundsY) noexcept
-			: m_position(position)
-			, m_texCoord(texCoord)
-			, m_boundsY(boundsY)
-		{
-		}
 
 		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
 		static constexpr uint32_t GetInputElementCount() { return VFTerrainPatchControlPoint::INPUT_ELEMENT_COUNT; }
@@ -220,8 +182,8 @@ namespace ze
 		static const D3D11_INPUT_ELEMENT_DESC s_ied[INPUT_ELEMENT_COUNT];
 	public:
 		XMFLOAT3 m_position;	// POSITION
-		XMFLOAT2 m_texCoord;	// TEXCOORD0
-		XMFLOAT2 m_boundsY;		// TEXCOORD1	(x: 지형 패치의 최소 높이값, y: 지형 패치의 최대 높이값)
+		XMFLOAT2 m_texCoord;	// TEXCOORD
+		XMFLOAT2 m_boundsY;		// YBOUNDS
 	};
 
 	class VFShaded2DQuad
@@ -230,12 +192,6 @@ namespace ze
 		VFShaded2DQuad() = default;
 		VFShaded2DQuad(const VFShaded2DQuad&) = default;
 		VFShaded2DQuad& operator=(const VFShaded2DQuad&) = default;
-		VFShaded2DQuad(const XMFLOAT2& position, const XMFLOAT2& offset, const XMFLOAT2& shade) noexcept
-			: m_position(position)
-			, m_offset(offset)
-			, m_shadeWeights(shade)
-		{
-		}
 
 		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
 		static constexpr uint32_t GetInputElementCount() { return VFShaded2DQuad::INPUT_ELEMENT_COUNT; }
@@ -245,6 +201,28 @@ namespace ze
 	public:
 		XMFLOAT2 m_position;		// POSITION
 		XMFLOAT2 m_offset;			// 스케일링 후 이동 오프셋 (음영 모서리의 두께를 스케일링과 분리)
-		XMFLOAT2 m_shadeWeights;	// 음영 가중치 [0] Convex 상태 음영 가중치 [1] Concave 상태 음영 가중치
+		XMFLOAT2 m_colorWeights;	// 색상 가중치 [0] Convex 상태 음영 가중치 [1] Concave 상태 음영 가중치
+	};
+
+	class VFCheckbox
+	{
+	public:
+		static constexpr uint32_t BOX_COLOR_INDEX = 0;
+		static constexpr uint32_t CHECK_COLOR_INDEX = 1;
+	public:
+		VFCheckbox() = default;
+		VFCheckbox(const VFCheckbox&) = default;
+		VFCheckbox& operator=(const VFCheckbox&) = default;
+
+		static const D3D11_INPUT_ELEMENT_DESC* GetInputElementDescriptor() { return s_ied; }
+		static constexpr uint32_t GetInputElementCount() { return VFCheckbox::INPUT_ELEMENT_COUNT; }
+	private:
+		static constexpr size_t INPUT_ELEMENT_COUNT = 4;
+		static const D3D11_INPUT_ELEMENT_DESC s_ied[INPUT_ELEMENT_COUNT];
+	public:
+		XMFLOAT2 m_position;
+		XMFLOAT2 m_offset;
+		FLOAT m_colorWeight;	// 배경 박스는 항상 오목 상태이므로 가중치 불변
+		uint32_t m_colorIndex;	// 박스와 체크 심볼의 색상 분리 (Box color: [0], Check symbol color: [1])
 	};
 }

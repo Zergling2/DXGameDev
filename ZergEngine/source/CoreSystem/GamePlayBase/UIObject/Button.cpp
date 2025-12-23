@@ -2,16 +2,16 @@
 
 using namespace ze;
 
-constexpr float BUTTON_DEFAULT_WIDTH = 200.0f;
-constexpr float BUTTON_DEFAULT_HEIGHT = 75.0f;
+constexpr float DEFAULT_BUTTON_WIDTH = 200.0f;
+constexpr float DEFAULT_BUTTON_HEIGHT = 75.0f;
 
 Button::Button(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name)
 	: IUIObject(id, flag, name)
 	, m_isPressed(false)
-	, m_size(BUTTON_DEFAULT_WIDTH, BUTTON_DEFAULT_HEIGHT)
+	, m_size(DEFAULT_BUTTON_WIDTH, DEFAULT_BUTTON_HEIGHT)
 	, m_buttonColor(ColorsLinear::DarkOliveGreen)
 	, m_text()
-	, m_textColor(ColorsLinear::White)
+	, m_textColor(ColorsLinear::WhiteSmoke)
 {
 	m_text.SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	m_text.SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);

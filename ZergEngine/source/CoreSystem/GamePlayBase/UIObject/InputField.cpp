@@ -10,12 +10,12 @@ constexpr float ROUNDED_INPUT_FIELD_DEFAULT_RADIUS = 15.0f;
 InputField::InputField(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name)
 	: IUIObject(id, flag, name)
 	, m_size(INPUT_FIELD_DEFAULT_WIDTH, INPUT_FIELD_DEFAULT_HEIGHT)
-	, m_bkColor(ColorsLinear::White)
+	, m_bkColor(ColorsLinear::DarkOliveGreen)
 	, m_text()
-	, m_textColor(ColorsLinear::Black)
+	, m_textColor(ColorsLinear::WhiteSmoke)
 	, m_radius(ROUNDED_INPUT_FIELD_DEFAULT_RADIUS, ROUNDED_INPUT_FIELD_DEFAULT_RADIUS)
 	, m_iff(IFF_SPACE)	// 공백 허용
-	, m_shape(InputFieldShape::Rectangle)
+	, m_shape(InputFieldShape::ClientEdge)
 {
 	m_text.SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);					// 비가상함수이므로 생성자에서 호출해도 ok
 	m_text.SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);			// 비가상함수이므로 생성자에서 호출해도 ok

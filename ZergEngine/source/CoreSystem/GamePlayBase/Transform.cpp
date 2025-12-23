@@ -6,7 +6,7 @@ using namespace ze;
 
 Transform::Transform(GameObject* pGameObject)
     : m_pGameObject(pGameObject)
-    , m_pParentTransform(nullptr)
+    , m_pParent(nullptr)
     , m_children()
 {
 	XMStoreFloat3A(&m_scale, XMVectorSplatOne());
@@ -70,7 +70,7 @@ void Transform::GetWorldTransform(XMVECTOR* pScale, XMVECTOR* pRotation, XMVECTO
     XMVECTOR rotationL = this->GetRotation();
     XMVECTOR translationL = XMVectorSetW(this->GetPosition(), 1.0f);    // 매우 중요
 
-    if (!m_pParentTransform)
+    if (!m_pParent)
     {
         *pScale = scaleL;
         *pRotation = rotationL;
@@ -90,7 +90,7 @@ void Transform::GetWorldTransform(XMVECTOR* pScale, XMVECTOR* pRotation, XMVECTO
         XMVECTOR parentScaleW;
         XMVECTOR parentRotationW;
         XMVECTOR parentTranslationW;
-        m_pParentTransform->GetWorldTransform(&parentScaleW, &parentRotationW, &parentTranslationW);
+        m_pParent->GetWorldTransform(&parentScaleW, &parentRotationW, &parentTranslationW);
 
 
 
@@ -116,8 +116,8 @@ XMVECTOR Transform::GetWorldScale() const
     XMVECTOR scaleW;
     XMVECTOR scaleL = this->GetScale();
 
-    if (m_pParentTransform)
-        scaleW = XMVectorMultiply(scaleL, m_pParentTransform->GetWorldScale());
+    if (m_pParent)
+        scaleW = XMVectorMultiply(scaleL, m_pParent->GetWorldScale());
     else
         scaleW = scaleL;
 
@@ -129,8 +129,8 @@ XMVECTOR Transform::GetWorldRotation() const
     XMVECTOR rotationW;
     XMVECTOR rotationL = this->GetRotation();
 
-    if (m_pParentTransform)
-        rotationW = XMQuaternionMultiply(rotationL, m_pParentTransform->GetWorldRotation());
+    if (m_pParent)
+        rotationW = XMQuaternionMultiply(rotationL, m_pParent->GetWorldRotation());
     else
         rotationW = rotationL;
 
@@ -181,15 +181,13 @@ XMVECTOR Transform::GetWorldPosition() const
 //     // 4. newWorldPos, newWorldRotation을 newLocalPos, newLocalRotation으로 변환
 //     assert(m_pGameObject != nullptr);
 // 
-//     if (m_pParentTransform != nullptr)
+//     if (m_pParent != nullptr)
 //     {
-//         const Transform* pParentTransform = m_pParentTransform;
-// 
 //         // 부모의 월드 매트릭스
-//         XMMATRIX parentWorldMatrix = pParentTransform->GetWorldTransformMatrix();
+//         XMMATRIX parentWorldMatrix = m_pParent->GetWorldTransformMatrix();
 // 
 //         // 부모의 월드 회전 (쿼터니언)
-//         XMVECTOR parentWorldRotation = pParentTransform->GetWorldRotation();
+//         XMVECTOR parentWorldRotation = m_pParent->GetWorldRotation();
 // 
 //         // 부모 space 기준으로 변환
 //         // 위치 변환
@@ -220,14 +218,14 @@ bool Transform::SetParent(Transform* pTransform)
 
 bool Transform::IsDescendantOf(Transform* pTransform) const
 {
-    const Transform* pCursor = m_pParentTransform;
+    const Transform* pCursor = m_pParent;
 
     while (pCursor != nullptr)
     {
         if (pCursor == pTransform)
             return true;
 
-        pCursor = pCursor->m_pParentTransform;
+        pCursor = pCursor->m_pParent;
     }
 
     return false;

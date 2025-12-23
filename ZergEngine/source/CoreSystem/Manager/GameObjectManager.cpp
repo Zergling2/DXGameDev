@@ -268,7 +268,7 @@ void GameObjectManager::RemoveDestroyedGameObjects()
 
 		// Step 1. Transform 자식 부모 연결 제거
 		Transform* pTransform = &pGameObject->m_transform;
-		Transform* pParentTransform = pTransform->m_pParentTransform;
+		Transform* pParentTransform = pTransform->m_pParent;
 		if (pParentTransform != nullptr)
 		{
 #if defined(DEBUG) || defined(_DEBUG)
@@ -293,13 +293,19 @@ void GameObjectManager::RemoveDestroyedGameObjects()
 
 		for (Transform* pChildTransform : pTransform->m_children)
 		{
-			assert(pChildTransform->m_pParentTransform == pTransform);	// 자신과의 연결 확인
-			
+			assert(pChildTransform->GetParent() == pTransform);	// 자신과의 연결 확인
 
-			// 중요 포인트
-			pChildTransform->m_pParentTransform = nullptr;	// 밑에서 곧 delete되는 자신을 접근(Step 1에서 접근함)하는 것을 방지 (잠재적 댕글링 포인터 제거)
-			// 이로 인해서 객체 파괴 시에는 루트 오브젝트였는지 판별(RootGroup에서 포인터 제거해야 함)을 할 때 부모 Transform 포인터로
-			// 판단할 수 없다. 따라서 진짜 루트 노드였는지를 체크해놓기 위해 UIOBJECT_FLAG열거형으로 REAL_ROOT라는 플래그를 사용한다.
+			// [중요!]
+			// 파괴가 부모 자식 계층 구조대로 진행되지 않으므로 댕글링 포인터가 생기지 않게 유의해야 한다.
+			// 
+			// 자식들이 delete될 자신의 댕글링 포인터를 갖고 있지 않도록 m_pParent를 nullptr로 설정해준다.
+			// 그런데 루트 오브젝트들은 파괴될 때 RootGroup내에서 포인터가 제거되어야 하는데, 이렇게 자식의 m_pParent를 nullptr로 설정하면
+			// RootGroup에서 제거되어야 하는 '루트 객체'였는지를 'm_pParent == nullptr'로는 판단할 수 없게 된다.
+			//
+			// 이 문제는 런타임이 객체를 Deploy하며 만약 루트 객체인 경우 UIOBJECT_FLAG::REAL_ROOT 플래그를 표시하여 이 문제를 해결한다.
+			// SetParent 등으로 루트가 아니었던 오브젝트가 루트로 되는 경우 혹은 그 반대의 경우에 REAL_ROOT 플래그 역시 알맞게 업데이트된다.
+
+			pChildTransform->m_pParent = nullptr;
 		}
 		// pTransform->m_children.clear();	// 객체 delete시 자동 소멸
 
@@ -351,7 +357,7 @@ void GameObjectManager::SetActive(GameObject* pGameObject, bool active)
 bool GameObjectManager::SetParent(Transform* pTransform, Transform* pNewParentTransform)
 {
 	GameObject* pGameObject = pTransform->m_pGameObject;
-	Transform* pOldParentTransform = pTransform->m_pParentTransform;
+	Transform* pOldParentTransform = pTransform->m_pParent;
 
 	if (pGameObject->IsOnTheDestroyQueue())
 		return false;
@@ -408,8 +414,8 @@ bool GameObjectManager::SetParent(Transform* pTransform, Transform* pNewParentTr
 			pTransform->m_pGameObject->SetActive(false);
 	}
 
-	// 부모 포인터를 새로운 부모로 업데이트
-	pTransform->m_pParentTransform = pNewParentTransform;
+	// 멤버 부모 포인터 업데이트
+	pTransform->m_pParent = pNewParentTransform;
 
 	return true;
 }

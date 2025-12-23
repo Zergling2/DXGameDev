@@ -5,6 +5,36 @@
 
 using namespace ze;
 
+RectTransform::RectTransform(IUIObject* pUIObject)
+    : m_pUIObject(pUIObject)
+    , m_pParent(nullptr)
+    , m_children()
+    , m_position(0.0f, 0.0f)
+    , m_ha(HorizontalAnchor::Center)
+    , m_va(VerticalAnchor::VCenter)
+{
+}
+
+bool RectTransform::SetParent(RectTransform* pTransform)
+{
+    return UIObjectManager::GetInstance()->SetParent(this, pTransform);
+}
+
+bool RectTransform::IsDescendantOf(RectTransform* pTransform) const
+{
+    const RectTransform* pCursor = m_pParent;
+
+    while (pCursor != nullptr)
+    {
+        if (pCursor == pTransform)
+            return true;
+
+        pCursor = pCursor->m_pParent;
+    }
+
+    return false;
+}
+
 void RectTransform::GetHCSPosition(XMFLOAT2* pOut) const
 {
     XMFLOAT2 base;
@@ -105,24 +135,4 @@ void RectTransform::GetWinCoordPosition(XMFLOAT2* pOut) const
 
     pOut->x = base.x + m_position.x;
     pOut->y = base.y - m_position.y;    // Windows 좌표계는 모니터 위쪽으로 갈수록 음수 값
-}
-
-bool RectTransform::SetParent(RectTransform* pTransform)
-{
-    return UIObjectManager::GetInstance()->SetParent(this, pTransform);
-}
-
-bool RectTransform::IsDescendantOf(RectTransform* pTransform) const
-{
-    const RectTransform* pCursor = m_pParentTransform;
-
-    while (pCursor != nullptr)
-    {
-        if (pCursor == pTransform)
-            return true;
-
-        pCursor = pCursor->m_pParentTransform;
-    }
-
-    return false;
 }

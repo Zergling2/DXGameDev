@@ -63,6 +63,10 @@ namespace ze
 		// 루트 오브젝트로 슬라이더 컨트롤 UI를 생성합니다.
 		UIObjectHandle CreateSliderControl(PCWSTR name = L"New Slider Control");
 
+		// (이 함수는 스크립트에서만 호출해야 합니다.)
+		// 루트 오브젝트로 체크박스 UI를 생성합니다.
+		UIObjectHandle CreateCheckbox(PCWSTR name = L"New Checkbox");
+
 		GameObjectHandle Instantiate(const GameObjectHandle source);
 		// GameObjectHandle Instantiate(const GameObjectHandle source, GameObjectHandle parent);
 		

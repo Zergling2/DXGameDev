@@ -12,6 +12,7 @@ namespace ze
 		InputField,
 		Button,
 		ImageButton,
-		SliderControl
+		SliderControl,
+		Checkbox
 	};
 }

@@ -238,14 +238,23 @@ namespace ze
 		XMFLOAT2 position;
 	};
 
-	constexpr uint32_t SHADED_2DQUAD_SHADE_WEIGHT_INDEX_CONVEX = 0;
-	constexpr uint32_t SHADED_2DQUAD_SHADE_WEIGHT_INDEX_CONCAVE = 1;
+	constexpr uint32_t SHADED_2DQUAD_COLOR_WEIGHT_INDEX_CONVEX = 0;
+	constexpr uint32_t SHADED_2DQUAD_COLOR_WEIGHT_INDEX_CONCAVE = 1;
 	hlslstruct CbPerShaded2DQuad
 	{
 		XMFLOAT4A color;
 		XMFLOAT2 size;
 		XMFLOAT2 position;
-		uint32_t shadeWeightIndex;		// [0] Convex shade [1] Concave shade
+		uint32_t colorWeightIndex;		// [0] Convex shade [1] Concave shade
+	};
+
+	hlslstruct CbPerCheckbox
+	{
+		XMFLOAT4A boxColor;
+		XMFLOAT4A checkColor;
+
+		XMFLOAT2 size;
+		XMFLOAT2 position;
 	};
 
 	hlslstruct CbPerArmature

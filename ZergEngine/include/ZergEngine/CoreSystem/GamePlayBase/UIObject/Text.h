@@ -37,7 +37,7 @@ namespace ze
 		DWRITE_PARAGRAPH_ALIGNMENT GetParagraphAlignment() const { return m_text.GetParagraphAlignment(); }
 		void SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT pa) { m_text.SetParagraphAlignment(pa); }
 		IDWriteTextFormat* GetDWriteTextFormatComInterface() const { return m_text.GetDWriteTextFormatComInterface(); }
-		void ApplyTextFormat() { m_text.ApplyTextFormat(); }		// TextFormat을 변경한 후 호출해야 새로운 폰트로 갱신됩니다.
+		void ApplyTextFormat() { m_text.ApplyTextFormat(); }		// TextFormat을 변경한 후 이 함수를 호출해야 새로운 폰트가 적용됩니다.
 
 		XMVECTOR GetColorVector() const { return m_color.GetColorVector(); }
 		const XMFLOAT4& GetColor() const { return m_color.GetColor(); }

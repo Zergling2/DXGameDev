@@ -345,12 +345,14 @@ void Warehouse::OnLoadScene()
 
 		// 무기교체 UI
 		{
+			constexpr FLOAT WEAPON_CHANGE_PANEL_WIDTH = 180.0f;
+			constexpr FLOAT WEAPON_CHANGE_PANEL_HEIGHT = 220.0f;
 			UIObjectHandle hPanel = CreatePanel();
 			Panel* pPanel = static_cast<Panel*>(hPanel.ToPtr());
 			// pPanel->SetShape(PanelShape::RoundedRectangle);		// Default
 			pPanel->SetColor(ColorsLinear::DarkGray);
 			pPanel->SetColorA(0.5f);
-			pPanel->SetSize(180, 220);
+			pPanel->SetSize(WEAPON_CHANGE_PANEL_WIDTH, WEAPON_CHANGE_PANEL_HEIGHT);
 			pPanel->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 			pPanel->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
 			pPanel->m_transform.m_position.x = pPanel->GetSizeX() / 2.0f + 5;
@@ -370,10 +372,10 @@ void Warehouse::OnLoadScene()
 				InputField* pInputField = static_cast<InputField*>(hInputField.ToPtr());
 				pInputField->m_transform.SetParent(&pPanel->m_transform);
 
+				pInputField->AllowReturn(true);
+				pInputField->AllowSpace(false);
 				pInputField->SetSize(pPanel->GetSizeX() - 16, 20);
-				pInputField->SetBkColor(ColorsLinear::LightBlue);
-				pInputField->SetTextColor(ColorsLinear::Orange);
-				pInputField->SetText(L"테스트Test");
+				pInputField->SetText(L"테스트 입력 필드");
 				pInputField->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 				pInputField->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
 				pInputField->m_transform.m_position.x = pPanel->m_transform.m_position.x;
@@ -410,6 +412,39 @@ void Warehouse::OnLoadScene()
 			}
 
 			{
+				UIObjectHandle hCheckbox = CreateCheckbox();
+				Checkbox* pCheckbox = static_cast<Checkbox*>(hCheckbox.ToPtr());
+				pCheckbox->m_transform.SetParent(&pPanel->m_transform);
+
+				pCheckbox->SetBoxColorA(0.9f);
+				pCheckbox->SetBoxColorRGB(ColorsLinear::Red);
+				pCheckbox->SetText(L"빨간 체크박스 (Right Text)");
+
+				pCheckbox->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+				pCheckbox->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+				pCheckbox->m_transform.m_position.x = pPanel->m_transform.m_position.x - WEAPON_CHANGE_PANEL_WIDTH / 2.0f +
+					pCheckbox->GetCheckboxHalfSizeX() + 5.0f;
+				pCheckbox->m_transform.m_position.y = -80;
+			}
+
+			{
+				UIObjectHandle hCheckbox = CreateCheckbox();
+				Checkbox* pCheckbox = static_cast<Checkbox*>(hCheckbox.ToPtr());
+				pCheckbox->m_transform.SetParent(&pPanel->m_transform);
+
+				pCheckbox->SetLeftText();
+				pCheckbox->SetBoxColorRGB(ColorsLinear::Blue);
+				pCheckbox->SetCheckColor(ColorsLinear::White);
+				pCheckbox->SetText(L"Left Text Checkbox");
+
+				pCheckbox->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+				pCheckbox->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+				pCheckbox->m_transform.m_position.x = pPanel->m_transform.m_position.x + WEAPON_CHANGE_PANEL_WIDTH / 2.0f -
+					pCheckbox->GetCheckboxHalfSizeX() - 5.0f;
+				pCheckbox->m_transform.m_position.y = -100;
+			}
+
+			{
 				UIObjectHandle hText = CreateText();
 				Text* pText = static_cast<Text*>(hText.ToPtr());
 				pText->m_transform.SetParent(&pPanel->m_transform);
@@ -433,7 +468,7 @@ void Warehouse::OnLoadScene()
 
 				pText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 				pText->SetSize(WEAPON_NAME_TEXT_WIDTH, WEAPON_NAME_TEXT_HEIGHT);
-				pText->SetColor(ColorsLinear::White);
+				pText->SetColor(ColorsLinear::WhiteSmoke);
 				pText->SetText(L"1. B.92Fs Black");
 				pText->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 				pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
@@ -445,8 +480,8 @@ void Warehouse::OnLoadScene()
 				pButton->m_transform.SetParent(&pPanel->m_transform);
 
 				pButton->SetSize(BUTTON_WIDTH, BUTTON_HEIGHT);
-				pButton->SetTextColor(ColorsLinear::White);
-				pButton->SetButtonColor(ColorsLinear::Coral);
+				pButton->SetTextColor(ColorsLinear::WhiteSmoke);
+				pButton->SetButtonColor(ColorsLinear::Chocolate);
 				pButton->SetText(L"교체");
 				pButton->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 				pButton->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
@@ -461,7 +496,7 @@ void Warehouse::OnLoadScene()
 
 				pText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 				pText->SetSize(WEAPON_NAME_TEXT_WIDTH, WEAPON_NAME_TEXT_HEIGHT);
-				pText->SetColor(ColorsLinear::White);
+				pText->SetColor(ColorsLinear::WhiteSmoke);
 				pText->SetText(L"2. M4A1 Carbine");
 				pText->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 				pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
@@ -489,7 +524,7 @@ void Warehouse::OnLoadScene()
 
 				pText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 				pText->SetSize(WEAPON_NAME_TEXT_WIDTH, WEAPON_NAME_TEXT_HEIGHT);
-				pText->SetColor(ColorsLinear::White);
+				pText->SetColor(ColorsLinear::WhiteSmoke);
 				pText->SetText(L"3. M16");
 				pText->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 				pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
@@ -501,7 +536,7 @@ void Warehouse::OnLoadScene()
 				pButton->m_transform.SetParent(&pPanel->m_transform);
 
 				pButton->SetSize(BUTTON_WIDTH, BUTTON_HEIGHT);
-				pButton->SetTextColor(ColorsLinear::White);
+				pButton->SetTextColor(ColorsLinear::WhiteSmoke);
 				pButton->SetButtonColor(ColorsLinear::DarkOliveGreen);
 				pButton->SetText(L"교체");
 				pButton->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
@@ -1510,6 +1545,8 @@ void Warehouse::OnLoadScene()
 		pScriptFPSMovement->m_hWeapons[0] = hPrimaryWeapon;	// 1번 슬롯
 
 		GameObject* pPrimaryWeapon = hPrimaryWeapon.ToPtr();
+		pPrimaryWeapon->m_transform.SetParent(&pMainCamera->m_transform);
+
 		pPrimaryWeapon->m_transform.SetPosition(XMVectorSet(0.1f, -0.185f, 0.205f, 0.0f));
 		ComponentHandle<MeshRenderer> hRifleMeshRenderer = pPrimaryWeapon->AddComponent<MeshRenderer>();
 		MeshRenderer* pMeshRenderer = hRifleMeshRenderer.ToPtr();
@@ -1518,8 +1555,8 @@ void Warehouse::OnLoadScene()
 		pMeshRenderer->SetMesh(meshM16A1);
 		// 재질 설정
 		auto matM16A1Receiver = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matM16A1Receiver->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.3f), 1.0f));
-		XMStoreFloat4A(&matM16A1Receiver->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 2.0f));
+		XMStoreFloat4A(&matM16A1Receiver->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
+		XMStoreFloat4A(&matM16A1Receiver->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 2.0f));
 		matM16A1Receiver->m_diffuseMap = 
 			ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M16A1\\Textures\\M16A1Receiver_Diffuse.jpg");
 		matM16A1Receiver->m_normalMap = 
@@ -1535,11 +1572,11 @@ void Warehouse::OnLoadScene()
 		pMeshRenderer->SetMaterial(0, matM16A1Receiver);
 		pMeshRenderer->SetMaterial(1, matM16A1Furniture);
 
-		pPrimaryWeapon->m_transform.SetParent(&pMainCamera->m_transform);
-
 		{
 			GameObjectHandle hMagazine = CreateGameObject(L"PW Magazine");
 			GameObject* pPWMagazine = hMagazine.ToPtr();
+			pPWMagazine->m_transform.SetParent(&pPrimaryWeapon->m_transform);
+
 			pPWMagazine->m_transform.SetPosition(XMVectorSet(0.0, -0.032f, 0.068f, 0.0f));
 			ComponentHandle<MeshRenderer> hMeshRenderer = pPWMagazine->AddComponent<MeshRenderer>();
 			MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
@@ -1547,8 +1584,6 @@ void Warehouse::OnLoadScene()
 			pMeshRenderer->SetMesh(meshSTANAG30Rds);
 			// 재질 설정
 			pMeshRenderer->SetMaterial(0, matSTANAG30Rds);
-
-			pPWMagazine->m_transform.SetParent(&pPrimaryWeapon->m_transform);
 		}
 	}
 
@@ -1558,6 +1593,8 @@ void Warehouse::OnLoadScene()
 		pScriptFPSMovement->m_hWeapons[1] = hSecondaryWeapon;		// 2번 슬롯
 
 		GameObject* pSecondaryWeapon = hSecondaryWeapon.ToPtr();
+		pSecondaryWeapon->m_transform.SetParent(&pMainCamera->m_transform);
+
 		pSecondaryWeapon->SetActive(false);	// 안보이게 비활성화 상태로 초기화
 		pSecondaryWeapon->m_transform.SetPosition(XMVectorSet(0.1f, -0.14f, 0.28f, 0.0f));
 		ComponentHandle<MeshRenderer> hMeshRenderer = pSecondaryWeapon->AddComponent<MeshRenderer>();
@@ -1573,11 +1610,11 @@ void Warehouse::OnLoadScene()
 		matM9A1->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M9A1\\Textures\\M9A1_Normal.png");
 		pMeshRenderer->SetMaterial(0, matM9A1);
 
-		pSecondaryWeapon->m_transform.SetParent(&pMainCamera->m_transform);
-
 		{
 			GameObjectHandle hWeaponLight = CreateGameObject(L"Weapon Light");
 			GameObject* pWeaponLight = hWeaponLight.ToPtr();
+			pWeaponLight->m_transform.SetParent(&pSecondaryWeapon->m_transform);
+
 			pWeaponLight->m_transform.SetPosition(XMVectorSet(0.0f, -0.004f, 0.028f, 0.0f));
 			ComponentHandle<MeshRenderer> hMeshRenderer = pWeaponLight->AddComponent<MeshRenderer>();
 			MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
@@ -1590,8 +1627,6 @@ void Warehouse::OnLoadScene()
 			XMStoreFloat4A(&matX300U->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 4.0f));
 			matX300U->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\X300U\\Textures\\Body_Black_albedo.jpg");
 			pMeshRenderer->SetMaterial(0, matX300U);
-
-			pWeaponLight->m_transform.SetParent(&pSecondaryWeapon->m_transform);
 		}
 	}
 
@@ -1601,6 +1636,8 @@ void Warehouse::OnLoadScene()
 		pScriptFPSMovement->m_hWeapons[2] = hPrimaryWeapon;		// 3번 슬롯
 
 		GameObject* pPrimaryWeapon = hPrimaryWeapon.ToPtr();
+		pPrimaryWeapon->m_transform.SetParent(&pMainCamera->m_transform);
+
 		pPrimaryWeapon->SetActive(false);	// 안보이게 비활성화 상태로 초기화
 		pPrimaryWeapon->m_transform.SetPosition(XMVectorSet(0.1f, -0.18f, 0.2f, 0.0f));
 		ComponentHandle<MeshRenderer> hMeshRenderer = pPrimaryWeapon->AddComponent<MeshRenderer>();
@@ -1610,29 +1647,32 @@ void Warehouse::OnLoadScene()
 		pMeshRenderer->SetMesh(meshM4A1);
 		// 재질 설정
 		auto matM4A1Receiver = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matM4A1Receiver->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.25f), 1.0f));
-		XMStoreFloat4A(&matM4A1Receiver->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.25f), 4.0f));
+		XMStoreFloat4A(&matM4A1Receiver->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
+		XMStoreFloat4A(&matM4A1Receiver->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 4.0f));
 		matM4A1Receiver->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M4A1\\Textures\\Receiver_Diffuse.png");
 		matM4A1Receiver->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M4A1\\Textures\\Receiver_Normal.png");
 		auto matM4A1Furniture = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matM4A1Furniture->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 1.0f));
-		XMStoreFloat4A(&matM4A1Furniture->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.25f), 4.0f));
+		XMStoreFloat4A(&matM4A1Furniture->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
+		XMStoreFloat4A(&matM4A1Furniture->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 8.0f));
 		matM4A1Furniture->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M4A1\\Textures\\Furniture_Diffuse.png");
 		matM4A1Furniture->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M4A1\\Textures\\Furniture_Normal.png");
-		auto matKACRearSight = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matKACRearSight->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 1.0f));
-		XMStoreFloat4A(&matKACRearSight->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.25f), 4.0f));
-		matKACRearSight->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M4A1\\Textures\\RearSight_Diffuse.png");
-		matKACRearSight->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M4A1\\Textures\\RearSight_Normal.png");
+		auto matRearSight = ResourceLoader::GetInstance()->CreateMaterial();
+		XMStoreFloat4A(&matRearSight->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
+		XMStoreFloat4A(&matRearSight->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 4.0f));
+		matRearSight->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M4A1\\Textures\\RearSight_Diffuse.png");
+		matRearSight->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M4A1\\Textures\\RearSight_Normal.png");
+
 		pMeshRenderer->SetMaterial(0, matM4A1Receiver);
 		pMeshRenderer->SetMaterial(1, matM4A1Furniture);
-		pMeshRenderer->SetMaterial(2, matKACRearSight);
+		pMeshRenderer->SetMaterial(2, matRearSight);
 
-		pPrimaryWeapon->m_transform.SetParent(&pMainCamera->m_transform);
+		
 
 		{
 			GameObjectHandle hMagazine = CreateGameObject(L"PW Magazine");
 			GameObject* pPWMagazine = hMagazine.ToPtr();
+			pPWMagazine->m_transform.SetParent(&pPrimaryWeapon->m_transform);
+
 			pPWMagazine->m_transform.SetPosition(XMVectorSet(0.0, -0.034f, 0.064f, 0.0f));
 			ComponentHandle<MeshRenderer> hMeshRenderer = pPWMagazine->AddComponent<MeshRenderer>();
 			MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
@@ -1640,8 +1680,6 @@ void Warehouse::OnLoadScene()
 			pMeshRenderer->SetMesh(meshSTANAG30Rds);
 			// 재질 설정
 			pMeshRenderer->SetMaterial(0, matSTANAG30Rds);
-
-			pPWMagazine->m_transform.SetParent(&pPrimaryWeapon->m_transform);
 		}
 	}
 
@@ -1651,8 +1689,10 @@ void Warehouse::OnLoadScene()
 		pScriptFPSMovement->m_hWeapons[3] = hPrimaryWeapon;		// 3번 슬롯
 
 		GameObject* pPrimaryWeapon = hPrimaryWeapon.ToPtr();
+		pPrimaryWeapon->m_transform.SetParent(&pMainCamera->m_transform);
+
 		pPrimaryWeapon->SetActive(false);	// 안보이게 비활성화 상태로 초기화
-		pPrimaryWeapon->m_transform.SetPosition(XMVectorSet(0.1f, -0.205f, 0.14f, 0.0f));
+		pPrimaryWeapon->m_transform.SetPosition(XMVectorSet(0.1f, -0.205f, 0.15f, 0.0f));
 		ComponentHandle<MeshRenderer> hMeshRenderer = pPrimaryWeapon->AddComponent<MeshRenderer>();
 		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 		// 메시 설정
@@ -1660,29 +1700,29 @@ void Warehouse::OnLoadScene()
 		pMeshRenderer->SetMesh(mesh);
 		// 재질 설정
 		auto matReceiver = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matReceiver->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.35f), 1.0f));
-		XMStoreFloat4A(&matReceiver->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 4.0f));
-		matReceiver->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M762\\Textures\\Receiver_Albedo.png");
+		XMStoreFloat4A(&matReceiver->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.5f), 1.0f));
+		XMStoreFloat4A(&matReceiver->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 4.0f));
+		matReceiver->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M762\\Textures\\Receiver_Albedo2.png");
 		matReceiver->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M762\\Textures\\Receiver_Normal.png");
 		auto matFurniture = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matFurniture->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 1.0f));
-		XMStoreFloat4A(&matFurniture->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 2.0f));
+		XMStoreFloat4A(&matFurniture->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
+		XMStoreFloat4A(&matFurniture->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 2.0f));
 		matFurniture->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M762\\Textures\\Furniture_Albedo.png");
 		matFurniture->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M762\\Textures\\Furniture_Normal.png");
 		auto matRail = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matRail->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 1.0f));
-		XMStoreFloat4A(&matRail->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 4.0f));
+		XMStoreFloat4A(&matRail->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
+		XMStoreFloat4A(&matRail->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 4.0f));
 		matRail->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M762\\Textures\\Rail_Albedo.png");
 		matRail->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M762\\Textures\\Rail_Normal.png");
 		
 		pMeshRenderer->SetMaterial(0, matReceiver);
 		pMeshRenderer->SetMaterial(1, matFurniture);
 		pMeshRenderer->SetMaterial(2, matRail);
-
-		pPrimaryWeapon->m_transform.SetParent(&pMainCamera->m_transform);
 		{
 			GameObjectHandle hMagazine = CreateGameObject(L"PW Magazine");
 			GameObject* pPWMagazine = hMagazine.ToPtr();
+			pPWMagazine->m_transform.SetParent(&pPrimaryWeapon->m_transform);
+
 			pPWMagazine->m_transform.SetPosition(XMVectorSet(0.0, 0.0f, 0.169f, 0.0f));
 			ComponentHandle<MeshRenderer> hMeshRenderer = pPWMagazine->AddComponent<MeshRenderer>();
 			MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
@@ -1699,8 +1739,6 @@ void Warehouse::OnLoadScene()
 			XMStoreFloat4A(&matMagazine->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.05f), 1.0f));
 			XMStoreFloat4A(&matMagazine->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 4.0f));
 			pMeshRenderer->SetMaterial(0, matMagazine);
-
-			pPWMagazine->m_transform.SetParent(&pPrimaryWeapon->m_transform);
 		}
 	}
 

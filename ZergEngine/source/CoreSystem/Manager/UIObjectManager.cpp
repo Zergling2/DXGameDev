@@ -69,7 +69,7 @@ void UIObjectManager::Deploy(IUIObject* pUIObject)
 {
 	pUIObject->OffFlag(UIOBJECT_FLAG::PENDING);	// 중요!
 
-	if (pUIObject->m_transform.m_pParentTransform == nullptr)
+	if (pUIObject->m_transform.GetParent() == nullptr)
 		this->AddToRootArray(pUIObject);
 
 	pUIObject->IsActive() ? this->DeployToActiveGroup(pUIObject) : this->DeployToInactiveGroup(pUIObject);
@@ -87,6 +87,13 @@ void UIObjectManager::RequestDestroy(IUIObject* pUIObject)
 
 IUIObject* UIObjectManager::ToPtr(uint32_t tableIndex, uint64_t id) const
 {
+	// ※ 비동기 씬 로드 지원 시 고려해야 할 사항
+	// 가변 길이 테이블을 지원하려면 ToPtr에서 락을 걸어야 한다.
+	// (비동기 로드 씬으로 인해서 ToPtr 도중에 핸들 테이블의 주소가 바뀌어버릴 수 있으므로.)
+	// 고정 길이 테이블을 사용하면 락을 걸지 않아도 되나, 런타임에 오브젝트의 개수가 제한된다는 점이 아쉬워진다.
+
+	// 현재는 Thread unsafe 상태.
+
 	assert(tableIndex < UIObjectManager::GetInstance()->m_handleTable.size());
 
 	IUIObject* pUIObject = UIObjectManager::GetInstance()->m_handleTable[tableIndex];
@@ -190,7 +197,8 @@ void UIObjectManager::MoveToInactiveGroup(IUIObject* pUIObject)
 
 void UIObjectManager::AddToRootArray(IUIObject* pUIObject)
 {
-	assert(pUIObject->m_transform.m_pParentTransform == nullptr);
+	assert(pUIObject->m_transform.GetParent() == nullptr);
+	assert(pUIObject->IsRoot() == false);
 
 	m_roots.push_back(pUIObject);
 	pUIObject->OnFlag(UIOBJECT_FLAG::REAL_ROOT);	// 투입 시 REAL_ROOT 플래그를 켠다.
@@ -231,8 +239,9 @@ void UIObjectManager::RemoveFromRootArray(IUIObject* pUIObject)
 	/*
 	대부분 UI 구성 시 루트 오브젝트의 개수는 적으므로 루트 포인터들을 선형 구조로 저장 및 검색한다.
 	*/
-
+	assert(pUIObject->m_transform.GetParent() == nullptr);
 	assert(m_roots.size() > 0);
+	assert(pUIObject->IsRoot() == true);
 
 #if defined (DEBUG) || (_DEBUG)
 	bool find = false;
@@ -302,7 +311,7 @@ void UIObjectManager::RemoveDestroyedUIObjects()
 		
 		// Step 1. Transform 자식 부모 연결 제거
 		RectTransform* pTransform = &pUIObject->m_transform;
-		RectTransform* pParentTransform = pTransform->m_pParentTransform;
+		RectTransform* pParentTransform = pTransform->GetParent();
 		if (pParentTransform != nullptr)
 		{
 #if defined(DEBUG) || defined(_DEBUG)
@@ -327,17 +336,23 @@ void UIObjectManager::RemoveDestroyedUIObjects()
 
 		for (RectTransform* pChildTransform : pTransform->m_children)
 		{
-			assert(pChildTransform->m_pParentTransform == pTransform);	// 자신과의 연결 확인
+			assert(pChildTransform->m_pParent == pTransform);	// 자신과의 연결 확인
 
+			// [중요!]
+			// 파괴가 부모 자식 계층 구조대로 진행되지 않으므로 댕글링 포인터가 생기지 않게 유의해야 한다.
+			// 
+			// 자식들이 delete될 자신의 댕글링 포인터를 갖고 있지 않도록 m_pParent를 nullptr로 설정해준다.
+			// 그런데 루트 오브젝트들은 파괴될 때 RootGroup내에서 포인터가 제거되어야 하는데, 이렇게 자식의 m_pParent를 nullptr로 설정하면
+			// RootGroup에서 제거되어야 하는 '루트 객체'였는지를 'm_pParent == nullptr'로는 판단할 수 없게 된다.
+			//
+			// 이 문제는 런타임이 객체를 Deploy하며 만약 루트 객체인 경우 UIOBJECT_FLAG::REAL_ROOT 플래그를 표시하여 이 문제를 해결한다.
+			// SetParent 등으로 루트가 아니었던 오브젝트가 루트로 되는 경우 혹은 그 반대의 경우에 REAL_ROOT 플래그 역시 알맞게 업데이트된다.
 
-			// 중요 포인트
-			pChildTransform->m_pParentTransform = nullptr;	// 밑에서 곧 delete되는 자신을 접근(Step 1에서 접근함)하는 것을 방지 (잠재적 댕글링 포인터 제거)
-			// 이로 인해서 객체 파괴 시에는 루트 오브젝트였는지 판별(RootGroup에서 포인터 제거해야 함)을 할 때 부모 Transform 포인터로
-			// 판단할 수 없다. 따라서 진짜 루트 노드였는지를 체크해놓기 위해 UIOBJECT_FLAG열거형으로 REAL_ROOT라는 플래그를 사용한다.
+			pChildTransform->m_pParent = nullptr;	// 중요
 		}
 		// pTransform->m_children.clear();	// 객체 delete시 자동 소멸
 
-		if (pUIObject->IsRoot())
+		if (pUIObject->IsRoot())	// REAL_ROOT 플래그 체크
 			this->RemoveFromRootArray(pUIObject);
 
 		this->RemoveFromGroup(pUIObject);
@@ -380,7 +395,7 @@ void UIObjectManager::SetActive(IUIObject* pUIObject, bool active)
 bool UIObjectManager::SetParent(RectTransform* pTransform, RectTransform* pNewParentTransform)
 {
 	IUIObject* pUIObject = pTransform->m_pUIObject;
-	RectTransform* pOldParentTransform = pTransform->m_pParentTransform;
+	RectTransform* pOldParentTransform = pTransform->GetParent();
 
 	if (pUIObject->IsOnTheDestroyQueue())
 		return false;
@@ -426,7 +441,7 @@ bool UIObjectManager::SetParent(RectTransform* pTransform, RectTransform* pNewPa
 		assert(find == true);	// 자식으로 존재했었어야 함
 	}
 
-	// 만약 부모가 nullptr이 아니라면
+	// 만약 새 부모가 nullptr이 아니라면
 	if (pNewParentTransform != nullptr)
 	{
 		// 부모의 자식 목록을 업데이트
@@ -437,8 +452,8 @@ bool UIObjectManager::SetParent(RectTransform* pTransform, RectTransform* pNewPa
 			pTransform->m_pUIObject->SetActive(false);
 	}
 
-	// 부모 포인터를 새로운 부모로 업데이트
-	pTransform->m_pParentTransform = pNewParentTransform;
+	// 멤버 부모 포인터 업데이트
+	pTransform->m_pParent = pNewParentTransform;
 
 	// 로딩 중이 아닌 오브젝트는 Root 그룹에서 존재할지 여부를 업데이트해야함.
 	if (!pUIObject->IsPending())

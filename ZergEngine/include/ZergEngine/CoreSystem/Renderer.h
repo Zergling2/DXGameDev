@@ -13,6 +13,7 @@
 #include <ZergEngine\CoreSystem\Effect\DrawScreenRatioQuadWithTextureEffect.h>
 #include <ZergEngine\CoreSystem\Effect\DrawScreenRatioQuadWithMSTextureEffect.h>
 #include <ZergEngine\CoreSystem\Effect\Shaded2DQuadEffect.h>
+#include <ZergEngine\CoreSystem\Effect\CheckboxEffect.h>
 #include <ZergEngine\CoreSystem\Effect\ImageEffect.h>
 #include <vector>
 
@@ -28,6 +29,7 @@ namespace ze
 	class Button;
 	class InputField;
 	class SliderControl;
+	class Checkbox;
 	class IUIObject;
 
 	class Renderer
@@ -65,6 +67,7 @@ namespace ze
 		void RenderButton(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColorBrush* pBrush, const Button* pButton);
 		void RenderInputField(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColorBrush* pBrush, const InputField* pInputField);
 		void RenderSliderControl(const SliderControl* pSliderControl);
+		void RenderCheckbox(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColorBrush* pBrush, const Checkbox* pCheckbox);
 	private:
 		static Renderer* s_pInstance;
 
@@ -82,6 +85,7 @@ namespace ze
 		ID3D11BlendState* m_pBSAlphaBlend;
 		ID3D11BlendState* m_pBSNoColorWrite;
 		ID3D11Buffer* m_pVBShaded2DQuad;
+		ID3D11Buffer* m_pVBCheckbox;
 
 		EffectDeviceContext m_effectImmediateContext;
 
@@ -103,6 +107,7 @@ namespace ze
 		DrawScreenRatioQuadWithTextureEffect m_drawScreenQuadTex;
 		DrawScreenRatioQuadWithMSTextureEffect m_drawScreenQuadMSTex;
 		Shaded2DQuadEffect m_shaded2DQuadEffect;
+		CheckboxEffect m_checkboxEffect;
 		ImageEffect m_imageEffect;
 		std::wstring m_asteriskStr;
 		std::vector<std::pair<const Billboard*, float>> m_billboardRenderQueue;

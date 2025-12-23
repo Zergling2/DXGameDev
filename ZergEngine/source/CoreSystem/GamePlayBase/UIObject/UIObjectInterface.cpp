@@ -98,9 +98,11 @@ UIColor::UIColor(FXMVECTOR color)
 	XMStoreFloat4(&m_color, color);
 }
 
+constexpr uint32_t DEFAULT_FONT_SIZE = 11;
+
 UIText::UIText()
 	: m_text()
-	, m_tf(L"", DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 12)
+	, m_tf(L"", DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, DEFAULT_FONT_SIZE)
 	, m_textAlignment((DWRITE_TEXT_ALIGNMENT_LEADING))
 	, m_paragraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR)
 	, m_spDWriteTextFormatWrapper(GraphicDevice::GetInstance()->GetDWriteTextFormatWrapper(m_tf))
@@ -109,7 +111,7 @@ UIText::UIText()
 
 UIText::UIText(std::wstring text)
 	: m_text(std::move(text))
-	, m_tf(L"", DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 12)
+	, m_tf(L"", DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, DEFAULT_FONT_SIZE)
 	, m_textAlignment((DWRITE_TEXT_ALIGNMENT_LEADING))
 	, m_paragraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR)
 	, m_spDWriteTextFormatWrapper(GraphicDevice::GetInstance()->GetDWriteTextFormatWrapper(m_tf))

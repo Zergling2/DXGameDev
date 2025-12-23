@@ -31,3 +31,4 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Text.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\InputField.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\SliderControl.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Checkbox.h>

@@ -31,15 +31,7 @@ namespace ze
 		friend class Renderer;
 		friend class ISizeUIObject;
 	public:
-		RectTransform(IUIObject* pUIObject)
-			: m_pUIObject(pUIObject)
-			, m_pParentTransform(nullptr)
-			, m_children()
-			, m_position(0.0f, 0.0f)
-			, m_ha(HorizontalAnchor::Center)
-			, m_va(VerticalAnchor::VCenter)
-		{
-		}
+		RectTransform(IUIObject* pUIObject);
 		RectTransform(const RectTransform&) = delete;
 		RectTransform(RectTransform&&) = delete;
 		~RectTransform() = default;
@@ -56,8 +48,8 @@ namespace ze
 		void SetPosition(const XMFLOAT2& position) { m_position = position; }
 		void SetPosition(const XMFLOAT2A& position) { m_position = position; }
 
-		// 부모로 설정할 오브젝트의 Transform을 인수로 전달받습니다.
-		bool SetParent(RectTransform* pTransform);
+		RectTransform* GetParent() const { return m_pParent; }
+		bool SetParent(RectTransform* pTransform);	// 부모로 설정할 오브젝트의 Transform을 인수로 전달받습니다.
 		bool IsDescendantOf(RectTransform* pTransform) const;
 
 		// UIObjectHandle GetChild(uint32_t index);
@@ -67,7 +59,7 @@ namespace ze
 		void GetWinCoordPosition(XMFLOAT2* pOut) const;
 	private:
 		IUIObject* m_pUIObject;
-		RectTransform* m_pParentTransform;
+		RectTransform* m_pParent;
 		std::vector<RectTransform*> m_children;
 	public:
 		XMFLOAT2 m_position;

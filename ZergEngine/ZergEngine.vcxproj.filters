@@ -351,6 +351,12 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\Text.h">
       <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
     </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\CheckboxEffect.h">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\Checkbox.h">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\CoreSystem\Time.cpp">
@@ -614,6 +620,12 @@
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\Text.cpp">
       <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
     </ClCompile>
+    <ClCompile Include="source\CoreSystem\Effect\CheckboxEffect.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\Checkbox.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="source\CoreSystem\ShaderCode\ShaderCommon.hlsli">
@@ -727,6 +739,9 @@
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
     <FxCompile Include="source\CoreSystem\ShaderCode\PSLitPNTT.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
+    </FxCompile>
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsCheckbox.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
   </ItemGroup>

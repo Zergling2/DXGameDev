@@ -96,14 +96,14 @@ namespace ze
 		void SetPositionY(FLOAT y) { m_position.y = y; }
 		void SetPositionZ(FLOAT z) { m_position.z = z; }
 
-
-		bool SetParent(Transform* pTransform);
+		Transform* GetParent() const { return m_pParent; }
+		bool SetParent(Transform* pTransform);	// 부모로 설정할 오브젝트의 Transform을 인수로 전달받습니다.
 		bool IsDescendantOf(Transform* pTransform) const;
 
 		GameObjectHandle GetChild(uint32_t index);
 	private:
 		GameObject* m_pGameObject;
-		Transform* m_pParentTransform;
+		Transform* m_pParent;
 		std::vector<Transform*> m_children;
 
 		XMFLOAT3A m_scale;

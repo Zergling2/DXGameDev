@@ -12,6 +12,8 @@ namespace ze
 	constexpr uint16_t MAX_CAMERA_COUNT = 4;
 	constexpr uint8_t MAX_BONE_COUNT = 96;
 	constexpr float BOUNDING_BOX_MIN_EXTENT = 0.005f;
+	constexpr uint32_t SHADED_2DQUAD_VERTEX_COUNT = 30;
+	constexpr uint32_t CHECKBOX_VERTEX_COUNT = 66;
 
 	enum class RasterizerMode
 	{
@@ -83,6 +85,7 @@ namespace ze
 		ToHcsScreenRatioQuad,
 		ToHcs2DQuad,
 		ToHcsShaded2DQuad,
+		ToHcsCheckbox,
 		// PerspectiveShadowMap,
 		// 收收收收收收收收收收收收收收收收收收收收收收
 		COUNT
@@ -166,6 +169,7 @@ namespace ze
 		PositionNormalTangentTexCoordSkinned,
 		TerrainPatchCtrlPt,
 		Shaded2DQuad,
+		Checkbox,
 		// 收收收收收收收收收收收收收收收收收收收收收收
 		COUNT,
 		UNKNOWN
