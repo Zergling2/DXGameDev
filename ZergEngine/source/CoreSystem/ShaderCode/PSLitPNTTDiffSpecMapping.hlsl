@@ -1,7 +1,7 @@
 #include "Lighting.hlsli"
 
 // [Sampler State]
-// ss_common
+// g_ssCommon
 
 // [Constant Buffer]
 cbuffer Cb0 : register(b0)
@@ -65,8 +65,8 @@ PSOutput main(PSInputPNTTFragment input)
     float4 diffuseMtl = cb_material.mtl.diffuse;
     float4 specularMtl = cb_material.mtl.specular;
     
-    diffuseMtl *= tex2d_diffuseMap.Sample(ss_common, input.texCoord);
-    specularMtl *= tex2d_specularMap.Sample(ss_common, input.texCoord).r;
+    diffuseMtl *= tex2d_diffuseMap.Sample(g_ssCommon, input.texCoord);
+    specularMtl *= tex2d_specularMap.Sample(g_ssCommon, input.texCoord).r;
     
     float4 diffuseColor = diffuseMtl * (diffuseLight + ambientLight);
     float4 specularColor = specularMtl * specularLight;

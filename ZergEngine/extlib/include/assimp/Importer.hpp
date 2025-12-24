@@ -466,7 +466,7 @@ public:
             const char *pHint = "");
 
     // -------------------------------------------------------------------
-    /** Apply post-processing to an already-imported scene.
+    /** Bind post-processing to an already-imported scene.
      *
      *  This is strictly equivalent to calling #ReadFile() with the same
      *  flags. However, you can use this separate function to inspect

@@ -1,7 +1,7 @@
 #include "Lighting.hlsli"
 
 // [Sampler State]
-// ss_common
+// g_ssCommon
 
 // [Constant Buffer]
 cbuffer Cb0 : register(b0)

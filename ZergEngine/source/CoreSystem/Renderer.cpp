@@ -59,7 +59,7 @@ Renderer::Renderer()
 	, m_pBSOpaque(nullptr)
 	, m_pBSAlphaBlend(nullptr)
 	, m_pBSNoColorWrite(nullptr)
-	, m_pVBShaded2DQuad(nullptr)
+	, m_pVBPNTTQuad(nullptr)
 	, m_pVBCheckbox(nullptr)
 	, m_effectImmediateContext()
 	, m_pAnimFinalTransformIdentity(nullptr)
@@ -76,7 +76,7 @@ Renderer::Renderer()
 	, m_billboardEffect()
 	, m_drawScreenQuadTex()
 	, m_drawScreenQuadMSTex()
-	, m_shaded2DQuadEffect()
+	, m_shadedEdgeQuadEffect()
 	, m_checkboxEffect()
 	, m_imageEffect()
 	, m_asteriskStr(L"********************************")	// L'*' x 32
@@ -132,8 +132,9 @@ void Renderer::Init()
 	m_pBSOpaque = pGraphicDevice->GetBSComInterface(BlendStateType::Opaque);
 	m_pBSAlphaBlend = pGraphicDevice->GetBSComInterface(BlendStateType::AlphaBlend);
 	m_pBSNoColorWrite = pGraphicDevice->GetBSComInterface(BlendStateType::NoColorWrite);
-	m_pVBShaded2DQuad = pGraphicDevice->GetVBShaded2DQuad();	// Read only vertex buffer
+	m_pVBPNTTQuad = pGraphicDevice->GetVBPNTTQuad();
 	m_pVBCheckbox = pGraphicDevice->GetVBCheckbox();
+
 
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ INITIALIZE EFFECTS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	// m_basicEffectP.Init();
@@ -148,7 +149,7 @@ void Renderer::Init()
 	m_billboardEffect.Init();
 	m_drawScreenQuadTex.Init();
 	m_drawScreenQuadMSTex.Init();
-	m_shaded2DQuadEffect.Init();
+	m_shadedEdgeQuadEffect.Init();
 	m_checkboxEffect.Init();
 	m_imageEffect.Init();
 
@@ -172,7 +173,7 @@ void Renderer::UnInit()
 	m_billboardEffect.Release();
 	m_drawScreenQuadTex.Release();
 	m_drawScreenQuadMSTex.Release();
-	m_shaded2DQuadEffect.Release();
+	m_shadedEdgeQuadEffect.Release();
 	m_checkboxEffect.Release();
 	m_imageEffect.Release();
 }
@@ -628,9 +629,8 @@ void Renderer::RenderFrame()
 			);
 			m_drawScreenQuadMSTex.SetTexture(pCamera->GetColorBufferSRVComInterface());
 
-			m_effectImmediateContext.Apply(&m_drawScreenQuadMSTex);
-
-			m_effectImmediateContext.Draw(4, 0);
+			m_effectImmediateContext.Bind(&m_drawScreenQuadMSTex);
+			m_effectImmediateContext.Draw(TRIANGLESTRIP_QUAD_VERTEX_COUNT, 0);
 		}
 		else
 		{
@@ -642,9 +642,8 @@ void Renderer::RenderFrame()
 			);
 			m_drawScreenQuadTex.SetTexture(pCamera->GetColorBufferSRVComInterface());
 
-			m_effectImmediateContext.Apply(&m_drawScreenQuadTex);
-
-			m_effectImmediateContext.Draw(4, 0);
+			m_effectImmediateContext.Bind(&m_drawScreenQuadTex);
+			m_effectImmediateContext.Draw(TRIANGLESTRIP_QUAD_VERTEX_COUNT, 0);
 		}
 	}
 
@@ -673,7 +672,7 @@ void Renderer::RenderFrame()
 			2.0f / static_cast<float>(GraphicDevice::GetInstance()->GetSwapChainDesc().BufferDesc.Width),
 			2.0f / static_cast<float>(GraphicDevice::GetInstance()->GetSwapChainDesc().BufferDesc.Height)
 		);
-		m_shaded2DQuadEffect.SetScreenToNDCSpaceRatio(screenToNDCSpaceRatio);
+		m_shadedEdgeQuadEffect.SetScreenToNDCSpaceRatio(screenToNDCSpaceRatio);
 		m_checkboxEffect.SetScreenToNDCSpaceRatio(screenToNDCSpaceRatio);
 		m_imageEffect.SetScreenToNDCSpaceRatio(screenToNDCSpaceRatio);
 		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -767,7 +766,7 @@ void XM_CALLCONV Renderer::RenderVFPositionMesh(const MeshRenderer* pMeshRendere
 	m_effectImmediateContext.IASetIndexBuffer(pMesh->GetIBComInterface(), DXGI_FORMAT_R32_UINT, 0);
 
 	// 서브셋 순회 시 변경되는 사항이 없으므로 루프 밖에서 Apply 한 번만 호출
-	m_effectImmediateContext.Apply(&m_basicEffectP);
+	m_effectImmediateContext.Bind(&m_basicEffectP);
 
 	// 서브셋들 순회하며 렌더링
 	for (const MeshSubset& subset : pMesh->m_subsets)
@@ -799,7 +798,7 @@ void XM_CALLCONV Renderer::RenderVFPositionColorMesh(const MeshRenderer* pMeshRe
 	m_effectImmediateContext.IASetIndexBuffer(pMesh->GetIBComInterface(), DXGI_FORMAT_R32_UINT, 0);
 
 	// 서브셋 순회 시 변경되는 사항이 없으므로 루프 밖에서 Apply 한 번만 호출
-	m_effectImmediateContext.Apply(&m_basicEffectPC);
+	m_effectImmediateContext.Bind(&m_basicEffectPC);
 
 	// 서브셋들 순회하며 렌더링
 	for (const MeshSubset& subset : pMesh->m_subsets)
@@ -848,7 +847,7 @@ void XM_CALLCONV Renderer::RenderVFPositionNormalMesh(const MeshRenderer* pMeshR
 			m_basicEffectPN.UseMaterial(false);
 		}
 
-		m_effectImmediateContext.Apply(&m_basicEffectPN);
+		m_effectImmediateContext.Bind(&m_basicEffectPN);
 
 		// 드로우
 		m_effectImmediateContext.DrawIndexed(currentSubset.GetIndexCount(), currentSubset.GetStartIndexLocation(), 0);
@@ -888,7 +887,7 @@ void XM_CALLCONV Renderer::RenderVFPositionTexCoordMesh(const MeshRenderer* pMes
 		else
 			m_basicEffectPT.SetTexture(nullptr);
 
-		m_effectImmediateContext.Apply(&m_basicEffectPT);
+		m_effectImmediateContext.Bind(&m_basicEffectPT);
 
 		// 드로우
 		m_effectImmediateContext.DrawIndexed(currentSubset.GetIndexCount(), currentSubset.GetStartIndexLocation(), 0);
@@ -936,7 +935,7 @@ void XM_CALLCONV Renderer::RenderVFPositionNormalTexCoordMesh(const MeshRenderer
 			m_basicEffectPNT.UseMaterial(false);
 		}
 
-		m_effectImmediateContext.Apply(&m_basicEffectPNT);
+		m_effectImmediateContext.Bind(&m_basicEffectPNT);
 
 		// 드로우
 		m_effectImmediateContext.DrawIndexed(currentSubset.GetIndexCount(), currentSubset.GetStartIndexLocation(), 0);
@@ -972,7 +971,7 @@ void XM_CALLCONV Renderer::RenderPNTTMesh(const MeshRenderer* pMeshRenderer, FXM
 		const Material* pMaterial = pMeshRenderer->GetMaterialPtr(subsetIndex);
 		m_basicEffectPNTT.SetMaterial(pMaterial);
 
-		m_effectImmediateContext.Apply(&m_basicEffectPNTT);
+		m_effectImmediateContext.Bind(&m_basicEffectPNTT);
 
 		// 드로우
 		m_effectImmediateContext.DrawIndexed(currentSubset.GetIndexCount(), currentSubset.GetStartIndexLocation(), 0);
@@ -1028,7 +1027,7 @@ void XM_CALLCONV Renderer::RenderPNTTSkinnedMesh(const SkinnedMeshRenderer* pSki
 		const Material* pMaterial = pSkinnedMeshRenderer->GetMaterialPtr(subsetIndex);
 		m_basicEffectPNTTSkinned.SetMaterial(pMaterial);
 
-		m_effectImmediateContext.Apply(&m_basicEffectPNTTSkinned);
+		m_effectImmediateContext.Bind(&m_basicEffectPNTTSkinned);
 
 		// 드로우
 		m_effectImmediateContext.DrawIndexed(currentSubset.GetIndexCount(), currentSubset.GetStartIndexLocation(), 0);
@@ -1055,7 +1054,7 @@ void Renderer::RenderTerrain(const Terrain* pTerrain)
 	// 인덱스 버퍼 설정
 	m_effectImmediateContext.IASetIndexBuffer(pTerrain->GetPatchControlPointIndexBufferComInterface(), DXGI_FORMAT_R32_UINT, 0);
 
-	m_effectImmediateContext.Apply(&m_terrainEffect);
+	m_effectImmediateContext.Bind(&m_terrainEffect);
 	m_effectImmediateContext.DrawIndexed(pTerrain->GetPatchControlPointIndexCount(), 0, 0);
 }
 
@@ -1065,7 +1064,7 @@ void Renderer::RenderSkybox(ID3D11ShaderResourceView* pSkyboxCubeMapSRV)
 
 	m_skyboxEffect.SetSkybox(pSkyboxCubeMapSRV);
 
-	m_effectImmediateContext.Apply(&m_skyboxEffect);
+	m_effectImmediateContext.Bind(&m_skyboxEffect);
 
 	// 드로우
 	// 셰이더 지역변수 정점들 사용 (총 36개)
@@ -1074,11 +1073,19 @@ void Renderer::RenderSkybox(ID3D11ShaderResourceView* pSkyboxCubeMapSRV)
 
 void Renderer::RenderBillboard(const Billboard* pBillboard)
 {
+	ID3D11Buffer* vbs[] = { m_pVBPNTTQuad };
+	UINT strides[] = { sizeof(VFPositionNormalTangentTexCoord) };
+	UINT offsets[] = { 0 };
+
+	m_effectImmediateContext.IASetVertexBuffers(0, 1, vbs, strides, offsets);
+
 	m_billboardEffect.SetWorldMatrix(pBillboard->GetWorldMatrixCache());
+	m_billboardEffect.SetUVScale(pBillboard->GetUVScaleX(), pBillboard->GetUVScaleY());
+	m_billboardEffect.SetUVOffset(pBillboard->GetUVOffsetX(), pBillboard->GetUVOffsetY());
 	m_billboardEffect.SetMaterial(pBillboard->GetMaterialPtr());
 
-	m_effectImmediateContext.Apply(&m_billboardEffect);
-	m_effectImmediateContext.Draw(4, 0);
+	m_effectImmediateContext.Bind(&m_billboardEffect);
+	m_effectImmediateContext.Draw(TRIANGLESTRIP_QUAD_VERTEX_COUNT, 0);
 }
 
 void Renderer::RenderPanel(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColorBrush* pBrush, const Panel* pPanel)
@@ -1117,14 +1124,22 @@ void Renderer::RenderPanel(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColorB
 
 void Renderer::RenderImage(const Image* pImage)
 {
+	ID3D11Buffer* vbs[] = { m_pVBPNTTQuad };
+	UINT strides[] = { sizeof(VFPositionNormalTangentTexCoord) };
+	UINT offsets[] = { 0 };
+
+	m_effectImmediateContext.IASetVertexBuffers(0, 1, vbs, strides, offsets);
+
 	XMFLOAT2 hcsp;
 	pImage->m_transform.GetHCSPosition(&hcsp);
-	m_imageEffect.SetHCSPosition(hcsp);
+	m_imageEffect.SetViewSpacePosition(hcsp);
 	m_imageEffect.SetSize(pImage->GetSizeX(), pImage->GetSizeY());
+	m_imageEffect.SetUVScale(pImage->GetUVScaleX(), pImage->GetUVScaleY());
+	m_imageEffect.SetUVOffset(pImage->GetUVOffsetX(), pImage->GetUVOffsetY());
 	m_imageEffect.SetImageTexture(pImage->GetTexture());
 
-	m_effectImmediateContext.Apply(&m_imageEffect);
-	m_effectImmediateContext.Draw(4, 0);
+	m_effectImmediateContext.Bind(&m_imageEffect);
+	m_effectImmediateContext.Draw(TRIANGLESTRIP_QUAD_VERTEX_COUNT, 0);
 }
 
 void Renderer::RenderText(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColorBrush* pBrush, const Text* pText)
@@ -1162,25 +1177,26 @@ void Renderer::RenderText(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColorBr
 void Renderer::RenderButton(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColorBrush* pBrush, const Button* pButton)
 {
 	// 1. 버튼 프레임 렌더링
-	ID3D11Buffer* vbs[] = { m_pVBShaded2DQuad };
-	UINT strides[] = { sizeof(VFShaded2DQuad) };
+	ID3D11Buffer* vbs[] = { m_pVBPNTTQuad };
+	UINT strides[] = { sizeof(VFPositionNormalTangentTexCoord) };
 	UINT offsets[] = { 0 };
 
 	m_effectImmediateContext.IASetVertexBuffers(0, 1, vbs, strides, offsets);
 
-	if (pButton->IsPressed())
-		m_shaded2DQuadEffect.SetColorWeightIndex(SHADED_2DQUAD_COLOR_WEIGHT_INDEX_CONCAVE);
-	else
-		m_shaded2DQuadEffect.SetColorWeightIndex(SHADED_2DQUAD_COLOR_WEIGHT_INDEX_CONVEX);
-
-	m_shaded2DQuadEffect.SetColor(pButton->GetButtonColorVector());
 	XMFLOAT2 hcsp;
 	pButton->m_transform.GetHCSPosition(&hcsp);
-	m_shaded2DQuadEffect.SetHCSPosition(hcsp);
-	m_shaded2DQuadEffect.SetSize(pButton->GetSizeX(), pButton->GetSizeY());
+	m_shadedEdgeQuadEffect.SetViewSpacePosition(hcsp);
+	m_shadedEdgeQuadEffect.SetSize(pButton->GetSizeX(), pButton->GetSizeY());
 
-	m_effectImmediateContext.Apply(&m_shaded2DQuadEffect);
-	m_effectImmediateContext.Draw(SHADED_2DQUAD_VERTEX_COUNT, 0);
+	if (pButton->IsPressed())
+		m_shadedEdgeQuadEffect.SetColorWeight(-0.5f, +0.5f);
+	else
+		m_shadedEdgeQuadEffect.SetColorWeight(+0.5f, -0.5f);
+
+	m_shadedEdgeQuadEffect.SetColor(pButton->GetButtonColorVector());
+
+	m_effectImmediateContext.Bind(&m_shadedEdgeQuadEffect);
+	m_effectImmediateContext.Draw(TRIANGLESTRIP_QUAD_VERTEX_COUNT, 0);
 
 	// 2. 버튼 텍스트 렌더링
 	UINT32 textLength = static_cast<UINT32>(pButton->GetText().length());
@@ -1219,21 +1235,22 @@ void Renderer::RenderInputField(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidC
 	const InputFieldShape ifs = pInputField->GetShape();
 	if (ifs == InputFieldShape::ClientEdge)
 	{
-		ID3D11Buffer* vbs[] = { m_pVBShaded2DQuad };
-		UINT strides[] = { sizeof(VFShaded2DQuad) };
+		ID3D11Buffer* vbs[] = { m_pVBPNTTQuad };
+		UINT strides[] = { sizeof(VFPositionNormalTangentTexCoord) };
 		UINT offsets[] = { 0 };
 
 		m_effectImmediateContext.IASetVertexBuffers(0, 1, vbs, strides, offsets);
 
-		m_shaded2DQuadEffect.SetColorWeightIndex(SHADED_2DQUAD_COLOR_WEIGHT_INDEX_CONCAVE);
-		m_shaded2DQuadEffect.SetColor(pInputField->GetBkColorVector());
 		XMFLOAT2 hcsp;
 		pInputField->m_transform.GetHCSPosition(&hcsp);
-		m_shaded2DQuadEffect.SetHCSPosition(hcsp);
-		m_shaded2DQuadEffect.SetSize(pInputField->GetSizeX(), pInputField->GetSizeY());
+		m_shadedEdgeQuadEffect.SetViewSpacePosition(hcsp);
+		m_shadedEdgeQuadEffect.SetSize(pInputField->GetSizeX(), pInputField->GetSizeY());
 
-		m_effectImmediateContext.Apply(&m_shaded2DQuadEffect);
-		m_effectImmediateContext.Draw(SHADED_2DQUAD_VERTEX_COUNT, 0);
+		m_shadedEdgeQuadEffect.SetColorWeight(-0.5f, +0.5f);	// concave input field
+		m_shadedEdgeQuadEffect.SetColor(pInputField->GetBkColorVector());
+
+		m_effectImmediateContext.Bind(&m_shadedEdgeQuadEffect);
+		m_effectImmediateContext.Draw(TRIANGLESTRIP_QUAD_VERTEX_COUNT, 0);
 	}
 
 	XMFLOAT2 wcp;
@@ -1313,27 +1330,28 @@ void Renderer::RenderInputField(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidC
 void Renderer::RenderSliderControl(const SliderControl* pSliderControl)
 {
 	// 공통사항 설정
-	ID3D11Buffer* vbs[] = { m_pVBShaded2DQuad };
-	UINT strides[] = { sizeof(VFShaded2DQuad) };
+	ID3D11Buffer* vbs[] = { m_pVBPNTTQuad };
+	UINT strides[] = { sizeof(VFPositionNormalTangentTexCoord) };
 	UINT offsets[] = { 0 };
 
 	m_effectImmediateContext.IASetVertexBuffers(0, 1, vbs, strides, offsets);
 
-	// Track 렌더링
+
+	// 파츠별 렌더링
+	// Track
 	XMFLOAT2 hcsp;
 	pSliderControl->m_transform.GetHCSPosition(&hcsp);
-	m_shaded2DQuadEffect.SetHCSPosition(hcsp);
-
-	m_shaded2DQuadEffect.SetColorWeightIndex(SHADED_2DQUAD_COLOR_WEIGHT_INDEX_CONCAVE);
-	m_shaded2DQuadEffect.SetColor(pSliderControl->GetTrackColorVector());
-
+	m_shadedEdgeQuadEffect.SetViewSpacePosition(hcsp);
 	if (pSliderControl->GetSliderControlType() == SliderControlType::Horizontal)
-		m_shaded2DQuadEffect.SetSize(pSliderControl->GetTrackLength(), pSliderControl->GetTrackThickness());
+		m_shadedEdgeQuadEffect.SetSize(pSliderControl->GetTrackLength(), pSliderControl->GetTrackThickness());
 	else
-		m_shaded2DQuadEffect.SetSize(pSliderControl->GetTrackThickness(), pSliderControl->GetTrackLength());
+		m_shadedEdgeQuadEffect.SetSize(pSliderControl->GetTrackThickness(), pSliderControl->GetTrackLength());
 
-	m_effectImmediateContext.Apply(&m_shaded2DQuadEffect);
-	m_effectImmediateContext.Draw(SHADED_2DQUAD_VERTEX_COUNT, 0);
+	m_shadedEdgeQuadEffect.SetColorWeight(-0.5f, +0.5f);	// concave track
+	m_shadedEdgeQuadEffect.SetColor(pSliderControl->GetTrackColorVector());
+
+	m_effectImmediateContext.Bind(&m_shadedEdgeQuadEffect);
+	m_effectImmediateContext.Draw(TRIANGLESTRIP_QUAD_VERTEX_COUNT, 0);
 
 	// Thumb 렌더링
 	XMFLOAT2 thumbHcsp;
@@ -1341,15 +1359,14 @@ void Renderer::RenderSliderControl(const SliderControl* pSliderControl)
 	pSliderControl->ComputeHCSCoordThumbOffset(&thumbOffset);
 	thumbHcsp.x = hcsp.x + thumbOffset.x;
 	thumbHcsp.y = hcsp.y + thumbOffset.y;
-	m_shaded2DQuadEffect.SetHCSPosition(thumbHcsp);
+	m_shadedEdgeQuadEffect.SetViewSpacePosition(thumbHcsp);
+	m_shadedEdgeQuadEffect.SetSize(pSliderControl->GetThumbSizeX(), pSliderControl->GetThumbSizeY());
 
-	m_shaded2DQuadEffect.SetColorWeightIndex(SHADED_2DQUAD_COLOR_WEIGHT_INDEX_CONVEX);
-	m_shaded2DQuadEffect.SetColor(pSliderControl->GetThumbColorVector());
+	m_shadedEdgeQuadEffect.SetColorWeight(+0.5f, -0.5f);	// convex thumb
+	m_shadedEdgeQuadEffect.SetColor(pSliderControl->GetThumbColorVector());
 
-	m_shaded2DQuadEffect.SetSize(pSliderControl->GetThumbSizeX(), pSliderControl->GetThumbSizeY());
-
-	m_effectImmediateContext.Apply(&m_shaded2DQuadEffect);
-	m_effectImmediateContext.Draw(SHADED_2DQUAD_VERTEX_COUNT, 0);
+	m_effectImmediateContext.Bind(&m_shadedEdgeQuadEffect);
+	m_effectImmediateContext.Draw(TRIANGLESTRIP_QUAD_VERTEX_COUNT, 0);
 }
 
 void Renderer::RenderCheckbox(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColorBrush* pBrush, const Checkbox* pCheckbox)
@@ -1369,10 +1386,10 @@ void Renderer::RenderCheckbox(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidCol
 
 	XMFLOAT2 hcsp;
 	pCheckbox->m_transform.GetHCSPosition(&hcsp);
-	m_checkboxEffect.SetHCSPosition(hcsp);
+	m_checkboxEffect.SetViewSpacePosition(hcsp);
 	m_checkboxEffect.SetSize(pCheckbox->GetCheckboxSizeX(), pCheckbox->GetCheckboxSizeY());
 
-	m_effectImmediateContext.Apply(&m_checkboxEffect);
+	m_effectImmediateContext.Bind(&m_checkboxEffect);
 	m_effectImmediateContext.Draw(CHECKBOX_VERTEX_COUNT, 0);
 
 	// 텍스트 렌더링

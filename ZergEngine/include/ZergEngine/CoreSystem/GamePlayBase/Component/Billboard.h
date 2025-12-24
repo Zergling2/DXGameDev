@@ -39,10 +39,20 @@ namespace ze
 		void SetBillboardType(BillboardType type) { m_billboardType = type; }
 		// BillboardProjection GetBillboardProjection() const { return m_billboardProj; }
 		// void SetBillboardProjection(BillboardProjection proj) const { m_billboardProj = proj; }
-		float GetBillboardQuadWidth() const { return m_quadWidth; }
-		void SetBillboardQuadWidth(float width) { m_quadWidth = width; }
-		float GetBillboardQuadHeight() const { return m_quadHeight; }
-		void SetBillboardQuadHeight(float height) { m_quadHeight = height; }
+
+		const XMFLOAT2& GetUVScale() const { return m_uvScale; }
+		FLOAT GetUVScaleX() const { return m_uvScale.x; }
+		FLOAT GetUVScaleY() const { return m_uvScale.y; }
+		void SetUVScale(FLOAT sx, FLOAT sy) { m_uvScale.x = sx; m_uvScale.y = sy; }
+		const XMFLOAT2& GetUVOffset() const { return m_uvOffset; }
+		FLOAT GetUVOffsetX() const { return m_uvOffset.x; }
+		FLOAT GetUVOffsetY() const { return m_uvOffset.y; }
+		void SetUVOffset(FLOAT x, FLOAT y) { m_uvOffset.x = x; m_uvOffset.y = y; }
+
+		float GetBillboardQuadWidth() const { return m_quadSize.x; }
+		void SetBillboardQuadWidth(float width) { m_quadSize.x = width; }
+		float GetBillboardQuadHeight() const { return m_quadSize.y; }
+		void SetBillboardQuadHeight(float height) { m_quadSize.y = height; }
 		const Material* GetMaterialPtr() const { return m_spMaterial.get(); }
 		void SetMaterial(std::shared_ptr<Material> spMaterial) { m_spMaterial = std::move(spMaterial); }
 	private:
@@ -53,8 +63,9 @@ namespace ze
 	private:
 		BillboardType m_billboardType;
 		// BillboardProjection m_billboardProj;
-		float m_quadWidth;
-		float m_quadHeight;
+		XMFLOAT2 m_uvScale;
+		XMFLOAT2 m_uvOffset;
+		XMFLOAT2 m_quadSize;
 		std::shared_ptr<Material> m_spMaterial;
 
 		XMFLOAT4X4A m_worldMatrixCache;	// Cache!

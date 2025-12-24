@@ -148,9 +148,13 @@ hlslstruct CbPerBillboard
 {
     XMFLOAT4X4A w;
     XMFLOAT4X4A wInvTr;
+    
+    // 텍스쳐 팔레트용 정보
+	XMFLOAT2 uvOffset; // UV 위치 오프셋
+	XMFLOAT2 uvScale; // UV 스케일
 };
 
-hlslstruct CbPerUIRender
+hlslstruct Cb2DRender
 {
     XMFLOAT2 toNDCSpaceRatio;
 };
@@ -159,8 +163,18 @@ hlslstruct CbPer2DQuad
 {
 	XMFLOAT2 size;
 	XMFLOAT2 position;
+
+	// 텍스쳐 팔레트용 정보
+	XMFLOAT2 uvOffset; // UV 위치 오프셋
+	XMFLOAT2 uvScale; // UV 스케일
+
+    XMFLOAT4A color;
+	
+	FLOAT ltColorWeight; // 음영 쿼드 렌더링 시 사용
+	FLOAT rbColorWeight; // 음영 쿼드 렌더링 시 사용
 };
 
+/*
 hlslstruct CbPerShaded2DQuad
 {
     XMFLOAT4A color;
@@ -170,6 +184,7 @@ hlslstruct CbPerShaded2DQuad
     
 	uint32_t colorWeightIndex; // [0] Convex shade [1] Concave shade
 };
+*/
 
 hlslstruct CbPerCheckbox
 {
@@ -184,6 +199,14 @@ hlslstruct Aabb
 {
 	float3 center;
 	float3 extent;
+};
+
+struct VSInputVertexPNTT
+{
+    float3 posL : POSITION;
+    float3 normalL : NORMAL; // Local space normal vector
+    float3 tangentL : TANGENT; // Local space tangent vector
+    float2 texCoord : TEXCOORD;
 };
 
 struct HSInputTerrainPatchCtrlPt
@@ -207,31 +230,31 @@ struct DSInputTerrainPatchCtrlPt
 
 struct PSInputPFragment
 {
-    float4 posH : SV_Position;
+    float4 pos : SV_Position;
 };
 
 struct PSInputPCFragment
 {
-    float4 posH : SV_Position;
+    float4 pos : SV_Position;
     float4 color : COLOR;
 };
 
 struct PSInputPNFragment
 {
-    float4 posH : SV_Position;
+    float4 pos : SV_Position;
     float3 posW : POSITION;         // World space position
     float3 normalW : NORMAL;
 };
 
 struct PSInputPTFragment
 {
-    float4 posH : SV_Position;
+    float4 pos : SV_Position;
     float2 texCoord : TEXCOORD;
 };
 
 struct PSInputPNTFragment
 {
-    float4 posH : SV_Position;
+    float4 pos : SV_Position;
     float3 posW : POSITION;		// World space position
     float3 normalW : NORMAL;
     float2 texCoord : TEXCOORD;
@@ -239,7 +262,7 @@ struct PSInputPNTFragment
 
 struct PSInputPNTTFragment
 {
-    float4 posH : SV_Position;
+    float4 pos : SV_Position;
     float3 posW : POSITION;		// World space position
     float3 normalW : NORMAL;
     float3 tangentW : TANGENT;
@@ -248,7 +271,7 @@ struct PSInputPNTTFragment
 
 struct PSInputPNTTShadowFragment
 {
-    float4 posH : SV_Position;
+    float4 pos : SV_Position;
     float3 posW : POSITION; // World space position
     float3 normalW : NORMAL;
     float3 tangentW : TANGENT;
@@ -258,17 +281,24 @@ struct PSInputPNTTShadowFragment
 
 struct PSInputSkyboxFragment
 {
-    float4 posH : SV_Position;
+    float4 pos : SV_Position;
     float3 texCoord : TEXCOORD;
 };
 
 struct PSInputTerrainFragment
 {
-    float4 posH : SV_POSITION;
+    float4 pos : SV_Position;
     float3 posW : POSITION;
     float3 normalW : NORMAL;
     float2 texCoord : TEXCOORD0;
     float2 tiledTexCoord : TEXCOORD1;
+};
+
+struct PSInputShadedEdgeQuadFragment
+{
+    float4 pos : SV_Position;
+    float2 posV : POSITION;		// View space position
+    float2 texCoord : TEXCOORD;
 };
 
 struct PSOutput
@@ -279,8 +309,9 @@ struct PSOutput
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Sampler States
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-SamplerState ss_common : register(s0);
-SamplerState ss_normalMap : register(s1);
-SamplerState ss_bilinear : register(s2);
+// Global Samplers
+SamplerState g_ssCommon : register(s0);
+SamplerState g_ssNormalMap : register(s1);
+SamplerState g_ssBilinear : register(s2);
 
 #endif

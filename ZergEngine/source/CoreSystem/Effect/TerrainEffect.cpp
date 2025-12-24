@@ -47,7 +47,7 @@ void XM_CALLCONV TerrainEffect::SetAmbientLight(FXMVECTOR ambientLight) noexcept
 {
 	XMStoreFloat3(&m_cbPerFrameCache.ambientLight, ambientLight);
 
-	m_dirtyFlag |= DirtyFlag::CBPerFrame;
+	m_dirtyFlag |= DirtyFlag::UpdateCBPerFrame;
 }
 
 void TerrainEffect::SetDirectionalLight(const DirectionalLightData* pLights, uint32_t count) noexcept
@@ -58,7 +58,7 @@ void TerrainEffect::SetDirectionalLight(const DirectionalLightData* pLights, uin
 	for (uint32_t i = 0; i < count; ++i)
 		m_cbPerFrameCache.dl[i] = pLights[i];
 
-	m_dirtyFlag |= DirtyFlag::CBPerFrame;
+	m_dirtyFlag |= DirtyFlag::UpdateCBPerFrame;
 }
 
 void TerrainEffect::SetPointLight(const PointLightData* pLights, uint32_t count) noexcept
@@ -69,7 +69,7 @@ void TerrainEffect::SetPointLight(const PointLightData* pLights, uint32_t count)
 	for (uint32_t i = 0; i < count; ++i)
 		m_cbPerFrameCache.pl[i] = pLights[i];
 
-	m_dirtyFlag |= DirtyFlag::CBPerFrame;
+	m_dirtyFlag |= DirtyFlag::UpdateCBPerFrame;
 }
 
 void TerrainEffect::SetSpotLight(const SpotLightData* pLights, uint32_t count) noexcept
@@ -80,7 +80,7 @@ void TerrainEffect::SetSpotLight(const SpotLightData* pLights, uint32_t count) n
 	for (uint32_t i = 0; i < count; ++i)
 		m_cbPerFrameCache.sl[i] = pLights[i];
 
-	m_dirtyFlag |= DirtyFlag::CBPerFrame;
+	m_dirtyFlag |= DirtyFlag::UpdateCBPerFrame;
 }
 
 void TerrainEffect::SetCamera(const Camera* pCamera) noexcept
@@ -99,21 +99,21 @@ void TerrainEffect::SetCamera(const Camera* pCamera) noexcept
 
 	XMStoreFloat4x4A(&m_cbPerCameraCache.vp, ConvertToHLSLMatrix(vp));
 
-	m_dirtyFlag |= DirtyFlag::CBPerCamera;
+	m_dirtyFlag |= DirtyFlag::UpdateCBPerCamera;
 }
 
 void TerrainEffect::SetMaxHeight(float maxHeight) noexcept
 {
 	m_cbPerTerrainCache.maxHeight = maxHeight;
 
-	m_dirtyFlag |= DirtyFlag::CBPerTerrain;
+	m_dirtyFlag |= DirtyFlag::UpdateCBPerTerrain;
 }
 
 void TerrainEffect::SetTilingScale(float tilingScale) noexcept
 {
 	m_cbPerTerrainCache.tilingScale = tilingScale;
 
-	m_dirtyFlag |= DirtyFlag::CBPerTerrain;
+	m_dirtyFlag |= DirtyFlag::UpdateCBPerTerrain;
 }
 
 void TerrainEffect::SetFieldMap(ID3D11ShaderResourceView* pHeightMapSRV, ID3D11ShaderResourceView* pNormalMapSRV) noexcept
@@ -157,7 +157,7 @@ void TerrainEffect::SetLayerTexture(
 		m_cbPerTerrainCache.layerFlag &= ~static_cast<uint32_t>(TerrainLayerFlag::UseNormalLayer);
 	*/
 
-	m_dirtyFlag |= DirtyFlag::CBPerTerrain;
+	m_dirtyFlag |= DirtyFlag::UpdateCBPerTerrain;
 }
 
 void TerrainEffect::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
@@ -177,14 +177,23 @@ void TerrainEffect::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
 		case DirtyFlag::Shader:
 			ApplyShader(pDeviceContext);
 			break;
-		case DirtyFlag::CBPerFrame:
+		case DirtyFlag::ApplyCBPerFrame:
 			ApplyPerFrameConstantBuffer(pDeviceContext);
 			break;
-		case DirtyFlag::CBPerCamera:
+		case DirtyFlag::ApplyCBPerCamera:
 			ApplyPerCameraConstantBuffer(pDeviceContext);
 			break;
-		case DirtyFlag::CBPerTerrain:
+		case DirtyFlag::ApplyCBPerTerrain:
 			ApplyPerTerrainConstantBuffer(pDeviceContext);
+			break;
+		case DirtyFlag::UpdateCBPerFrame:
+			m_cbPerFrame.Update(pDeviceContext, &m_cbPerFrameCache);
+			break;
+		case DirtyFlag::UpdateCBPerCamera:
+			m_cbPerCamera.Update(pDeviceContext, &m_cbPerCameraCache);
+			break;
+		case DirtyFlag::UpdateCBPerTerrain:
+			m_cbPerTerrain.Update(pDeviceContext, &m_cbPerTerrainCache);
 			break;
 		default:
 			assert(false);
@@ -213,9 +222,16 @@ void TerrainEffect::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
 	pDeviceContext->PSSetShaderResources(0, _countof(psSRVs), psSRVs);
 }
 
-void TerrainEffect::KickedOutOfDeviceContext() noexcept
+void TerrainEffect::OnUnbindFromDeviceContext() noexcept
 {
 	m_dirtyFlag = DirtyFlag::ALL;
+
+	const DWORD except =
+		DirtyFlag::UpdateCBPerFrame |
+		DirtyFlag::UpdateCBPerCamera |
+		DirtyFlag::UpdateCBPerTerrain;
+
+	m_dirtyFlag = m_dirtyFlag & ~except;
 }
 
 void TerrainEffect::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
@@ -229,7 +245,6 @@ void TerrainEffect::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
 
 void TerrainEffect::ApplyPerFrameConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	m_cbPerFrame.Update(pDeviceContext, &m_cbPerFrameCache);
 	ID3D11Buffer* const cbs[] = { m_cbPerFrame.GetComInterface() };
 
 	// PerFrame 상수버퍼 사용 셰이더		 Start Slot		Num Buffers
@@ -238,7 +253,6 @@ void TerrainEffect::ApplyPerFrameConstantBuffer(ID3D11DeviceContext* pDeviceCont
 
 void TerrainEffect::ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	m_cbPerCamera.Update(pDeviceContext, &m_cbPerCameraCache);
 	ID3D11Buffer* const cbs[] = { m_cbPerCamera.GetComInterface() };
 
 	// PerCamera 상수버퍼 사용 셰이더		 Start Slot		Num Buffers
@@ -249,7 +263,6 @@ void TerrainEffect::ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceCon
 
 void TerrainEffect::ApplyPerTerrainConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	m_cbPerTerrain.Update(pDeviceContext, &m_cbPerTerrainCache);
 	ID3D11Buffer* const cbs[] = { m_cbPerTerrain.GetComInterface() };
 
 	// PerTerrain 상수버퍼 사용 셰이더	 Start Slot		Num Buffers

@@ -13,14 +13,18 @@ namespace ze
 	private:
 		enum DirtyFlag : DWORD
 		{
-			PrimitiveTopology	= 1 << 0,
-			InputLayout			= 1 << 1,
-			Shader				= 1 << 2,
-			PixelShader			= 1 << 3,
-			CBPerFrame			= 1 << 4,
-			CBPerCamera			= 1 << 5,
-			CBPerBillboard		= 1 << 6,
-			CBMaterial			= 1 << 7,
+			PrimitiveTopology		= 1 << 0,
+			InputLayout				= 1 << 1,
+			Shader					= 1 << 2,
+			PixelShader				= 1 << 3,
+			ApplyCBPerFrame			= 1 << 4,
+			ApplyCBPerCamera		= 1 << 5,
+			ApplyCBPerBillboard		= 1 << 6,
+			ApplyCBMaterial			= 1 << 7,
+			UpdateCBPerFrame		= 1 << 8,
+			UpdateCBPerCamera		= 1 << 9,
+			UpdateCBPerBillboard	= 1 << 10,
+			UpdateCBMaterial		= 1 << 11,
 
 			COUNT,
 
@@ -29,6 +33,7 @@ namespace ze
 	public:
 		BillboardEffect() noexcept
 			: m_dirtyFlag(ALL)
+			, m_pInputLayout(nullptr)
 			, m_pVS(nullptr)
 			, m_pCurrPS(nullptr)
 			, m_pPSUnlitPNTTNoMtl(nullptr)
@@ -60,11 +65,13 @@ namespace ze
 		void SetCamera(const Camera* pCamera) noexcept;
 
 		void XM_CALLCONV SetWorldMatrix(FXMMATRIX w) noexcept;
+		void SetUVScale(FLOAT sx, FLOAT sy) noexcept;
+		void SetUVOffset(FLOAT x, FLOAT y) noexcept;
 
 		void SetMaterial(const Material* pMaterial);	// nullable
 	private:
 		virtual void ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept override;
-		virtual void KickedOutOfDeviceContext() noexcept override;
+		virtual void OnUnbindFromDeviceContext() noexcept override;
 
 		void ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept;
 		void ApplyPixelShader(ID3D11DeviceContext* pDeviceContext) noexcept;
@@ -76,6 +83,7 @@ namespace ze
 	private:
 		DWORD m_dirtyFlag;
 
+		ID3D11InputLayout* m_pInputLayout;
 		ID3D11VertexShader* m_pVS;
 		ID3D11PixelShader* m_pCurrPS;
 		ID3D11PixelShader* m_pPSUnlitPNTTNoMtl;	// 재질이 없는 경우 PS

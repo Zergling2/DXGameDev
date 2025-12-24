@@ -22,23 +22,22 @@ void EffectDeviceContext::AttachDeviceContext(ID3D11DeviceContext* pDeviceContex
 	m_pDeviceContext = pDeviceContext;
 }
 
-void EffectDeviceContext::Apply(IEffect* pEffect) noexcept
+void EffectDeviceContext::Bind(IEffect* pEffect) noexcept
 {
-	assert(pEffect != nullptr);
 	assert(m_pDeviceContext != nullptr);
 
 	IEffect* pOldEffect = m_pCurrentEffect;
 	m_pCurrentEffect = pEffect;
 
 	if (pOldEffect != pEffect)
-		pOldEffect->KickedOutOfDeviceContext();
+		pOldEffect->OnUnbindFromDeviceContext();
 
 	m_pCurrentEffect->ApplyImpl(m_pDeviceContext);
 }
 
 void EffectDeviceContext::ClearState() noexcept
 {
-	m_pCurrentEffect->KickedOutOfDeviceContext();
+	m_pCurrentEffect->OnUnbindFromDeviceContext();
 
 	m_pDeviceContext->ClearState();
 	m_pCurrentEffect = &g_de;

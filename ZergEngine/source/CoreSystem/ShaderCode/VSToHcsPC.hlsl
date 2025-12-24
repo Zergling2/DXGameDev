@@ -26,7 +26,8 @@ PSInputPCFragment main(VSInputVertexPC input)
 {
     PSInputPCFragment output;
     
-    output.posH = mul(float4(input.posL, 1.0f), mul(cb_perMesh.w, cb_perCamera.vp));
+    float4 posH = mul(float4(input.posL, 1.0f), mul(cb_perMesh.w, cb_perCamera.vp));
+    output.pos = posH;
     output.color = input.color;
     
     return output;

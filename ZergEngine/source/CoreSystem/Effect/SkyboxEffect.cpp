@@ -48,7 +48,7 @@ void SkyboxEffect::SetCamera(const Camera* pCamera) noexcept
 
 	XMStoreFloat4x4A(&m_cbPerCameraCache.vp, ConvertToHLSLMatrix(vp));
 
-	m_dirtyFlag |= DirtyFlag::CBPerCamera;
+	m_dirtyFlag |= DirtyFlag::UpdateCBPerCamera;
 }
 
 void SkyboxEffect::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
@@ -68,8 +68,11 @@ void SkyboxEffect::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
 		case DirtyFlag::Shader:
 			ApplyShader(pDeviceContext);
 			break;
-		case DirtyFlag::CBPerCamera:
+		case DirtyFlag::ApplyCBPerCamera:
 			ApplyPerCameraConstantBuffer(pDeviceContext);
+			break;
+		case DirtyFlag::UpdateCBPerCamera:
+			m_cbPerCamera.Update(pDeviceContext, &m_cbPerCameraCache);
 			break;
 		default:
 			assert(false);
@@ -89,11 +92,16 @@ void SkyboxEffect::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
 	ClearTextureSRVArray();
 }
 
-void SkyboxEffect::KickedOutOfDeviceContext() noexcept
+void SkyboxEffect::OnUnbindFromDeviceContext() noexcept
 {
 	ClearTextureSRVArray();
 
 	m_dirtyFlag = DirtyFlag::ALL;
+
+	const DWORD except =
+		DirtyFlag::UpdateCBPerCamera;
+
+	m_dirtyFlag = m_dirtyFlag & ~except;
 }
 
 void SkyboxEffect::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
@@ -107,7 +115,6 @@ void SkyboxEffect::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
 
 void SkyboxEffect::ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	m_cbPerCamera.Update(pDeviceContext, &m_cbPerCameraCache);
 	ID3D11Buffer* const cbs[] = { m_cbPerCamera.GetComInterface() };
 
 	// PerCamera 상수버퍼 사용 셰이더

@@ -13,14 +13,18 @@ namespace ze
 	private:
 		enum DirtyFlag : DWORD
 		{
-			PrimitiveTopology			= 1 << 0,
-			InputLayout				= 1 << 1,
-			Shader						= 1 << 2,
-			PixelShader				= 1 << 3,
-			CBPerFrame	= 1 << 4,
-			CBPerCamera	= 1 << 5,
-			CBPerMesh		= 1 << 6,
-			CBMaterial	= 1 << 7,
+			PrimitiveTopology	= 1 << 0,
+			InputLayout			= 1 << 1,
+			Shader				= 1 << 2,
+			PixelShader			= 1 << 3,
+			ApplyCBPerFrame		= 1 << 4,
+			ApplyCBPerCamera	= 1 << 5,
+			ApplyCBPerMesh		= 1 << 6,
+			ApplyCBMaterial		= 1 << 7,
+			UpdateCBPerFrame	= 1 << 8,
+			UpdateCBPerCamera	= 1 << 9,
+			UpdateCBPerMesh		= 1 << 10,
+			UpdateCBMaterial	= 1 << 11,
 
 			COUNT,
 
@@ -64,7 +68,7 @@ namespace ze
 		void SetMaterial(const Material* pMaterial);	// nullable
 	private:
 		virtual void ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept override;
-		virtual void KickedOutOfDeviceContext() noexcept override;
+		virtual void OnUnbindFromDeviceContext() noexcept override;
 
 		void ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept;
 		void ApplyPixelShader(ID3D11DeviceContext* pDeviceContext) noexcept;

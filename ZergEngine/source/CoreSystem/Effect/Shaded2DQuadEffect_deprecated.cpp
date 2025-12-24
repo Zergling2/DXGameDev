@@ -1,4 +1,4 @@
-#include <ZergEngine\CoreSystem\Effect\Shaded2DQuadEffect.h>
+#include <ZergEngine\CoreSystem\Effect\Shaded2DQuadEffect_deprecated.h>
 #include <ZergEngine\CoreSystem\GraphicDevice.h>
 
 using namespace ze;
@@ -20,21 +20,21 @@ void Shaded2DQuadEffect::Init()
 	m_pVertexShader = pGraphicDevice->GetVSComInterface(VertexShaderType::ToHcsShaded2DQuad);
 	m_pPixelShader = pGraphicDevice->GetPSComInterface(PixelShaderType::UnlitPC);
 
-	m_cbPerUIRender.Init(pGraphicDevice->GetDeviceComInterface());
+	m_cb2DRender.Init(pGraphicDevice->GetDeviceComInterface());
 	m_cbPerShaded2DQuad.Init(pGraphicDevice->GetDeviceComInterface());
 }
 
 void Shaded2DQuadEffect::Release()
 {
-	m_cbPerUIRender.Release();
+	m_cb2DRender.Release();
 	m_cbPerShaded2DQuad.Release();
 }
 
 void Shaded2DQuadEffect::SetScreenToNDCSpaceRatio(const XMFLOAT2& ratio) noexcept
 {
-	m_cbPerUIRenderCache.toNDCSpaceRatio = ratio;
+	m_cb2DRenderCache.toNDCSpaceRatio = ratio;
 
-	m_dirtyFlag |= DirtyFlag::CBPerUIRender;
+	m_dirtyFlag |= DirtyFlag::CB2DRender;
 }
 
 void XM_CALLCONV Shaded2DQuadEffect::SetColor(FXMVECTOR color) noexcept
@@ -85,7 +85,7 @@ void Shaded2DQuadEffect::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
 		case DirtyFlag::Shader:
 			ApplyShader(pDeviceContext);
 			break;
-		case DirtyFlag::CBPerUIRender:
+		case DirtyFlag::CB2DRender:
 			ApplyPerUIRenderConstantBuffer(pDeviceContext);
 			break;
 		case DirtyFlag::CBPerShaded2DQuad:
@@ -101,7 +101,7 @@ void Shaded2DQuadEffect::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
 	}
 }
 
-void Shaded2DQuadEffect::KickedOutOfDeviceContext() noexcept
+void Shaded2DQuadEffect::OnUnbindFromDeviceContext() noexcept
 {
 	m_dirtyFlag = DirtyFlag::ALL;
 }
@@ -117,8 +117,8 @@ void Shaded2DQuadEffect::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexce
 
 void Shaded2DQuadEffect::ApplyPerUIRenderConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	m_cbPerUIRender.Update(pDeviceContext, &m_cbPerUIRenderCache);
-	ID3D11Buffer* const cbs[] = { m_cbPerUIRender.GetComInterface() };
+	m_cb2DRender.Update(pDeviceContext, &m_cb2DRenderCache);
+	ID3D11Buffer* const cbs[] = { m_cb2DRender.GetComInterface() };
 
 	// PerUIRender 상수버퍼 사용 셰이더
 	constexpr UINT VS_SLOT = 0;

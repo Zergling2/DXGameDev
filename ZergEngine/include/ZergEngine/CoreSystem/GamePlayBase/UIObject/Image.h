@@ -26,6 +26,15 @@ namespace ze
 		void SetSize(const XMFLOAT2& size) { m_size.SetSize(size); }
 		void XM_CALLCONV SetSize(FXMVECTOR size) { m_size.SetSize(size); }
 
+		const XMFLOAT2& GetUVScale() const { return m_uvScale; }
+		FLOAT GetUVScaleX() const { return m_uvScale.x; }
+		FLOAT GetUVScaleY() const { return m_uvScale.y; }
+		void SetUVScale(FLOAT sx, FLOAT sy) { m_uvScale.x = sx; m_uvScale.y = sy; }
+		const XMFLOAT2& GetUVOffset() const { return m_uvOffset; }
+		FLOAT GetUVOffsetX() const { return m_uvOffset.x; }
+		FLOAT GetUVOffsetY() const { return m_uvOffset.y; }
+		void SetUVOffset(FLOAT x, FLOAT y) { m_uvOffset.x = x; m_uvOffset.y = y; }
+
 		void SetTexture(const Texture2D& texture);
 		Texture2D& GetTexture() { return m_texture; }
 		const Texture2D& GetTexture() const { return m_texture; }
@@ -39,6 +48,8 @@ namespace ze
 		void UpdateToNativeSize();
 	private:
 		UISize m_size;
+		XMFLOAT2 m_uvScale;
+		XMFLOAT2 m_uvOffset;
 		Texture2D m_texture;
 		bool m_nativeSize;
 	};

@@ -1,7 +1,8 @@
 #include "Lighting.hlsli"
 
 // [Sampler State]
-// ss_common
+// g_ssNormalMap
+// g_ssCommon
 
 // [Constant Buffer]
 cbuffer Cb0 : register(b0)
@@ -31,7 +32,7 @@ PSOutput main(PSInputPNTTFragment input)
     // 래스터라이저 보간으로 인해 비정규화 되었을 수 있으므로 노말을 다시 정규화
     float3 normalW = normalize(input.normalW);
     float3 tangentW = input.tangentW - dot(input.tangentW, normalW) * normalW;
-    float3 normalT = tex2d_normalMap.Sample(ss_normalMap, input.texCoord).rgb * 2.0f - 1.0f; // [0, 1] -> [-1, 1]
+    float3 normalT = tex2d_normalMap.Sample(g_ssNormalMap, input.texCoord).rgb * 2.0f - 1.0f; // [0, 1] -> [-1, 1]
     
     normalW = ComputeNormalMapping(normalW, tangentW, normalT);
     
@@ -69,7 +70,7 @@ PSOutput main(PSInputPNTTFragment input)
     float4 diffuseMtl = cb_material.mtl.diffuse;
     float4 specularMtl = cb_material.mtl.specular;
     
-    diffuseMtl *= tex2d_diffuseMap.Sample(ss_common, input.texCoord);
+    diffuseMtl *= tex2d_diffuseMap.Sample(g_ssCommon, input.texCoord);
     
     float4 diffuseColor = diffuseMtl * (diffuseLight + ambientLight);
     float4 specularColor = specularMtl * specularLight;

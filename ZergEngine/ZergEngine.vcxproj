@@ -24,6 +24,7 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BillboardEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\CheckboxEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DrawScreenRatioQuadWithTextureEffect.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\ShadedEdgeQuadEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\Billboard.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\SkinnedMeshRenderer.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\Checkbox.h" />
@@ -46,7 +47,6 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPN.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPNTT.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPT.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\Shaded2DQuadEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\ImageEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DrawScreenRatioQuadWithMSTextureEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DummyEffect.h" />
@@ -127,6 +127,7 @@
     <ClCompile Include="source\CoreSystem\Effect\BillboardEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\CheckboxEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\DrawScreenRatioQuadWithTextureEffect.cpp" />
+    <ClCompile Include="source\CoreSystem\Effect\ShadedEdgeQuadEffect.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\Billboard.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\SkinnedMeshRenderer.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\Checkbox.cpp" />
@@ -140,7 +141,6 @@
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectPN.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectPNTT.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectPT.cpp" />
-    <ClCompile Include="source\CoreSystem\Effect\Shaded2DQuadEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\ImageEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\DrawScreenRatioQuadWithMSTextureEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\DummyEffect.cpp" />
@@ -214,6 +214,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="include\ZergEngine\Common\DirectXTex\DirectXTex.inl" />
+    <None Include="source\CoreSystem\ShaderCode\Math.hlsli" />
     <None Include="source\CoreSystem\ShaderCode\ShaderCommon.hlsli">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
@@ -242,6 +243,16 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Hull</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Hull</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorShadedEdgeQuad.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="source\CoreSystem\ShaderCode\PSLitPNTT.hlsl">
@@ -434,7 +445,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsBillboardQuad.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsPNTTQuadForBillboard.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
@@ -454,17 +465,17 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsShaded2DQuad.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsPNTTQuadForShadedEdgeQuad.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsScreenRatioQuad.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsPNTTQuadForImage.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
@@ -494,7 +505,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcs2DQuad.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsScreenRatioQuad.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>

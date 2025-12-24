@@ -12,7 +12,7 @@
 #include <ZergEngine\CoreSystem\Effect\BillboardEffect.h>
 #include <ZergEngine\CoreSystem\Effect\DrawScreenRatioQuadWithTextureEffect.h>
 #include <ZergEngine\CoreSystem\Effect\DrawScreenRatioQuadWithMSTextureEffect.h>
-#include <ZergEngine\CoreSystem\Effect\Shaded2DQuadEffect.h>
+#include <ZergEngine\CoreSystem\Effect\ShadedEdgeQuadEffect.h>
 #include <ZergEngine\CoreSystem\Effect\CheckboxEffect.h>
 #include <ZergEngine\CoreSystem\Effect\ImageEffect.h>
 #include <vector>
@@ -84,7 +84,7 @@ namespace ze
 		ID3D11BlendState* m_pBSOpaque;
 		ID3D11BlendState* m_pBSAlphaBlend;
 		ID3D11BlendState* m_pBSNoColorWrite;
-		ID3D11Buffer* m_pVBShaded2DQuad;
+		ID3D11Buffer* m_pVBPNTTQuad;
 		ID3D11Buffer* m_pVBCheckbox;
 
 		EffectDeviceContext m_effectImmediateContext;
@@ -106,7 +106,7 @@ namespace ze
 		BillboardEffect m_billboardEffect;
 		DrawScreenRatioQuadWithTextureEffect m_drawScreenQuadTex;
 		DrawScreenRatioQuadWithMSTextureEffect m_drawScreenQuadMSTex;
-		Shaded2DQuadEffect m_shaded2DQuadEffect;
+		ShadedEdgeQuadEffect m_shadedEdgeQuadEffect;
 		CheckboxEffect m_checkboxEffect;
 		ImageEffect m_imageEffect;
 		std::wstring m_asteriskStr;

@@ -15,6 +15,6 @@ namespace ze
 		virtual void Release() override {}
 	private:
 		virtual void ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept override { /* Do Nothing */ }
-		virtual void KickedOutOfDeviceContext() noexcept override { /* Do Nothing */ }
+		virtual void OnUnbindFromDeviceContext() noexcept override { /* Do Nothing */ }
 	};
 }

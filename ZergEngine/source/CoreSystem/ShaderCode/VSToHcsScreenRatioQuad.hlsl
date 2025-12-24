@@ -35,7 +35,7 @@ static const float2 g_texCoords[4] =
     float2(1.0f, 0.0f)  // Right up (Tex coord system)
 };
 
-// Unity viewport origin (ÁÂÇÏ´Ü)
+// Viewport origin (ÁÂÇÏ´Ü)
 static const float2 g_origin = float2(-1.0f, -1.0f);
 
 PSInputPTFragment main(uint vertexId : SV_VertexID)
@@ -58,7 +58,7 @@ PSInputPTFragment main(uint vertexId : SV_VertexID)
     
     float4 ndcPos = float4(vertex, 0.0f, 1.0f); // w = 1.0f, z = 0.0f
     
-    output.posH = ndcPos;
+    output.pos = ndcPos;
     output.texCoord = g_texCoords[vertexId];
     
     return output;

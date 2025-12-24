@@ -2,13 +2,13 @@
 
 /*
 [Constant Buffer]
-CbPerUIRender
+Cb2DRender
 CbPerCheckbox
 */
 
 cbuffer Cb0 : register(b0)
 {
-    CbPerUIRender cb_perUIRender;
+    Cb2DRender cb_2DRender;
 }
 
 cbuffer Cb1 : register(b1)
@@ -38,8 +38,10 @@ PSInputPCFragment main(VSInputCheckboxVertex input)
         float4(cb_perCheckbox.position + input.offset, 0.0f, 1.0f)
     );
     
-    const float2 screenPos = mul(float4(input.position, 0.0f, 1.0f), m).xy;
-    output.posH = float4(screenPos * cb_perUIRender.toNDCSpaceRatio, 0.0f, 1.0f);
+    float3 posL = float3(input.position, 0.0f);
+    float3 posV = mul(float4(posL, 1.0f), m).xyz; // Position (View space)
+    float2 posH = posV.xy * cb_2DRender.toNDCSpaceRatio;
+    output.pos = float4(posH, 0.0f, 1.0f);
     
     const float3 rgb = color[input.colorIndex].rgb + colorWeight.xxx;
     const float a = color[input.colorIndex].a;

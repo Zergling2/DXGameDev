@@ -14,7 +14,7 @@ namespace ze
 			PrimitiveTopology		= 1 << 0,
 			InputLayout				= 1 << 1,
 			Shader					= 1 << 2,
-			CBPerUIRender			= 1 << 3,
+			CB2DRender				= 1 << 3,
 			CBPerShaded2DQuad		= 1 << 4,
 
 			COUNT,
@@ -27,11 +27,10 @@ namespace ze
 			, m_pInputLayout(nullptr)
 			, m_pVertexShader(nullptr)
 			, m_pPixelShader(nullptr)
-			, m_cbPerUIRender()
+			, m_cb2DRender()
 			, m_cbPerShaded2DQuad()
-			, m_cbPerUIRenderCache()
+			, m_cb2DRenderCache()
 			, m_cbPerShaded2DQuadCache()
-			, m_text()
 		{
 		}
 		virtual ~Shaded2DQuadEffect() = default;
@@ -45,10 +44,9 @@ namespace ze
 		void SetColorWeightIndex(uint32_t index) noexcept;
 		void SetSize(FLOAT width, FLOAT height) noexcept;
 		void SetHCSPosition(const XMFLOAT2& pos) noexcept;	// 화면 중앙을 원점으로 하는 NDC 공간으로 변환 직전의 2D 위치 설정
-		void SetText(PCWSTR text) { m_text = text; }
 	private:
 		virtual void ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept override;
-		virtual void KickedOutOfDeviceContext() noexcept override;
+		virtual void OnUnbindFromDeviceContext() noexcept override;
 
 		void ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept;
 		void ApplyPerUIRenderConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
@@ -60,10 +58,9 @@ namespace ze
 		ID3D11VertexShader* m_pVertexShader;
 		ID3D11PixelShader* m_pPixelShader;
 
-		ConstantBuffer<CbPerUIRender> m_cbPerUIRender;
+		ConstantBuffer<Cb2DRender> m_cb2DRender;
 		ConstantBuffer<CbPerShaded2DQuad> m_cbPerShaded2DQuad;
-		CbPerUIRender m_cbPerUIRenderCache;
+		Cb2DRender m_cb2DRenderCache;
 		CbPerShaded2DQuad m_cbPerShaded2DQuadCache;
-		std::wstring m_text;
 	};
 }

@@ -27,11 +27,12 @@ static PCWSTR VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::COUNT)] 
 	L"VSToHcsPNTTSkinned.cso",
 	L"VSTerrainPatchCtrlPt.cso",
 	L"VSToHcsSkybox.cso",
-	L"VSToHcsBillboardQuad.cso",
-	L"VSToHcsScreenRatioQuad.cso",
-	L"VSToHcs2DQuad.cso",
-	L"VSToHcsShaded2DQuad.cso",
-	L"VSToHcsCheckbox.cso"
+	L"VSToHcsPNTTQuadForBillboard.cso",
+	L"VSToHcsPNTTQuadForImage.cso",
+	L"VSToHcsPNTTQuadForShadedEdgeQuad.cso",
+	L"VSToHcsCheckbox.cso",
+	L"VSToHcsScreenRatioQuad.cso"
+	// L"VSToHcsShaded2DQuad.cso",
 };
 static PCWSTR HULL_SHADER_FILES[static_cast<size_t>(HullShaderType::COUNT)] =
 {
@@ -60,7 +61,8 @@ static PCWSTR PIXEL_SHADER_FILES[static_cast<size_t>(PixelShaderType::COUNT)] =
 	L"PSLitPNTTSpecNormMapping.cso",
 	L"PSLitPNTTDiffSpecNormMapping.cso",
 	L"PSSkyboxFragment.cso",
-	L"PSLitTerrainFragment.cso"
+	L"PSLitTerrainFragment.cso",
+	L"PSColorShadedEdgeQuad.cso"
 };
 
 GraphicDevice::GraphicDevice()
@@ -90,8 +92,9 @@ GraphicDevice::GraphicDevice()
 	, m_ss{}
 	, m_dss{}
 	, m_bs{}
-	, m_vbShaded2DQuad()
+	// , m_vbShaded2DQuad()
 	, m_vbCheckbox()
+	, m_vbPNTTQuad()
 	, m_plvMeshVB()
 	, m_plvMeshIB()
 	, m_slvMeshVB()
@@ -536,46 +539,32 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	m_vs[static_cast<size_t>(VertexShaderType::ToHcsSkybox)].Init(pDevice, pByteCode, byteCodeSize);
 	delete[] pByteCode;
 
-	// ToHcsBillboardQuad (No Input Layout required)
+	// ToHcsPNTTQuadForBillboard
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
-	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::ToHcsBillboardQuad)]);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::ToHcsPNTTQuadForBillboard)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
 		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
-	m_vs[static_cast<size_t>(VertexShaderType::ToHcsBillboardQuad)].Init(pDevice, pByteCode, byteCodeSize);
+	m_vs[static_cast<size_t>(VertexShaderType::ToHcsPNTTQuadForBillboard)].Init(pDevice, pByteCode, byteCodeSize);
 	delete[] pByteCode;
+	// ┗━ PNTT Input Layout 사용
 
-	// ToHcsScreenRatioQuad (No Input Layout required)
+	// ToHcsPNTTQuadForImage
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
-	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::ToHcsScreenRatioQuad)]);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::ToHcsPNTTQuadForImage)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
 		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
-	m_vs[static_cast<size_t>(VertexShaderType::ToHcsScreenRatioQuad)].Init(pDevice, pByteCode, byteCodeSize);
-	// No input layout required.
+	m_vs[static_cast<size_t>(VertexShaderType::ToHcsPNTTQuadForImage)].Init(pDevice, pByteCode, byteCodeSize);
 	delete[] pByteCode;
+	// ┗━ PNTT Input Layout 사용
 
-	// ToHcs2DQuad (No Input Layout required)
+	// ToHcsPNTTQuadForShadedEdgeQuad
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
-	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::ToHcs2DQuad)]);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::ToHcsPNTTQuadForShadedEdgeQuad)]);
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
 		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
-	m_vs[static_cast<size_t>(VertexShaderType::ToHcs2DQuad)].Init(pDevice, pByteCode, byteCodeSize);
+	m_vs[static_cast<size_t>(VertexShaderType::ToHcsPNTTQuadForShadedEdgeQuad)].Init(pDevice, pByteCode, byteCodeSize);
 	delete[] pByteCode;
-
-	// ToHcsShaded2DQuad
-	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
-	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::ToHcsShaded2DQuad)]);
-	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
-		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
-	m_vs[static_cast<size_t>(VertexShaderType::ToHcsShaded2DQuad)].Init(pDevice, pByteCode, byteCodeSize);
-	// ┗━ Create compatible Input Layout
-	m_il[static_cast<size_t>(VertexFormatType::Shaded2DQuad)].Init(
-		pDevice,
-		VFShaded2DQuad::GetInputElementDescriptor(),
-		VFShaded2DQuad::GetInputElementCount(),
-		pByteCode,
-		byteCodeSize
-	);
-	delete[] pByteCode;
+	// ┗━ PNTT Input Layout 사용
 
 	// ToHcsCheckbox
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
@@ -592,6 +581,43 @@ void GraphicDevice::CreateShaderAndInputLayout()
 		byteCodeSize
 	);
 	delete[] pByteCode;
+
+
+	
+	// Deprecated
+	// ToHcsScreenRatioQuad (No Input Layout required)
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::ToHcsScreenRatioQuad)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
+	m_vs[static_cast<size_t>(VertexShaderType::ToHcsScreenRatioQuad)].Init(pDevice, pByteCode, byteCodeSize);
+	// No input layout required.
+	delete[] pByteCode;
+
+
+	/*
+	// ToHcsShaded2DQuad
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::ToHcsShaded2DQuad)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
+	m_vs[static_cast<size_t>(VertexShaderType::ToHcsShaded2DQuad)].Init(pDevice, pByteCode, byteCodeSize);
+	// ┗━ Create compatible Input Layout
+	m_il[static_cast<size_t>(VertexFormatType::Shaded2DQuad)].Init(
+		pDevice,
+		VFShaded2DQuad::GetInputElementDescriptor(),
+		VFShaded2DQuad::GetInputElementCount(),
+		pByteCode,
+		byteCodeSize
+	);
+	delete[] pByteCode;
+	*/
+
+
+
+
+
+
 
 
 	// HULL SHADERS
@@ -766,6 +792,14 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
 		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
 	m_ps[static_cast<size_t>(PixelShaderType::LitTerrainFragment)].Init(pDevice, pByteCode, byteCodeSize);
+	delete[] pByteCode;
+
+	// ColorShadedEdgeQuad
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), PIXEL_SHADER_FILES[static_cast<size_t>(PixelShaderType::ColorShadedEdgeQuad)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
+	m_ps[static_cast<size_t>(PixelShaderType::ColorShadedEdgeQuad)].Init(pDevice, pByteCode, byteCodeSize);
 	delete[] pByteCode;
 }
 
@@ -1059,6 +1093,7 @@ bool GraphicDevice::CreateCommonGraphicResources()
 {
 	ID3D11Device* pDevice = this->GetDeviceComInterface();
 
+	/*
 	// UI 렌더링용 음영 2D 사각형 버퍼 생성
 	{
 		constexpr FLOAT SUNLIT_FACE_COLOR_WEIGHT = 0.5f;
@@ -1178,7 +1213,7 @@ bool GraphicDevice::CreateCommonGraphicResources()
 		bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 		bufferDesc.CPUAccessFlags = 0;
 		bufferDesc.MiscFlags = 0;
-		bufferDesc.StructureByteStride = sizeof(VFShaded2DQuad);
+		bufferDesc.StructureByteStride = sizeof(v) / _countof(v);
 
 		D3D11_SUBRESOURCE_DATA subrcData;
 		ZeroMemory(&subrcData, sizeof(subrcData));
@@ -1189,6 +1224,7 @@ bool GraphicDevice::CreateCommonGraphicResources()
 		if (!m_vbShaded2DQuad.Init(pDevice, &bufferDesc, &subrcData))
 			return false;
 	}
+	*/
 
 	// Checkbox용 정점 버퍼 생성
 	{
@@ -1520,7 +1556,7 @@ bool GraphicDevice::CreateCommonGraphicResources()
 		bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 		bufferDesc.CPUAccessFlags = 0;
 		bufferDesc.MiscFlags = 0;
-		bufferDesc.StructureByteStride = sizeof(VFCheckbox);
+		bufferDesc.StructureByteStride = sizeof(v) / _countof(v);
 
 		D3D11_SUBRESOURCE_DATA initialData;
 		ZeroMemory(&initialData, sizeof(initialData));
@@ -1529,6 +1565,52 @@ bool GraphicDevice::CreateCommonGraphicResources()
 		// initialData.SysMemSlicePitch = 0;	// unused
 
 		if (!m_vbCheckbox.Init(pDevice, &bufferDesc, &initialData))
+			return false;
+	}
+
+	// 빌보드 & UI 렌더링용 쿼드 정점 버퍼 생성
+	{
+		constexpr XMFLOAT3A NORMALL(0.0f, 0.0f, 1.0f);
+		constexpr XMFLOAT3A TANGENTL(-1.0f, 0.0f, 0.0f);
+		// const XMFLOAT3A BITANGENTL(0.0f, -1.0f, 0.0f);
+
+		// +Z Forward!
+		// TRIANGLESTRIP QUAD
+		VFPositionNormalTangentTexCoord v[4];
+		v[0].m_position = XMFLOAT3(+0.5f, -0.5f, 0.0f);
+		v[0].m_normal = NORMALL;
+		v[0].m_tangent = TANGENTL;
+		v[0].m_texCoord = XMFLOAT2(0.0f, 1.0f);	// Left bottm (Tex coord system)
+		v[1].m_position = XMFLOAT3(+0.5f, +0.5f, 0.0f);
+		v[1].m_normal = NORMALL;
+		v[1].m_tangent = TANGENTL;
+		v[1].m_texCoord = XMFLOAT2(0.0f, 0.0f);	// Left top (Tex coord system)
+		v[2].m_position = XMFLOAT3(-0.5f, -0.5f, 0.0f);
+		v[2].m_normal = NORMALL;
+		v[2].m_tangent = TANGENTL;
+		v[2].m_texCoord = XMFLOAT2(1.0f, 1.0f);	// Right bottom (Tex coord system)
+		v[3].m_position = XMFLOAT3(-0.5f, +0.5f, 0.0f);
+		v[3].m_normal = NORMALL;
+		v[3].m_tangent = TANGENTL;
+		v[3].m_texCoord = XMFLOAT2(1.0f, 0.0f);	// Right up (Tex coord system)
+
+		// Create a vertex buffer
+		D3D11_BUFFER_DESC bufferDesc;
+		ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+		bufferDesc.ByteWidth = sizeof(v);
+		bufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
+		bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+		bufferDesc.CPUAccessFlags = 0;
+		bufferDesc.MiscFlags = 0;
+		bufferDesc.StructureByteStride = sizeof(v) / _countof(v);
+
+		D3D11_SUBRESOURCE_DATA initialData;
+		ZeroMemory(&initialData, sizeof(initialData));
+		initialData.pSysMem = v;
+		// initialData.SysMemPitch = 0;		// unused
+		// initialData.SysMemSlicePitch = 0;	// unused
+
+		if (!m_vbPNTTQuad.Init(pDevice, &bufferDesc, &initialData))
 			return false;
 	}
 
@@ -1667,8 +1749,9 @@ bool GraphicDevice::CreateCommonGraphicResources()
 
 void GraphicDevice::ReleaseCommonGraphicResources()
 {
-	m_vbShaded2DQuad.Release();
+	// m_vbShaded2DQuad.Release();
 	m_vbCheckbox.Release();
+	m_vbPNTTQuad.Release();
 	m_plvMeshVB.Release();
 	m_plvMeshIB.Release();
 	m_slvMeshVB.Release();

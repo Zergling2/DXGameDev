@@ -1,4 +1,4 @@
-#include <ZergEngine\CoreSystem\Effect\ImageEffect.h>
+#include <ZergEngine\CoreSystem\Effect\ShadedEdgeQuadEffect.h>
 #include <ZergEngine\CoreSystem\GraphicDevice.h>
 #include <ZergEngine\CoreSystem\Resource\Texture.h>
 
@@ -6,37 +6,37 @@ using namespace ze;
 
 // Image Effect
 // VertexShader:
-// - ToHcsPNTTQuadForImage
+// - ToHcsPNTTQuadForShadedEdgeQuad
 // 
 // PixelShader:
-// - UnlitPT1Tex
+// - ColorShadedEdgeQuad
 
-void ImageEffect::Init()
+void ShadedEdgeQuadEffect::Init()
 {
 	m_dirtyFlag = DirtyFlag::ALL;
 
 	m_pInputLayout = GraphicDevice::GetInstance()->GetILComInterface(VertexFormatType::PositionNormalTangentTexCoord);
-	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::ToHcsPNTTQuadForImage);
-	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::UnlitPT1Tex);
+	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::ToHcsPNTTQuadForShadedEdgeQuad);
+	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::ColorShadedEdgeQuad);
 
 	m_cb2DRender.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
 	m_cbPer2DQuad.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
 }
 
-void ImageEffect::Release()
+void ShadedEdgeQuadEffect::Release()
 {
 	m_cb2DRender.Release();
 	m_cbPer2DQuad.Release();
 }
 
-void ImageEffect::SetScreenToNDCSpaceRatio(const XMFLOAT2& ratio) noexcept
+void ShadedEdgeQuadEffect::SetScreenToNDCSpaceRatio(const XMFLOAT2& ratio) noexcept
 {
 	m_cb2DRenderCache.toNDCSpaceRatio = ratio;
 
 	m_dirtyFlag |= DirtyFlag::UpdateCB2DRender;
 }
 
-void ImageEffect::SetSize(FLOAT width, FLOAT height) noexcept
+void ShadedEdgeQuadEffect::SetSize(FLOAT width, FLOAT height) noexcept
 {
 	m_cbPer2DQuadCache.size.x = width;
 	m_cbPer2DQuadCache.size.y = height;
@@ -44,35 +44,29 @@ void ImageEffect::SetSize(FLOAT width, FLOAT height) noexcept
 	m_dirtyFlag |= DirtyFlag::UpdateCBPer2DQuad;
 }
 
-void ImageEffect::SetUVScale(FLOAT sx, FLOAT sy) noexcept
-{
-	m_cbPer2DQuadCache.uvScale.x = sx;
-	m_cbPer2DQuadCache.uvScale.y = sy;
-
-	m_dirtyFlag |= DirtyFlag::UpdateCBPer2DQuad;
-}
-
-void ImageEffect::SetUVOffset(FLOAT x, FLOAT y) noexcept
-{
-	m_cbPer2DQuadCache.uvOffset.x = x;
-	m_cbPer2DQuadCache.uvOffset.y = y;
-
-	m_dirtyFlag |= DirtyFlag::UpdateCBPer2DQuad;
-}
-
-void ImageEffect::SetViewSpacePosition(const XMFLOAT2& pos) noexcept
+void ShadedEdgeQuadEffect::SetViewSpacePosition(const XMFLOAT2& pos) noexcept
 {
 	m_cbPer2DQuadCache.position = pos;
 
 	m_dirtyFlag |= DirtyFlag::UpdateCBPer2DQuad;
 }
 
-void ImageEffect::SetImageTexture(const Texture2D& image) noexcept
+void XM_CALLCONV ShadedEdgeQuadEffect::SetColor(FXMVECTOR color) noexcept
 {
-	m_pTextureSRVArray[0] = image.GetSRVComInterface();
+	XMStoreFloat4A(&m_cbPer2DQuadCache.color, color);
+
+	m_dirtyFlag |= DirtyFlag::UpdateCBPer2DQuad;
 }
 
-void ImageEffect::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
+void ShadedEdgeQuadEffect::SetColorWeight(FLOAT lt, FLOAT rb) noexcept
+{
+	m_cbPer2DQuadCache.ltColorWeight = lt;
+	m_cbPer2DQuadCache.rbColorWeight = rb;
+
+	m_dirtyFlag |= DirtyFlag::UpdateCBPer2DQuad;
+}
+
+void ShadedEdgeQuadEffect::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
 {
 	DWORD index;
 
@@ -109,17 +103,9 @@ void ImageEffect::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
 		// 업데이트된 항목은 dirty flag 끄기
 		m_dirtyFlag &= ~(static_cast<DWORD>(1) << index);
 	}
-
-	// 텍스처 리소스는 항상 재설정 (포인터를 들고 있어봤자 메모리 재사용 등으로 인해 이전 리소스 그대로인지 확신할 수 없음..)
-	/*
-	Texture2D tex2d_image : register(t0);
-	*/
-	pDeviceContext->PSSetShaderResources(0, _countof(m_pTextureSRVArray), m_pTextureSRVArray);
-
-	ClearTextureSRVArray();
 }
 
-void ImageEffect::OnUnbindFromDeviceContext() noexcept
+void ShadedEdgeQuadEffect::OnUnbindFromDeviceContext() noexcept
 {
 	m_dirtyFlag = DirtyFlag::ALL;
 
@@ -130,7 +116,7 @@ void ImageEffect::OnUnbindFromDeviceContext() noexcept
 	m_dirtyFlag = m_dirtyFlag & ~except;
 }
 
-void ImageEffect::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
+void ShadedEdgeQuadEffect::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
 {
 	pDeviceContext->VSSetShader(m_pVertexShader, nullptr, 0);
 	pDeviceContext->HSSetShader(nullptr, nullptr, 0);
@@ -139,7 +125,7 @@ void ImageEffect::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
 	pDeviceContext->PSSetShader(m_pPixelShader, nullptr, 0);
 }
 
-void ImageEffect::Apply2DRenderConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
+void ShadedEdgeQuadEffect::Apply2DRenderConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
 	ID3D11Buffer* const cbs[] = { m_cb2DRender.GetComInterface() };
 
@@ -148,11 +134,13 @@ void ImageEffect::Apply2DRenderConstantBuffer(ID3D11DeviceContext* pDeviceContex
 	pDeviceContext->VSSetConstantBuffers(VS_SLOT, 1, cbs);
 }
 
-void ImageEffect::ApplyPer2DQuadConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
+void ShadedEdgeQuadEffect::ApplyPer2DQuadConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
 	ID3D11Buffer* const cbs[] = { m_cbPer2DQuad.GetComInterface() };
 
 	// Per2DQuad 상수버퍼 사용 셰이더
 	constexpr UINT VS_SLOT = 1;
+	constexpr UINT PS_SLOT = 0;
 	pDeviceContext->VSSetConstantBuffers(VS_SLOT, 1, cbs);
+	pDeviceContext->PSSetConstantBuffers(PS_SLOT, 1, cbs);
 }

@@ -17,7 +17,7 @@ namespace ze
 		void AttachDeviceContext(ID3D11DeviceContext* pDeviceContext) noexcept;
 		ID3D11DeviceContext* GetDeviceContextComInterface() const { return m_pDeviceContext; }
 
-		void Apply(IEffect* pEffect) noexcept;
+		void Bind(IEffect* pEffect) noexcept;
 
 		void ClearState() noexcept;
 		void ClearDepthStencilView(

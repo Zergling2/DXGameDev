@@ -2,7 +2,8 @@
 #include "Lighting.hlsli"
 
 // [Sampler State]
-// ss_bilinear
+// g_ssBilinear
+// g_ssCommon
 
 // [Constant Buffer]
 cbuffer Cb0 : register(b0)
@@ -30,18 +31,18 @@ PSOutput main(PSInputTerrainFragment input)
 {
     PSOutput output;
     
-    float4 blendFactor = tex2d_blendMap.Sample(ss_bilinear, input.texCoord);
+    float4 blendFactor = tex2d_blendMap.Sample(g_ssBilinear, input.texCoord);
     const float blendFactors[4] = { blendFactor.r, blendFactor.g, blendFactor.b, blendFactor.a };
     
     uint i;
     float index = 0.0f;
     
-    float4 terrainMaterialDiffuse = tex2d_diffuseMapLayer.Sample(ss_common, float3(input.tiledTexCoord, index)); // 레이어 0으로 초기화
+    float4 terrainMaterialDiffuse = tex2d_diffuseMapLayer.Sample(g_ssCommon, float3(input.tiledTexCoord, index)); // 레이어 0으로 초기화
     for (i = 1; i < cb_perTerrain.layerArraySize; ++i)  // 나머지 레이어(레이어 1 ~ ) 보간
     {
         index += 1.0f;
 
-        float4 nextTerrainMaterialDiffuse = tex2d_diffuseMapLayer.Sample(ss_common, float3(input.tiledTexCoord, index));
+        float4 nextTerrainMaterialDiffuse = tex2d_diffuseMapLayer.Sample(g_ssCommon, float3(input.tiledTexCoord, index));
         terrainMaterialDiffuse = lerp(terrainMaterialDiffuse, nextTerrainMaterialDiffuse, blendFactors[i - 1]);
     }
     

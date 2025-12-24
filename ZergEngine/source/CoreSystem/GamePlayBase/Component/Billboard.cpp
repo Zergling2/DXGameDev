@@ -7,8 +7,9 @@ using namespace ze;
 Billboard::Billboard() noexcept
 	: IComponent(BillboardManager::GetInstance()->AssignUniqueId())
 	, m_billboardType(BillboardType::CylindricalY)
-	, m_quadWidth(2.0f)
-	, m_quadHeight(2.0f)
+	, m_uvScale(1.0f, 1.0f)
+	, m_uvOffset(0.0f, 0.0f)
+	, m_quadSize(2.0f, 2.0f)
 	, m_spMaterial()
 {
 	XMStoreFloat4x4A(&m_worldMatrixCache, XMMatrixIdentity());

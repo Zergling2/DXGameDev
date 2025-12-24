@@ -12,7 +12,7 @@ namespace ze
 	constexpr uint16_t MAX_CAMERA_COUNT = 4;
 	constexpr uint8_t MAX_BONE_COUNT = 96;
 	constexpr float BOUNDING_BOX_MIN_EXTENT = 0.005f;
-	constexpr uint32_t SHADED_2DQUAD_VERTEX_COUNT = 30;
+	constexpr uint32_t TRIANGLESTRIP_QUAD_VERTEX_COUNT = 4;
 	constexpr uint32_t CHECKBOX_VERTEX_COUNT = 66;
 
 	enum class RasterizerMode
@@ -52,24 +52,6 @@ namespace ze
 		COUNT
 	};
 
-	// enum class VertexShaderType
-	// {
-	// 	TransformSkyboxToHCS,
-	// 	TransformTerrainPatchCtrlPt,
-	// 	TransformPToHCS,
-	// 	TransformPCToHCS,
-	// 	TransformPNToHCS,
-	// 	TransformPTToHCS,
-	// 	TransformPNTToHCS,
-	// 	TransformPNTTToHCS,
-	// 	TransformPNTTSkinnedToHCS,
-	// 	TransformButtonToHCS,
-	// 	TransformUIQuadToHCS,
-	// 	TransformScreenRatioQuad,	// Out: PosH, TexCoord
-	// 	// 收收收收收收收收收收收收收收收收收收收收收收
-	// 	COUNT
-	// };
-
 	enum class VertexShaderType
 	{
 		ToHcsP,
@@ -81,12 +63,12 @@ namespace ze
 		ToHcsPNTTSkinned,
 		TerrainPatchCtrlPt,
 		ToHcsSkybox,
-		ToHcsBillboardQuad,
-		ToHcsScreenRatioQuad,
-		ToHcs2DQuad,
-		ToHcsShaded2DQuad,
+		ToHcsPNTTQuadForBillboard,
+		ToHcsPNTTQuadForImage,
+		ToHcsPNTTQuadForShadedEdgeQuad,
 		ToHcsCheckbox,
-		// PerspectiveShadowMap,
+		ToHcsScreenRatioQuad,
+		// ToHcsShaded2DQuad,
 		// 收收收收收收收收收收收收收收收收收收收收收收
 		COUNT
 	};
@@ -131,6 +113,7 @@ namespace ze
 		LitPNTTDiffSpecNormMapping,
 		SkyboxFragment,
 		LitTerrainFragment,
+		ColorShadedEdgeQuad,
 		// ShadowMapAlphaClipping,
 		// 收收收收收收收收收收收收收收收收收收收收收收
 		COUNT

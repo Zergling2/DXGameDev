@@ -223,30 +223,66 @@ namespace ze
 
 	hlslstruct CbPerBillboard
 	{
+		CbPerBillboard()
+			: uvOffset(0.0f, 0.0f)
+			, uvScale(1.0f, 1.0f)
+		{
+#if defined(DEBUG) || defined(_DEBUG)
+			XMStoreFloat4x4A(&w, XMMatrixIdentity());
+			XMStoreFloat4x4A(&wInvTr, XMMatrixIdentity());
+#endif
+		}
 		XMFLOAT4X4A w;
 		XMFLOAT4X4A wInvTr;
+
+		// 텍스쳐 팔레트용 정보
+		XMFLOAT2 uvOffset;	// UV 위치 오프셋
+		XMFLOAT2 uvScale;	// UV 스케일
 	};
 
-	hlslstruct CbPerUIRender
+	hlslstruct Cb2DRender
 	{
 		XMFLOAT2 toNDCSpaceRatio;	// 
 	};
 
 	hlslstruct CbPer2DQuad
 	{
+		CbPer2DQuad()
+			: size(1.0f, 1.0f)
+			, position(0.0f, 0.0f)
+			, uvOffset(0.0f, 0.0f)
+			, uvScale(1.0f, 1.0f)
+			, color(1.0f, 1.0f, 1.0f, 1.0f)
+			, ltColorWeight(0.0f)
+			, rbColorWeight(0.0f)
+		{
+		}
 		XMFLOAT2 size;
-		XMFLOAT2 position;
+		XMFLOAT2 position;	// View space position
+
+		// 텍스쳐 팔레트용 정보
+		XMFLOAT2 uvOffset;	// UV 위치 오프셋
+		XMFLOAT2 uvScale;	// UV 스케일
+
+		XMFLOAT4A color;
+
+		FLOAT ltColorWeight;	// 음영 쿼드 렌더링 시 사용
+		FLOAT rbColorWeight;	// 음영 쿼드 렌더링 시 사용
 	};
 
+	/*
 	constexpr uint32_t SHADED_2DQUAD_COLOR_WEIGHT_INDEX_CONVEX = 0;
 	constexpr uint32_t SHADED_2DQUAD_COLOR_WEIGHT_INDEX_CONCAVE = 1;
 	hlslstruct CbPerShaded2DQuad
 	{
 		XMFLOAT4A color;
+
 		XMFLOAT2 size;
-		XMFLOAT2 position;
+		XMFLOAT2 position;	// View space position
+
 		uint32_t colorWeightIndex;		// [0] Convex shade [1] Concave shade
 	};
+	*/
 
 	hlslstruct CbPerCheckbox
 	{
@@ -254,7 +290,7 @@ namespace ze
 		XMFLOAT4A checkColor;
 
 		XMFLOAT2 size;
-		XMFLOAT2 position;
+		XMFLOAT2 position;	// View space position
 	};
 
 	hlslstruct CbPerArmature

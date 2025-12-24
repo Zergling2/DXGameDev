@@ -51,7 +51,7 @@ void BasicEffectPT::SetCamera(const Camera* pCamera) noexcept
 
 	XMStoreFloat4x4A(&m_cbPerCameraCache.vp, ConvertToHLSLMatrix(vp));
 
-	m_dirtyFlag |= DirtyFlag::CBPerCamera;
+	m_dirtyFlag |= DirtyFlag::UpdateCBPerCamera;
 }
 
 void XM_CALLCONV BasicEffectPT::SetWorldMatrix(FXMMATRIX w) noexcept
@@ -59,7 +59,7 @@ void XM_CALLCONV BasicEffectPT::SetWorldMatrix(FXMMATRIX w) noexcept
 	XMStoreFloat4x4A(&m_cbPerMeshCache.w, ConvertToHLSLMatrix(w));			// HLSL 전치
 	XMStoreFloat4x4A(&m_cbPerMeshCache.wInvTr, XMMatrixInverse(nullptr, w));	// 역행렬의 전치의 HLSL 전치
 
-	m_dirtyFlag |= DirtyFlag::CBPerMesh;
+	m_dirtyFlag |= DirtyFlag::UpdateCBPerMesh;
 }
 
 void BasicEffectPT::SetTexture(ID3D11ShaderResourceView* pTexture) noexcept
@@ -84,14 +84,20 @@ void BasicEffectPT::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
 		case DirtyFlag::Shader:
 			ApplyShader(pDeviceContext);
 			break;
-		case DirtyFlag::CBPerCamera:
+		case DirtyFlag::ApplyCBPerCamera:
 			ApplyPerCameraConstantBuffer(pDeviceContext);
 			break;
-		case DirtyFlag::CBPerMesh:
+		case DirtyFlag::ApplyCBPerMesh:
 			ApplyPerMeshConstantBuffer(pDeviceContext);
 			break;
+		case DirtyFlag::UpdateCBPerCamera:
+			m_cbPerCamera.Update(pDeviceContext, &m_cbPerCameraCache);
+			break;
+		case DirtyFlag::UpdateCBPerMesh:
+			m_cbPerMesh.Update(pDeviceContext, &m_cbPerMeshCache);
+			break;
 		default:
-			assert(false);
+			*reinterpret_cast<int*>(0) = 0;	// Force crash
 			break;
 		}
 
@@ -106,11 +112,17 @@ void BasicEffectPT::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
 	pDeviceContext->PSSetShaderResources(0, _countof(m_pTextureSRVArray), m_pTextureSRVArray);
 }
 
-void BasicEffectPT::KickedOutOfDeviceContext() noexcept
+void BasicEffectPT::OnUnbindFromDeviceContext() noexcept
 {
 	ClearTextureSRVArray();
 
 	m_dirtyFlag = DirtyFlag::ALL;
+
+	const DWORD except =
+		DirtyFlag::UpdateCBPerCamera |
+		DirtyFlag::UpdateCBPerMesh;
+
+	m_dirtyFlag = m_dirtyFlag & ~except;
 }
 
 void BasicEffectPT::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
@@ -124,7 +136,6 @@ void BasicEffectPT::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
 
 void BasicEffectPT::ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	m_cbPerCamera.Update(pDeviceContext, &m_cbPerCameraCache);
 	ID3D11Buffer* const cbs[] = { m_cbPerCamera.GetComInterface() };
 
 	// PerCamera 상수버퍼 사용 셰이더
@@ -134,7 +145,6 @@ void BasicEffectPT::ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceCon
 
 void BasicEffectPT::ApplyPerMeshConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	m_cbPerMesh.Update(pDeviceContext, &m_cbPerMeshCache);
 	ID3D11Buffer* const cbs[] = { m_cbPerMesh.GetComInterface() };
 
 	// PerMesh 상수버퍼 사용 셰이더

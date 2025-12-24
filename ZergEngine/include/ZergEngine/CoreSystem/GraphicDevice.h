@@ -107,8 +107,9 @@ namespace ze
 		{
 			return m_bs[static_cast<size_t>(type)].GetComInterface();
 		}
-		ID3D11Buffer* GetVBShaded2DQuad() const { return m_vbShaded2DQuad.GetComInterface(); }
+		// ID3D11Buffer* GetVBShaded2DQuad() const { return m_vbShaded2DQuad.GetComInterface(); }
 		ID3D11Buffer* GetVBCheckbox() const { return m_vbCheckbox.GetComInterface(); }
+		ID3D11Buffer* GetVBPNTTQuad() const { return m_vbPNTTQuad.GetComInterface(); }
 		ID3D11Buffer* GetPLVMeshVB() const { return m_plvMeshVB.GetComInterface(); }
 		ID3D11Buffer* GetPLVMeshIB() const { return m_plvMeshIB.GetComInterface(); }
 		ID3D11Buffer* GetSLVMeshVB() const { return m_slvMeshVB.GetComInterface(); }
@@ -147,8 +148,9 @@ namespace ze
 		DepthStencilState m_dss[static_cast<size_t>(DepthStencilStateType::COUNT)];
 		BlendState m_bs[static_cast<size_t>(BlendStateType::COUNT)];
 
-		VertexBuffer m_vbShaded2DQuad;
+		// VertexBuffer m_vbShaded2DQuad;
 		VertexBuffer m_vbCheckbox;
+		VertexBuffer m_vbPNTTQuad;	// <TRIANGLESTRIP!!!>, 노말 매핑, 텍스쳐 타일 지원하는 정규화 쿼드
 		VertexBuffer m_plvMeshVB;
 		IndexBuffer m_plvMeshIB;
 		VertexBuffer m_slvMeshVB;

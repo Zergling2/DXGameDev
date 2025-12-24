@@ -35,7 +35,7 @@ void DrawScreenRatioQuadWithTextureEffect::SetScreenRatioQuadParam(float width, 
 	m_cbPerScreenRatioQuadCache.topLeftX = topLeftX;
 	m_cbPerScreenRatioQuadCache.topLeftY = topLeftY;
 
-	m_dirtyFlag |= DirtyFlag::CBPerScreenRatioQuad;
+	m_dirtyFlag |= DirtyFlag::UpdateCBPerScreenRatioQuad;
 }
 
 void DrawScreenRatioQuadWithTextureEffect::SetTexture(ID3D11ShaderResourceView* pTextureSRV)
@@ -60,8 +60,11 @@ void DrawScreenRatioQuadWithTextureEffect::ApplyImpl(ID3D11DeviceContext* pDevic
 		case DirtyFlag::Shader:
 			ApplyShader(pDeviceContext);
 			break;
-		case DirtyFlag::CBPerScreenRatioQuad:
+		case DirtyFlag::ApplyCBPerScreenRatioQuad:
 			ApplyPerDrawQuadConstantBuffer(pDeviceContext);
+			break;
+		case DirtyFlag::UpdateCBPerScreenRatioQuad:
+			m_cbPerScreenRatioQuad.Update(pDeviceContext, &m_cbPerScreenRatioQuadCache);
 			break;
 		default:
 			assert(false);
@@ -81,11 +84,16 @@ void DrawScreenRatioQuadWithTextureEffect::ApplyImpl(ID3D11DeviceContext* pDevic
 	ClearTextureSRVArray();
 }
 
-void DrawScreenRatioQuadWithTextureEffect::KickedOutOfDeviceContext() noexcept
+void DrawScreenRatioQuadWithTextureEffect::OnUnbindFromDeviceContext() noexcept
 {
 	ClearTextureSRVArray();
 
 	m_dirtyFlag = DirtyFlag::ALL;
+
+	const DWORD except =
+		DirtyFlag::UpdateCBPerScreenRatioQuad;
+
+	m_dirtyFlag = m_dirtyFlag & ~except;
 }
 
 void DrawScreenRatioQuadWithTextureEffect::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
@@ -99,7 +107,6 @@ void DrawScreenRatioQuadWithTextureEffect::ApplyShader(ID3D11DeviceContext* pDev
 
 void DrawScreenRatioQuadWithTextureEffect::ApplyPerDrawQuadConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	m_cbPerScreenRatioQuad.Update(pDeviceContext, &m_cbPerScreenRatioQuadCache);
 	ID3D11Buffer* const cbs[] = { m_cbPerScreenRatioQuad.GetComInterface() };
 
 	// PerFrame 상수버퍼 사용 셰이더

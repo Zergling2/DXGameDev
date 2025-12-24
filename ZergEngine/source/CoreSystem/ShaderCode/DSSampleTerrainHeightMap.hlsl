@@ -1,7 +1,7 @@
 #include "ShaderCommon.hlsli"
 
 // [Sampler State]
-// ss_bilinear
+// g_ssBilinear
 
 // [Constant Buffer]
 cbuffer Cb0 : register(b0)
@@ -39,13 +39,13 @@ PSInputTerrainFragment main(DSInputQuadPatchTess patchTess, float2 domain : SV_D
     );
     // Displacement mapping
     // HeightMap이 R16_UNORM 텍스쳐를 사용하므로 실제 높이 값을 담지 않음에 유의 (상수 버퍼로 전달된 최대 높이 값을 곱해야 함)
-    posW.y = tex2d_heightMap.SampleLevel(ss_bilinear, texCoord, 0) * cb_perTerrain.maxHeight;
+    posW.y = tex2d_heightMap.SampleLevel(g_ssBilinear, texCoord, 0) * cb_perTerrain.maxHeight;
     
     output.posW = posW;
-    output.posH = mul(float4(posW, 1.0f), cb_perCamera.vp);
+    float4 posH = mul(float4(posW, 1.0f), cb_perCamera.vp);
+    output.pos = posH;
     
-    output.normalW = tex2d_normalMap.SampleLevel(ss_bilinear, texCoord, 0).xyz;
-    
+    output.normalW = tex2d_normalMap.SampleLevel(g_ssBilinear, texCoord, 0).xyz;
     output.texCoord = texCoord;
     output.tiledTexCoord = texCoord * cb_perTerrain.tilingScale;
     

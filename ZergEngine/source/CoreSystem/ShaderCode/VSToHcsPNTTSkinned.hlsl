@@ -50,7 +50,8 @@ PSInputPNTTFragment main(VSInputVertexPNTTSkinned input)
     }
     
     float3 posW = mul(float4(animatedPosL, 1.0f), cb_perMesh.w).xyz;
-    output.posH = mul(float4(posW, 1.0f), cb_perCamera.vp);
+    float4 posH = mul(float4(posW, 1.0f), cb_perCamera.vp);
+    output.pos = posH;
     output.posW = posW;
     output.normalW = normalize(mul(animatedNormalL, (float3x3) cb_perMesh.wInvTr));
     output.tangentW = normalize(mul(animatedTangentL, (float3x3) cb_perMesh.wInvTr));

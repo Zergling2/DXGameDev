@@ -7,6 +7,8 @@ constexpr float IMAGE_DEFAULT_SIZE = 256.0f;
 Image::Image(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name)
 	: IUIObject(id, flag, name)
 	, m_size(IMAGE_DEFAULT_SIZE, IMAGE_DEFAULT_SIZE)
+	, m_uvScale(1.0f, 1.0f)
+	, m_uvOffset(0.0f, 0.0f)
 	, m_texture()
 	, m_nativeSize(false)
 {

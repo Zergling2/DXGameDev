@@ -12,10 +12,11 @@ namespace ze
 	private:
 		enum DirtyFlag : DWORD
 		{
-			PrimitiveTopology			= 1 << 0,
-			InputLayout				= 1 << 1,
-			Shader						= 1 << 2,
-			CBPerCamera	= 1 << 3,
+			PrimitiveTopology	= 1 << 0,
+			InputLayout			= 1 << 1,
+			Shader				= 1 << 2,
+			ApplyCBPerCamera	= 1 << 3,
+			UpdateCBPerCamera	= 1 << 4,
 
 			COUNT,
 
@@ -43,7 +44,7 @@ namespace ze
 		void SetSkybox(ID3D11ShaderResourceView* pSkyboxCubeMapSRV) { m_pTextureSRVArray[0] = pSkyboxCubeMapSRV; }
 	private:
 		virtual void ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept override;
-		virtual void KickedOutOfDeviceContext() noexcept override;
+		virtual void OnUnbindFromDeviceContext() noexcept override;
 
 		void ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept;
 		void ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;

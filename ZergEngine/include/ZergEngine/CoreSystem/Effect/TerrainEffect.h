@@ -15,9 +15,12 @@ namespace ze
 			PrimitiveTopology		= 1 << 0,
 			InputLayout				= 1 << 1,
 			Shader					= 1 << 2,
-			CBPerFrame				= 1 << 3,
-			CBPerCamera				= 1 << 4,
-			CBPerTerrain			= 1 << 5,
+			ApplyCBPerFrame			= 1 << 3,
+			ApplyCBPerCamera		= 1 << 4,
+			ApplyCBPerTerrain		= 1 << 5,
+			UpdateCBPerFrame		= 1 << 6,
+			UpdateCBPerCamera		= 1 << 7,
+			UpdateCBPerTerrain		= 1 << 8,
 
 			COUNT,
 
@@ -69,7 +72,7 @@ namespace ze
 		) noexcept;
 	private:
 		virtual void ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept override;
-		virtual void KickedOutOfDeviceContext() noexcept override;
+		virtual void OnUnbindFromDeviceContext() noexcept override;
 
 		void ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept;
 		void ApplyPerFrameConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;

@@ -81,7 +81,7 @@ void XM_CALLCONV BasicEffectPNTTSkinned::SetAmbientLight(FXMVECTOR ambientLight)
 {
 	XMStoreFloat3(&m_cbPerFrameCache.ambientLight, ambientLight);
 
-	m_dirtyFlag |= DirtyFlag::CBPerFrame;
+	m_dirtyFlag |= DirtyFlag::UpdateCBPerFrame;
 }
 
 void BasicEffectPNTTSkinned::SetDirectionalLight(const DirectionalLightData* pLights, uint32_t count) noexcept
@@ -92,7 +92,7 @@ void BasicEffectPNTTSkinned::SetDirectionalLight(const DirectionalLightData* pLi
 	for (uint32_t i = 0; i < count; ++i)
 		m_cbPerFrameCache.dl[i] = pLights[i];
 
-	m_dirtyFlag |= DirtyFlag::CBPerFrame;
+	m_dirtyFlag |= DirtyFlag::UpdateCBPerFrame;
 }
 
 void BasicEffectPNTTSkinned::SetPointLight(const PointLightData* pLights, uint32_t count) noexcept
@@ -103,7 +103,7 @@ void BasicEffectPNTTSkinned::SetPointLight(const PointLightData* pLights, uint32
 	for (uint32_t i = 0; i < count; ++i)
 		m_cbPerFrameCache.pl[i] = pLights[i];
 
-	m_dirtyFlag |= DirtyFlag::CBPerFrame;
+	m_dirtyFlag |= DirtyFlag::UpdateCBPerFrame;
 }
 
 void BasicEffectPNTTSkinned::SetSpotLight(const SpotLightData* pLights, uint32_t count) noexcept
@@ -114,7 +114,7 @@ void BasicEffectPNTTSkinned::SetSpotLight(const SpotLightData* pLights, uint32_t
 	for (uint32_t i = 0; i < count; ++i)
 		m_cbPerFrameCache.sl[i] = pLights[i];
 
-	m_dirtyFlag |= DirtyFlag::CBPerFrame;
+	m_dirtyFlag |= DirtyFlag::UpdateCBPerFrame;
 }
 
 void BasicEffectPNTTSkinned::SetCamera(const Camera* pCamera) noexcept
@@ -133,7 +133,7 @@ void BasicEffectPNTTSkinned::SetCamera(const Camera* pCamera) noexcept
 
 	XMStoreFloat4x4A(&m_cbPerCameraCache.vp, ConvertToHLSLMatrix(vp));
 
-	m_dirtyFlag |= DirtyFlag::CBPerCamera;
+	m_dirtyFlag |= DirtyFlag::UpdateCBPerCamera;
 }
 
 void XM_CALLCONV BasicEffectPNTTSkinned::SetWorldMatrix(FXMMATRIX w) noexcept
@@ -141,7 +141,7 @@ void XM_CALLCONV BasicEffectPNTTSkinned::SetWorldMatrix(FXMMATRIX w) noexcept
 	XMStoreFloat4x4A(&m_cbPerMeshCache.w, ConvertToHLSLMatrix(w));			// HLSL 전치
 	XMStoreFloat4x4A(&m_cbPerMeshCache.wInvTr, XMMatrixInverse(nullptr, w));	// 역행렬의 전치의 HLSL 전치
 
-	m_dirtyFlag |= DirtyFlag::CBPerMesh;
+	m_dirtyFlag |= DirtyFlag::UpdateCBPerMesh;
 }
 
 void BasicEffectPNTTSkinned::SetArmatureFinalTransform(const XMFLOAT4X4A* pFinalTransforms, size_t count)
@@ -150,7 +150,7 @@ void BasicEffectPNTTSkinned::SetArmatureFinalTransform(const XMFLOAT4X4A* pFinal
 
 	memcpy(m_cbPerArmatureCache.finalTransform, pFinalTransforms, sizeof(XMFLOAT4X4A) * count);
 
-	m_dirtyFlag |= DirtyFlag::CONSTANTBUFFER_PER_ARMATURE;
+	m_dirtyFlag |= DirtyFlag::UpdateCBPerArmature;
 }
 
 void BasicEffectPNTTSkinned::SetMaterial(const Material* pMaterial)
@@ -183,7 +183,7 @@ void BasicEffectPNTTSkinned::SetMaterial(const Material* pMaterial)
 		m_cbMaterialCache.mtl.specular = pMaterial->m_specular;
 		m_cbMaterialCache.mtl.reflect = pMaterial->m_reflect;
 
-		m_dirtyFlag |= DirtyFlag::CBMaterial;
+		m_dirtyFlag |= DirtyFlag::UpdateCBMaterial;
 	}
 
 	if (m_pCurrPS != pPS)
@@ -213,23 +213,38 @@ void BasicEffectPNTTSkinned::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noex
 		case DirtyFlag::PixelShader:
 			ApplyPixelShader(pDeviceContext);
 			break;
-		case DirtyFlag::CBPerFrame:
+		case DirtyFlag::ApplyCBPerFrame:
 			ApplyPerFrameConstantBuffer(pDeviceContext);
 			break;
-		case DirtyFlag::CBPerCamera:
+		case DirtyFlag::ApplyCBPerCamera:
 			ApplyPerCameraConstantBuffer(pDeviceContext);
 			break;
-		case DirtyFlag::CBPerMesh:
+		case DirtyFlag::ApplyCBPerMesh:
 			ApplyPerMeshConstantBuffer(pDeviceContext);
 			break;
-		case DirtyFlag::CONSTANTBUFFER_PER_ARMATURE:
+		case DirtyFlag::ApplyCBPerArmature:
 			ApplyPerArmatureConstantBuffer(pDeviceContext);
 			break;
-		case DirtyFlag::CBMaterial:
+		case DirtyFlag::ApplyCBMaterial:
 			ApplyMaterialConstantBuffer(pDeviceContext);
 			break;
+		case DirtyFlag::UpdateCBPerFrame:
+			m_cbPerFrame.Update(pDeviceContext, &m_cbPerFrameCache);
+			break;
+		case DirtyFlag::UpdateCBPerCamera:
+			m_cbPerCamera.Update(pDeviceContext, &m_cbPerCameraCache);
+			break;
+		case DirtyFlag::UpdateCBPerMesh:
+			m_cbPerMesh.Update(pDeviceContext, &m_cbPerMeshCache);
+			break;
+		case DirtyFlag::UpdateCBPerArmature:
+			m_cbPerArmature.Update(pDeviceContext, &m_cbPerArmatureCache);
+			break;
+		case DirtyFlag::UpdateCBMaterial:
+			m_cbMaterial.Update(pDeviceContext, &m_cbMaterialCache);
+			break;
 		default:
-			assert(false);
+			*reinterpret_cast<int*>(0) = 0;	// Force crash
 			break;
 		}
 
@@ -248,11 +263,20 @@ void BasicEffectPNTTSkinned::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noex
 	ClearTextureSRVArray();
 }
 
-void BasicEffectPNTTSkinned::KickedOutOfDeviceContext() noexcept
+void BasicEffectPNTTSkinned::OnUnbindFromDeviceContext() noexcept
 {
 	ClearTextureSRVArray();
 
 	m_dirtyFlag = DirtyFlag::ALL;
+
+	const DWORD except =
+		DirtyFlag::UpdateCBPerFrame |
+		DirtyFlag::UpdateCBPerCamera |
+		DirtyFlag::UpdateCBPerMesh |
+		DirtyFlag::UpdateCBPerArmature |
+		DirtyFlag::UpdateCBMaterial;
+
+	m_dirtyFlag = m_dirtyFlag & ~except;
 }
 
 void BasicEffectPNTTSkinned::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
@@ -271,7 +295,7 @@ void BasicEffectPNTTSkinned::ApplyPixelShader(ID3D11DeviceContext* pDeviceContex
 
 void BasicEffectPNTTSkinned::ApplyPerFrameConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	m_cbPerFrame.Update(pDeviceContext, &m_cbPerFrameCache);
+	
 	ID3D11Buffer* const cbs[] = { m_cbPerFrame.GetComInterface() };
 
 	// PerFrame 상수버퍼 사용 셰이더
@@ -281,7 +305,6 @@ void BasicEffectPNTTSkinned::ApplyPerFrameConstantBuffer(ID3D11DeviceContext* pD
 
 void BasicEffectPNTTSkinned::ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	m_cbPerCamera.Update(pDeviceContext, &m_cbPerCameraCache);
 	ID3D11Buffer* const cbs[] = { m_cbPerCamera.GetComInterface() };
 
 	// PerCamera 상수버퍼 사용 셰이더
@@ -293,7 +316,6 @@ void BasicEffectPNTTSkinned::ApplyPerCameraConstantBuffer(ID3D11DeviceContext* p
 
 void BasicEffectPNTTSkinned::ApplyPerMeshConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	m_cbPerMesh.Update(pDeviceContext, &m_cbPerMeshCache);
 	ID3D11Buffer* const cbs[] = { m_cbPerMesh.GetComInterface() };
 
 	// PerMesh 상수버퍼 사용 셰이더
@@ -303,7 +325,6 @@ void BasicEffectPNTTSkinned::ApplyPerMeshConstantBuffer(ID3D11DeviceContext* pDe
 
 void BasicEffectPNTTSkinned::ApplyPerArmatureConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	m_cbPerArmature.Update(pDeviceContext, &m_cbPerArmatureCache);
 	ID3D11Buffer* const cbs[] = { m_cbPerArmature.GetComInterface() };
 
 	// PerArmature 상수버퍼 사용 셰이더
@@ -313,7 +334,6 @@ void BasicEffectPNTTSkinned::ApplyPerArmatureConstantBuffer(ID3D11DeviceContext*
 
 void BasicEffectPNTTSkinned::ApplyMaterialConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	m_cbMaterial.Update(pDeviceContext, &m_cbMaterialCache);
 	ID3D11Buffer* const cbs[] = { m_cbMaterial.GetComInterface() };
 
 	// Material 상수버퍼 사용 셰이더

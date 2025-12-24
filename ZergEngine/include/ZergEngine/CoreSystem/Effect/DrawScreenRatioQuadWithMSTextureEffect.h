@@ -10,10 +10,11 @@ namespace ze
 	private:
 		enum DirtyFlag : DWORD
 		{
-			PrimitiveTopology		= 1 << 0,
-			InputLayout				= 1 << 1,
-			Shader					= 1 << 2,
-			CBPerScreenRatioQuad	= 1 << 3,
+			PrimitiveTopology			= 1 << 0,
+			InputLayout					= 1 << 1,
+			Shader						= 1 << 2,
+			ApplyCBPerScreenRatioQuad	= 1 << 3,
+			UpdateCBPerScreenRatioQuad	= 1 << 4,
 
 			COUNT,
 
@@ -39,7 +40,7 @@ namespace ze
 		void SetTexture(ID3D11ShaderResourceView* pTextureSRV);
 	private:
 		virtual void ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept override;
-		virtual void KickedOutOfDeviceContext() noexcept override;
+		virtual void OnUnbindFromDeviceContext() noexcept override;
 
 		void ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept;
 		void ApplyPerDrawQuadConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;

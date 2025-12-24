@@ -26,7 +26,8 @@ PSInputPTFragment main(VSInputVertexPT input)
 {
     PSInputPTFragment output;
     
-    output.posH = mul(float4(input.posL, 1.0f), mul(cb_perMesh.w, cb_perCamera.vp));
+    float4 posH = mul(float4(input.posL, 1.0f), mul(cb_perMesh.w, cb_perCamera.vp));
+    output.pos = posH;
     output.texCoord = input.texCoord;
     
     return output;

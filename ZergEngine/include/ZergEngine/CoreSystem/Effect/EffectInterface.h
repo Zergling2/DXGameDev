@@ -18,6 +18,6 @@ namespace ze
 		virtual void ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept = 0;
 
 		// 모든 Dirty Flag 재설정 및 기타 초기화
-		virtual void KickedOutOfDeviceContext() noexcept = 0;
+		virtual void OnUnbindFromDeviceContext() noexcept = 0;
 	};
 }

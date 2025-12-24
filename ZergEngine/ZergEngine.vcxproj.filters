@@ -171,9 +171,6 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DrawScreenRatioQuadWithMSTextureEffect.h">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\Shaded2DQuadEffect.h">
-      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
-    </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\UIObjectManager.h">
       <Filter>Files\ZergEngine\CoreSystem\Manager</Filter>
     </ClInclude>
@@ -357,6 +354,9 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\Checkbox.h">
       <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
     </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\ShadedEdgeQuadEffect.h">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\CoreSystem\Time.cpp">
@@ -462,9 +462,6 @@
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\Effect\DrawScreenRatioQuadWithMSTextureEffect.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\Effect\Shaded2DQuadEffect.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\Manager\UIObjectManager.cpp">
@@ -626,6 +623,9 @@
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\Checkbox.cpp">
       <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
     </ClCompile>
+    <ClCompile Include="source\CoreSystem\Effect\ShadedEdgeQuadEffect.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="source\CoreSystem\ShaderCode\ShaderCommon.hlsli">
@@ -635,6 +635,9 @@
       <Filter>Files\extlib\DirectXTex</Filter>
     </None>
     <None Include="source\CoreSystem\ShaderCode\Lighting.hlsli">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
+    </None>
+    <None Include="source\CoreSystem\ShaderCode\Math.hlsli">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </None>
   </ItemGroup>
@@ -669,9 +672,6 @@
     <FxCompile Include="source\CoreSystem\ShaderCode\PSUnlitPT1Tex.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsScreenRatioQuad.hlsl">
-      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
-    </FxCompile>
     <FxCompile Include="source\CoreSystem\ShaderCode\PSUnlitPT1MSTex.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
@@ -690,12 +690,6 @@
     <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsSkybox.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsShaded2DQuad.hlsl">
-      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
-    </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcs2DQuad.hlsl">
-      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
-    </FxCompile>
     <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsPNTT.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
@@ -708,7 +702,7 @@
     <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsPNTTSkinned.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
-    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsBillboardQuad.hlsl">
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsPNTTQuadForBillboard.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
     <FxCompile Include="source\CoreSystem\ShaderCode\PSLitPNTTDiffNormMapping.hlsl">
@@ -742,6 +736,18 @@
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
     <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsCheckbox.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
+    </FxCompile>
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsPNTTQuadForShadedEdgeQuad.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
+    </FxCompile>
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsPNTTQuadForImage.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
+    </FxCompile>
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorShadedEdgeQuad.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
+    </FxCompile>
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsScreenRatioQuad.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
   </ItemGroup>
