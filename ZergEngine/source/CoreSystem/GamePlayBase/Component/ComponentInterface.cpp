@@ -46,7 +46,6 @@ void IComponent::Destroy()
 		return;
 
 	IComponentManager* pComponentManager = this->GetComponentManager();
-
 	pComponentManager->RequestDestroy(this);
 }
 

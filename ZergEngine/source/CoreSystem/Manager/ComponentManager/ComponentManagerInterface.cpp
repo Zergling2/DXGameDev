@@ -50,7 +50,7 @@ IComponent* IComponentManager::ToPtr(uint32_t tableIndex, uint64_t id) const
 	// 컴포넌트핸들 템플릿을 잘못 사용하면 엉뚱한 컴포넌트 관리자의 테이블에 Query를 할 수 있다. 이 경우 미정의 동작 발생 가능.
 
 	IComponent* pComponent = m_handleTable[tableIndex];
-	if (pComponent == nullptr || pComponent->GetId() != id)
+	if (pComponent == nullptr || pComponent->GetId() != id || pComponent->IsOnTheDestroyQueue())
 		return nullptr;
 	else
 		return pComponent;
@@ -115,7 +115,7 @@ void IComponentManager::RemoveDestroyedComponents()
 			auto& componentList = pGameObject->m_components;
 
 #if defined(DEBUG) || defined(_DEBUG)
-			bool find = false;
+			bool found = false;
 #endif
 			const auto end = componentList.cend();
 			auto iter = componentList.cbegin();
@@ -124,7 +124,7 @@ void IComponentManager::RemoveDestroyedComponents()
 				if (pComponent == *iter)
 				{
 #if defined(DEBUG) || defined(_DEBUG)
-					find = true;
+					found = true;
 #endif
 					componentList.erase(iter);
 					break;
@@ -132,7 +132,7 @@ void IComponentManager::RemoveDestroyedComponents()
 				++iter;
 			}
 
-			assert(find == true);
+			assert(found == true);
 		}
 
 		// Step 2. Enabled group에서 현재 파괴되는 컴포넌트 포인터를 제거

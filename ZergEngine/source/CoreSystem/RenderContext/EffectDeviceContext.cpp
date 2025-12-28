@@ -22,7 +22,7 @@ void EffectDeviceContext::AttachDeviceContext(ID3D11DeviceContext* pDeviceContex
 	m_pDeviceContext = pDeviceContext;
 }
 
-void EffectDeviceContext::Bind(IEffect* pEffect) noexcept
+void EffectDeviceContext::Apply(IEffect* pEffect) noexcept
 {
 	assert(m_pDeviceContext != nullptr);
 

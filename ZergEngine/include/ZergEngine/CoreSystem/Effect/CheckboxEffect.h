@@ -45,7 +45,7 @@ namespace ze
 		void XM_CALLCONV SetBoxColor(FXMVECTOR color) noexcept;
 		void XM_CALLCONV SetCheckColor(FXMVECTOR color) noexcept;
 		void SetSize(FLOAT width, FLOAT height) noexcept;
-		void SetViewSpacePosition(const XMFLOAT2& pos) noexcept;	// 화면 중앙을 원점으로 하는 NDC 공간으로 변환 직전의 2D 위치 설정
+		void SetHCSPosition(const XMFLOAT2& pos) noexcept;	// 화면 중앙을 원점으로 하는 NDC 공간으로 변환 직전의 2D 위치 설정
 	private:
 		virtual void ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept override;
 		virtual void OnUnbindFromDeviceContext() noexcept override;

@@ -8,6 +8,7 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\InputField.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\SliderControl.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Checkbox.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\RadioButton.h>
 
 using namespace ze;
 
@@ -87,4 +88,13 @@ UIObjectHandle IScene::CreateCheckbox(PCWSTR name)
 	m_pendingUIObjects.push_back(pCheckbox);
 
 	return hCheckbox;
+}
+
+UIObjectHandle IScene::CreateRadioButton(PCWSTR name)
+{
+	RadioButton* pRadioButton = nullptr;
+	UIObjectHandle hRadioButton = UIObjectManager::GetInstance()->CreatePendingObject<RadioButton>(&pRadioButton, name);
+	m_pendingUIObjects.push_back(pRadioButton);
+
+	return hRadioButton;
 }

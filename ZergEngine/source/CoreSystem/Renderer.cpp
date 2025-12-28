@@ -19,6 +19,7 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\InputField.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\SliderControl.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Checkbox.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\RadioButton.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Light.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Camera.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\MeshRenderer.h>
@@ -77,13 +78,14 @@ Renderer::Renderer()
 	, m_drawScreenQuadTex()
 	, m_drawScreenQuadMSTex()
 	, m_shadedEdgeQuadEffect()
+	, m_shadedEdgeCircleEffect()
 	, m_checkboxEffect()
 	, m_imageEffect()
 	, m_asteriskStr(L"********************************")	// L'*' x 32
 	, m_billboardRenderQueue()
-	, m_uiRenderQueue()
+	, m_uiRenderQueue(256)
 {
-	m_uiRenderQueue.reserve(256);
+	m_uiRenderQueue.clear();
 
 	constexpr size_t XMFLOAT4X4A_ALIGNMENT = 16;
 
@@ -150,6 +152,7 @@ void Renderer::Init()
 	m_drawScreenQuadTex.Init();
 	m_drawScreenQuadMSTex.Init();
 	m_shadedEdgeQuadEffect.Init();
+	m_shadedEdgeCircleEffect.Init();
 	m_checkboxEffect.Init();
 	m_imageEffect.Init();
 
@@ -174,6 +177,7 @@ void Renderer::UnInit()
 	m_drawScreenQuadTex.Release();
 	m_drawScreenQuadMSTex.Release();
 	m_shadedEdgeQuadEffect.Release();
+	m_shadedEdgeCircleEffect.Release();
 	m_checkboxEffect.Release();
 	m_imageEffect.Release();
 }
@@ -629,7 +633,7 @@ void Renderer::RenderFrame()
 			);
 			m_drawScreenQuadMSTex.SetTexture(pCamera->GetColorBufferSRVComInterface());
 
-			m_effectImmediateContext.Bind(&m_drawScreenQuadMSTex);
+			m_effectImmediateContext.Apply(&m_drawScreenQuadMSTex);
 			m_effectImmediateContext.Draw(TRIANGLESTRIP_QUAD_VERTEX_COUNT, 0);
 		}
 		else
@@ -642,7 +646,7 @@ void Renderer::RenderFrame()
 			);
 			m_drawScreenQuadTex.SetTexture(pCamera->GetColorBufferSRVComInterface());
 
-			m_effectImmediateContext.Bind(&m_drawScreenQuadTex);
+			m_effectImmediateContext.Apply(&m_drawScreenQuadTex);
 			m_effectImmediateContext.Draw(TRIANGLESTRIP_QUAD_VERTEX_COUNT, 0);
 		}
 	}
@@ -673,6 +677,7 @@ void Renderer::RenderFrame()
 			2.0f / static_cast<float>(GraphicDevice::GetInstance()->GetSwapChainDesc().BufferDesc.Height)
 		);
 		m_shadedEdgeQuadEffect.SetScreenToNDCSpaceRatio(screenToNDCSpaceRatio);
+		m_shadedEdgeCircleEffect.SetScreenToNDCSpaceRatio(screenToNDCSpaceRatio);
 		m_checkboxEffect.SetScreenToNDCSpaceRatio(screenToNDCSpaceRatio);
 		m_imageEffect.SetScreenToNDCSpaceRatio(screenToNDCSpaceRatio);
 		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -730,6 +735,9 @@ void Renderer::RenderFrame()
 				case UIObjectType::Checkbox:
 					this->RenderCheckbox(pD2DRenderTarget, pBrush, static_cast<const Checkbox*>(pUIObject));
 					break;
+				case UIObjectType::RadioButton:
+					this->RenderRadioButton(pD2DRenderTarget, pBrush, static_cast<const RadioButton*>(pUIObject));
+					break;
 				default:
 					break;
 				}
@@ -766,7 +774,7 @@ void XM_CALLCONV Renderer::RenderVFPositionMesh(const MeshRenderer* pMeshRendere
 	m_effectImmediateContext.IASetIndexBuffer(pMesh->GetIBComInterface(), DXGI_FORMAT_R32_UINT, 0);
 
 	// 서브셋 순회 시 변경되는 사항이 없으므로 루프 밖에서 Apply 한 번만 호출
-	m_effectImmediateContext.Bind(&m_basicEffectP);
+	m_effectImmediateContext.Apply(&m_basicEffectP);
 
 	// 서브셋들 순회하며 렌더링
 	for (const MeshSubset& subset : pMesh->m_subsets)
@@ -798,7 +806,7 @@ void XM_CALLCONV Renderer::RenderVFPositionColorMesh(const MeshRenderer* pMeshRe
 	m_effectImmediateContext.IASetIndexBuffer(pMesh->GetIBComInterface(), DXGI_FORMAT_R32_UINT, 0);
 
 	// 서브셋 순회 시 변경되는 사항이 없으므로 루프 밖에서 Apply 한 번만 호출
-	m_effectImmediateContext.Bind(&m_basicEffectPC);
+	m_effectImmediateContext.Apply(&m_basicEffectPC);
 
 	// 서브셋들 순회하며 렌더링
 	for (const MeshSubset& subset : pMesh->m_subsets)
@@ -847,7 +855,7 @@ void XM_CALLCONV Renderer::RenderVFPositionNormalMesh(const MeshRenderer* pMeshR
 			m_basicEffectPN.UseMaterial(false);
 		}
 
-		m_effectImmediateContext.Bind(&m_basicEffectPN);
+		m_effectImmediateContext.Apply(&m_basicEffectPN);
 
 		// 드로우
 		m_effectImmediateContext.DrawIndexed(currentSubset.GetIndexCount(), currentSubset.GetStartIndexLocation(), 0);
@@ -887,7 +895,7 @@ void XM_CALLCONV Renderer::RenderVFPositionTexCoordMesh(const MeshRenderer* pMes
 		else
 			m_basicEffectPT.SetTexture(nullptr);
 
-		m_effectImmediateContext.Bind(&m_basicEffectPT);
+		m_effectImmediateContext.Apply(&m_basicEffectPT);
 
 		// 드로우
 		m_effectImmediateContext.DrawIndexed(currentSubset.GetIndexCount(), currentSubset.GetStartIndexLocation(), 0);
@@ -935,7 +943,7 @@ void XM_CALLCONV Renderer::RenderVFPositionNormalTexCoordMesh(const MeshRenderer
 			m_basicEffectPNT.UseMaterial(false);
 		}
 
-		m_effectImmediateContext.Bind(&m_basicEffectPNT);
+		m_effectImmediateContext.Apply(&m_basicEffectPNT);
 
 		// 드로우
 		m_effectImmediateContext.DrawIndexed(currentSubset.GetIndexCount(), currentSubset.GetStartIndexLocation(), 0);
@@ -971,7 +979,7 @@ void XM_CALLCONV Renderer::RenderPNTTMesh(const MeshRenderer* pMeshRenderer, FXM
 		const Material* pMaterial = pMeshRenderer->GetMaterialPtr(subsetIndex);
 		m_basicEffectPNTT.SetMaterial(pMaterial);
 
-		m_effectImmediateContext.Bind(&m_basicEffectPNTT);
+		m_effectImmediateContext.Apply(&m_basicEffectPNTT);
 
 		// 드로우
 		m_effectImmediateContext.DrawIndexed(currentSubset.GetIndexCount(), currentSubset.GetStartIndexLocation(), 0);
@@ -1027,7 +1035,7 @@ void XM_CALLCONV Renderer::RenderPNTTSkinnedMesh(const SkinnedMeshRenderer* pSki
 		const Material* pMaterial = pSkinnedMeshRenderer->GetMaterialPtr(subsetIndex);
 		m_basicEffectPNTTSkinned.SetMaterial(pMaterial);
 
-		m_effectImmediateContext.Bind(&m_basicEffectPNTTSkinned);
+		m_effectImmediateContext.Apply(&m_basicEffectPNTTSkinned);
 
 		// 드로우
 		m_effectImmediateContext.DrawIndexed(currentSubset.GetIndexCount(), currentSubset.GetStartIndexLocation(), 0);
@@ -1054,7 +1062,7 @@ void Renderer::RenderTerrain(const Terrain* pTerrain)
 	// 인덱스 버퍼 설정
 	m_effectImmediateContext.IASetIndexBuffer(pTerrain->GetPatchControlPointIndexBufferComInterface(), DXGI_FORMAT_R32_UINT, 0);
 
-	m_effectImmediateContext.Bind(&m_terrainEffect);
+	m_effectImmediateContext.Apply(&m_terrainEffect);
 	m_effectImmediateContext.DrawIndexed(pTerrain->GetPatchControlPointIndexCount(), 0, 0);
 }
 
@@ -1064,7 +1072,7 @@ void Renderer::RenderSkybox(ID3D11ShaderResourceView* pSkyboxCubeMapSRV)
 
 	m_skyboxEffect.SetSkybox(pSkyboxCubeMapSRV);
 
-	m_effectImmediateContext.Bind(&m_skyboxEffect);
+	m_effectImmediateContext.Apply(&m_skyboxEffect);
 
 	// 드로우
 	// 셰이더 지역변수 정점들 사용 (총 36개)
@@ -1084,7 +1092,7 @@ void Renderer::RenderBillboard(const Billboard* pBillboard)
 	m_billboardEffect.SetUVOffset(pBillboard->GetUVOffsetX(), pBillboard->GetUVOffsetY());
 	m_billboardEffect.SetMaterial(pBillboard->GetMaterialPtr());
 
-	m_effectImmediateContext.Bind(&m_billboardEffect);
+	m_effectImmediateContext.Apply(&m_billboardEffect);
 	m_effectImmediateContext.Draw(TRIANGLESTRIP_QUAD_VERTEX_COUNT, 0);
 }
 
@@ -1132,13 +1140,13 @@ void Renderer::RenderImage(const Image* pImage)
 
 	XMFLOAT2 hcsp;
 	pImage->m_transform.GetHCSPosition(&hcsp);
-	m_imageEffect.SetViewSpacePosition(hcsp);
+	m_imageEffect.SetHCSPosition(hcsp);
 	m_imageEffect.SetSize(pImage->GetSizeX(), pImage->GetSizeY());
 	m_imageEffect.SetUVScale(pImage->GetUVScaleX(), pImage->GetUVScaleY());
 	m_imageEffect.SetUVOffset(pImage->GetUVOffsetX(), pImage->GetUVOffsetY());
 	m_imageEffect.SetImageTexture(pImage->GetTexture());
 
-	m_effectImmediateContext.Bind(&m_imageEffect);
+	m_effectImmediateContext.Apply(&m_imageEffect);
 	m_effectImmediateContext.Draw(TRIANGLESTRIP_QUAD_VERTEX_COUNT, 0);
 }
 
@@ -1185,7 +1193,7 @@ void Renderer::RenderButton(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColor
 
 	XMFLOAT2 hcsp;
 	pButton->m_transform.GetHCSPosition(&hcsp);
-	m_shadedEdgeQuadEffect.SetViewSpacePosition(hcsp);
+	m_shadedEdgeQuadEffect.SetHCSPosition(hcsp);
 	m_shadedEdgeQuadEffect.SetSize(pButton->GetSizeX(), pButton->GetSizeY());
 
 	if (pButton->IsPressed())
@@ -1195,7 +1203,7 @@ void Renderer::RenderButton(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColor
 
 	m_shadedEdgeQuadEffect.SetColor(pButton->GetButtonColorVector());
 
-	m_effectImmediateContext.Bind(&m_shadedEdgeQuadEffect);
+	m_effectImmediateContext.Apply(&m_shadedEdgeQuadEffect);
 	m_effectImmediateContext.Draw(TRIANGLESTRIP_QUAD_VERTEX_COUNT, 0);
 
 	// 2. 버튼 텍스트 렌더링
@@ -1243,13 +1251,13 @@ void Renderer::RenderInputField(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidC
 
 		XMFLOAT2 hcsp;
 		pInputField->m_transform.GetHCSPosition(&hcsp);
-		m_shadedEdgeQuadEffect.SetViewSpacePosition(hcsp);
+		m_shadedEdgeQuadEffect.SetHCSPosition(hcsp);
 		m_shadedEdgeQuadEffect.SetSize(pInputField->GetSizeX(), pInputField->GetSizeY());
 
 		m_shadedEdgeQuadEffect.SetColorWeight(-0.5f, +0.5f);	// concave input field
 		m_shadedEdgeQuadEffect.SetColor(pInputField->GetBkColorVector());
 
-		m_effectImmediateContext.Bind(&m_shadedEdgeQuadEffect);
+		m_effectImmediateContext.Apply(&m_shadedEdgeQuadEffect);
 		m_effectImmediateContext.Draw(TRIANGLESTRIP_QUAD_VERTEX_COUNT, 0);
 	}
 
@@ -1341,7 +1349,7 @@ void Renderer::RenderSliderControl(const SliderControl* pSliderControl)
 	// Track
 	XMFLOAT2 hcsp;
 	pSliderControl->m_transform.GetHCSPosition(&hcsp);
-	m_shadedEdgeQuadEffect.SetViewSpacePosition(hcsp);
+	m_shadedEdgeQuadEffect.SetHCSPosition(hcsp);
 	if (pSliderControl->GetSliderControlType() == SliderControlType::Horizontal)
 		m_shadedEdgeQuadEffect.SetSize(pSliderControl->GetTrackLength(), pSliderControl->GetTrackThickness());
 	else
@@ -1350,7 +1358,7 @@ void Renderer::RenderSliderControl(const SliderControl* pSliderControl)
 	m_shadedEdgeQuadEffect.SetColorWeight(-0.5f, +0.5f);	// concave track
 	m_shadedEdgeQuadEffect.SetColor(pSliderControl->GetTrackColorVector());
 
-	m_effectImmediateContext.Bind(&m_shadedEdgeQuadEffect);
+	m_effectImmediateContext.Apply(&m_shadedEdgeQuadEffect);
 	m_effectImmediateContext.Draw(TRIANGLESTRIP_QUAD_VERTEX_COUNT, 0);
 
 	// Thumb 렌더링
@@ -1359,13 +1367,13 @@ void Renderer::RenderSliderControl(const SliderControl* pSliderControl)
 	pSliderControl->ComputeHCSCoordThumbOffset(&thumbOffset);
 	thumbHcsp.x = hcsp.x + thumbOffset.x;
 	thumbHcsp.y = hcsp.y + thumbOffset.y;
-	m_shadedEdgeQuadEffect.SetViewSpacePosition(thumbHcsp);
+	m_shadedEdgeQuadEffect.SetHCSPosition(thumbHcsp);
 	m_shadedEdgeQuadEffect.SetSize(pSliderControl->GetThumbSizeX(), pSliderControl->GetThumbSizeY());
 
 	m_shadedEdgeQuadEffect.SetColorWeight(+0.5f, -0.5f);	// convex thumb
 	m_shadedEdgeQuadEffect.SetColor(pSliderControl->GetThumbColorVector());
 
-	m_effectImmediateContext.Bind(&m_shadedEdgeQuadEffect);
+	m_effectImmediateContext.Apply(&m_shadedEdgeQuadEffect);
 	m_effectImmediateContext.Draw(TRIANGLESTRIP_QUAD_VERTEX_COUNT, 0);
 }
 
@@ -1379,17 +1387,17 @@ void Renderer::RenderCheckbox(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidCol
 	m_effectImmediateContext.IASetVertexBuffers(0, 1, vbs, strides, offsets);
 
 	m_checkboxEffect.SetBoxColor(pCheckbox->GetBoxColorVector());
-	if (pCheckbox->IsChecked())
+	if (pCheckbox->GetCheck())
 		m_checkboxEffect.SetCheckColor(pCheckbox->GetCheckColorVector());
 	else
 		m_checkboxEffect.SetCheckColor(pCheckbox->GetBoxColorVector());	// 체크되지 않은 상태일 경우 체크 색상과 박스 색상을 일치
 
 	XMFLOAT2 hcsp;
 	pCheckbox->m_transform.GetHCSPosition(&hcsp);
-	m_checkboxEffect.SetViewSpacePosition(hcsp);
+	m_checkboxEffect.SetHCSPosition(hcsp);
 	m_checkboxEffect.SetSize(pCheckbox->GetCheckboxSizeX(), pCheckbox->GetCheckboxSizeY());
 
-	m_effectImmediateContext.Bind(&m_checkboxEffect);
+	m_effectImmediateContext.Apply(&m_checkboxEffect);
 	m_effectImmediateContext.Draw(CHECKBOX_VERTEX_COUNT, 0);
 
 	// 텍스트 렌더링
@@ -1402,10 +1410,9 @@ void Renderer::RenderCheckbox(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidCol
 	pDWriteTextFormat->SetParagraphAlignment(pCheckbox->GetParagraphAlignment());
 	pBrush->SetColor(reinterpret_cast<const D2D1_COLOR_F&>(pCheckbox->GetTextColor()));
 
-	constexpr FLOAT SPACE_BETWEEN_CHECKBOX_AND_TEXTBOX = 5.0f;
 	XMFLOAT2 wcp;
 	pCheckbox->m_transform.GetWinCoordPosition(&wcp);
-	FLOAT textboxOffsetX = pCheckbox->GetCheckboxHalfSizeX() + pCheckbox->GetTextboxHalfSizeX() + SPACE_BETWEEN_CHECKBOX_AND_TEXTBOX;
+	FLOAT textboxOffsetX = pCheckbox->GetCheckboxHalfSizeX() + SPACING_BETWEEN_CHECKBOX_AND_TEXTBOX + pCheckbox->GetTextboxHalfSizeX();
 	if (pCheckbox->IsLeftText())
 		textboxOffsetX = -textboxOffsetX;
 
@@ -1420,6 +1427,77 @@ void Renderer::RenderCheckbox(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidCol
 
 	pD2DRenderTarget->DrawTextW(
 		pCheckbox->GetText().c_str(),
+		textLength,
+		pDWriteTextFormat,
+		&layout,
+		pBrush
+	);
+
+	HRESULT hr = pD2DRenderTarget->EndDraw();
+}
+
+void Renderer::RenderRadioButton(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColorBrush* pBrush, const RadioButton* pRadioButton)
+{
+	// 1. 버튼 렌더링
+	ID3D11Buffer* vbs[] = { m_pVBPNTTQuad };
+	UINT strides[] = { sizeof(VFPositionNormalTangentTexCoord) };
+	UINT offsets[] = { 0 };
+
+	m_effectImmediateContext.IASetVertexBuffers(0, 1, vbs, strides, offsets);
+
+	m_shadedEdgeCircleEffect.SetColorWeight(-0.5f, +0.5f);	// concave
+	m_shadedEdgeCircleEffect.SetColor(pRadioButton->GetButtonColorVector());
+	m_shadedEdgeCircleEffect.SetRadius(pRadioButton->GetRadius());
+
+	XMFLOAT2 hcsp;
+	pRadioButton->m_transform.GetHCSPosition(&hcsp);
+
+	m_shadedEdgeCircleEffect.SetHCSPosition(hcsp);
+	m_effectImmediateContext.Apply(&m_shadedEdgeCircleEffect);
+	m_effectImmediateContext.Draw(TRIANGLESTRIP_QUAD_VERTEX_COUNT, 0);
+
+	// 버튼이 선택되어 있으면 작은 원을 추가로 렌더링
+	if (pRadioButton->GetCheck())
+	{
+		m_shadedEdgeCircleEffect.SetColorWeight(0.0f, 0.0f);	// flat
+		m_shadedEdgeCircleEffect.SetColor(pRadioButton->GetDotColorVector());
+		m_shadedEdgeCircleEffect.SetRadius(pRadioButton->GetRadius() * 0.5f);
+
+		// XMFLOAT2 hcsp;
+		// pRadioButton->m_transform.GetHCSPosition(&hcsp);	// 위에서 설정됨
+
+		// m_shadedEdgeCircleEffect.SetHCSPosition(hcsp);	// 위에서 설정됨
+		m_effectImmediateContext.Apply(&m_shadedEdgeCircleEffect);
+		m_effectImmediateContext.Draw(TRIANGLESTRIP_QUAD_VERTEX_COUNT, 0);
+	}
+	
+	// 2. 텍스트 렌더링
+	UINT32 textLength = static_cast<UINT32>(pRadioButton->GetText().length());
+	if (textLength == 0)
+		return;
+
+	IDWriteTextFormat* pDWriteTextFormat = pRadioButton->GetDWriteTextFormatComInterface();
+	pDWriteTextFormat->SetTextAlignment(pRadioButton->GetTextAlignment());
+	pDWriteTextFormat->SetParagraphAlignment(pRadioButton->GetParagraphAlignment());
+	pBrush->SetColor(reinterpret_cast<const D2D1_COLOR_F&>(pRadioButton->GetTextColor()));
+
+	XMFLOAT2 wcp;
+	pRadioButton->m_transform.GetWinCoordPosition(&wcp);
+	FLOAT textboxOffsetX = pRadioButton->GetRadius() + SPACING_BETWEEN_RADIOBUTTON_AND_TEXTBOX + pRadioButton->GetTextboxHalfSizeX();
+	if (pRadioButton->IsLeftText())
+		textboxOffsetX = -textboxOffsetX;
+
+	wcp.x += textboxOffsetX;
+	D2D1_RECT_F layout;
+	layout.left = wcp.x - pRadioButton->GetTextboxHalfSizeX();
+	layout.right = wcp.x + pRadioButton->GetTextboxHalfSizeX();
+	layout.top = wcp.y - pRadioButton->GetTextboxHalfSizeY();
+	layout.bottom = wcp.y + pRadioButton->GetTextboxHalfSizeY();
+
+	pD2DRenderTarget->BeginDraw();
+
+	pD2DRenderTarget->DrawTextW(
+		pRadioButton->GetText().c_str(),
 		textLength,
 		pDWriteTextFormat,
 		&layout,

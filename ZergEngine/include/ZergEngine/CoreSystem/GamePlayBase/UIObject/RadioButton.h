@@ -1,55 +1,51 @@
 #pragma once
 
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\UIObjectInterface.h>
-#include "RadioButton.h"
 
 namespace ze
 {
-	class Checkbox : public IUIObject
-	{
-		friend class Renderer;
-	public:
-		Checkbox(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name);
-		virtual ~Checkbox() = default;
+	class RadioButtonGroup;
 
-		virtual UIObjectType GetType() const override { return UIObjectType::Checkbox; }
+	class RadioButton : public IUIObject
+	{
+		friend class RadioButtonGroup;
+	public:
+		RadioButton(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name);
+		virtual ~RadioButton() = default;
+
+		virtual UIObjectType GetType() const override { return UIObjectType::RadioButton; }
+
+		void Join(RadioButton* pOther);
 
 		bool GetCheck() const { return m_isChecked; }
-		void SetCheck(bool b);
+		// RadioButton은 항상 체크 동작만 가능하며 이미 버튼이 체크되어 있던 경우 아무런 동작도 하지 않습니다.
+		void SetCheck();
 
 		bool IsLeftText() const { return m_leftText; }
 		// true를 전달하면 텍스트박스가 체크박스의 왼쪽에 위치합니다.
 		// false를 전달하면 텍스트박스가 체크박스의 오른쪽에 위치합니다.
 		void SetLeftText(bool b = true);
 
-		const XMFLOAT2& GetCheckboxSize() const { return m_checkboxSize.GetSize(); }
-		FLOAT GetCheckboxSizeX() const { return m_checkboxSize.GetSizeX(); }
-		FLOAT GetCheckboxSizeY() const { return m_checkboxSize.GetSizeY(); }
-		FLOAT GetCheckboxWidth() const { return GetCheckboxSizeX(); }
-		FLOAT GetCheckboxHeight() const { return GetCheckboxSizeY(); }
-		FLOAT GetCheckboxHalfSizeX() const { return m_checkboxSize.GetHalfSizeX(); }
-		FLOAT GetCheckboxHalfSizeY() const { return m_checkboxSize.GetHalfSizeY(); }
-		FLOAT GetCheckboxHalfWidth() const { return GetCheckboxHalfSizeX(); }
-		FLOAT GetCheckboxHalfHeight() const { return GetCheckboxHalfSizeY(); }
-		void SetCheckboxSize(FLOAT size) { m_checkboxSize.SetSize(size, size); }
+		FLOAT GetRadius() const { return m_radius; }
+		void SetRadius(FLOAT r) { m_radius = r; }
 
-		XMVECTOR GetBoxColorVector() const { return m_boxColor.GetColorVector(); }
-		const XMFLOAT4& GetBoxColor() const { return m_boxColor.GetColor(); }
-		void XM_CALLCONV SetBoxColor(FXMVECTOR color) { m_boxColor.SetColor(color); }
-		void SetBoxColor(const XMFLOAT4& color) { m_boxColor.SetColor(color); }
-		void SetBoxColor(FLOAT r, FLOAT g, FLOAT b, FLOAT a) { m_boxColor.SetColor(r, g, b, a); }
-		void XM_CALLCONV SetBoxColorRGB(FXMVECTOR rgb) { m_boxColor.SetColorRGB(rgb); }
-		void SetBoxColorRGB(FLOAT r, FLOAT g, FLOAT b) { m_boxColor.SetColorRGB(r, g, b); }
-		void SetBoxColorA(FLOAT a) { m_boxColor.SetColorA(a); }
+		XMVECTOR GetButtonColorVector() const { return m_buttonColor.GetColorVector(); }
+		const XMFLOAT4& GetButtonColor() const { return m_buttonColor.GetColor(); }
+		void XM_CALLCONV SetButtonColor(FXMVECTOR color) { m_buttonColor.SetColor(color); }
+		void SetButtonColor(const XMFLOAT4& color) { m_buttonColor.SetColor(color); }
+		void SetButtonColor(FLOAT r, FLOAT g, FLOAT b, FLOAT a) { m_buttonColor.SetColor(r, g, b, a); }
+		void XM_CALLCONV SetButtonColorRGB(FXMVECTOR rgb) { m_buttonColor.SetColorRGB(rgb); }
+		void SetButtonColorRGB(FLOAT r, FLOAT g, FLOAT b) { m_buttonColor.SetColorRGB(r, g, b); }
+		void SetButtonColorA(FLOAT a) { m_buttonColor.SetColorA(a); }
 
-		XMVECTOR GetCheckColorVector() const { return m_checkColor.GetColorVector(); }
-		const XMFLOAT4& GetCheckColor() const { return m_checkColor.GetColor(); }
-		void XM_CALLCONV SetCheckColor(FXMVECTOR color) { m_checkColor.SetColor(color); }
-		void SetCheckColor(const XMFLOAT4& color) { m_checkColor.SetColor(color); }
-		void SetCheckColor(FLOAT r, FLOAT g, FLOAT b, FLOAT a) { m_checkColor.SetColor(r, g, b, a); }
-		void XM_CALLCONV SetCheckColorRGB(FXMVECTOR rgb) { m_checkColor.SetColorRGB(rgb); }
-		void SetCheckColorRGB(FLOAT r, FLOAT g, FLOAT b) { m_checkColor.SetColorRGB(r, g, b); }
-		void SetCheckColorA(FLOAT a) { m_checkColor.SetColorA(a); }
+		XMVECTOR GetDotColorVector() const { return m_dotColor.GetColorVector(); }
+		const XMFLOAT4& GetDotColor() const { return m_dotColor.GetColor(); }
+		void XM_CALLCONV SetDotColor(FXMVECTOR color) { m_dotColor.SetColor(color); }
+		void SetDotColor(const XMFLOAT4& color) { m_dotColor.SetColor(color); }
+		void SetDotColor(FLOAT r, FLOAT g, FLOAT b, FLOAT a) { m_dotColor.SetColor(r, g, b, a); }
+		void XM_CALLCONV SetDotColorRGB(FXMVECTOR rgb) { m_dotColor.SetColorRGB(rgb); }
+		void SetDotColorRGB(FLOAT r, FLOAT g, FLOAT b) { m_dotColor.SetColorRGB(r, g, b); }
+		void SetDotColorA(FLOAT a) { m_dotColor.SetColorA(a); }
 
 		const XMFLOAT2& GetTextboxSize() const { return m_textboxSize.GetSize(); }
 		FLOAT GetTextboxSizeX() const { return m_textboxSize.GetSizeX(); }
@@ -84,22 +80,40 @@ namespace ze
 		IDWriteTextFormat* GetDWriteTextFormatComInterface() const { return m_text.GetDWriteTextFormatComInterface(); }
 		void ApplyTextFormat() { m_text.ApplyTextFormat(); }	// TextFormat을 변경한 후 이 함수를 호출해야 새로운 폰트가 적용됩니다.
 
-		void SetHandlerOnClick(std::function<bool()> handler) { m_handlerOnClick = std::move(handler); }
+		std::shared_ptr<RadioButtonGroup> GetGroup() { return m_spGroup; }
+		std::shared_ptr<RadioButtonGroup> GetGroup() const { return m_spGroup; }	
 
-		// Windows 좌표계 마우스 위치와 충돌 테스트 수행
 		virtual bool HitTest(POINT pt) const override;
+
+		void SetHandlerOnClick(std::function<bool()> handler) { m_handlerOnClick = std::move(handler); }
 	private:
 		virtual void OnLButtonClick(POINT pt) override;
+		virtual void OnDestroy() override;
+
+		void LeaveGroup();
 	private:
 		bool m_isChecked;	// 렌더링 변수
 		bool m_leftText;	// 렌더링 변수
-		UISize m_checkboxSize;
-		UIColor m_boxColor;
-		UIColor m_checkColor;
+		FLOAT m_radius;		// Button radius
+		UIColor m_buttonColor;
+		UIColor m_dotColor;
 		UISize m_textboxSize;
 		UIColor m_textColor;
 		UIText m_text;
 
+		int32_t m_groupIndex;
+		std::shared_ptr<RadioButtonGroup> m_spGroup;
+
 		std::function<bool()> m_handlerOnClick;
+	};
+
+	class RadioButtonGroup
+	{
+	public:
+		size_t GetGroupSize() const { return m_buttons.size(); }
+		RadioButton* GetButton(size_t index) const;
+		RadioButton* const* GetButtons() const { return m_buttons.data(); }
+	public:
+		std::vector<RadioButton*> m_buttons;
 	};
 }

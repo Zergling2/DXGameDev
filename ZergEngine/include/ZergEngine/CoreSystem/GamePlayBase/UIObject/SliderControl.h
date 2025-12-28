@@ -75,6 +75,8 @@ namespace ze
 		void SetThumbColorRGB(FLOAT r, FLOAT g, FLOAT b) { m_thumbColor.SetColorRGB(r, g, b); }
 		void SetThumbColorA(FLOAT a) { m_thumbColor.SetColorA(a); }
 
+		void SetHandlerOnPosChange(std::function<bool()> handler) { m_handlerOnPosChange = std::move(handler); }
+
 		virtual bool HitTest(POINT pt) const override;
 
 		// Thumb의 Min -> Max 방향으로의 물리 거리를 계산합니다.
@@ -85,7 +87,6 @@ namespace ze
 		void ComputeHCSCoordThumbOffset(XMFLOAT2* pOut) const;
 	private:
 		virtual void OnMouseMove(POINT pt) override;
-		void OnThumbPosChange() {}
 
 		FLOAT GetTrackLogicalLength() const { return m_trackLogicalLength; }
 		void UpdateTrackLogicalLength() { m_trackLogicalLength = static_cast<FLOAT>(m_rangeMax - m_rangeMin); }
@@ -100,5 +101,7 @@ namespace ze
 		UISize m_thumbSize;
 		UIColor m_trackColor;
 		UIColor m_thumbColor;
+
+		std::function<bool()> m_handlerOnPosChange;
 	};
 }

@@ -40,32 +40,36 @@ namespace ze
 		GameObjectHandle CreateGameObject(PCWSTR name = L"New Game Object");
 
 		// (이 함수는 스크립트에서만 호출해야 합니다.)
-		// 루트 오브젝트로 패널 UI를 생성합니다.
+		// 루트 오브젝트로 패널을 생성합니다.
 		UIObjectHandle CreatePanel(PCWSTR name = L"New Panel");
 
 		// (이 함수는 스크립트에서만 호출해야 합니다.)
-		// 루트 오브젝트로 이미지 UI를 생성합니다.
+		// 루트 오브젝트로 이미지를 생성합니다.
 		UIObjectHandle CreateImage(PCWSTR name = L"New Image");
 
 		// (이 함수는 스크립트에서만 호출해야 합니다.)
-		// 루트 오브젝트로 텍스트 UI를 생성합니다.
+		// 루트 오브젝트로 텍스트를 생성합니다.
 		UIObjectHandle CreateText(PCWSTR name = L"New Text");
 
 		// (이 함수는 스크립트에서만 호출해야 합니다.)
-		// 루트 오브젝트로 버튼 UI를 생성합니다.
+		// 루트 오브젝트로 버튼을 생성합니다.
 		UIObjectHandle CreateButton(PCWSTR name = L"New Button");
 
 		// (이 함수는 스크립트에서만 호출해야 합니다.)
-		// 루트 오브젝트로 입력 필드 UI를 생성합니다.
+		// 루트 오브젝트로 입력 필드를 생성합니다.
 		UIObjectHandle CreateInputField(PCWSTR name = L"New Input Field");
 
 		// (이 함수는 스크립트에서만 호출해야 합니다.)
-		// 루트 오브젝트로 슬라이더 컨트롤 UI를 생성합니다.
+		// 루트 오브젝트로 슬라이더 컨트롤을 생성합니다.
 		UIObjectHandle CreateSliderControl(PCWSTR name = L"New Slider Control");
 
 		// (이 함수는 스크립트에서만 호출해야 합니다.)
-		// 루트 오브젝트로 체크박스 UI를 생성합니다.
+		// 루트 오브젝트로 체크박스를 생성합니다.
 		UIObjectHandle CreateCheckbox(PCWSTR name = L"New Checkbox");
+
+		// (이 함수는 스크립트에서만 호출해야 합니다.)
+		// 루트 오브젝트로 라디오 버튼을 생성합니다.
+		UIObjectHandle CreateRadioButton(PCWSTR name = L"New Radio Button");
 
 		GameObjectHandle Instantiate(const GameObjectHandle source);
 		// GameObjectHandle Instantiate(const GameObjectHandle source, GameObjectHandle parent);

@@ -42,9 +42,13 @@ namespace ze
 		// 이미지의 크기를 텍스처의 크기와 일치시킵니다.
 		void SetNativeSize(bool b);
 
+		void SetHandlerOnClick(std::function<bool()> handler) { m_handlerOnClick = std::move(handler); }
+
 		// Windows 좌표계 마우스 위치와 충돌 테스트 수행
 		virtual bool HitTest(POINT pt) const override;
 	private:
+		virtual void OnLButtonClick(POINT pt) override;
+
 		void UpdateToNativeSize();
 	private:
 		UISize m_size;
@@ -52,5 +56,7 @@ namespace ze
 		XMFLOAT2 m_uvOffset;
 		Texture2D m_texture;
 		bool m_nativeSize;
+
+		std::function<bool()> m_handlerOnClick;
 	};
 }

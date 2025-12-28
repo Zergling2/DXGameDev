@@ -45,6 +45,7 @@ void Warehouse::OnLoadScene()
 
 	// Main Camera
 	GameObject* pMainCamera = nullptr;
+	ComponentHandle<FirstPersonMovement> hScriptFPSMovement;
 	FirstPersonMovement* pScriptFPSMovement = nullptr;
 	{
 		GameObjectHandle hMainCamera = CreateGameObject(L"Main Camera");
@@ -58,8 +59,8 @@ void Warehouse::OnLoadScene()
 		pCameraComponent->SetFieldOfView(82);
 		pCameraComponent->SetClippingPlanes(0.03f, 300.0f);
 
-		ComponentHandle<FirstPersonMovement> hFirstPersonMovement = pMainCamera->AddComponent<FirstPersonMovement>();		// 1인칭 카메라 조작
-		pScriptFPSMovement = hFirstPersonMovement.ToPtr();
+		hScriptFPSMovement = pMainCamera->AddComponent<FirstPersonMovement>();		// 1인칭 카메라 조작
+		pScriptFPSMovement = hScriptFPSMovement.ToPtr();
 	}
 
 	std::shared_ptr<Material> treeBillboardMtl = ResourceLoader::GetInstance()->CreateMaterial();
@@ -111,27 +112,6 @@ void Warehouse::OnLoadScene()
 		// pBillboard->SetBillboardQuadHeight(4.0);
 		pBillboard->SetBillboardType(BillboardType::ScreenAligned);
 		pBillboard->SetMaterial(treeBillboardMtl);
-	}
-
-
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"광원 테스트");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetParent(&pMainCamera->m_transform);
-
-		ComponentHandle<SpotLight> hSpotLight = pGameObject->AddComponent<SpotLight>();
-		SpotLight* pSpotLight = hSpotLight.ToPtr();
-		XMStoreFloat4A(&pSpotLight->m_diffuse, ColorsLinear::HotPink);
-		XMStoreFloat4A(&pSpotLight->m_specular, ColorsLinear::HotPink);
-		pSpotLight->SetDistAtt(0.0f, 1.0f, 0.0f);
-		pSpotLight->SetRange(40.0f);
-
-		ComponentHandle<PointLight> hPointLight = pGameObject->AddComponent<PointLight>();
-		PointLight* pPointLight = hPointLight.ToPtr();
-		XMStoreFloat4A(&pPointLight->m_diffuse, ColorsLinear::AliceBlue);
-		XMStoreFloat4A(&pPointLight->m_specular, ColorsLinear::AliceBlue);
-		pPointLight->SetDistAtt(0.0f, 1.0f, 0.0f);
-		pPointLight->SetRange(5.0f);
 	}
 	
 	{
@@ -361,6 +341,7 @@ void Warehouse::OnLoadScene()
 			pScriptFPSMovement->m_hWeaponChangePanel = hPanel;
 			pPanel->SetActive(false);
 
+
 			constexpr float BUTTON_WIDTH = 40;
 			constexpr float BUTTON_HEIGHT = 18;
 			const float WEAPON_NAME_TEXT_WIDTH = pPanel->GetSizeX() - BUTTON_WIDTH - 10;
@@ -373,7 +354,6 @@ void Warehouse::OnLoadScene()
 				pInputField->m_transform.SetParent(&pPanel->m_transform);
 
 				pInputField->AllowReturn(true);
-				pInputField->AllowSpace(false);
 				pInputField->SetSize(pPanel->GetSizeX() - 16, 20);
 				pInputField->SetText(L"테스트 입력 필드");
 				pInputField->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
@@ -387,12 +367,15 @@ void Warehouse::OnLoadScene()
 				SliderControl* pHSlider = static_cast<SliderControl*>(hHSlider.ToPtr());
 				pHSlider->m_transform.SetParent(&pPanel->m_transform);
 				
-				pHSlider->SetRange(50, 60);
+				pHSlider->SetRange(0, 10);
 				pHSlider->SetThumbColor(ColorsLinear::Green);
 				pHSlider->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 				pHSlider->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
 				pHSlider->m_transform.m_position.x = pPanel->m_transform.m_position.x;
 				pHSlider->m_transform.m_position.y = -60;
+
+				pScriptFPSMovement->m_hSlider = hHSlider;
+				pHSlider->SetHandlerOnPosChange(MakeUIHandler(hScriptFPSMovement, &FirstPersonMovement::TestSliderHandler01));
 			}
 
 			{
@@ -409,6 +392,43 @@ void Warehouse::OnLoadScene()
 				pVSlider->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
 				pVSlider->m_transform.m_position.x = pPanel->m_transform.m_position.x + 200;
 				pVSlider->m_transform.m_position.y = -60;
+			}
+
+			{
+				UIObjectHandle hRadioButton1 = CreateRadioButton();
+				RadioButton* pRadioButton1 = static_cast<RadioButton*>(hRadioButton1.ToPtr());
+				pRadioButton1->m_transform.SetParent(&pPanel->m_transform);
+
+				
+				pRadioButton1->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+				pRadioButton1->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+				pRadioButton1->m_transform.m_position.x = pPanel->m_transform.m_position.x;
+				pRadioButton1->m_transform.m_position.y = -120;
+
+				UIObjectHandle hRadioButton2 = CreateRadioButton();
+				RadioButton* pRadioButton2 = static_cast<RadioButton*>(hRadioButton2.ToPtr());
+				pRadioButton2->m_transform.SetParent(&pPanel->m_transform);
+
+				
+				pRadioButton2->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+				pRadioButton2->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+				pRadioButton2->m_transform.m_position.x = pPanel->m_transform.m_position.x;
+				pRadioButton2->m_transform.m_position.y = -140;
+
+				UIObjectHandle hRadioButton3 = CreateRadioButton();
+				RadioButton* pRadioButton3 = static_cast<RadioButton*>(hRadioButton3.ToPtr());
+				pRadioButton3->m_transform.SetParent(&pPanel->m_transform);
+
+				
+				pRadioButton3->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+				pRadioButton3->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+				pRadioButton3->m_transform.m_position.x = pPanel->m_transform.m_position.x;
+				pRadioButton3->m_transform.m_position.y = -160;
+
+
+				// 라디오버튼 그룹 생성
+				pRadioButton1->Join(pRadioButton2);
+				pRadioButton1->Join(pRadioButton3);
 			}
 
 			{

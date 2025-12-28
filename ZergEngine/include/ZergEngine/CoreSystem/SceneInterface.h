@@ -21,28 +21,31 @@ namespace ze
 		// DontDestroyOnLoad() 함수로 지정되지 않은 객체들에 한해서 자동으로 이루어집니다.
 		GameObjectHandle CreateGameObject(PCWSTR name = L"New Game Object");
 
-		// 루트 오브젝트로 패널 UI를 생성합니다.
+		// 루트 오브젝트로 패널을 생성합니다.
 		UIObjectHandle CreatePanel(PCWSTR name = L"New Panel");
 
-		// 루트 오브젝트로 이미지 UI를 생성합니다.
+		// 루트 오브젝트로 이미지를 생성합니다.
 		UIObjectHandle CreateImage(PCWSTR name = L"New Image");
 
-		// 루트 오브젝트로 텍스트 UI를 생성합니다.
+		// 루트 오브젝트로 텍스트를 생성합니다.
 		UIObjectHandle CreateText(PCWSTR name = L"New Text");
 
-		// 루트 오브젝트로 버튼 UI를 생성합니다.
+		// 루트 오브젝트로 버튼을 생성합니다.
 		UIObjectHandle CreateButton(PCWSTR name = L"New Button");
 
-		// 루트 오브젝트로 입력 필드 UI를 생성합니다.
+		// 루트 오브젝트로 입력 필드를 생성합니다.
 		UIObjectHandle CreateInputField(PCWSTR name = L"New Input Field");
 
-		// 루트 오브젝트로 슬라이더 컨트롤 UI를 생성합니다.
+		// 루트 오브젝트로 슬라이더 컨트롤을 생성합니다.
 		UIObjectHandle CreateSliderControl(PCWSTR name = L"New Slider Control");
 
-		// 루트 오브젝트로 체크박스 UI를 생성합니다.
+		// 루트 오브젝트로 체크박스를 생성합니다.
 		UIObjectHandle CreateCheckbox(PCWSTR name = L"New Checkbox");
+
+		// 루트 오브젝트로 라디오 버튼을 생성합니다.
+		UIObjectHandle CreateRadioButton(PCWSTR name = L"New Radio Button");
 	private:
-		// OnLoadScene 함수의 구현은 반드시 Runtime의 Create 함수들을 사용하지 말고 
+		// OnLoadScene 함수의 구현은 반드시 Runtime의 Create 함수들을 사용하지 말고
 		// IScene 인터페이스에서 제공하는 Create 함수들을 사용하여 오브젝트를 생성해야 합니다.
 		virtual void OnLoadScene() = 0;
 	private:

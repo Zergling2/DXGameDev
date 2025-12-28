@@ -14,6 +14,8 @@ namespace ze
 	constexpr float BOUNDING_BOX_MIN_EXTENT = 0.005f;
 	constexpr uint32_t TRIANGLESTRIP_QUAD_VERTEX_COUNT = 4;
 	constexpr uint32_t CHECKBOX_VERTEX_COUNT = 66;
+	constexpr float SPACING_BETWEEN_CHECKBOX_AND_TEXTBOX = 4.0f;
+	constexpr float SPACING_BETWEEN_RADIOBUTTON_AND_TEXTBOX = 4.0f;
 
 	enum class RasterizerMode
 	{
@@ -66,6 +68,7 @@ namespace ze
 		ToHcsPNTTQuadForBillboard,
 		ToHcsPNTTQuadForImage,
 		ToHcsPNTTQuadForShadedEdgeQuad,
+		ToHcsPNTTQuadForShadedEdgeCircle,
 		ToHcsCheckbox,
 		ToHcsScreenRatioQuad,
 		// ToHcsShaded2DQuad,
@@ -114,6 +117,7 @@ namespace ze
 		SkyboxFragment,
 		LitTerrainFragment,
 		ColorShadedEdgeQuad,
+		ColorShadedEdgeCircle,
 		// ShadowMapAlphaClipping,
 		// 收收收收收收收收收收收收收收收收收收收收收收
 		COUNT

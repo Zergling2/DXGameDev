@@ -2,7 +2,7 @@
 
 using namespace ze;
 
-constexpr float IMAGE_DEFAULT_SIZE = 256.0f;
+constexpr float IMAGE_DEFAULT_SIZE = 400.0f;
 
 Image::Image(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name)
 	: IUIObject(id, flag, name)
@@ -11,6 +11,7 @@ Image::Image(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name)
 	, m_uvOffset(0.0f, 0.0f)
 	, m_texture()
 	, m_nativeSize(false)
+	, m_handlerOnClick()
 {
 }
 
@@ -36,6 +37,21 @@ bool Image::HitTest(POINT pt) const
 	m_transform.GetWinCoordPosition(&wcp);
 
 	return m_size.HitTest(pt, wcp);
+}
+
+void Image::OnLButtonClick(POINT pt)
+{
+	// 지연 객체(예시: OnLoadScene)인 경우 콜백 호출 방지
+	if (this->IsPending())
+		return;
+
+	// UI Event Callback
+	if (m_handlerOnClick)
+	{
+		bool success = m_handlerOnClick();
+		if (!success)	// 객체가 파괴된 경우
+			m_handlerOnClick = nullptr;
+	}
 }
 
 void Image::UpdateToNativeSize()

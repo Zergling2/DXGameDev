@@ -357,6 +357,15 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\ShadedEdgeQuadEffect.h">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\ShadedEdgeCircleEffect.h">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\RadioButton.h">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\UIEventHandler.h">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\CoreSystem\Time.cpp">
@@ -626,6 +635,12 @@
     <ClCompile Include="source\CoreSystem\Effect\ShadedEdgeQuadEffect.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClCompile>
+    <ClCompile Include="source\CoreSystem\Effect\ShadedEdgeCircleEffect.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\RadioButton.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="source\CoreSystem\ShaderCode\ShaderCommon.hlsli">
@@ -748,6 +763,12 @@
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
     <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsScreenRatioQuad.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
+    </FxCompile>
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsPNTTQuadForShadedEdgeCircle.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
+    </FxCompile>
+    <FxCompile Include="source\CoreSystem\ShaderCode\PSColorShadedEdgeCircle.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
   </ItemGroup>

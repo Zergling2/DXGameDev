@@ -4,6 +4,7 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\UIObjectType.h>
 #include <ZergEngine\CoreSystem\Resource\Font.h>
 #include <memory>
+#include <functional>
 
 namespace ze
 {
@@ -39,8 +40,9 @@ namespace ze
 		bool IsActive() const { return static_cast<uioft>(m_flag) & static_cast<uioft>(UIOBJECT_FLAG::ACTIVE); }
 		PCWSTR GetName() const { return m_name; }
 		uint64_t GetId() const { return m_id; }
-		virtual UIObjectType GetType() const = 0;
 		void SetActive(bool active);
+
+		virtual UIObjectType GetType() const = 0;
 
 		// Windows 좌표계 마우스 위치와 충돌 테스트 수행
 		virtual bool HitTest(POINT pt) const = 0;
@@ -56,6 +58,8 @@ namespace ze
 		virtual void OnRButtonDown(POINT pt) {}
 		virtual void OnRButtonUp(POINT pt) {}
 		virtual void OnRButtonClick(POINT pt) {}
+
+		virtual void OnDestroy() {}
 		
 
 		const UIObjectHandle ToHandle() const;

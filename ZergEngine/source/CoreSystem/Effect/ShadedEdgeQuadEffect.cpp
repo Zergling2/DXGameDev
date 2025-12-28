@@ -20,13 +20,13 @@ void ShadedEdgeQuadEffect::Init()
 	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::ColorShadedEdgeQuad);
 
 	m_cb2DRender.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
-	m_cbPer2DQuad.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
+	m_cbPerShadedEdgeQuad.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
 }
 
 void ShadedEdgeQuadEffect::Release()
 {
 	m_cb2DRender.Release();
-	m_cbPer2DQuad.Release();
+	m_cbPerShadedEdgeQuad.Release();
 }
 
 void ShadedEdgeQuadEffect::SetScreenToNDCSpaceRatio(const XMFLOAT2& ratio) noexcept
@@ -38,32 +38,32 @@ void ShadedEdgeQuadEffect::SetScreenToNDCSpaceRatio(const XMFLOAT2& ratio) noexc
 
 void ShadedEdgeQuadEffect::SetSize(FLOAT width, FLOAT height) noexcept
 {
-	m_cbPer2DQuadCache.size.x = width;
-	m_cbPer2DQuadCache.size.y = height;
+	m_cbPerShadedEdgeQuadCache.size.x = width;
+	m_cbPerShadedEdgeQuadCache.size.y = height;
 
-	m_dirtyFlag |= DirtyFlag::UpdateCBPer2DQuad;
+	m_dirtyFlag |= DirtyFlag::UpdateCBPerShadedEdgeQuad;
 }
 
-void ShadedEdgeQuadEffect::SetViewSpacePosition(const XMFLOAT2& pos) noexcept
+void ShadedEdgeQuadEffect::SetHCSPosition(const XMFLOAT2& pos) noexcept
 {
-	m_cbPer2DQuadCache.position = pos;
+	m_cbPerShadedEdgeQuadCache.position = pos;
 
-	m_dirtyFlag |= DirtyFlag::UpdateCBPer2DQuad;
+	m_dirtyFlag |= DirtyFlag::UpdateCBPerShadedEdgeQuad;
 }
 
 void XM_CALLCONV ShadedEdgeQuadEffect::SetColor(FXMVECTOR color) noexcept
 {
-	XMStoreFloat4A(&m_cbPer2DQuadCache.color, color);
+	XMStoreFloat4A(&m_cbPerShadedEdgeQuadCache.color, color);
 
-	m_dirtyFlag |= DirtyFlag::UpdateCBPer2DQuad;
+	m_dirtyFlag |= DirtyFlag::UpdateCBPerShadedEdgeQuad;
 }
 
 void ShadedEdgeQuadEffect::SetColorWeight(FLOAT lt, FLOAT rb) noexcept
 {
-	m_cbPer2DQuadCache.ltColorWeight = lt;
-	m_cbPer2DQuadCache.rbColorWeight = rb;
+	m_cbPerShadedEdgeQuadCache.ltColorWeight = lt;
+	m_cbPerShadedEdgeQuadCache.rbColorWeight = rb;
 
-	m_dirtyFlag |= DirtyFlag::UpdateCBPer2DQuad;
+	m_dirtyFlag |= DirtyFlag::UpdateCBPerShadedEdgeQuad;
 }
 
 void ShadedEdgeQuadEffect::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
@@ -86,14 +86,14 @@ void ShadedEdgeQuadEffect::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexce
 		case DirtyFlag::ApplyCB2DRender:
 			Apply2DRenderConstantBuffer(pDeviceContext);
 			break;
-		case DirtyFlag::ApplyCBPer2DQuad:
-			ApplyPer2DQuadConstantBuffer(pDeviceContext);
+		case DirtyFlag::ApplyCBPerShadedEdgeQuad:
+			ApplyPerShadedEdgeQuadConstantBuffer(pDeviceContext);
 			break;
 		case DirtyFlag::UpdateCB2DRender:
 			m_cb2DRender.Update(pDeviceContext, &m_cb2DRenderCache);
 			break;
-		case DirtyFlag::UpdateCBPer2DQuad:
-			m_cbPer2DQuad.Update(pDeviceContext, &m_cbPer2DQuadCache);
+		case DirtyFlag::UpdateCBPerShadedEdgeQuad:
+			m_cbPerShadedEdgeQuad.Update(pDeviceContext, &m_cbPerShadedEdgeQuadCache);
 			break;
 		default:
 			*reinterpret_cast<int*>(0) = 0;		// Force crash
@@ -111,7 +111,7 @@ void ShadedEdgeQuadEffect::OnUnbindFromDeviceContext() noexcept
 
 	const DWORD except =
 		DirtyFlag::UpdateCB2DRender |
-		DirtyFlag::UpdateCBPer2DQuad;
+		DirtyFlag::UpdateCBPerShadedEdgeQuad;
 
 	m_dirtyFlag = m_dirtyFlag & ~except;
 }
@@ -134,9 +134,9 @@ void ShadedEdgeQuadEffect::Apply2DRenderConstantBuffer(ID3D11DeviceContext* pDev
 	pDeviceContext->VSSetConstantBuffers(VS_SLOT, 1, cbs);
 }
 
-void ShadedEdgeQuadEffect::ApplyPer2DQuadConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
+void ShadedEdgeQuadEffect::ApplyPerShadedEdgeQuadConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	ID3D11Buffer* const cbs[] = { m_cbPer2DQuad.GetComInterface() };
+	ID3D11Buffer* const cbs[] = { m_cbPerShadedEdgeQuad.GetComInterface() };
 
 	// Per2DQuad 상수버퍼 사용 셰이더
 	constexpr UINT VS_SLOT = 1;

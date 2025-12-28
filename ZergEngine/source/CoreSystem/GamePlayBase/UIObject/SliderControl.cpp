@@ -3,8 +3,8 @@
 
 using namespace ze;
 
-constexpr FLOAT THUMB_DEFAULT_WIDTH = 8;
-constexpr FLOAT THUMB_DEFAULT_HEIGHT = 16;
+constexpr FLOAT THUMB_DEFAULT_WIDTH = 8.0;
+constexpr FLOAT THUMB_DEFAULT_HEIGHT = 16.0;
 
 SliderControl::SliderControl(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name)
 	: IUIObject(id, flag, name)
@@ -17,6 +17,7 @@ SliderControl::SliderControl(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name)
 	, m_thumbSize(THUMB_DEFAULT_WIDTH, THUMB_DEFAULT_HEIGHT)
 	, m_trackColor(ColorsLinear::DimGray)
 	, m_thumbColor(ColorsLinear::DarkOliveGreen)
+	, m_handlerOnPosChange()
 {
 	this->UpdateTrackLogicalLength();
 
@@ -77,11 +78,17 @@ void SliderControl::SetThumbPos(int32_t pos)
 
 	m_thumbPos = newThumbPos;
 
-	// OnLoadScene 등에서 제어한 경우
+	// 지연 객체(예시: OnLoadScene)인 경우 콜백 호출 방지
 	if (this->IsPending())
 		return;
 
-	this->OnThumbPosChange();
+	// UI Event Callback
+	if (m_handlerOnPosChange)
+	{
+		bool success = m_handlerOnPosChange();
+		if (!success)	// 객체가 파괴된 경우
+			m_handlerOnPosChange = nullptr;
+	}
 }
 
 bool SliderControl::HitTest(POINT pt) const

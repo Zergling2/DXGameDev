@@ -53,13 +53,18 @@ namespace ze
 		void XM_CALLCONV SetTextColor(FXMVECTOR color) { m_textColor.SetColor(color); }
 		void SetTextColor(const XMFLOAT4& color) { m_textColor.SetColor(color); }
 		void SetTextColor(FLOAT r, FLOAT g, FLOAT b, FLOAT a) { m_textColor.SetColor(r, g, b, a); }
+		void XM_CALLCONV SetTextColorRGB(FXMVECTOR rgb) { m_textColor.SetColorRGB(rgb); }
+		void SetTextColorRGB(FLOAT r, FLOAT g, FLOAT b) { m_textColor.SetColorRGB(r, g, b); }
+		void SetTextColorA(FLOAT a) { m_textColor.SetColorA(a); }
+
+		void SetHandlerOnClick(std::function<bool()> handler) { m_handlerOnClick = std::move(handler); }
 
 		// Windows 좌표계 마우스 위치와 충돌 테스트 수행
 		virtual bool HitTest(POINT pt) const override;
 	private:
 		virtual void OnLButtonDown(POINT pt) override;
 		virtual void OnLButtonUp(POINT pt) override;
-		// virtual void OnLButtonClick(POINT pt) override;
+		virtual void OnLButtonClick(POINT pt) override;
 
 		// 렌더링 모양 결정을 위한 상태변수 (작동 로직과는 무관)
 		bool IsPressed() const { return m_isPressed; }
@@ -69,5 +74,7 @@ namespace ze
 		UIColor m_buttonColor;
 		UIText m_text;
 		UIColor m_textColor;
+
+		std::function<bool()> m_handlerOnClick;
 	};
 }

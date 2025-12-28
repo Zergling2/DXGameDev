@@ -162,16 +162,36 @@ hlslstruct Cb2DRender
 hlslstruct CbPer2DQuad
 {
 	XMFLOAT2 size;
-	XMFLOAT2 position;
+	XMFLOAT2 position; // HCS position
 
 	// 텍스쳐 팔레트용 정보
 	XMFLOAT2 uvOffset; // UV 위치 오프셋
 	XMFLOAT2 uvScale; // UV 스케일
 
-    XMFLOAT4A color;
-	
+	XMFLOAT4A color;
+};
+
+hlslstruct CbPerShadedEdgeQuad
+{
+	XMFLOAT2 size;
+	XMFLOAT2 position; // HCS position
+
+	XMFLOAT4A color;
+
 	FLOAT ltColorWeight; // 음영 쿼드 렌더링 시 사용
 	FLOAT rbColorWeight; // 음영 쿼드 렌더링 시 사용
+};
+
+hlslstruct CbPerShadedEdgeCircle
+{
+	FLOAT radius;
+	HLSLPad pad0;
+	XMFLOAT2 position;	// HCS position
+
+	XMFLOAT4A color;
+
+	FLOAT ltColorWeight; // 음영 렌더링 시 사용
+	FLOAT rbColorWeight; // 음영 렌더링 시 사용
 };
 
 /*
@@ -297,8 +317,13 @@ struct PSInputTerrainFragment
 struct PSInputShadedEdgeQuadFragment
 {
     float4 pos : SV_Position;
-    float2 posV : POSITION;		// View space position
-    float2 texCoord : TEXCOORD;
+    float2 posV : POSITION; // View space position
+};
+
+struct PSInputShadedEdgeCircleFragment
+{
+    float4 pos : SV_Position;
+    float2 posV : POSITION; // View space position
 };
 
 struct PSOutput

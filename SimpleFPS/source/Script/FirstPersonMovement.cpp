@@ -137,3 +137,13 @@ void FirstPersonMovement::MovementProcess(ze::GameObject* pGameObject)
 	if (Input::GetInstance()->GetKey(KEY_D))
 		pGameObject->m_transform.Translate(worldRightAxis * speed);
 }
+
+void FirstPersonMovement::TestSliderHandler01()
+{
+	SliderControl* pSC = static_cast<SliderControl*>(m_hSlider.ToPtr());
+	if (!pSC)
+		return;
+
+	float v = static_cast<float>(pSC->GetThumbPos()) * 0.1f;
+	RenderSettings::GetInstance()->SetAmbientLightIntensity(v);
+}

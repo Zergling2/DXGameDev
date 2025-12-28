@@ -30,6 +30,7 @@ static PCWSTR VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::COUNT)] 
 	L"VSToHcsPNTTQuadForBillboard.cso",
 	L"VSToHcsPNTTQuadForImage.cso",
 	L"VSToHcsPNTTQuadForShadedEdgeQuad.cso",
+	L"VSToHcsPNTTQuadForShadedEdgeCircle.cso",
 	L"VSToHcsCheckbox.cso",
 	L"VSToHcsScreenRatioQuad.cso"
 	// L"VSToHcsShaded2DQuad.cso",
@@ -62,7 +63,8 @@ static PCWSTR PIXEL_SHADER_FILES[static_cast<size_t>(PixelShaderType::COUNT)] =
 	L"PSLitPNTTDiffSpecNormMapping.cso",
 	L"PSSkyboxFragment.cso",
 	L"PSLitTerrainFragment.cso",
-	L"PSColorShadedEdgeQuad.cso"
+	L"PSColorShadedEdgeQuad.cso",
+	L"PSColorShadedEdgeCircle.cso"
 };
 
 GraphicDevice::GraphicDevice()
@@ -566,6 +568,15 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	delete[] pByteCode;
 	// ┗━ PNTT Input Layout 사용
 
+	// ToHcsPNTTQuadForShadedEdgeCircle
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::ToHcsPNTTQuadForShadedEdgeCircle)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
+	m_vs[static_cast<size_t>(VertexShaderType::ToHcsPNTTQuadForShadedEdgeCircle)].Init(pDevice, pByteCode, byteCodeSize);
+	delete[] pByteCode;
+	// ┗━ PNTT Input Layout 사용
+
 	// ToHcsCheckbox
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
 	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::ToHcsCheckbox)]);
@@ -800,6 +811,14 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
 		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
 	m_ps[static_cast<size_t>(PixelShaderType::ColorShadedEdgeQuad)].Init(pDevice, pByteCode, byteCodeSize);
+	delete[] pByteCode;
+
+	// ColorShadedEdgeCircle
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), PIXEL_SHADER_FILES[static_cast<size_t>(PixelShaderType::ColorShadedEdgeCircle)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
+	m_ps[static_cast<size_t>(PixelShaderType::ColorShadedEdgeCircle)].Init(pDevice, pByteCode, byteCodeSize);
 	delete[] pByteCode;
 }
 

@@ -71,6 +71,30 @@ namespace ze
 	class Math
 	{
 	public:
+		class Index2DTo1D
+		{
+		public:
+			Index2DTo1D(size_t x)
+				: m_len{ x }
+			{
+			}
+			size_t operator()(size_t y, size_t x) const { return m_len[0] * y + x; }
+		private:
+			size_t m_len[1];
+		};
+
+		class Index3DTo1D
+		{
+		public:
+			Index3DTo1D(size_t y, size_t x)
+				: m_len{ x, y }
+			{
+			}
+			size_t operator()(size_t z, size_t y, size_t x) const { return m_len[0] * m_len[1] * z + m_len[0] * y + x; }
+		private:
+			size_t m_len[2];
+		};
+
 		// 1.0f, 0.0f, 0.0f, 0.0f
 		static XMVECTOR IdentityR0() { return g_XMIdentityR0; }
 

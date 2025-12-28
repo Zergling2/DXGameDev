@@ -6,7 +6,7 @@ namespace ze
 {
 	class IEffect;
 
-	// Effect 클래스의 상태 관리를 자동으로 해주는 객체
+	// Effect 상태 관리 기능을 포함해서 DeviceContext 래핑
 	class EffectDeviceContext
 	{
 	public:
@@ -17,7 +17,7 @@ namespace ze
 		void AttachDeviceContext(ID3D11DeviceContext* pDeviceContext) noexcept;
 		ID3D11DeviceContext* GetDeviceContextComInterface() const { return m_pDeviceContext; }
 
-		void Bind(IEffect* pEffect) noexcept;
+		void Apply(IEffect* pEffect) noexcept;
 
 		void ClearState() noexcept;
 		void ClearDepthStencilView(

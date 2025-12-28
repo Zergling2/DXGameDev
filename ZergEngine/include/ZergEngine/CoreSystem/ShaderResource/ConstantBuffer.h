@@ -227,10 +227,8 @@ namespace ze
 			: uvOffset(0.0f, 0.0f)
 			, uvScale(1.0f, 1.0f)
 		{
-#if defined(DEBUG) || defined(_DEBUG)
 			XMStoreFloat4x4A(&w, XMMatrixIdentity());
 			XMStoreFloat4x4A(&wInvTr, XMMatrixIdentity());
-#endif
 		}
 		XMFLOAT4X4A w;
 		XMFLOAT4X4A wInvTr;
@@ -253,21 +251,56 @@ namespace ze
 			, uvOffset(0.0f, 0.0f)
 			, uvScale(1.0f, 1.0f)
 			, color(1.0f, 1.0f, 1.0f, 1.0f)
-			, ltColorWeight(0.0f)
-			, rbColorWeight(0.0f)
 		{
 		}
 		XMFLOAT2 size;
-		XMFLOAT2 position;	// View space position
+		XMFLOAT2 position;	// Homogeneous clip space position
 
 		// 텍스쳐 팔레트용 정보
 		XMFLOAT2 uvOffset;	// UV 위치 오프셋
 		XMFLOAT2 uvScale;	// UV 스케일
 
 		XMFLOAT4A color;
+	};
+
+	hlslstruct CbPerShadedEdgeQuad
+	{
+		CbPerShadedEdgeQuad()
+			: size(1.0f, 1.0f)
+			, position(0.0f, 0.0f)
+			, color(1.0f, 1.0f, 1.0f, 1.0f)
+			, ltColorWeight(0.0f)
+			, rbColorWeight(0.0f)
+		{
+		}
+		XMFLOAT2 size;
+		XMFLOAT2 position;	// Homogeneous clip space position
+
+		XMFLOAT4A color;
 
 		FLOAT ltColorWeight;	// 음영 쿼드 렌더링 시 사용
 		FLOAT rbColorWeight;	// 음영 쿼드 렌더링 시 사용
+	};
+
+	hlslstruct CbPerShadedEdgeCircle
+	{
+		CbPerShadedEdgeCircle()
+			: radius(1.0f)
+			, pad0(0.0f)
+			, position(0.0f, 0.0f)
+			, color(1.0f, 1.0f, 1.0f, 1.0f)
+			, ltColorWeight(0.0f)
+			, rbColorWeight(0.0f)
+		{
+		}
+		FLOAT radius;
+		HLSLPad pad0;
+		XMFLOAT2 position;	// Homogeneous clip space position
+
+		XMFLOAT4A color;
+
+		FLOAT ltColorWeight;	// 음영 렌더링 시 사용
+		FLOAT rbColorWeight;	// 음영 렌더링 시 사용
 	};
 
 	/*
@@ -278,7 +311,7 @@ namespace ze
 		XMFLOAT4A color;
 
 		XMFLOAT2 size;
-		XMFLOAT2 position;	// View space position
+		XMFLOAT2 position;	// Homogeneous clip space position
 
 		uint32_t colorWeightIndex;		// [0] Convex shade [1] Concave shade
 	};
@@ -290,7 +323,7 @@ namespace ze
 		XMFLOAT4A checkColor;
 
 		XMFLOAT2 size;
-		XMFLOAT2 position;	// View space position
+		XMFLOAT2 position;	// Homogeneous clip space position
 	};
 
 	hlslstruct CbPerArmature

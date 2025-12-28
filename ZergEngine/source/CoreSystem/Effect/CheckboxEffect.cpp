@@ -59,7 +59,7 @@ void CheckboxEffect::SetSize(FLOAT width, FLOAT height) noexcept
 	m_dirtyFlag |= DirtyFlag::UpdateCBPerCheckbox;
 }
 
-void CheckboxEffect::SetViewSpacePosition(const XMFLOAT2& pos) noexcept
+void CheckboxEffect::SetHCSPosition(const XMFLOAT2& pos) noexcept
 {
 	m_cbPerCheckboxCache.position = pos;
 

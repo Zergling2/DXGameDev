@@ -13,6 +13,7 @@ namespace ze
 		Button,
 		ImageButton,
 		SliderControl,
-		Checkbox
+		Checkbox,
+		RadioButton
 	};
 }

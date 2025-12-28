@@ -65,7 +65,7 @@ bool UISize::HitTest(POINT pt, POINT pos) const
 	ptL.x = pt.x - pos.x;
 	ptL.y = pt.y - pos.y;
 
-	return std::abs(ptL.x) < static_cast<LONG>(this->GetHalfSizeX()) && std::abs(ptL.y) < static_cast<LONG>(this->GetHalfSizeY());
+	return std::abs(ptL.x) <= static_cast<LONG>(this->GetHalfSizeX()) && std::abs(ptL.y) <= static_cast<LONG>(this->GetHalfSizeY());
 }
 
 void XM_CALLCONV UISize::SetSize(FXMVECTOR size)

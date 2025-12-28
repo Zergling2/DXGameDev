@@ -71,7 +71,7 @@ namespace ze
 		uint64_t AssignUniqueId() { return InterlockedIncrement64(reinterpret_cast<LONG64*>(&m_uniqueId)); }
 
 		// UI의 동작 호출은 검색이 끝난 뒤 호출되어야 반복자 손상을 피할 수 있음.
-		IUIObject* XM_CALLCONV SearchForHitUI(POINT pt);
+		IUIObject* XM_CALLCONV SearchForHitUI(POINT pt) const;
 		static IUIObject* XM_CALLCONV PostOrderHitTest(POINT pt, const IUIObject* pUIObject);
 
 		// Windows Vista부터 Surrogate pair 전달 가능

@@ -3,7 +3,7 @@
 using namespace ze;
 
 constexpr float DEFAULT_CHECKBOX_SIZE = 14.0f;
-constexpr float DEFAULT_TEXTBOX_WIDTH = 100.0f;
+constexpr float DEFAULT_TEXTBOX_WIDTH = 80.0f;
 constexpr float DEFAULT_TEXTBOX_HEIGHT = 14.0f;
 
 Checkbox::Checkbox(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name)
@@ -16,9 +16,32 @@ Checkbox::Checkbox(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name)
 	, m_textboxSize(DEFAULT_TEXTBOX_WIDTH, DEFAULT_TEXTBOX_HEIGHT)
 	, m_textColor(ColorsLinear::WhiteSmoke)
 	, m_text()
+	, m_handlerOnClick()
 {
 	m_text.SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 	m_text.SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+}
+
+void Checkbox::SetCheck(bool b)
+{
+	// 이미 요청된 체크 상태가 설정되어 있는경우
+	if (b == this->GetCheck())
+		return;
+
+	// 상태 업데이트
+	m_isChecked = b;
+
+	// 지연 객체(예시: OnLoadScene)인 경우 콜백 호출 방지
+	if (this->IsPending())
+		return;
+
+	// UI Event Callback
+	if (m_handlerOnClick)
+	{
+		bool success = m_handlerOnClick();
+		if (!success)	// 객체가 파괴된 경우
+			m_handlerOnClick = nullptr;
+	}
 }
 
 void Checkbox::SetLeftText(bool b)
@@ -44,5 +67,5 @@ bool Checkbox::HitTest(POINT pt) const
 
 void Checkbox::OnLButtonClick(POINT pt)
 {
-	m_isChecked = !m_isChecked;
+	this->SetCheck(!this->GetCheck());
 }

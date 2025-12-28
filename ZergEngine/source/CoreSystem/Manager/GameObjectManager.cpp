@@ -134,7 +134,7 @@ GameObject* GameObjectManager::ToPtr(uint32_t tableIndex, uint64_t id) const
 
 	GameObject* pGameObject = GameObjectManager::GetInstance()->m_handleTable[tableIndex];
 
-	if (pGameObject == nullptr || pGameObject->GetId() != id)
+	if (pGameObject == nullptr || pGameObject->GetId() != id || pGameObject->IsOnTheDestroyQueue())
 		return nullptr;
 	else
 		return pGameObject;
@@ -272,23 +272,22 @@ void GameObjectManager::RemoveDestroyedGameObjects()
 		if (pParentTransform != nullptr)
 		{
 #if defined(DEBUG) || defined(_DEBUG)
-			bool find = false;
+			bool found = false;
 #endif
-			std::vector<Transform*>::const_iterator end = pParentTransform->m_children.cend();
 			std::vector<Transform*>::const_iterator iter = pParentTransform->m_children.cbegin();
-			while (iter != end)
+			while (iter != pParentTransform->m_children.cend())
 			{
 				if (*iter == pTransform)
 				{
 #if defined(DEBUG) || defined(_DEBUG)
-					find = true;
+					found = true;
 #endif
 					pParentTransform->m_children.erase(iter);
 					break;
 				}
 				++iter;
 			}
-			assert(find == true);
+			assert(found == true);
 		}
 
 		for (Transform* pChildTransform : pTransform->m_children)
@@ -384,23 +383,22 @@ bool GameObjectManager::SetParent(Transform* pTransform, Transform* pNewParentTr
 	if (pOldParentTransform != nullptr)
 	{
 #if defined(DEBUG) || defined(_DEBUG)
-		bool find = false;
+		bool found = false;
 #endif
-		std::vector<Transform*>::const_iterator end = pOldParentTransform->m_children.cend();
 		std::vector<Transform*>::const_iterator iter = pOldParentTransform->m_children.cbegin();
-		while (iter != end)
+		while (iter != pOldParentTransform->m_children.cend())
 		{
 			if (*iter == pTransform)
 			{
 				pOldParentTransform->m_children.erase(iter);
 #if defined(DEBUG) || defined(_DEBUG)
-				find = true;
+				found = true;
 #endif
 				break;
 			}
 			++iter;
 		}
-		assert(find == true);	// 자식으로 존재했었어야 함
+		assert(found == true);	// 자식으로 존재했었어야 함
 	}
 
 	// 만약 부모가 nullptr이 아니라면

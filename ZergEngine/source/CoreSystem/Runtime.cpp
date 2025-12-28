@@ -32,6 +32,7 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\InputField.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\SliderControl.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Checkbox.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\UIObject\RadioButton.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\SkinnedMeshRenderer.h>
 #include <ZergEngine\CoreSystem\Resource\Animation.h>
 
@@ -378,6 +379,11 @@ UIObjectHandle Runtime::CreateSliderControl(PCWSTR name)
 UIObjectHandle Runtime::CreateCheckbox(PCWSTR name)
 {
     return UIObjectManager::GetInstance()->CreateObject<Checkbox>(name);
+}
+
+UIObjectHandle Runtime::CreateRadioButton(PCWSTR name)
+{
+    return UIObjectManager::GetInstance()->CreateObject<RadioButton>(name);
 }
 
 void Runtime::OnDestroy(WPARAM wParam, LPARAM lParam)

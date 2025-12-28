@@ -13,6 +13,7 @@
 #include <ZergEngine\CoreSystem\Effect\DrawScreenRatioQuadWithTextureEffect.h>
 #include <ZergEngine\CoreSystem\Effect\DrawScreenRatioQuadWithMSTextureEffect.h>
 #include <ZergEngine\CoreSystem\Effect\ShadedEdgeQuadEffect.h>
+#include <ZergEngine\CoreSystem\Effect\ShadedEdgeCircleEffect.h>
 #include <ZergEngine\CoreSystem\Effect\CheckboxEffect.h>
 #include <ZergEngine\CoreSystem\Effect\ImageEffect.h>
 #include <vector>
@@ -30,6 +31,7 @@ namespace ze
 	class InputField;
 	class SliderControl;
 	class Checkbox;
+	class RadioButton;
 	class IUIObject;
 
 	class Renderer
@@ -68,6 +70,7 @@ namespace ze
 		void RenderInputField(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColorBrush* pBrush, const InputField* pInputField);
 		void RenderSliderControl(const SliderControl* pSliderControl);
 		void RenderCheckbox(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColorBrush* pBrush, const Checkbox* pCheckbox);
+		void RenderRadioButton(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColorBrush* pBrush, const RadioButton* pRadioButton);
 	private:
 		static Renderer* s_pInstance;
 
@@ -107,6 +110,7 @@ namespace ze
 		DrawScreenRatioQuadWithTextureEffect m_drawScreenQuadTex;
 		DrawScreenRatioQuadWithMSTextureEffect m_drawScreenQuadMSTex;
 		ShadedEdgeQuadEffect m_shadedEdgeQuadEffect;
+		ShadedEdgeCircleEffect m_shadedEdgeCircleEffect;
 		CheckboxEffect m_checkboxEffect;
 		ImageEffect m_imageEffect;
 		std::wstring m_asteriskStr;

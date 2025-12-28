@@ -14,10 +14,11 @@ namespace ze
 		virtual void Init() = 0;
 		virtual void Release() = 0;
 	private:
-		// Dirty Flag 확인해서 변경된 사항들만 세팅
+		// DirtyFlag 기반 변경된 사항들만 업데이트 및 바인딩.
 		virtual void ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept = 0;
 
-		// 모든 Dirty Flag 재설정 및 기타 초기화
+		// 파이프라인이 다른 Effect 클래스에 의해 변경된 경우 호출되는 함수.
+		// 대표적으로 DirtyFlag 재설정 작업을 수행해야 함.
 		virtual void OnUnbindFromDeviceContext() noexcept = 0;
 	};
 }

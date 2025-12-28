@@ -98,7 +98,7 @@ IUIObject* UIObjectManager::ToPtr(uint32_t tableIndex, uint64_t id) const
 
 	IUIObject* pUIObject = UIObjectManager::GetInstance()->m_handleTable[tableIndex];
 
-	if (pUIObject == nullptr || pUIObject->GetId() != id)
+	if (pUIObject == nullptr || pUIObject->GetId() != id || pUIObject->IsOnTheDestroyQueue())
 		return nullptr;
 	else
 		return pUIObject;
@@ -180,7 +180,7 @@ void UIObjectManager::MoveToActiveGroup(IUIObject* pUIObject)
 void UIObjectManager::MoveToInactiveGroup(IUIObject* pUIObject)
 {
 	// 0. UI 상호작용 중(클릭되거나 포커싱된 경우)이었다면 해제
-	DetachUIFromManager(pUIObject);
+	this->DetachUIFromManager(pUIObject);
 
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	// 1. Active group에서 제거
@@ -244,7 +244,7 @@ void UIObjectManager::RemoveFromRootArray(IUIObject* pUIObject)
 	assert(pUIObject->IsRoot() == true);
 
 #if defined (DEBUG) || (_DEBUG)
-	bool find = false;
+	bool found = false;
 #endif
 	auto end = m_roots.cend();
 	auto iter = m_roots.cbegin();
@@ -253,7 +253,7 @@ void UIObjectManager::RemoveFromRootArray(IUIObject* pUIObject)
 		if (*iter == pUIObject)
 		{
 #if defined (DEBUG) || (_DEBUG)
-			find = true;
+			found = true;
 #endif
 			m_roots.erase(iter);
 			break;
@@ -262,7 +262,7 @@ void UIObjectManager::RemoveFromRootArray(IUIObject* pUIObject)
 		++iter;
 	}
 
-	assert(find == true);
+	assert(found == true);
 
 	pUIObject->OffFlag(UIOBJECT_FLAG::REAL_ROOT);
 }
@@ -304,6 +304,8 @@ void UIObjectManager::RemoveDestroyedUIObjects()
 		assert(pUIObject->IsPending() == false);	// 로딩 씬 소속의 오브젝트는 파괴될 수 없다.
 		assert(pUIObject->IsOnTheDestroyQueue() == true);	// 파괴 큐에 들어온 경우에는 이 ON_DESTROY_QUEUE 플래그가 켜져 있어야만 한다.
 
+		// UI 오브젝트별 파괴될 때 수행되어야 하는 작업 수행 (RadioButton의 경우 그룹에서 포인터 제거)
+		pUIObject->OnDestroy();
 
 		// Detach from UI system
 		this->DetachUIFromManager(pUIObject);
@@ -315,23 +317,22 @@ void UIObjectManager::RemoveDestroyedUIObjects()
 		if (pParentTransform != nullptr)
 		{
 #if defined(DEBUG) || defined(_DEBUG)
-			bool find = false;
+			bool found = false;
 #endif
-			std::vector<RectTransform*>::const_iterator end = pParentTransform->m_children.cend();
 			std::vector<RectTransform*>::const_iterator iter = pParentTransform->m_children.cbegin();
-			while (iter != end)
+			while (iter != pParentTransform->m_children.cend())
 			{
 				if (*iter == pTransform)
 				{
 #if defined(DEBUG) || defined(_DEBUG)
-					find = true;
+					found = true;
 #endif
 					pParentTransform->m_children.erase(iter);
 					break;
 				}
 				++iter;
 			}
-			assert(find == true);
+			assert(found == true);
 		}
 
 		for (RectTransform* pChildTransform : pTransform->m_children)
@@ -422,23 +423,22 @@ bool UIObjectManager::SetParent(RectTransform* pTransform, RectTransform* pNewPa
 	if (pOldParentTransform != nullptr)
 	{
 #if defined(DEBUG) || defined(_DEBUG)
-		bool find = false;
+		bool found = false;
 #endif
-		std::vector<RectTransform*>::const_iterator end = pOldParentTransform->m_children.cend();
 		std::vector<RectTransform*>::const_iterator iter = pOldParentTransform->m_children.cbegin();
-		while (iter != end)
+		while (iter != pOldParentTransform->m_children.cend())
 		{
 			if (*iter == pTransform)
 			{
 				pOldParentTransform->m_children.erase(iter);
 #if defined(DEBUG) || defined(_DEBUG)
-				find = true;
+				found = true;
 #endif
 				break;
 			}
 			++iter;
 		}
-		assert(find == true);	// 자식으로 존재했었어야 함
+		assert(found == true);	// 자식으로 존재했었어야 함
 	}
 
 	// 만약 새 부모가 nullptr이 아니라면
@@ -477,7 +477,7 @@ bool UIObjectManager::SetParent(RectTransform* pTransform, RectTransform* pNewPa
 	return true;
 }
 
-IUIObject* XM_CALLCONV UIObjectManager::SearchForHitUI(POINT pt)
+IUIObject* XM_CALLCONV UIObjectManager::SearchForHitUI(POINT pt) const
 {
 	// UI 오브젝트를 후위 순회하며 검색
 
@@ -485,7 +485,7 @@ IUIObject* XM_CALLCONV UIObjectManager::SearchForHitUI(POINT pt)
 
 	for (IUIObject* pUIObject : m_roots)
 	{
-		pHitUI = const_cast<IUIObject*>(UIObjectManager::PostOrderHitTest(pt, pUIObject));
+		pHitUI = UIObjectManager::PostOrderHitTest(pt, pUIObject);
 		if (pHitUI != nullptr)
 			break;
 	}
@@ -502,7 +502,7 @@ IUIObject* XM_CALLCONV UIObjectManager::PostOrderHitTest(POINT pt, const IUIObje
 
 	for (auto it = children.rbegin(); it != children.rend(); ++it)
 	{
-		IUIObject* pChild = (*it)->m_pUIObject;
+		const IUIObject* pChild = (*it)->m_pUIObject;
 		IUIObject* pHitUI = UIObjectManager::PostOrderHitTest(pt, pChild);
 		if (pHitUI)	// Hit UI가 있다면 반환
 			return pHitUI;

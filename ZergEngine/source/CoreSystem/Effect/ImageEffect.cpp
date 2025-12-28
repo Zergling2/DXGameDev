@@ -60,7 +60,7 @@ void ImageEffect::SetUVOffset(FLOAT x, FLOAT y) noexcept
 	m_dirtyFlag |= DirtyFlag::UpdateCBPer2DQuad;
 }
 
-void ImageEffect::SetViewSpacePosition(const XMFLOAT2& pos) noexcept
+void ImageEffect::SetHCSPosition(const XMFLOAT2& pos) noexcept
 {
 	m_cbPer2DQuadCache.position = pos;
 
