@@ -14,11 +14,17 @@ public:
 
 	void MovementProcess(ze::GameObject* pGameObject);
 
-	void TestSliderHandler01();
+	void TestHandlerOnClick01();
+	void TestHandlerOnClick02();
+	void TestHandlerOnClick03();
+	void EventHandlerAmbientChange();
+	void EventHandlerMSAAChange();
 public:
 	ze::GameObjectHandle m_hWeapons[4];
 	bool m_ui;
 	ze::UIObjectHandle m_hWeaponChangePanel;
+	ze::ComponentHandle<ze::Camera> m_hComponentCamera;
 
 	ze::UIObjectHandle m_hSlider;
+	ze::UIObjectHandle m_hSliderMSAAChanger;
 };

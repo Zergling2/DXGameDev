@@ -16,13 +16,14 @@ UIObjectManager::UIObjectManager()
 	, m_roots()
 	, m_activeGroup()
 	, m_inactiveGroup()
-	, m_emptyHandleTableIndex(HANDLE_TABLE_INIT_SIZE)
+	, m_emptyHandleTableIndex()
 	, m_handleTable(HANDLE_TABLE_INIT_SIZE, nullptr)
 	, m_pLButtonPressedObject(nullptr)
 	, m_pMButtonPressedObject(nullptr)
 	, m_pRButtonPressedObject(nullptr)
 	, m_pFocusedUIObject(nullptr)
 {
+	m_emptyHandleTableIndex.reserve(HANDLE_TABLE_INIT_SIZE);
 	m_lock.Init();
 }
 
@@ -49,10 +50,10 @@ void UIObjectManager::Init()
 {
 	m_uniqueId = 0;
 
-	// 벡터를 스택처럼 사용할 것이므로 가장 밑에 높은 인덱스를 넣어두어 0번 인덱스부터 사용할 수 있도록 한다.
+	// 가장 밑에 높은 인덱스를 넣어두어 0번 인덱스부터 사용할 수 있도록 한다.
 	const size_t handleTableEndIndex = m_handleTable.size() - 1;
 	for (size_t i = 0; i < m_emptyHandleTableIndex.size() - 1; ++i)
-		m_emptyHandleTableIndex[i] = static_cast<uint32_t>(handleTableEndIndex - i);
+		m_emptyHandleTableIndex.push_back(static_cast<uint32_t>(handleTableEndIndex - i));
 }
 
 void UIObjectManager::UnInit()
@@ -116,19 +117,22 @@ UIObjectHandle UIObjectManager::RegisterToHandleTable(IUIObject* pUIObject)
 		AutoAcquireSlimRWLockExclusive autolock(m_lock);
 
 		// 핸들 테이블의 빈 자리를 검색
-		uint32_t emptyIndex;
-		if (!m_emptyHandleTableIndex.empty())
+		if (m_emptyHandleTableIndex.empty())	// 핸들 테이블에 빈 공간이 없는 경우
 		{
-			emptyIndex = m_emptyHandleTableIndex.back();
-			m_emptyHandleTableIndex.pop_back();
-		}
-		else
-		{
-			// 만약 핸들 테이블에 빈 공간이 없는 경우
+			const size_t newHandleTableBeginIndex = m_handleTable.size();
 			m_handleTable.push_back(nullptr);	// 핸들 테이블에 빈 공간 추가
-			emptyIndex = static_cast<uint32_t>(m_handleTable.size() - 1);
+			const size_t newHandleTableEndIndex = m_handleTable.size() - 1;
+
+			for (size_t i = newHandleTableBeginIndex; i <= newHandleTableEndIndex; ++i)
+				m_emptyHandleTableIndex.push_back(static_cast<uint32_t>(i));
 		}
 
+		assert(m_emptyHandleTableIndex.empty() == false);
+
+		const uint32_t emptyIndex = m_emptyHandleTableIndex.back();
+		m_emptyHandleTableIndex.pop_back();
+
+		// 핸들 테이블 사용
 		m_handleTable[emptyIndex] = pUIObject;
 		pUIObject->m_tableIndex = emptyIndex;
 	}

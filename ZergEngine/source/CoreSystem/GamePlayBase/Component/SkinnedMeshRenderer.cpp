@@ -9,42 +9,26 @@ using namespace ze;
 
 SkinnedMeshRenderer::SkinnedMeshRenderer() noexcept
 	: IComponent(SkinnedMeshRendererManager::GetInstance()->AssignUniqueId())
-	, m_spMesh()
-	, m_spArmature()
-	, m_pCurrAnim(nullptr)
-	, m_animSpeed(1.0f)
-	, m_animLoop(true)
-	, m_animTimeCursor(0.0f)
 	, m_materials()
 	, m_castShadows(false)
 	, m_receiveShadows(false)
+	, m_animLoop(true)
+	, m_pauseAnim(false)
+	, m_spMesh()
+	, m_spArmature()
+	, m_additiveTransform()
+	, m_pCurrAnim(nullptr)
+	, m_animTimeCursor(0.0f)
+	, m_animSpeed(1.0f)
 {
-}
-
-void SkinnedMeshRenderer::SetMesh(std::shared_ptr<SkinnedMesh> spMesh)
-{
-	m_spMesh = std::move(spMesh);
-
-	if (m_spMesh == nullptr)
-		this->StopAnimation();
-
-	// 재질 슬롯을 새로운 메시의 서브셋 개수만큼 할당
-	m_materials.clear();
-	if (m_spMesh != nullptr)	// 그러나 새로운 메시가 nullptr일 수 있으므로 체크 후 수행
-		m_materials.resize(m_spMesh->m_subsets.size());	// subset 개수만큼 재질 슬롯 할당
-}
-
-void SkinnedMeshRenderer::SetArmature(std::shared_ptr<Armature> spArmature)
-{
-	m_spArmature = std::move(spArmature);
-
-	this->StopAnimation();
 }
 
 const Material* SkinnedMeshRenderer::GetMaterialPtr(size_t subsetIndex) const
 {
-	assert(subsetIndex < m_materials.size());
-	return m_materials[subsetIndex].get();
+	if (subsetIndex < m_materials.size())
+		return m_materials[subsetIndex].get();
+	else
+		return nullptr;
 }
 
 std::shared_ptr<Material> SkinnedMeshRenderer::GetMaterial(size_t subsetIndex) const
@@ -63,6 +47,30 @@ bool SkinnedMeshRenderer::SetMaterial(size_t subsetIndex, std::shared_ptr<Materi
 	m_materials[subsetIndex] = std::move(spMaterial);
 
 	return true;
+}
+
+void SkinnedMeshRenderer::SetMesh(std::shared_ptr<SkinnedMesh> spMesh)
+{
+	this->StopAnimation();
+
+	m_spMesh = std::move(spMesh);
+
+	// 재질 슬롯을 새로운 메시의 서브셋 개수만큼 할당
+	m_materials.clear();
+	if (m_spMesh != nullptr)	// 그러나 새로운 메시가 nullptr일 수 있으므로 체크 후 수행
+		m_materials.resize(m_spMesh->m_subsets.size());	// subset 개수만큼 재질 슬롯 할당
+}
+
+void SkinnedMeshRenderer::SetArmature(std::shared_ptr<Armature> spArmature)
+{
+	this->StopAnimation();
+
+	m_spArmature = std::move(spArmature);
+
+	if (m_spArmature)
+		m_additiveTransform.resize(m_spArmature->GetBoneCount());
+	else
+		std::vector<XMFLOAT4X4A> tmp(std::move(m_additiveTransform));	// 행렬 팔레트용 메모리 버퍼 해제
 }
 
 bool SkinnedMeshRenderer::PlayAnimation(const char* animName, float speed, bool loop, float timeCursor)

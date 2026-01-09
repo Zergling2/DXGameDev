@@ -8,7 +8,7 @@ using namespace ze;
 Animation::Animation(const Armature& armature, float duration)
 	: m_armature(armature)
 	, m_duration(duration)
-	, m_boneAnimations(armature.GetBoneCount())
+	, m_upBoneAnims(std::make_unique<BoneAnimation[]>(armature.GetBoneCount()))
 {
 }
 
@@ -35,7 +35,7 @@ void Animation::ComputeFinalTransform(float time, XMFLOAT4X4A* pOutFinalTransfor
 		XMFLOAT3A scale;
 		XMFLOAT4A rotation;
 		XMFLOAT3A translation;
-		m_boneAnimations[currBoneIndex].Interpolate(time, &scale, &rotation, &translation);
+		m_upBoneAnims[currBoneIndex].Interpolate(time, &scale, &rotation, &translation);
 
 		XMMATRIX MlMp = 
 			XMMatrixScalingFromVector(XMLoadFloat3A(&scale)) *

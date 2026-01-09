@@ -10,7 +10,7 @@ void Lobby::OnLoadScene()
 	{
 		UIObjectHandle hBgrImg = CreateImage();
 		Image* pBgrImg = static_cast<Image*>(hBgrImg.ToPtr());
-		pBgrImg->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\lobby_bgr.jpg"));
+		pBgrImg->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\lobby_bgr.jpg"));
 		pBgrImg->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 		pBgrImg->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 		pBgrImg->SetSize(XMFLOAT2(1366, 768));
@@ -22,8 +22,7 @@ void Lobby::OnLoadScene()
 		pPanel->SetColor(XMVectorSet(0.0f, 0.5f, 0.25f, 0.5f));
 		pPanel->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 		pPanel->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
-		pPanel->m_transform.m_position.x = 0.0f;
-		pPanel->m_transform.m_position.y = 0.0f;
+		pPanel->m_transform.SetPosition(0, 0);
 		pPanel->SetShape(PanelShape::RoundedRectangle);
 		pPanel->m_transform.SetParent(&pBgrImg->m_transform);
 
@@ -39,8 +38,7 @@ void Lobby::OnLoadScene()
 		pTitleText->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_HEAVY);
 		pTitleText->GetTextFormat().SetSize(32);
 		pTitleText->ApplyTextFormat();
-		pTitleText->m_transform.m_position.x = +0.0f;
-		pTitleText->m_transform.m_position.y = +160.0f;
+		pTitleText->m_transform.SetPosition(0, 160);
 
 
 		UIObjectHandle hButtonGameStart = CreateButton();
@@ -49,8 +47,7 @@ void Lobby::OnLoadScene()
 		pButtonGameStart->SetButtonColor(XMVectorSet(0.25f, 0.75f, 0.25f, 1.0f));
 		pButtonGameStart->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 		pButtonGameStart->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
-		pButtonGameStart->m_transform.m_position.x = +0.0f;
-		pButtonGameStart->m_transform.m_position.y = +40.0f;
+		pButtonGameStart->m_transform.SetPosition(0, 40);
 		pButtonGameStart->SetText(L"게임 시작");
 		pButtonGameStart->SetButtonColor(ColorsLinear::Orange);
 		pButtonGameStart->GetTextFormat().SetSize(20);
@@ -67,8 +64,7 @@ void Lobby::OnLoadScene()
 		pButtonGameExit->SetButtonColor(XMVectorSet(0.75f, 0.25f, 0.25f, 1.0f));
 		pButtonGameExit->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 		pButtonGameExit->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
-		pButtonGameExit->m_transform.m_position.x = +0.0f;
-		pButtonGameExit->m_transform.m_position.y = -40.0f;
+		pButtonGameExit->m_transform.SetPosition(0, -40);
 		pButtonGameExit->SetText(L"게임 종료");
 		pButtonGameExit->SetButtonColor(ColorsLinear::Red);
 		pButtonGameExit->GetTextFormat().SetSize(20);
@@ -83,8 +79,7 @@ void Lobby::OnLoadScene()
 		pInputField0->SetSize(XMFLOAT2(200, 26));
 		pInputField0->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 		pInputField0->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
-		pInputField0->m_transform.m_position.x = -40.0f;
-		pInputField0->m_transform.m_position.y = -100.0f;
+		pInputField0->m_transform.SetPosition(-40, -100);
 		pInputField0->SetShape(InputFieldShape::RoundedRectangle);
 		pInputField0->SetRadiusX(8.0f);
 		pInputField0->SetRadiusY(8.0f);
@@ -99,8 +94,7 @@ void Lobby::OnLoadScene()
 		pInputField1->SetSize(XMFLOAT2(200, 26));
 		pInputField1->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 		pInputField1->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
-		pInputField1->m_transform.m_position.x = -40.0f;
-		pInputField1->m_transform.m_position.y = -140.0f;
+		pInputField1->m_transform.SetPosition(-40, -140);
 		pInputField1->SetShape(InputFieldShape::RoundedRectangle);
 		pInputField1->SetRadiusX(8.0f);
 		pInputField1->SetRadiusY(8.0f);

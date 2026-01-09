@@ -6,6 +6,7 @@
 #include <ZergEngine\CoreSystem\Input.h>
 #include <ZergEngine\CoreSystem\Cursor.h>
 #include <ZergEngine\CoreSystem\GraphicDevice.h>
+#include <ZergEngine\CoreSystem\Physics.h>
 #include <ZergEngine\CoreSystem\ResourceLoader.h>
 #include <ZergEngine\CoreSystem\Renderer.h>
 #include <ZergEngine\CoreSystem\SceneInterface.h>
@@ -91,6 +92,7 @@ void Runtime::Init(HINSTANCE hInstance, int nCmdShow, uint32_t width, uint32_t h
     Time::CreateInstance();
     Input::CreateInstance();
     GraphicDevice::CreateInstance();
+    Physics::CreateInstance();
     ResourceLoader::CreateInstance();
     Renderer::CreateInstance();
     RenderSettings::CreateInstance();
@@ -116,8 +118,9 @@ void Runtime::Init(HINSTANCE hInstance, int nCmdShow, uint32_t width, uint32_t h
 
     FileSystem::GetInstance()->Init();
     Time::GetInstance()->Init();
-    Input::GetInstance()->Init(hInstance, m_window.GetHandle());
-    GraphicDevice::GetInstance()->Init(m_window.GetHandle(), width, height, false);
+    Input::GetInstance()->Init(hInstance, m_hGameWnd);
+    GraphicDevice::GetInstance()->Init(m_hGameWnd, width, height, false);
+    Physics::GetInstance()->Init();
     ResourceLoader::GetInstance()->Init();
     Renderer::GetInstance()->Init();
     RenderSettings::GetInstance()->Init();
@@ -153,6 +156,7 @@ void Runtime::InitEditor(HINSTANCE hInstance, HWND hMainFrameWnd, HWND hViewWnd,
     Time::CreateInstance();
     Input::CreateInstance();
     GraphicDevice::CreateInstance();
+    Physics::CreateInstance();
     ResourceLoader::CreateInstance();
     Renderer::CreateInstance();
     RenderSettings::CreateInstance();
@@ -177,7 +181,8 @@ void Runtime::InitEditor(HINSTANCE hInstance, HWND hMainFrameWnd, HWND hViewWnd,
     FileSystem::GetInstance()->Init();
     Time::GetInstance()->Init();
     Input::GetInstance()->Init(hInstance, hMainFrameWnd);
-    GraphicDevice::GetInstance()->Init(hViewWnd, width, height, false);
+    GraphicDevice::GetInstance()->Init(m_hGameWnd, width, height, false);
+    Physics::GetInstance()->Init();
     ResourceLoader::GetInstance()->Init();
     Renderer::GetInstance()->Init();
     RenderSettings::GetInstance()->Init();
@@ -215,6 +220,7 @@ void Runtime::UnInit()
     RenderSettings::GetInstance()->UnInit();
     Renderer::GetInstance()->UnInit();
     ResourceLoader::GetInstance()->UnInit();
+    Physics::GetInstance()->UnInit();
     GraphicDevice::GetInstance()->UnInit();
     Input::GetInstance()->UnInit();
     Time::GetInstance()->UnInit();
@@ -239,6 +245,7 @@ void Runtime::UnInit()
     RenderSettings::DestroyInstance();
     Renderer::DestroyInstance();
     ResourceLoader::DestroyInstance();
+    Physics::DestroyInstance();
     GraphicDevice::DestroyInstance();
     Input::DestroyInstance();
     Time::DestroyInstance();
@@ -299,43 +306,51 @@ void Runtime::OnIdle()
     // Call MonoBehaviour::Start() for all starting scripts.
     MonoBehaviourManager::GetInstance()->CallStart();
 
-    // For the FixedUpdate
+    // FixedUpdate
     m_deltaPerformanceCount += Time::GetInstance()->GetDeltaPerformanceCounter();
-    Time::GetInstance()->ChangeDeltaTimeToFixedDeltaTime(); // FixeUpdate에서의 GetDeltaTime() 함수와 GetFixedDeltaTime() 함수의 반환값 일관성 보장
+    Time::GetInstance()->ChangeDeltaTimeToFixedDeltaTime(); // FixedUpdate에서의 GetDeltaTime() 함수와 GetFixedDeltaTime() 함수의 반환값 일관성 보장
     while (Time::GetInstance()->GetFixedDeltaPerformanceCounter() <= m_deltaPerformanceCount)
     {
         MonoBehaviourManager::GetInstance()->FixedUpdate();
         m_deltaPerformanceCount -= Time::GetInstance()->GetFixedDeltaPerformanceCounter();
     }
     Time::GetInstance()->RecoverDeltaTime();
-
+    
     MonoBehaviourManager::GetInstance()->Update();
     MonoBehaviourManager::GetInstance()->LateUpdate();
-
-    RemoveDestroyedComponentsAndObjects();
 
     // Update animation time cursor
     for (IComponent* pComponent : SkinnedMeshRendererManager::GetInstance()->m_directAccessGroup)
     {
         SkinnedMeshRenderer* pSkinnedMeshRenderer = static_cast<SkinnedMeshRenderer*>(pComponent);
-        const Animation* pCurrAnim = pSkinnedMeshRenderer->GetCurrentAnimation();
-        if (pCurrAnim)
-        {
-            float newAnimTimeCursor =
-                pSkinnedMeshRenderer->GetAnimationTimeCursor() + Time::GetInstance()->GetDeltaTime() * pSkinnedMeshRenderer->GetAnimationSpeed();
+        const Animation* pCurrAnim = pSkinnedMeshRenderer->GetCurrentAnimationPtr();
+        const bool pauseAnim = pSkinnedMeshRenderer->IsAnimationPaused();
 
-            if (pSkinnedMeshRenderer->IsLoopAnimation())
-                newAnimTimeCursor = Math::WrapFloat(newAnimTimeCursor, pCurrAnim->GetDuration());
-            else
-                newAnimTimeCursor = Math::Clamp(newAnimTimeCursor, 0.0f, pCurrAnim->GetDuration());
+        if (pCurrAnim == nullptr || pauseAnim == true)
+            continue;
 
-            pSkinnedMeshRenderer->SetAnimationTimeCursor(newAnimTimeCursor);
-        }
+        float newAnimTimeCursor =
+            pSkinnedMeshRenderer->GetAnimationTimeCursor() + Time::GetInstance()->GetDeltaTime() * pSkinnedMeshRenderer->GetAnimationSpeed();
+
+        if (pSkinnedMeshRenderer->IsLoopAnimation())
+            newAnimTimeCursor = Math::WrapFloat(newAnimTimeCursor, pCurrAnim->GetDuration());
+        else
+            newAnimTimeCursor = Math::Clamp(newAnimTimeCursor, 0.0f, pCurrAnim->GetDuration());
+
+        pSkinnedMeshRenderer->SetAnimationTimeCursor(newAnimTimeCursor);
     }
+
+    RemoveDestroyedComponentsAndObjects();
+
+
+    Physics::GetInstance()->GetDynamicsWorld()->debugDrawWorld();
 
     // Render
     if (m_render)
         Renderer::GetInstance()->RenderFrame();
+
+    // 디버그 시각 정보 프리미티브 제거
+    Physics::GetInstance()->GetPhysicsDebugDrawer().ClearDebugInstanceCache();
 
     // Sleep(3);
 }
@@ -421,8 +436,11 @@ void Runtime::OnSize(UINT nType, int cx, int cy)
 
     if (resize)
     {
-        const uint32_t newWidth = static_cast<uint32_t>(cx);
-        const uint32_t newHeight = static_cast<uint32_t>(cy);
+        RECT rect;
+        GetClientRect(m_hGameWnd, &rect);
+
+        const uint32_t newWidth = rect.right - rect.left;
+        const uint32_t newHeight = rect.bottom - rect.top;
 
         // SwapChain Resize 및 Depth/Stencil Buffer Resize
         constexpr int GDR_CREATION_RETRY_COUNT = 3;
@@ -447,25 +465,8 @@ void Runtime::OnSize(UINT nType, int cx, int cy)
             Debug::ForceCrashWithMessageBox(L"Error", L"GraphicDevice::ResizeBuffer failed.");
 
 
-        // 카메라의 그래픽 리소스들 재생성
-        retryInterval = 500;
-        success = false;
-        for (int retry = 0; retry < GDR_CREATION_RETRY_COUNT; ++retry)
-        {
-            // Camera Color Buffer & Depth/Stencil Buffer Resize & Projection Matrix Update
-            bool result = CameraManager::GetInstance()->ResizeBuffer(newWidth, newHeight);
-            if (result)
-            {
-                success = true;
-                break;
-            }
-
-            Sleep(retryInterval);
-            retryInterval <<= 1;
-        }
-
-        if (!success)
-            Debug::ForceCrashWithMessageBox(L"Error", L"CameraManager::ResizeBuffer failed.");
+        // 카메라의 그래픽 리소스들 재생성 유도
+        CameraManager::GetInstance()->ReleaseAllCameraBuffer();
 
         // 만약 Lock 모드 또는 Confined 모드였다면 커서 클립 영역을 재계산해야 하므로 설정.
         Cursor::SetLockState(Cursor::GetLockState());
@@ -604,6 +605,7 @@ void Runtime::RemoveDestroyedComponentsAndObjects()
     SpotLightManager::GetInstance()->RemoveDestroyedComponents();
     CameraManager::GetInstance()->RemoveDestroyedComponents();
     AudioSourceManager::GetInstance()->RemoveDestroyedComponents();
+    // Physics::GetInstance()->RemoveDestroyedComponents();
 
     UIObjectManager::GetInstance()->RemoveDestroyedUIObjects();
     // 반드시 컴포넌트 제거 작업 이후 실행
@@ -680,7 +682,7 @@ void Runtime::ReleaseLoggers()
     m_afl.Release();
 }
 
-bool Runtime::SetResolution(uint32_t width, uint32_t height, DisplayMode mode)
+bool Runtime::__$$SetResolutionImpl(uint32_t width, uint32_t height, DisplayMode mode)
 {
     if (m_isEditor)
         return false;

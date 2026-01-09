@@ -19,10 +19,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\ZergEngine\CoreSystem\BulletDXMath.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\MeshSubset.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPNTTSkinned.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BillboardEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\CheckboxEffect.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DebugLinesEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DrawScreenRatioQuadWithTextureEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\ShadedEdgeCircleEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\ShadedEdgeQuadEffect.h" />
@@ -35,6 +37,8 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\UIEventHandler.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\BillboardManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\SkinnedMeshRendererManager.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Physics.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\PhysicsDebugDrawer.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Platform.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DisplayMode.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\EngineConstants.h" />
@@ -100,6 +104,7 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\RenderState.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Animation.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Armature.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\BoneIndexType.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Font.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\SkinnedMesh.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\SceneTable.h" />
@@ -129,6 +134,7 @@
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectPNTTSkinned.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\BillboardEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\CheckboxEffect.cpp" />
+    <ClCompile Include="source\CoreSystem\Effect\DebugLinesEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\DrawScreenRatioQuadWithTextureEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\ShadedEdgeCircleEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\ShadedEdgeQuadEffect.cpp" />
@@ -140,6 +146,8 @@
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\Text.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\BillboardManager.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\SkinnedMeshRendererManager.cpp" />
+    <ClCompile Include="source\CoreSystem\Physics.cpp" />
+    <ClCompile Include="source\CoreSystem\PhysicsDebugDrawer.cpp" />
     <ClCompile Include="source\CoreSystem\RenderContext\EffectDeviceContext.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectP.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\BasicEffectPC.cpp" />
@@ -450,6 +458,16 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsDebugLines.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
     <FxCompile Include="source\CoreSystem\ShaderCode\VSPerspectiveShadowMap.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
@@ -745,7 +763,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;d2d1.lib;dwrite.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex_$(Platform)_$(Configuration).lib;BulletDynamics_vs2010_x64_debug.lib;BulletInverseDynamics_vs2010_x64_debug.lib;BulletCollision_vs2010_x64_debug.lib;BulletSoftBody_vs2010_x64_debug.lib;LinearMath_vs2010_x64_debug.lib;assimp-vc143-mtd.lib</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;d2d1.lib;dwrite.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex_$(Platform)_$(Configuration).lib;BulletDynamics_vs2010_x64_debug.lib;BulletInverseDynamics_vs2010_x64_debug.lib;BulletCollision_vs2010_x64_debug.lib;LinearMath_vs2010_x64_debug.lib;assimp-vc143-mtd.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\bullet3\;$(ProjectDir)extlib\lib\DirectXTex\;$(ProjectDir)extlib\lib\assimp\</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
@@ -771,7 +789,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;d2d1.lib;dwrite.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex_$(Platform).lib;BulletDynamics_vs2010_x64_release.lib;BulletInverseDynamics_vs2010_x64_release.lib;BulletCollision_vs2010_x64_release.lib;BulletSoftBody_vs2010_x64_release.lib;LinearMath_vs2010_x64_release.lib;assimp-vc143-mt.lib</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;d2d1.lib;dwrite.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex_$(Platform).lib;BulletDynamics_vs2010_x64_release.lib;BulletInverseDynamics_vs2010_x64_release.lib;BulletCollision_vs2010_x64_release.lib;LinearMath_vs2010_x64_release.lib;assimp-vc143-mt.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\bullet3\;$(ProjectDir)extlib\lib\DirectXTex\;$(ProjectDir)extlib\lib\assimp\</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>

@@ -366,6 +366,21 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\UIEventHandler.h">
       <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
     </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\BoneIndexType.h">
+      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Physics.h">
+      <Filter>Files\ZergEngine\CoreSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\PhysicsDebugDrawer.h">
+      <Filter>Files\ZergEngine\CoreSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\BulletDXMath.h">
+      <Filter>Files\ZergEngine\CoreSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DebugLinesEffect.h">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\CoreSystem\Time.cpp">
@@ -641,6 +656,15 @@
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\RadioButton.cpp">
       <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
     </ClCompile>
+    <ClCompile Include="source\CoreSystem\Physics.cpp">
+      <Filter>Files\ZergEngine\CoreSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\PhysicsDebugDrawer.cpp">
+      <Filter>Files\ZergEngine\CoreSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Effect\DebugLinesEffect.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="source\CoreSystem\ShaderCode\ShaderCommon.hlsli">
@@ -769,6 +793,9 @@
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
     <FxCompile Include="source\CoreSystem\ShaderCode\PSColorShadedEdgeCircle.hlsl">
+      <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
+    </FxCompile>
+    <FxCompile Include="source\CoreSystem\ShaderCode\VSToHcsDebugLines.hlsl">
       <Filter>Files\ZergEngine\CoreSystem\ShaderCode</Filter>
     </FxCompile>
   </ItemGroup>

@@ -33,16 +33,17 @@ namespace ze
 
 	enum class DepthStencilStateType
 	{
-		Default,
+		// D3D11_COMPARISON_LESS
+		DepthReadWrite,
+		
+		// D3D11_COMPARISON_LESS
+		DepthReadOnly,
 
 		// DepthEnable = TRUE
 		// DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL
 		// DepthFunc = D3D11_COMPARISON_LESS_EQUAL (스카이박스의 모든 프래그먼트를 NDC에서 z = 1.0f에 위치시키므로)
 		// StencilEnable = FALSE
 		Skybox,
-
-		
-		DepthReadOnlyLess,
 
 		// DepthEnable = FALSE
 		// StencilEnable = FALSE

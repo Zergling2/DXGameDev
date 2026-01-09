@@ -89,11 +89,11 @@ namespace ze
 		const D3D11_VIEWPORT& GetEntireBufferViewport() const { return m_entireBufferViewport; }
 
 		// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
-		// ¸Å°³º¯¼ö·Î Àü´ÞµÇ´Â width, height ÀÔ·ÂÀº ½º¿Ò Ã¼ÀÎÀÇ ¹öÆÛ Å©±â. µû¶ó¼­ Ä«¸Þ¶óÀÇ Á¤±ÔÈ­ºäÆ÷Æ® Å©±â¸¦ ¹ÙÅÁÀ¸·Î ¸¸µé¾î³¾ ¹öÆÛ Å©±â¸¦ °è»êÇØ¾ß ÇÔ.
-		bool CreateBuffer(uint32_t width, uint32_t height);		// ÄÃ·¯ ¹öÆÛ, ·»´õ Å¸°Ù ºä, ¼ÎÀÌ´õ ¸®¼Ò½º ºä, µª½º ½ºÅÙ½Ç ¹öÆÛ, µª½º ½ºÅÙ½Ç ºä »ý¼º
+		void ReleaseAllViews();
+		bool CreateViews();		// ÄÃ·¯ ¹öÆÛ, ·»´õ Å¸°Ù ºä, ¼ÎÀÌ´õ ¸®¼Ò½º ºä, µª½º ½ºÅÙ½Ç ¹öÆÛ, µª½º ½ºÅÙ½Ç ºä »ý¼º
 		void UpdateViewMatrix();
-		void UpdateProjMatrix(uint32_t width, uint32_t height);	// FoV, Å¬¸®ÇÎ Æò¸é(near, far plane)¶Ç´Â Ã¢ Å©±â º¯°æµÇ¾úÀ» °æ¿ì È£Ãâ ÇÊ¿ä
-		void UpdateEntireBufferViewport(uint32_t width, uint32_t height);
+		void UpdateProjMatrix();
+		void UpdateEntireBufferViewport();
 		// ¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬
 	private:
 		ComPtr<ID3D11RenderTargetView> m_cpColorBufferRTV;

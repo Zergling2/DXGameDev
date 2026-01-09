@@ -5,6 +5,7 @@
 #include <ZergEngine\CoreSystem\DataStructure\RawVector.h>
 #include <ZergEngine\CoreSystem\Resource\Armature.h>
 #include <ZergEngine\CoreSystem\Resource\Animation.h>
+#include <ZergEngine\CoreSystem\Resource\BoneIndexType.h>
 #include <ZergEngine\CoreSystem\Resource\StaticMesh.h>
 #include <ZergEngine\CoreSystem\Resource\SkinnedMesh.h>
 #include <ZergEngine\CoreSystem\Resource\Material.h>
@@ -45,27 +46,9 @@ void XMStoreFloat4x4(DirectX::XMFLOAT4X4* pOut, const aiMatrix4x4* pAiMatrix4x4)
 	pOut->_44 = static_cast<float>(pAiMatrix4x4->d4);
 }
 
-void XMStoreFloat4x4A(DirectX::XMFLOAT4X4A* pOut, const aiMatrix4x4* pAiMatrix4x4)
+void XMStoreFloat4x4A(DirectX::XMFLOAT4X4* pOut, const aiMatrix4x4* pAiMatrix4x4)
 {
-	pOut->_11 = static_cast<float>(pAiMatrix4x4->a1);
-	pOut->_12 = static_cast<float>(pAiMatrix4x4->b1);
-	pOut->_13 = static_cast<float>(pAiMatrix4x4->c1);
-	pOut->_14 = static_cast<float>(pAiMatrix4x4->d1);
-
-	pOut->_21 = static_cast<float>(pAiMatrix4x4->a2);
-	pOut->_22 = static_cast<float>(pAiMatrix4x4->b2);
-	pOut->_23 = static_cast<float>(pAiMatrix4x4->c2);
-	pOut->_24 = static_cast<float>(pAiMatrix4x4->d2);
-
-	pOut->_31 = static_cast<float>(pAiMatrix4x4->a3);
-	pOut->_32 = static_cast<float>(pAiMatrix4x4->b3);
-	pOut->_33 = static_cast<float>(pAiMatrix4x4->c3);
-	pOut->_34 = static_cast<float>(pAiMatrix4x4->d3);
-
-	pOut->_41 = static_cast<float>(pAiMatrix4x4->a4);
-	pOut->_42 = static_cast<float>(pAiMatrix4x4->b4);
-	pOut->_43 = static_cast<float>(pAiMatrix4x4->c4);
-	pOut->_44 = static_cast<float>(pAiMatrix4x4->d4);
+	XMStoreFloat4x4(pOut, pAiMatrix4x4);
 }
 
 DirectX::XMMATRIX XMLoadAiMatrix4x4(const aiMatrix4x4* pAiMatrix4x4)
@@ -199,7 +182,7 @@ void ResourceLoader::DFSAiNodeLoadModel(TempModelData& tmd, const aiScene* pAiSc
 				if (hasBones != pAiScene->mMeshes[pAiNode->mMeshes[i]]->HasBones())
 					Debug::ForceCrashWithMessageBox(L"Error", L"Mesh consistency error! (HasBones)");
 			}
-
+			
 			isSkinnedMeshNode = hasBones;
 		}
 		
@@ -346,11 +329,16 @@ void ResourceLoader::AiLoadStaticMeshNode(TempModelData& tmd, const aiScene* pAi
 	// 3. Vertex Format Type 설정
 	// mesh->m_vft = VertexFormatType::PositionNormalTangentTexCoord;
 
-	tmd.staticMeshes.push_back(std::move(mesh));
+	tmd.m_staticMeshes.push_back(std::move(mesh));
 }
 
 void ResourceLoader::AiLoadAnimation(const TempModelData& tmd, const aiScene* pAiScene)
 {
+	// 함수에서 해야 할 일
+	// TempModelData 내부에는 DFSAiNodeLoadModel & AiLoadSkinnedMeshNode 함수를 돌며 로드된 Armature들이 있다.
+	// 이제 aiScene내의 Animation 클립들을 순회하며 Animation이 로드되어 있는 Armature들 중 어떤 Armature에 대한
+	// 애니메이션인지 파악 후 해당 Armature의 뼈들에 뼈 키 프레임(BoneAnimation) 정보들을 추가해준다.
+
 	for (unsigned int i = 0; i < pAiScene->mNumAnimations; ++i)
 	{
 		const aiAnimation* pAiAnimation = pAiScene->mAnimations[i];
@@ -359,44 +347,44 @@ void ResourceLoader::AiLoadAnimation(const TempModelData& tmd, const aiScene* pA
 			continue;
 
 		// 어느 뼈대에 대한 애니메이션인지 검색
-		// Armature 검색을 위한 샘플 노드
+		// Armature 검색을 위한 샘플 노드 (0번 뼈를 검색해본다.)
 		const aiNodeAnim* pAiNodeAnimSample = pAiAnimation->mChannels[0];
 
-		size_t armatureIndex = (std::numeric_limits<size_t>::max)();
-		const std::unordered_map<std::string, BYTE>* pBoneIndexMap = nullptr;
-		for (size_t j = 0; j < tmd.armatureData.boneIndexMap.size(); ++j)
+		Armature* pArmature = nullptr;
+
+		for (size_t j = 0; j < tmd.m_armatureData.m_armatures.size(); ++j)
 		{
-			auto& currBoneIndexMap = tmd.armatureData.boneIndexMap[j];
-			auto iter = currBoneIndexMap.find(pAiNodeAnimSample->mNodeName.C_Str());
-			if (iter != currBoneIndexMap.end())
+			Armature* pCurrArmature = tmd.m_armatureData.m_armatures[j].get();
+
+			auto iter = pCurrArmature->GetBoneIndexMap().find(pAiNodeAnimSample->mNodeName.C_Str());
+			if (iter != pCurrArmature->GetBoneIndexMap().cend())
 			{
-				armatureIndex = j;
-				pBoneIndexMap = &currBoneIndexMap;
+				pArmature = pCurrArmature;
 				break;
 			}
 		}
-		assert(armatureIndex != (std::numeric_limits<size_t>::max)());
-		assert(pBoneIndexMap != nullptr);
 
-		// 찾아낸 뼈대
-		Armature* pArmature = tmd.armatureData.armatures[armatureIndex].get();
+		// 뼈대 검색에 성공했어야만 함.
+		assert(pArmature != nullptr);
+
 
 		// 뼈대에 애니메이션 키 프레임 데이터들을 추가
 		const double totalTick = pAiAnimation->mDuration;
 		const double ticksPerSecond = pAiAnimation->mTicksPerSecond;
 		const double duration = totalTick / ticksPerSecond;
-		Animation* pAnimation = pArmature->AddNewAnimation(pAiAnimation->mName.C_Str(), static_cast<float>(duration));
-		auto& boneAnimations = pAnimation->GetBoneAnimations();
+
+		Animation* pAnimation = pArmature->AddNewAnimationNode(pAiAnimation->mName.C_Str(), static_cast<float>(duration));
 		
+		// 애니메이션의 채널(뼈)를 순회하며 뼈의 키 프레임 정보들을 저장한다.
 		for (unsigned int c = 0; c < pAiAnimation->mNumChannels; ++c)
 		{
 			const aiNodeAnim* pAiNodeAnim = pAiAnimation->mChannels[c];
 
-			auto iter = pBoneIndexMap->find(pAiNodeAnim->mNodeName.C_Str());
-			assert(iter != pBoneIndexMap->end());
-			const BYTE boneIndex = iter->second;
+			auto iter = pArmature->GetBoneIndexMap().find(pAiNodeAnim->mNodeName.C_Str());
+			assert(iter != pArmature->GetBoneIndexMap().cend());
+			const bone_index_type boneIndex = iter->second;
 
-			auto& boneAnimation = boneAnimations[boneIndex];
+			BoneAnimation& boneAnimation = pAnimation->m_upBoneAnims[boneIndex];
 			
 			for (unsigned int ski = 0; ski < pAiNodeAnim->mNumScalingKeys; ++ski)
 			{
@@ -409,7 +397,7 @@ void ResourceLoader::AiLoadAnimation(const TempModelData& tmd, const aiScene* pA
 				kf.m_value.y = pAiVectorKey->mValue.y;
 				kf.m_value.z = pAiVectorKey->mValue.z;
 
-				boneAnimation.GetScaleKeyFrames().push_back(kf);
+				boneAnimation.m_scaleKeyFrames.push_back(kf);
 			}
 
 			for (unsigned int rki = 0; rki < pAiNodeAnim->mNumRotationKeys; ++rki)
@@ -424,7 +412,7 @@ void ResourceLoader::AiLoadAnimation(const TempModelData& tmd, const aiScene* pA
 				kf.m_value.z = pAiQuatKey->mValue.z;
 				kf.m_value.w = pAiQuatKey->mValue.w;
 
-				boneAnimation.GetRotationKeyFrames().push_back(kf);
+				boneAnimation.m_rotationKeyFrames.push_back(kf);
 			}
 
 			for (unsigned int pki = 0; pki < pAiNodeAnim->mNumPositionKeys; ++pki)
@@ -438,7 +426,7 @@ void ResourceLoader::AiLoadAnimation(const TempModelData& tmd, const aiScene* pA
 				kf.m_value.y = pAiVectorKey->mValue.y;
 				kf.m_value.z = pAiVectorKey->mValue.z;
 
-				boneAnimation.GetPositionKeyFrames().push_back(kf);
+				boneAnimation.m_positionKeyFrames.push_back(kf);
 			}
 		}
 	}
@@ -548,7 +536,7 @@ void ResourceLoader::AiLoadSkinnedMeshNode(TempModelData& tmd, const aiScene* pA
 			allBones.insert(std::make_pair(std::move(boneName), pAiBone));
 		}
 	}
-	assert(allBones.size() < (std::numeric_limits<BYTE>::max)());
+	assert(allBones.size() < (std::numeric_limits<bone_index_type>::max)());
 
 	const aiNode* pAiRootBoneNode = nullptr;
 	auto end = allBones.cend();
@@ -559,105 +547,129 @@ void ResourceLoader::AiLoadSkinnedMeshNode(TempModelData& tmd, const aiScene* pA
 		
 		if (pParentNode != nullptr)
 		{
-			auto f = allBones.find(pParentNode->mName.C_Str());	// 부모 노드를 본 맵에서 검색(만약 검색에 실패하면 루트 노드로 볼 수 있음)
-			if (f == allBones.cend())
+			auto found = allBones.find(pParentNode->mName.C_Str());	// 부모 노드를 본 맵에서 검색(만약 검색에 실패하면 루트 노드로 볼 수 있음)
+			if (found == allBones.cend())
 			{
 				pAiRootBoneNode = pCurrentAiBoneNode;
 				break;
 			}
 		}
 	}
-	assert(pAiRootBoneNode != nullptr);
 
-	bool armatureAlreadyExist;
-	const char* armatureNodeName = pAiRootBoneNode->mParent->mName.C_Str();
-	if (tmd.armatureData.nameSet.find(armatureNodeName) == tmd.armatureData.nameSet.end())
-		armatureAlreadyExist = false;
+	const size_t boneCount = allBones.size();
+	assert(boneCount <= (std::numeric_limits<bone_index_type>::max)() - 1);
+
+	bool armatureAlreadyLoaded;
+	const char* armatureNodeName = pAiRootBoneNode->mParent->mName.C_Str();	// 블렌더 기준 루트 본의 부모가 Armature 노드임.
+	if (tmd.m_armatureData.m_armatureNodeNames.find(armatureNodeName) != tmd.m_armatureData.m_armatureNodeNames.cend())
+		armatureAlreadyLoaded = true;
 	else
-		armatureAlreadyExist = true;
+		armatureAlreadyLoaded = false;
 
-	std::unordered_map<std::string, BYTE> boneIndexMap;
-	std::vector<BYTE> parentIndexArray(allBones.size());
-	std::vector<XMFLOAT4X4> MdInvArray(allBones.size());
-	// std::vector<XMFLOAT4X4> MpArray(allBones.size());	// Assimp로 로드한 키 프레임은 뼈의 로컬 변환에 to parent 성분이 포함된 값을 갖고 있어서 Mp 행렬이 필요가 없음.
 
-	size_t currBoneIndex = 0;
-	std::queue<const aiNode*> bq;
-	bq.push(pAiRootBoneNode);
-	while (!bq.empty())
+	// 아래부터 Armature 데이터를 만들어내는 핵심 부분!
+	// 다른 메시에 의해서 이미 뼈대 객체가 만들어진 경우에는 새로 만들지 않음 (서로 다른 메시가 동일한 뼈대를 참조하고 있는 경우에 해당)
+	if (armatureAlreadyLoaded == false)
 	{
-		const aiNode* pBoneNode = bq.front();
-		bq.pop();
+		// Armature를 위한 데이터 할당
+		std::unordered_map<std::string, bone_index_type> boneIndexMap;
+		boneIndexMap.reserve(boneCount);
+		std::unique_ptr<bone_index_type[]> upBoneHierarchy = std::make_unique<bone_index_type[]>(boneCount);
+		XMFLOAT4X4A* pMdInvArray = static_cast<XMFLOAT4X4A*>(_aligned_malloc_dbg(sizeof(XMFLOAT4X4A) * boneCount, 16, __FILE__, __LINE__));
+#ifndef _DEBUG
+		std::unique_ptr<XMFLOAT4X4A[], void(*)(void*)> upMdInvArray(pMdInvArray, _aligned_free);	// Character space -> Bone space
+#else
+		std::unique_ptr<XMFLOAT4X4A[], void(*)(void*)> upMdInvArray(pMdInvArray, _aligned_free_dbg);	// Character space -> Bone space
+#endif
 
-		const aiNode* pParentNode = pBoneNode->mParent;
-
-		// Get parent bone node index
-		auto bimIter = boneIndexMap.find(pParentNode->mName.C_Str());		// 부모 뼈의 인덱스를 탐색
-		if (bimIter == boneIndexMap.end())	// 이 케이스에 해당하는 루트 뼈인경우는 부모가 인덱스 맵에 없다.
-			parentIndexArray[currBoneIndex] = static_cast<BYTE>(currBoneIndex);	// 자기 자신의 인덱스를 그대로 담아둔다. 이렇게 하면 boneHierarchy[index] == index인 경우 부모가 없는 뼈임을 판단할 수 있다.
-		else
-			parentIndexArray[currBoneIndex] = bimIter->second;
-
-		// To bone space 행렬
-		XMStoreFloat4x4(&MdInvArray[currBoneIndex], &allBones[pBoneNode->mName.C_Str()]->mOffsetMatrix);
-
-		// Get Mp(To parent transform matrix)
-		// XMStoreFloat4x4(&MpArray[currBoneIndex], &pBoneNode->mTransformation);
-
-		boneIndexMap.insert(std::make_pair(std::string(pBoneNode->mName.C_Str()), static_cast<BYTE>(currBoneIndex)));
-
-		for (unsigned int i = 0; i < pBoneNode->mNumChildren; ++i)
-			bq.push(pBoneNode->mChildren[i]);
-
-		assert(currBoneIndex <= (std::numeric_limits<BYTE>::max)());
-		++currBoneIndex;
-	}
-	// ###################################################################
-	
-	// 생성된 본 인덱스 맵을 바탕으로 스키닝 데이터 세팅
-	for (unsigned int i = 0; i < pAiNode->mNumMeshes; ++i)
-	{
-		const aiMesh* pAiMesh = pAiScene->mMeshes[pAiNode->mMeshes[i]];	// 서브셋
-
-		for (unsigned int j = 0; j < pAiMesh->mNumBones; ++j)
+		// Bone Index Map, MdInvArray, Bone Hierarchy 정보를 생성
+		// 본 큐에 루트 본을 넣고 시작한다.
+		size_t currBoneIndex = 0;
+		std::queue<const aiNode*> boneNodeQueue;
+		boneNodeQueue.push(pAiRootBoneNode);
+		while (!boneNodeQueue.empty())
 		{
-			const aiBone* pAiBone = pAiMesh->mBones[j];
+			assert(currBoneIndex <= (std::numeric_limits<bone_index_type>::max)());
 
-			const std::string boneName(pAiBone->mName.C_Str());
 
-			auto iter = boneIndexMap.find(boneName);
-			assert(iter != boneIndexMap.end());
-			const BYTE boneIndex = iter->second;
+			const aiNode* pCurrBoneNode = boneNodeQueue.front();
+			boneNodeQueue.pop();
 
-			for (unsigned int k = 0; k < pAiBone->mNumWeights; ++k)
+
+			// ########################################################################
+			// 1. 본 계층 구조를 채워나간다.
+			auto found = boneIndexMap.find(pCurrBoneNode->mParent->mName.C_Str());	// A. 현재 뼈의 부모 뼈의 인덱스를 본 인덱스 맵에서 찾는다.
+			if (found == boneIndexMap.cend())	// B. 만약 본 인덱스 맵에서 부모 뼈를 검색에 실패한 경우 (이 경우는 현재 본이 루트 본인 경우 뿐이다.)
 			{
-				const aiVertexWeight* pAiVertexWeight = &pAiBone->mWeights[k];
-				
-				const uint32_t vertexIndex = pAiVertexWeight->mVertexId + subsetVertexBaseIndex[i];	// i번째 서브셋의 정점들의 베이스 인덱스 값을 더해줘야 함.
-				const float weight = pAiVertexWeight->mWeight;
+				// 루트 뼈인 경우는 본 계층에 자기 자신의 인덱스를 그대로 담아둔다.
+				// 이렇게 하면 boneHierarchy[index] == index 조건이 참인 경우 루트 뼈임을 알 수 있음.
+				upBoneHierarchy[currBoneIndex] = static_cast<bone_index_type>(currBoneIndex);
+			}
+			else	// C. 부모 본의 인덱스를 찾은 경우 부모 본의 인덱스를 기록해둔다.
+			{
+				upBoneHierarchy[currBoneIndex] = found->second;
+			}
+			// ########################################################################
 
-				assert(vertexIndex < vertices.size());
-				bool ret = vertices[vertexIndex].AddSkinningData(boneIndex, weight);
-				assert(ret == true);
+
+			// ########################################################################
+			// 2. MdInv 배열을 채워나간다.
+			// Character space(Default pose) -> Bone space 행렬
+			XMStoreFloat4x4A(&upMdInvArray[currBoneIndex], &allBones[pCurrBoneNode->mName.C_Str()]->mOffsetMatrix);
+			// ########################################################################
+
+
+			// ########################################################################
+			// 3. 본 인덱스 맵도 채워나간다.
+			boneIndexMap.insert(std::make_pair(std::string(pCurrBoneNode->mName.C_Str()), static_cast<bone_index_type>(currBoneIndex)));
+			// ########################################################################
+
+
+			for (unsigned int i = 0; i < pCurrBoneNode->mNumChildren; ++i)
+				boneNodeQueue.push(pCurrBoneNode->mChildren[i]);
+
+			++currBoneIndex;
+		}
+		// ###################################################################
+
+		// 생성된 본 인덱스 맵을 바탕으로 스키닝 데이터 세팅
+		for (unsigned int i = 0; i < pAiNode->mNumMeshes; ++i)
+		{
+			const aiMesh* pAiMesh = pAiScene->mMeshes[pAiNode->mMeshes[i]];	// 서브셋
+
+			for (unsigned int j = 0; j < pAiMesh->mNumBones; ++j)
+			{
+				const aiBone* pAiBone = pAiMesh->mBones[j];
+
+				const std::string boneName(pAiBone->mName.C_Str());
+
+				auto iter = boneIndexMap.find(boneName);
+				assert(iter != boneIndexMap.end());
+				const bone_index_type boneIndex = iter->second;
+
+				for (unsigned int k = 0; k < pAiBone->mNumWeights; ++k)
+				{
+					const aiVertexWeight* pAiVertexWeight = &pAiBone->mWeights[k];
+
+					const uint32_t vertexIndex = pAiVertexWeight->mVertexId + subsetVertexBaseIndex[i];	// i번째 서브셋의 정점들의 베이스 인덱스 값을 더해줘야 함.
+					const float weight = pAiVertexWeight->mWeight;
+
+					assert(vertexIndex < vertices.size());
+					bool ret = vertices[vertexIndex].AddSkinningData(boneIndex, weight);
+					assert(ret == true);
+				}
 			}
 		}
-	}
 
-	// 다른 메시에 의해서 이미 뼈대 객체가 만들어진 경우에는 새로 만들지 않음 (서로 다른 메시가 동일한 뼈대를 참조하고 있는 경우에 해당)
-	if (!armatureAlreadyExist)
-	{
-		// 뼈대 객체 할당 및 뼈대 정보 로드 (뼈대 애니메이션 정보 로드는 바깥 함수에서 수행하므로 벡터에 담아서 내보낸다.)
-		assert(boneIndexMap.size() <= (std::numeric_limits<BYTE>::max)() - 1);
-		std::shared_ptr<Armature> armature = std::make_shared<Armature>(static_cast<BYTE>(boneIndexMap.size()));
-		armature->SetBoneHierarchy(parentIndexArray.data());
-		armature->SetMdInvArray(MdInvArray.data());
-		// armature->SetMpArray(MpArray.data());
+		// Armature 객체 생성 및 뼈대 정보 전달
+		std::shared_ptr<Armature> armature = std::make_shared<Armature>(
+			std::move(boneIndexMap),
+			std::move(upBoneHierarchy),
+			std::move(upMdInvArray)
+		);
 
-		tmd.armatureData.nameSet.insert(armatureNodeName);	// Armature 중복 생성 방지를 위해 기록
-		// +
-		tmd.armatureData.armatures.push_back(std::move(armature));	// 애니메이션 키 프레임 정보는 ResourceLoader::LoadModel(PCWSTR path) 함수에서 마저 수행.
-		// +
-		tmd.armatureData.boneIndexMap.push_back(std::move(boneIndexMap));	// 애니메이션 로드 시 이 정보를 참조해야 한다.
+		tmd.m_armatureData.m_armatureNodeNames.insert(armatureNodeName);	// Armature 중복 생성 방지를 위해 기록
+		tmd.m_armatureData.m_armatures.push_back(std::move(armature));		// Armature 저장
 	}
 
 	// 정보 세팅
@@ -713,7 +725,7 @@ void ResourceLoader::AiLoadSkinnedMeshNode(TempModelData& tmd, const aiScene* pA
 
 
 	// 메시 벡터로 이동
-	tmd.skinnedMeshes.push_back(std::move(mesh));
+	tmd.m_skinnedMeshes.push_back(std::move(mesh));
 }
 
 ModelData ResourceLoader::LoadModel(PCWSTR path)
@@ -743,13 +755,11 @@ ModelData ResourceLoader::LoadModel(PCWSTR path)
 
 	AiLoadAnimation(tmd, pAiScene);
 
-	assert(
-		tmd.armatureData.nameSet.size() == tmd.armatureData.boneIndexMap.size() &&
-		tmd.armatureData.boneIndexMap.size() == tmd.armatureData.armatures.size()
-	);
-	md.staticMeshes = std::move(tmd.staticMeshes);
-	md.armatures = std::move(tmd.armatureData.armatures);
-	md.skinnedMeshes = std::move(tmd.skinnedMeshes);
+	assert(tmd.m_armatureData.m_armatureNodeNames.size() == tmd.m_armatureData.m_armatures.size());
+
+	md.m_staticMeshes = std::move(tmd.m_staticMeshes);
+	md.m_armatures = std::move(tmd.m_armatureData.m_armatures);
+	md.m_skinnedMeshes = std::move(tmd.m_skinnedMeshes);
 
 	return md;
 }
@@ -805,8 +815,8 @@ Texture2D ResourceLoader::LoadTexture2D(PCWSTR path, bool generateMipMaps)
 	descTexture.MipLevels = static_cast<UINT>(metadata.mipLevels);
 	descTexture.ArraySize = static_cast<UINT>(metadata.arraySize);
 	descTexture.Format = metadata.format;
-	descTexture.SampleDesc.Count = 1;	// 렌더 타겟이 아니므로 안티앨리어싱 X
-	descTexture.SampleDesc.Quality = 0;	// 렌더 타겟이 아니므로 안티앨리어싱 X
+	descTexture.SampleDesc.Count = 1;	// 렌더 타겟이 아니므로 MSAA X
+	descTexture.SampleDesc.Quality = 0;	// 렌더 타겟이 아니므로 MSAA X
 	descTexture.Usage = D3D11_USAGE_DEFAULT;
 	descTexture.BindFlags = D3D11_BIND_SHADER_RESOURCE;		// 셰이더 리소스 목적으로 생성
 	descTexture.MiscFlags = metadata.IsCubemap() ? D3D11_RESOURCE_MISC_TEXTURECUBE : 0;

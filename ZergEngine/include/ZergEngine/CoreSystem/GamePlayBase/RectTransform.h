@@ -43,10 +43,21 @@ namespace ze
 		void SetVerticalAnchor(VerticalAnchor va) { m_va = va; }
 		XMVECTOR GetLocalPosition() const { return XMLoadFloat2(&m_position); }
 
+		const XMFLOAT2& GetPosition() const { return m_position; }
+		FLOAT GetPositionX() const { return m_position.x; }
+		FLOAT GetPositionY() const { return m_position.y; }
+
 		void XM_CALLCONV Translate(FXMVECTOR translation) { XMStoreFloat2(&m_position, XMVectorAdd(XMLoadFloat2(&m_position), translation)); }
+		void Translate(const XMFLOAT2& translation) { m_position.x += translation.x; m_position.y += translation.y; }
+		void Translate(FLOAT tx, FLOAT ty) { m_position.x += tx; m_position.y += ty; }
+		void TranslateX(FLOAT tx) { m_position.x += tx; }
+		void TranslateY(FLOAT ty) { m_position.y += ty; }
 		void XM_CALLCONV SetPosition(FXMVECTOR position) { XMStoreFloat2(&m_position, position); }
 		void SetPosition(const XMFLOAT2& position) { m_position = position; }
 		void SetPosition(const XMFLOAT2A& position) { m_position = position; }
+		void SetPosition(FLOAT x, FLOAT y) { m_position.x = x;	m_position.y = y; }
+		void SetPositionX(FLOAT x) { m_position.x = x; }
+		void SetPositionY(FLOAT y) { m_position.y = y; }
 
 		RectTransform* GetParent() const { return m_pParent; }
 		bool SetParent(RectTransform* pTransform);	// 부모로 설정할 오브젝트의 Transform을 인수로 전달받습니다.
@@ -61,7 +72,7 @@ namespace ze
 		IUIObject* m_pUIObject;
 		RectTransform* m_pParent;
 		std::vector<RectTransform*> m_children;
-	public:
+
 		XMFLOAT2 m_position;
 		HorizontalAnchor m_ha;
 		VerticalAnchor m_va;

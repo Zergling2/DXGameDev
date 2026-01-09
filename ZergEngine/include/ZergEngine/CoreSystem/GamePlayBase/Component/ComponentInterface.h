@@ -29,6 +29,7 @@ namespace ze
 		friend class GameObject;
 		friend class Transform;
 		friend class Renderer;
+		friend class DebugLinesEffect;
 		friend class BasicEffectP;
 		friend class BasicEffectPC;
 		friend class BasicEffectPN;

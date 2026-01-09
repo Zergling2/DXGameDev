@@ -89,8 +89,14 @@ namespace ze
 		void XM_CALLCONV RotateAround(FXMVECTOR point, FXMVECTOR axis, FLOAT angle);
 
 		void XM_CALLCONV Translate(FXMVECTOR translation) { XMStoreFloat3A(&m_position, XMVectorAdd(XMLoadFloat3A(&m_position), translation)); }
-
+		void Translate(const XMFLOAT3& translation) { m_position.x += translation.x; m_position.y += translation.y; m_position.z += translation.z; }
+		void Translate(FLOAT tx, FLOAT ty, FLOAT tz) { m_position.x += tx; m_position.y += ty; m_position.z += tz; }
+		void TranslateX(FLOAT tx) { m_position.x += tx; }
+		void TranslateY(FLOAT ty) { m_position.y += ty; }
+		void TranslateZ(FLOAT tz) { m_position.z += tz; }
 		void XM_CALLCONV SetPosition(FXMVECTOR position) { XMStoreFloat3A(&m_position, position); }
+		void SetPosition(const XMFLOAT3A& position) { m_position = position; }
+		void SetPosition(const XMFLOAT3& position) { m_position.x = position.x;	m_position.y = position.y; m_position.z = position.z; }
 		void SetPosition(FLOAT x, FLOAT y, FLOAT z) { m_position.x = x;	m_position.y = y; m_position.z = z;	}
 		void SetPositionX(FLOAT x) { m_position.x = x; }
 		void SetPositionY(FLOAT y) { m_position.y = y; }

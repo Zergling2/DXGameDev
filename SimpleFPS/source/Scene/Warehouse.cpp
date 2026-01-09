@@ -25,7 +25,7 @@ void Warehouse::OnLoadScene()
 		pFL->m_transform.SetPosition(XMVectorSet(0.0f, 1.0f, 1.0f, 0.0f));
 
 		ComponentHandle<MeshRenderer> hMR = pFL->AddComponent<MeshRenderer>();
-		auto mesh = ResourceLoader::GetInstance()->LoadModel(L"Resource\\Models\\Props\\flash.obj").staticMeshes[0];
+		auto mesh = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\props\\flash.obj").m_staticMeshes[0];
 		hMR.ToPtr()->SetMesh(mesh);
 
 		ComponentHandle<SpotLight> hSpotLight = pFL->AddComponent<SpotLight>();
@@ -61,10 +61,16 @@ void Warehouse::OnLoadScene()
 
 		hScriptFPSMovement = pMainCamera->AddComponent<FirstPersonMovement>();		// 1인칭 카메라 조작
 		pScriptFPSMovement = hScriptFPSMovement.ToPtr();
+
+
+		// ####################
+		// 스크립트 멤버 대입
+		pScriptFPSMovement->m_hComponentCamera = hCameraComponent;
 	}
 
+
 	std::shared_ptr<Material> treeBillboardMtl = ResourceLoader::GetInstance()->CreateMaterial();
-	treeBillboardMtl->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\treebranchstylizedextraameixa.png");
+	treeBillboardMtl->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\treebranchstylizedextraameixa.png");
 	// 빌보드 테스트
 	{
 		GameObjectHandle hGameObject = CreateGameObject(L"Spherical");
@@ -124,8 +130,7 @@ void Warehouse::OnLoadScene()
 			pText->SetText(std::move(text));
 			pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
 			pText->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
-			pText->m_transform.m_position.x = +128 + 2;
-			pText->m_transform.m_position.y = -8;
+			pText->m_transform.SetPosition(128 + 2, -(8));
 			pText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 			pText->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 			pText->SetColor(ColorsLinear::Orange);
@@ -146,8 +151,7 @@ void Warehouse::OnLoadScene()
 			pText->SetText(std::move(text));
 			pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
 			pText->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
-			pText->m_transform.m_position.x += 128 + 2;
-			pText->m_transform.m_position.y -= (8 + 16 * 1);
+			pText->m_transform.SetPosition(128 + 2, -(8 + 16 * 1));
 			pText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 			pText->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 			pText->SetColor(ColorsLinear::Orange);
@@ -168,8 +172,7 @@ void Warehouse::OnLoadScene()
 			pText->SetText(std::move(text));
 			pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
 			pText->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
-			pText->m_transform.m_position.x += 128 + 2;
-			pText->m_transform.m_position.y -= (8 + 16 * 2);
+			pText->m_transform.SetPosition(128 + 2, -(8 + 16 * 2));
 			pText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 			pText->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 			pText->SetColor(ColorsLinear::Orange);
@@ -190,8 +193,7 @@ void Warehouse::OnLoadScene()
 			pText->SetText(std::move(text));
 			pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
 			pText->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
-			pText->m_transform.m_position.x += 128 + 2;
-			pText->m_transform.m_position.y -= (8 + 16 * 3);
+			pText->m_transform.SetPosition(128 + 2, -(8 + 16 * 3));
 			pText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 			pText->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 			pText->SetColor(ColorsLinear::Orange);
@@ -206,26 +208,24 @@ void Warehouse::OnLoadScene()
 	{
 		UIObjectHandle hCrosshair = CreateImage();
 		Image* pCrosshair = static_cast<Image*>(hCrosshair.ToPtr());
-		pCrosshair->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Sprites\\ch.dds"));
+		pCrosshair->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\crosshair.dds"));
 		pCrosshair->SetNativeSize(true);
 		pCrosshair->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 		pCrosshair->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 
 		UIObjectHandle hHealthBgr = CreateImage();
 		Image* pHealthBgr = static_cast<Image*>(hHealthBgr.ToPtr());
-		pHealthBgr->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Sprites\\Health.png"));
+		pHealthBgr->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\health.png"));
 		pHealthBgr->SetNativeSize(true);
-		pHealthBgr->m_transform.m_position.x = pHealthBgr->GetHalfSizeX() + 4;
-		pHealthBgr->m_transform.m_position.y = pHealthBgr->GetHalfSizeY() + 4;
+		pHealthBgr->m_transform.SetPosition(pHealthBgr->GetHalfSizeX() + 4, pHealthBgr->GetHalfSizeY() + 4);
 		pHealthBgr->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
 		pHealthBgr->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
 
 		UIObjectHandle hWeaponIndicatorBgr = CreateImage();
 		Image* pWeaponIndicatorBgr = static_cast<Image*>(hWeaponIndicatorBgr.ToPtr());
-		pWeaponIndicatorBgr->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Sprites\\WeaponInfoIndicator.png"));
+		pWeaponIndicatorBgr->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\weapon_indicator.png"));
 		pWeaponIndicatorBgr->SetNativeSize(true);
-		pWeaponIndicatorBgr->m_transform.m_position.x = -pWeaponIndicatorBgr->GetHalfSizeX() - 4;
-		pWeaponIndicatorBgr->m_transform.m_position.y = pWeaponIndicatorBgr->GetHalfSizeY() + 4;
+		pWeaponIndicatorBgr->m_transform.SetPosition(-pWeaponIndicatorBgr->GetHalfSizeX() - 4, pWeaponIndicatorBgr->GetHalfSizeY() + 4);
 		pWeaponIndicatorBgr->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
 		pWeaponIndicatorBgr->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
 
@@ -235,8 +235,8 @@ void Warehouse::OnLoadScene()
 			pHPText->SetText(L"100");
 			pHPText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
 			pHPText->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
-			pHPText->m_transform.m_position = pHealthBgr->m_transform.m_position;
-			pHPText->m_transform.m_position.x -= 56;
+			pHPText->m_transform.SetPosition(pHealthBgr->m_transform.GetPosition());
+			pHPText->m_transform.TranslateX(-56);
 			pHPText->SetSize(XMFLOAT2(128, 48));
 			pHPText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 			pHPText->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
@@ -253,8 +253,8 @@ void Warehouse::OnLoadScene()
 			pAPText->SetText(L"100");
 			pAPText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
 			pAPText->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
-			pAPText->m_transform.m_position = pHealthBgr->m_transform.m_position;
-			pAPText->m_transform.m_position.x += 120;
+			pAPText->m_transform.SetPosition(pHealthBgr->m_transform.GetPosition());
+			pAPText->m_transform.TranslateX(120);
 			pAPText->SetSize(XMFLOAT2(128, 48));
 			pAPText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 			pAPText->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
@@ -271,9 +271,8 @@ void Warehouse::OnLoadScene()
 			pPointText->SetText(L"126P");
 			pPointText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
 			pPointText->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
-			pPointText->m_transform.m_position = pWeaponIndicatorBgr->m_transform.m_position;
-			pPointText->m_transform.m_position.x -= 45;
-			pPointText->m_transform.m_position.y += 34;
+			pPointText->m_transform.SetPosition(pWeaponIndicatorBgr->m_transform.GetPosition());
+			pPointText->m_transform.Translate(-45, 34);
 			pPointText->SetSize(XMFLOAT2(128, 32));
 			pPointText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 			pPointText->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
@@ -291,8 +290,8 @@ void Warehouse::OnLoadScene()
 			pWeaponNameText->SetText(L"M16");
 			pWeaponNameText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
 			pWeaponNameText->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
-			pWeaponNameText->m_transform.m_position = pWeaponIndicatorBgr->m_transform.m_position;
-			pWeaponNameText->m_transform.m_position.y += 6;
+			pWeaponNameText->m_transform.SetPosition(pWeaponIndicatorBgr->m_transform.GetPosition());
+			pWeaponNameText->m_transform.TranslateY(6);
 			pWeaponNameText->SetSize(XMFLOAT2(200, 32));
 			pWeaponNameText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 			pWeaponNameText->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
@@ -309,9 +308,8 @@ void Warehouse::OnLoadScene()
 			pWeaponNameText->SetText(L"30 / 90");
 			pWeaponNameText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
 			pWeaponNameText->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
-			pWeaponNameText->m_transform.m_position = pWeaponIndicatorBgr->m_transform.m_position;
-			pWeaponNameText->m_transform.m_position.x += 16;
-			pWeaponNameText->m_transform.m_position.y -= 28;
+			pWeaponNameText->m_transform.SetPosition(pWeaponIndicatorBgr->m_transform.GetPosition());
+			pWeaponNameText->m_transform.Translate(16, -28);
 			pWeaponNameText->SetSize(XMFLOAT2(128, 40));
 			pWeaponNameText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 			pWeaponNameText->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
@@ -335,19 +333,47 @@ void Warehouse::OnLoadScene()
 			pPanel->SetSize(WEAPON_CHANGE_PANEL_WIDTH, WEAPON_CHANGE_PANEL_HEIGHT);
 			pPanel->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 			pPanel->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-			pPanel->m_transform.m_position.x = pPanel->GetSizeX() / 2.0f + 5;
+			pPanel->m_transform.SetPositionX(pPanel->GetSizeX() / 2.0f + 5);
 
 
 			pScriptFPSMovement->m_hWeaponChangePanel = hPanel;
 			pPanel->SetActive(false);
 
 
+
+			{
+				UIObjectHandle hSlot1 = CreateImage();
+				Image* pSlot1 = static_cast<Image*>(hSlot1.ToPtr());
+				pSlot1->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\weapons\\m16a1.png"));
+				pSlot1->SetNativeSize(true);
+				pSlot1->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+				pSlot1->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
+				pSlot1->m_transform.SetPosition(-300, 80);
+
+				UIObjectHandle hSlot2 = CreateImage();
+				Image* pSlot2 = static_cast<Image*>(hSlot2.ToPtr());
+				pSlot2->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\weapons\\m4a1.png"));
+				pSlot2->SetNativeSize(true);
+				pSlot2->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+				pSlot2->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
+				pSlot2->m_transform.SetPosition(0, 80);
+
+				UIObjectHandle hSlot3 = CreateImage();
+				Image* pSlot3 = static_cast<Image*>(hSlot3.ToPtr());
+				pSlot3->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\weapons\\m762.png"));
+				pSlot3->SetNativeSize(true);
+				pSlot3->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+				pSlot3->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
+				pSlot3->m_transform.SetPosition(300, 80);
+			}
+
+
 			constexpr float BUTTON_WIDTH = 40;
 			constexpr float BUTTON_HEIGHT = 18;
 			const float WEAPON_NAME_TEXT_WIDTH = pPanel->GetSizeX() - BUTTON_WIDTH - 10;
 			const float WEAPON_NAME_TEXT_HEIGHT = 20;
-			const float BUTTON_POS_X = pPanel->m_transform.m_position.x + pPanel->GetHalfSizeX() - 5 - (BUTTON_WIDTH / 2.0f);
-			const float WEAPON_NAME_TEXT_POS_X = pPanel->m_transform.m_position.x - pPanel->GetHalfSizeX() + 5 + (WEAPON_NAME_TEXT_WIDTH / 2.0f);
+			const float BUTTON_POS_X = pPanel->m_transform.GetPositionX() + pPanel->GetHalfSizeX() - 5 - (BUTTON_WIDTH / 2.0f);
+			const float WEAPON_NAME_TEXT_POS_X = pPanel->m_transform.GetPositionX() - pPanel->GetHalfSizeX() + 5 + (WEAPON_NAME_TEXT_WIDTH / 2.0f);
 			{
 				UIObjectHandle hInputField = CreateInputField();
 				InputField* pInputField = static_cast<InputField*>(hInputField.ToPtr());
@@ -358,40 +384,49 @@ void Warehouse::OnLoadScene()
 				pInputField->SetText(L"테스트 입력 필드");
 				pInputField->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 				pInputField->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-				pInputField->m_transform.m_position.x = pPanel->m_transform.m_position.x;
-				pInputField->m_transform.m_position.y = -30;
+				pInputField->m_transform.SetPosition(
+					pPanel->m_transform.GetPositionX(),
+					-30
+				);
 			}
 
 			{
-				UIObjectHandle hHSlider = CreateSliderControl();
-				SliderControl* pHSlider = static_cast<SliderControl*>(hHSlider.ToPtr());
-				pHSlider->m_transform.SetParent(&pPanel->m_transform);
+				UIObjectHandle hSlider = CreateSliderControl();
+				SliderControl* pSlider = static_cast<SliderControl*>(hSlider.ToPtr());
+				pSlider->m_transform.SetParent(&pPanel->m_transform);
 				
-				pHSlider->SetRange(0, 10);
-				pHSlider->SetThumbColor(ColorsLinear::Green);
-				pHSlider->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
-				pHSlider->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-				pHSlider->m_transform.m_position.x = pPanel->m_transform.m_position.x;
-				pHSlider->m_transform.m_position.y = -60;
+				pSlider->SetRange(0, 10);
+				pSlider->SetThumbColor(ColorsLinear::Green);
+				pSlider->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+				pSlider->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+				pSlider->m_transform.SetPosition(
+					pPanel->m_transform.GetPositionX(),
+					-60
+				);
 
-				pScriptFPSMovement->m_hSlider = hHSlider;
-				pHSlider->SetHandlerOnPosChange(MakeUIHandler(hScriptFPSMovement, &FirstPersonMovement::TestSliderHandler01));
+				pScriptFPSMovement->m_hSlider = hSlider;
+				pSlider->SetHandlerOnPosChange(MakeUIHandler(hScriptFPSMovement, &FirstPersonMovement::EventHandlerAmbientChange));
 			}
 
 			{
-				UIObjectHandle hVSlider = CreateSliderControl();
-				SliderControl* pVSlider = static_cast<SliderControl*>(hVSlider.ToPtr());
-				pVSlider->m_transform.SetParent(&pPanel->m_transform);
+				UIObjectHandle hSlider = CreateSliderControl();
+				SliderControl* pSlider = static_cast<SliderControl*>(hSlider.ToPtr());
+				pSlider->m_transform.SetParent(&pPanel->m_transform);
 
-				pVSlider->SetSliderControlType(SliderControlType::Vertical);
-				pVSlider->SetThumbSize(16, 8);
-				pVSlider->SetThumbColor(ColorsLinear::Red);
-				pVSlider->SetTrackColor(ColorsLinear::YellowGreen);
-				pVSlider->SetRange(80, 100);
-				pVSlider->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
-				pVSlider->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-				pVSlider->m_transform.m_position.x = pPanel->m_transform.m_position.x + 200;
-				pVSlider->m_transform.m_position.y = -60;
+				pSlider->SetSliderControlType(SliderControlType::Vertical);
+				pSlider->SetThumbSize(16, 8);
+				pSlider->SetThumbColor(ColorsLinear::Red);
+				pSlider->SetTrackColor(ColorsLinear::YellowGreen);
+				pSlider->SetRange(0, 3);
+				pSlider->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+				pSlider->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+				pSlider->m_transform.SetPosition(
+					pPanel->m_transform.GetPositionX() + 200,
+					-60
+				);
+
+				pScriptFPSMovement->m_hSliderMSAAChanger = hSlider;
+				pSlider->SetHandlerOnPosChange(MakeUIHandler(hScriptFPSMovement, &FirstPersonMovement::EventHandlerMSAAChange));
 			}
 
 			{
@@ -399,31 +434,44 @@ void Warehouse::OnLoadScene()
 				RadioButton* pRadioButton1 = static_cast<RadioButton*>(hRadioButton1.ToPtr());
 				pRadioButton1->m_transform.SetParent(&pPanel->m_transform);
 
-				
+				pRadioButton1->SetHandlerOnClick(MakeUIHandler(hScriptFPSMovement, &FirstPersonMovement::TestHandlerOnClick01));
+				pRadioButton1->SetText(L"Radio Button 1");
+				pRadioButton1->SetButtonColorRGB(ColorsLinear::DarkOrange);
 				pRadioButton1->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 				pRadioButton1->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-				pRadioButton1->m_transform.m_position.x = pPanel->m_transform.m_position.x;
-				pRadioButton1->m_transform.m_position.y = -120;
+				pRadioButton1->m_transform.SetPosition(
+					pPanel->m_transform.GetPositionX(),
+					-120
+				);
 
 				UIObjectHandle hRadioButton2 = CreateRadioButton();
 				RadioButton* pRadioButton2 = static_cast<RadioButton*>(hRadioButton2.ToPtr());
 				pRadioButton2->m_transform.SetParent(&pPanel->m_transform);
 
-				
+				pRadioButton2->SetHandlerOnClick(MakeUIHandler(hScriptFPSMovement, &FirstPersonMovement::TestHandlerOnClick02));
+				pRadioButton2->SetText(L"Radio Button 2");
+				pRadioButton2->SetButtonColorRGB(ColorsLinear::CadetBlue);
 				pRadioButton2->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 				pRadioButton2->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-				pRadioButton2->m_transform.m_position.x = pPanel->m_transform.m_position.x;
-				pRadioButton2->m_transform.m_position.y = -140;
+				pRadioButton2->m_transform.SetPosition(
+					pPanel->m_transform.GetPositionX(),
+					-140
+				);
 
 				UIObjectHandle hRadioButton3 = CreateRadioButton();
 				RadioButton* pRadioButton3 = static_cast<RadioButton*>(hRadioButton3.ToPtr());
 				pRadioButton3->m_transform.SetParent(&pPanel->m_transform);
 
-				
+				pRadioButton3->SetHandlerOnClick(MakeUIHandler(hScriptFPSMovement, &FirstPersonMovement::TestHandlerOnClick03));
+				pRadioButton3->SetText(L"Radio Button 3");
+				pRadioButton3->SetButtonColorRGB(ColorsLinear::Gray);
+				pRadioButton3->SetDotColorRGB(ColorsLinear::Red);
 				pRadioButton3->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 				pRadioButton3->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-				pRadioButton3->m_transform.m_position.x = pPanel->m_transform.m_position.x;
-				pRadioButton3->m_transform.m_position.y = -160;
+				pRadioButton3->m_transform.SetPosition(
+					pPanel->m_transform.GetPositionX(),
+					-160
+				);
 
 
 				// 라디오버튼 그룹 생성
@@ -442,9 +490,11 @@ void Warehouse::OnLoadScene()
 
 				pCheckbox->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 				pCheckbox->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-				pCheckbox->m_transform.m_position.x = pPanel->m_transform.m_position.x - WEAPON_CHANGE_PANEL_WIDTH / 2.0f +
-					pCheckbox->GetCheckboxHalfSizeX() + 5.0f;
-				pCheckbox->m_transform.m_position.y = -80;
+				pCheckbox->m_transform.SetPosition(
+					pPanel->m_transform.GetPositionX() - WEAPON_CHANGE_PANEL_WIDTH / 2.0f +
+					pCheckbox->GetCheckboxHalfSizeX() + 5.0f,
+					-80
+				);
 			}
 
 			{
@@ -459,9 +509,10 @@ void Warehouse::OnLoadScene()
 
 				pCheckbox->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 				pCheckbox->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-				pCheckbox->m_transform.m_position.x = pPanel->m_transform.m_position.x + WEAPON_CHANGE_PANEL_WIDTH / 2.0f -
-					pCheckbox->GetCheckboxHalfSizeX() - 5.0f;
-				pCheckbox->m_transform.m_position.y = -100;
+				pCheckbox->m_transform.SetPosition(
+					pPanel->m_transform.GetPositionX() + WEAPON_CHANGE_PANEL_WIDTH / 2.0f - pCheckbox->GetCheckboxHalfSizeX() - 5.0f,
+					-100
+				);
 			}
 
 			{
@@ -477,8 +528,10 @@ void Warehouse::OnLoadScene()
 				pText->SetText(L"무기교체 (단축키: N)");
 				pText->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 				pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-				pText->m_transform.m_position.x = pPanel->m_transform.m_position.x;
-				pText->m_transform.m_position.y = pPanel->m_transform.m_position.y + pPanel->GetHalfSizeY() - 5 - pText->GetHalfSizeY();
+				pText->m_transform.SetPosition(
+					pPanel->m_transform.GetPositionX(),
+					pPanel->m_transform.GetPositionY() + pPanel->GetHalfSizeY() - 5 - pText->GetHalfSizeY()
+				);
 			}
 
 			{
@@ -492,8 +545,7 @@ void Warehouse::OnLoadScene()
 				pText->SetText(L"1. B.92Fs Black");
 				pText->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 				pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-				pText->m_transform.m_position.x = WEAPON_NAME_TEXT_POS_X;
-				pText->m_transform.m_position.y = 70;
+				pText->m_transform.SetPosition(WEAPON_NAME_TEXT_POS_X, 70);
 
 				UIObjectHandle hBtn = CreateButton();
 				Button* pButton = static_cast<Button*>(hBtn.ToPtr());
@@ -505,8 +557,7 @@ void Warehouse::OnLoadScene()
 				pButton->SetText(L"교체");
 				pButton->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 				pButton->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-				pButton->m_transform.m_position.x = BUTTON_POS_X;
-				pButton->m_transform.m_position.y = 70;
+				pButton->m_transform.SetPosition(BUTTON_POS_X, 70);
 			}
 
 			{
@@ -520,8 +571,7 @@ void Warehouse::OnLoadScene()
 				pText->SetText(L"2. M4A1 Carbine");
 				pText->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 				pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-				pText->m_transform.m_position.x = WEAPON_NAME_TEXT_POS_X;
-				pText->m_transform.m_position.y = 50;
+				pText->m_transform.SetPosition(WEAPON_NAME_TEXT_POS_X, 50);
 
 				UIObjectHandle hBtn = CreateButton();
 				Button* pButton = static_cast<Button*>(hBtn.ToPtr());
@@ -533,8 +583,7 @@ void Warehouse::OnLoadScene()
 				pButton->SetText(L"교체");
 				pButton->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 				pButton->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-				pButton->m_transform.m_position.x = BUTTON_POS_X;
-				pButton->m_transform.m_position.y = 50;
+				pButton->m_transform.SetPosition(BUTTON_POS_X, 50);
 			}
 
 			{
@@ -548,8 +597,7 @@ void Warehouse::OnLoadScene()
 				pText->SetText(L"3. M16");
 				pText->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 				pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-				pText->m_transform.m_position.x = WEAPON_NAME_TEXT_POS_X;
-				pText->m_transform.m_position.y = 30;
+				pText->m_transform.SetPosition(WEAPON_NAME_TEXT_POS_X, 30);
 
 				UIObjectHandle hBtn = CreateButton();
 				Button* pButton = static_cast<Button*>(hBtn.ToPtr());
@@ -561,65 +609,64 @@ void Warehouse::OnLoadScene()
 				pButton->SetText(L"교체");
 				pButton->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 				pButton->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-				pButton->m_transform.m_position.x = BUTTON_POS_X;
-				pButton->m_transform.m_position.y = 30;
+				pButton->m_transform.SetPosition(BUTTON_POS_X, 30);
 			}
 		}
 	}
 
 
 	// Resources
-	std::shared_ptr<StaticMesh> meshClosedContainer = ResourceLoader::GetInstance()->LoadModel(L"Resource\\Models\\Props\\ClosedContainer\\ClosedContainer.obj").staticMeshes[0];
-	std::shared_ptr<StaticMesh> meshClosedLongContainer = ResourceLoader::GetInstance()->LoadModel(L"Resource\\Models\\Props\\ClosedContainer\\ClosedLongContainer.obj").staticMeshes[0];
-	std::shared_ptr<StaticMesh> meshOpenContainer1 = ResourceLoader::GetInstance()->LoadModel(L"Resource\\Models\\Props\\OpenContainer\\OpenContainer1.obj").staticMeshes[0];
-	std::shared_ptr<StaticMesh> meshOpenContainer2 = ResourceLoader::GetInstance()->LoadModel(L"Resource\\Models\\Props\\OpenContainer\\OpenContainer2.obj").staticMeshes[0];
-	std::shared_ptr<StaticMesh> meshHouseFrame = ResourceLoader::GetInstance()->LoadModel(L"Resource\\Maps\\Warehouse\\HouseFrame\\HouseFrame.obj").staticMeshes[0];
-	std::shared_ptr<StaticMesh> meshHouseSideWall = ResourceLoader::GetInstance()->LoadModel(L"Resource\\Maps\\Warehouse\\HouseSideWall.obj").staticMeshes[0];
-	std::shared_ptr<StaticMesh> meshHouseFloor = ResourceLoader::GetInstance()->LoadModel(L"Resource\\Maps\\Warehouse\\HouseFloor\\HouseFloor.obj").staticMeshes[0];
-	std::shared_ptr<StaticMesh> meshBox = ResourceLoader::GetInstance()->LoadModel(L"Resource\\Models\\Props\\Box\\Box.obj").staticMeshes[0];
-	std::shared_ptr<StaticMesh> meshHouseRedSideWall = ResourceLoader::GetInstance()->LoadModel(L"Resource\\Maps\\Warehouse\\HouseRedSideWall.obj").staticMeshes[0];
-	std::shared_ptr<StaticMesh> meshHouseBlueSideWall = ResourceLoader::GetInstance()->LoadModel(L"Resource\\Maps\\Warehouse\\HouseBlueSideWall.obj").staticMeshes[0];
-	std::shared_ptr<StaticMesh> meshBlueTeamBase = ResourceLoader::GetInstance()->LoadModel(L"Resource\\Maps\\Warehouse\\BlueTeamBase.obj").staticMeshes[0];
-	std::shared_ptr<StaticMesh> meshRedTeamBase = ResourceLoader::GetInstance()->LoadModel(L"Resource\\Maps\\Warehouse\\RedTeamBase.obj").staticMeshes[0];
-	std::shared_ptr<StaticMesh> meshHouseRoof = ResourceLoader::GetInstance()->LoadModel(L"Resource\\Maps\\Warehouse\\HouseRoof\\HouseRoof.obj").staticMeshes[0];
-	std::shared_ptr<StaticMesh> meshDoorFrame = ResourceLoader::GetInstance()->LoadModel(L"Resource\\Maps\\Warehouse\\DoorFrame\\DoorFrame.obj").staticMeshes[0];
+	std::shared_ptr<StaticMesh> meshClosedContainer = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\props\\ClosedContainer\\ClosedContainer.obj").m_staticMeshes[0];
+	std::shared_ptr<StaticMesh> meshClosedLongContainer = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\props\\ClosedContainer\\ClosedLongContainer.obj").m_staticMeshes[0];
+	std::shared_ptr<StaticMesh> meshOpenContainer1 = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\props\\OpenContainer\\OpenContainer1.obj").m_staticMeshes[0];
+	std::shared_ptr<StaticMesh> meshOpenContainer2 = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\props\\OpenContainer\\OpenContainer2.obj").m_staticMeshes[0];
+	std::shared_ptr<StaticMesh> meshHouseFrame = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\HouseFrame\\HouseFrame.obj").m_staticMeshes[0];
+	std::shared_ptr<StaticMesh> meshHouseSideWall = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\HouseSideWall.obj").m_staticMeshes[0];
+	std::shared_ptr<StaticMesh> meshHouseFloor = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\HouseFloor\\HouseFloor.obj").m_staticMeshes[0];
+	std::shared_ptr<StaticMesh> meshBox = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\props\\box\\box.obj").m_staticMeshes[0];
+	std::shared_ptr<StaticMesh> meshHouseRedSideWall = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\HouseRedSideWall.obj").m_staticMeshes[0];
+	std::shared_ptr<StaticMesh> meshHouseBlueSideWall = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\HouseBlueSideWall.obj").m_staticMeshes[0];
+	std::shared_ptr<StaticMesh> meshBlueTeamBase = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\BlueTeamBase.obj").m_staticMeshes[0];
+	std::shared_ptr<StaticMesh> meshRedTeamBase = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\RedTeamBase.obj").m_staticMeshes[0];
+	std::shared_ptr<StaticMesh> meshHouseRoof = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\HouseRoof\\HouseRoof.obj").m_staticMeshes[0];
+	std::shared_ptr<StaticMesh> meshDoorFrame = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\DoorFrame\\DoorFrame.obj").m_staticMeshes[0];
 
 	std::shared_ptr<Material> matAsphault = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matAsphault->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.8f), 1.0f));
 	XMStoreFloat4A(&matAsphault->m_specular, XMVectorSetW(ColorsLinear::Black, 4.0f));
-	matAsphault->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\asphault\\AsphaultStreet_d.tga");
-	matAsphault->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\asphault\\AsphaultStreet_n.tga");
+	matAsphault->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\asphault\\AsphaultStreet_d.tga");
+	matAsphault->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\asphault\\AsphaultStreet_n.tga");
 
 
 	std::shared_ptr<Material> matBambooWoodSemigloss = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matBambooWoodSemigloss->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.4f), 1.0f));
 	XMStoreFloat4A(&matBambooWoodSemigloss->m_specular, XMVectorSetW(ColorsLinear::Black, 4.0f));
-	matBambooWoodSemigloss->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\wood\\bamboo-wood-semigloss-diffuse.png");
-	matBambooWoodSemigloss->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\wood\\bamboo-wood-semigloss-normal.png");
+	matBambooWoodSemigloss->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\wood\\bamboo-wood-semigloss-diffuse.png");
+	matBambooWoodSemigloss->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\wood\\bamboo-wood-semigloss-normal.png");
 
 
 	std::shared_ptr<Material> matBrick22 = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matBrick22->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.75f), 1.0f));
 	XMStoreFloat4A(&matBrick22->m_specular, XMVectorSetW(ColorsLinear::Black, 4.0f));
-	matBrick22->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\bricks\\Brick 22 - 256x256.png");
+	matBrick22->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\bricks\\Brick 22 - 256x256.png");
 
 
 	std::shared_ptr<Material> matRoof24 = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matRoof24->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.75f), 1.0f));
 	XMStoreFloat4A(&matRoof24->m_specular, XMVectorSetW(ColorsLinear::Black, 4.0f));
-	matRoof24->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\roof\\Roof 24 - 256x256.png");
+	matRoof24->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\roof\\Roof 24 - 256x256.png");
 
 
 	std::shared_ptr<Material> matClosedContainer = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matClosedContainer->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.7f), 1.0f));
 	XMStoreFloat4A(&matClosedContainer->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 4.0f));
-	matClosedContainer->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Props\\ClosedContainer\\Diffuse.png");
+	matClosedContainer->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\props\\ClosedContainer\\Diffuse.png");
 
 
 	std::shared_ptr<Material> matOpenContainer = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matOpenContainer->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.7f), 1.0f));
 	XMStoreFloat4A(&matOpenContainer->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 4.0f));
-	matOpenContainer->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Props\\OpenContainer\\Diffuse.png");
+	matOpenContainer->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\props\\OpenContainer\\Diffuse.png");
 
 
 	std::shared_ptr<Material> matHouseFrame = ResourceLoader::GetInstance()->CreateMaterial();
@@ -630,69 +677,69 @@ void Warehouse::OnLoadScene()
 	std::shared_ptr<Material> matWoodenBox = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matWoodenBox->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.6f), 1.0f));
 	XMStoreFloat4A(&matWoodenBox->m_specular, XMVectorSetW(ColorsLinear::Black, 4.0f));
-	matWoodenBox->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Props\\Box\\WoodenBox.png");
+	matWoodenBox->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\props\\box\\WoodenBox.png");
 
 
 	std::shared_ptr<Material> matPaperBox = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matPaperBox->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.7f), 1.0f));
 	XMStoreFloat4A(&matPaperBox->m_specular, XMVectorSetW(ColorsLinear::Black, 4.0f));
-	matPaperBox->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Props\\Box\\PaperBox.png");
+	matPaperBox->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\props\\box\\PaperBox.png");
 
 
 	// std::shared_ptr<Material> matRustedSteelHotspot = ResourceLoader::GetInstance()->CreateMaterial();
 	// XMStoreFloat4A(&matRustedSteelHotspot->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.75f), 1.0f));
 	// XMStoreFloat4A(&matRustedSteelHotspot->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.5f), 1.0f));
-	// matRustedSteelHotspot->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\metals\\RustedSteel\\RustedSteel_Diffuse.png");
-	// matRustedSteelHotspot->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\metals\\RustedSteel\\RustedSteel_Normal.png");
+	// matRustedSteelHotspot->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\metals\\RustedSteel\\RustedSteel_Diffuse.png");
+	// matRustedSteelHotspot->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\metals\\RustedSteel\\RustedSteel_Normal.png");
 
 
 	std::shared_ptr<Material> matConcrete3 = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matConcrete3->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.6f), 1.0f));
 	XMStoreFloat4A(&matConcrete3->m_specular, XMVectorSetW(ColorsLinear::Black, 1.0f));
-	matConcrete3->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\concrete\\concrete3_diffuse.png");
-	matConcrete3->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\concrete\\concrete3_normal.png");
+	matConcrete3->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\concrete\\concrete3_diffuse.png");
+	matConcrete3->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\concrete\\concrete3_normal.png");
 
 	std::shared_ptr<Material> matSprayedWall1 = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matSprayedWall1->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.5f), 1.0f));
 	XMStoreFloat4A(&matSprayedWall1->m_specular, XMVectorSetW(ColorsLinear::Black, 1.0f));
-	matSprayedWall1->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\wall\\sprayed-wall1_diffuse.png");
-	matSprayedWall1->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\wall\\sprayed-wall1_normal.png");
+	matSprayedWall1->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\wall\\sprayed-wall1_diffuse.png");
+	matSprayedWall1->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\wall\\sprayed-wall1_normal.png");
 
 	std::shared_ptr<Material> matVentedMetalPanel1 = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matVentedMetalPanel1->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.7f), 1.0f));
 	XMStoreFloat4A(&matVentedMetalPanel1->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.5f), 4.0f));
-	matVentedMetalPanel1->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\metal\\vented-metal-panel1_diffuse.png");
-	matVentedMetalPanel1->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\metal\\vented-metal-panel1_normal.png");
+	matVentedMetalPanel1->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\metal\\vented-metal-panel1_diffuse.png");
+	matVentedMetalPanel1->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\metal\\vented-metal-panel1_normal.png");
 
 	// std::shared_ptr<Material> matMetalVentilation1 = ResourceLoader::GetInstance()->CreateMaterial();
 	// XMStoreFloat4A(&matMetalVentilation1->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.4f), 1.0f));
 	// XMStoreFloat4A(&matMetalVentilation1->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.5f), 1.0f));
-	// matMetalVentilation1->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\metal\\metal-ventilation1-diffuse.png");
-	// matMetalVentilation1->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\metal\\metal-ventilation1-normal.png");
+	// matMetalVentilation1->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\metal\\metal-ventilation1-diffuse.png");
+	// matMetalVentilation1->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\metal\\metal-ventilation1-normal.png");
 
 	std::shared_ptr<Material> matNarrowbrick1 = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matNarrowbrick1->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.8f), 1.0f));
 	XMStoreFloat4A(&matNarrowbrick1->m_specular, XMVectorSetW(ColorsLinear::Black, 1.0f));
-	matNarrowbrick1->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\bricks\\narrowbrick1_diffuse.png");
-	matNarrowbrick1->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\bricks\\narrowbrick1_normal.png");
+	matNarrowbrick1->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\bricks\\narrowbrick1_diffuse.png");
+	matNarrowbrick1->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\bricks\\narrowbrick1_normal.png");
 
 	std::shared_ptr<Material> matRedbricks2b = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matRedbricks2b->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.8f), 1.0f));
 	XMStoreFloat4A(&matRedbricks2b->m_specular, XMVectorSetW(ColorsLinear::Black, 1.0f));
-	matRedbricks2b->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\bricks\\redbricks2b_diffuse.png");
-	matRedbricks2b->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\bricks\\redbricks2b_normal.png");
+	matRedbricks2b->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\bricks\\redbricks2b_diffuse.png");
+	matRedbricks2b->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\bricks\\redbricks2b_normal.png");
 
 	// std::shared_ptr<Material> matModernBrick1 = ResourceLoader::GetInstance()->CreateMaterial();
 	// XMStoreFloat4A(&matModernBrick1->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 1.0f));
 	// XMStoreFloat4A(&matModernBrick1->m_specular, XMVectorSetW(ColorsLinear::Black, 4.0f));
-	// matModernBrick1->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\bricks\\modern-brick1_diffuse.png");
-	// matModernBrick1->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\bricks\\modern-brick1_normal.png");
+	// matModernBrick1->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\bricks\\modern-brick1_diffuse.png");
+	// matModernBrick1->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\bricks\\modern-brick1_normal.png");
 
 	std::shared_ptr<Material> matStoneTile4b = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matStoneTile4b->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.7f), 1.0f));
 	XMStoreFloat4A(&matStoneTile4b->m_specular, XMVectorSetW(ColorsLinear::Black, 4.0f));
-	matStoneTile4b->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\floor\\stone-tile4b_diffuse.png");
-	matStoneTile4b->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Textures\\floor\\stone-tile4b_normal.png");
+	matStoneTile4b->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\floor\\stone-tile4b_diffuse.png");
+	matStoneTile4b->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\floor\\stone-tile4b_normal.png");
 	
 	std::shared_ptr<Material> matSolidLightPink = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matSolidLightPink->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::LightPink, 0.7f), 1.0f));
@@ -703,13 +750,137 @@ void Warehouse::OnLoadScene()
 	XMStoreFloat4A(&matDoorFrame->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::Brown, 0.4f), 1.0f));
 	XMStoreFloat4A(&matDoorFrame->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 2.0f));
 
+	constexpr XMFLOAT3 FPSARM_POS(0.0f, -0.2f, -0.06f);
+	constexpr XMFLOAT3 FPSM16_OFFSET(0.1f, -0.04f, 0.23f);
+	constexpr XMFLOAT3 FPSM16_POS(FPSARM_POS.x + FPSM16_OFFSET.x, FPSARM_POS.y + FPSM16_OFFSET.y, FPSARM_POS.z + FPSM16_OFFSET.z);
+	// FPS Arm
+	{
+		ModelData mdFPSArms = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\Characters\\Steven\\fps\\fpsarms.glb");
+		std::shared_ptr<SkinnedMesh> meshFPSArms = mdFPSArms.m_skinnedMeshes[0];
+		std::shared_ptr<Armature> armaFPSArms = mdFPSArms.m_armatures[0];
+
+		GameObjectHandle hGameObject = CreateGameObject(L"FPS Arms");
+		GameObject* pGameObject = hGameObject.ToPtr();
+		pGameObject->m_transform.SetParent(&pMainCamera->m_transform);
+
+		pGameObject->m_transform.SetPosition(FPSARM_POS);
+
+		ComponentHandle<SkinnedMeshRenderer> hMeshRenderer = pGameObject->AddComponent<SkinnedMeshRenderer>();
+		SkinnedMeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+
+		auto matArms = ResourceLoader::GetInstance()->CreateMaterial();
+		XMStoreFloat4A(&matArms->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.25f), 1.0f));
+		XMStoreFloat4A(&matArms->m_specular, XMVectorSetW(ColorsLinear::Black, 1.0f));
+		matArms->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\Characters\\Steven\\fps\\tex_diffuse.jpg");
+
+		pMeshRenderer->SetMesh(meshFPSArms);
+		pMeshRenderer->SetMaterial(0, matArms);
+
+		pMeshRenderer->SetArmature(armaFPSArms);
+		// pMeshRenderer->PlayAnimation("arms_idle_m16a1", 1.0f, true, 0.0f);
+		pMeshRenderer->PlayAnimation("arms_reload_m16a1", 1.0f, true, 0.0f);
+		// pMeshRenderer->PlayAnimation("arms_shoot_m16a1", 1.0f, true, 0.0f);
+		// pMeshRenderer->PlayAnimation("arms_run_m16a1", 1.0f, true, 0.0f);
+	}
+
+	auto matSTANAG30Rds = ResourceLoader::GetInstance()->CreateMaterial();
+	XMStoreFloat4A(&matSTANAG30Rds->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.05f), 1.0f));
+	XMStoreFloat4A(&matSTANAG30Rds->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 2.0f));
+	ModelData md = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\M16A1\\m16a1_pv.glb");
+	std::shared_ptr<SkinnedMesh> mesh = md.m_skinnedMeshes[0];
+	std::shared_ptr<Armature> armaM16 = md.m_armatures[0];
+	// Animated Weapons(m16a1)
+	{
+		// GameObjectHandle hGameObject = CreateGameObject(L"M16A1");
+		// GameObject* pGameObject = hGameObject.ToPtr();
+		// pGameObject->m_transform.SetParent(&pMainCamera->m_transform);
+		// 
+		// pGameObject->m_transform.SetPosition(FPSM16_POS);
+		// 
+		// ComponentHandle<SkinnedMeshRenderer> hMeshRenderer = pGameObject->AddComponent<SkinnedMeshRenderer>();
+		// SkinnedMeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+		// 
+		// // 재질 설정
+		// auto matM16A1Receiver = ResourceLoader::GetInstance()->CreateMaterial();
+		// XMStoreFloat4A(&matM16A1Receiver->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 1.0f));
+		// XMStoreFloat4A(&matM16A1Receiver->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 2.0f));
+		// matM16A1Receiver->m_diffuseMap =
+		// 	ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M16A1\\textures\\receiver_diffuse.jpg");
+		// matM16A1Receiver->m_normalMap =
+		// 	ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M16A1\\textures\\receiver_normal.jpg");
+		// 
+		// auto matM16A1Furniture = ResourceLoader::GetInstance()->CreateMaterial();
+		// XMStoreFloat4A(&matM16A1Furniture->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 1.0f));
+		// XMStoreFloat4A(&matM16A1Furniture->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 4.0f));
+		// matM16A1Furniture->m_diffuseMap =
+		// 	ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M16A1\\textures\\furniture_diffuse.jpg");
+		// matM16A1Furniture->m_normalMap =
+		// 	ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M16A1\\textures\\furniture_normal.jpg");
+		// 
+		// pMeshRenderer->SetMesh(mesh);
+		// pMeshRenderer->SetMaterial(0, matM16A1Receiver);
+		// pMeshRenderer->SetMaterial(1, matM16A1Furniture);
+		// pMeshRenderer->SetMaterial(2, matSTANAG30Rds);
+		// 
+		// 
+		// pMeshRenderer->SetArmature(armaM16);
+		// pMeshRenderer->PlayAnimation("m16a1_idle", 1.0f, true, 0.0f);
+		// pMeshRenderer->PlayAnimation("m16a1_reload", 1.0f, true, 0.0f);
+		// pMeshRenderer->PlayAnimation("m16a1_shoot", 1.0f, true, 0.0f);
+		// pMeshRenderer->PlayAnimation("m16a1_run", 1.0f, true, 0.0f);
+	}
+
+	// Animated Weapons(m4a1)
+	{
+		ModelData md = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\m4a1\\m4a1_pv.glb");
+		std::shared_ptr<SkinnedMesh> mesh = md.m_skinnedMeshes[0];
+		// std::shared_ptr<Armature> arma = md.armatures[0];
+		
+		GameObjectHandle hGameObject = CreateGameObject(L"M4A1");
+		GameObject* pGameObject = hGameObject.ToPtr();
+		pGameObject->m_transform.SetParent(&pMainCamera->m_transform);
+		
+		pGameObject->m_transform.SetPosition(FPSM16_POS);
+		
+		ComponentHandle<SkinnedMeshRenderer> hMeshRenderer = pGameObject->AddComponent<SkinnedMeshRenderer>();
+		SkinnedMeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+		
+		// 재질 설정
+		auto matM4A1Receiver = ResourceLoader::GetInstance()->CreateMaterial();
+		XMStoreFloat4A(&matM4A1Receiver->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
+		XMStoreFloat4A(&matM4A1Receiver->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 4.0f));
+		matM4A1Receiver->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\receiver_diffuse.png");
+		matM4A1Receiver->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\receiver_normal.png");
+		auto matM4A1Furniture = ResourceLoader::GetInstance()->CreateMaterial();
+		XMStoreFloat4A(&matM4A1Furniture->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
+		XMStoreFloat4A(&matM4A1Furniture->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 8.0f));
+		matM4A1Furniture->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\furniture_diffuse.png");
+		matM4A1Furniture->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\furniture_normal.png");
+		auto matRearSight = ResourceLoader::GetInstance()->CreateMaterial();
+		XMStoreFloat4A(&matRearSight->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
+		XMStoreFloat4A(&matRearSight->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 4.0f));
+		matRearSight->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\rearsight_diffuse.png");
+		matRearSight->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\rearsight_normal.png");
+		
+		pMeshRenderer->SetMesh(mesh);
+		pMeshRenderer->SetMaterial(0, matM4A1Receiver);
+		pMeshRenderer->SetMaterial(1, matM4A1Furniture);
+		pMeshRenderer->SetMaterial(2, matRearSight);
+		pMeshRenderer->SetMaterial(3, matSTANAG30Rds);
+		
+		pMeshRenderer->SetArmature(armaM16);
+		// pMeshRenderer->PlayAnimation("m16a1_idle", 1.0f, true, 0.0f);
+		pMeshRenderer->PlayAnimation("m16a1_reload", 1.0f, true, 0.0f);
+		// pMeshRenderer->PlayAnimation("m16a1_shoot", 1.0f, true, 0.0f);
+		// pMeshRenderer->PlayAnimation("m16a1_run", 1.0f, true, 0.0f);
+	}
 
 
 	// 캐릭터 Skinned Mesh Test
 	{
-		ModelData mdMaleBase = ResourceLoader::GetInstance()->LoadModel(L"Resource\\Models\\Characters\\Steven\\steven.glb");
-		std::shared_ptr<SkinnedMesh> meshSteven = mdMaleBase.skinnedMeshes[0];
-		std::shared_ptr<Armature> armaSteven = mdMaleBase.armatures[0];
+		ModelData mdMaleBase = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\Characters\\Steven\\steven.glb");
+		std::shared_ptr<SkinnedMesh> meshSteven = mdMaleBase.m_skinnedMeshes[0];
+		std::shared_ptr<Armature> armaSteven = mdMaleBase.m_armatures[0];
 
 		GameObjectHandle hGameObject = CreateGameObject(L"Steven");
 		GameObject* pGameObject = hGameObject.ToPtr();
@@ -722,14 +893,14 @@ void Warehouse::OnLoadScene()
 		XMStoreFloat4A(&matBody->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.6f), 1.0f));
 		XMStoreFloat4A(&matBody->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 1.0f));
 		matBody->m_specular.w = 4.0f;
-		matBody->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Characters\\Steven\\textures\\body.png");
+		matBody->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\Characters\\Steven\\textures\\body.png");
 		
 		auto matSuit = ResourceLoader::GetInstance()->CreateMaterial();
 		XMStoreFloat4A(&matSuit->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.6f), 1.0f));
 		XMStoreFloat4A(&matSuit->m_specular, XMVectorSetW(ColorsLinear::Black, 1.0f));
 		matSuit->m_specular.w = 4.0f;
-		matSuit->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Characters\\Steven\\textures\\suit_diffuse.png");
-		matSuit->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Characters\\Steven\\textures\\suit_normal.png");
+		matSuit->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\Characters\\Steven\\textures\\suit_diffuse.png");
+		matSuit->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\Characters\\Steven\\textures\\suit_normal.png");
 		
 		auto matShoes = ResourceLoader::GetInstance()->CreateMaterial();
 		XMStoreFloat4A(&matShoes->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
@@ -1551,12 +1722,13 @@ void Warehouse::OnLoadScene()
 	}
 
 
+	/*
 	// TEST CODE
 	// WEAPON
 	// 
 	// Primary weapon
 	std::shared_ptr<StaticMesh> meshSTANAG30Rds = 
-		ResourceLoader::GetInstance()->LoadModel(L"Resource\\Models\\Weapons\\Magazine\\STANAG\\STANAG30Rds.obj").staticMeshes[0];
+		ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\Magazine\\STANAG\\STANAG30Rds.obj").staticMeshes[0];
 	auto matSTANAG30Rds = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matSTANAG30Rds->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.05f), 1.0f));
 	XMStoreFloat4A(&matSTANAG30Rds->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 2.0f));
@@ -1567,28 +1739,28 @@ void Warehouse::OnLoadScene()
 		GameObject* pPrimaryWeapon = hPrimaryWeapon.ToPtr();
 		pPrimaryWeapon->m_transform.SetParent(&pMainCamera->m_transform);
 
-		pPrimaryWeapon->m_transform.SetPosition(XMVectorSet(0.1f, -0.185f, 0.205f, 0.0f));
+		pPrimaryWeapon->m_transform.SetPosition(0.1f, -0.2f, 0.12f);
 		ComponentHandle<MeshRenderer> hRifleMeshRenderer = pPrimaryWeapon->AddComponent<MeshRenderer>();
 		MeshRenderer* pMeshRenderer = hRifleMeshRenderer.ToPtr();
 		// 메시 설정
-		auto meshM16A1 = ResourceLoader::GetInstance()->LoadModel(L"Resource\\Models\\Weapons\\M16A1\\M16A1.obj").staticMeshes[0];
+		auto meshM16A1 = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\M16A1\\M16A1.obj").staticMeshes[0];
 		pMeshRenderer->SetMesh(meshM16A1);
 		// 재질 설정
 		auto matM16A1Receiver = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matM16A1Receiver->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
+		XMStoreFloat4A(&matM16A1Receiver->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 1.0f));
 		XMStoreFloat4A(&matM16A1Receiver->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 2.0f));
 		matM16A1Receiver->m_diffuseMap = 
-			ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M16A1\\Textures\\M16A1Receiver_Diffuse.jpg");
+			ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M16A1\\textures\\receiver_diffuse.jpg");
 		matM16A1Receiver->m_normalMap = 
-			ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M16A1\\Textures\\M16A1Receiver_Normal.jpg");
+			ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M16A1\\textures\\receiver_normal.jpg");
 
 		auto matM16A1Furniture = ResourceLoader::GetInstance()->CreateMaterial();
 		XMStoreFloat4A(&matM16A1Furniture->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 1.0f));
 		XMStoreFloat4A(&matM16A1Furniture->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 4.0f));
 		matM16A1Furniture->m_diffuseMap = 
-			ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M16A1\\Textures\\M16A1Furniture_Diffuse.jpg");
+			ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M16A1\\textures\\furniture_diffuse.jpg");
 		matM16A1Furniture->m_normalMap = 
-			ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M16A1\\Textures\\M16A1Furniture_Normal.jpg");
+			ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M16A1\\textures\\furniture_normal.jpg");
 		pMeshRenderer->SetMaterial(0, matM16A1Receiver);
 		pMeshRenderer->SetMaterial(1, matM16A1Furniture);
 
@@ -1597,7 +1769,7 @@ void Warehouse::OnLoadScene()
 			GameObject* pPWMagazine = hMagazine.ToPtr();
 			pPWMagazine->m_transform.SetParent(&pPrimaryWeapon->m_transform);
 
-			pPWMagazine->m_transform.SetPosition(XMVectorSet(0.0, -0.032f, 0.068f, 0.0f));
+			pPWMagazine->m_transform.SetPosition(0.0, -0.032f, 0.068f);
 			ComponentHandle<MeshRenderer> hMeshRenderer = pPWMagazine->AddComponent<MeshRenderer>();
 			MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 			// 메시 설정
@@ -1616,18 +1788,18 @@ void Warehouse::OnLoadScene()
 		pSecondaryWeapon->m_transform.SetParent(&pMainCamera->m_transform);
 
 		pSecondaryWeapon->SetActive(false);	// 안보이게 비활성화 상태로 초기화
-		pSecondaryWeapon->m_transform.SetPosition(XMVectorSet(0.1f, -0.14f, 0.28f, 0.0f));
+		pSecondaryWeapon->m_transform.SetPosition(0.1f, -0.14f, 0.28f);
 		ComponentHandle<MeshRenderer> hMeshRenderer = pSecondaryWeapon->AddComponent<MeshRenderer>();
 		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 		// 메시 설정
-		auto meshM9A1 = ResourceLoader::GetInstance()->LoadModel(L"Resource\\Models\\Weapons\\M9A1\\M9A1.obj").staticMeshes[0];
+		auto meshM9A1 = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\m9a1\\m9a1_tv.obj").staticMeshes[0];
 		pMeshRenderer->SetMesh(meshM9A1);
 		// 재질 설정
 		auto matM9A1 = ResourceLoader::GetInstance()->CreateMaterial();
 		XMStoreFloat4A(&matM9A1->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 1.0f));
 		XMStoreFloat4A(&matM9A1->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.25f), 4.0f));
-		matM9A1->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M9A1\\Textures\\M9A1_Diffuse.png");
-		matM9A1->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M9A1\\Textures\\M9A1_Normal.png");
+		matM9A1->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m9a1\\textures\\diffuse.png");
+		matM9A1->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m9a1\\textures\\normal.png");
 		pMeshRenderer->SetMaterial(0, matM9A1);
 
 		{
@@ -1635,17 +1807,17 @@ void Warehouse::OnLoadScene()
 			GameObject* pWeaponLight = hWeaponLight.ToPtr();
 			pWeaponLight->m_transform.SetParent(&pSecondaryWeapon->m_transform);
 
-			pWeaponLight->m_transform.SetPosition(XMVectorSet(0.0f, -0.004f, 0.028f, 0.0f));
+			pWeaponLight->m_transform.SetPosition(0.0f, -0.004f, 0.028f);
 			ComponentHandle<MeshRenderer> hMeshRenderer = pWeaponLight->AddComponent<MeshRenderer>();
 			MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 			// 메시 설정
-			auto meshX300U = ResourceLoader::GetInstance()->LoadModel(L"Resource\\Models\\Weapons\\X300U\\X300U.obj").staticMeshes[0];
+			auto meshX300U = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\x300u\\x300u.obj").staticMeshes[0];
 			pMeshRenderer->SetMesh(meshX300U);
 			// 재질 설정
 			auto matX300U = ResourceLoader::GetInstance()->CreateMaterial();
 			XMStoreFloat4A(&matX300U->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 1.0f));
 			XMStoreFloat4A(&matX300U->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 4.0f));
-			matX300U->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\X300U\\Textures\\Body_Black_albedo.jpg");
+			matX300U->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\x300u\\textures\\Body_Black_albedo.jpg");
 			pMeshRenderer->SetMaterial(0, matX300U);
 		}
 	}
@@ -1659,28 +1831,28 @@ void Warehouse::OnLoadScene()
 		pPrimaryWeapon->m_transform.SetParent(&pMainCamera->m_transform);
 
 		pPrimaryWeapon->SetActive(false);	// 안보이게 비활성화 상태로 초기화
-		pPrimaryWeapon->m_transform.SetPosition(XMVectorSet(0.1f, -0.18f, 0.2f, 0.0f));
+		pPrimaryWeapon->m_transform.SetPosition(0.1f, -0.2f, 0.12f);
 		ComponentHandle<MeshRenderer> hMeshRenderer = pPrimaryWeapon->AddComponent<MeshRenderer>();
 		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 		// 메시 설정
-		auto meshM4A1 = ResourceLoader::GetInstance()->LoadModel(L"Resource\\Models\\Weapons\\M4A1\\M4A1.obj").staticMeshes[0];
+		auto meshM4A1 = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\m4a1\\m4a1_tv.obj").staticMeshes[0];
 		pMeshRenderer->SetMesh(meshM4A1);
 		// 재질 설정
 		auto matM4A1Receiver = ResourceLoader::GetInstance()->CreateMaterial();
 		XMStoreFloat4A(&matM4A1Receiver->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
 		XMStoreFloat4A(&matM4A1Receiver->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 4.0f));
-		matM4A1Receiver->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M4A1\\Textures\\Receiver_Diffuse.png");
-		matM4A1Receiver->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M4A1\\Textures\\Receiver_Normal.png");
+		matM4A1Receiver->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\receiver_diffuse.png");
+		matM4A1Receiver->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\receiver_normal.png");
 		auto matM4A1Furniture = ResourceLoader::GetInstance()->CreateMaterial();
 		XMStoreFloat4A(&matM4A1Furniture->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
 		XMStoreFloat4A(&matM4A1Furniture->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 8.0f));
-		matM4A1Furniture->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M4A1\\Textures\\Furniture_Diffuse.png");
-		matM4A1Furniture->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M4A1\\Textures\\Furniture_Normal.png");
+		matM4A1Furniture->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\furniture_diffuse.png");
+		matM4A1Furniture->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\furniture_normal.png");
 		auto matRearSight = ResourceLoader::GetInstance()->CreateMaterial();
 		XMStoreFloat4A(&matRearSight->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
 		XMStoreFloat4A(&matRearSight->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 4.0f));
-		matRearSight->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M4A1\\Textures\\RearSight_Diffuse.png");
-		matRearSight->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M4A1\\Textures\\RearSight_Normal.png");
+		matRearSight->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\rearsight_diffuse.png");
+		matRearSight->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\rearsight_normal.png");
 
 		pMeshRenderer->SetMaterial(0, matM4A1Receiver);
 		pMeshRenderer->SetMaterial(1, matM4A1Furniture);
@@ -1693,7 +1865,7 @@ void Warehouse::OnLoadScene()
 			GameObject* pPWMagazine = hMagazine.ToPtr();
 			pPWMagazine->m_transform.SetParent(&pPrimaryWeapon->m_transform);
 
-			pPWMagazine->m_transform.SetPosition(XMVectorSet(0.0, -0.034f, 0.064f, 0.0f));
+			pPWMagazine->m_transform.SetPosition(0.0, -0.034f, 0.064f);
 			ComponentHandle<MeshRenderer> hMeshRenderer = pPWMagazine->AddComponent<MeshRenderer>();
 			MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 			// 메시 설정
@@ -1706,34 +1878,34 @@ void Warehouse::OnLoadScene()
 
 	{
 		GameObjectHandle hPrimaryWeapon = CreateGameObject(L"Primary Weapon");
-		pScriptFPSMovement->m_hWeapons[3] = hPrimaryWeapon;		// 3번 슬롯
+		pScriptFPSMovement->m_hWeapons[3] = hPrimaryWeapon;		// 4번 슬롯
 
 		GameObject* pPrimaryWeapon = hPrimaryWeapon.ToPtr();
 		pPrimaryWeapon->m_transform.SetParent(&pMainCamera->m_transform);
 
 		pPrimaryWeapon->SetActive(false);	// 안보이게 비활성화 상태로 초기화
-		pPrimaryWeapon->m_transform.SetPosition(XMVectorSet(0.1f, -0.205f, 0.15f, 0.0f));
+		pPrimaryWeapon->m_transform.SetPosition(0.1f, -0.21f, 0.135f);
 		ComponentHandle<MeshRenderer> hMeshRenderer = pPrimaryWeapon->AddComponent<MeshRenderer>();
 		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 		// 메시 설정
-		auto mesh = ResourceLoader::GetInstance()->LoadModel(L"Resource\\Models\\Weapons\\M762\\m762.obj").staticMeshes[0];
+		auto mesh = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\M762\\m762.obj").staticMeshes[0];
 		pMeshRenderer->SetMesh(mesh);
 		// 재질 설정
 		auto matReceiver = ResourceLoader::GetInstance()->CreateMaterial();
 		XMStoreFloat4A(&matReceiver->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.5f), 1.0f));
 		XMStoreFloat4A(&matReceiver->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 4.0f));
-		matReceiver->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M762\\Textures\\Receiver_Albedo2.png");
-		matReceiver->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M762\\Textures\\Receiver_Normal.png");
+		matReceiver->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M762\\textures\\Receiver_Albedo2.png");
+		matReceiver->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M762\\textures\\Receiver_Normal.png");
 		auto matFurniture = ResourceLoader::GetInstance()->CreateMaterial();
 		XMStoreFloat4A(&matFurniture->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
 		XMStoreFloat4A(&matFurniture->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 2.0f));
-		matFurniture->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M762\\Textures\\Furniture_Albedo.png");
-		matFurniture->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M762\\Textures\\Furniture_Normal.png");
+		matFurniture->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M762\\textures\\Furniture_Albedo.png");
+		matFurniture->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M762\\textures\\Furniture_Normal.png");
 		auto matRail = ResourceLoader::GetInstance()->CreateMaterial();
 		XMStoreFloat4A(&matRail->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
 		XMStoreFloat4A(&matRail->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 4.0f));
-		matRail->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M762\\Textures\\Rail_Albedo.png");
-		matRail->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Models\\Weapons\\M762\\Textures\\Rail_Normal.png");
+		matRail->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M762\\textures\\Rail_Albedo.png");
+		matRail->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M762\\textures\\Rail_Normal.png");
 		
 		pMeshRenderer->SetMaterial(0, matReceiver);
 		pMeshRenderer->SetMaterial(1, matFurniture);
@@ -1743,14 +1915,14 @@ void Warehouse::OnLoadScene()
 			GameObject* pPWMagazine = hMagazine.ToPtr();
 			pPWMagazine->m_transform.SetParent(&pPrimaryWeapon->m_transform);
 
-			pPWMagazine->m_transform.SetPosition(XMVectorSet(0.0, 0.0f, 0.169f, 0.0f));
+			pPWMagazine->m_transform.SetPosition(0.0, 0.0f, 0.169f);
 			ComponentHandle<MeshRenderer> hMeshRenderer = pPWMagazine->AddComponent<MeshRenderer>();
 			MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 
 			// 메시 설정
 
 			std::shared_ptr<StaticMesh> meshMagazine =
-				ResourceLoader::GetInstance()->LoadModel(L"Resource\\Models\\Weapons\\Magazine\\SteelStamped\\762SteelStampedMag.obj").staticMeshes[0];
+				ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\Magazine\\SteelStamped\\762SteelStampedMag.obj").staticMeshes[0];
 			pMeshRenderer->SetMesh(meshMagazine);
 
 
@@ -1761,12 +1933,12 @@ void Warehouse::OnLoadScene()
 			pMeshRenderer->SetMaterial(0, matMagazine);
 		}
 	}
-
+	*/
 
 
 	// Skybox
 	{
-		Texture2D skybox = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Skybox\\sky27.dds", false);
+		Texture2D skybox = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\skybox\\sky27.dds", false);
 		RenderSettings::GetInstance()->SetSkybox(skybox);
 
 		RenderSettings::GetInstance()->SetAmbientLightColor(ColorsLinear::White);

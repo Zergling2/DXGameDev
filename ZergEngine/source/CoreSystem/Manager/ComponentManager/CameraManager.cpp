@@ -33,19 +33,14 @@ void CameraManager::Update()
     );
 }
 
-bool CameraManager::ResizeBuffer(uint32_t width, uint32_t height)
+void CameraManager::ReleaseAllCameraBuffer()
 {
     for (auto pComponent : m_directAccessGroup)
     {
         Camera* pCamera = static_cast<Camera*>(pComponent);
 
-        if (!pCamera->CreateBuffer(width, height))
-            return false;
-
-        pCamera->UpdateProjMatrix(width, height);
+        pCamera->ReleaseAllViews();
     }
-
-    return true;
 }
 
 void CameraManager::AddToDirectAccessGroup(IComponent* pComponent)

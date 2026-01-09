@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ZergEngine\CoreSystem\RenderContext\EffectDeviceContext.h>
+#include <ZergEngine\CoreSystem\Effect\DebugLinesEffect.h>
 #include <ZergEngine\CoreSystem\Effect\BasicEffectP.h>
 #include <ZergEngine\CoreSystem\Effect\BasicEffectPC.h>
 #include <ZergEngine\CoreSystem\Effect\BasicEffectPN.h>
@@ -71,6 +72,8 @@ namespace ze
 		void RenderSliderControl(const SliderControl* pSliderControl);
 		void RenderCheckbox(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColorBrush* pBrush, const Checkbox* pCheckbox);
 		void RenderRadioButton(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColorBrush* pBrush, const RadioButton* pRadioButton);
+
+		void RenderDebugInfo();
 	private:
 		static Renderer* s_pInstance;
 
@@ -80,9 +83,9 @@ namespace ze
 		ID3D11RasterizerState* m_pRSMultisampleSolidCullNone;
 		ID3D11RasterizerState* m_pRSWireframe;
 		ID3D11RasterizerState* m_pRSMultisampleWireframe;
-		ID3D11DepthStencilState* m_pDSSDefault;
+		ID3D11DepthStencilState* m_pDSSDepthReadWrite;
+		ID3D11DepthStencilState* m_pDSSDepthReadOnly;
 		ID3D11DepthStencilState* m_pDSSSkybox;
-		ID3D11DepthStencilState* m_pDSSDepthReadOnlyLess;
 		ID3D11DepthStencilState* m_pDSSNoDepthStencilTest;
 		ID3D11BlendState* m_pBSOpaque;
 		ID3D11BlendState* m_pBSAlphaBlend;
@@ -97,6 +100,7 @@ namespace ze
 		XMFLOAT4X4A* m_pAnimFinalTransformBuffer;
 
 		// Unused
+		DebugLinesEffect m_debugLinesEffect;
 		// BasicEffectP m_basicEffectP;
 		// BasicEffectPC m_basicEffectPC;
 		// BasicEffectPN m_basicEffectPN;

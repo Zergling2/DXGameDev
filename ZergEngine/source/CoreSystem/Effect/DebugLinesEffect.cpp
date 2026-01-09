@@ -1,41 +1,35 @@
-#include <ZergEngine\CoreSystem\Effect\BasicEffectPT.h>
+#include <ZergEngine\CoreSystem\Effect\DebugLinesEffect.h>
 #include <ZergEngine\CoreSystem\GraphicDevice.h>
 #include <ZergEngine\CoreSystem\Math.h>
-#include <ZergEngine\CoreSystem\Resource\Texture.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Camera.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\Transform.h>
 
 using namespace ze;
 
-// BasicEffectPT Effect
+// BasicEffectPC Effect
 // VertexShader:
-// - ToHcsPT
+// - ToHcsDebugLines
 // 
 // PixelShader:
-// - UnlitPT1Tex
+// - UnlitPC
 
-void BasicEffectPT::Init()
+void DebugLinesEffect::Init()
 {
 	m_dirtyFlag = DirtyFlag::ALL;
 
-	m_pInputLayout = GraphicDevice::GetInstance()->GetILComInterface(VertexFormatType::PositionTexCoord);
-	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::ToHcsPT);
-	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::UnlitPT1Tex);
+	m_pInputLayout = GraphicDevice::GetInstance()->GetILComInterface(VertexFormatType::PositionColor);
+	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::ToHcsDebugLines);
+	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::UnlitPC);
 
 	m_cbPerCamera.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
-	m_cbPerMesh.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
-
-	ClearTextureSRVArray();
 }
 
-void BasicEffectPT::Release()
+void DebugLinesEffect::Release()
 {
 	m_cbPerCamera.Release();
-	m_cbPerMesh.Release();
 }
 
-void BasicEffectPT::SetCamera(const Camera* pCamera) noexcept
+void DebugLinesEffect::SetCamera(const Camera* pCamera) noexcept
 {
 	const GameObject* pCameraOwner = pCamera->m_pGameObject;
 	assert(pCameraOwner != nullptr);
@@ -54,20 +48,7 @@ void BasicEffectPT::SetCamera(const Camera* pCamera) noexcept
 	m_dirtyFlag |= DirtyFlag::UpdateCBPerCamera;
 }
 
-void XM_CALLCONV BasicEffectPT::SetWorldMatrix(FXMMATRIX w) noexcept
-{
-	XMStoreFloat4x4A(&m_cbPerMeshCache.w, ConvertToHLSLMatrix(w));			// HLSL 전치
-	XMStoreFloat4x4A(&m_cbPerMeshCache.wInvTr, XMMatrixInverse(nullptr, w));	// 역행렬의 전치의 HLSL 전치
-
-	m_dirtyFlag |= DirtyFlag::UpdateCBPerMesh;
-}
-
-void BasicEffectPT::SetTexture(ID3D11ShaderResourceView* pTexture) noexcept
-{
-	m_pTextureSRVArray[0] = pTexture;
-}
-
-void BasicEffectPT::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
+void DebugLinesEffect::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
 {
 	DWORD index;
 
@@ -76,7 +57,7 @@ void BasicEffectPT::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
 		switch (static_cast<DWORD>(1) << index)
 		{
 		case DirtyFlag::PrimitiveTopology:
-			pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 			break;
 		case DirtyFlag::InputLayout:
 			pDeviceContext->IASetInputLayout(m_pInputLayout);
@@ -87,14 +68,8 @@ void BasicEffectPT::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
 		case DirtyFlag::ApplyCBPerCamera:
 			ApplyPerCameraConstantBuffer(pDeviceContext);
 			break;
-		case DirtyFlag::ApplyCBPerMesh:
-			ApplyPerMeshConstantBuffer(pDeviceContext);
-			break;
 		case DirtyFlag::UpdateCBPerCamera:
 			m_cbPerCamera.Update(pDeviceContext, &m_cbPerCameraCache);
-			break;
-		case DirtyFlag::UpdateCBPerMesh:
-			m_cbPerMesh.Update(pDeviceContext, &m_cbPerMeshCache);
 			break;
 		default:
 			*reinterpret_cast<int*>(0) = 0;	// Force crash
@@ -104,28 +79,19 @@ void BasicEffectPT::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
 		// 업데이트된 항목은 dirty flag 끄기
 		m_dirtyFlag &= ~(static_cast<DWORD>(1) << index);
 	}
-
-	/*
-	// [Texture]
-	Texture2D tex2d_diffuseMap : register(t0);
-	*/
-	pDeviceContext->PSSetShaderResources(0, _countof(m_pTextureSRVArray), m_pTextureSRVArray);
 }
 
-void BasicEffectPT::OnUnbindFromDeviceContext() noexcept
+void DebugLinesEffect::OnUnbindFromDeviceContext() noexcept
 {
-	ClearTextureSRVArray();
-
 	m_dirtyFlag = DirtyFlag::ALL;
 
 	const DWORD except =
-		DirtyFlag::UpdateCBPerCamera |
-		DirtyFlag::UpdateCBPerMesh;
+		DirtyFlag::UpdateCBPerCamera;
 
 	m_dirtyFlag = m_dirtyFlag & ~except;
 }
 
-void BasicEffectPT::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
+void DebugLinesEffect::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
 {
 	pDeviceContext->VSSetShader(m_pVertexShader, nullptr, 0);
 	pDeviceContext->HSSetShader(nullptr, nullptr, 0);
@@ -134,26 +100,11 @@ void BasicEffectPT::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
 	pDeviceContext->PSSetShader(m_pPixelShader, nullptr, 0);
 }
 
-void BasicEffectPT::ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
+void DebugLinesEffect::ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
 	ID3D11Buffer* const cbs[] = { m_cbPerCamera.GetComInterface() };
 
 	// PerCamera 상수버퍼 사용 셰이더
 	constexpr UINT VS_SLOT = 0;
 	pDeviceContext->VSSetConstantBuffers(VS_SLOT, 1, cbs);
-}
-
-void BasicEffectPT::ApplyPerMeshConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
-{
-	ID3D11Buffer* const cbs[] = { m_cbPerMesh.GetComInterface() };
-
-	// PerMesh 상수버퍼 사용 셰이더
-	constexpr UINT VS_SLOT = 1;
-	pDeviceContext->VSSetConstantBuffers(VS_SLOT, 1, cbs);
-}
-
-void BasicEffectPT::ClearTextureSRVArray()
-{
-	for (size_t i = 0; i < _countof(m_pTextureSRVArray); ++i)
-		m_pTextureSRVArray[i] = nullptr;
 }

@@ -1,4 +1,5 @@
 #include "Lighting.hlsli"
+#include "Math.hlsli"
 
 // [Sampler State]
 // g_ssNormalMap

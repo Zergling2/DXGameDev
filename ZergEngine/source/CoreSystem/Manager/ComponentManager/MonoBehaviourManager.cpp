@@ -7,11 +7,11 @@ using namespace ze;
 MonoBehaviourManager* MonoBehaviourManager::s_pInstance = nullptr;
 
 MonoBehaviourManager::MonoBehaviourManager()
-    : m_awakeQueue(128)
-    , m_startQueue(128)
+    : m_awakeQueue()
+    , m_startQueue()
 {
-    m_awakeQueue.clear();
-    m_startQueue.clear();
+    m_awakeQueue.reserve(128);
+    m_startQueue.reserve(128);
 }
 
 void MonoBehaviourManager::CreateInstance()

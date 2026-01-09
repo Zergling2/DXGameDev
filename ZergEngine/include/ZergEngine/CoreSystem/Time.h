@@ -29,7 +29,6 @@ namespace ze
 		float GetTimeScale() const { return m_ts; }
 		void SetTimeScale(float ts);
 		float GetFixedDeltaTime() const { return m_fdt; }
-		bool SetFixedDeltaTime(float fdt);
 		float GetDeltaTime() const { return m_dt; }
 		float GetUnscaledDeltaTime() const { return m_udt; }
 	private:

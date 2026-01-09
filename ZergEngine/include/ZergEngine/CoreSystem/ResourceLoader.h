@@ -5,7 +5,6 @@
 #include <vector>
 #include <map>
 #include <set>
-#include <unordered_map>
 #include <memory>
 #include <string>
 
@@ -139,9 +138,9 @@ namespace ze
 
 	struct ModelData
 	{
-		std::vector<std::shared_ptr<StaticMesh>> staticMeshes;
-		std::vector<std::shared_ptr<Armature>> armatures;
-		std::vector<std::shared_ptr<SkinnedMesh>> skinnedMeshes;
+		std::vector<std::shared_ptr<StaticMesh>> m_staticMeshes;
+		std::vector<std::shared_ptr<Armature>> m_armatures;
+		std::vector<std::shared_ptr<SkinnedMesh>> m_skinnedMeshes;
 	};
 
 	class ResourceLoader
@@ -150,14 +149,13 @@ namespace ze
 
 		struct TempModelData
 		{
-			std::vector<std::shared_ptr<StaticMesh>> staticMeshes;
+			std::vector<std::shared_ptr<StaticMesh>> m_staticMeshes;
 			struct ArmatureData
 			{
-				std::set<std::string> nameSet;
-				std::vector<std::unordered_map<std::string, BYTE>> boneIndexMap;
-				std::vector<std::shared_ptr<Armature>> armatures;
-			}armatureData;
-			std::vector<std::shared_ptr<SkinnedMesh>> skinnedMeshes;
+				std::set<std::string> m_armatureNodeNames;	// Armature 노드들의 이름 기록
+				std::vector<std::shared_ptr<Armature>> m_armatures;
+			}m_armatureData;
+			std::vector<std::shared_ptr<SkinnedMesh>> m_skinnedMeshes;
 		};
 	public:
 		static ResourceLoader* GetInstance() { return s_pInstance; }

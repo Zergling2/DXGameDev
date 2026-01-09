@@ -9,7 +9,8 @@ namespace ze
 	class TextFormat
 	{
 	public:
-		TextFormat(std::wstring fontFamilyName, DWRITE_FONT_WEIGHT weight, DWRITE_FONT_STYLE style, DWRITE_FONT_STRETCH stretch, uint32_t size)
+		TextFormat(std::wstring fontFamilyName, DWRITE_FONT_WEIGHT weight, DWRITE_FONT_STYLE style,
+			DWRITE_FONT_STRETCH stretch, uint32_t size)
 			: m_familyName(std::move(fontFamilyName))
 			, m_weight(weight)
 			, m_style(style)
@@ -48,23 +49,27 @@ namespace ze
 	struct TextFormatHasher
 	{
 	public:
-		size_t operator()(const TextFormat& tf) const noexcept
+		size_t operator()(const TextFormat& tf) const
 		{
-			size_t h[5];
-			h[0] = std::hash<std::wstring>()(tf.GetFontFamilyName());
-			h[1] = std::hash<int>()(tf.GetWeight());
-			h[2] = std::hash<int>()(tf.GetStyle());
-			h[3] = std::hash<int>()(tf.GetStretch());
-			h[4] = std::hash<uint32_t>()(tf.GetSize());
+			size_t h = std::hash<std::wstring>()(tf.GetFontFamilyName());
+			h = CombineHash(h, std::hash<int>()(tf.GetWeight()));
+			h = CombineHash(h, std::hash<int>()(tf.GetStyle()));
+			h = CombineHash(h, std::hash<int>()(tf.GetStretch()));
+			h = CombineHash(h, std::hash<uint32_t>()(tf.GetSize()));
 
-			return h[0] ^ h[1] ^ h[2] ^ h[3] ^ h[4];	// o_o
+			return h;
+		}
+		static size_t CombineHash(size_t lhs, size_t rhs)
+		{
+			lhs ^= rhs + 0x9e3779b9 + (lhs << 6) + (lhs >> 2);
+			return lhs;
 		}
 	};
 
 	class DWriteTextFormatWrapper
 	{
 	public:
-		DWriteTextFormatWrapper(IDWriteTextFormat* pTextFormat) noexcept
+		DWriteTextFormatWrapper(IDWriteTextFormat* pTextFormat)
 			: m_pTextFormat(pTextFormat)
 		{
 		}

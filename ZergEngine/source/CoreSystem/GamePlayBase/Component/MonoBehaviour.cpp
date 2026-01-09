@@ -1,5 +1,6 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\MonoBehaviour.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\MonoBehaviourManager.h>
+#include <ZergEngine\CoreSystem\Runtime.h>
 
 using namespace ze;
 
@@ -39,6 +40,11 @@ void MonoBehaviour::OnDisable()
 
 void MonoBehaviour::OnDestroy()
 {
+}
+
+bool MonoBehaviour::SetResolution(uint32_t width, uint32_t height, DisplayMode mode)
+{
+	return Runtime::GetInstance()->__$$SetResolutionImpl(width, height, mode);
 }
 
 IComponentManager* MonoBehaviour::GetComponentManager() const

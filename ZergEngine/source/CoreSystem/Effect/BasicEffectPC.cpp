@@ -123,8 +123,8 @@ void BasicEffectPC::ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceCon
 	ID3D11Buffer* const cbs[] = { m_cbPerCamera.GetComInterface() };
 
 	// PerCamera 상수버퍼 사용 셰이더
-	constexpr UINT startSlot = 0;
-	pDeviceContext->VSSetConstantBuffers(startSlot, 1, cbs);
+	constexpr UINT VS_SLOT = 0;
+	pDeviceContext->VSSetConstantBuffers(VS_SLOT, 1, cbs);
 }
 
 void BasicEffectPC::ApplyPerMeshConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
@@ -132,6 +132,6 @@ void BasicEffectPC::ApplyPerMeshConstantBuffer(ID3D11DeviceContext* pDeviceConte
 	ID3D11Buffer* const cbs[] = { m_cbPerMesh.GetComInterface() };
 
 	// PerMesh 상수버퍼 사용 셰이더
-	constexpr UINT startSlot = 1;
-	pDeviceContext->VSSetConstantBuffers(1, 1, cbs);
+	constexpr UINT VS_SLOT = 1;
+	pDeviceContext->VSSetConstantBuffers(VS_SLOT, 1, cbs);
 }

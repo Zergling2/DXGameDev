@@ -299,8 +299,8 @@ void BasicEffectPNTTSkinned::ApplyPerFrameConstantBuffer(ID3D11DeviceContext* pD
 	ID3D11Buffer* const cbs[] = { m_cbPerFrame.GetComInterface() };
 
 	// PerFrame 상수버퍼 사용 셰이더
-	constexpr UINT startSlot = 0;
-	pDeviceContext->PSSetConstantBuffers(startSlot, 1, cbs);
+	constexpr UINT PS_SLOT = 0;
+	pDeviceContext->PSSetConstantBuffers(PS_SLOT, 1, cbs);
 }
 
 void BasicEffectPNTTSkinned::ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
@@ -319,8 +319,8 @@ void BasicEffectPNTTSkinned::ApplyPerMeshConstantBuffer(ID3D11DeviceContext* pDe
 	ID3D11Buffer* const cbs[] = { m_cbPerMesh.GetComInterface() };
 
 	// PerMesh 상수버퍼 사용 셰이더
-	constexpr UINT startSlot = 1;
-	pDeviceContext->VSSetConstantBuffers(startSlot, 1, cbs);
+	constexpr UINT VS_SLOT = 1;
+	pDeviceContext->VSSetConstantBuffers(VS_SLOT, 1, cbs);
 }
 
 void BasicEffectPNTTSkinned::ApplyPerArmatureConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
@@ -328,8 +328,8 @@ void BasicEffectPNTTSkinned::ApplyPerArmatureConstantBuffer(ID3D11DeviceContext*
 	ID3D11Buffer* const cbs[] = { m_cbPerArmature.GetComInterface() };
 
 	// PerArmature 상수버퍼 사용 셰이더
-	constexpr UINT startSlot = 2;
-	pDeviceContext->VSSetConstantBuffers(startSlot, 1, cbs);
+	constexpr UINT VS_SLOT = 2;
+	pDeviceContext->VSSetConstantBuffers(VS_SLOT, 1, cbs);
 }
 
 void BasicEffectPNTTSkinned::ApplyMaterialConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
@@ -337,8 +337,8 @@ void BasicEffectPNTTSkinned::ApplyMaterialConstantBuffer(ID3D11DeviceContext* pD
 	ID3D11Buffer* const cbs[] = { m_cbMaterial.GetComInterface() };
 
 	// Material 상수버퍼 사용 셰이더
-	constexpr UINT startSlot = 2;
-	pDeviceContext->PSSetConstantBuffers(startSlot, 1, cbs);
+	constexpr UINT PS_SLOT = 2;
+	pDeviceContext->PSSetConstantBuffers(PS_SLOT, 1, cbs);
 }
 
 void BasicEffectPNTTSkinned::ClearTextureSRVArray() noexcept

@@ -280,8 +280,8 @@ void BasicEffectPNTT::ApplyPerFrameConstantBuffer(ID3D11DeviceContext* pDeviceCo
 	ID3D11Buffer* const cbs[] = { m_cbPerFrame.GetComInterface() };
 
 	// PerFrame 상수버퍼 사용 셰이더
-	constexpr UINT startSlot = 0;
-	pDeviceContext->PSSetConstantBuffers(startSlot, 1, cbs);
+	constexpr UINT PS_SLOT = 0;
+	pDeviceContext->PSSetConstantBuffers(PS_SLOT, 1, cbs);
 }
 
 void BasicEffectPNTT::ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\ComponentInterface.h>
+#include <ZergEngine\CoreSystem\DisplayMode.h>
 
 // ComponentManagerMap 검색 시 필요
 #define DECLARE_MONOBEHAVIOUR_TYPE \
@@ -31,6 +32,11 @@ namespace ze
 		virtual void LateUpdate();
 		virtual void OnDisable();
 		virtual void OnDestroy();
+	protected:
+		// mode가 DisplayMode::BorderlessWindowed일 경우 width, height는 무시됩니다.
+		// mode가 DisplayMode::Fullscreen일 경우 width, height는 각각 전체화면 해상도의 너비, 높이값으로 사용됩니다.
+		// 이 함수는 스크립트 내에서만 호출되어야 하므로 MonoBehaviour 클래스의 멤버 함수로 옮겨졌습니다.
+		bool SetResolution(uint32_t width, uint32_t height, DisplayMode mode);
 	private:
 		virtual IComponentManager* GetComponentManager() const override;
 	private:

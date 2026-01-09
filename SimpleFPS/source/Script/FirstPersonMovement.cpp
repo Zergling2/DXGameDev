@@ -12,6 +12,8 @@ void FirstPersonMovement::Awake()
 	m_ui = false;
 	Cursor::SetVisible(false);
 	Cursor::SetLockState(CursorLockMode::Locked);
+
+	SetResolution(1920, 1080, DisplayMode::BorderlessWindowed);
 }
 
 void FirstPersonMovement::Update()
@@ -138,7 +140,22 @@ void FirstPersonMovement::MovementProcess(ze::GameObject* pGameObject)
 		pGameObject->m_transform.Translate(worldRightAxis * speed);
 }
 
-void FirstPersonMovement::TestSliderHandler01()
+void FirstPersonMovement::TestHandlerOnClick01()
+{
+	printf("OnClick01!\n");
+}
+
+void FirstPersonMovement::TestHandlerOnClick02()
+{
+	printf("OnClick02!\n");
+}
+
+void FirstPersonMovement::TestHandlerOnClick03()
+{
+	printf("OnClick03!\n");
+}
+
+void FirstPersonMovement::EventHandlerAmbientChange()
 {
 	SliderControl* pSC = static_cast<SliderControl*>(m_hSlider.ToPtr());
 	if (!pSC)
@@ -146,4 +163,31 @@ void FirstPersonMovement::TestSliderHandler01()
 
 	float v = static_cast<float>(pSC->GetThumbPos()) * 0.1f;
 	RenderSettings::GetInstance()->SetAmbientLightIntensity(v);
+}
+
+void FirstPersonMovement::EventHandlerMSAAChange()
+{
+	SliderControl* pSC = static_cast<SliderControl*>(m_hSliderMSAAChanger.ToPtr());
+	if (!pSC)
+		return;
+
+	Camera* pCamera = static_cast<Camera*>(m_hComponentCamera.ToPtr());
+	switch (pSC->GetThumbPos())
+	{
+	case 0:
+		pCamera->SetMSAAMode(MSAAMode::Off);
+		break;
+	case 1:
+		pCamera->SetMSAAMode(MSAAMode::x2);
+		break;
+	case 2:
+		pCamera->SetMSAAMode(MSAAMode::x4);
+		break;
+	case 3:
+		pCamera->SetMSAAMode(MSAAMode::x8);
+		break;
+	default:
+		pCamera->SetMSAAMode(MSAAMode::Off);
+		break;
+	}
 }

@@ -134,7 +134,7 @@ namespace ze
 		// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
 		ComPtr<ID2D1RenderTarget> m_cpD2DRenderTarget;
 		ComPtr<ID2D1SolidColorBrush> m_cpD2DSolidColorBrush;
-		std::unordered_map<TextFormat, std::weak_ptr<DWriteTextFormatWrapper>, TextFormatHasher> m_fontMap;
+		std::unordered_map<const TextFormat, std::weak_ptr<DWriteTextFormatWrapper>, TextFormatHasher> m_fontMap;
 		// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
 
 		VertexShader m_vs[static_cast<size_t>(VertexShaderType::COUNT)];

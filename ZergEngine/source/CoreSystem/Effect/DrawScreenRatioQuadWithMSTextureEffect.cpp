@@ -110,8 +110,8 @@ void DrawScreenRatioQuadWithMSTextureEffect::ApplyPerDrawQuadConstantBuffer(ID3D
 	ID3D11Buffer* const cbs[] = { m_cbPerScreenRatioQuad.GetComInterface() };
 
 	// PerFrame 상수버퍼 사용 셰이더
-	constexpr UINT startSlot = 0;
-	pDeviceContext->VSSetConstantBuffers(startSlot, 1, cbs);
+	constexpr UINT VS_SLOT = 0;
+	pDeviceContext->VSSetConstantBuffers(VS_SLOT, 1, cbs);
 }
 
 void DrawScreenRatioQuadWithMSTextureEffect::ClearTextureSRVArray()

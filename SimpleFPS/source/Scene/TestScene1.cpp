@@ -8,6 +8,6 @@ ZE_IMPLEMENT_SCENE(TestScene1)
 
 void TestScene1::OnLoadScene()
 {
-	Texture2D skyboxCubeMap = ResourceLoader::GetInstance()->LoadTexture2D(L"Resource\\Skybox\\indigo.dds", false);
+	Texture2D skyboxCubeMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\skybox\\indigo.dds", false);
 	RenderSettings::GetInstance()->SetSkybox(skyboxCubeMap);
 }

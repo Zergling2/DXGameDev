@@ -56,6 +56,7 @@ namespace ze
 
 	enum class VertexShaderType
 	{
+		ToHcsDebugLines,
 		ToHcsP,
 		ToHcsPC,
 		ToHcsPN,
@@ -73,6 +74,7 @@ namespace ze
 		ToHcsScreenRatioQuad,
 		// ToHcsShaded2DQuad,
 		// 收收收收收收收收收收收收收收收收收收收收收收
+
 		COUNT
 	};
 
@@ -80,6 +82,7 @@ namespace ze
 	{
 		CalcTerrainTessFactor,
 		// 收收收收收收收收收收收收收收收收收收收收收收
+
 		COUNT
 	};
 
@@ -87,6 +90,7 @@ namespace ze
 	{
 		SampleTerrainHeightMap,
 		// 收收收收收收收收收收收收收收收收收收收收收收
+
 		COUNT
 	};
 
@@ -120,6 +124,7 @@ namespace ze
 		ColorShadedEdgeCircle,
 		// ShadowMapAlphaClipping,
 		// 收收收收收收收收收收收收收收收收收收收收收收
+
 		COUNT
 	};
 
@@ -158,8 +163,9 @@ namespace ze
 		Shaded2DQuad,
 		Checkbox,
 		// 收收收收收收收收收收收收收收收收收收收收收收
+
 		COUNT,
-		UNKNOWN
+		Unknown
 	};
 
 

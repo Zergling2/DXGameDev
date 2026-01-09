@@ -31,6 +31,7 @@
 #include <ZergEngine\CoreSystem\Resource\Animation.h>
 #include <ZergEngine\CoreSystem\Resource\Armature.h>
 #include <ZergEngine\CoreSystem\Resource\Material.h>
+#include <ZergEngine\CoreSystem\Physics.h>
 #include <algorithm>
 
 using namespace ze;
@@ -53,9 +54,9 @@ Renderer::Renderer()
 	, m_pRSMultisampleSolidCullNone(nullptr)
 	, m_pRSWireframe(nullptr)
 	, m_pRSMultisampleWireframe(nullptr)
-	, m_pDSSDefault(nullptr)
+	, m_pDSSDepthReadWrite(nullptr)
+	, m_pDSSDepthReadOnly(nullptr)
 	, m_pDSSSkybox(nullptr)
-	, m_pDSSDepthReadOnlyLess(nullptr)
 	, m_pDSSNoDepthStencilTest(nullptr)
 	, m_pBSOpaque(nullptr)
 	, m_pBSAlphaBlend(nullptr)
@@ -65,6 +66,7 @@ Renderer::Renderer()
 	, m_effectImmediateContext()
 	, m_pAnimFinalTransformIdentity(nullptr)
 	, m_pAnimFinalTransformBuffer(nullptr)
+	, m_debugLinesEffect()
 	// , m_basicEffectP()
 	// , m_basicEffectPC()
 	// , m_basicEffectPN()
@@ -127,9 +129,9 @@ void Renderer::Init()
 	m_pRSMultisampleSolidCullNone = pGraphicDevice->GetRSComInterface(RasterizerMode::MultisampleSolidCullNone);
 	m_pRSWireframe = pGraphicDevice->GetRSComInterface(RasterizerMode::Wireframe);
 	m_pRSMultisampleWireframe = pGraphicDevice->GetRSComInterface(RasterizerMode::MultisampleWireframe);
-	m_pDSSDefault = pGraphicDevice->GetDSSComInterface(DepthStencilStateType::Default);
+	m_pDSSDepthReadWrite = pGraphicDevice->GetDSSComInterface(DepthStencilStateType::DepthReadWrite);
+	m_pDSSDepthReadOnly = pGraphicDevice->GetDSSComInterface(DepthStencilStateType::DepthReadOnly);
 	m_pDSSSkybox = pGraphicDevice->GetDSSComInterface(DepthStencilStateType::Skybox);
-	m_pDSSDepthReadOnlyLess = pGraphicDevice->GetDSSComInterface(DepthStencilStateType::DepthReadOnlyLess);
 	m_pDSSNoDepthStencilTest = pGraphicDevice->GetDSSComInterface(DepthStencilStateType::NoDepthStencilTest);
 	m_pBSOpaque = pGraphicDevice->GetBSComInterface(BlendStateType::Opaque);
 	m_pBSAlphaBlend = pGraphicDevice->GetBSComInterface(BlendStateType::AlphaBlend);
@@ -139,6 +141,7 @@ void Renderer::Init()
 
 
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ INITIALIZE EFFECTS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+	m_debugLinesEffect.Init();
 	// m_basicEffectP.Init();
 	// m_basicEffectPC.Init();
 	// m_basicEffectPN.Init();
@@ -164,6 +167,7 @@ void Renderer::Init()
 void Renderer::UnInit()
 {
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ RELEASE EFFECTS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+	m_debugLinesEffect.Release();
 	// m_basicEffectP.Release();
 	// m_basicEffectPC.Release();
 	// m_basicEffectPN.Release();
@@ -340,9 +344,8 @@ void Renderer::RenderFrame()
 		m_billboardEffect.SetSpotLight(light, lightCount);
 	}
 
-
-
-
+	// 디버그 시각 정보 버퍼 업데이트
+	Physics::GetInstance()->GetPhysicsDebugDrawer().UpdateResources(pImmContext);
 
 	// Camera마다 프레임 렌더링
 
@@ -362,19 +365,22 @@ void Renderer::RenderFrame()
 			pImmContext->RSSetState(m_pRSMultisampleSolidCullBack);	// 후면 컬링 설정
 
 		// DepthStencil State
-		pImmContext->OMSetDepthStencilState(m_pDSSDefault, 0);
+		pImmContext->OMSetDepthStencilState(m_pDSSDepthReadWrite, 0);
 
 		// BasicState
 		pImmContext->OMSetBlendState(m_pBSOpaque, nullptr, 0xFFFFFFFF);
+
+
+		// 버퍼 재생성 필요시 생성
+		if (pCamera->GetColorBufferRTVComInterface() == nullptr)
+			if (!pCamera->CreateViews())
+				continue;
 
 		pCamera->UpdateViewMatrix();	// 뷰 변환 행렬 업데이트
 
 		// 월드 스페이스 절두체 생성
 		Frustum frustumW(pCamera->GetProjMatrix(), false);	// 원근 투영 기반 절두체
 		frustumW.Transform(frustumW, XMMatrixInverse(nullptr, pCamera->GetViewMatrix()));
-
-		// Frustum cameraFrustumW;			// 프러스텀 컬링용
-		// Math::CalcWorldFrustumFromViewProjMatrix(pCamera->GetViewMatrix()* pCamera->GetProjMatrix(), cameraFrustumW);
 
 		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 		// 뷰포트 바인딩
@@ -389,6 +395,7 @@ void Renderer::RenderFrame()
 		pImmContext->OMSetRenderTargets(_countof(rtvs), rtvs, pDepthStencilBufferDSV);
 		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 		// PerCamera 상수버퍼 업데이트 및 바인딩
+		m_debugLinesEffect.SetCamera(pCamera);
 		// m_basicEffectP.SetCamera(pCamera);
 		// m_basicEffectPC.SetCamera(pCamera);
 		// m_basicEffectPN.SetCamera(pCamera);
@@ -492,7 +499,7 @@ void Renderer::RenderFrame()
 		{
 			pImmContext->OMSetDepthStencilState(m_pDSSSkybox, 0);
 			RenderSkybox(pSkyboxCubeMap);
-			pImmContext->OMSetDepthStencilState(m_pDSSDefault, 0);
+			pImmContext->OMSetDepthStencilState(m_pDSSDepthReadWrite, 0);
 		}
 
 
@@ -508,13 +515,11 @@ void Renderer::RenderFrame()
 			pImmContext->RSSetState(m_pRSMultisampleSolidCullNone);
 
 		// DepthStencil State
-		pImmContext->OMSetDepthStencilState(m_pDSSDepthReadOnlyLess, 0);
+		pImmContext->OMSetDepthStencilState(m_pDSSDepthReadOnly, 0);
 
 		// Blend State
 		// D3D11_BLEND_BLEND_FACTOR 또는 D3D11_BLEND_INV_BLEND_FACTOR 미사용 (blend factor로 nullptr 전달)
 		pImmContext->OMSetBlendState(m_pBSAlphaBlend, nullptr, 0xFFFFFFFF);
-
-
 
 		XMVECTOR cameraUpW;
 		XMVECTOR cameraForwardW;
@@ -594,6 +599,10 @@ void Renderer::RenderFrame()
 		std::sort(m_billboardRenderQueue.begin(), m_billboardRenderQueue.end(), BillboardComparator());
 		for (const auto& pair : m_billboardRenderQueue)
 			RenderBillboard(pair.first);
+
+
+		// 디버그 시각 정보 렌더링 (루프 밖에서 업데이트하고 모든 카메라가 공유)
+		RenderDebugInfo();
 	}
 
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -994,7 +1003,7 @@ void XM_CALLCONV Renderer::RenderPNTTSkinnedMesh(const SkinnedMeshRenderer* pSki
 
 	m_basicEffectPNTTSkinned.SetWorldMatrix(worldMatrix);
 	
-	const Animation* pCurrAnim = pSkinnedMeshRenderer->GetCurrentAnimation();
+	const Animation* pCurrAnim = pSkinnedMeshRenderer->GetCurrentAnimationPtr();
 	const Armature* pArmature = pSkinnedMeshRenderer->GetArmaturePtr();
 	if (pCurrAnim)
 	{
@@ -1014,7 +1023,7 @@ void XM_CALLCONV Renderer::RenderPNTTSkinnedMesh(const SkinnedMeshRenderer* pSki
 	}
 	else
 	{
-		m_basicEffectPNTTSkinned.SetArmatureFinalTransform(m_pAnimFinalTransformIdentity, pArmature->GetBoneCount());
+		m_basicEffectPNTTSkinned.SetArmatureFinalTransform(m_pAnimFinalTransformIdentity, MAX_BONE_COUNT);
 	}
 
 	// 버텍스 버퍼 설정
@@ -1505,4 +1514,43 @@ void Renderer::RenderRadioButton(ID2D1RenderTarget* pD2DRenderTarget, ID2D1Solid
 	);
 
 	HRESULT hr = pD2DRenderTarget->EndDraw();
+}
+
+void Renderer::RenderDebugInfo()
+{
+	ID3D11Buffer* const pDebugLinesVertexBuffer = Physics::GetInstance()->GetPhysicsDebugDrawer().GetDebugLinesVertexBuffer();
+	const UINT debugLinesVertexCount = Physics::GetInstance()->GetPhysicsDebugDrawer().GetDebugLineVertexCountToDraw();
+
+	// Rasterizer
+
+	// 래스터라이저 디스크립터에서
+	// 뎁스 바이어스 및 슬로프 스케일드 뎁스 바이어스 등 설정한거 사용해야함.
+	ID3D11DeviceContext* pImmContext = m_effectImmediateContext.GetDeviceContextComInterface();
+
+	// 변경할 파이프라인 상태 백업
+	ComPtr<ID3D11RasterizerState> cpOldRS;
+	pImmContext->RSGetState(cpOldRS.GetAddressOf());
+	ComPtr<ID3D11DepthStencilState> cpOldDDS;
+	UINT oldStencilRef;
+	pImmContext->OMGetDepthStencilState(cpOldDDS.GetAddressOf(), &oldStencilRef);
+
+	// 파이프라인 상태 업데이트
+	ID3D11RasterizerState* pRSDebugLineDrawing = Physics::GetInstance()->GetPhysicsDebugDrawer().GetRSDebugLineDrawing();
+	pImmContext->RSSetState(pRSDebugLineDrawing);
+	pImmContext->OMSetDepthStencilState(m_pDSSDepthReadOnly, 0);
+
+
+	// 렌더링
+	ID3D11Buffer* vbs[] = { pDebugLinesVertexBuffer };
+	UINT strides[] = { sizeof(DebugLineVertexFormat) };
+	UINT offsets[] = { 0 };
+
+	m_effectImmediateContext.IASetVertexBuffers(0, 1, vbs, strides, offsets);
+
+	m_effectImmediateContext.Apply(&m_debugLinesEffect);
+	m_effectImmediateContext.Draw(debugLinesVertexCount, 0);
+
+	// 파이프라인 상태 복구
+	pImmContext->RSSetState(cpOldRS.Get());
+	pImmContext->OMSetDepthStencilState(cpOldDDS.Get(), oldStencilRef);
 }

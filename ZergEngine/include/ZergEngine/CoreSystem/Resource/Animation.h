@@ -3,6 +3,7 @@
 #include <ZergEngine\CoreSystem\Platform.h>
 #include <cstdint>
 #include <vector>
+#include <memory>
 
 namespace ze
 {
@@ -28,13 +29,10 @@ namespace ze
 
 	class BoneAnimation
 	{
+		friend class ResourceLoader;
 	public:
 		BoneAnimation() = default;
 		~BoneAnimation() = default;
-
-		std::vector<ScaleKeyFrame>& GetScaleKeyFrames() { return m_scaleKeyFrames; }
-		std::vector<RotationKeyFrame>& GetRotationKeyFrames() { return m_rotationKeyFrames; }
-		std::vector<PositionKeyFrame>& GetPositionKeyFrames() { return m_positionKeyFrames; }
 
 		void Interpolate(float time, XMFLOAT3* pOutScale, XMFLOAT4* pOutRotation, XMFLOAT3* pOutTranslate) const;
 	private:
@@ -45,18 +43,20 @@ namespace ze
 
 	class Animation
 	{
+		friend class ResourceLoader;
 	public:
 		Animation(const Armature& armature, float duration);
 		~Animation() = default;
 
 		float GetDuration() const { return m_duration; }
-		std::vector<BoneAnimation>& GetBoneAnimations() { return m_boneAnimations; }
+
+		const BoneAnimation* GetBoneAnimations() const { return m_upBoneAnims.get(); }
 
 		// 출력 행렬은 HLSL 전달 시 전치해야 함
 		void ComputeFinalTransform(float time, XMFLOAT4X4A* pOutFinalTransform, size_t count) const;
 	private:
 		const Armature& m_armature;
-		float m_duration;		// sec
-		std::vector<BoneAnimation> m_boneAnimations;
+		const float m_duration;		// sec
+		std::unique_ptr<BoneAnimation[]> m_upBoneAnims;
 	};
 }

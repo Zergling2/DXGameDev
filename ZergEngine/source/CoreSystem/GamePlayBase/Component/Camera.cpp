@@ -15,7 +15,7 @@ constexpr ClearFlag CAMERA_DEFAULT_CLEAR_FLAG = ClearFlag::SolidColor;
 const XMVECTORF32 CAMERA_DEFAULT_BACKGROUND_COLOR = ColorsLinear::Gray;
 constexpr float CAMERA_DEFAULT_CLIPPING_NEAR_PLANE = 0.3f;
 constexpr float CAMERA_DEFAULT_CLIPPING_FAR_PLANE = 1000.0f;
-constexpr MSAAMode CAMERA_DEFAULT_MSAA_MODE = MSAAMode::Off;
+constexpr MSAAMode CAMERA_DEFAULT_MSAA_MODE = MSAAMode::x4;
 constexpr float CAMERA_DEFAULT_VIEWPORT_X = 0.0f;
 constexpr float CAMERA_DEFAULT_VIEWPORT_Y = 0.0f;
 constexpr float CAMERA_DEFAULT_VIEWPORT_WIDTH = 1.0f;
@@ -51,10 +51,6 @@ Camera::Camera() noexcept
 	, m_bufferWidth(0)
 	, m_bufferHeight(0)
 {
-	this->CreateBuffer(
-		GraphicDevice::GetInstance()->GetSwapChainWidth(),
-		GraphicDevice::GetInstance()->GetSwapChainHeight()
-	);
 }
 
 void Camera::SetFieldOfView(uint8_t degree)
@@ -66,10 +62,7 @@ void Camera::SetFieldOfView(uint8_t degree)
 	degree = Math::Clamp(degree, static_cast<uint8_t>(50), static_cast<uint8_t>(120));
 	m_fov = degree;
 
-	this->UpdateProjMatrix(
-		GraphicDevice::GetInstance()->GetSwapChainWidth(),
-		GraphicDevice::GetInstance()->GetSwapChainHeight()
-	);
+	this->UpdateProjMatrix();
 }
 
 void Camera::SetClippingPlanes(float nearPlane, float farPlane)
@@ -84,10 +77,22 @@ void Camera::SetClippingPlanes(float nearPlane, float farPlane)
 	m_nearPlane = nearPlane;
 	m_farPlane = farPlane;
 
-	this->UpdateProjMatrix(
-		GraphicDevice::GetInstance()->GetSwapChainWidth(),
-		GraphicDevice::GetInstance()->GetSwapChainHeight()
-	);
+	this->UpdateProjMatrix();
+}
+
+void Camera::SetMSAAMode(MSAAMode mode)
+{
+	if (m_msaaMode == mode)
+		return;
+
+	// 버퍼 및 리소스 뷰 재생성 유도
+	this->ReleaseAllViews();
+	
+	m_cpColorBufferRTV.Reset();
+	m_cpColorBufferSRV.Reset();
+	m_cpDepthStencilBufferDSV.Reset();
+
+	m_msaaMode = mode;
 }
 
 void Camera::SetViewportRect(float x, float y, float w, float h)
@@ -108,14 +113,7 @@ void Camera::SetViewportRect(float x, float y, float w, float h)
 	m_viewportRect.m_width = w;
 	m_viewportRect.m_height = h;
 
-	this->CreateBuffer(
-		GraphicDevice::GetInstance()->GetSwapChainWidth(),
-		GraphicDevice::GetInstance()->GetSwapChainHeight()
-	);
-	this->UpdateProjMatrix(
-		GraphicDevice::GetInstance()->GetSwapChainWidth(),
-		GraphicDevice::GetInstance()->GetSwapChainHeight()
-	);
+	this->UpdateProjMatrix();
 }
 
 void Camera::SetDepth(int8_t depth)
@@ -147,17 +145,26 @@ bool Camera::SetMaximumTessellationExponent(float exponent)
 	return true;
 }
 
-bool Camera::CreateBuffer(uint32_t width, uint32_t height)
+void Camera::ReleaseAllViews()
 {
-	SyncFileLogger& sfl = Runtime::GetInstance()->GetSyncFileLogger();
-
-	HRESULT hr;
-	m_bufferWidth = static_cast<UINT>(static_cast<float>(width) * m_viewportRect.m_width);
-	m_bufferHeight = static_cast<UINT>(static_cast<float>(height) * m_viewportRect.m_height);
-
 	m_cpColorBufferRTV.Reset();
 	m_cpColorBufferSRV.Reset();
 	m_cpDepthStencilBufferDSV.Reset();
+}
+
+bool Camera::CreateViews()
+{
+	SyncFileLogger& sfl = Runtime::GetInstance()->GetSyncFileLogger();
+
+	const float swapChainWidth = GraphicDevice::GetInstance()->GetSwapChainWidthFlt();
+	const float swapChainHeight = GraphicDevice::GetInstance()->GetSwapChainHeightFlt();
+
+	HRESULT hr;
+	m_bufferWidth = static_cast<UINT>(swapChainWidth * m_viewportRect.m_width);
+	m_bufferHeight = static_cast<UINT>(swapChainHeight * m_viewportRect.m_height);
+
+	// 버퍼 및 리소스 뷰 재생성 유도
+	this->ReleaseAllViews();
 
 	// 컬러 버퍼 / 뷰 생성 (렌더링용 RTV, 카메라 병합용 SRV)
 	D3D11_TEXTURE2D_DESC colorBufferDesc;
@@ -237,7 +244,8 @@ bool Camera::CreateBuffer(uint32_t width, uint32_t height)
 	m_cpColorBufferSRV = std::move(cpColorBufferSRV);
 	m_cpDepthStencilBufferDSV = std::move(cpDepthStencilBufferDSV);
 
-	this->UpdateEntireBufferViewport(width, height);
+	this->UpdateProjMatrix();
+	this->UpdateEntireBufferViewport();
 
 	return true;
 }
@@ -322,12 +330,13 @@ void Camera::UpdateViewMatrix()
 	XMStoreFloat4x4A(&m_viewMatrix, XMMatrixLookToLH(positionW, forward, up));
 }
 
-void Camera::UpdateProjMatrix(uint32_t width, uint32_t height)
+void Camera::UpdateProjMatrix()
 {
-	const float bufferWidth = static_cast<float>(width) * m_viewportRect.m_width;
-	const float bufferHeight = static_cast<float>(height) * m_viewportRect.m_height;
-	m_bufferWidth = static_cast<UINT>(bufferWidth);
-	m_bufferHeight = static_cast<UINT>(bufferHeight);
+	const float swapChainWidth = GraphicDevice::GetInstance()->GetSwapChainWidthFlt();
+	const float swapChainHeight = GraphicDevice::GetInstance()->GetSwapChainHeightFlt();
+
+	const float bufferWidth = swapChainWidth * m_viewportRect.m_width;
+	const float bufferHeight = swapChainHeight * m_viewportRect.m_height;
 
 	XMMATRIX projMatrix;
 	if (m_projMethod == ProjectionMethod::Perspective)
@@ -354,12 +363,15 @@ void Camera::UpdateProjMatrix(uint32_t width, uint32_t height)
 	XMStoreFloat4x4A(&m_projMatrix, projMatrix);
 }
 
-void Camera::UpdateEntireBufferViewport(uint32_t width, uint32_t height)
+void Camera::UpdateEntireBufferViewport()
 {
+	const float swapChainWidth = GraphicDevice::GetInstance()->GetSwapChainWidthFlt();
+	const float swapChainHeight = GraphicDevice::GetInstance()->GetSwapChainHeightFlt();
+
 	m_entireBufferViewport.TopLeftX = 0;
 	m_entireBufferViewport.TopLeftY = 0;
-	m_entireBufferViewport.Width = static_cast<FLOAT>(width) * m_viewportRect.m_width;
-	m_entireBufferViewport.Height = static_cast<FLOAT>(height) * m_viewportRect.m_height;
+	m_entireBufferViewport.Width = swapChainWidth * m_viewportRect.m_width;
+	m_entireBufferViewport.Height = swapChainHeight * m_viewportRect.m_height;
 	m_entireBufferViewport.MinDepth = 0.0f;
 	m_entireBufferViewport.MaxDepth = 1.0f;
 }

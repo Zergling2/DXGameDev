@@ -11,9 +11,10 @@ IComponentManager::IComponentManager()
 	, m_lock()
 	, m_destroyed()
 	, m_directAccessGroup()
-	, m_emptyHandleTableIndex(HANDLE_TABLE_INIT_SIZE)	// 단편화를 최소화하기 위해서 최초에 핸들 테이블의 사이즈와 동일한 개수만큼 인덱스 버퍼를 할당한다.
+	, m_emptyHandleTableIndex()
 	, m_handleTable(HANDLE_TABLE_INIT_SIZE, nullptr)
 {
+	m_emptyHandleTableIndex.reserve(HANDLE_TABLE_INIT_SIZE);
 	m_lock.Init();
 }
 
@@ -21,10 +22,10 @@ void IComponentManager::Init()
 {
 	m_uniqueId = 0;
 
-	// 벡터를 스택처럼 사용할 것이므로 가장 밑에 높은 인덱스를 넣어두어 0번 인덱스부터 사용할 수 있도록 한다.
+	// 가장 밑에 높은 인덱스를 넣어두어 0번 인덱스부터 사용할 수 있도록 한다.
 	const size_t handleTableEndIndex = m_handleTable.size() - 1;
 	for (size_t i = 0; i < m_emptyHandleTableIndex.size() - 1; ++i)
-		m_emptyHandleTableIndex[i] = static_cast<uint32_t>(handleTableEndIndex - i);
+		m_emptyHandleTableIndex.push_back(static_cast<uint32_t>(handleTableEndIndex - i));
 }
 
 void IComponentManager::UnInit()
@@ -68,19 +69,22 @@ ComponentHandleBase IComponentManager::RegisterToHandleTable(IComponent* pCompon
 		AutoAcquireSlimRWLockExclusive autolock(m_lock);
 
 		// 핸들 테이블의 빈 자리를 검색
-		uint32_t emptyIndex;
-		if (!m_emptyHandleTableIndex.empty())
+		if (m_emptyHandleTableIndex.empty())	// 핸들 테이블에 빈 공간이 없는 경우
 		{
-			emptyIndex = m_emptyHandleTableIndex.back();
-			m_emptyHandleTableIndex.pop_back();
-		}
-		else
-		{
-			// 만약 핸들 테이블에 빈 공간이 없는 경우
+			const size_t newHandleTableBeginIndex = m_handleTable.size();
 			m_handleTable.push_back(nullptr);	// 핸들 테이블에 빈 공간 추가
-			emptyIndex = static_cast<uint32_t>(m_handleTable.size() - 1);
+			const size_t newHandleTableEndIndex = m_handleTable.size() - 1;
+
+			for (size_t i = newHandleTableBeginIndex; i <= newHandleTableEndIndex; ++i)
+				m_emptyHandleTableIndex.push_back(static_cast<uint32_t>(i));
 		}
 
+		assert(m_emptyHandleTableIndex.empty() == false);
+
+		const uint32_t emptyIndex = m_emptyHandleTableIndex.back();
+		m_emptyHandleTableIndex.pop_back();
+
+		// 핸들 테이블 사용
 		m_handleTable[emptyIndex] = pComponent;
 		pComponent->m_tableIndex = emptyIndex;
 	}

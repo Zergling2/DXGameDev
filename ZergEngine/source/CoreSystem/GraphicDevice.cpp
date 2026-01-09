@@ -18,6 +18,7 @@ constexpr DXGI_FORMAT SWAP_CHAIN_RTV_FORMAT = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
 
 static PCWSTR VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::COUNT)] =
 {
+	L"VSToHcsDebugLines.cso",
 	L"VSToHcsP.cso",
 	L"VSToHcsPC.cso",
 	L"VSToHcsPN.cso",
@@ -405,6 +406,16 @@ void GraphicDevice::CreateShaderAndInputLayout()
 	WCHAR targetPath[MAX_PATH];
 
 	// VERTEX SHADERS
+	// ToHcsDebugLines
+	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
+	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::ToHcsDebugLines)]);
+	if (!LoadShaderByteCode(targetPath, &pByteCode, &byteCodeSize))
+		Debug::ForceCrashWithMessageBox(L"Error", SHADER_LOAD_FAIL_MSG_FMT, targetPath);
+	m_vs[static_cast<size_t>(VertexShaderType::ToHcsDebugLines)].Init(pDevice, pByteCode, byteCodeSize);
+	// VFPositionColor Input Layout 사용
+	delete[] pByteCode;
+
+	
 	// ToHcsP
 	StringCbCopyW(targetPath, sizeof(targetPath), SHADER_PATH);
 	StringCbCatW(targetPath, sizeof(targetPath), VERTEX_SHADER_FILES[static_cast<size_t>(VertexShaderType::ToHcsP)]);
@@ -1027,7 +1038,7 @@ void GraphicDevice::CreateDepthStencilStates()
 	depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;	// 깊이 값 기록 허용
 	depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;				// 더 가까운 픽셀만 그리기
 	depthStencilDesc.StencilEnable = FALSE;							// 스텐실 비활성화
-	m_dss[static_cast<size_t>(DepthStencilStateType::Default)].Init(pDevice, &depthStencilDesc);
+	m_dss[static_cast<size_t>(DepthStencilStateType::DepthReadWrite)].Init(pDevice, &depthStencilDesc);
 
 	// 스카이박스 렌더링
 	ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
@@ -1043,7 +1054,7 @@ void GraphicDevice::CreateDepthStencilStates()
 	depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
 	depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
 	depthStencilDesc.StencilEnable = FALSE;
-	m_dss[static_cast<size_t>(DepthStencilStateType::DepthReadOnlyLess)].Init(pDevice, &depthStencilDesc);
+	m_dss[static_cast<size_t>(DepthStencilStateType::DepthReadOnly)].Init(pDevice, &depthStencilDesc);
 
 	// 5. No Depth/Stencil test (카메라 병합 등...)
 	ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));

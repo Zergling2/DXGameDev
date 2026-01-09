@@ -31,10 +31,6 @@ namespace ze
 		SyncFileLogger& GetSyncFileLogger() { return m_sfl; }
 		AsyncFileLogger& GetAsyncFileLogger() { return m_afl; }
 
-		// mode가 DisplayMode::BORDERLESS_WINDOWED일 경우 width, height는 무시됩니다.
-		// mode가 DisplayMode::FULLSCREEN일 경우 width, height는 각각 전체화면 해상도의 너비, 높이값이 됩니다.
-		bool SetResolution(uint32_t width, uint32_t height, DisplayMode mode);
-
 		// (이 함수는 스크립트에서만 호출해야 합니다.)
 		// 빈 게임 오브젝트를 생성합니다.
 		GameObjectHandle CreateGameObject(PCWSTR name = L"New Game Object");
@@ -96,6 +92,7 @@ namespace ze
 		void DestroyAllObjectExceptDontDestroyOnLoad();
 		void DestroyAllObject();
 		void RemoveDestroyedComponentsAndObjects();
+		bool __$$SetResolutionImpl(uint32_t width, uint32_t height, DisplayMode mode);
 	protected:
 		void OutputDXGIDebugLog() const;
 	private:

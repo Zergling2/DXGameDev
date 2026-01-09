@@ -43,7 +43,7 @@ void Time::Init()
 	m_dtBackup = m_dt;
 	m_fdtPC.QuadPart = freq.QuadPart / FIXED_UPDATE_HZ;
 
-	// On systems that run Windows XP or later, 
+	// On systems that run Windows XP or later,
 	// the function will always succeed and will thus never return zero.
 	if (QueryPerformanceCounter(&m_basePC) == FALSE)
 		Debug::ForceCrashWithWin32ErrorMessageBox(L"QueryPerformanceCounter()", GetLastError());
@@ -66,18 +66,10 @@ void Time::SetTimeScale(float ts)
 	m_ts = ts;
 }
 
-bool Time::SetFixedDeltaTime(float fdt)
-{
-	if (fdt <= 0.0f)
-		return false;
-
-	m_fdt = fdt;
-	return true;
-}
-
 void Time::Update()
 {
 	QueryPerformanceCounter(&m_currPC);
+
 	m_deltaPC.QuadPart = m_currPC.QuadPart - m_prevPC.QuadPart;
 	if (m_deltaPC.QuadPart < 0)
 		m_deltaPC.QuadPart = 0;
