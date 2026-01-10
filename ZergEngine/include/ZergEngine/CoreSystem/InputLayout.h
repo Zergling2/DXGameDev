@@ -20,7 +20,7 @@ namespace ze
 			const byte* pShaderByteCode, size_t shaderByteCodeSize);
 		void Release();
 
-		ID3D11InputLayout* GetComInterface() const { return m_cpInputLayout.Get(); }
+		ID3D11InputLayout* Get() const { return m_cpInputLayout.Get(); }
 	private:
 		ComPtr<ID3D11InputLayout> m_cpInputLayout;
 	};

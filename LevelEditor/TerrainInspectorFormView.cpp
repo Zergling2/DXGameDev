@@ -502,14 +502,21 @@ void CTerrainInspectorFormView::OnBnClickedButtonRemoveTerrainNormalLayer()
 
 void CTerrainInspectorFormView::OnBnClickedButtonExportTerrainHeightData()
 {
+	if (m_tde.GetModifyingTerrain() == nullptr)
+		return;
+
 	// TODO: Add your control notification handler code here
-	CFileDialog fd(FALSE, _T(".thd"), _T("HeightData.thd"), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+	CFileDialog fd(FALSE, _T(".thd"), _T("TerrainHeightData.thd"), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
 		_T("Terrain Height Data Files (*.thd)|*.thd|All Files (*.*)|*.*||"), this);
 
 	INT_PTR ret = fd.DoModal();
 	if (ret != IDOK)
 		return;
 
+	THDFileHeader thdHeader;
+	if (!m_tde.GetModifyingTerrainSize(&thdHeader.m_width, &thdHeader.m_height))
+		return;
+
 	CString path = fd.GetPathName();
 
 	FILE* pFile = nullptr;
@@ -517,42 +524,33 @@ void CTerrainInspectorFormView::OnBnClickedButtonExportTerrainHeightData()
 	if (e != 0)	// error
 		return;
 
-	ID3D11Texture2D* pHeightMap = m_tde.GetStagingHeightMapComInterface();
-	D3D11_TEXTURE2D_DESC heightMapDesc;
-	pHeightMap->GetDesc(&heightMapDesc);
-
-	D3D11_MAPPED_SUBRESOURCE mapped;
-	const UINT subresource = D3D11CalcSubresource(0, 0, 0);
-	ID3D11DeviceContext* pImmDeviceContext = ze::GraphicDevice::GetInstance()->GetImmediateContextComInterface();
-	HRESULT hr = pImmDeviceContext->Map(
-		pHeightMap,
-		subresource,
-		D3D11_MAP_READ,
-		0,
-		&mapped
-	);
-	if (FAILED(hr))
-	{
-		ze::Debug::HRESULTMessageBox(L"ID3D11DeviceContext::Map() 함수가 실패하였습니다.", hr);
-		return;
-	}
-
 	// 바이너리로 저장
-	fwrite(mapped.pData, sizeof(uint16_t), static_cast<size_t>(heightMapDesc.Width) * static_cast<size_t>(heightMapDesc.Height), pFile);
-
-	pImmDeviceContext->Unmap(pHeightMap, subresource);
+	fwrite(&thdHeader, sizeof(thdHeader), 1, pFile);
+	fwrite(
+		m_tde.GetHeightData(),
+		sizeof(uint16_t),
+		static_cast<size_t>(thdHeader.m_width) * static_cast<size_t>(thdHeader.m_height),
+		pFile
+	);
 
 	fclose(pFile);
 }
 
 void CTerrainInspectorFormView::OnBnClickedButtonExportTerrainBlendData()
 {
+	if (m_tde.GetModifyingTerrain() == nullptr)
+		return;
+
 	// TODO: Add your control notification handler code here
-	CFileDialog fd(FALSE, _T(".tbd"), _T("BlendData.tbd"), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+	CFileDialog fd(FALSE, _T(".tbd"), _T("TerrainBlendData.tbd"), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
 		_T("Terrain Blend Data Files (*.tbd)|*.tbd|All Files (*.*)|*.*||"), this);
 
 	INT_PTR ret = fd.DoModal();
 	if (ret != IDOK)
+		return;
+
+	TBDFileHeader tbdHeader;
+	if (!m_tde.GetModifyingTerrainSize(&tbdHeader.m_width, &tbdHeader.m_height))
 		return;
 
 	CString path = fd.GetPathName();
@@ -562,30 +560,14 @@ void CTerrainInspectorFormView::OnBnClickedButtonExportTerrainBlendData()
 	if (e != 0)	// error
 		return;
 
-	ID3D11Texture2D* pBlendMap = m_tde.GetStagingBlendMapComInterface();
-	D3D11_TEXTURE2D_DESC blendMapDesc;
-	pBlendMap->GetDesc(&blendMapDesc);
-
-	D3D11_MAPPED_SUBRESOURCE mapped;
-	const UINT subresource = D3D11CalcSubresource(0, 0, 0);
-	ID3D11DeviceContext* pImmDeviceContext = ze::GraphicDevice::GetInstance()->GetImmediateContextComInterface();
-	HRESULT hr = pImmDeviceContext->Map(
-		pBlendMap,
-		subresource,
-		D3D11_MAP_READ,
-		0,
-		&mapped
-	);
-	if (FAILED(hr))
-	{
-		ze::Debug::HRESULTMessageBox(L"ID3D11DeviceContext::Map() 함수가 실패하였습니다.", hr);
-		return;
-	}
-
 	// 바이너리로 저장
-	fwrite(mapped.pData, sizeof(uint32_t), static_cast<size_t>(blendMapDesc.Width) * static_cast<size_t>(blendMapDesc.Height), pFile);
-
-	pImmDeviceContext->Unmap(pBlendMap, subresource);
+	fwrite(&tbdHeader, sizeof(tbdHeader), 1, pFile);
+	fwrite(
+		m_tde.GetBlendData(),
+		sizeof(ze::TerrainBlendMapFormat),
+		static_cast<size_t>(tbdHeader.m_width) * static_cast<size_t>(tbdHeader.m_height),
+		pFile
+	);
 
 	fclose(pFile);
 }

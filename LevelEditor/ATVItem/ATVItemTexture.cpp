@@ -15,8 +15,8 @@ void ATVItemTexture::OnSelect()
 	pInspector->SetATVItemToModify(this);		// 수정 시 데이터 반영을 위하여
 
 	// 2. 변경된 인스펙터 폼 뷰에 Texture 정보 보여주기
-	ID3D11Texture2D* pTexture = m_texture.GetTex2DComInterface();
-	ID3D11ShaderResourceView* pSRV = m_texture.GetSRVComInterface();
+	ID3D11Texture2D* pTexture = m_texture.GetTexture2D();
+	ID3D11ShaderResourceView* pSRV = m_texture.GetSRV();
 
 	if (!pTexture || !pSRV)
 		return;

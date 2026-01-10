@@ -8,6 +8,24 @@ namespace ze
 {
 	class Material;
 
+	// [0] ~ [5] 지형 텍스쳐 레이어를 혼합하는 블렌드 가중치 데이터
+	struct TerrainBlendMapFormat
+	{
+		TerrainBlendMapFormat()
+			: m_layer01(0)
+			, m_layer12(0)
+			, m_layer23(0)
+			, m_layer34(0)
+		{
+		}
+		uint8_t m_layer01;	// 지형 텍스쳐의 0번, 1번 레이어 블렌드 가중치
+		uint8_t m_layer12;	// 지형 텍스쳐의 1번, 2번 레이어 블렌드 가중치
+		uint8_t m_layer23;	// 지형 텍스쳐의 2번, 3번 레이어 블렌드 가중치
+		uint8_t m_layer34;	// 지형 텍스쳐의 3번, 4번 레이어 블렌드 가중치
+	};
+
+	using TerrainNormalMapFormat = XMHALF4;
+
 	class Terrain : public IComponent
 	{
 		friend class Renderer;
@@ -45,8 +63,8 @@ namespace ze
 		bool SetBlendMap(Texture2D blendMap);
 		Texture2D GetBlendMap() const { return m_blendMap; }
 
-		ID3D11Buffer* GetPatchControlPointBufferComInterface() const { return m_cpPatchCtrlPtBuffer.Get(); }
-		ID3D11Buffer* GetPatchControlPointIndexBufferComInterface() const { return m_cpPatchCtrlPtIndexBuffer.Get(); }
+		ID3D11Buffer* GetPatchControlPointVertexBuffer() const { return m_cpPatchCtrlPtBuffer.Get(); }
+		ID3D11Buffer* GetPatchControlPointIndexBuffer() const { return m_cpPatchCtrlPtIndexBuffer.Get(); }
 		uint32_t GetPatchControlPointIndexCount() const { return m_patchCtrlPtIndexCount; }
 
 		const float* GetHeightData() const { return m_heightData.data(); }

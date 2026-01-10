@@ -18,7 +18,7 @@ namespace ze
 		virtual ~IConstantBuffer() = default;
 
 		void Release();
-		ID3D11Buffer* GetComInterface() const { return m_cpBuffer.Get(); }
+		ID3D11Buffer* Get() const { return m_cpBuffer.Get(); }
 	protected:
 		void InitImpl(ID3D11Device* pDevice, size_t bufferSize);
 		void UpdateImpl(ID3D11DeviceContext* pDeviceContext, const void* pData, size_t size);

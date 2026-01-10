@@ -23,8 +23,8 @@ void BasicEffectPT::Init()
 	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::ToHcsPT);
 	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::UnlitPT1Tex);
 
-	m_cbPerCamera.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
-	m_cbPerMesh.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
+	m_cbPerCamera.Init(GraphicDevice::GetInstance()->GetDevice());
+	m_cbPerMesh.Init(GraphicDevice::GetInstance()->GetDevice());
 
 	ClearTextureSRVArray();
 }
@@ -136,7 +136,7 @@ void BasicEffectPT::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
 
 void BasicEffectPT::ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	ID3D11Buffer* const cbs[] = { m_cbPerCamera.GetComInterface() };
+	ID3D11Buffer* const cbs[] = { m_cbPerCamera.Get() };
 
 	// PerCamera 상수버퍼 사용 셰이더
 	constexpr UINT VS_SLOT = 0;
@@ -145,7 +145,7 @@ void BasicEffectPT::ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceCon
 
 void BasicEffectPT::ApplyPerMeshConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	ID3D11Buffer* const cbs[] = { m_cbPerMesh.GetComInterface() };
+	ID3D11Buffer* const cbs[] = { m_cbPerMesh.Get() };
 
 	// PerMesh 상수버퍼 사용 셰이더
 	constexpr UINT VS_SLOT = 1;

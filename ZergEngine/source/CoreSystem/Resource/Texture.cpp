@@ -4,7 +4,7 @@ using namespace ze;
 
 SIZE Texture2D::GetResolution() const
 {
-	ID3D11Texture2D* pTex2D = this->GetTex2DComInterface();
+	ID3D11Texture2D* pTex2D = this->GetTexture2D();
 
 	if (!pTex2D)
 		return SIZE{ 0, 0 };

@@ -37,7 +37,7 @@ IComponentManager* Terrain::GetComponentManager() const
 
 bool Terrain::SetHeightMap(Texture2D heightMap, float cellSize, float heightScale)
 {
-	ID3D11Texture2D* pTex2D = heightMap.GetTex2DComInterface();
+	ID3D11Texture2D* pTex2D = heightMap.GetTexture2D();
 	if (!pTex2D)
 		return false;
 
@@ -49,8 +49,10 @@ bool Terrain::SetHeightMap(Texture2D heightMap, float cellSize, float heightScal
 
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	// 요청된 텍스쳐가 높이맵으로 사용될 수 있는지 검사
-	D3D11_TEXTURE2D_DESC heightMapDesc;
-	pTex2D->GetDesc(&heightMapDesc);
+	D3D11_TEXTURE2D_DESC $heightMapDesc;
+	pTex2D->GetDesc(&$heightMapDesc);
+
+	const D3D11_TEXTURE2D_DESC& heightMapDesc = $heightMapDesc;
 	// 텍스쳐 포맷이 DXGI_FORMAT_R16_UNORM 타입인지 확인
 	if (heightMapDesc.Format != DXGI_FORMAT_R16_UNORM)	// => UNORM 타입 (정수를 저장하지만 셰이더에서 Sample 시 0.0 ~ 1.0으로 정규화 접근 가능한 포맷)
 		return false;
@@ -88,8 +90,8 @@ bool Terrain::SetHeightMap(Texture2D heightMap, float cellSize, float heightScal
 	const float terrainSizeAlongZ = static_cast<float>((patchCtrlPtCountRow - 1) * CELLS_PER_TERRAIN_PATCH) * cellSize;
 	const float maxHeight = heightScale * static_cast<float>((std::numeric_limits<uint16_t>::max)());
 
-	ID3D11Device* pDevice = GraphicDevice::GetInstance()->GetDeviceComInterface();
-	ID3D11DeviceContext* pImmediateContext = GraphicDevice::GetInstance()->GetImmediateContextComInterface();
+	ID3D11Device* pDevice = GraphicDevice::GetInstance()->GetDevice();
+	ID3D11DeviceContext* pImmediateContext = GraphicDevice::GetInstance()->GetImmediateContext();
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	// Step 1. 지형 제어점 버퍼 재생성 & 높이 데이터 시스템 메모리에 저장
 	IndexConverter2DTo1D aic;
@@ -97,22 +99,22 @@ bool Terrain::SetHeightMap(Texture2D heightMap, float cellSize, float heightScal
 	D3D11_SUBRESOURCE_DATA initialData;
 	HRESULT hr = S_OK;
 	std::vector<VFTerrainPatchControlPoint> patchCtrlPts(patchCtrlPtCountRow * patchCtrlPtCountCol);
-	ComPtr<ID3D11Texture2D> cpHeightMapForCPURead;
+	ComPtr<ID3D11Texture2D> cpStagingHeightMapTexture2D;
 
 	D3D11_TEXTURE2D_DESC heightMapForCPUReadDesc = heightMapDesc;
 	heightMapForCPUReadDesc.Usage = D3D11_USAGE_STAGING;	// CPU에서 읽기 위해서 STAGING 텍스쳐 생성
 	heightMapForCPUReadDesc.BindFlags = 0;
 	heightMapForCPUReadDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
-	hr = pDevice->CreateTexture2D(&heightMapForCPUReadDesc, nullptr, cpHeightMapForCPURead.GetAddressOf());
+	hr = pDevice->CreateTexture2D(&heightMapForCPUReadDesc, nullptr, cpStagingHeightMapTexture2D.GetAddressOf());
 	if (FAILED(hr))
 		return false;
 
 	// 높이맵 텍스쳐 데이터를 읽기 위해 스테이징 텍스쳐로 복사
-	pImmediateContext->CopyResource(cpHeightMapForCPURead.Get(), heightMap.GetTex2DComInterface());
+	pImmediateContext->CopyResource(cpStagingHeightMapTexture2D.Get(), heightMap.GetTexture2D());
 
 	// 복사된 스테이징 텍스쳐를 읽기
 	D3D11_MAPPED_SUBRESOURCE mapped;
-	hr = pImmediateContext->Map(cpHeightMapForCPURead.Get(), D3D11CalcSubresource(0, 0, 0), D3D11_MAP_READ, 0, &mapped);
+	hr = pImmediateContext->Map(cpStagingHeightMapTexture2D.Get(), D3D11CalcSubresource(0, 0, 0), D3D11_MAP_READ, 0, &mapped);
 	if (FAILED(hr))
 		return false;
 
@@ -120,7 +122,7 @@ bool Terrain::SetHeightMap(Texture2D heightMap, float cellSize, float heightScal
 	const float tvc = (1.0f / static_cast<float>(heightMapDesc.Height)) / 2.0f;	// 텍스쳐 좌표 오차 보정용 (텍셀의 중앙 가리키기 위해서)
 	const float terrainHalfSizeX = static_cast<float>(heightMapDesc.Width - 1) * cellSize / 2.0f;
 	const float terrainHalfSizeZ = static_cast<float>(heightMapDesc.Height - 1) * cellSize / 2.0f;
-	D3D11Mapped2DSubresourceReader<uint16_t> heightMapData(&mapped);
+	D3D11Mapped2DSubresourceReader<uint16_t> heightMapData(mapped);
 
 	aic.SetColumnSize(heightMapDesc.Width);
 	for (uint32_t i = 0; i < patchCtrlPtCountRow; ++i)
@@ -154,7 +156,7 @@ bool Terrain::SetHeightMap(Texture2D heightMap, float cellSize, float heightScal
 						// 1. 시스템 메모리에 높이 데이터 저장
 						const float normalizedHeight = static_cast<float>(data) / static_cast<float>((std::numeric_limits<uint16_t>::max)());
 						const float realHeight = normalizedHeight * maxHeight;
-						heightData[aic.GetIndex(k, l)] = realHeight;
+						heightData[aic.CalcIndex(k, l)] = realHeight;
 
 						// 2. 바운드 계산
 						if (data < min)
@@ -186,7 +188,7 @@ bool Terrain::SetHeightMap(Texture2D heightMap, float cellSize, float heightScal
 	}
 
 	// 다 읽었으면 해제
-	pImmediateContext->Unmap(cpHeightMapForCPURead.Get(), D3D11CalcSubresource(0, 0, 0));
+	pImmediateContext->Unmap(cpStagingHeightMapTexture2D.Get(), D3D11CalcSubresource(0, 0, 0));
 
 	// ZeroMemory(&bufferDesc, sizeof(bufferDesc));
 	bufferDesc.ByteWidth = static_cast<UINT>(sizeof(VFTerrainPatchControlPoint) * patchCtrlPts.size());
@@ -223,10 +225,10 @@ bool Terrain::SetHeightMap(Texture2D heightMap, float cellSize, float heightScal
 			// [0]  [1]
 			//
 			// [2]  [3]
-			indexBuffer[k] = static_cast<uint32_t>(aic.GetIndex(i, j));
-			indexBuffer[k + 1] = static_cast<uint32_t>(aic.GetIndex(i, j + 1));
-			indexBuffer[k + 2] = static_cast<uint32_t>(aic.GetIndex(i + 1, j));
-			indexBuffer[k + 3] = static_cast<uint32_t>(aic.GetIndex(i + 1, j + 1));
+			indexBuffer[k] = static_cast<uint32_t>(aic.CalcIndex(i, j));
+			indexBuffer[k + 1] = static_cast<uint32_t>(aic.CalcIndex(i, j + 1));
+			indexBuffer[k + 2] = static_cast<uint32_t>(aic.CalcIndex(i + 1, j));
+			indexBuffer[k + 3] = static_cast<uint32_t>(aic.CalcIndex(i + 1, j + 1));
 			k += 4;
 		}
 	}
@@ -256,39 +258,39 @@ bool Terrain::SetHeightMap(Texture2D heightMap, float cellSize, float heightScal
 	const float* pHeightData = heightData.data();
 	XMFLOAT3A tangent;
 	XMFLOAT3A bitangent;
-	std::vector<XMHALF4> normal(heightMapDesc.Width * heightMapDesc.Height);	// R16G16B16A16_FLOAT
+	std::vector<TerrainNormalMapFormat> terrainNormals(heightMapDesc.Width * heightMapDesc.Height);	// R16G16B16A16_FLOAT
 	// 1. LEFT TOP → x ↓
 	tangent.x = cellSize;
-	tangent.y = pHeightData[aic.GetIndex(0, 1)] - pHeightData[aic.GetIndex(0, 0)];
+	tangent.y = pHeightData[aic.CalcIndex(0, 1)] - pHeightData[aic.CalcIndex(0, 0)];
 	tangent.z = 0.0f;
 	bitangent.x = 0.0f;
-	bitangent.y = pHeightData[aic.GetIndex(1, 0)] - pHeightData[aic.GetIndex(0, 0)];
+	bitangent.y = pHeightData[aic.CalcIndex(1, 0)] - pHeightData[aic.CalcIndex(0, 0)];
 	bitangent.z = -cellSize;
-	XMStoreHalf4(&normal[aic.GetIndex(0, 0)], XMVector3Cross(XMLoadFloat3A(&tangent), XMLoadFloat3A(&bitangent)));
+	XMStoreHalf4(&terrainNormals[aic.CalcIndex(0, 0)], XMVector3Cross(XMLoadFloat3A(&tangent), XMLoadFloat3A(&bitangent)));
 	// 2. RIGHT TOP ↓ x ←
 	tangent.x = -cellSize;
-	tangent.y = pHeightData[aic.GetIndex(0, heightMapDesc.Width - 2)] - pHeightData[aic.GetIndex(0, heightMapDesc.Width - 1)];
+	tangent.y = pHeightData[aic.CalcIndex(0, heightMapDesc.Width - 2)] - pHeightData[aic.CalcIndex(0, heightMapDesc.Width - 1)];
 	tangent.z = 0.0f;
 	bitangent.x = 0.0f;
-	bitangent.y = pHeightData[aic.GetIndex(1, heightMapDesc.Width - 1)] - pHeightData[aic.GetIndex(0, heightMapDesc.Width - 1)];
+	bitangent.y = pHeightData[aic.CalcIndex(1, heightMapDesc.Width - 1)] - pHeightData[aic.CalcIndex(0, heightMapDesc.Width - 1)];
 	bitangent.z = -cellSize;
-	XMStoreHalf4(&normal[aic.GetIndex(0, heightMapDesc.Width - 1)], XMVector3Cross(XMLoadFloat3A(&bitangent), XMLoadFloat3A(&tangent)));
+	XMStoreHalf4(&terrainNormals[aic.CalcIndex(0, heightMapDesc.Width - 1)], XMVector3Cross(XMLoadFloat3A(&bitangent), XMLoadFloat3A(&tangent)));
 	// 3. LEFT BOTTOM ↑ x →
 	tangent.x = cellSize;
-	tangent.y = pHeightData[aic.GetIndex(heightMapDesc.Height - 1, 1)] - pHeightData[aic.GetIndex(heightMapDesc.Height - 1, 0)];
+	tangent.y = pHeightData[aic.CalcIndex(heightMapDesc.Height - 1, 1)] - pHeightData[aic.CalcIndex(heightMapDesc.Height - 1, 0)];
 	tangent.z = 0.0f;
 	bitangent.x = 0.0f;
-	bitangent.y = pHeightData[aic.GetIndex(heightMapDesc.Height - 2, 0)] - pHeightData[aic.GetIndex(heightMapDesc.Height - 1, 0)];
+	bitangent.y = pHeightData[aic.CalcIndex(heightMapDesc.Height - 2, 0)] - pHeightData[aic.CalcIndex(heightMapDesc.Height - 1, 0)];
 	bitangent.z = cellSize;
-	XMStoreHalf4(&normal[aic.GetIndex(heightMapDesc.Height - 1, 0)], XMVector3Cross(XMLoadFloat3A(&bitangent), XMLoadFloat3A(&tangent)));
+	XMStoreHalf4(&terrainNormals[aic.CalcIndex(heightMapDesc.Height - 1, 0)], XMVector3Cross(XMLoadFloat3A(&bitangent), XMLoadFloat3A(&tangent)));
 	// 4. RIGHT BOTTOM ← x ↑
 	tangent.x = -cellSize;
-	tangent.y = pHeightData[aic.GetIndex(heightMapDesc.Height - 1, heightMapDesc.Width - 2)] - pHeightData[aic.GetIndex(heightMapDesc.Height - 1, heightMapDesc.Width - 1)];
+	tangent.y = pHeightData[aic.CalcIndex(heightMapDesc.Height - 1, heightMapDesc.Width - 2)] - pHeightData[aic.CalcIndex(heightMapDesc.Height - 1, heightMapDesc.Width - 1)];
 	tangent.z = 0.0f;
 	bitangent.x = 0.0f;
-	bitangent.y = pHeightData[aic.GetIndex(heightMapDesc.Height - 2, heightMapDesc.Width - 1)] - pHeightData[aic.GetIndex(heightMapDesc.Height - 1, heightMapDesc.Width - 1)];
+	bitangent.y = pHeightData[aic.CalcIndex(heightMapDesc.Height - 2, heightMapDesc.Width - 1)] - pHeightData[aic.CalcIndex(heightMapDesc.Height - 1, heightMapDesc.Width - 1)];
 	bitangent.z = cellSize;
-	XMStoreHalf4(&normal[aic.GetIndex(heightMapDesc.Height - 1, heightMapDesc.Width - 1)], XMVector3Cross(XMLoadFloat3A(&tangent), XMLoadFloat3A(&bitangent)));
+	XMStoreHalf4(&terrainNormals[aic.CalcIndex(heightMapDesc.Height - 1, heightMapDesc.Width - 1)], XMVector3Cross(XMLoadFloat3A(&tangent), XMLoadFloat3A(&bitangent)));
 	// 5. LEFT EDGE → x ↓2
 	tangent.x = cellSize;
 	tangent.z = 0.0f;
@@ -296,9 +298,9 @@ bool Terrain::SetHeightMap(Texture2D heightMap, float cellSize, float heightScal
 	bitangent.z = cellSize * -2.0f;
 	for (uint32_t i = 1; i < static_cast<uint32_t>(heightMapDesc.Height - 1); ++i)
 	{
-		tangent.y = pHeightData[aic.GetIndex(i, 1)] - pHeightData[aic.GetIndex(i, 0)];
-		bitangent.y = pHeightData[aic.GetIndex(i + 1, 0)] - pHeightData[aic.GetIndex(i - 1, 0)];
-		XMStoreHalf4(&normal[aic.GetIndex(i, 0)], XMVector3Cross(XMLoadFloat3A(&tangent), XMLoadFloat3A(&bitangent)));
+		tangent.y = pHeightData[aic.CalcIndex(i, 1)] - pHeightData[aic.CalcIndex(i, 0)];
+		bitangent.y = pHeightData[aic.CalcIndex(i + 1, 0)] - pHeightData[aic.CalcIndex(i - 1, 0)];
+		XMStoreHalf4(&terrainNormals[aic.CalcIndex(i, 0)], XMVector3Cross(XMLoadFloat3A(&tangent), XMLoadFloat3A(&bitangent)));
 	}
 	// 6. TOP EDGE →2 x ↓
 	tangent.x = cellSize * 2.0f;
@@ -307,9 +309,9 @@ bool Terrain::SetHeightMap(Texture2D heightMap, float cellSize, float heightScal
 	bitangent.z = -cellSize;
 	for (uint32_t i = 1; i < static_cast<uint32_t>(heightMapDesc.Width - 1); ++i)
 	{
-		tangent.y = pHeightData[aic.GetIndex(0, i + 1)] - pHeightData[aic.GetIndex(0, i - 1)];
-		bitangent.y = pHeightData[aic.GetIndex(1, i)] - pHeightData[aic.GetIndex(0, i)];
-		XMStoreHalf4(&normal[aic.GetIndex(0, i)], XMVector3Cross(XMLoadFloat3A(&tangent), XMLoadFloat3A(&bitangent)));
+		tangent.y = pHeightData[aic.CalcIndex(0, i + 1)] - pHeightData[aic.CalcIndex(0, i - 1)];
+		bitangent.y = pHeightData[aic.CalcIndex(1, i)] - pHeightData[aic.CalcIndex(0, i)];
+		XMStoreHalf4(&terrainNormals[aic.CalcIndex(0, i)], XMVector3Cross(XMLoadFloat3A(&tangent), XMLoadFloat3A(&bitangent)));
 	}
 	// 7. RIGHT EDGE ← x ↑2
 	tangent.x = -cellSize;
@@ -318,9 +320,9 @@ bool Terrain::SetHeightMap(Texture2D heightMap, float cellSize, float heightScal
 	bitangent.z = cellSize * 2.0f;
 	for (uint32_t i = 1; i < static_cast<uint32_t>(heightMapDesc.Height - 1); ++i)
 	{
-		tangent.y = pHeightData[aic.GetIndex(i, heightMapDesc.Width - 2)] - pHeightData[aic.GetIndex(i, heightMapDesc.Width - 1)];
-		bitangent.y = pHeightData[aic.GetIndex(i - 1, heightMapDesc.Width - 1)] - pHeightData[aic.GetIndex(i + 1, heightMapDesc.Width - 1)];
-		XMStoreHalf4(&normal[aic.GetIndex(i, heightMapDesc.Width - 1)], XMVector3Cross(XMLoadFloat3A(&tangent), XMLoadFloat3A(&bitangent)));
+		tangent.y = pHeightData[aic.CalcIndex(i, heightMapDesc.Width - 2)] - pHeightData[aic.CalcIndex(i, heightMapDesc.Width - 1)];
+		bitangent.y = pHeightData[aic.CalcIndex(i - 1, heightMapDesc.Width - 1)] - pHeightData[aic.CalcIndex(i + 1, heightMapDesc.Width - 1)];
+		XMStoreHalf4(&terrainNormals[aic.CalcIndex(i, heightMapDesc.Width - 1)], XMVector3Cross(XMLoadFloat3A(&tangent), XMLoadFloat3A(&bitangent)));
 	}
 	// 8. BOTTOM EDGE ←2 x ↑
 	tangent.x = cellSize * -2.0f;
@@ -329,9 +331,9 @@ bool Terrain::SetHeightMap(Texture2D heightMap, float cellSize, float heightScal
 	bitangent.z = cellSize;
 	for (uint32_t i = 1; i < static_cast<uint32_t>(heightMapDesc.Width - 1); ++i)
 	{
-		tangent.y = pHeightData[aic.GetIndex(heightMapDesc.Height - 1, i - 1)] - pHeightData[aic.GetIndex(heightMapDesc.Height - 1, i + 1)];
-		bitangent.y = pHeightData[aic.GetIndex(heightMapDesc.Height - 2, i)] - pHeightData[aic.GetIndex(heightMapDesc.Height - 1, i)];
-		XMStoreHalf4(&normal[aic.GetIndex(heightMapDesc.Height - 1, i)], XMVector3Cross(XMLoadFloat3A(&tangent), XMLoadFloat3A(&bitangent)));
+		tangent.y = pHeightData[aic.CalcIndex(heightMapDesc.Height - 1, i - 1)] - pHeightData[aic.CalcIndex(heightMapDesc.Height - 1, i + 1)];
+		bitangent.y = pHeightData[aic.CalcIndex(heightMapDesc.Height - 2, i)] - pHeightData[aic.CalcIndex(heightMapDesc.Height - 1, i)];
+		XMStoreHalf4(&terrainNormals[aic.CalcIndex(heightMapDesc.Height - 1, i)], XMVector3Cross(XMLoadFloat3A(&tangent), XMLoadFloat3A(&bitangent)));
 	}
 	// 9. ELSE →2 x ↓2
 	tangent.x = cellSize * 2.0f;
@@ -342,17 +344,17 @@ bool Terrain::SetHeightMap(Texture2D heightMap, float cellSize, float heightScal
 	{
 		for (uint32_t j = 1; j < static_cast<uint32_t>(heightMapDesc.Width - 1); ++j)
 		{
-			tangent.y = pHeightData[aic.GetIndex(i, j + 1)] - pHeightData[aic.GetIndex(i, j - 1)];
-			bitangent.y = pHeightData[aic.GetIndex(i + 1, j)] - pHeightData[aic.GetIndex(i - 1, j)];
-			XMStoreHalf4(&normal[aic.GetIndex(i, j)], XMVector3Cross(XMLoadFloat3A(&tangent), XMLoadFloat3A(&bitangent)));
+			tangent.y = pHeightData[aic.CalcIndex(i, j + 1)] - pHeightData[aic.CalcIndex(i, j - 1)];
+			bitangent.y = pHeightData[aic.CalcIndex(i + 1, j)] - pHeightData[aic.CalcIndex(i - 1, j)];
+			XMStoreHalf4(&terrainNormals[aic.CalcIndex(i, j)], XMVector3Cross(XMLoadFloat3A(&tangent), XMLoadFloat3A(&bitangent)));
 		}
 	}
 
 	// 마지막으로 노말을 모두 정규화
-	for (size_t i = 0; i < normal.size(); ++i)
+	for (size_t i = 0; i < terrainNormals.size(); ++i)
 	{
-		// XMStoreHalf4(&normal[i], XMVector3NormalizeEst(XMLoadHalf4(&normal[i])));
-		XMStoreHalf4(&normal[i], XMVector3Normalize(XMLoadHalf4(&normal[i])));
+		// XMStoreHalf4(&terrainNormals[i], XMVector3NormalizeEst(XMLoadHalf4(&terrainNormals[i])));
+		XMStoreHalf4(&terrainNormals[i], XMVector3Normalize(XMLoadHalf4(&terrainNormals[i])));
 	}
 
 	D3D11_TEXTURE2D_DESC normalMapDesc;
@@ -360,7 +362,7 @@ bool Terrain::SetHeightMap(Texture2D heightMap, float cellSize, float heightScal
 	normalMapDesc.Height = heightMapDesc.Height;
 	normalMapDesc.MipLevels = 1;
 	normalMapDesc.ArraySize = 1;
-	normalMapDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;	// Sample 가능한 포맷 (R32G32B32_FLOAT는 포인트 샘플링만 가능)
+	normalMapDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;	// 지형 노말맵 포맷 (Sampling 가능한 포맷 (R32G32B32_FLOAT는 포인트 샘플링만 가능))
 	normalMapDesc.SampleDesc.Count = 1;
 	normalMapDesc.SampleDesc.Quality = 0;
 	normalMapDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -369,8 +371,8 @@ bool Terrain::SetHeightMap(Texture2D heightMap, float cellSize, float heightScal
 	normalMapDesc.MiscFlags = 0;
 
 	// ZeroMemory(&initialData, sizeof(initialData));
-	initialData.pSysMem = normal.data();
-	initialData.SysMemPitch = heightMapDesc.Width * sizeof(XMHALF4);
+	initialData.pSysMem = terrainNormals.data();
+	initialData.SysMemPitch = heightMapDesc.Width * sizeof(TerrainNormalMapFormat);
 	initialData.SysMemSlicePitch = 0;
 
 	ComPtr<ID3D11Texture2D> cpNormalMapTex2D;
@@ -393,7 +395,7 @@ bool Terrain::SetHeightMap(Texture2D heightMap, float cellSize, float heightScal
 	blendMapDesc.Height = heightMapDesc.Height;
 	blendMapDesc.MipLevels = 1;
 	blendMapDesc.ArraySize = 1;
-	blendMapDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	blendMapDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;	// 블렌드맵 포맷 (각 레이어당 8비트 UNORM 가중치)
 	blendMapDesc.SampleDesc.Count = 1;
 	blendMapDesc.SampleDesc.Quality = 0;
 	blendMapDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -401,12 +403,12 @@ bool Terrain::SetHeightMap(Texture2D heightMap, float cellSize, float heightScal
 	blendMapDesc.CPUAccessFlags = 0;
 	blendMapDesc.MiscFlags = 0;
 
-	const size_t blendMapByteSize = 4 * blendMapDesc.Width * blendMapDesc.Height;
-	std::vector<uint8_t> blendMapData(blendMapByteSize);	// 0으로 초기화된 데이터
-	// ZeroMemory(blendMapData.data(), blendMapByteSize);
+	const size_t blendMapSize = blendMapDesc.Width * blendMapDesc.Height;
+	std::vector<TerrainBlendMapFormat> blendMapData(blendMapSize);	// TerrainBlendMapFormat 생성자에서 0으로 초기화
+	// ZeroMemory(blendMapData.data(), blendMapSize);
 	D3D11_SUBRESOURCE_DATA blendMapInitialData;
 	blendMapInitialData.pSysMem = blendMapData.data();
-	blendMapInitialData.SysMemPitch = sizeof(uint8_t) * 4 * blendMapDesc.Width;
+	blendMapInitialData.SysMemPitch = sizeof(TerrainBlendMapFormat) * blendMapDesc.Width;
 	blendMapInitialData.SysMemSlicePitch = 0;
 	ComPtr<ID3D11Texture2D> cpBlendMap;
 	hr = pDevice->CreateTexture2D(&blendMapDesc, &blendMapInitialData, cpBlendMap.GetAddressOf());
@@ -447,8 +449,8 @@ bool Terrain::SetBlendMap(Texture2D blendMap)
 	if (blendMap == m_blendMap)
 		return true;
 
-	ID3D11Texture2D* pBlendMapTex2D = blendMap.GetTex2DComInterface();
-	ID3D11Texture2D* pHeightMapTex2D = m_heightMap.GetTex2DComInterface();
+	ID3D11Texture2D* pBlendMapTex2D = blendMap.GetTexture2D();
+	ID3D11Texture2D* pHeightMapTex2D = m_heightMap.GetTexture2D();
 
 	if (!pBlendMapTex2D || !pHeightMapTex2D)
 		return false;

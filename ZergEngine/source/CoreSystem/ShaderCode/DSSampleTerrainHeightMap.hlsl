@@ -45,7 +45,7 @@ PSInputTerrainFragment main(DSInputQuadPatchTess patchTess, float2 domain : SV_D
     float4 posH = mul(float4(posW, 1.0f), cb_perCamera.vp);
     output.pos = posH;
     
-    output.normalW = tex2d_normalMap.SampleLevel(g_ssBilinear, texCoord, 0).xyz;
+    output.normalW = tex2d_normalMap.SampleLevel(g_ssBilinear, texCoord, 0).xyz;    // XMHALF4로 전달된 xyz 성분
     output.texCoord = texCoord;
     output.tiledTexCoord = texCoord * cb_perTerrain.tilingScale;
     

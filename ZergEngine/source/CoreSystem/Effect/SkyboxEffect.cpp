@@ -22,7 +22,7 @@ void SkyboxEffect::Init()
 	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::ToHcsSkybox);
 	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::SkyboxFragment);
 
-	m_cbPerCamera.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
+	m_cbPerCamera.Init(GraphicDevice::GetInstance()->GetDevice());
 
 	ClearTextureSRVArray();
 }
@@ -115,7 +115,7 @@ void SkyboxEffect::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
 
 void SkyboxEffect::ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	ID3D11Buffer* const cbs[] = { m_cbPerCamera.GetComInterface() };
+	ID3D11Buffer* const cbs[] = { m_cbPerCamera.Get() };
 
 	// PerCamera 상수버퍼 사용 셰이더
 	constexpr UINT VS_SLOT = 0;

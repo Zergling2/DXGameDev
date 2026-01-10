@@ -78,7 +78,7 @@ namespace ze
 			if (m_pTextFormat)
 				m_pTextFormat->Release();
 		}
-		IDWriteTextFormat* GetDWriteTextFormatComInterface() const { return m_pTextFormat; }
+		IDWriteTextFormat* GetDWriteTextFormat() const { return m_pTextFormat; }
 	private:
 		IDWriteTextFormat* m_pTextFormat;
 	};

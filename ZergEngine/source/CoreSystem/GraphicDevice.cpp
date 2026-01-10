@@ -81,9 +81,9 @@ GraphicDevice::GraphicDevice()
 	, m_cpD2DFactory()
 	, m_cpDWriteFactory()
 	, m_cpSwapChain()
-	, m_cpSwapChainRTV()
-	, m_cpSwapChainDSV()
-	, m_cpD2DRenderTarget()
+	, m_cpRTVSwapChain()
+	, m_cpDSVSwapChain()
+	, m_cpD2DRTBackBuffer()
 	, m_cpD2DSolidColorBrush()
 	, m_fontMap()
 	, m_vs{}
@@ -218,15 +218,11 @@ bool GraphicDevice::Init(HWND hWnd, uint32_t width, uint32_t height, bool fullsc
 	descSwapChain.Flags = SWAP_CHAIN_FLAG;
 
 	// 스왑 체인 생성
-	// First, Get IDXGIFactory instance
-	// DirectX Graphics Infrastructure(DXGI)
-	ComPtr<IDXGIDevice> cpDXGIDevice;
-	ComPtr<IDXGIAdapter> cpDXGIAdapter;
-	ComPtr<IDXGIFactory> cpDXGIFactory;
-
+	// First, Get IDXGIFactory instance [DirectX Graphics Infrastructure(DXGI)]
 	// Use the IDXGIFactory instance that was used to create the device! (by COM queries)
 	// Device 객체와 연결된 IDXGIFactory 인터페이스 객체를 획득해서 스왑 체인을 생성해야 한다.
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+	ComPtr<IDXGIDevice> cpDXGIDevice;
 	hr = m_cpDevice->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void**>(cpDXGIDevice.GetAddressOf()));
 	if (FAILED(hr))
 	{
@@ -234,6 +230,7 @@ bool GraphicDevice::Init(HWND hWnd, uint32_t width, uint32_t height, bool fullsc
 		return false;
 	}
 
+	ComPtr<IDXGIAdapter> cpDXGIAdapter;
 	hr = cpDXGIDevice->GetParent(__uuidof(IDXGIAdapter), reinterpret_cast<void**>(cpDXGIAdapter.GetAddressOf()));
 	if (FAILED(hr))
 	{
@@ -249,6 +246,7 @@ bool GraphicDevice::Init(HWND hWnd, uint32_t width, uint32_t height, bool fullsc
 		return false;
 	}
 
+	ComPtr<IDXGIFactory> cpDXGIFactory;
 	hr = cpDXGIAdapter->GetParent(__uuidof(IDXGIFactory), reinterpret_cast<void**>(cpDXGIFactory.GetAddressOf()));
 	if (FAILED(hr))
 	{
@@ -272,9 +270,9 @@ bool GraphicDevice::Init(HWND hWnd, uint32_t width, uint32_t height, bool fullsc
 		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"IDXGISwapChain::GetDesc", hr);
 		return false;
 	}
-
 	m_swapChainSizeFlt = XMFLOAT2(static_cast<FLOAT>(m_swapChainDesc.BufferDesc.Width), static_cast<FLOAT>(m_swapChainDesc.BufferDesc.Height));
 	m_swapChainHalfSizeFlt = XMFLOAT2(m_swapChainSizeFlt.x * 0.5f, m_swapChainSizeFlt.y * 0.5f);
+
 
 	// 전체 스왑 체인 영역을 나타내는 뷰포트 구조체 업데이트
 	m_entireSwapChainViewport.TopLeftX = 0.0f;
@@ -357,10 +355,10 @@ void GraphicDevice::UnInit()
 
 	m_fontMap.clear();	// 모든 IDWriteTextFormat COM 객체 해제
 	m_cpD2DSolidColorBrush.Reset();
-	m_cpD2DRenderTarget.Reset();
+	m_cpD2DRTBackBuffer.Reset();
 
-	m_cpSwapChainDSV.Reset();
-	m_cpSwapChainRTV.Reset();
+	m_cpDSVSwapChain.Reset();
+	m_cpRTVSwapChain.Reset();
 
 	m_cpSwapChain.Reset();
 	m_cpDWriteFactory.Reset();
@@ -1121,7 +1119,7 @@ void GraphicDevice::ReleaseBlendStates()
 
 bool GraphicDevice::CreateCommonGraphicResources()
 {
-	ID3D11Device* pDevice = this->GetDeviceComInterface();
+	ID3D11Device* pDevice = this->GetDevice();
 
 	/*
 	// UI 렌더링용 음영 2D 사각형 버퍼 생성
@@ -1930,14 +1928,14 @@ bool GraphicDevice::CreateGraphicDeviceResources()
 		return false;
 	}
 
-	assert(m_cpSwapChainRTV == nullptr);
 	D3D11_RENDER_TARGET_VIEW_DESC swapChainRTVDesc;
 	ZeroMemory(&swapChainRTVDesc, sizeof(swapChainRTVDesc));
-	swapChainRTVDesc.Format = SWAP_CHAIN_RTV_FORMAT;		// sRGB
+	swapChainRTVDesc.Format = SWAP_CHAIN_RTV_FORMAT;	// sRGB
 	swapChainRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 	swapChainRTVDesc.Texture2D.MipSlice = 0;
 
-	hr = m_cpDevice->CreateRenderTargetView(cpBackBuffer.Get(), &swapChainRTVDesc, m_cpSwapChainRTV.GetAddressOf());
+	ComPtr<ID3D11RenderTargetView> cpRTVSwapChain;
+	hr = m_cpDevice->CreateRenderTargetView(cpBackBuffer.Get(), &swapChainRTVDesc, cpRTVSwapChain.GetAddressOf());
 	if (FAILED(hr))
 	{
 		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"ID3D11Device::CreateRenderTargetView", hr);
@@ -1952,7 +1950,7 @@ bool GraphicDevice::CreateGraphicDeviceResources()
 	depthStencilBufferDesc.Height = m_swapChainDesc.BufferDesc.Height;
 	depthStencilBufferDesc.MipLevels = 1;
 	depthStencilBufferDesc.ArraySize = 1;
-	depthStencilBufferDesc.Format = DXGI_FORMAT_D16_UNORM;
+	depthStencilBufferDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	// Must match with swap chain's MSAA setting!
 	depthStencilBufferDesc.SampleDesc = m_swapChainDesc.SampleDesc;
 	depthStencilBufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -1968,8 +1966,8 @@ bool GraphicDevice::CreateGraphicDeviceResources()
 		return false;
 	}
 
-	assert(m_cpSwapChainDSV == nullptr);
-	hr = m_cpDevice->CreateDepthStencilView(cpDepthStencilBuffer.Get(), nullptr, m_cpSwapChainDSV.GetAddressOf());
+	ComPtr<ID3D11DepthStencilView> cpDSVSwapChain;
+	hr = m_cpDevice->CreateDepthStencilView(cpDepthStencilBuffer.Get(), nullptr, cpDSVSwapChain.GetAddressOf());
 	if (FAILED(hr))
 	{
 		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"ID3D11Device::CreateDepthStencilView", hr);
@@ -1988,17 +1986,14 @@ bool GraphicDevice::CreateGraphicDeviceResources()
 		return false;
 	}
 
-	assert(m_cpD2DRenderTarget == nullptr);
+
+	// Create a Direct2D render target that can draw into the surface in the swap chain
 	const D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties(
 		D2D1_RENDER_TARGET_TYPE_DEFAULT,
 		D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED)
 	);
-	// Create a Direct2D render target that can draw into the surface in the swap chain
-	hr = m_cpD2DFactory->CreateDxgiSurfaceRenderTarget(
-		cpBackBufferSurface.Get(),
-		&props,
-		m_cpD2DRenderTarget.GetAddressOf()
-	);
+	ComPtr<ID2D1RenderTarget> cpD2DRTBackBuffer;
+	hr = m_cpD2DFactory->CreateDxgiSurfaceRenderTarget(cpBackBufferSurface.Get(), &props, cpD2DRTBackBuffer.GetAddressOf());
 	
 	if (FAILED(hr))
 	{
@@ -2006,13 +2001,18 @@ bool GraphicDevice::CreateGraphicDeviceResources()
 		return false;
 	}
 
-	assert(m_cpD2DSolidColorBrush == nullptr);
-	hr = m_cpD2DRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White, 1.0f), m_cpD2DSolidColorBrush.GetAddressOf());
+	ComPtr<ID2D1SolidColorBrush> cpD2DSolidColorBrush;
+	hr = cpD2DRTBackBuffer->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White, 1.0f), cpD2DSolidColorBrush.GetAddressOf());
 	if (FAILED(hr))
 	{
 		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"ID2D1RenderTarget::CreateSolidColorBrush", hr);
 		return false;
 	}
+
+	m_cpRTVSwapChain = std::move(cpRTVSwapChain);
+	m_cpDSVSwapChain = std::move(cpDSVSwapChain);
+	m_cpD2DRTBackBuffer = std::move(cpD2DRTBackBuffer);
+	m_cpD2DSolidColorBrush = std::move(cpD2DSolidColorBrush);
 
 	sfl.Write(L"Completed creating graphic device resources.\n");
 
@@ -2037,10 +2037,10 @@ void GraphicDevice::ReleaseGraphicDeviceResources()
 	// 스왑 체인에 관한 리소스를 모두 해제
 	// D2D 리소스들
 	m_cpD2DSolidColorBrush.Reset();
-	m_cpD2DRenderTarget.Reset();
+	m_cpD2DRTBackBuffer.Reset();
 	// D3D 리소스들
-	m_cpSwapChainDSV.Reset();
-	m_cpSwapChainRTV.Reset();
+	m_cpDSVSwapChain.Reset();
+	m_cpRTVSwapChain.Reset();
 }
 
 UINT GraphicDevice::GetMSAAMaximumQuality(MSAAMode sampleCount)
@@ -2122,9 +2122,9 @@ bool GraphicDevice::ResizeBuffer(uint32_t width, uint32_t height)
 		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"IDXGISwapChain::GetDesc", hr);
 		return false;
 	}
-
 	m_swapChainSizeFlt = XMFLOAT2(static_cast<FLOAT>(m_swapChainDesc.BufferDesc.Width), static_cast<FLOAT>(m_swapChainDesc.BufferDesc.Height));
 	m_swapChainHalfSizeFlt = XMFLOAT2(m_swapChainSizeFlt.x * 0.5f, m_swapChainSizeFlt.y * 0.5f);
+
 
 	// 전체 스왑 체인 영역을 나타내는 뷰포트 구조체 업데이트
 	m_entireSwapChainViewport.TopLeftX = 0.0f;

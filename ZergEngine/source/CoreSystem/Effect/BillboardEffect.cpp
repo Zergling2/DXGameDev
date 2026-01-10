@@ -54,7 +54,7 @@ void BillboardEffect::Init()
 
 	m_pCurrPS = m_pPSUnlitPNTTNoMtl;
 
-	ID3D11Device* pDevice = GraphicDevice::GetInstance()->GetDeviceComInterface();
+	ID3D11Device* pDevice = GraphicDevice::GetInstance()->GetDevice();
 
 	m_cbPerFrame.Init(pDevice);
 	m_cbPerCamera.Init(pDevice);
@@ -165,9 +165,9 @@ void BillboardEffect::SetMaterial(const Material* pMaterial)
 	}
 	else
 	{
-		ID3D11ShaderResourceView* pDiffuseMapSRV = pMaterial->m_diffuseMap.GetSRVComInterface();
-		ID3D11ShaderResourceView* pSpecularMapSRV = pMaterial->m_specularMap.GetSRVComInterface();
-		ID3D11ShaderResourceView* pNormalMapSRV = pMaterial->m_normalMap.GetSRVComInterface();
+		ID3D11ShaderResourceView* pDiffuseMapSRV = pMaterial->m_diffuseMap.GetSRV();
+		ID3D11ShaderResourceView* pSpecularMapSRV = pMaterial->m_specularMap.GetSRV();
+		ID3D11ShaderResourceView* pNormalMapSRV = pMaterial->m_normalMap.GetSRV();
 
 		m_pTextureSRVArray[0] = pDiffuseMapSRV;
 		m_pTextureSRVArray[1] = pSpecularMapSRV;
@@ -290,7 +290,7 @@ void BillboardEffect::ApplyPixelShader(ID3D11DeviceContext* pDeviceContext) noex
 
 void BillboardEffect::ApplyPerFrameConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	ID3D11Buffer* const cbs[] = { m_cbPerFrame.GetComInterface() };
+	ID3D11Buffer* const cbs[] = { m_cbPerFrame.Get() };
 
 	// PerFrame 상수버퍼 사용 셰이더
 	constexpr UINT PS_SLOT = 0;
@@ -299,7 +299,7 @@ void BillboardEffect::ApplyPerFrameConstantBuffer(ID3D11DeviceContext* pDeviceCo
 
 void BillboardEffect::ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	ID3D11Buffer* const cbs[] = { m_cbPerCamera.GetComInterface() };
+	ID3D11Buffer* const cbs[] = { m_cbPerCamera.Get() };
 
 	// PerCamera 상수버퍼 사용 셰이더
 	constexpr UINT VS_SLOT = 0;
@@ -310,7 +310,7 @@ void BillboardEffect::ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceC
 
 void BillboardEffect::ApplyPerBillboardConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	ID3D11Buffer* const cbs[] = { m_cbPerBillboard.GetComInterface() };
+	ID3D11Buffer* const cbs[] = { m_cbPerBillboard.Get() };
 
 	// PerBillboard 상수버퍼 사용 셰이더
 	constexpr UINT VS_SLOT = 1;
@@ -319,7 +319,7 @@ void BillboardEffect::ApplyPerBillboardConstantBuffer(ID3D11DeviceContext* pDevi
 
 void BillboardEffect::ApplyMaterialConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	ID3D11Buffer* const cbs[] = { m_cbMaterial.GetComInterface() };
+	ID3D11Buffer* const cbs[] = { m_cbMaterial.Get() };
 
 	// Material 상수버퍼 사용 셰이더
 	constexpr UINT PS_SLOT = 2;

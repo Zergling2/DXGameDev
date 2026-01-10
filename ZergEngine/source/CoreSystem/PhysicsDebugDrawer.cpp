@@ -41,19 +41,25 @@ bool PhysicsDebugDrawer::Init(ID3D11Device* pDevice)
 		sfl.WriteFormat(HRESULT_ERROR_LOG_FMT, L"ID3D11Device::CreateBuffer", hr);
 		return false;
 	}
-		
+	
+	// https://learn.microsoft.com/en-us/windows/win32/api/d3d11/ns-d3d11-d3d11_rasterizer_desc
+	// Line-rendering algorithm			MultisampleEnable		AntialiasedLineEnable
+	// Aliased							FALSE					FALSE
+	// Alpha antialiased				FALSE					TRUE
+	// Quadrilateral					TRUE					FALSE
+	// Quadrilateral					TRUE					TRUE
 
 	D3D11_RASTERIZER_DESC rasterizerDesc;
 	rasterizerDesc.FillMode = D3D11_FILL_SOLID;
 	rasterizerDesc.CullMode = D3D11_CULL_NONE;		// 디버그 라인은 후면컬링 필요없음
 	rasterizerDesc.FrontCounterClockwise = FALSE;
 	rasterizerDesc.DepthBias = -100;
-	rasterizerDesc.DepthBiasClamp = 0.0f;
-	rasterizerDesc.SlopeScaledDepthBias = -2.0f;
+	rasterizerDesc.DepthBiasClamp = 1.0f;
+	rasterizerDesc.SlopeScaledDepthBias = -1.0f;
 	rasterizerDesc.DepthClipEnable = TRUE;
 	rasterizerDesc.ScissorEnable = FALSE;
-	rasterizerDesc.MultisampleEnable = FALSE;
-	rasterizerDesc.AntialiasedLineEnable = FALSE;
+	rasterizerDesc.MultisampleEnable = TRUE;	// 상단 표 참고
+	rasterizerDesc.AntialiasedLineEnable = FALSE;	// 상단 표 참고
 
 	ComPtr<ID3D11RasterizerState> cpRSDebugLineDrawing;
 	hr = pDevice->CreateRasterizerState(&rasterizerDesc, cpRSDebugLineDrawing.GetAddressOf());

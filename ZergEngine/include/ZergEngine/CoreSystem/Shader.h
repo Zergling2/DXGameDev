@@ -12,7 +12,7 @@ namespace ze
 
 		void Init(ID3D11Device* pDevice, const byte* pShaderByteCode, size_t shaderByteCodeSize);
 		void Release();
-		ID3D11VertexShader* GetComInterface() { return m_cpShader.Get(); }
+		ID3D11VertexShader* Get() { return m_cpShader.Get(); }
 	private:
 		ComPtr<ID3D11VertexShader> m_cpShader;
 	};
@@ -25,7 +25,7 @@ namespace ze
 
 		void Init(ID3D11Device* pDevice, const byte* pShaderByteCode, size_t shaderByteCodeSize);
 		void Release();
-		ID3D11HullShader* GetComInterface() { return m_cpShader.Get(); }
+		ID3D11HullShader* Get() { return m_cpShader.Get(); }
 	private:
 		ComPtr<ID3D11HullShader> m_cpShader;
 	};
@@ -38,7 +38,7 @@ namespace ze
 
 		void Init(ID3D11Device* pDevice, const byte* pShaderByteCode, size_t shaderByteCodeSize);
 		void Release();
-		ID3D11DomainShader* GetComInterface() { return m_cpShader.Get(); }
+		ID3D11DomainShader* Get() { return m_cpShader.Get(); }
 	private:
 		ComPtr<ID3D11DomainShader> m_cpShader;
 	};
@@ -51,7 +51,7 @@ namespace ze
 
 		void Init(ID3D11Device* pDevice, const byte* pShaderByteCode, size_t shaderByteCodeSize);
 		void Release();
-		ID3D11PixelShader* GetComInterface() { return m_cpShader.Get(); }
+		ID3D11PixelShader* Get() { return m_cpShader.Get(); }
 	private:
 		ComPtr<ID3D11PixelShader> m_cpShader;
 	};

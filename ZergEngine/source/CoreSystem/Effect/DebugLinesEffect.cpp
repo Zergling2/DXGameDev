@@ -21,7 +21,7 @@ void DebugLinesEffect::Init()
 	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::ToHcsDebugLines);
 	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::UnlitPC);
 
-	m_cbPerCamera.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
+	m_cbPerCamera.Init(GraphicDevice::GetInstance()->GetDevice());
 }
 
 void DebugLinesEffect::Release()
@@ -102,7 +102,7 @@ void DebugLinesEffect::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
 
 void DebugLinesEffect::ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	ID3D11Buffer* const cbs[] = { m_cbPerCamera.GetComInterface() };
+	ID3D11Buffer* const cbs[] = { m_cbPerCamera.Get() };
 
 	// PerCamera 상수버퍼 사용 셰이더
 	constexpr UINT VS_SLOT = 0;

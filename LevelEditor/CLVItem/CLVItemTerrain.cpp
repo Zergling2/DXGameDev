@@ -16,7 +16,7 @@ void CLVItemTerrain::OnSelect()
 	// 2. º¯°æµÈ ÀÎ½ºÆåÅÍ Æû ºä¿¡ Terrain Á¤º¸ º¸¿©ÁÖ±â
 	ze::Terrain* pTerrain = this->GetTerrain();
 	D3D11_TEXTURE2D_DESC heightMapDesc;
-	ID3D11Texture2D* pHeightMap = pTerrain->GetHeightMap().GetTex2DComInterface();
+	ID3D11Texture2D* pHeightMap = pTerrain->GetHeightMap().GetTexture2D();
 	if (pHeightMap)
 	{
 		pHeightMap->GetDesc(&heightMapDesc);

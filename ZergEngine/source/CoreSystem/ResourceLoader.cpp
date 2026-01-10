@@ -137,25 +137,25 @@ void ResourceLoader::Init()
 	// initialData.SysMemSlicePitch = 0;	// 3D 텍스쳐에서만 사용됨
 
 	ComPtr<ID3D11Texture2D> cpTex2D;
-	HRESULT hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateTexture2D(
+	HRESULT hr = GraphicDevice::GetInstance()->GetDevice()->CreateTexture2D(
 		&descTexture, nullptr, cpTex2D.GetAddressOf()
 	);
 	if (FAILED(hr))
 		Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateTexture2D()", hr);
 
-	GraphicDevice::GetInstance()->GetImmediateContextComInterface()->UpdateSubresource(cpTex2D.Get(), D3D11CalcSubresource(0, 0, 0),
+	GraphicDevice::GetInstance()->GetImmediateContext()->UpdateSubresource(cpTex2D.Get(), D3D11CalcSubresource(0, 0, 0),
 		nullptr, texels.data(), sizeof(R8G8B8A8)* width, 0);
 
 	// 셰이더 리소스 뷰 생성
 	ComPtr<ID3D11ShaderResourceView> cpSRV;
-	hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateShaderResourceView(
+	hr = GraphicDevice::GetInstance()->GetDevice()->CreateShaderResourceView(
 		cpTex2D.Get(), nullptr, cpSRV.GetAddressOf()
 	);
 	if (FAILED(hr))
 		Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateShaderResourceView()", hr);
 
 	// 밉맵 생성
-	GraphicDevice::GetInstance()->GetImmediateContextComInterface()->GenerateMips(cpSRV.Get());
+	GraphicDevice::GetInstance()->GetImmediateContext()->GenerateMips(cpSRV.Get());
 
 	m_errTex.m_cpTex2D = std::move(cpTex2D);
 	m_errTex.m_cpSRV = std::move(cpSRV);
@@ -302,7 +302,7 @@ void ResourceLoader::AiLoadStaticMeshNode(TempModelData& tmd, const aiScene* pAi
 	// initialData.SysMemSlicePitch = 0;	// unused
 
 	ComPtr<ID3D11Buffer> cpVB;
-	hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateBuffer(&bufferDesc, &initialData, cpVB.GetAddressOf());
+	hr = GraphicDevice::GetInstance()->GetDevice()->CreateBuffer(&bufferDesc, &initialData, cpVB.GetAddressOf());
 	if (FAILED(hr))
 		Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateBuffer()", hr);
 
@@ -319,7 +319,7 @@ void ResourceLoader::AiLoadStaticMeshNode(TempModelData& tmd, const aiScene* pAi
 	// initialData.SysMemSlicePitch = 0;	// unused
 
 	ComPtr<ID3D11Buffer> cpIB;
-	hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateBuffer(&bufferDesc, &initialData, cpIB.GetAddressOf());
+	hr = GraphicDevice::GetInstance()->GetDevice()->CreateBuffer(&bufferDesc, &initialData, cpIB.GetAddressOf());
 	if (FAILED(hr))
 		Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateBuffer()", hr);
 
@@ -695,7 +695,7 @@ void ResourceLoader::AiLoadSkinnedMeshNode(TempModelData& tmd, const aiScene* pA
 	// initialData.SysMemSlicePitch = 0;	// unused
 
 	ComPtr<ID3D11Buffer> cpVB;
-	hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateBuffer(&bufferDesc, &initialData, cpVB.GetAddressOf());
+	hr = GraphicDevice::GetInstance()->GetDevice()->CreateBuffer(&bufferDesc, &initialData, cpVB.GetAddressOf());
 	if (FAILED(hr))
 		Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateBuffer()", hr);
 
@@ -712,7 +712,7 @@ void ResourceLoader::AiLoadSkinnedMeshNode(TempModelData& tmd, const aiScene* pA
 	// initialData.SysMemSlicePitch = 0;	// unused
 
 	ComPtr<ID3D11Buffer> cpIB;
-	hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateBuffer(&bufferDesc, &initialData, cpIB.GetAddressOf());
+	hr = GraphicDevice::GetInstance()->GetDevice()->CreateBuffer(&bufferDesc, &initialData, cpIB.GetAddressOf());
 	if (FAILED(hr))
 		Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateBuffer()", hr);
 
@@ -836,7 +836,7 @@ Texture2D ResourceLoader::LoadTexture2D(PCWSTR path, bool generateMipMaps)
 			// initialData[index].SysMemSlicePitch = 0;		// 3D 텍스쳐에서만 의미 있음
 		}
 	}
-	hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateTexture2D(
+	hr = GraphicDevice::GetInstance()->GetDevice()->CreateTexture2D(
 		&descTexture, initialData.data(), cpTex2D.GetAddressOf()
 	);
 	if (FAILED(hr))
@@ -844,7 +844,7 @@ Texture2D ResourceLoader::LoadTexture2D(PCWSTR path, bool generateMipMaps)
 
 	// 셰이더 리소스 뷰 생성
 	ComPtr<ID3D11ShaderResourceView> cpSRV;
-	hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateShaderResourceView(
+	hr = GraphicDevice::GetInstance()->GetDevice()->CreateShaderResourceView(
 		cpTex2D.Get(), nullptr, cpSRV.GetAddressOf()
 	);
 	if (FAILED(hr))
@@ -888,7 +888,7 @@ bool ResourceLoader::CreateHeightMapFromRawData(Texture2D& heightMap, const uint
 	initialData.SysMemSlicePitch = 0;
 
 	HRESULT hr;
-	ID3D11Device* pDevice = GraphicDevice::GetInstance()->GetDeviceComInterface();
+	ID3D11Device* pDevice = GraphicDevice::GetInstance()->GetDevice();
 	
 
 	ComPtr<ID3D11Texture2D> cpTex2D;
@@ -1233,7 +1233,7 @@ bool ResourceLoader::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, Verte
 		// initialData.SysMemSlicePitch = 0;	// unused
 
 		ComPtr<ID3D11Buffer> cpVB;
-		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateBuffer(&bufferDesc, &initialData, cpVB.GetAddressOf());
+		hr = GraphicDevice::GetInstance()->GetDevice()->CreateBuffer(&bufferDesc, &initialData, cpVB.GetAddressOf());
 		if (FAILED(hr))
 			Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateBuffer()", hr);
 		
@@ -1250,7 +1250,7 @@ bool ResourceLoader::ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, Verte
 		// initialData.SysMemSlicePitch = 0;	// unused
 
 		ComPtr<ID3D11Buffer> cpIB;
-		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateBuffer(&bufferDesc, &initialData, cpIB.GetAddressOf());
+		hr = GraphicDevice::GetInstance()->GetDevice()->CreateBuffer(&bufferDesc, &initialData, cpIB.GetAddressOf());
 		if (FAILED(hr))
 			Debug::ForceCrashWithHRESULTMessageBox(L"ID3D11Device::CreateBuffer()", hr);
 
@@ -2194,7 +2194,7 @@ Texture2D ResourceLoader::LoadCubeMapTexture(PCWSTR path)
 			}
 		}
 
-		hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateTexture2D(
+		hr = GraphicDevice::GetInstance()->GetDevice()->CreateTexture2D(
 			&textureDesc, initialData.data(), cpTex2D.GetAddressOf()
 		);
 		if (FAILED(hr))
@@ -2209,7 +2209,7 @@ Texture2D ResourceLoader::LoadCubeMapTexture(PCWSTR path)
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
 	srvDesc.TextureCube.MostDetailedMip = 0;	// 사용할 가장 디테일한 밉 레벨
 	srvDesc.TextureCube.MipLevels = -1;		// -1로 설정 시 MostDetailedMip에 설정한 밉 레벨부터 최소 퀄리티 밉맵까지 사용
-	hr = GraphicDevice::GetInstance()->GetDeviceComInterface()->CreateShaderResourceView(
+	hr = GraphicDevice::GetInstance()->GetDevice()->CreateShaderResourceView(
 		cpTex2D.Get(), &srvDesc, cpSRV.GetAddressOf()
 	);
 	if (FAILED(hr))

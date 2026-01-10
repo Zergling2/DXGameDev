@@ -17,7 +17,7 @@ void ATVItemStaticMesh::OnSelect()
 	pInspector->SetATVItemToModify(this);		// 수정 시 데이터 반영을 위하여
 
 	// 2. 변경된 인스펙터 폼 뷰에 Mesh 정보 보여주기
-	ID3D11Buffer* pVB = m_spMesh->GetVBComInterface();
+	ID3D11Buffer* pVB = m_spMesh->GetVertexBuffer();
 	if (!pVB)
 		return;
 

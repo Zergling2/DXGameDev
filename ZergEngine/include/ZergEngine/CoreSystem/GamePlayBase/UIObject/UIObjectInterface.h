@@ -142,7 +142,7 @@ namespace ze
 		void SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT pa) { m_paragraphAlignment = pa; }
 		void ApplyTextFormat();		// TextFormat을 변경한 후 이 함수를 호출해야 새로운 폰트가 적용됩니다.
 
-		IDWriteTextFormat* GetDWriteTextFormatComInterface() const { return m_spDWriteTextFormatWrapper->GetDWriteTextFormatComInterface(); }
+		IDWriteTextFormat* GetDWriteTextFormat() const { return m_spDWriteTextFormatWrapper->GetDWriteTextFormat(); }
 	protected:
 		std::wstring m_text;
 		TextFormat m_tf;

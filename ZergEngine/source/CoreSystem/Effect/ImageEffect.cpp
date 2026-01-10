@@ -19,8 +19,8 @@ void ImageEffect::Init()
 	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::ToHcsPNTTQuadForImage);
 	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::UnlitPT1Tex);
 
-	m_cb2DRender.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
-	m_cbPer2DQuad.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
+	m_cb2DRender.Init(GraphicDevice::GetInstance()->GetDevice());
+	m_cbPer2DQuad.Init(GraphicDevice::GetInstance()->GetDevice());
 }
 
 void ImageEffect::Release()
@@ -69,7 +69,7 @@ void ImageEffect::SetHCSPosition(const XMFLOAT2& pos) noexcept
 
 void ImageEffect::SetImageTexture(const Texture2D& image) noexcept
 {
-	m_pTextureSRVArray[0] = image.GetSRVComInterface();
+	m_pTextureSRVArray[0] = image.GetSRV();
 }
 
 void ImageEffect::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
@@ -141,7 +141,7 @@ void ImageEffect::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
 
 void ImageEffect::Apply2DRenderConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	ID3D11Buffer* const cbs[] = { m_cb2DRender.GetComInterface() };
+	ID3D11Buffer* const cbs[] = { m_cb2DRender.Get() };
 
 	// 2DRender 상수버퍼 사용 셰이더
 	constexpr UINT VS_SLOT = 0;
@@ -150,7 +150,7 @@ void ImageEffect::Apply2DRenderConstantBuffer(ID3D11DeviceContext* pDeviceContex
 
 void ImageEffect::ApplyPer2DQuadConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	ID3D11Buffer* const cbs[] = { m_cbPer2DQuad.GetComInterface() };
+	ID3D11Buffer* const cbs[] = { m_cbPer2DQuad.Get() };
 
 	// Per2DQuad 상수버퍼 사용 셰이더
 	constexpr UINT VS_SLOT = 1;

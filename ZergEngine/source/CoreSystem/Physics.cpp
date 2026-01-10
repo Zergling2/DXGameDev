@@ -57,7 +57,7 @@ bool Physics::Init()
 	m_pDynamicsWorld = new btDiscreteDynamicsWorld(m_pDispatcher, m_pOverlappingPairCache, m_pSolver, m_pCollisionConfiguration);
 
 	// 디버그 렌더러 초기화 및 등록
-	bool init = m_pdd.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
+	bool init = m_pdd.Init(GraphicDevice::GetInstance()->GetDevice());
 	if (!init)
 		return false;
 

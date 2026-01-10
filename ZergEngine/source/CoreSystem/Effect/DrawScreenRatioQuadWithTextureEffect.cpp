@@ -18,7 +18,7 @@ void DrawScreenRatioQuadWithTextureEffect::Init()
 	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::ToHcsScreenRatioQuad);
 	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::UnlitPT1Tex);
 
-	m_cbPerScreenRatioQuad.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
+	m_cbPerScreenRatioQuad.Init(GraphicDevice::GetInstance()->GetDevice());
 
 	ClearTextureSRVArray();
 }
@@ -107,7 +107,7 @@ void DrawScreenRatioQuadWithTextureEffect::ApplyShader(ID3D11DeviceContext* pDev
 
 void DrawScreenRatioQuadWithTextureEffect::ApplyPerDrawQuadConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	ID3D11Buffer* const cbs[] = { m_cbPerScreenRatioQuad.GetComInterface() };
+	ID3D11Buffer* const cbs[] = { m_cbPerScreenRatioQuad.Get() };
 
 	// PerFrame 상수버퍼 사용 셰이더
 	constexpr UINT VS_SLOT = 0;

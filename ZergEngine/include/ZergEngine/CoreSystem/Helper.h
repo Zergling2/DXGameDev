@@ -86,9 +86,9 @@ namespace ze
 			: m_columnSize(columnSize)
 		{
 		}
-		void SetColumnSize(size_t size) { m_columnSize = size; }
 		size_t GetColumnSize() const { return m_columnSize; }
-		size_t GetIndex(size_t row, size_t col) { return row * m_columnSize + col; }
+		void SetColumnSize(size_t size) { m_columnSize = size; }
+		size_t CalcIndex(size_t row, size_t col) { return row * m_columnSize + col; }
 	private:
 		size_t m_columnSize;
 	};
@@ -101,31 +101,32 @@ namespace ze
 			, m_2t1(columnSize)
 		{
 		}
-		void SetRowSize(size_t size) { m_rowSize = size; }
 		size_t GetRowSize() const { return m_rowSize; }
-		void SetColumnSize(size_t size) { m_2t1.SetColumnSize(size); }
+		void SetRowSize(size_t size) { m_rowSize = size; }
 		size_t GetColumnSize() const { return m_2t1.GetColumnSize(); }
-		size_t GetIndex(size_t depth, size_t row, size_t col) { return depth * m_rowSize * m_2t1.GetColumnSize() + m_2t1.GetIndex(row, col); }
+		void SetColumnSize(size_t size) { m_2t1.SetColumnSize(size); }
+		size_t CalcIndex(size_t depth, size_t row, size_t col) { return depth * m_rowSize * m_2t1.GetColumnSize() + m_2t1.CalcIndex(row, col); }
 	private:
 		size_t m_rowSize;
 		IndexConverter2DTo1D m_2t1;
 	};
 
+	// ID3D11DeviceContext::Map()으로 매핑한 리소스를 읽을 때 사용.
 	template<class TexelFormat>
 	class D3D11Mapped2DSubresourceReader
 	{
 	public:
-		D3D11Mapped2DSubresourceReader(const D3D11_MAPPED_SUBRESOURCE* pMapped)
-			: m_pMapped(pMapped)
+		D3D11Mapped2DSubresourceReader(const D3D11_MAPPED_SUBRESOURCE& mapped)
+			: m_mapped(mapped)
 		{
 		}
 
 		TexelFormat GetTexel(size_t y, size_t x) const
 		{
-			byte* pRow = reinterpret_cast<byte*>(m_pMapped->pData) + y * m_pMapped->RowPitch;
+			uint8_t* pRow = static_cast<uint8_t*>(m_mapped.pData) + y * m_mapped.RowPitch;
 			return reinterpret_cast<TexelFormat*>(pRow)[x];
 		}
 	private:
-		const D3D11_MAPPED_SUBRESOURCE* m_pMapped;
+		const D3D11_MAPPED_SUBRESOURCE& m_mapped;
 	};
 }

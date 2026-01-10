@@ -31,9 +31,9 @@ void TerrainEffect::Init()
 	m_pDomainShader = GraphicDevice::GetInstance()->GetDSComInterface(DomainShaderType::SampleTerrainHeightMap);
 	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::LitTerrainFragment);
 
-	m_cbPerFrame.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
-	m_cbPerCamera.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
-	m_cbPerTerrain.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
+	m_cbPerFrame.Init(GraphicDevice::GetInstance()->GetDevice());
+	m_cbPerCamera.Init(GraphicDevice::GetInstance()->GetDevice());
+	m_cbPerTerrain.Init(GraphicDevice::GetInstance()->GetDevice());
 }
 
 void TerrainEffect::Release()
@@ -245,7 +245,7 @@ void TerrainEffect::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
 
 void TerrainEffect::ApplyPerFrameConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	ID3D11Buffer* const cbs[] = { m_cbPerFrame.GetComInterface() };
+	ID3D11Buffer* const cbs[] = { m_cbPerFrame.Get() };
 
 	// PerFrame 상수버퍼 사용 셰이더		 Start Slot		Num Buffers
 	pDeviceContext->PSSetConstantBuffers(0,				1,				cbs);
@@ -253,7 +253,7 @@ void TerrainEffect::ApplyPerFrameConstantBuffer(ID3D11DeviceContext* pDeviceCont
 
 void TerrainEffect::ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	ID3D11Buffer* const cbs[] = { m_cbPerCamera.GetComInterface() };
+	ID3D11Buffer* const cbs[] = { m_cbPerCamera.Get() };
 
 	// PerCamera 상수버퍼 사용 셰이더		 Start Slot		Num Buffers
 	pDeviceContext->HSSetConstantBuffers(0,				1,				cbs);
@@ -263,7 +263,7 @@ void TerrainEffect::ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceCon
 
 void TerrainEffect::ApplyPerTerrainConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	ID3D11Buffer* const cbs[] = { m_cbPerTerrain.GetComInterface() };
+	ID3D11Buffer* const cbs[] = { m_cbPerTerrain.Get() };
 
 	// PerTerrain 상수버퍼 사용 셰이더	 Start Slot		Num Buffers
 	pDeviceContext->DSSetConstantBuffers(1,				1,				cbs);

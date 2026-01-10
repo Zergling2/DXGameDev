@@ -15,7 +15,7 @@ namespace ze
 		~EffectDeviceContext() = default;
 
 		void AttachDeviceContext(ID3D11DeviceContext* pDeviceContext) noexcept;
-		ID3D11DeviceContext* GetDeviceContextComInterface() const { return m_pDeviceContext; }
+		ID3D11DeviceContext* GetDeviceContext() const { return m_pDeviceContext; }
 
 		void Apply(IEffect* pEffect) noexcept;
 

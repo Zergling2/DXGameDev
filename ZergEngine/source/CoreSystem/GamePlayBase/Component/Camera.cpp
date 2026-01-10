@@ -181,7 +181,7 @@ bool Camera::CreateViews()
 	colorBufferDesc.CPUAccessFlags = 0;
 	colorBufferDesc.MiscFlags = 0;
 
-	ID3D11Device* pDevice = GraphicDevice::GetInstance()->GetDeviceComInterface();
+	ID3D11Device* pDevice = GraphicDevice::GetInstance()->GetDevice();
 
 	ComPtr<ID3D11Texture2D> colorBuffer;
 	hr = pDevice->CreateTexture2D(&colorBufferDesc, nullptr, colorBuffer.GetAddressOf());

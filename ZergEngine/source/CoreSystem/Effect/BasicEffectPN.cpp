@@ -28,7 +28,7 @@ void BasicEffectPN::Init()
 
 	m_pCurrPS = m_pPSUnlitPNNoMtl;
 
-	ID3D11Device* pDevice = GraphicDevice::GetInstance()->GetDeviceComInterface();
+	ID3D11Device* pDevice = GraphicDevice::GetInstance()->GetDevice();
 	m_cbPerFrame.Init(pDevice);
 	m_cbPerCamera.Init(pDevice);
 	m_cbPerMesh.Init(pDevice);
@@ -220,7 +220,7 @@ void BasicEffectPN::ApplyPixelShader(ID3D11DeviceContext* pDeviceContext) noexce
 
 void BasicEffectPN::ApplyPerFrameConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	ID3D11Buffer* const cbs[] = { m_cbPerFrame.GetComInterface() };
+	ID3D11Buffer* const cbs[] = { m_cbPerFrame.Get() };
 
 	// PerFrame 상수버퍼 사용 셰이더
 	constexpr UINT PS_SLOT = 0;
@@ -229,7 +229,7 @@ void BasicEffectPN::ApplyPerFrameConstantBuffer(ID3D11DeviceContext* pDeviceCont
 
 void BasicEffectPN::ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	ID3D11Buffer* const cbs[] = { m_cbPerCamera.GetComInterface() };
+	ID3D11Buffer* const cbs[] = { m_cbPerCamera.Get() };
 
 	// PerCamera 상수버퍼 사용 셰이더
 	constexpr UINT VS_SLOT = 0;
@@ -240,7 +240,7 @@ void BasicEffectPN::ApplyPerCameraConstantBuffer(ID3D11DeviceContext* pDeviceCon
 
 void BasicEffectPN::ApplyPerMeshConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	ID3D11Buffer* const cbs[] = { m_cbPerMesh.GetComInterface() };
+	ID3D11Buffer* const cbs[] = { m_cbPerMesh.Get() };
 
 	// PerMesh 상수버퍼 사용 셰이더
 	constexpr UINT VS_SLOT = 1;
@@ -249,7 +249,7 @@ void BasicEffectPN::ApplyPerMeshConstantBuffer(ID3D11DeviceContext* pDeviceConte
 
 void BasicEffectPN::ApplyMaterialConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	ID3D11Buffer* const cbs[] = { m_cbMaterial.GetComInterface() };
+	ID3D11Buffer* const cbs[] = { m_cbMaterial.Get() };
 
 	// Material 상수버퍼 사용 셰이더
 	constexpr UINT PS_SLOT = 2;

@@ -73,9 +73,9 @@ namespace ze
 		UINT GetBufferWidth() const { return m_bufferWidth; }
 		UINT GetBufferHeight() const { return m_bufferHeight; }
 
-		ID3D11RenderTargetView* GetColorBufferRTVComInterface() const { return m_cpColorBufferRTV.Get(); }
-		ID3D11ShaderResourceView* GetColorBufferSRVComInterface() const { return m_cpColorBufferSRV.Get(); }
-		ID3D11DepthStencilView* GetDepthStencilBufferDSVComInterface() const { return m_cpDepthStencilBufferDSV.Get(); }
+		ID3D11RenderTargetView* GetColorBufferRTV() const { return m_cpColorBufferRTV.Get(); }
+		ID3D11ShaderResourceView* GetColorBufferSRV() const { return m_cpColorBufferSRV.Get(); }
+		ID3D11DepthStencilView* GetDepthStencilBufferDSV() const { return m_cpDepthStencilBufferDSV.Get(); }
 
 		XMMATRIX GetViewMatrix() const { return XMLoadFloat4x4A(&m_viewMatrix); }
 		XMMATRIX GetProjMatrix() const { return XMLoadFloat4x4A(&m_projMatrix); }

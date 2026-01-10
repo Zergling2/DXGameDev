@@ -59,8 +59,8 @@ namespace ze
 			m_cpSRV.Reset();
 		}
 
-		ID3D11Texture2D* GetTex2DComInterface() const { return m_cpTex2D.Get(); }
-		ID3D11ShaderResourceView* GetSRVComInterface() const { return m_cpSRV.Get(); }
+		ID3D11Texture2D* GetTexture2D() const { return m_cpTex2D.Get(); }
+		ID3D11ShaderResourceView* GetSRV() const { return m_cpSRV.Get(); }
 
 		void GetTexture2DDesc(D3D11_TEXTURE2D_DESC* pDesc) { m_cpTex2D->GetDesc(pDesc); }
 		void GetShaderResourceViewDesc(D3D11_SHADER_RESOURCE_VIEW_DESC* pDesc) { m_cpSRV->GetDesc(pDesc); }
@@ -116,7 +116,7 @@ namespace ze
 			Texture2D::Reset();
 		}
 
-		ID3D11RenderTargetView* GetRTVComInterface() const { return m_cpRTV.Get(); }
+		ID3D11RenderTargetView* GetRTV() const { return m_cpRTV.Get(); }
 		void GetRenderTargetViewDesc(D3D11_RENDER_TARGET_VIEW_DESC* pDesc) { m_cpRTV->GetDesc(pDesc); }
 	private:
 		ComPtr<ID3D11RenderTargetView> m_cpRTV;

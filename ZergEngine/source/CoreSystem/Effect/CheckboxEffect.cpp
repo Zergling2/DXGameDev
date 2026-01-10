@@ -20,8 +20,8 @@ void CheckboxEffect::Init()
 	m_pVertexShader = pGraphicDevice->GetVSComInterface(VertexShaderType::ToHcsCheckbox);
 	m_pPixelShader = pGraphicDevice->GetPSComInterface(PixelShaderType::UnlitPC);
 
-	m_cb2DRender.Init(pGraphicDevice->GetDeviceComInterface());
-	m_cbPerCheckbox.Init(pGraphicDevice->GetDeviceComInterface());
+	m_cb2DRender.Init(pGraphicDevice->GetDevice());
+	m_cbPerCheckbox.Init(pGraphicDevice->GetDevice());
 }
 
 void CheckboxEffect::Release()
@@ -127,7 +127,7 @@ void CheckboxEffect::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
 
 void CheckboxEffect::Apply2DRenderConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	ID3D11Buffer* const cbs[] = { m_cb2DRender.GetComInterface() };
+	ID3D11Buffer* const cbs[] = { m_cb2DRender.Get() };
 
 	// 2DRender 상수버퍼 사용 셰이더
 	constexpr UINT VS_SLOT = 0;
@@ -136,7 +136,7 @@ void CheckboxEffect::Apply2DRenderConstantBuffer(ID3D11DeviceContext* pDeviceCon
 
 void CheckboxEffect::ApplyPerCheckboxConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	ID3D11Buffer* const cbs[] = { m_cbPerCheckbox.GetComInterface() };
+	ID3D11Buffer* const cbs[] = { m_cbPerCheckbox.Get() };
 
 	// PerCheckbox 상수버퍼 사용 셰이더
 	constexpr UINT VS_SLOT = 1;

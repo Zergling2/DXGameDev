@@ -72,48 +72,46 @@ namespace ze
 		float GetSwapChainHeightFlt() const { return m_swapChainSizeFlt.y; }
 		float GetSwapChainHalfWidthFlt() const { return m_swapChainHalfSizeFlt.x; }
 		float GetSwapChainHalfHeightFlt() const { return m_swapChainHalfSizeFlt.y; }
-		ID3D11Device* GetDeviceComInterface() const { return m_cpDevice.Get(); }
-		ID3D11DeviceContext* GetImmediateContextComInterface() const { return m_cpImmediateContext.Get(); }
+		ID3D11Device* GetDevice() const { return m_cpDevice.Get(); }
+		ID3D11DeviceContext* GetImmediateContext() const { return m_cpImmediateContext.Get(); }
 
-		IDXGISwapChain* GetSwapChainComInterface() const { return m_cpSwapChain.Get(); }
-		ID3D11RenderTargetView* GetSwapChainRTVComInterface() const { return m_cpSwapChainRTV.Get(); }
-		ID3D11DepthStencilView* GetSwapChainDSVComInterface() const { return m_cpSwapChainDSV.Get(); }
-		ID3D11RenderTargetView* GetSwapChainRTV() const { return m_cpSwapChainRTV.Get(); }
-		ID3D11DepthStencilView* GetSwapChainDSV() const { return m_cpSwapChainDSV.Get(); }
-		ID2D1RenderTarget* GetD2DRenderTarget() const { return m_cpD2DRenderTarget.Get(); }
+		IDXGISwapChain* GetSwapChain() const { return m_cpSwapChain.Get(); }
+		ID3D11RenderTargetView* GetSwapChainRTV() const { return m_cpRTVSwapChain.Get(); }
+		ID3D11DepthStencilView* GetSwapChainDSV() const { return m_cpDSVSwapChain.Get(); }
+		ID2D1RenderTarget* GetSwapChainD2DRT() const { return m_cpD2DRTBackBuffer.Get(); }
 		ID2D1SolidColorBrush* GetD2DSolidColorBrush() const { return m_cpD2DSolidColorBrush.Get(); }
 		std::shared_ptr<DWriteTextFormatWrapper> GetDWriteTextFormatWrapper(const TextFormat& tf);
 
 		// Shaders getter
-		ID3D11VertexShader* GetVSComInterface(VertexShaderType type) { return m_vs[static_cast<size_t>(type)].GetComInterface(); }
-		ID3D11HullShader* GetHSComInterface(HullShaderType type) { return m_hs[static_cast<size_t>(type)].GetComInterface(); }
-		ID3D11DomainShader* GetDSComInterface(DomainShaderType type) { return m_ds[static_cast<size_t>(type)].GetComInterface(); }
-		ID3D11PixelShader* GetPSComInterface(PixelShaderType type) { return m_ps[static_cast<size_t>(type)].GetComInterface(); }
-		ID3D11InputLayout* GetILComInterface(VertexFormatType type) { return m_il[static_cast<size_t>(type)].GetComInterface(); }
+		ID3D11VertexShader* GetVSComInterface(VertexShaderType type) { return m_vs[static_cast<size_t>(type)].Get(); }
+		ID3D11HullShader* GetHSComInterface(HullShaderType type) { return m_hs[static_cast<size_t>(type)].Get(); }
+		ID3D11DomainShader* GetDSComInterface(DomainShaderType type) { return m_ds[static_cast<size_t>(type)].Get(); }
+		ID3D11PixelShader* GetPSComInterface(PixelShaderType type) { return m_ps[static_cast<size_t>(type)].Get(); }
+		ID3D11InputLayout* GetILComInterface(VertexFormatType type) { return m_il[static_cast<size_t>(type)].Get(); }
 		// Render state getter
 		ID3D11RasterizerState* GetRSComInterface(RasterizerMode mode) const
 		{
-			return m_rs[static_cast<size_t>(mode)].GetComInterface();
+			return m_rs[static_cast<size_t>(mode)].Get();
 		}
 		ID3D11SamplerState* GetSSComInterface(TextureFilteringMode mode) const
 		{
-			return m_ss[static_cast<size_t>(mode)].GetComInterface();
+			return m_ss[static_cast<size_t>(mode)].Get();
 		}
 		ID3D11DepthStencilState* GetDSSComInterface(DepthStencilStateType type) const
 		{
-			return m_dss[static_cast<size_t>(type)].GetComInterface();
+			return m_dss[static_cast<size_t>(type)].Get();
 		}
 		ID3D11BlendState* GetBSComInterface(BlendStateType type) const
 		{
-			return m_bs[static_cast<size_t>(type)].GetComInterface();
+			return m_bs[static_cast<size_t>(type)].Get();
 		}
-		// ID3D11Buffer* GetVBShaded2DQuad() const { return m_vbShaded2DQuad.GetComInterface(); }
-		ID3D11Buffer* GetVBCheckbox() const { return m_vbCheckbox.GetComInterface(); }
-		ID3D11Buffer* GetVBPNTTQuad() const { return m_vbPNTTQuad.GetComInterface(); }
-		ID3D11Buffer* GetPLVMeshVB() const { return m_plvMeshVB.GetComInterface(); }
-		ID3D11Buffer* GetPLVMeshIB() const { return m_plvMeshIB.GetComInterface(); }
-		ID3D11Buffer* GetSLVMeshVB() const { return m_slvMeshVB.GetComInterface(); }
-		ID3D11Buffer* GetSLVMeshIB() const { return m_slvMeshIB.GetComInterface(); }
+		// ID3D11Buffer* GetVBShaded2DQuad() const { return m_vbShaded2DQuad.Get(); }
+		ID3D11Buffer* GetVBCheckbox() const { return m_vbCheckbox.Get(); }
+		ID3D11Buffer* GetVBPNTTQuad() const { return m_vbPNTTQuad.Get(); }
+		ID3D11Buffer* GetPLVMeshVB() const { return m_plvMeshVB.Get(); }
+		ID3D11Buffer* GetPLVMeshIB() const { return m_plvMeshIB.Get(); }
+		ID3D11Buffer* GetSLVMeshVB() const { return m_slvMeshVB.Get(); }
+		ID3D11Buffer* GetSLVMeshIB() const { return m_slvMeshIB.Get(); }
 	private:
 		static GraphicDevice* s_pInstance;
 		DXGI_ADAPTER_DESC m_descAdapter;
@@ -129,10 +127,10 @@ namespace ze
 		ComPtr<IDWriteFactory> m_cpDWriteFactory;
 		ComPtr<IDXGISwapChain> m_cpSwapChain;
 		// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
-		ComPtr<ID3D11RenderTargetView> m_cpSwapChainRTV;
-		ComPtr<ID3D11DepthStencilView> m_cpSwapChainDSV;
+		ComPtr<ID3D11RenderTargetView> m_cpRTVSwapChain;
+		ComPtr<ID3D11DepthStencilView> m_cpDSVSwapChain;
 		// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收
-		ComPtr<ID2D1RenderTarget> m_cpD2DRenderTarget;
+		ComPtr<ID2D1RenderTarget> m_cpD2DRTBackBuffer;
 		ComPtr<ID2D1SolidColorBrush> m_cpD2DSolidColorBrush;
 		std::unordered_map<const TextFormat, std::weak_ptr<DWriteTextFormatWrapper>, TextFormatHasher> m_fontMap;
 		// 收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收收

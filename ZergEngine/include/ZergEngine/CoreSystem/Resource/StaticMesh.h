@@ -22,8 +22,8 @@ namespace ze
 		}
 		PCWSTR GetName() const { return m_name.c_str(); }
 		const Aabb& GetAabb() const { return m_aabb; }
-		ID3D11Buffer* GetVBComInterface() const { return m_cpVB.Get(); }
-		ID3D11Buffer* GetIBComInterface() const { return m_cpIB.Get(); }
+		ID3D11Buffer* GetVertexBuffer() const { return m_cpVB.Get(); }
+		ID3D11Buffer* GetIndexBuffer() const { return m_cpIB.Get(); }
 		// VertexFormatType GetVertexFormatType() const { return m_vft; }
 	public:
 		std::vector<MeshSubset> m_subsets;

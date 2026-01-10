@@ -19,8 +19,8 @@ void ShadedEdgeQuadEffect::Init()
 	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::ToHcsPNTTQuadForShadedEdgeQuad);
 	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::ColorShadedEdgeQuad);
 
-	m_cb2DRender.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
-	m_cbPerShadedEdgeQuad.Init(GraphicDevice::GetInstance()->GetDeviceComInterface());
+	m_cb2DRender.Init(GraphicDevice::GetInstance()->GetDevice());
+	m_cbPerShadedEdgeQuad.Init(GraphicDevice::GetInstance()->GetDevice());
 }
 
 void ShadedEdgeQuadEffect::Release()
@@ -127,7 +127,7 @@ void ShadedEdgeQuadEffect::ApplyShader(ID3D11DeviceContext* pDeviceContext) noex
 
 void ShadedEdgeQuadEffect::Apply2DRenderConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	ID3D11Buffer* const cbs[] = { m_cb2DRender.GetComInterface() };
+	ID3D11Buffer* const cbs[] = { m_cb2DRender.Get() };
 
 	// 2DRender 상수버퍼 사용 셰이더
 	constexpr UINT VS_SLOT = 0;
@@ -136,7 +136,7 @@ void ShadedEdgeQuadEffect::Apply2DRenderConstantBuffer(ID3D11DeviceContext* pDev
 
 void ShadedEdgeQuadEffect::ApplyPerShadedEdgeQuadConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	ID3D11Buffer* const cbs[] = { m_cbPerShadedEdgeQuad.GetComInterface() };
+	ID3D11Buffer* const cbs[] = { m_cbPerShadedEdgeQuad.Get() };
 
 	// Per2DQuad 상수버퍼 사용 셰이더
 	constexpr UINT VS_SLOT = 1;

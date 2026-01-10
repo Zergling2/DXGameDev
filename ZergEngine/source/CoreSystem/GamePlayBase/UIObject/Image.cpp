@@ -56,7 +56,7 @@ void Image::OnLButtonClick(POINT pt)
 
 void Image::UpdateToNativeSize()
 {
-	if (m_texture.GetTex2DComInterface())
+	if (m_texture.GetTexture2D())
 	{
 		D3D11_TEXTURE2D_DESC desc;
 		m_texture.GetTexture2DDesc(&desc);

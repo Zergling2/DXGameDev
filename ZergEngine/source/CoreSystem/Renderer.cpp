@@ -160,8 +160,8 @@ void Renderer::Init()
 	m_imageEffect.Init();
 
 	// effect context 준비
-	assert(pGraphicDevice->GetImmediateContextComInterface() != nullptr);
-	m_effectImmediateContext.AttachDeviceContext(pGraphicDevice->GetImmediateContextComInterface());
+	assert(pGraphicDevice->GetImmediateContext() != nullptr);
+	m_effectImmediateContext.AttachDeviceContext(pGraphicDevice->GetImmediateContext());
 }
 
 void Renderer::UnInit()
@@ -188,7 +188,7 @@ void Renderer::UnInit()
 
 void Renderer::RenderFrame()
 {
-	ID3D11DeviceContext* pImmContext = m_effectImmediateContext.GetDeviceContextComInterface();
+	ID3D11DeviceContext* pImmContext = m_effectImmediateContext.GetDeviceContext();
 
 	ID3D11SamplerState* const ssArr[] =
 	{
@@ -372,7 +372,7 @@ void Renderer::RenderFrame()
 
 
 		// 버퍼 재생성 필요시 생성
-		if (pCamera->GetColorBufferRTVComInterface() == nullptr)
+		if (pCamera->GetColorBufferRTV() == nullptr)
 			if (!pCamera->CreateViews())
 				continue;
 
@@ -494,7 +494,7 @@ void Renderer::RenderFrame()
 		}
 
 		// <스카이박스 렌더링>
-		ID3D11ShaderResourceView* pSkyboxCubeMap = RenderSettings::GetInstance()->m_skyboxCubeMap.GetSRVComInterface();
+		ID3D11ShaderResourceView* pSkyboxCubeMap = RenderSettings::GetInstance()->m_skyboxCubeMap.GetSRV();
 		if (pSkyboxCubeMap)
 		{
 			pImmContext->OMSetDepthStencilState(m_pDSSSkybox, 0);
@@ -619,12 +619,12 @@ void Renderer::RenderFrame()
 	// 전체 백버퍼에 대한 뷰포트 설정
 	pImmContext->RSSetViewports(1, &GraphicDevice::GetInstance()->GetEntireSwapChainViewport());
 	// 렌더타겟 바인딩
-	ID3D11RenderTargetView* pColorBufferRTV = GraphicDevice::GetInstance()->GetSwapChainRTVComInterface();
-	ID3D11DepthStencilView* pDepthStencilBufferDSV = GraphicDevice::GetInstance()->GetSwapChainDSVComInterface();
-	pImmContext->ClearRenderTargetView(pColorBufferRTV, DirectX::ColorsLinear::Blue);
-	pImmContext->ClearDepthStencilView(pDepthStencilBufferDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-	ID3D11RenderTargetView* const rtvs[] = { pColorBufferRTV };
-	pImmContext->OMSetRenderTargets(_countof(rtvs), rtvs, pDepthStencilBufferDSV);
+	ID3D11RenderTargetView* pSwapChainRTV = GraphicDevice::GetInstance()->GetSwapChainRTV();
+	ID3D11DepthStencilView* pSwapChainDSV = GraphicDevice::GetInstance()->GetSwapChainDSV();
+	pImmContext->ClearRenderTargetView(pSwapChainRTV, DirectX::ColorsLinear::Blue);
+	pImmContext->ClearDepthStencilView(pSwapChainDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+	ID3D11RenderTargetView* const rtvs[] = { pSwapChainRTV };
+	pImmContext->OMSetRenderTargets(_countof(rtvs), rtvs, pSwapChainDSV);
 	
 	for (const IComponent* pComponent : CameraManager::GetInstance()->m_directAccessGroup)
 	{
@@ -640,7 +640,7 @@ void Renderer::RenderFrame()
 				pCamera->m_viewportRect.m_x,
 				pCamera->m_viewportRect.m_y
 			);
-			m_drawScreenQuadMSTex.SetTexture(pCamera->GetColorBufferSRVComInterface());
+			m_drawScreenQuadMSTex.SetTexture(pCamera->GetColorBufferSRV());
 
 			m_effectImmediateContext.Apply(&m_drawScreenQuadMSTex);
 			m_effectImmediateContext.Draw(TRIANGLESTRIP_QUAD_VERTEX_COUNT, 0);
@@ -653,7 +653,7 @@ void Renderer::RenderFrame()
 				pCamera->m_viewportRect.m_x,
 				pCamera->m_viewportRect.m_y
 			);
-			m_drawScreenQuadTex.SetTexture(pCamera->GetColorBufferSRVComInterface());
+			m_drawScreenQuadTex.SetTexture(pCamera->GetColorBufferSRV());
 
 			m_effectImmediateContext.Apply(&m_drawScreenQuadTex);
 			m_effectImmediateContext.Draw(TRIANGLESTRIP_QUAD_VERTEX_COUNT, 0);
@@ -663,7 +663,7 @@ void Renderer::RenderFrame()
 	{
 		// 단일 카메라 사용하는 씬에서 다음 프레임에 동일 카메라 버퍼가 Input/Output으로 동시에 바인딩 되는것을 방지
 		ID3D11ShaderResourceView* srvs[] = { nullptr };
-		m_effectImmediateContext.GetDeviceContextComInterface()->PSSetShaderResources(0, 1, srvs);
+		m_effectImmediateContext.GetDeviceContext()->PSSetShaderResources(0, 1, srvs);
 	}
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -691,7 +691,7 @@ void Renderer::RenderFrame()
 		m_imageEffect.SetScreenToNDCSpaceRatio(screenToNDCSpaceRatio);
 		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-		ID2D1RenderTarget* pD2DRenderTarget = GraphicDevice::GetInstance()->GetD2DRenderTarget();
+		ID2D1RenderTarget* pD2DRenderTarget = GraphicDevice::GetInstance()->GetSwapChainD2DRT();
 		ID2D1SolidColorBrush* pBrush = GraphicDevice::GetInstance()->GetD2DSolidColorBrush();
 		// 모든 루트 UI오브젝트들부터 순회하며 자식 UI까지 렌더링
 		for (const IUIObject* pRootUIObject : UIObjectManager::GetInstance()->m_roots)
@@ -759,7 +759,7 @@ void Renderer::RenderFrame()
 		}
 	}
 
-	HRESULT hr = GraphicDevice::GetInstance()->GetSwapChainComInterface()->Present(1, 0);
+	HRESULT hr = GraphicDevice::GetInstance()->GetSwapChain()->Present(1, 0);
 }
 
 /*
@@ -776,11 +776,11 @@ void XM_CALLCONV Renderer::RenderVFPositionMesh(const MeshRenderer* pMeshRendere
 	// 버텍스 버퍼 설정
 	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(VertexFormatType::Position) };
 	const UINT offsets[] = { 0 };
-	ID3D11Buffer* const vbs[] = { pMesh->GetVBComInterface() };
+	ID3D11Buffer* const vbs[] = { pMesh->GetVertexBuffer() };
 	m_effectImmediateContext.IASetVertexBuffers(0, _countof(vbs), vbs, strides, offsets);
 
 	// 인덱스 버퍼 설정
-	m_effectImmediateContext.IASetIndexBuffer(pMesh->GetIBComInterface(), DXGI_FORMAT_R32_UINT, 0);
+	m_effectImmediateContext.IASetIndexBuffer(pMesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 
 	// 서브셋 순회 시 변경되는 사항이 없으므로 루프 밖에서 Apply 한 번만 호출
 	m_effectImmediateContext.Apply(&m_basicEffectP);
@@ -808,11 +808,11 @@ void XM_CALLCONV Renderer::RenderVFPositionColorMesh(const MeshRenderer* pMeshRe
 	// 버텍스 버퍼 설정
 	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(VertexFormatType::PositionColor) };
 	const UINT offsets[] = { 0 };
-	ID3D11Buffer* const vbs[] = { pMesh->GetVBComInterface() };
+	ID3D11Buffer* const vbs[] = { pMesh->GetVertexBuffer() };
 	m_effectImmediateContext.IASetVertexBuffers(0, _countof(vbs), vbs, strides, offsets);
 
 	// 인덱스 버퍼 설정
-	m_effectImmediateContext.IASetIndexBuffer(pMesh->GetIBComInterface(), DXGI_FORMAT_R32_UINT, 0);
+	m_effectImmediateContext.IASetIndexBuffer(pMesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 
 	// 서브셋 순회 시 변경되는 사항이 없으므로 루프 밖에서 Apply 한 번만 호출
 	m_effectImmediateContext.Apply(&m_basicEffectPC);
@@ -840,11 +840,11 @@ void XM_CALLCONV Renderer::RenderVFPositionNormalMesh(const MeshRenderer* pMeshR
 	// 버텍스 버퍼 설정
 	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(VertexFormatType::PositionNormal) };
 	const UINT offsets[] = { 0 };
-	ID3D11Buffer* const vbs[] = { pMesh->GetVBComInterface() };
+	ID3D11Buffer* const vbs[] = { pMesh->GetVertexBuffer() };
 	m_effectImmediateContext.IASetVertexBuffers(0, _countof(vbs), vbs, strides, offsets);
 
 	// 인덱스 버퍼 설정
-	m_effectImmediateContext.IASetIndexBuffer(pMesh->GetIBComInterface(), DXGI_FORMAT_R32_UINT, 0);
+	m_effectImmediateContext.IASetIndexBuffer(pMesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 
 	// 서브셋들 순회하며 렌더링
 	assert(pMesh->m_subsets.size() == pMeshRenderer->GetMeshPtr()->m_subsets.size());
@@ -886,11 +886,11 @@ void XM_CALLCONV Renderer::RenderVFPositionTexCoordMesh(const MeshRenderer* pMes
 	// 버텍스 버퍼 설정
 	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(VertexFormatType::PositionTexCoord) };
 	const UINT offsets[] = { 0 };
-	ID3D11Buffer* const vbs[] = { pMesh->GetVBComInterface() };
+	ID3D11Buffer* const vbs[] = { pMesh->GetVertexBuffer() };
 	m_effectImmediateContext.IASetVertexBuffers(0, _countof(vbs), vbs, strides, offsets);
 
 	// 인덱스 버퍼 설정
-	m_effectImmediateContext.IASetIndexBuffer(pMesh->GetIBComInterface(), DXGI_FORMAT_R32_UINT, 0);
+	m_effectImmediateContext.IASetIndexBuffer(pMesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 
 	// 서브셋들 순회하며 렌더링
 	assert(pMesh->m_subsets.size() == pMeshRenderer->GetMeshPtr()->m_subsets.size());
@@ -900,7 +900,7 @@ void XM_CALLCONV Renderer::RenderVFPositionTexCoordMesh(const MeshRenderer* pMes
 		const MeshSubset& currentSubset = pMesh->m_subsets[i];
 		const Material* pMaterial = pMeshRenderer->GetMaterialPtr(i);
 		if (pMaterial != nullptr)
-			m_basicEffectPT.SetTexture(pMaterial->m_diffuseMap.GetSRVComInterface());
+			m_basicEffectPT.SetTexture(pMaterial->m_diffuseMap.GetSRV());
 		else
 			m_basicEffectPT.SetTexture(nullptr);
 
@@ -926,11 +926,11 @@ void XM_CALLCONV Renderer::RenderVFPositionNormalTexCoordMesh(const MeshRenderer
 	// 버텍스 버퍼 설정
 	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(VertexFormatType::PositionNormalTexCoord) };
 	const UINT offsets[] = { 0 };
-	ID3D11Buffer* const vbs[] = { pMesh->GetVBComInterface() };
+	ID3D11Buffer* const vbs[] = { pMesh->GetVertexBuffer() };
 	m_effectImmediateContext.IASetVertexBuffers(0, _countof(vbs), vbs, strides, offsets);
 
 	// 인덱스 버퍼 설정
-	m_effectImmediateContext.IASetIndexBuffer(pMesh->GetIBComInterface(), DXGI_FORMAT_R32_UINT, 0);
+	m_effectImmediateContext.IASetIndexBuffer(pMesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 
 	// 서브셋들 순회하며 렌더링
 	assert(pMesh->m_subsets.size() == pMeshRenderer->GetMeshPtr()->m_subsets.size());
@@ -944,8 +944,8 @@ void XM_CALLCONV Renderer::RenderVFPositionNormalTexCoordMesh(const MeshRenderer
 			m_basicEffectPNT.UseMaterial(true);
 			m_basicEffectPNT.SetDiffuseColor(XMLoadFloat4A(&pMaterial->m_diffuse));
 			m_basicEffectPNT.SetSpecularColor(XMLoadFloat4A(&pMaterial->m_specular));
-			m_basicEffectPNT.SetDiffuseMap(pMaterial->m_diffuseMap.GetSRVComInterface());
-			m_basicEffectPNT.SetSpecularMap(pMaterial->m_specularMap.GetSRVComInterface());
+			m_basicEffectPNT.SetDiffuseMap(pMaterial->m_diffuseMap.GetSRV());
+			m_basicEffectPNT.SetSpecularMap(pMaterial->m_specularMap.GetSRV());
 		}
 		else
 		{
@@ -973,11 +973,11 @@ void XM_CALLCONV Renderer::RenderPNTTMesh(const MeshRenderer* pMeshRenderer, FXM
 	// 버텍스 버퍼 설정
 	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(VertexFormatType::PositionNormalTangentTexCoord) };
 	const UINT offsets[] = { 0 };
-	ID3D11Buffer* const vbs[] = { pMesh->GetVBComInterface() };
+	ID3D11Buffer* const vbs[] = { pMesh->GetVertexBuffer() };
 	m_effectImmediateContext.IASetVertexBuffers(0, _countof(vbs), vbs, strides, offsets);
 
 	// 인덱스 버퍼 설정
-	m_effectImmediateContext.IASetIndexBuffer(pMesh->GetIBComInterface(), DXGI_FORMAT_R32_UINT, 0);
+	m_effectImmediateContext.IASetIndexBuffer(pMesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 
 	// 서브셋들 순회하며 렌더링
 	assert(pMesh->m_subsets.size() == pMeshRenderer->GetMeshPtr()->m_subsets.size());
@@ -1029,11 +1029,11 @@ void XM_CALLCONV Renderer::RenderPNTTSkinnedMesh(const SkinnedMeshRenderer* pSki
 	// 버텍스 버퍼 설정
 	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(VertexFormatType::PositionNormalTangentTexCoordSkinned) };
 	const UINT offsets[] = { 0 };
-	ID3D11Buffer* const vbs[] = { pMesh->GetVBComInterface() };
+	ID3D11Buffer* const vbs[] = { pMesh->GetVertexBuffer() };
 	m_effectImmediateContext.IASetVertexBuffers(0, _countof(vbs), vbs, strides, offsets);
 
 	// 인덱스 버퍼 설정
-	m_effectImmediateContext.IASetIndexBuffer(pMesh->GetIBComInterface(), DXGI_FORMAT_R32_UINT, 0);
+	m_effectImmediateContext.IASetIndexBuffer(pMesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 
 	// 서브셋들 순회하며 렌더링
 	assert(pMesh->m_subsets.size() == pSkinnedMeshRenderer->GetMeshPtr()->m_subsets.size());
@@ -1055,21 +1055,21 @@ void Renderer::RenderTerrain(const Terrain* pTerrain)
 {
 	m_terrainEffect.SetMaxHeight(pTerrain->GetMaxHeight());
 	m_terrainEffect.SetTilingScale(pTerrain->GetTilingScale());
-	m_terrainEffect.SetFieldMap(pTerrain->m_heightMap.GetSRVComInterface(), pTerrain->m_normalMap.GetSRVComInterface());
+	m_terrainEffect.SetFieldMap(pTerrain->m_heightMap.GetSRV(), pTerrain->m_normalMap.GetSRV());
 	m_terrainEffect.SetLayerTexture(
-		pTerrain->m_diffuseMapLayer.GetSRVComInterface(),
-		pTerrain->m_normalMapLayer.GetSRVComInterface(),
-		pTerrain->m_blendMap.GetSRVComInterface()
+		pTerrain->m_diffuseMapLayer.GetSRV(),
+		pTerrain->m_normalMapLayer.GetSRV(),
+		pTerrain->m_blendMap.GetSRV()
 	);
 
 	// 버텍스 버퍼 설정
 	const UINT strides[] = { InputLayoutHelper::GetStructureByteStride(VertexFormatType::TerrainPatchCtrlPt) };
 	const UINT offsets[] = { 0 };
-	ID3D11Buffer* const vbs[] = { pTerrain->GetPatchControlPointBufferComInterface() };
+	ID3D11Buffer* const vbs[] = { pTerrain->GetPatchControlPointVertexBuffer() };
 	m_effectImmediateContext.IASetVertexBuffers(0, _countof(vbs), vbs, strides, offsets);
 
 	// 인덱스 버퍼 설정
-	m_effectImmediateContext.IASetIndexBuffer(pTerrain->GetPatchControlPointIndexBufferComInterface(), DXGI_FORMAT_R32_UINT, 0);
+	m_effectImmediateContext.IASetIndexBuffer(pTerrain->GetPatchControlPointIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 
 	m_effectImmediateContext.Apply(&m_terrainEffect);
 	m_effectImmediateContext.DrawIndexed(pTerrain->GetPatchControlPointIndexCount(), 0, 0);
@@ -1165,7 +1165,7 @@ void Renderer::RenderText(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColorBr
 	if (textLength == 0)
 		return;
 
-	IDWriteTextFormat* pDWriteTextFormat = pText->GetDWriteTextFormatComInterface();
+	IDWriteTextFormat* pDWriteTextFormat = pText->GetDWriteTextFormat();
 	pDWriteTextFormat->SetTextAlignment(pText->GetTextAlignment());
 	pDWriteTextFormat->SetParagraphAlignment(pText->GetParagraphAlignment());
 	pBrush->SetColor(reinterpret_cast<const D2D1_COLOR_F&>(pText->GetColor()));
@@ -1220,7 +1220,7 @@ void Renderer::RenderButton(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColor
 	if (textLength == 0)
 		return;
 
-	IDWriteTextFormat* pDWriteTextFormat = pButton->GetDWriteTextFormatComInterface();
+	IDWriteTextFormat* pDWriteTextFormat = pButton->GetDWriteTextFormat();
 	pDWriteTextFormat->SetTextAlignment(pButton->GetTextAlignment());
 	pDWriteTextFormat->SetParagraphAlignment(pButton->GetParagraphAlignment());
 	pBrush->SetColor(reinterpret_cast<const D2D1_COLOR_F&>(pButton->GetTextColor()));
@@ -1310,7 +1310,7 @@ void Renderer::RenderInputField(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidC
 		layout.rect.left += 2.0f;
 		layout.rect.right -= 2.0f;
 
-		IDWriteTextFormat* pDWriteTextFormat = pInputField->GetDWriteTextFormatComInterface();
+		IDWriteTextFormat* pDWriteTextFormat = pInputField->GetDWriteTextFormat();
 
 		pBrush->SetColor(reinterpret_cast<const D2D1_COLOR_F&>(pInputField->GetTextColor()));
 		pDWriteTextFormat->SetTextAlignment(pInputField->GetTextAlignment());
@@ -1414,7 +1414,7 @@ void Renderer::RenderCheckbox(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidCol
 	if (textLength == 0)
 		return;
 
-	IDWriteTextFormat* pDWriteTextFormat = pCheckbox->GetDWriteTextFormatComInterface();
+	IDWriteTextFormat* pDWriteTextFormat = pCheckbox->GetDWriteTextFormat();
 	pDWriteTextFormat->SetTextAlignment(pCheckbox->GetTextAlignment());
 	pDWriteTextFormat->SetParagraphAlignment(pCheckbox->GetParagraphAlignment());
 	pBrush->SetColor(reinterpret_cast<const D2D1_COLOR_F&>(pCheckbox->GetTextColor()));
@@ -1485,7 +1485,7 @@ void Renderer::RenderRadioButton(ID2D1RenderTarget* pD2DRenderTarget, ID2D1Solid
 	if (textLength == 0)
 		return;
 
-	IDWriteTextFormat* pDWriteTextFormat = pRadioButton->GetDWriteTextFormatComInterface();
+	IDWriteTextFormat* pDWriteTextFormat = pRadioButton->GetDWriteTextFormat();
 	pDWriteTextFormat->SetTextAlignment(pRadioButton->GetTextAlignment());
 	pDWriteTextFormat->SetParagraphAlignment(pRadioButton->GetParagraphAlignment());
 	pBrush->SetColor(reinterpret_cast<const D2D1_COLOR_F&>(pRadioButton->GetTextColor()));
@@ -1525,7 +1525,7 @@ void Renderer::RenderDebugInfo()
 
 	// 래스터라이저 디스크립터에서
 	// 뎁스 바이어스 및 슬로프 스케일드 뎁스 바이어스 등 설정한거 사용해야함.
-	ID3D11DeviceContext* pImmContext = m_effectImmediateContext.GetDeviceContextComInterface();
+	ID3D11DeviceContext* pImmContext = m_effectImmediateContext.GetDeviceContext();
 
 	// 변경할 파이프라인 상태 백업
 	ComPtr<ID3D11RasterizerState> cpOldRS;

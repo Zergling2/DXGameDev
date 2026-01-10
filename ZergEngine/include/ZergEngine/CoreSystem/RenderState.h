@@ -12,7 +12,7 @@ namespace ze
 		void Init(ID3D11Device* pDevice, const D3D11_RASTERIZER_DESC* pDesc);
 		void Release();
 
-		ID3D11RasterizerState* GetComInterface() const { return m_cpState.Get(); }
+		ID3D11RasterizerState* Get() const { return m_cpState.Get(); }
 	private:
 		ComPtr<ID3D11RasterizerState> m_cpState;
 	};
@@ -26,7 +26,7 @@ namespace ze
 		void Init(ID3D11Device* pDevice, const D3D11_SAMPLER_DESC* pDesc);
 		void Release();
 
-		ID3D11SamplerState* GetComInterface() const { return m_cpState.Get(); }
+		ID3D11SamplerState* Get() const { return m_cpState.Get(); }
 	private:
 		ComPtr<ID3D11SamplerState> m_cpState;
 	};
@@ -61,7 +61,7 @@ namespace ze
 		void Init(ID3D11Device* pDevice, const D3D11_DEPTH_STENCIL_DESC* pDesc);
 		void Release();
 
-		ID3D11DepthStencilState* GetComInterface() const { return m_cpState.Get(); }
+		ID3D11DepthStencilState* Get() const { return m_cpState.Get(); }
 	private:
 		ComPtr<ID3D11DepthStencilState> m_cpState;
 	};
@@ -88,7 +88,7 @@ namespace ze
 		void Init(ID3D11Device* pDevice, const D3D11_BLEND_DESC* pDesc);
 		void Release();
 
-		ID3D11BlendState* GetComInterface() const { return m_cpState.Get(); }
+		ID3D11BlendState* Get() const { return m_cpState.Get(); }
 	private:
 		ComPtr<ID3D11BlendState> m_cpState;
 	};
