@@ -39,7 +39,7 @@ void SceneManager::Init(PCWSTR startScene)
 	this->LoadScene(startScene);
 }
 
-void SceneManager::UnInit()
+void SceneManager::Shutdown()
 {
 	// safe cleanup...
 	Helper::SafeDelete(m_pNextScene);

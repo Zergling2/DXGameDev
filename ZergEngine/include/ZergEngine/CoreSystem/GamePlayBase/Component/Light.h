@@ -10,7 +10,7 @@ namespace ze
 	public:
 		static constexpr bool IsCreatable() { return true; }
 
-		ILight(uint64_t id);
+		ILight(GameObject& owner, uint64_t id);
 		virtual ~ILight() = default;
 	public:
 		XMFLOAT4A m_diffuse;
@@ -24,7 +24,7 @@ namespace ze
 		static constexpr ComponentType TYPE = ComponentType::DirectionalLight;
 		static constexpr bool IsCreatable() { return ILight::IsCreatable(); }
 
-		DirectionalLight();
+		DirectionalLight(GameObject& owner);
 		virtual ~DirectionalLight() = default;
 		virtual ComponentType GetType() const override { return ComponentType::DirectionalLight; }
 	private:
@@ -37,7 +37,7 @@ namespace ze
 		static constexpr ComponentType TYPE = ComponentType::PointLight;
 		static constexpr bool IsCreatable() { return ILight::IsCreatable(); }
 
-		PointLight();
+		PointLight(GameObject& owner);
 		virtual ~PointLight() = default;
 		virtual ComponentType GetType() const override { return ComponentType::PointLight; }
 
@@ -68,7 +68,7 @@ namespace ze
 		static constexpr ComponentType TYPE = ComponentType::SpotLight;
 		static constexpr bool IsCreatable() { return ILight::IsCreatable(); }
 
-		SpotLight();
+		SpotLight(GameObject& owner);
 		virtual ~SpotLight() = default;
 		virtual ComponentType GetType() const override { return ComponentType::SpotLight; }
 

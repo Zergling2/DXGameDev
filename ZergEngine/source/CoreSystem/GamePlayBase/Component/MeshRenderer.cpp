@@ -4,8 +4,8 @@
 
 using namespace ze;
 
-MeshRenderer::MeshRenderer() noexcept
-	: IComponent(MeshRendererManager::GetInstance()->AssignUniqueId())
+MeshRenderer::MeshRenderer(GameObject& owner) noexcept
+	: IComponent(owner, MeshRendererManager::GetInstance()->AssignUniqueId())
 	, m_spMesh()
 	, m_materials()
 	, m_castShadows(false)

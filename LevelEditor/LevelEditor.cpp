@@ -217,7 +217,7 @@ BOOL CLevelEditorApp::InitInstance()
 int CLevelEditorApp::ExitInstance()
 {
 	// TODO: Add your specialized code here and/or call the base class
-	ze::Runtime::GetInstance()->UnInit();
+	ze::Runtime::GetInstance()->Release();
 	ze::Runtime::GetInstance()->DestroyInstance();
 
 	return CWinApp::ExitInstance();

@@ -9,7 +9,7 @@ IUIObject::IUIObject(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name)
 	: m_transform(this)
 	, m_id(id)
 	, m_tableIndex((std::numeric_limits<uint32_t>::max)())
-	, m_groupIndex((std::numeric_limits<uint32_t>::max)())
+	, m_actInactGroupIndex((std::numeric_limits<uint32_t>::max)())
 	, m_flag(flag)
 {
 	StringCbCopyW(m_name, sizeof(m_name), name);
@@ -35,7 +35,22 @@ void IUIObject::SetActive(bool active)
 	for (RectTransform* pChildTransform : m_transform.m_children)
 		pChildTransform->m_pUIObject->SetActive(active);
 
-	UIObjectManager::GetInstance()->SetActive(this, active);
+	// 이미 해당 활성 상태가 설정되어 있는 경우 함수 리턴
+	if (this->IsActive() == active)
+		return;
+
+	if (active)
+		this->OnFlag(UIOBJECT_FLAG::ACTIVE);
+	else
+		this->OffFlag(UIOBJECT_FLAG::ACTIVE);
+
+	if (this->IsPending())	// 지연 오브젝트인 경우 플래그만 설정하고 리턴
+		return;
+
+	if (active)
+		this->OnActivationSysJob();
+	else
+		this->OnDeactivationSysJob();
 }
 
 const UIObjectHandle IUIObject::ToHandle() const
@@ -43,6 +58,31 @@ const UIObjectHandle IUIObject::ToHandle() const
 	assert(UIObjectManager::GetInstance()->m_handleTable[m_tableIndex] == this);
 
 	return UIObjectHandle(m_tableIndex, m_id);
+}
+
+void IUIObject::OnDeploySysJob()
+{
+	assert(this->IsPending());
+
+	this->OffFlag(UIOBJECT_FLAG::PENDING);	// 중요!
+
+	if (m_transform.GetParent() == nullptr)
+		UIObjectManager::GetInstance()->AddToRootArray(this);
+
+	if (this->IsActive())
+		UIObjectManager::GetInstance()->AddToActiveGroup(this);
+	else
+		UIObjectManager::GetInstance()->AddToInactiveGroup(this);
+}
+
+void IUIObject::OnActivationSysJob()
+{
+	UIObjectManager::GetInstance()->MoveToActiveGroup(this);
+}
+
+void IUIObject::OnDeactivationSysJob()
+{
+	UIObjectManager::GetInstance()->MoveToInactiveGroup(this);
 }
 
 constexpr float UI_SIZE_DEFAULT = 16.0f;

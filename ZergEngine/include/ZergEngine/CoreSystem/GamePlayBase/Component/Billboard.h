@@ -30,7 +30,7 @@ namespace ze
 		static constexpr ComponentType TYPE = ComponentType::Billboard;
 		static constexpr bool IsCreatable() { return true; }
 
-		Billboard() noexcept;
+		Billboard(GameObject& owner) noexcept;
 		virtual ~Billboard() = default;
 
 		virtual ComponentType GetType() const override { return ComponentType::Billboard; }

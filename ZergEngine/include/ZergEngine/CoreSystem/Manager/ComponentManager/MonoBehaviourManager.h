@@ -10,7 +10,6 @@ namespace ze
 	{
 		friend class Runtime;
 		friend class MonoBehaviour;
-		friend class GameObject;
 	public:
 		static MonoBehaviourManager* GetInstance() { return s_pInstance; }
 	private:
@@ -20,10 +19,7 @@ namespace ze
 		static void CreateInstance();
 		static void DestroyInstance();
 
-		void RequestEnable(MonoBehaviour* pMonoBehaviour);
-		void RequestDisable(MonoBehaviour* pMonoBehaviour);
-
-		virtual void Deploy(IComponent* pComponent) override;
+		void AddToAwakeQueue(MonoBehaviour* pMonoBehaviour);
 		void AddToStartQueue(MonoBehaviour* pMonoBehaviour);
 		void AwakeDeployedComponents();
 		void CallStart();
@@ -34,7 +30,6 @@ namespace ze
 		virtual void RemoveDestroyedComponents() override;
 	protected:
 		static MonoBehaviourManager* s_pInstance;
-
 		std::vector<MonoBehaviour*> m_awakeQueue;
 		std::vector<MonoBehaviour*> m_startQueue;
 	};

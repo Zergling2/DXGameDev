@@ -17,7 +17,7 @@ namespace ze
 		static void DestroyInstance();
 
 		void Init();
-		void UnInit();
+		void Shutdown();
 	public:
 		PCWSTR GetAppPath() { return m_appPath; }
 		PCWSTR GetAppFolderPath() { return m_appFolderPath; }

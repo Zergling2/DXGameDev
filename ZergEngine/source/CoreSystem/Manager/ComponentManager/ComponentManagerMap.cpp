@@ -7,9 +7,8 @@
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\PointLightManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\SpotLightManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\MonoBehaviourManager.h>
-// #include <ZergEngine\CoreSystem\Manager\ComponentManager\RigidbodyManager.h>
-// #include <ZergEngine\CoreSystem\Manager\ComponentManager\BoxColliderManager.h>
-// #include <ZergEngine\CoreSystem\Manager\ComponentManager\MeshColliderManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\RigidbodyManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\CollisionTriggerManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\TerrainManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\AudioSourceManager.h>
 
@@ -47,20 +46,10 @@ IComponentManager* ComponentManagerMap::GetManager(ComponentType type)
 		pComponentManager = MonoBehaviourManager::GetInstance();
 		break;
 	case ComponentType::Rigidbody:
-		// pComponentManager = RigidbodyManager::GetInstance();
-		pComponentManager = nullptr;
+		pComponentManager = RigidbodyManager::GetInstance();
 		break;
-	case ComponentType::BoxCollider:
-		// pComponentManager = BoxColliderManager::GetInstance();
-		pComponentManager = nullptr;
-		break;
-	case ComponentType::SphereCollider:
-		// pComponentManager = SphereColliderManager::GetInstance();
-		pComponentManager = nullptr;
-		break;
-	case ComponentType::MeshCollider:
-		// pComponentManager = MeshColliderManager::GetInstance();
-		pComponentManager = nullptr;
+	case ComponentType::CollisionTrigger:
+		pComponentManager = CollisionTriggerManager::GetInstance();
 		break;
 	case ComponentType::Terrain:
 		pComponentManager = TerrainManager::GetInstance();

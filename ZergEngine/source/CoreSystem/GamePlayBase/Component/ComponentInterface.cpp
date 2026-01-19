@@ -5,8 +5,8 @@
 
 using namespace ze;
 
-IComponent::IComponent(uint64_t id) noexcept
-	: m_pGameObject(nullptr)
+IComponent::IComponent(GameObject& owner, uint64_t id) noexcept
+	: m_pGameObject(&owner)
 	, m_id(id)
 	, m_tableIndex((std::numeric_limits<uint32_t>::max)())
 	, m_groupIndex((std::numeric_limits<uint32_t>::max)())
@@ -20,6 +20,12 @@ void IComponent::Enable()
 		return;
 
 	this->OnFlag(ComponentFlag::Enabled);
+
+	// 지연 오브젝트의 컴포넌트인 경우 플래그만 설정하고 빠지기
+	if (m_pGameObject->IsPending())
+		return;
+
+	this->OnEnableSysJob();
 }
 
 void IComponent::Disable()
@@ -28,6 +34,12 @@ void IComponent::Disable()
 		return;
 
 	this->OffFlag(ComponentFlag::Enabled);
+
+	// 지연 오브젝트의 컴포넌트인 경우 플래그만 설정하고 빠지기
+	if (m_pGameObject->IsPending())
+		return;
+
+	this->OnDisableSysJob();
 }
 
 const GameObjectHandle IComponent::GetGameObjectHandle() const
@@ -47,6 +59,19 @@ void IComponent::Destroy()
 
 	IComponentManager* pComponentManager = this->GetComponentManager();
 	pComponentManager->RequestDestroy(this);
+}
+
+void IComponent::OnDeploySysJob()
+{
+	this->GetComponentManager()->AddToDirectAccessGroup(this);
+}
+
+void IComponent::OnEnableSysJob()
+{
+}
+
+void IComponent::OnDisableSysJob()
+{
 }
 
 const ComponentHandleBase IComponent::ToHandle() const

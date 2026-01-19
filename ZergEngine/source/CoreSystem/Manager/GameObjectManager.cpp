@@ -49,21 +49,13 @@ void GameObjectManager::Init()
 		m_emptyHandleTableIndex.push_back(static_cast<uint32_t>(handleTableEndIndex - i));
 }
 
-void GameObjectManager::UnInit()
+void GameObjectManager::Shutdown()
 {
 	// 런타임에서 미리 모두 해제시켰어야 하므로
 	assert(m_activeGroup.size() == 0);
 	assert(m_inactiveGroup.size() == 0);
 
 	m_handleTable.clear();
-}
-
-void GameObjectManager::Deploy(GameObject* pGameObject)
-{
-	// 중요 (플래그 제거)
-	pGameObject->OffFlag(GAMEOBJECT_FLAG::PENDING);
-
-	pGameObject->IsActive() ? this->AddToActiveGroup(pGameObject) : this->AddToInactiveGroup(pGameObject);
 }
 
 GameObjectHandle GameObjectManager::FindGameObject(PCWSTR name)
@@ -144,7 +136,7 @@ GameObject* GameObjectManager::ToPtr(uint32_t tableIndex, uint64_t id) const
 GameObjectHandle GameObjectManager::RegisterToHandleTable(GameObject* pGameObject)
 {
 	assert(pGameObject->m_tableIndex == (std::numeric_limits<uint32_t>::max)());
-	assert(pGameObject->m_groupIndex == (std::numeric_limits<uint32_t>::max)());
+	assert(pGameObject->m_actInactGroupIndex == (std::numeric_limits<uint32_t>::max)());
 
 	GameObjectHandle hGameObject;
 
@@ -188,74 +180,44 @@ void GameObjectManager::AddToDestroyQueue(GameObject* pGameObject)
 
 void GameObjectManager::MoveToActiveGroup(GameObject* pGameObject)
 {
-	assert(!pGameObject->IsPending());	// 비-지연 상태였어야 한다.
-	assert(!pGameObject->IsActive());	// Inactive 상태였어야 한다.
-
-	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	// 1. Inactive group에서 제거
-	this->RemoveFromGroup(pGameObject);
-	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+	this->RemoveFromInactiveGroup(pGameObject);
 
-
-	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	// 2. Active group에 추가
 	this->AddToActiveGroup(pGameObject);
-	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 }
 
 void GameObjectManager::MoveToInactiveGroup(GameObject* pGameObject)
 {
-	assert(!pGameObject->IsPending());	// 비-지연 상태였어야 한다.
-	assert(pGameObject->IsActive());	// Active 상태였어야 한다.
-
-	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	// 1. Active group에서 제거
-	this->RemoveFromGroup(pGameObject);
-	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+	this->RemoveFromActiveGroup(pGameObject);
 
-
-	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	// 2. Inactive group에 추가
 	this->AddToInactiveGroup(pGameObject);
-	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 }
 
 void GameObjectManager::AddToActiveGroup(GameObject* pGameObject)
 {
-	m_activeGroup.push_back(pGameObject);
-	pGameObject->m_groupIndex = static_cast<uint32_t>(m_activeGroup.size() - 1);
+	assert(pGameObject->IsActive());
+
+	this->AddToActInactGroupImpl(pGameObject, m_activeGroup);
 }
 
 void GameObjectManager::AddToInactiveGroup(GameObject* pGameObject)
 {
-	m_inactiveGroup.push_back(pGameObject);
-	pGameObject->m_groupIndex = static_cast<uint32_t>(m_inactiveGroup.size() - 1);
+	assert(!pGameObject->IsActive());
+
+	this->AddToActInactGroupImpl(pGameObject, m_inactiveGroup);
 }
 
-void GameObjectManager::RemoveFromGroup(GameObject* pGameObject)
+void GameObjectManager::RemoveFromActiveGroup(GameObject* pGameObject)
 {
-	auto& group = pGameObject->IsActive() ? m_activeGroup : m_inactiveGroup;
+	this->RemoveFromActInactGroupImpl(pGameObject, m_activeGroup);
+}
 
-	uint32_t groupSize = static_cast<uint32_t>(group.size());
-	assert(groupSize > 0);
-
-	const uint32_t groupIndex = pGameObject->m_groupIndex;
-	const uint32_t lastIndex = groupSize - 1;
-
-	assert(groupIndex < groupSize);
-	// assert(groupIndex != std::numeric_limits<uint32_t>::max());
-	assert(group[groupIndex] == pGameObject);	// 중요!
-
-	// 지우려는 오브젝트 포인터가 맨 뒤에 있는것이 아닌경우
-	// 마지막에 위치한 포인터와 위치를 바꾼다.
-	if (groupIndex != lastIndex)
-	{
-		std::swap(group[groupIndex], group[lastIndex]);
-		group[groupIndex]->m_groupIndex = groupIndex;	// 마지막에 있던 오브젝트의 groupIndex를 올바르게 업데이트 해주어야 함.
-	}
-
-	// 소속되어 있던 vector에서 제거
-	group.pop_back();
+void GameObjectManager::RemoveFromInactiveGroup(GameObject* pGameObject)
+{
+	this->RemoveFromActInactGroupImpl(pGameObject, m_inactiveGroup);
 }
 
 void GameObjectManager::RemoveDestroyedGameObjects()
@@ -312,7 +274,10 @@ void GameObjectManager::RemoveDestroyedGameObjects()
 		}
 		// pTransform->m_children.clear();	// 객체 delete시 자동 소멸
 
-		this->RemoveFromGroup(pGameObject);
+		if (pGameObject->IsActive())
+			this->RemoveFromActiveGroup(pGameObject);
+		else
+			this->RemoveFromInactiveGroup(pGameObject);
 
 		// 핸들 테이블에서 제거
 		assert(m_handleTable[pGameObject->m_tableIndex] == pGameObject);
@@ -323,38 +288,6 @@ void GameObjectManager::RemoveDestroyedGameObjects()
 	}
 
 	m_destroyed.clear();
-}
-
-void GameObjectManager::SetActive(GameObject* pGameObject, bool active)
-{
-	// 이미 해당 활성 상태가 설정되어 있는 경우 함수 리턴
-	if (pGameObject->IsActive() == active)
-		return;
-	
-	if (active)
-	{
-		for (IComponent* pComponent : pGameObject->m_components)
-			pComponent->Enable();
-
-		// PENDING 상태가 아닌 경우에만 포인터 이동 (PENDING 상태에서는 Active/Inactive 벡터에 포인터가 존재하지 않는다.)
-		if (!pGameObject->IsPending())
-			this->MoveToActiveGroup(pGameObject);
-
-		
-		pGameObject->OnFlag(GAMEOBJECT_FLAG::ACTIVE);
-	}
-	else
-	{
-		for (IComponent* pComponent : pGameObject->m_components)
-			pComponent->Disable();
-
-		// PENDING 상태가 아닌 경우에만 포인터 이동 (PENDING 상태에서는 Active/Inactive 벡터에 포인터가 존재하지 않는다.)
-		if (!pGameObject->IsPending())
-			this->MoveToInactiveGroup(pGameObject);
-
-
-		pGameObject->OffFlag(GAMEOBJECT_FLAG::ACTIVE);
-	}
 }
 
 bool GameObjectManager::SetParent(Transform* pTransform, Transform* pNewParentTransform)
@@ -420,4 +353,29 @@ bool GameObjectManager::SetParent(Transform* pTransform, Transform* pNewParentTr
 	pTransform->m_pParent = pNewParentTransform;
 
 	return true;
+}
+
+void GameObjectManager::AddToActInactGroupImpl(GameObject* pGameObject, std::vector<GameObject*>& group)
+{
+	group.push_back(pGameObject);
+	pGameObject->m_actInactGroupIndex = static_cast<uint32_t>(group.size() - 1);
+}
+
+void GameObjectManager::RemoveFromActInactGroupImpl(GameObject* pGameObject, std::vector<GameObject*>& group)
+{
+	assert(pGameObject->m_actInactGroupIndex != (std::numeric_limits<uint32_t>::max)());
+	assert(pGameObject->m_actInactGroupIndex + 1 <= group.size());
+	assert(group[pGameObject->m_actInactGroupIndex] == pGameObject);
+
+	const size_t endIndex = group.size() - 1;
+	if (pGameObject->m_actInactGroupIndex != endIndex)	// 제거될 객체가 중간에 있는 경우 한 칸씩 밀지 않기 위해서 끝에 있는 요소와 스왑
+	{
+		GameObject* pEndItem = group[endIndex];
+
+		std::swap(group[pGameObject->m_actInactGroupIndex], group[pEndItem->m_actInactGroupIndex]);
+		std::swap(pGameObject->m_actInactGroupIndex, pEndItem->m_actInactGroupIndex);
+	}
+
+	// pGameObject->m_actInactGroupIndex = (std::numeric_limits<uint32_t>::max)();
+	group.pop_back();
 }

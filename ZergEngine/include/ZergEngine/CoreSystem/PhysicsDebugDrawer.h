@@ -1,7 +1,7 @@
 #pragma once
 
 #include <ZergEngine\CoreSystem\InputLayout.h>
-#include <bullet3\btBulletDynamicsCommon.h>
+#include <bullet3\LinearMath\btIDebugDraw.h>
 #include <vector>
 
 namespace ze
@@ -18,12 +18,11 @@ namespace ze
 		void Release();
 
 		void UpdateResources(ID3D11DeviceContext* pDeviceContext);
+		void ClearDebugDrawerCache();
 
-		ID3D11Buffer* GetDebugLinesVertexBuffer() const { return m_cpDebugLineVertices.Get(); }
+		ID3D11Buffer* GetDebugLineVertexBuffer() const { return m_cpDebugLineVertexBuffer.Get(); }
 		ID3D11RasterizerState* GetRSDebugLineDrawing() const { return m_cpRSDebugLineDrawing.Get(); }
 		UINT GetDebugLineVertexCountToDraw() const;
-
-		void ClearDebugInstanceCache();
 
         // btIDebugDraw 인터페이스
         virtual void drawLine(const btVector3& from, const btVector3& to, const btVector3& color) override;
@@ -41,7 +40,7 @@ namespace ze
 	private:
 		std::vector<DebugLineVertexFormat> m_debugLineVertices;
 		int m_debugMode;
-		ComPtr<ID3D11Buffer> m_cpDebugLineVertices;
+		ComPtr<ID3D11Buffer> m_cpDebugLineVertexBuffer;
 		ComPtr<ID3D11RasterizerState> m_cpRSDebugLineDrawing;
 	};
 }

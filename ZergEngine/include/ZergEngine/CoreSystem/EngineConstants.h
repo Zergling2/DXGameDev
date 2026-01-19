@@ -7,6 +7,8 @@ namespace ze
 	// 旨收收收收收收收收收收收收收收收收收收收收收收收收收收收收收旬
 	// 早          Constants          早
 	// 曲收收收收收收收收收收收收收收收收收收收收收收收收收收收收收旭
+	constexpr uint32_t FIXED_UPDATE_HZ = 60;
+	constexpr float FIXED_DELTA_TIME = 1.0f / static_cast<float>(FIXED_UPDATE_HZ);
 	constexpr uint32_t CELLS_PER_TERRAIN_PATCH = 64;
 	constexpr uint32_t MAX_GLOBAL_LIGHT_COUNT = 4;
 	constexpr uint16_t MAX_CAMERA_COUNT = 4;

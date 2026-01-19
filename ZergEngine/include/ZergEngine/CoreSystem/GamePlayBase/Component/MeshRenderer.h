@@ -15,7 +15,7 @@ namespace ze
 		static constexpr ComponentType TYPE = ComponentType::MeshRenderer;
 		static constexpr bool IsCreatable() { return true; }
 
-		MeshRenderer() noexcept;
+		MeshRenderer(GameObject& owner) noexcept;
 		virtual ~MeshRenderer() = default;
 
 		virtual ComponentType GetType() const override { return ComponentType::MeshRenderer; }

@@ -8,8 +8,8 @@ using namespace ze;
 
 constexpr float DEFAULT_TILING_SCALE = 64.0f;
 
-Terrain::Terrain()
-	: IComponent(TerrainManager::GetInstance()->AssignUniqueId())
+Terrain::Terrain(GameObject& owner)
+	: IComponent(owner, TerrainManager::GetInstance()->AssignUniqueId())
 	, m_cellSize(0.0f)
 	, m_heightScale(0.0f)
 	, m_tilingScale(DEFAULT_TILING_SCALE)

@@ -56,7 +56,7 @@ void UIObjectManager::Init()
 		m_emptyHandleTableIndex.push_back(static_cast<uint32_t>(handleTableEndIndex - i));
 }
 
-void UIObjectManager::UnInit()
+void UIObjectManager::Shutdown()
 {
 	// 런타임 클래스에서 활성/비활성 오브젝트들을 모두 해제했어야 하므로
 	assert(m_activeGroup.size() == 0);
@@ -64,16 +64,6 @@ void UIObjectManager::UnInit()
 
 	m_handleTable.clear();
 	m_uniqueId = 0;
-}
-
-void UIObjectManager::Deploy(IUIObject* pUIObject)
-{
-	pUIObject->OffFlag(UIOBJECT_FLAG::PENDING);	// 중요!
-
-	if (pUIObject->m_transform.GetParent() == nullptr)
-		this->AddToRootArray(pUIObject);
-
-	pUIObject->IsActive() ? this->DeployToActiveGroup(pUIObject) : this->DeployToInactiveGroup(pUIObject);
 }
 
 void UIObjectManager::RequestDestroy(IUIObject* pUIObject)
@@ -108,7 +98,7 @@ IUIObject* UIObjectManager::ToPtr(uint32_t tableIndex, uint64_t id) const
 UIObjectHandle UIObjectManager::RegisterToHandleTable(IUIObject* pUIObject)
 {
 	assert(pUIObject->m_tableIndex == (std::numeric_limits<uint32_t>::max)());
-	assert(pUIObject->m_groupIndex == (std::numeric_limits<uint32_t>::max)());
+	assert(pUIObject->m_actInactGroupIndex == (std::numeric_limits<uint32_t>::max)());
 
 	UIObjectHandle hUIObject;
 
@@ -168,17 +158,11 @@ UIObjectHandle UIObjectManager::FindUIObject(PCWSTR name)
 
 void UIObjectManager::MoveToActiveGroup(IUIObject* pUIObject)
 {
-	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	// 1. Inactive group에서 제거
-	assert(!pUIObject->IsActive());	// Inactive 상태였어야 한다.
-	this->RemoveFromGroup(pUIObject);
-	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+	this->RemoveFromInactiveGroup(pUIObject);
 
-
-	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	// 2. Active group에 추가
 	this->AddToActiveGroup(pUIObject);
-	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 }
 
 void UIObjectManager::MoveToInactiveGroup(IUIObject* pUIObject)
@@ -186,17 +170,11 @@ void UIObjectManager::MoveToInactiveGroup(IUIObject* pUIObject)
 	// 0. UI 상호작용 중(클릭되거나 포커싱된 경우)이었다면 해제
 	this->DetachUIFromManager(pUIObject);
 
-	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	// 1. Active group에서 제거
-	assert(pUIObject->IsActive());	// Active 상태였어야 한다.
-	this->RemoveFromGroup(pUIObject);
-	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+	this->RemoveFromActiveGroup(pUIObject);
 
-
-	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	// 2. Inactive group에 추가
 	this->AddToInactiveGroup(pUIObject);
-	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 }
 
 void UIObjectManager::AddToRootArray(IUIObject* pUIObject)
@@ -205,37 +183,22 @@ void UIObjectManager::AddToRootArray(IUIObject* pUIObject)
 	assert(pUIObject->IsRoot() == false);
 
 	m_roots.push_back(pUIObject);
+
 	pUIObject->OnFlag(UIOBJECT_FLAG::REAL_ROOT);	// 투입 시 REAL_ROOT 플래그를 켠다.
-}
-
-void UIObjectManager::DeployToActiveGroup(IUIObject* pUIObject)
-{
-	assert(pUIObject->IsActive());
-
-	AddToActiveGroup(pUIObject);
-}
-
-void UIObjectManager::DeployToInactiveGroup(IUIObject* pUIObject)
-{
-	assert(!pUIObject->IsActive());
-
-	AddToInactiveGroup(pUIObject);
 }
 
 void UIObjectManager::AddToActiveGroup(IUIObject* pUIObject)
 {
-	m_activeGroup.push_back(pUIObject);
-	pUIObject->m_groupIndex = static_cast<uint32_t>(m_activeGroup.size() - 1);
+	assert(pUIObject->IsActive());
 
-	pUIObject->OnFlag(UIOBJECT_FLAG::ACTIVE);
+	this->AddToActInactGroupImpl(pUIObject, m_activeGroup);
 }
 
 void UIObjectManager::AddToInactiveGroup(IUIObject* pUIObject)
 {
-	m_inactiveGroup.push_back(pUIObject);
-	pUIObject->m_groupIndex = static_cast<uint32_t>(m_inactiveGroup.size() - 1);
+	assert(!pUIObject->IsActive());
 
-	pUIObject->OffFlag(UIOBJECT_FLAG::ACTIVE);
+	this->AddToActInactGroupImpl(pUIObject, m_inactiveGroup);
 }
 
 void UIObjectManager::RemoveFromRootArray(IUIObject* pUIObject)
@@ -271,30 +234,14 @@ void UIObjectManager::RemoveFromRootArray(IUIObject* pUIObject)
 	pUIObject->OffFlag(UIOBJECT_FLAG::REAL_ROOT);
 }
 
-void UIObjectManager::RemoveFromGroup(IUIObject* pUIObject)
+void UIObjectManager::RemoveFromActiveGroup(IUIObject* pUIObject)
 {
-	auto& group = pUIObject->IsActive() ? m_activeGroup : m_inactiveGroup;
-	
-	uint32_t groupSize = static_cast<uint32_t>(group.size());
-	assert(groupSize > 0);
+	this->RemoveFromActInactGroupImpl(pUIObject, m_activeGroup);
+}
 
-	const uint32_t groupIndex = pUIObject->m_groupIndex;
-	const uint32_t lastIndex = groupSize - 1;
-
-	assert(groupIndex < groupSize);
-	// assert(groupIndex != std::numeric_limits<uint32_t>::max());
-	assert(group[groupIndex] == pUIObject);	// 중요!
-
-	// 지우려는 오브젝트 포인터가 맨 뒤에 있는것이 아닌경우
-	// 마지막에 위치한 포인터와 위치를 바꾼다.
-	if (groupIndex != lastIndex)
-	{
-		std::swap(group[groupIndex], group[lastIndex]);
-		group[groupIndex]->m_groupIndex = groupIndex;	// 마지막에 있던 오브젝트의 groupIndex를 올바르게 업데이트 해주어야 함.
-	}
-
-	// 소속되어 있던 vector에서 제거
-	group.pop_back();
+void UIObjectManager::RemoveFromInactiveGroup(IUIObject* pUIObject)
+{
+	this->RemoveFromActInactGroupImpl(pUIObject, m_inactiveGroup);
 }
 
 void UIObjectManager::RemoveDestroyedUIObjects()
@@ -360,7 +307,10 @@ void UIObjectManager::RemoveDestroyedUIObjects()
 		if (pUIObject->IsRoot())	// REAL_ROOT 플래그 체크
 			this->RemoveFromRootArray(pUIObject);
 
-		this->RemoveFromGroup(pUIObject);
+		if (pUIObject->IsActive())
+			this->RemoveFromActiveGroup(pUIObject);
+		else
+			this->RemoveFromInactiveGroup(pUIObject);
 
 		// 핸들 테이블에서 제거
 		assert(m_handleTable[pUIObject->m_tableIndex] == pUIObject);
@@ -371,30 +321,6 @@ void UIObjectManager::RemoveDestroyedUIObjects()
 	}
 
 	m_destroyed.clear();
-}
-
-void UIObjectManager::SetActive(IUIObject* pUIObject, bool active)
-{
-	// 이미 해당 활성 상태가 설정되어 있는 경우 함수 리턴
-	if (pUIObject->IsActive() == active)
-		return;
-
-	if (active)
-	{
-		// PENDING 상태가 아닌 경우에만 포인터 이동 (PENDING 상태에서는 Active/Inactive 벡터에 포인터가 존재하지 않는다.)
-		if (!pUIObject->IsPending())
-			this->MoveToActiveGroup(pUIObject);
-		else
-			pUIObject->OnFlag(UIOBJECT_FLAG::ACTIVE);
-	}
-	else
-	{
-		// PENDING 상태가 아닌 경우에만 포인터 이동 (PENDING 상태에서는 Active/Inactive 벡터에 포인터가 존재하지 않는다.)
-		if (!pUIObject->IsPending())
-			this->MoveToInactiveGroup(pUIObject);
-		else
-			pUIObject->OffFlag(UIOBJECT_FLAG::ACTIVE);
-	}
 }
 
 bool UIObjectManager::SetParent(RectTransform* pTransform, RectTransform* pNewParentTransform)
@@ -669,4 +595,29 @@ void UIObjectManager::DetachUIFromManager(IUIObject* pUIObject)
 		m_pRButtonPressedObject = nullptr;
 		pUIObject->OnRButtonUp(pt);
 	}
+}
+
+void UIObjectManager::AddToActInactGroupImpl(IUIObject* pUIObject, std::vector<IUIObject*>& group)
+{
+	group.push_back(pUIObject);
+	pUIObject->m_actInactGroupIndex = static_cast<uint32_t>(group.size() - 1);
+}
+
+void UIObjectManager::RemoveFromActInactGroupImpl(IUIObject* pUIObject, std::vector<IUIObject*>& group)
+{
+	assert(pUIObject->m_actInactGroupIndex != (std::numeric_limits<uint32_t>::max)());
+	assert(pUIObject->m_actInactGroupIndex + 1 <= group.size());
+	assert(group[pUIObject->m_actInactGroupIndex] == pUIObject);
+
+	const size_t endIndex = group.size() - 1;
+	if (pUIObject->m_actInactGroupIndex != endIndex)	// 제거될 객체가 중간에 있는 경우 한 칸씩 밀지 않기 위해서 끝에 있는 요소와 스왑
+	{
+		IUIObject* pEndItem = group[endIndex];
+
+		std::swap(group[pUIObject->m_actInactGroupIndex], group[pEndItem->m_actInactGroupIndex]);
+		std::swap(pUIObject->m_actInactGroupIndex, pEndItem->m_actInactGroupIndex);
+	}
+
+	// pUIObject->m_actInactGroupIndex = (std::numeric_limits<uint32_t>::max)();
+	group.pop_back();
 }

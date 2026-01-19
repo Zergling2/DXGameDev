@@ -4,8 +4,8 @@
 
 using namespace ze;
 
-MonoBehaviour::MonoBehaviour()
-	: IComponent(MonoBehaviourManager::GetInstance()->AssignUniqueId())
+MonoBehaviour::MonoBehaviour(GameObject& owner)
+	: IComponent(owner, MonoBehaviourManager::GetInstance()->AssignUniqueId())
 	, m_startingQueueIndex((std::numeric_limits<uint32_t>::max)())
 {
 }
@@ -52,12 +52,27 @@ IComponentManager* MonoBehaviour::GetComponentManager() const
 	return MonoBehaviourManager::GetInstance();
 }
 
-void MonoBehaviour::Enable()
+void MonoBehaviour::OnDeploySysJob()
 {
-	MonoBehaviourManager::GetInstance()->RequestEnable(this);
+	IComponent::OnDeploySysJob();
+
+	MonoBehaviourManager::GetInstance()->AddToAwakeQueue(this);
 }
 
-void MonoBehaviour::Disable()
+void MonoBehaviour::OnEnableSysJob()
 {
-	MonoBehaviourManager::GetInstance()->RequestDisable(this);
+	IComponent::OnEnableSysJob();
+
+    this->OnEnable();
+
+    // Start() 함수가 호출된 적이 없고 Start() 함수 호출 대기열에 들어있지도 않은 경우
+	if (this->IsStartCalled() == false && this->IsOnTheStartingQueue() == false)
+		MonoBehaviourManager::GetInstance()->AddToStartQueue(this);
+}
+
+void MonoBehaviour::OnDisableSysJob()
+{
+	IComponent::OnDisableSysJob();
+
+	this->OnDisable();
 }

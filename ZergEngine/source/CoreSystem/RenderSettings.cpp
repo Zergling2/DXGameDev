@@ -34,7 +34,7 @@ void RenderSettings::Init()
 {
 }
 
-void RenderSettings::UnInit()
+void RenderSettings::Shutdown()
 {
 	m_skyboxCubeMap.Reset();
 }

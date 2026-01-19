@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ZergEngine\CoreSystem\Runtime.h>
+#include <ZergEngine\CoreSystem\Physics.h>
 #include <ZergEngine\CoreSystem\Math.h>
 #include <ZergEngine\CoreSystem\Time.h>
 #include <ZergEngine\CoreSystem\Window.h>
@@ -16,8 +17,11 @@
 #include <ZergEngine\CoreSystem\Resource\SkinnedMesh.h>
 #include <ZergEngine\CoreSystem\Resource\Material.h>
 #include <ZergEngine\CoreSystem\Resource\Texture.h>
+#include <ZergEngine\CoreSystem\Resource\BoxCollider.h>
 #include <ZergEngine\CoreSystem\Manager\UIObjectManager.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\Rigidbody.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\CollisionTrigger.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\MonoBehaviour.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Camera.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Light.h>

@@ -381,6 +381,48 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DebugLinesEffect.h">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
     </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\MotionState.h">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\Rigidbody.h">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\RigidbodyManager.h">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\CollisionTriggerManager.h">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\GroupSlot.h">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\PackedGroup.h">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\CollisionTrigger.h">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\BoxCollider.h">
+      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\CapsuleCollider.h">
+      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\ColliderInterface.h">
+      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\CylinderCollider.h">
+      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\SphereCollider.h">
+      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\ConeCollider.h">
+      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\TerrainCollider.h">
+      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\CoreSystem\Time.cpp">
@@ -664,6 +706,42 @@
     </ClCompile>
     <ClCompile Include="source\CoreSystem\Effect\DebugLinesEffect.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\GamePlayBase\MotionState.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\GamePlayBase\Component\Rigidbody.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\RigidbodyManager.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\CollisionTriggerManager.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\GamePlayBase\Component\CollisionTrigger.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Resource\BoxCollider.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Resource\CapsuleCollider.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Resource\CylinderCollider.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Resource\SphereCollider.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Resource\ConeCollider.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Resource\TerrainCollider.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\BulletDXMath.cpp">
+      <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

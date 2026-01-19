@@ -13,6 +13,8 @@
 #include <ZergEngine\CoreSystem\RenderSettings.h>
 #include <ZergEngine\CoreSystem\Manager\GameObjectManager.h>
 #include <ZergEngine\CoreSystem\Manager\UIObjectManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\RigidbodyManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\CollisionTriggerManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\AudioSourceManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\CameraManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\DirectionalLightManager.h>
@@ -36,6 +38,7 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\RadioButton.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\SkinnedMeshRenderer.h>
 #include <ZergEngine\CoreSystem\Resource\Animation.h>
+#include <bullet3\LinearMath\btQuickprof.h>
 
 using namespace ze;
 
@@ -45,7 +48,7 @@ constexpr DWORD TITLEBAR_WINDOW_STYLE = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU 
 Runtime* Runtime::s_pInstance = nullptr;
 
 Runtime::Runtime()
-    : m_deltaPerformanceCount(0)
+    : m_accumDeltaTime(0.0f)
     , m_isEditor(false)
     , m_render(true)
     , m_nCmdShow(0)
@@ -98,6 +101,8 @@ void Runtime::Init(HINSTANCE hInstance, int nCmdShow, uint32_t width, uint32_t h
     RenderSettings::CreateInstance();
     GameObjectManager::CreateInstance();
     UIObjectManager::CreateInstance();
+    RigidbodyManager::CreateInstance();
+    CollisionTriggerManager::CreateInstance();
     AudioSourceManager::CreateInstance();
     CameraManager::CreateInstance();
     DirectionalLightManager::CreateInstance();
@@ -126,6 +131,8 @@ void Runtime::Init(HINSTANCE hInstance, int nCmdShow, uint32_t width, uint32_t h
     RenderSettings::GetInstance()->Init();
     GameObjectManager::GetInstance()->Init();
     UIObjectManager::GetInstance()->Init();
+    RigidbodyManager::GetInstance()->Init();
+    CollisionTriggerManager::GetInstance()->Init();
     AudioSourceManager::GetInstance()->Init();
     CameraManager::GetInstance()->Init();
     DirectionalLightManager::GetInstance()->Init();
@@ -162,6 +169,8 @@ void Runtime::InitEditor(HINSTANCE hInstance, HWND hMainFrameWnd, HWND hViewWnd,
     RenderSettings::CreateInstance();
     GameObjectManager::CreateInstance();
     UIObjectManager::CreateInstance();
+    RigidbodyManager::CreateInstance();
+    CollisionTriggerManager::CreateInstance();
     AudioSourceManager::CreateInstance();
     CameraManager::CreateInstance();
     DirectionalLightManager::CreateInstance();
@@ -188,6 +197,8 @@ void Runtime::InitEditor(HINSTANCE hInstance, HWND hMainFrameWnd, HWND hViewWnd,
     RenderSettings::GetInstance()->Init();
     GameObjectManager::GetInstance()->Init();
     UIObjectManager::GetInstance()->Init();
+    RigidbodyManager::GetInstance()->Init();
+    CollisionTriggerManager::GetInstance()->Init();
     AudioSourceManager::GetInstance()->Init();
     CameraManager::GetInstance()->Init();
     DirectionalLightManager::GetInstance()->Init();
@@ -201,33 +212,35 @@ void Runtime::InitEditor(HINSTANCE hInstance, HWND hMainFrameWnd, HWND hViewWnd,
     SceneManager::GetInstance()->Init(nullptr);
 }
 
-void Runtime::UnInit()
+void Runtime::Release()
 {
     // 자원 해제 작업...
-    SceneManager::GetInstance()->UnInit();
-    MonoBehaviourManager::GetInstance()->UnInit();
-    TerrainManager::GetInstance()->UnInit();
-    BillboardManager::GetInstance()->UnInit();
-    SkinnedMeshRendererManager::GetInstance()->UnInit();
-    MeshRendererManager::GetInstance()->UnInit();
-    SpotLightManager::GetInstance()->UnInit();
-    PointLightManager::GetInstance()->UnInit();
-    DirectionalLightManager::GetInstance()->UnInit();
-    CameraManager::GetInstance()->UnInit();
-    AudioSourceManager::GetInstance()->UnInit();
-    UIObjectManager::GetInstance()->UnInit();
-    GameObjectManager::GetInstance()->UnInit();
-    RenderSettings::GetInstance()->UnInit();
-    Renderer::GetInstance()->UnInit();
-    ResourceLoader::GetInstance()->UnInit();
-    Physics::GetInstance()->UnInit();
-    GraphicDevice::GetInstance()->UnInit();
-    Input::GetInstance()->UnInit();
-    Time::GetInstance()->UnInit();
-    FileSystem::GetInstance()->UnInit();
+    SceneManager::GetInstance()->Shutdown();
+    MonoBehaviourManager::GetInstance()->Shutdown();
+    TerrainManager::GetInstance()->Shutdown();
+    BillboardManager::GetInstance()->Shutdown();
+    SkinnedMeshRendererManager::GetInstance()->Shutdown();
+    MeshRendererManager::GetInstance()->Shutdown();
+    SpotLightManager::GetInstance()->Shutdown();
+    PointLightManager::GetInstance()->Shutdown();
+    DirectionalLightManager::GetInstance()->Shutdown();
+    CameraManager::GetInstance()->Shutdown();
+    AudioSourceManager::GetInstance()->Shutdown();
+    CollisionTriggerManager::GetInstance()->Shutdown();
+    RigidbodyManager::GetInstance()->Shutdown();
+    UIObjectManager::GetInstance()->Shutdown();
+    GameObjectManager::GetInstance()->Shutdown();
+    RenderSettings::GetInstance()->Shutdown();
+    Renderer::GetInstance()->Shutdown();
+    ResourceLoader::GetInstance()->Shutdown();
+    Physics::GetInstance()->Shutdown();
+    GraphicDevice::GetInstance()->Shutdown();
+    Input::GetInstance()->Shutdown();
+    Time::GetInstance()->Shutdown();
+    FileSystem::GetInstance()->Shutdown();
 
     this->ReleaseLoggers();
-    MemoryAllocator::GetInstance()->UnInit();
+    MemoryAllocator::GetInstance()->Shutdown();
 
     SceneManager::DestroyInstance();
     MonoBehaviourManager::DestroyInstance();
@@ -240,6 +253,8 @@ void Runtime::UnInit()
     DirectionalLightManager::DestroyInstance();
     CameraManager::DestroyInstance();
     AudioSourceManager::DestroyInstance();
+    CollisionTriggerManager::DestroyInstance();
+    RigidbodyManager::DestroyInstance();
     UIObjectManager::DestroyInstance();
     GameObjectManager::DestroyInstance();
     RenderSettings::DestroyInstance();
@@ -300,24 +315,35 @@ void Runtime::OnIdle()
         this->LoadNextScene(pNextScene);
         delete pNextScene;
 
-        m_deltaPerformanceCount = 0;
+        m_accumDeltaTime = 0.0f;
     }
     // 다른 종류의 컴포넌트들이 모두 초기화 된 후
     // Call MonoBehaviour::Start() for all starting scripts.
     MonoBehaviourManager::GetInstance()->CallStart();
 
     // FixedUpdate
-    m_deltaPerformanceCount += Time::GetInstance()->GetDeltaPerformanceCounter();
-    Time::GetInstance()->ChangeDeltaTimeToFixedDeltaTime(); // FixedUpdate에서의 GetDeltaTime() 함수와 GetFixedDeltaTime() 함수의 반환값 일관성 보장
-    while (Time::GetInstance()->GetFixedDeltaPerformanceCounter() <= m_deltaPerformanceCount)
+    m_accumDeltaTime += Time::GetInstance()->GetDeltaTime();
+    Time::GetInstance()->ChangeToFixedDeltaTimeMode();  // FixedUpdate 스크립트의 DeltaTime, FixedDeltaTime 일치화
+    while (Time::GetInstance()->GetFixedDeltaTime() <= m_accumDeltaTime)
     {
+        // FixedUpdate 우선
         MonoBehaviourManager::GetInstance()->FixedUpdate();
-        m_deltaPerformanceCount -= Time::GetInstance()->GetFixedDeltaPerformanceCounter();
+
+        RigidbodyManager::GetInstance()->UpdateKinematicRigidbodyTransform();
+        CollisionTriggerManager::GetInstance()->UpdateCollisionTriggerTransform();   // 트리거 오브젝트의 Transform을 동기화 (ZergEngine -> Bullet)
+
+        // 물리 시뮬레이션 스텝
+        Physics::GetInstance()->StepSimulation(FIXED_DELTA_TIME);
+
+        m_accumDeltaTime -= Time::GetInstance()->GetFixedDeltaTime();
     }
-    Time::GetInstance()->RecoverDeltaTime();
+    Time::GetInstance()->RecoverToDeltaTimeMode();  // DeltaTime이 실제 Delta time을 가리키도록 복구
     
     MonoBehaviourManager::GetInstance()->Update();
     MonoBehaviourManager::GetInstance()->LateUpdate();
+
+    RigidbodyManager::GetInstance()->UpdateKinematicRigidbodyTransform();
+    CollisionTriggerManager::GetInstance()->UpdateCollisionTriggerTransform();      // 트리거 오브젝트의 Transform을 동기화 (ZergEngine -> Bullet)
 
     // Update animation time cursor
     for (IComponent* pComponent : SkinnedMeshRendererManager::GetInstance()->m_directAccessGroup)
@@ -342,15 +368,20 @@ void Runtime::OnIdle()
 
     RemoveDestroyedComponentsAndObjects();
 
-
-    Physics::GetInstance()->GetDynamicsWorld()->debugDrawWorld();
-
     // Render
     if (m_render)
+    {
+        if (Physics::GetInstance()->m_drawDebugInfo)
+            Physics::GetInstance()->DebugDrawWorld();
+
+        // 디버그 시각 정보 버퍼 업데이트
+        Physics::GetInstance()->UpdateDebugDrawerResources(GraphicDevice::GetInstance()->GetImmediateContext());
+
         Renderer::GetInstance()->RenderFrame();
 
-    // 디버그 시각 정보 프리미티브 제거
-    Physics::GetInstance()->GetPhysicsDebugDrawer().ClearDebugInstanceCache();
+        // 디버그 시각 정보 프리미티브 제거
+        Physics::GetInstance()->ClearDebugDrawerCache();
+    }
 
     // Sleep(3);
 }
@@ -592,10 +623,8 @@ void Runtime::RemoveDestroyedComponentsAndObjects()
 {
     // 컴포넌트 제거 작업
     MonoBehaviourManager::GetInstance()->RemoveDestroyedComponents();   // 가장 먼저 수행하여 오브젝트 및 컴포넌트에 대해 최대한의 접근도 보장
-    // RigidbodyManager::GetInstance()->RemoveDestroyedComponents();
-    // BoxColliderManager::GetInstance()->RemoveDestroyedComponents();
-    // SphereCollider::GetInstance()->RemoveDestroyedComponents();
-    // MeshCollider::GetInstance()->RemoveDestroyedComponents();
+    RigidbodyManager::GetInstance()->RemoveDestroyedComponents();
+    CollisionTriggerManager::GetInstance()->RemoveDestroyedComponents();
     TerrainManager::GetInstance()->RemoveDestroyedComponents();
     MeshRendererManager::GetInstance()->RemoveDestroyedComponents();
     SkinnedMeshRendererManager::GetInstance()->RemoveDestroyedComponents();
@@ -605,7 +634,6 @@ void Runtime::RemoveDestroyedComponentsAndObjects()
     SpotLightManager::GetInstance()->RemoveDestroyedComponents();
     CameraManager::GetInstance()->RemoveDestroyedComponents();
     AudioSourceManager::GetInstance()->RemoveDestroyedComponents();
-    // Physics::GetInstance()->RemoveDestroyedComponents();
 
     UIObjectManager::GetInstance()->RemoveDestroyedUIObjects();
     // 반드시 컴포넌트 제거 작업 이후 실행
@@ -726,21 +754,19 @@ void Runtime::LoadNextScene(IScene* pNextScene)
     // 지연된 게임오브젝트들 및 컴포넌트들을 관리 시작
     auto& pendingUIObjects = pNextScene->m_pendingUIObjects;
     for (IUIObject* pUIObject : pendingUIObjects)
-        UIObjectManager::GetInstance()->Deploy(pUIObject);
+        pUIObject->OnDeploySysJob();
 
     auto& pendingGameObjects = pNextScene->m_pendingGameObjects;
     for (GameObject* pGameObject : pendingGameObjects)
     {
-        GameObjectManager::GetInstance()->Deploy(pGameObject);
+        pGameObject->OnDeploySysJob();
 
-        // 컴포넌트들도 Deploy
+        // 컴포넌트들도 씬에 배치
         for (IComponent* pComponent : pGameObject->m_components)
-        {
-            IComponentManager* pComponentManager = pComponent->GetComponentManager();
-            pComponentManager->Deploy(pComponent);
-        }
+            pComponent->OnDeploySysJob();
     }
 
     // 게임오브젝트, UI오브젝트와 컴포넌트들이 모두 전역 관리자에 등록된 이후에 Awake, OnEnable, Start큐잉 처리
+    // 이렇게 해야 스크립트에서 씬에 처음 배치된 오브젝트들에 대한 접근이 원활히 가능하다.
     MonoBehaviourManager::GetInstance()->AwakeDeployedComponents();
 }

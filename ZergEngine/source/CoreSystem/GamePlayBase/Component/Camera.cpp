@@ -27,8 +27,8 @@ constexpr float CAMERA_DEFAULT_MAX_TESSELLATION_EXP = 6.0f;	// 2 ^ 6 = 64 (ÃÖ´ë 
 
 constexpr DXGI_FORMAT CAMERA_BUFFER_FORMAT = DXGI_FORMAT_B8G8R8A8_UNORM;
 
-Camera::Camera() noexcept
-	: IComponent(CameraManager::GetInstance()->AssignUniqueId())
+Camera::Camera(GameObject& owner) noexcept
+	: IComponent(owner, CameraManager::GetInstance()->AssignUniqueId())
 	, m_cpColorBufferRTV(nullptr)
 	, m_cpColorBufferSRV(nullptr)
 	, m_cpDepthStencilBufferDSV(nullptr)

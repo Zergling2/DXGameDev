@@ -25,6 +25,7 @@ namespace ze
 
 	class IUIObject
 	{
+		friend class Runtime;
 		friend class UIObjectManager;
 		friend class SceneManager;
 		friend class Renderer;
@@ -60,12 +61,15 @@ namespace ze
 		virtual void OnRButtonClick(POINT pt) {}
 
 		virtual void OnDestroy() {}
-		
 
 		const UIObjectHandle ToHandle() const;
 
 		void OnFlag(UIOBJECT_FLAG flag) { m_flag = static_cast<UIOBJECT_FLAG>(static_cast<uioft>(m_flag) | static_cast<uioft>(flag)); }
 		void OffFlag(UIOBJECT_FLAG flag) { m_flag = static_cast<UIOBJECT_FLAG>(static_cast<uioft>(m_flag) & ~static_cast<uioft>(flag)); }
+
+		void OnDeploySysJob();
+		void OnActivationSysJob();
+		void OnDeactivationSysJob();
 	protected:
 		bool IsPending() const { return static_cast<uioft>(m_flag) & static_cast<uioft>(UIOBJECT_FLAG::PENDING); }
 		bool IsOnTheDestroyQueue() const { return static_cast<uioft>(m_flag) & static_cast<uioft>(UIOBJECT_FLAG::ON_DESTROY_QUEUE); }
@@ -75,7 +79,7 @@ namespace ze
 	private:
 		uint64_t m_id;
 		uint32_t m_tableIndex;
-		uint32_t m_groupIndex;
+		uint32_t m_actInactGroupIndex;
 		UIOBJECT_FLAG m_flag;
 		WCHAR m_name[16];
 	};

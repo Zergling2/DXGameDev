@@ -32,6 +32,7 @@
 #include <ZergEngine\CoreSystem\Resource\Armature.h>
 #include <ZergEngine\CoreSystem\Resource\Material.h>
 #include <ZergEngine\CoreSystem\Physics.h>
+#include <ZergEngine\CoreSystem\PhysicsDebugDrawer.h>
 #include <algorithm>
 
 using namespace ze;
@@ -164,7 +165,7 @@ void Renderer::Init()
 	m_effectImmediateContext.AttachDeviceContext(pGraphicDevice->GetImmediateContext());
 }
 
-void Renderer::UnInit()
+void Renderer::Shutdown()
 {
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ RELEASE EFFECTS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	m_debugLinesEffect.Release();
@@ -343,9 +344,6 @@ void Renderer::RenderFrame()
 		m_terrainEffect.SetSpotLight(light, lightCount);
 		m_billboardEffect.SetSpotLight(light, lightCount);
 	}
-
-	// 디버그 시각 정보 버퍼 업데이트
-	Physics::GetInstance()->GetPhysicsDebugDrawer().UpdateResources(pImmContext);
 
 	// Camera마다 프레임 렌더링
 
@@ -602,7 +600,8 @@ void Renderer::RenderFrame()
 
 
 		// 디버그 시각 정보 렌더링 (루프 밖에서 업데이트하고 모든 카메라가 공유)
-		RenderDebugInfo();
+		if (Physics::GetInstance()->m_drawDebugInfo)
+			RenderDebugInfo();
 	}
 
 	// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1470,7 +1469,7 @@ void Renderer::RenderRadioButton(ID2D1RenderTarget* pD2DRenderTarget, ID2D1Solid
 	{
 		m_shadedEdgeCircleEffect.SetColorWeight(0.0f, 0.0f);	// flat
 		m_shadedEdgeCircleEffect.SetColor(pRadioButton->GetDotColorVector());
-		m_shadedEdgeCircleEffect.SetRadius(pRadioButton->GetRadius() * 0.5f);
+		m_shadedEdgeCircleEffect.SetRadius(pRadioButton->GetRadius() * 0.4f);
 
 		// XMFLOAT2 hcsp;
 		// pRadioButton->m_transform.GetHCSPosition(&hcsp);	// 위에서 설정됨
@@ -1518,8 +1517,8 @@ void Renderer::RenderRadioButton(ID2D1RenderTarget* pD2DRenderTarget, ID2D1Solid
 
 void Renderer::RenderDebugInfo()
 {
-	ID3D11Buffer* const pDebugLinesVertexBuffer = Physics::GetInstance()->GetPhysicsDebugDrawer().GetDebugLinesVertexBuffer();
-	const UINT debugLinesVertexCount = Physics::GetInstance()->GetPhysicsDebugDrawer().GetDebugLineVertexCountToDraw();
+	ID3D11Buffer* const pDebugLineVertexBuffer = Physics::GetInstance()->GetPhysicsDebugDrawer()->GetDebugLineVertexBuffer();
+	const UINT debugLinesVertexCount = Physics::GetInstance()->GetPhysicsDebugDrawer()->GetDebugLineVertexCountToDraw();
 
 	// Rasterizer
 
@@ -1527,21 +1526,14 @@ void Renderer::RenderDebugInfo()
 	// 뎁스 바이어스 및 슬로프 스케일드 뎁스 바이어스 등 설정한거 사용해야함.
 	ID3D11DeviceContext* pImmContext = m_effectImmediateContext.GetDeviceContext();
 
-	// 변경할 파이프라인 상태 백업
-	ComPtr<ID3D11RasterizerState> cpOldRS;
-	pImmContext->RSGetState(cpOldRS.GetAddressOf());
-	ComPtr<ID3D11DepthStencilState> cpOldDDS;
-	UINT oldStencilRef;
-	pImmContext->OMGetDepthStencilState(cpOldDDS.GetAddressOf(), &oldStencilRef);
-
 	// 파이프라인 상태 업데이트
-	ID3D11RasterizerState* pRSDebugLineDrawing = Physics::GetInstance()->GetPhysicsDebugDrawer().GetRSDebugLineDrawing();
+	ID3D11RasterizerState* pRSDebugLineDrawing = Physics::GetInstance()->GetPhysicsDebugDrawer()->GetRSDebugLineDrawing();
 	pImmContext->RSSetState(pRSDebugLineDrawing);
 	pImmContext->OMSetDepthStencilState(m_pDSSDepthReadOnly, 0);
 
 
 	// 렌더링
-	ID3D11Buffer* vbs[] = { pDebugLinesVertexBuffer };
+	ID3D11Buffer* vbs[] = { pDebugLineVertexBuffer };
 	UINT strides[] = { sizeof(DebugLineVertexFormat) };
 	UINT offsets[] = { 0 };
 
@@ -1549,8 +1541,4 @@ void Renderer::RenderDebugInfo()
 
 	m_effectImmediateContext.Apply(&m_debugLinesEffect);
 	m_effectImmediateContext.Draw(debugLinesVertexCount, 0);
-
-	// 파이프라인 상태 복구
-	pImmContext->RSSetState(cpOldRS.Get());
-	pImmContext->OMSetDepthStencilState(cpOldDDS.Get(), oldStencilRef);
 }

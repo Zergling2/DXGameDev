@@ -12,8 +12,9 @@ constexpr float SPEED = 5.0f;
 constexpr float WALK_SPEED = SPEED * 0.25f;
 constexpr float HEAD_CLAMP_ANGLE = 89.0f;
 
-EditorCameraScript::EditorCameraScript()
-	: m_camera()
+EditorCameraScript::EditorCameraScript(ze::GameObject& owner)
+	: ze::MonoBehaviour(owner)
+	, m_camera()
 	, m_mouseMoved(false)
 	, m_prevMousePos{ 0, 0 }
 {

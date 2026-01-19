@@ -10,7 +10,7 @@ namespace ze
 		static constexpr ComponentType TYPE = ComponentType::AudioSource;
 		static constexpr bool IsCreatable() { return true; }
 
-		AudioSource() = default;
+		AudioSource(GameObject& owner);
 		virtual ~AudioSource() = default;
 
 		virtual ComponentType GetType() const override { return ComponentType::AudioSource; }

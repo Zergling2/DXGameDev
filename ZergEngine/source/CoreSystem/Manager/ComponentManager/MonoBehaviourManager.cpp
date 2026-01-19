@@ -29,47 +29,15 @@ void MonoBehaviourManager::DestroyInstance()
     s_pInstance = nullptr;
 }
 
-void MonoBehaviourManager::RequestEnable(MonoBehaviour* pMonoBehaviour)
+void MonoBehaviourManager::AddToAwakeQueue(MonoBehaviour* pMonoBehaviour)
 {
-    if (pMonoBehaviour->IsEnabled())
-        return;
-
-    pMonoBehaviour->OnFlag(ComponentFlag::Enabled);
-
-    if (pMonoBehaviour->m_pGameObject->IsPending())
-        return;
-
-    pMonoBehaviour->OnEnable();
-
-    // Start() 함수가 호출된 적이 없고 Start() 함수 호출 대기열에 들어있지도 않은 경우
-    if (pMonoBehaviour->IsStartCalled() == false && pMonoBehaviour->IsOnTheStartingQueue() == false)
-        this->AddToStartQueue(pMonoBehaviour);
-}
-
-void MonoBehaviourManager::RequestDisable(MonoBehaviour* pMonoBehaviour)
-{
-    if (!pMonoBehaviour->IsEnabled())
-        return;
-
-    pMonoBehaviour->OffFlag(ComponentFlag::Enabled);
-
-    if (pMonoBehaviour->m_pGameObject->IsPending())
-        return;
-
-    pMonoBehaviour->OnDisable();
-}
-
-void MonoBehaviourManager::Deploy(IComponent* pComponent)
-{
-    IComponentManager::Deploy(pComponent);
-
-    m_awakeQueue.push_back(static_cast<MonoBehaviour*>(pComponent));
+    m_awakeQueue.push_back(pMonoBehaviour);
 }
 
 void MonoBehaviourManager::AddToStartQueue(MonoBehaviour* pMonoBehaviour)
 {
-    assert(!pMonoBehaviour->IsOnTheStartingQueue());
     assert(!pMonoBehaviour->IsStartCalled());
+    assert(!pMonoBehaviour->IsOnTheStartingQueue());
 
     m_startQueue.push_back(pMonoBehaviour);
 
@@ -82,12 +50,12 @@ void MonoBehaviourManager::AwakeDeployedComponents()
 {
     for (MonoBehaviour* pMonoBehaviour : m_awakeQueue)
     {
-        pMonoBehaviour->Awake();	// Awake는 활성화 여부와 관계 없이 호출
-        if (pMonoBehaviour->IsEnabled())
-        {
-            pMonoBehaviour->OnEnable();
-            this->AddToStartQueue(pMonoBehaviour);	// 활성화된 채로 씬에서 시작되는 경우 Start 대기열에 추가
-        }
+        // 아래 로직 수정 시 GameObject.cpp AddComponentImpl 함수 로직도 동기화해야함.
+
+        pMonoBehaviour->Awake();            // 1. Awake는 활성화 여부와 관계 없이 호출
+
+        if (pMonoBehaviour->IsEnabled())    // 2. Enabled된 상태로 씬에 배치된 경우 스크립트의 OnEnable() 호출 및 Start 큐에 등록
+            pMonoBehaviour->OnEnableSysJob();   // 작업은 이 함수 내부에서
     }
 
     m_awakeQueue.clear();
@@ -156,7 +124,7 @@ void MonoBehaviourManager::RemoveDestroyedComponents()
         MonoBehaviour* pScript = static_cast<MonoBehaviour*>(m_destroyed[i]);
         if (pScript->IsEnabled())   // 활성화 되어있는 스크립트에 한해서만 OnDestroy() 호출
         {
-            pScript->Disable();
+            pScript->Disable(); // 파괴 전 비활성화
             pScript->OnDestroy();
         }
 

@@ -33,7 +33,7 @@ namespace ze
 		static constexpr ComponentType TYPE = ComponentType::Terrain;
 		static constexpr bool IsCreatable() { return true; }
 
-		Terrain();
+		Terrain(GameObject& owner);
 		virtual ~Terrain() = default;
 
 		virtual ComponentType GetType() const override { return ComponentType::Terrain; }

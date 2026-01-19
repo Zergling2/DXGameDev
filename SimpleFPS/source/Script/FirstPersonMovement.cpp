@@ -7,6 +7,11 @@ constexpr float SPEED = 16.0f;
 constexpr float WALK_SPEED = SPEED * 0.25f;
 constexpr float HEAD_CLAMP_ANGLE = 89.5f;
 
+FirstPersonMovement::FirstPersonMovement(ze::GameObject& owner)
+	: ze::MonoBehaviour(owner)
+{
+}
+
 void FirstPersonMovement::Awake()
 {
 	m_ui = false;
@@ -161,7 +166,7 @@ void FirstPersonMovement::EventHandlerAmbientChange()
 	if (!pSC)
 		return;
 
-	float v = static_cast<float>(pSC->GetThumbPos()) * 0.1f;
+	float v = static_cast<float>(pSC->GetThumbPos()) * 0.025f;
 	RenderSettings::GetInstance()->SetAmbientLightIntensity(v);
 }
 

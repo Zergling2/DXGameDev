@@ -182,7 +182,7 @@ namespace ze
 		static void DestroyInstance();
 
 		void Init(HINSTANCE hInstance, HWND hWnd);
-		void UnInit();
+		void Shutdown();
 
 		void SetMousePos(POINT pt);
 

@@ -83,6 +83,10 @@ namespace ze
 		void OffFlag(GAMEOBJECT_FLAG flag) { m_flag = static_cast<GAMEOBJECT_FLAG>(static_cast<goft>(m_flag) & ~static_cast<goft>(flag)); }
 
 		ComponentHandleBase AddComponentImpl(IComponent* pComponent);
+
+		void OnDeploySysJob();
+		void OnActivationSysJob();
+		void OnDeactivationSysJob();
 	public:
 		Transform m_transform;
 	private:
@@ -90,13 +94,13 @@ namespace ze
 
 		uint64_t m_id;
 		uint32_t m_tableIndex;
-		uint32_t m_groupIndex;
+		uint32_t m_actInactGroupIndex;
 		GAMEOBJECT_FLAG m_flag;
 		WCHAR m_name[27];
 	};
 
 	template<class ComponentType, typename ...Args>
-	ComponentHandle<ComponentType> GameObject::AddComponent(Args && ...args)
+	ComponentHandle<ComponentType> GameObject::AddComponent(Args&& ...args)
 	{
 		ComponentHandle<ComponentType> hComponent;	// Invalid handle
 
@@ -108,7 +112,7 @@ namespace ze
 			if (this->IsOnTheDestroyQueue())
 				break;
 
-			IComponent* pComponent = new ComponentType(std::forward<Args>(args)...);
+			IComponent* pComponent = new ComponentType(*this, std::forward<Args>(args)...);
 			return this->AddComponentImpl(pComponent);
 		} while (false);
 

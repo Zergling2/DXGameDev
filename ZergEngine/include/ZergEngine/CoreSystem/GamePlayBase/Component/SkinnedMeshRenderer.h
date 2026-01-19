@@ -18,7 +18,7 @@ namespace ze
 		static constexpr ComponentType TYPE = ComponentType::SkinnedMeshRenderer;
 		static constexpr bool IsCreatable() { return true; }
 
-		SkinnedMeshRenderer() noexcept;
+		SkinnedMeshRenderer(GameObject& owner) noexcept;
 		virtual ~SkinnedMeshRenderer() = default;
 
 		virtual ComponentType GetType() const override { return ComponentType::SkinnedMeshRenderer; }

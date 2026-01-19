@@ -3,9 +3,6 @@
 
 using namespace ze;
 
-static constexpr uint32_t FIXED_UPDATE_HZ = 50;
-static constexpr float FIXED_DELTA_TIME = 1.0f / static_cast<float>(FIXED_UPDATE_HZ);
-
 Time* Time::s_pInstance = nullptr;
 
 void Time::CreateInstance()
@@ -32,16 +29,12 @@ void Time::Init()
 	if (QueryPerformanceFrequency(&freq) == FALSE)
 		Debug::ForceCrashWithWin32ErrorMessageBox(L"QueryPerformanceFrequency()", GetLastError());
 
-	if (freq.QuadPart % FIXED_UPDATE_HZ != 0)
-		Debug::ForceCrashWithMessageBox(L"FixedUpdateHz Error", L"Hardware counters are not supported at 50 Hz.");
-
 	m_spc = 1.0f / static_cast<float>(freq.QuadPart);
 	m_ts = 1.0f;
 	m_fdt = FIXED_DELTA_TIME;
 	m_udt = 0.0f;
 	m_dt = 0.0f;
 	m_dtBackup = m_dt;
-	m_fdtPC.QuadPart = freq.QuadPart / FIXED_UPDATE_HZ;
 
 	// On systems that run Windows XP or later,
 	// the function will always succeed and will thus never return zero.
@@ -54,7 +47,7 @@ void Time::Init()
 	m_pausedPC.QuadPart = 0;
 }
 
-void Time::UnInit()
+void Time::Shutdown()
 {
 }
 
@@ -80,13 +73,13 @@ void Time::Update()
 	m_prevPC = m_currPC;
 }
 
-void Time::ChangeDeltaTimeToFixedDeltaTime()
+void Time::ChangeToFixedDeltaTimeMode()
 {
 	m_dtBackup = m_dt;
 	m_dt = m_fdt;
 }
 
-void Time::RecoverDeltaTime()
+void Time::RecoverToDeltaTimeMode()
 {
 	m_dt = m_dtBackup;
 }

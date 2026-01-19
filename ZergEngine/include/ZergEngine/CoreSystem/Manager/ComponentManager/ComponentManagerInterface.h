@@ -19,9 +19,7 @@ namespace ze
 		virtual ~IComponentManager() = default;
 
 		virtual void Init();
-		virtual void UnInit();
-
-		virtual void Deploy(IComponent* pComponent);	// 로딩 씬에서 생성된 오브젝트 컴포넌트들이 게임 루프에 투입될 때 사용되는 함수
+		virtual void Shutdown();
 
 		void RequestDestroy(IComponent* pComponent);
 		IComponent* ToPtr(uint32_t tableIndex, uint64_t id) const;

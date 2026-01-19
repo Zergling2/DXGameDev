@@ -14,9 +14,7 @@ namespace ze
 		SpotLight,
 		MonoBehaviour,
 		Rigidbody,
-		BoxCollider,
-		SphereCollider,
-		MeshCollider,
+		CollisionTrigger,
 		Terrain,
 		AudioSource,
 

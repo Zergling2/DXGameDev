@@ -6,7 +6,7 @@ class FirstPersonMovement : public ze::MonoBehaviour
 {
 	DECLARE_MONOBEHAVIOUR_TYPE
 public:
-	FirstPersonMovement() = default;
+	FirstPersonMovement(ze::GameObject& owner);
 	virtual ~FirstPersonMovement() = default;
 
 	virtual void Awake() override;

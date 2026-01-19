@@ -6,15 +6,15 @@
 
 using namespace ze;
 
-ILight::ILight(uint64_t id)
-	: IComponent(id)
+ILight::ILight(GameObject& owner, uint64_t id)
+	: IComponent(owner, id)
 {
 	XMStoreFloat4A(&m_diffuse, Vector3::One());
 	XMStoreFloat4A(&m_specular, Vector3::One());
 }
 
-DirectionalLight::DirectionalLight()
-	: ILight(DirectionalLightManager::GetInstance()->AssignUniqueId())
+DirectionalLight::DirectionalLight(GameObject& owner)
+	: ILight(owner, DirectionalLightManager::GetInstance()->AssignUniqueId())
 {
 }
 
@@ -23,8 +23,8 @@ IComponentManager* DirectionalLight::GetComponentManager() const
 	return DirectionalLightManager::GetInstance();
 }
 
-PointLight::PointLight()
-	: ILight(PointLightManager::GetInstance()->AssignUniqueId())
+PointLight::PointLight(GameObject& owner)
+	: ILight(owner, PointLightManager::GetInstance()->AssignUniqueId())
 	, m_range(5.0f)
 	, m_distAtt(0.0f, 1.0f, 0.0f)
 {
@@ -43,8 +43,8 @@ IComponentManager* PointLight::GetComponentManager() const
 	return PointLightManager::GetInstance();
 }
 
-SpotLight::SpotLight()
-	: ILight(SpotLightManager::GetInstance()->AssignUniqueId())
+SpotLight::SpotLight(GameObject& owner)
+	: ILight(owner, SpotLightManager::GetInstance()->AssignUniqueId())
 	, m_range(25.0f)
 	, m_innerConeAngle(XMConvertToRadians(10.0f))
 	, m_outerConeAngle(XMConvertToRadians(22.5f))

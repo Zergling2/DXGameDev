@@ -28,13 +28,8 @@ void IComponentManager::Init()
 		m_emptyHandleTableIndex.push_back(static_cast<uint32_t>(handleTableEndIndex - i));
 }
 
-void IComponentManager::UnInit()
+void IComponentManager::Shutdown()
 {
-}
-
-void IComponentManager::Deploy(IComponent* pComponent)
-{
-	this->AddToDirectAccessGroup(pComponent);
 }
 
 void IComponentManager::RequestDestroy(IComponent* pComponent)
@@ -140,25 +135,20 @@ void IComponentManager::RemoveDestroyedComponents()
 		}
 
 		// Step 2. Enabled group에서 현재 파괴되는 컴포넌트 포인터를 제거
-		uint32_t groupSize = static_cast<uint32_t>(m_directAccessGroup.size());
-		assert(groupSize > 0);
+		assert(pComponent->m_groupIndex != (std::numeric_limits<uint32_t>::max)());
+		assert(pComponent->m_groupIndex + 1 <= m_directAccessGroup.size());
+		assert(m_directAccessGroup[pComponent->m_groupIndex] == pComponent);
 
-		const uint32_t groupIndex = pComponent->m_groupIndex;
-		const uint32_t lastIndex = groupSize - 1;
-
-		assert(groupIndex < groupSize);
-		// assert(groupIndex != std::numeric_limits<uint32_t>::max());
-		assert(m_directAccessGroup[groupIndex] == pComponent);	// 중요!
-
-		// 지우려는 컴포넌트 포인터가 맨 뒤에 있는것이 아닌경우
-		// 마지막에 위치한 포인터와 위치를 바꾼다.
-		if (groupIndex != lastIndex)
+		const size_t endIndex = m_directAccessGroup.size() - 1;
+		if (pComponent->m_groupIndex != endIndex)	// 제거될 객체가 중간에 있는 경우 한 칸씩 밀지 않기 위해서 끝에 있는 요소와 스왑
 		{
-			std::swap(m_directAccessGroup[groupIndex], m_directAccessGroup[lastIndex]);
-			m_directAccessGroup[groupIndex]->m_groupIndex = groupIndex;	// 마지막에 있던 컴포넌트의 groupIndex를 올바르게 업데이트 해주어야 한다!
+			IComponent* pEndItem = m_directAccessGroup[endIndex];
+
+			std::swap(m_directAccessGroup[pComponent->m_groupIndex], m_directAccessGroup[pEndItem->m_groupIndex]);
+			std::swap(pComponent->m_groupIndex, pEndItem->m_groupIndex);
 		}
 
-		// 가장 끝으로 이동된 포인터를 벡터에서 제거
+		// pComponent->m_groupIndex = (std::numeric_limits<uint32_t>::max)();
 		m_directAccessGroup.pop_back();
 
 		// Step 3. 테이블에서 제거

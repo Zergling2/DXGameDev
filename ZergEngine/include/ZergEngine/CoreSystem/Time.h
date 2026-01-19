@@ -17,13 +17,12 @@ namespace ze
 		static void DestroyInstance();
 
 		void Init();
-		void UnInit();
+		void Shutdown();
 
 		void Update();							// 일시정지 상태일때는 cache paused time, 아닐때는 cache delta time
-		void ChangeDeltaTimeToFixedDeltaTime();	// FixedUpdate 함수에서 GetDeltaTime을 사용해도 FIXED_DELTA_TIME을 반환해주기 위해 호출
-		void RecoverDeltaTime();
+		void ChangeToFixedDeltaTimeMode();		// FixedUpdate 함수에서 GetDeltaTime을 사용해도 FIXED_DELTA_TIME을 반환해주기 위해 호출
+		void RecoverToDeltaTimeMode();
 
-		LONGLONG GetFixedDeltaPerformanceCounter() const { return m_fdtPC.QuadPart; }
 		LONGLONG GetDeltaPerformanceCounter() const { return m_deltaPC.QuadPart; }
 	public:
 		float GetTimeScale() const { return m_ts; }
@@ -39,7 +38,6 @@ namespace ze
 		float m_udt;				// unscaled delta time
 		float m_dt;					// scaled delta time
 		float m_dtBackup;			// backup for transition between FixedUpdate <---> Update
-		LARGE_INTEGER m_fdtPC;
 		LARGE_INTEGER m_basePC;		// base count
 		LARGE_INTEGER m_deltaPC;	// delta count
 		LARGE_INTEGER m_prevPC;		// previous count

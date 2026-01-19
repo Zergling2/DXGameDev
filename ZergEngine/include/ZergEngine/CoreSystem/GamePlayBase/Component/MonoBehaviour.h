@@ -14,14 +14,12 @@ namespace ze
 	{
 		DECLARE_MONOBEHAVIOUR_TYPE
 		friend class MonoBehaviourManager;
+		friend class GameObject;
 	public:
 		static bool IsCreatable() { return true; }
 
-		MonoBehaviour();
+		MonoBehaviour(GameObject& owner);
 		virtual ~MonoBehaviour() = default;
-
-		virtual void Enable() override;
-		virtual void Disable() override;
 
 		virtual ComponentType GetType() const override { return ComponentType::MonoBehaviour; }
 		virtual void Awake();
@@ -39,6 +37,10 @@ namespace ze
 		bool SetResolution(uint32_t width, uint32_t height, DisplayMode mode);
 	private:
 		virtual IComponentManager* GetComponentManager() const override;
+
+		virtual void OnDeploySysJob() override;
+		virtual void OnEnableSysJob() override;
+		virtual void OnDisableSysJob() override;
 	private:
 		uint32_t m_startingQueueIndex;
 	};

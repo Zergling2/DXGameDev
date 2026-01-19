@@ -31,9 +31,7 @@ namespace ze
 		static void DestroyInstance();
 
 		void Init();
-		void UnInit();
-
-		void Deploy(IUIObject* pUIObject);
+		void Shutdown();
 
 		template<typename T>
 		UIObjectHandle CreateObject(PCWSTR name);
@@ -53,16 +51,13 @@ namespace ze
 		void MoveToInactiveGroup(IUIObject* pUIObject);
 
 		void AddToRootArray(IUIObject* pUIObject);
-		void DeployToActiveGroup(IUIObject* pUIObject);
-		void DeployToInactiveGroup(IUIObject* pUIObject);
 		void AddToActiveGroup(IUIObject* pUIObject);
 		void AddToInactiveGroup(IUIObject* pUIObject);
 
 		void RemoveFromRootArray(IUIObject* pUIObject);	// Root group에서 포인터 제거
-		void RemoveFromGroup(IUIObject* pUIObject);	// Active/Inactive group에서 포인터 제거
+		void RemoveFromActiveGroup(IUIObject* pUIObject);
+		void RemoveFromInactiveGroup(IUIObject* pUIObject);
 		void RemoveDestroyedUIObjects();
-
-		void SetActive(IUIObject* pUIObject, bool active);
 
 		// pTransform은 항상 nullptr이 아닌 입력
 		// pNewTransform은 nullptr이 입력으로 들어올 수 있음.
@@ -85,6 +80,11 @@ namespace ze
 		void OnRButtonUp(POINT pt);
 
 		void DetachUIFromManager(IUIObject* pUIObject);
+
+
+
+		void AddToActInactGroupImpl(IUIObject* pUIObject, std::vector<IUIObject*>& group);
+		void RemoveFromActInactGroupImpl(IUIObject* pUIObject, std::vector<IUIObject*>& group);
 	private:
 		static UIObjectManager* s_pInstance;
 

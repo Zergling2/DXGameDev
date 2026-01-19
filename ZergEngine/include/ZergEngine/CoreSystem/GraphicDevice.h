@@ -25,7 +25,7 @@ namespace ze
 		static void DestroyInstance();
 
 		bool Init(HWND hWnd, uint32_t width, uint32_t height, bool fullscreen);
-		void UnInit();
+		void Shutdown();
 
 		bool LoadShaderByteCode(PCWSTR path, byte** ppByteCode, size_t* pSize);
 

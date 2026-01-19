@@ -167,7 +167,7 @@ namespace ze
 		static void DestroyInstance();
 
 		void Init();
-		void UnInit();
+		void Shutdown();
 	public:
 		ModelData LoadModel(PCWSTR path);
 

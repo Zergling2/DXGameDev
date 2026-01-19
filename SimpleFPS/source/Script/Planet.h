@@ -6,8 +6,9 @@ class Planet : public ze::MonoBehaviour
 {
 	DECLARE_MONOBEHAVIOUR_TYPE
 public:
-	Planet()
-		: m_orbitDistance(10.0f)
+	Planet(ze::GameObject& owner)
+		: ze::MonoBehaviour(owner)
+		, m_orbitDistance(10.0f)
 		, m_hCenter()
 	{
 	}

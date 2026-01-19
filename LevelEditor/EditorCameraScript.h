@@ -9,7 +9,7 @@ class CTerrainInspectorFormView;
 class EditorCameraScript : public ze::MonoBehaviour
 {
 public:
-	EditorCameraScript();
+	EditorCameraScript(ze::GameObject& owner);
 	virtual ~EditorCameraScript() = default;
 
 	virtual void Start() override;

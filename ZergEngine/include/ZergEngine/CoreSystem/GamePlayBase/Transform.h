@@ -19,6 +19,10 @@ namespace ze
 		~Transform() = default;
 		Transform& operator=(const Transform&) = delete;
 
+		// 부모의 월드 변환 행렬을 반환합니다.
+		// 부모가 없는 루트 오브젝트인 경우 Identity 행렬이 반환됩니다.
+		XMMATRIX GetParentWorldTransformMatrix() const;
+
 		XMMATRIX GetWorldTransformMatrix() const;
 
 		// pScale: 월드 스케일이 반환됩니다.
@@ -70,17 +74,41 @@ namespace ze
 		void SetScaleZ(FLOAT sz) { m_scale.z = sz; }
 
 		// 현재 상태에서 추가적으로 회전시킵니다.
-		void XM_CALLCONV RotateQuaternion(FXMVECTOR quaternion) { XMStoreFloat4A(&m_rotation, XMQuaternionNormalize(XMQuaternionMultiply(XMLoadFloat4A(&m_rotation), quaternion))); }
+		void XM_CALLCONV RotateQuaternion(FXMVECTOR quaternion);
 
 		// 현재 상태에서 추가적으로 회전시킵니다.
-		void XM_CALLCONV RotateEuler(FXMVECTOR euler) { XMStoreFloat4A(&m_rotation, XMQuaternionNormalize(XMQuaternionMultiply(XMLoadFloat4A(&m_rotation), XMQuaternionRotationRollPitchYawFromVector(euler)))); }
+		void XM_CALLCONV RotateEuler(FXMVECTOR euler);
 
 		// 로컬 회전각도를 쿼터니언으로 재설정합니다.
 		void XM_CALLCONV SetRotationQuaternion(FXMVECTOR quaternion) { XMStoreFloat4A(&m_rotation, quaternion); }
 
-		// 로컬 회전각도를 오일러 각도로 재설정합니다.
+		// 로컬 회전각도를 쿼터니언으로 재설정합니다.
+		void SetRotationQuaternion(const XMFLOAT4A& quaternion) { m_rotation = quaternion; }
+
+		// 로컬 회전각도를 쿼터니언으로 재설정합니다.
+		void SetRotationQuaternion(const XMFLOAT4& quaternion)
+		{
+			m_rotation.x = quaternion.x;
+			m_rotation.y = quaternion.y;
+			m_rotation.z = quaternion.z;
+			m_rotation.w = quaternion.w;
+		}
+
+		// 로컬 회전각도를 오일러 각으로 재설정합니다.
 		// 변환 순서는 Z(Roll), X(Pitch), Y(Yaw)입니다. 회전각 단위는 라디안입니다.
 		void XM_CALLCONV SetRotationEuler(FXMVECTOR euler) { SetRotationQuaternion(XMQuaternionRotationRollPitchYawFromVector(euler)); }
+
+		// 로컬 회전각도를 오일러 각으로 재설정합니다.
+		// 변환 순서는 Z(Roll), X(Pitch), Y(Yaw)입니다. 회전각 단위는 라디안입니다.
+		void SetRotationEuler(const XMFLOAT3A& euler) { SetRotationQuaternion(XMQuaternionRotationRollPitchYaw(euler.x, euler.y, euler.z)); }
+
+		// 로컬 회전각도를 오일러 각으로 재설정합니다.
+		// 변환 순서는 Z(Roll), X(Pitch), Y(Yaw)입니다. 회전각 단위는 라디안입니다.
+		void SetRotationEuler(const XMFLOAT3& euler) { SetRotationQuaternion(XMQuaternionRotationRollPitchYaw(euler.x, euler.y, euler.z)); }
+
+		// 로컬 회전각도를 오일러 각으로 재설정합니다.
+		// 변환 순서는 Z(Roll), X(Pitch), Y(Yaw)입니다. 회전각 단위는 라디안입니다.
+		void SetRotationEuler(FLOAT pitch, FLOAT yaw, FLOAT roll) { SetRotationQuaternion(XMQuaternionRotationRollPitchYaw(pitch, yaw, roll)); }
 
 		// Rotates the transform about axis passing through point in world coordinates by angle radians.
 		// point: 월드 좌표계의 회전 중심점

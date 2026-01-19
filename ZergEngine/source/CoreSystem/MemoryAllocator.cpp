@@ -25,7 +25,7 @@ void MemoryAllocator::Init()
 	::GetSystemInfo(&m_si);
 }
 
-void MemoryAllocator::UnInit()
+void MemoryAllocator::Shutdown()
 {
 }
 

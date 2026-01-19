@@ -6,13 +6,12 @@
 
 using namespace ze;
 
-constexpr size_t MAX_DEBUG_LINES_PER_FRAME = 1024;
-constexpr UINT DEBUG_LINE_BUFFER_BYTE_WIDTH = sizeof(DebugLineVertexFormat) * MAX_DEBUG_LINES_PER_FRAME * 2;
+constexpr size_t MAX_DEBUG_LINES_PER_FRAME = 2048;
 
 PhysicsDebugDrawer::PhysicsDebugDrawer()
 	: m_debugLineVertices()
 	, m_debugMode(btIDebugDraw::DBG_NoDebug)
-	, m_cpDebugLineVertices()
+	, m_cpDebugLineVertexBuffer()
 	, m_cpRSDebugLineDrawing()
 {
 	m_debugLineVertices.reserve(MAX_DEBUG_LINES_PER_FRAME * 2);
@@ -26,7 +25,7 @@ bool PhysicsDebugDrawer::Init(ID3D11Device* pDevice)
 
 	D3D11_BUFFER_DESC bufferDesc;
 
-	bufferDesc.ByteWidth = DEBUG_LINE_BUFFER_BYTE_WIDTH;
+	bufferDesc.ByteWidth = sizeof(DebugLineVertexFormat) * MAX_DEBUG_LINES_PER_FRAME * 2;
 	bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
@@ -53,9 +52,9 @@ bool PhysicsDebugDrawer::Init(ID3D11Device* pDevice)
 	rasterizerDesc.FillMode = D3D11_FILL_SOLID;
 	rasterizerDesc.CullMode = D3D11_CULL_NONE;		// 디버그 라인은 후면컬링 필요없음
 	rasterizerDesc.FrontCounterClockwise = FALSE;
-	rasterizerDesc.DepthBias = -100;
-	rasterizerDesc.DepthBiasClamp = 1.0f;
-	rasterizerDesc.SlopeScaledDepthBias = -1.0f;
+	rasterizerDesc.DepthBias = -100000;		// -100000 * (1 / 2 ^ 24) = 0.0059604644775390625
+	rasterizerDesc.DepthBiasClamp = 0.0f;
+	rasterizerDesc.SlopeScaledDepthBias = 0.0f;
 	rasterizerDesc.DepthClipEnable = TRUE;
 	rasterizerDesc.ScissorEnable = FALSE;
 	rasterizerDesc.MultisampleEnable = TRUE;	// 상단 표 참고
@@ -69,15 +68,15 @@ bool PhysicsDebugDrawer::Init(ID3D11Device* pDevice)
 		return false;
 	}
 
-	m_cpDebugLineVertices = std::move(cpDebugLineVertices);
+	m_cpDebugLineVertexBuffer = std::move(cpDebugLineVertices);
 	m_cpRSDebugLineDrawing = std::move(cpRSDebugLineDrawing);
-
+	
 	return true;
 }
 
 void PhysicsDebugDrawer::Release()
 {
-	m_cpDebugLineVertices.Reset();
+	m_cpDebugLineVertexBuffer.Reset();
 	m_cpRSDebugLineDrawing.Reset();
 }
 
@@ -90,7 +89,7 @@ void PhysicsDebugDrawer::UpdateResources(ID3D11DeviceContext* pDeviceContext)
 	size_t updateSize = vertexCountToDraw * sizeof(DebugLineVertexFormat);
 
 	pDeviceContext->Map(
-		m_cpDebugLineVertices.Get(),
+		m_cpDebugLineVertexBuffer.Get(),
 		D3D11CalcSubresource(0, 0, 0),
 		D3D11_MAP_WRITE_DISCARD,
 		0,
@@ -99,7 +98,12 @@ void PhysicsDebugDrawer::UpdateResources(ID3D11DeviceContext* pDeviceContext)
 
 	std::memcpy(mapped.pData, m_debugLineVertices.data(), updateSize);
 
-	pDeviceContext->Unmap(m_cpDebugLineVertices.Get(), D3D11CalcSubresource(0, 0, 0));
+	pDeviceContext->Unmap(m_cpDebugLineVertexBuffer.Get(), D3D11CalcSubresource(0, 0, 0));
+}
+
+void PhysicsDebugDrawer::ClearDebugDrawerCache()
+{
+	m_debugLineVertices.clear();
 }
 
 UINT PhysicsDebugDrawer::GetDebugLineVertexCountToDraw() const
@@ -107,17 +111,12 @@ UINT PhysicsDebugDrawer::GetDebugLineVertexCountToDraw() const
 	return Math::Clamp(static_cast<UINT>(m_debugLineVertices.size()), 0U, static_cast<UINT>(MAX_DEBUG_LINES_PER_FRAME * 2));
 }
 
-void PhysicsDebugDrawer::ClearDebugInstanceCache()
-{
-	m_debugLineVertices.clear();
-}
-
 void PhysicsDebugDrawer::drawLine(const btVector3& from, const btVector3& to, const btVector3& color)
 {
 	// 지연 렌더링
 
 	DebugLineVertexFormat vFrom;
-	vFrom.m_position = BulletDXMath::BtToDX(from);
+	vFrom.m_position = BtToDX::ConvertVector(from);
 	vFrom.m_color.x = color.getX();
 	vFrom.m_color.y = color.getY();
 	vFrom.m_color.z = color.getZ();
@@ -125,7 +124,7 @@ void PhysicsDebugDrawer::drawLine(const btVector3& from, const btVector3& to, co
 
 
 	DebugLineVertexFormat vTo;
-	vTo.m_position = BulletDXMath::BtToDX(to);
+	vTo.m_position = BtToDX::ConvertVector(to);
 	vTo.m_color.x = color.getX();
 	vTo.m_color.y = color.getY();
 	vTo.m_color.z = color.getZ();
@@ -141,8 +140,8 @@ void PhysicsDebugDrawer::drawContactPoint(const btVector3& PointOnB, const btVec
 {
 	// 지연 렌더링
 	// 접촉점도 선으로 렌더링
-	btVector3 to = PointOnB + normalOnB * distance;
-	drawLine(PointOnB, to, color);	
+	const btVector3 to = PointOnB + normalOnB * 0.1f;
+	drawLine(PointOnB, to, color);
 }
 
 void PhysicsDebugDrawer::reportErrorWarning(const char* warningString)

@@ -13,7 +13,7 @@ GameObject::GameObject(uint64_t id, GAMEOBJECT_FLAG flag, PCWSTR name)
 	, m_components()
 	, m_id(id)
 	, m_tableIndex((std::numeric_limits<uint32_t>::max)())
-	, m_groupIndex((std::numeric_limits<uint32_t>::max)())
+	, m_actInactGroupIndex((std::numeric_limits<uint32_t>::max)())
 	, m_flag(flag)
 {
 	StringCbCopyW(m_name, sizeof(m_name), name);
@@ -39,10 +39,26 @@ void GameObject::Destroy()
 
 void GameObject::SetActive(bool active)
 {
+	// 자식 오브젝트들 재귀적 활성화
 	for (Transform* pChildTransform : m_transform.m_children)
 		pChildTransform->m_pGameObject->SetActive(active);
 
-	GameObjectManager::GetInstance()->SetActive(this, active);
+	// 이미 해당 활성 상태가 설정되어 있는 경우 함수 리턴
+	if (this->IsActive() == active)
+		return;
+
+	if (active)
+		this->OnFlag(GAMEOBJECT_FLAG::ACTIVE);
+	else
+		this->OffFlag(GAMEOBJECT_FLAG::ACTIVE);
+
+	if (this->IsPending())	// 지연 오브젝트인 경우 플래그만 설정하고 리턴
+		return;
+
+	if (active)
+		this->OnActivationSysJob();
+	else
+		this->OnDeactivationSysJob();
 }
 
 const GameObjectHandle GameObject::ToHandle() const
@@ -55,7 +71,6 @@ const GameObjectHandle GameObject::ToHandle() const
 
 ComponentHandleBase GameObject::AddComponentImpl(IComponent* pComponent)
 {
-	pComponent->m_pGameObject = this;
 	m_components.push_back(pComponent);
 
 	if (!this->IsActive())
@@ -64,22 +79,49 @@ ComponentHandleBase GameObject::AddComponentImpl(IComponent* pComponent)
 	IComponentManager* pComponentManager = pComponent->GetComponentManager();
 	ComponentHandleBase hComponent = pComponentManager->RegisterToHandleTable(pComponent);
 
-	// 지연된 게임오브젝트가 아닌 경우에만 바로 포인터 활성화
-	if (!this->IsPending())
-	{
-		pComponentManager->AddToDirectAccessGroup(pComponent);
+	if (this->IsPending())
+		return hComponent;
 
-		if (pComponent->GetType() == ComponentType::MonoBehaviour)
-		{
-			MonoBehaviour* pMonoBehaviour = static_cast<MonoBehaviour*>(pComponent);
-			pMonoBehaviour->Awake();	// Awake는 활성화 여부와 관계 없이 호출
-			if (pMonoBehaviour->IsEnabled())
-			{
-				pMonoBehaviour->OnEnable();
-				static_cast<MonoBehaviourManager*>(pComponentManager)->AddToStartQueue(pMonoBehaviour);
-			}
-		}
+	// 지연된 게임오브젝트가 아닌 경우에만 바로 포인터 활성화
+	pComponentManager->AddToDirectAccessGroup(pComponent);
+
+	if (pComponent->GetType() == ComponentType::MonoBehaviour)
+	{
+		MonoBehaviour* pMonoBehaviour = static_cast<MonoBehaviour*>(pComponent);
+
+		pMonoBehaviour->Awake();            // 1. Awake는 활성화 여부와 관계 없이 호출
+
+		if (pMonoBehaviour->IsEnabled())    // 2. Enabled된 상태로 씬에 배치된 경우 스크립트의 OnEnable() 호출 및 Start 큐에 등록
+			pMonoBehaviour->OnEnableSysJob();   // 작업은 이 함수 내부에서
 	}
 
 	return hComponent;
+}
+
+void GameObject::OnDeploySysJob()
+{
+	assert(this->IsPending());
+
+	this->OffFlag(GAMEOBJECT_FLAG::PENDING);
+
+	if (this->IsActive())
+		GameObjectManager::GetInstance()->AddToActiveGroup(this);
+	else
+		GameObjectManager::GetInstance()->AddToInactiveGroup(this);
+}
+
+void GameObject::OnActivationSysJob()
+{
+	for (IComponent* pComponent : m_components)
+		pComponent->Enable();
+
+	GameObjectManager::GetInstance()->MoveToActiveGroup(this);
+}
+
+void GameObject::OnDeactivationSysJob()
+{
+	for (IComponent* pComponent : m_components)
+		pComponent->Disable();
+
+	GameObjectManager::GetInstance()->MoveToInactiveGroup(this);
 }

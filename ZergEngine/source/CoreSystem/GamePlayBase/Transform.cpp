@@ -14,6 +14,14 @@ Transform::Transform(GameObject* pGameObject)
 	XMStoreFloat3A(&m_position, XMVectorZero());
 }
 
+XMMATRIX Transform::GetParentWorldTransformMatrix() const
+{
+    if (m_pParent)
+        return m_pParent->GetWorldTransformMatrix();
+    else
+        return XMMatrixIdentity();
+}
+
 XMMATRIX Transform::GetWorldTransformMatrix() const
 {
     XMVECTOR s;
@@ -78,14 +86,14 @@ void Transform::GetWorldTransform(XMVECTOR* pScale, XMVECTOR* pRotation, XMVECTO
     }
     else
     {
-        // 부모가 있는 경우 부모의 스케일, 회전, 이동을 누적
-
-        // 중요 포인트!
+        // 부모가 있는 경우
+        
+        // 중요
+        // 로컬 Transform = 부모 공간에서의 상대적인 Transform
+        // 따라서 로컬 Transform들은 부모에 의해 Transformation된다.
+        // 
         // 자식의 Translation 성분은 부모의 스케일 및 회전에 영향을 받는다.
-        // 자기 자신 로컬 스케일과 회전은 영향을 받지 않는다. (부모의 스케일 및 회전만 적용해야 함!!!)
-        // 부모의 스케일 값에 자식의 회전을 곱한 뒤 
-
-        // 자식의 스케일에는 부모의
+        // 자기 자신 로컬 스케일과 회전은 영향을 받지 않는다. (로컬 내에서의 Transform 성분 순서 규칙은 SRT이므로) -> (부모의 스케일 및 회전만 적용해야 함)
 
         XMVECTOR parentScaleW;
         XMVECTOR parentRotationW;
@@ -93,16 +101,31 @@ void Transform::GetWorldTransform(XMVECTOR* pScale, XMVECTOR* pRotation, XMVECTO
         m_pParent->GetWorldTransform(&parentScaleW, &parentRotationW, &parentTranslationW);
 
 
+        // 계층 구조에서 SRT 계산
+        // -> 로컬 좌표계는 부모의 공간 기준으로 정의된 좌표계이다.
+        // 이 로컬 좌표계는 부모의 월드 Transform 의해 변형된다.
+        // 즉,
+        // 1. World Scale = Sl       // 일단 자기 자신의 공간에서의 스케일 값
+        // 2. World Scale = World Scale * Sp  // 그것이 부모의 월드 변환에 의해 변환됨.
+
+        // 1. World Rotation = Ql        // 회전은 자기 자신의 공간에서의 회전
+        // 2. World Rotation = World Rotation * Qp   // 그것이 부모의 월드 회전에 의해 변환됨.
+
+        // 1. World Pos = Pl
+        // 2. World Pos = World Pos * Qp
+        // 3. World Pos = World Pos + Pp
 
         XMVECTOR scaleW = XMVectorMultiply(scaleL, parentScaleW);
 
-        XMVECTOR rotationW = XMQuaternionMultiply(rotationL, parentRotationW);
+        // v' = qvq-1
+        // rotationW = parentRotationW(rotationL(v))
+        XMVECTOR rotationW = XMQuaternionMultiply(parentRotationW, rotationL);
 
-        // 1. 자식의 이동 성분이 부모의 스케일에 영향을 받는다.
+        // 1. 자식의 이동 성분은 부모의 스케일에 영향을 받는다.
         XMVECTOR scaledTranslationL = XMVectorMultiply(translationL, parentScaleW);
         // 2. 자식의 이동 성분은 부모의 회전에 영향을 받는다.
         XMVECTOR rotatedTranslationL = XMVector3Rotate(scaledTranslationL, parentRotationW);
-        // 3. 계산된 자식의 Translation 성분은 부모의 월드 위치 기준 Translation 성분이다. 따라서 더해준다.
+        // 3. 계산된 자식의 Translation 성분은 부모의 월드 공간 기준 Translation 성분이다. 따라서 더해준다.
         XMVECTOR translationW = XMVectorAdd(rotatedTranslationL, parentTranslationW);
 
         *pScale = scaleW;
@@ -130,7 +153,7 @@ XMVECTOR Transform::GetWorldRotation() const
     XMVECTOR rotationL = this->GetRotation();
 
     if (m_pParent)
-        rotationW = XMQuaternionMultiply(rotationL, m_pParent->GetWorldRotation());
+        rotationW = XMQuaternionMultiply(m_pParent->GetWorldRotation(), rotationL); // rotationL 회전이 먼저 이루어지고, 이후 parentWorldRotation 회전을 가한다.
     else
         rotationW = rotationL;
 
@@ -148,68 +171,15 @@ XMVECTOR Transform::GetWorldPosition() const
     return positionW;
 }
 
-// void XM_CALLCONV Transform::RotateAround(FXMVECTOR point, FXMVECTOR axis, FLOAT angle)
-// {
-//     // 1. 회전 후의 새로운 world position 계산
-//     // 현재 Transform의 월드 위치와 회전 얻기
-//     XMVECTOR oldWorldPos = GetWorldPosition();
-// 
-//     // point 기준 axis를 회전축으로 회전
-//     XMVECTOR offset = oldWorldPos - point;
-// 
-//     // 회전 행렬 생성
-//     XMMATRIX rotationMatrix = XMMatrixRotationAxis(axis, angle);
-// 
-//     // 오프셋 회전
-//     XMVECTOR rotatedOffset = XMVector3Transform(offset, rotationMatrix);
-// 
-//     // 새로운 world position 계산
-//     XMVECTOR newWorldPosition = point + rotatedOffset;
-// 
-//     // 2. 회전 후의 새로운 world rotation 계산
-//     // 기존의 world 기준 회전 상태에 RotateAround 함수로 인한 추가적인 회전을 누적시키면 된다.
-//     
-//     // 기존 world rotation 얻기 (worldMatrix에서 추출하거나, 직접 계산)
-//     XMVECTOR oldWorldRotation = this->GetWorldRotation();
-// 
-//     // 회전축 기준으로 회전하는 쿼터니언 생성
-//     XMVECTOR deltaRotation = XMQuaternionRotationAxis(axis, angle);
-//     
-//     // 새로운 world rotation 계산
-//     XMVECTOR newWorldRotation = XMQuaternionMultiply(deltaRotation, oldWorldRotation);
-// 
-//     // 4. newWorldPos, newWorldRotation을 newLocalPos, newLocalRotation으로 변환
-//     assert(m_pGameObject != nullptr);
-// 
-//     if (m_pParent != nullptr)
-//     {
-//         // 부모의 월드 매트릭스
-//         XMMATRIX parentWorldMatrix = m_pParent->GetWorldTransformMatrix();
-// 
-//         // 부모의 월드 회전 (쿼터니언)
-//         XMVECTOR parentWorldRotation = m_pParent->GetWorldRotation();
-// 
-//         // 부모 space 기준으로 변환
-//         // 위치 변환
-//         XMMATRIX parentWorldMatrixInv = XMMatrixInverse(nullptr, parentWorldMatrix);
-//         XMVECTOR newLocalPosition = XMVector3TransformCoord(newWorldPosition, parentWorldMatrixInv);
-//         
-//         // 회전 변환
-//         XMVECTOR parentWorldRotationInv = XMQuaternionInverse(parentWorldRotation);
-//         XMVECTOR newLocalRotation = XMQuaternionMultiply(newWorldRotation, parentWorldRotationInv);
-// 
-//         XMStoreFloat3A(&m_position, newLocalPosition);
-//         XMStoreFloat4A(&m_rotation, XMQuaternionNormalize(newLocalRotation));
-//     }
-//     else
-//     {
-//         // 부모 오브젝트가 없다면 world == local
-//         XMStoreFloat3A(&m_position, newWorldPosition);
-//         XMStoreFloat4A(&m_rotation, XMQuaternionNormalize(newWorldRotation));
-//     }
-// 
-// 
-// }
+void XM_CALLCONV Transform::RotateQuaternion(FXMVECTOR quaternion)
+{
+    return XMStoreFloat4A(&m_rotation, XMQuaternionNormalize(XMQuaternionMultiply(quaternion, XMLoadFloat4A(&m_rotation))));
+}
+
+void XM_CALLCONV Transform::RotateEuler(FXMVECTOR euler)
+{
+    return XMStoreFloat4A(&m_rotation, XMQuaternionNormalize(XMQuaternionMultiply(XMQuaternionRotationRollPitchYawFromVector(euler), XMLoadFloat4A(&m_rotation))));
+}
 
 bool Transform::SetParent(Transform* pTransform)
 {

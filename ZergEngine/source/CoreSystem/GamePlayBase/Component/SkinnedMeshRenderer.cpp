@@ -7,8 +7,8 @@
 
 using namespace ze;
 
-SkinnedMeshRenderer::SkinnedMeshRenderer() noexcept
-	: IComponent(SkinnedMeshRendererManager::GetInstance()->AssignUniqueId())
+SkinnedMeshRenderer::SkinnedMeshRenderer(GameObject& owner) noexcept
+	: IComponent(owner, SkinnedMeshRendererManager::GetInstance()->AssignUniqueId())
 	, m_materials()
 	, m_castShadows(false)
 	, m_receiveShadows(false)

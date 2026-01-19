@@ -21,7 +21,7 @@ namespace ze
 
 		void Init(HINSTANCE hInstance, int nCmdShow, uint32_t width, uint32_t height, PCWSTR title, PCWSTR startScene);
 		void InitEditor(HINSTANCE hInstance, HWND hMainFrameWnd, HWND hViewWnd, uint32_t width, uint32_t height);
-		void UnInit();
+		void Release();
 
 		void Run();
 		void Exit();
@@ -101,7 +101,7 @@ namespace ze
 		void LoadNextScene(IScene* pNextScene);
 	private:
 		static Runtime* s_pInstance;
-		LONGLONG m_deltaPerformanceCount;
+		float m_accumDeltaTime;
 		bool m_isEditor;
 		bool m_render;
 		int m_nCmdShow;

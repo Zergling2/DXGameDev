@@ -17,7 +17,7 @@ namespace ze
 		static void DestroyInstance();
 
 		void Init();
-		void UnInit();
+		void Shutdown();
 	public:
 		LPVOID RequestSystemAllocPageSize(uint32_t page);
 		LPVOID RequestSystemAllocGranularitySize();

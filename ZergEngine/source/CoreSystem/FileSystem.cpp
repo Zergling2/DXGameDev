@@ -37,7 +37,7 @@ void FileSystem::Init()
 	*(wcsrchr(m_appFolderPath, L'\\') + 1) = L'\0';		// ...\...\MyGames\TheGame\'\0'
 }
 
-void FileSystem::UnInit()
+void FileSystem::Shutdown()
 {
 	// Nothing to do.
 }

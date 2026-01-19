@@ -90,7 +90,7 @@ void Input::Init(HINSTANCE hInstance, HWND hWnd)
 	hr = m_cpDIMouse->Acquire();
 }
 
-void Input::UnInit()
+void Input::Shutdown()
 {
 	if (m_cpDIMouse)
 		m_cpDIMouse->Unacquire();

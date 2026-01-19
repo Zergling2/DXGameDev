@@ -41,12 +41,12 @@ namespace ze
 		friend class TerrainEffect;
 		friend class BillboardEffect;
 	public:
-		IComponent(uint64_t id) noexcept;
+		IComponent(GameObject& owner, uint64_t id) noexcept;
 		virtual ~IComponent() = default;
 
 		virtual ComponentType GetType() const = 0;
-		virtual void Enable();
-		virtual void Disable();
+		void Enable();
+		void Disable();
 
 		const GameObjectHandle GetGameObjectHandle() const;
 
@@ -58,6 +58,10 @@ namespace ze
 		bool IsOnTheDestroyQueue() const { return static_cast<cft>(m_flag) & static_cast<cft>(ComponentFlag::OnDestroyQueue); }
 		bool IsOnTheStartingQueue() const { return static_cast<cft>(m_flag) & static_cast<cft>(ComponentFlag::OnStartingQueue); }
 		bool IsStartCalled() const { return static_cast<cft>(m_flag) & static_cast<cft>(ComponentFlag::StartCalled); }
+	protected:
+		virtual void OnDeploySysJob();
+		virtual void OnEnableSysJob();
+		virtual void OnDisableSysJob();
 	private:
 		virtual IComponentManager* GetComponentManager() const = 0;
 

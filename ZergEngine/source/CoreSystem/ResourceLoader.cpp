@@ -161,7 +161,7 @@ void ResourceLoader::Init()
 	m_errTex.m_cpSRV = std::move(cpSRV);
 }
 
-void ResourceLoader::UnInit()
+void ResourceLoader::Shutdown()
 {
 	m_errTex.Reset();
 }

@@ -318,7 +318,7 @@ bool GraphicDevice::Init(HWND hWnd, uint32_t width, uint32_t height, bool fullsc
 	return true;
 }
 
-void GraphicDevice::UnInit()
+void GraphicDevice::Shutdown()
 {
 	HRESULT hr;
 

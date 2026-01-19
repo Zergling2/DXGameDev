@@ -26,9 +26,7 @@ namespace ze
 		static void DestroyInstance();
 
 		void Init();
-		void UnInit();
-
-		void Deploy(GameObject* pGameObject);
+		void Shutdown();
 
 		GameObjectHandle FindGameObject(PCWSTR name);
 		GameObjectHandle CreateObject(PCWSTR name);
@@ -49,16 +47,20 @@ namespace ze
 		void AddToActiveGroup(GameObject* pGameObject);
 		void AddToInactiveGroup(GameObject* pGameObject);
 
-		void RemoveFromGroup(GameObject* pGameObject);	// Active/Inactive group에서 포인터 제거
+		void RemoveFromActiveGroup(GameObject* pGameObject);
+		void RemoveFromInactiveGroup(GameObject* pGameObject);
 		void RemoveDestroyedGameObjects();
-
-		void SetActive(GameObject* pGameObject, bool active);
 
 		// pTransform은 항상 nullptr이 아닌 입력
 		// pNewTransform은 nullptr이 입력으로 들어올 수 있음.
 		bool SetParent(Transform* pTransform, Transform* pNewParentTransform);
 
 		uint64_t AssignUniqueId() { return InterlockedIncrement64(reinterpret_cast<LONG64*>(&m_uniqueId)); }
+
+
+
+		void AddToActInactGroupImpl(GameObject* pGameObject, std::vector<GameObject*>& group);
+		void RemoveFromActInactGroupImpl(GameObject* pGameObject, std::vector<GameObject*>& group);
 	private:
 		static GameObjectManager* s_pInstance;
 

@@ -18,7 +18,7 @@ namespace ze
 		static void DestroyInstance();
 
 		void Init();
-		void UnInit();
+		void Shutdown();
 	public:
 		Texture2D GetSkybox() const { return m_skyboxCubeMap; }
 		void SetSkybox(Texture2D cubeMapTexture) { m_skyboxCubeMap = std::move(cubeMapTexture); }

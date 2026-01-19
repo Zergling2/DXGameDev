@@ -33,7 +33,7 @@ namespace ze
 		static void DestroyInstance();
 
 		void Init(PCWSTR startScene);
-		void UnInit();
+		void Shutdown();
 
 		IScene* CreateScene(PCWSTR sceneName);
 		IScene* PopNextScene();

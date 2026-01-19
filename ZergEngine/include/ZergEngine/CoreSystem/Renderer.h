@@ -48,7 +48,7 @@ namespace ze
 		static void DestroyInstance();
 
 		void Init();
-		void UnInit();
+		void Shutdown();
 
 		void RenderFrame();
 

@@ -32,7 +32,7 @@ namespace ze
 		static constexpr ComponentType TYPE = ComponentType::Camera;
 		static constexpr bool IsCreatable() { return true; }
 
-		Camera() noexcept;
+		Camera(GameObject& owner) noexcept;
 		virtual ~Camera() = default;
 
 		virtual ComponentType GetType() const override { return ComponentType::Camera; }
