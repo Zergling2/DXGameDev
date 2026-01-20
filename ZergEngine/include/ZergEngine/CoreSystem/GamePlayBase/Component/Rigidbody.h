@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ZergEngine\CoreSystem\Platform.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\ComponentInterface.h>
 #include <memory>
 
@@ -17,13 +18,25 @@ namespace ze
 		static constexpr ComponentType TYPE = ComponentType::Rigidbody;
 		static bool IsCreatable() { return true; }
 
-		Rigidbody(GameObject& owner, std::shared_ptr<ICollider> collider);
+		Rigidbody(GameObject& owner, std::shared_ptr<ICollider> collider, const XMFLOAT3& localPos = XMFLOAT3(0.0f, 0.0f, 0.0f), const XMFLOAT4& localRot = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
 		virtual ~Rigidbody() = default;
 
 		virtual ComponentType GetType() const override { return ComponentType::Rigidbody; }
 
-		// Kinematic 강체의 경우 함수는 아무런 동작도 하지 않습니다.
+		float GetMass() const;
 		void SetMass(float mass);
+
+		float GetFriction() const;
+		void SetFriction(float friction);
+
+		float GetRollingFriction() const;
+		void SetRollingFriction(float friction);
+
+		float GetSpinningFriction() const;
+		void SetSpinningFriction(float friction);
+
+		XMFLOAT3 GetLinearVelocity() const;
+		XMFLOAT3 GetAngularVelocity() const;
 
 		bool IsUsingGravity() const { return m_useGravity; }
 		void UseGravity(bool b);

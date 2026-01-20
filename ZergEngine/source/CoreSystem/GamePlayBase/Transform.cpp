@@ -117,9 +117,9 @@ void Transform::GetWorldTransform(XMVECTOR* pScale, XMVECTOR* pRotation, XMVECTO
 
         XMVECTOR scaleW = XMVectorMultiply(scaleL, parentScaleW);
 
-        // v' = qvq-1
+        // v' = q * v * inv(q)
         // rotationW = parentRotationW(rotationL(v))
-        XMVECTOR rotationW = XMQuaternionMultiply(parentRotationW, rotationL);
+        XMVECTOR rotationW = XMQuaternionMultiply(rotationL, parentRotationW);  // rotationL 회전 먼저, parentRotationW 회전이 그 다음
 
         // 1. 자식의 이동 성분은 부모의 스케일에 영향을 받는다.
         XMVECTOR scaledTranslationL = XMVectorMultiply(translationL, parentScaleW);
@@ -153,7 +153,7 @@ XMVECTOR Transform::GetWorldRotation() const
     XMVECTOR rotationL = this->GetRotation();
 
     if (m_pParent)
-        rotationW = XMQuaternionMultiply(m_pParent->GetWorldRotation(), rotationL); // rotationL 회전이 먼저 이루어지고, 이후 parentWorldRotation 회전을 가한다.
+        rotationW = XMQuaternionMultiply(rotationL, m_pParent->GetWorldRotation()); // rotationL 회전이 먼저 이루어지고, 이후 parentWorldRotation 회전을 가한다.
     else
         rotationW = rotationL;
 
@@ -173,12 +173,12 @@ XMVECTOR Transform::GetWorldPosition() const
 
 void XM_CALLCONV Transform::RotateQuaternion(FXMVECTOR quaternion)
 {
-    return XMStoreFloat4A(&m_rotation, XMQuaternionNormalize(XMQuaternionMultiply(quaternion, XMLoadFloat4A(&m_rotation))));
+    return XMStoreFloat4A(&m_rotation, XMQuaternionNormalize(XMQuaternionMultiply(XMLoadFloat4A(&m_rotation), quaternion)));
 }
 
 void XM_CALLCONV Transform::RotateEuler(FXMVECTOR euler)
 {
-    return XMStoreFloat4A(&m_rotation, XMQuaternionNormalize(XMQuaternionMultiply(XMQuaternionRotationRollPitchYawFromVector(euler), XMLoadFloat4A(&m_rotation))));
+    return XMStoreFloat4A(&m_rotation, XMQuaternionNormalize(XMQuaternionMultiply(XMLoadFloat4A(&m_rotation), XMQuaternionRotationRollPitchYawFromVector(euler))));
 }
 
 bool Transform::SetParent(Transform* pTransform)

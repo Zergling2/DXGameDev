@@ -23,6 +23,8 @@ namespace ze
 		virtual ~ICollider() = default;
 
 		virtual ColliderType GetType() const = 0;
-		virtual btCollisionShape* GetCollisionShape() const = 0;
+		btCollisionShape* GetCollisionShape() const { return m_upBtCollisionShape.get(); }
+	protected:
+		std::unique_ptr<btCollisionShape> m_upBtCollisionShape;
 	};
 }

@@ -3,14 +3,15 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\MotionState.h>
 #include <ZergEngine\CoreSystem\Resource\ColliderInterface.h>
+#include <ZergEngine\CoreSystem\BulletDXMath.h>
 #include <ZergEngine\CoreSystem\Physics.h>
 #include <bullet3\btBulletDynamicsCommon.h>
 
 using namespace ze;
 
-Rigidbody::Rigidbody(GameObject& owner, std::shared_ptr<ICollider> collider)
+Rigidbody::Rigidbody(GameObject& owner, std::shared_ptr<ICollider> collider, const XMFLOAT3& localPos, const XMFLOAT4& localRot)
 	: IComponent(owner, RigidbodyManager::GetInstance()->AssignUniqueId())
-	, m_upMotionState(std::make_unique<MotionState>(owner.m_transform))
+	, m_upMotionState(std::make_unique<MotionState>(owner.m_transform, localPos, localRot))
 	, m_spCollider(std::move(collider))
 	, m_upBtRigidBody()
 	, m_useGravity(true)
@@ -35,12 +36,57 @@ Rigidbody::Rigidbody(GameObject& owner, std::shared_ptr<ICollider> collider)
 	m_upBtRigidBody = std::make_unique<btRigidBody>(rbci);
 }
 
+float Rigidbody::GetMass() const
+{
+	return m_upBtRigidBody->getMass();
+}
+
 void Rigidbody::SetMass(float mass)
 {
 	btVector3 inertia;
 	m_spCollider->GetCollisionShape()->calculateLocalInertia(mass, inertia);
 
 	m_upBtRigidBody->setMassProps(mass, inertia);
+}
+
+float Rigidbody::GetFriction() const
+{
+	return m_upBtRigidBody->getFriction();
+}
+
+void Rigidbody::SetFriction(float friction)
+{
+	m_upBtRigidBody->setFriction(friction);
+}
+
+float Rigidbody::GetRollingFriction() const
+{
+	return m_upBtRigidBody->getRollingFriction();
+}
+
+void Rigidbody::SetRollingFriction(float friction)
+{
+	m_upBtRigidBody->setRollingFriction(friction);
+}
+
+float Rigidbody::GetSpinningFriction() const
+{
+	return m_upBtRigidBody->getSpinningFriction();
+}
+
+void Rigidbody::SetSpinningFriction(float friction)
+{
+	m_upBtRigidBody->setSpinningFriction(friction);
+}
+
+XMFLOAT3 Rigidbody::GetLinearVelocity() const
+{
+	return BtToDX::ConvertVector(m_upBtRigidBody->getLinearVelocity());
+}
+
+XMFLOAT3 Rigidbody::GetAngularVelocity() const
+{
+	return BtToDX::ConvertVector(m_upBtRigidBody->getAngularVelocity());
 }
 
 void Rigidbody::UseGravity(bool b)

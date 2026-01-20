@@ -876,25 +876,24 @@ void Warehouse::OnLoadScene()
 	}
 
 
-	Physics::GetInstance()->SetGravity(XMFLOAT3(0, -5, 0));
-	// 물리엔진 테스트 나무박스
+	// 물리엔진 테스트 박스
 	{
 		GameObjectHandle hGameObject = CreateGameObject(L"Box");
 		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(-0.56, 6, 0.55);
+		pGameObject->m_transform.SetPosition(-0.5f, 6.0f, 0.5f);
 		// pGameObject->m_transform.SetRotationEuler(XMConvertToRadians(20.0f), 0, 0);
+		// pGameObject->m_transform.SetRotationEuler(0, XMConvertToRadians(20.0f), 0);
+		pGameObject->m_transform.SetRotationEuler(0, 0, XMConvertToRadians(20.0f));
 
 		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
 		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 		pMeshRenderer->SetMesh(meshBox);
 		pMeshRenderer->SetMaterial(0, matPaperBox);
 
-		std::shared_ptr<BoxCollider> collider = std::make_shared<BoxCollider>(
-			meshBox->GetAabb().Extents,
-			meshBox->GetAabb().Center
-		);
-		ComponentHandle<Rigidbody> hRigidbody = pGameObject->AddComponent<Rigidbody>(collider);
+		std::shared_ptr<BoxCollider> collider = std::make_shared<BoxCollider>(meshBox->GetAabb().Extents);
+		ComponentHandle<Rigidbody> hRigidbody = pGameObject->AddComponent<Rigidbody>(collider, meshBox->GetAabb().Center);
 		Rigidbody* pRigidbody = hRigidbody.ToPtr();
+		pRigidbody->SetFriction(0.5);
 	}
 
 

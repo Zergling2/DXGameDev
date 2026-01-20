@@ -6,7 +6,7 @@
 
 using namespace ze;
 
-constexpr size_t MAX_DEBUG_LINES_PER_FRAME = 2048;
+constexpr size_t MAX_DEBUG_LINES_PER_FRAME = 4096;
 
 PhysicsDebugDrawer::PhysicsDebugDrawer()
 	: m_debugLineVertices()
@@ -108,7 +108,7 @@ void PhysicsDebugDrawer::ClearDebugDrawerCache()
 
 UINT PhysicsDebugDrawer::GetDebugLineVertexCountToDraw() const
 {
-	return Math::Clamp(static_cast<UINT>(m_debugLineVertices.size()), 0U, static_cast<UINT>(MAX_DEBUG_LINES_PER_FRAME * 2));
+	return Math::Clamp<UINT>(static_cast<UINT>(m_debugLineVertices.size()), 0, static_cast<UINT>(MAX_DEBUG_LINES_PER_FRAME * 2));
 }
 
 void PhysicsDebugDrawer::drawLine(const btVector3& from, const btVector3& to, const btVector3& color)

@@ -1,33 +1,65 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\MotionState.h>
-#include <ZergEngine\CoreSystem\BulletDXMath.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Transform.h>
+#include <ZergEngine\CoreSystem\BulletDXMath.h>
 
 using namespace ze;
 
+MotionState::MotionState(Transform& transform, const XMFLOAT3& localPos, const XMFLOAT4& localRot)
+	: m_transform(transform)
+{
+	this->SetLocalPos(localPos);
+	this->SetLocalRot(localRot);
+}
+
 void MotionState::getWorldTransform(btTransform& worldTrans) const
 {
-	XMVECTOR scaleW;
-	XMVECTOR rotationW;
-	XMVECTOR positionW;
+	XMVECTOR vScaleW;
+	XMVECTOR vWorldRot;
+	XMVECTOR vWorldPos;
 
-	m_transform.GetWorldTransform(&scaleW, &rotationW, &positionW);
+	m_transform.GetWorldTransform(&vScaleW, &vWorldRot, &vWorldPos);
 
-	XMFLOAT4A dxRotW;
-	XMFLOAT3A dxPosW;
-	XMStoreFloat4A(&dxRotW, rotationW);
-	XMStoreFloat3A(&dxPosW, positionW);
+	// Compute Rigidbody Final World Transform (오프셋을 감안한 Rigidbody의 월드 트랜스폼 계산)
+	XMVECTOR vRbLocalRot = XMLoadFloat4A(&m_localRot);
+	XMVECTOR vRbLocalPos = XMLoadFloat3A(&m_localPos);
 
-	worldTrans.setRotation(DXToBt::ConvertQuaternion(dxRotW));
-	worldTrans.setOrigin(DXToBt::ConvertVector(dxPosW));
+	XMVECTOR vRbWorldRot = XMQuaternionMultiply(vRbLocalRot, vWorldRot);
+	XMVECTOR vRbWorldPos = XMVectorAdd(XMVector3Rotate(vRbLocalPos, vWorldRot), vWorldPos);
+	
+	XMFLOAT4 rbWorldRot;
+	XMFLOAT3 rbWorldPos;
+	XMStoreFloat4(&rbWorldRot, vRbWorldRot);
+	XMStoreFloat3(&rbWorldPos, vRbWorldPos);
+
+	worldTrans.setRotation(DXToBt::ConvertQuaternion(rbWorldRot));
+	worldTrans.setOrigin(DXToBt::ConvertVector(rbWorldPos));
 }
 
 void MotionState::setWorldTransform(const btTransform& worldTrans)
 {
-	XMFLOAT3 dxPos = BtToDX::ConvertVector(worldTrans.getOrigin());
-	XMFLOAT4 dxRot = BtToDX::ConvertQuaternion(worldTrans.getRotation());
+	const XMFLOAT4 rbWorldRot = BtToDX::ConvertQuaternion(worldTrans.getRotation());
+	const XMFLOAT3 rbWorldPos = BtToDX::ConvertVector(worldTrans.getOrigin());
+	XMVECTOR vRbWorldRot = XMLoadFloat4(&rbWorldRot);
+	XMVECTOR vRbWorldPos = XMLoadFloat3(&rbWorldPos);
 
-	XMVECTOR worldPos = XMLoadFloat3(&dxPos);
-	XMVECTOR worldRot = XMLoadFloat4(&dxRot);
+
+	// getWorldTransform에서 Rigidbody transform은 이렇게 계산되었음. (vWorldRot, vWorldPos는 GameObject의 Transform)
+	// vRbWorldRot = QuaternionMultiply(m_localRot, vWorldRot)
+	// vRbWorldPos = XMVectorAdd(XMVector3Rotate(m_localPos, vWorldRot), vWorldPos);
+
+	// 수학 수식으로 나타내면
+	// vRbWorldRot = vWorldRot * m_localRot
+	// vRbWorldPos = vWorldPos + m_localPos * vWorldRot
+
+	// 따라서 역으로 
+	// vRbWorldRot * inv(m_localRot) = vWorldRot
+	// vRbWorldPos - m_localPos * vWorldRot = vWorldPos
+
+
+	XMVECTOR vRbInvLocalRot = XMQuaternionConjugate(XMLoadFloat4A(&m_localRot));
+
+	XMVECTOR vWorldRot = XMQuaternionMultiply(vRbInvLocalRot, vRbWorldRot);
+	XMVECTOR vWorldPos = XMVectorSubtract(vRbWorldPos, XMVector3Rotate(XMLoadFloat3(&m_localPos), vWorldRot));
 
 	if (m_transform.GetParent())
 	{
@@ -45,20 +77,37 @@ void MotionState::setWorldTransform(const btTransform& worldTrans)
 		XMVECTOR parentWorldPos;
 		m_transform.GetParent()->GetWorldTransform(&parentWorldScale, &parentWorldRot, &parentWorldPos);
 
-		XMVECTOR invParentWorldRot = XMQuaternionInverse(parentWorldRot);
+		XMVECTOR vInvParentWorldRot = XMQuaternionConjugate(parentWorldRot);
 		
-		XMVECTOR localPos = XMVector3Rotate(XMVectorSubtract(worldPos, parentWorldPos), invParentWorldRot);
+		XMVECTOR vLocalPos = XMVector3Rotate(XMVectorSubtract(vWorldPos, parentWorldPos), vInvParentWorldRot);
 
 		// v' = qvq-1
-		// localRot = invParentWorldRot(worldRot(v))
-		XMVECTOR localRot = XMQuaternionMultiply(invParentWorldRot, worldRot);	// worldRot먼저, invParentWorldRot 나중에
+		// vLocalRot = vInvParentWorldRot(vWorldRot(v))
+		XMVECTOR vLocalRot = XMQuaternionMultiply(vWorldRot, vInvParentWorldRot);	// vWorldRot먼저, vInvParentWorldRot 나중에
 
-		m_transform.SetPosition(localPos);
-		m_transform.SetRotationQuaternion(localRot);
+		m_transform.SetPosition(vLocalPos);
+		m_transform.SetRotationQuaternion(vLocalRot);
 	}
 	else
 	{
-		m_transform.SetPosition(worldPos);
-		m_transform.SetRotationQuaternion(worldRot);
+		// local pos == world pos
+		// local rot == world rot
+		m_transform.SetPosition(vWorldPos);
+		m_transform.SetRotationQuaternion(vWorldRot);
 	}
+}
+
+void MotionState::SetLocalPos(const XMFLOAT3& localPos)
+{
+	m_localPos.x = localPos.x;
+	m_localPos.y = localPos.y;
+	m_localPos.z = localPos.z;
+}
+
+void MotionState::SetLocalRot(const XMFLOAT4& localRot)
+{
+	m_localRot.x = localRot.x;
+	m_localRot.y = localRot.y;
+	m_localRot.z = localRot.z;
+	m_localRot.w = localRot.w;
 }
