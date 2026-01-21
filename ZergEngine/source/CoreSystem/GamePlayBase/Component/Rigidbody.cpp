@@ -1,5 +1,4 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Rigidbody.h>
-#include <ZergEngine\CoreSystem\Manager\ComponentManager\RigidbodyManager.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\MotionState.h>
 #include <ZergEngine\CoreSystem\Resource\ColliderInterface.h>
@@ -10,18 +9,13 @@
 using namespace ze;
 
 Rigidbody::Rigidbody(GameObject& owner, std::shared_ptr<ICollider> collider, const XMFLOAT3& localPos, const XMFLOAT4& localRot)
-	: IComponent(owner, RigidbodyManager::GetInstance()->AssignUniqueId())
+	: IRigidbody(owner, std::move(collider))
 	, m_upMotionState(std::make_unique<MotionState>(owner.m_transform, localPos, localRot))
-	, m_spCollider(std::move(collider))
-	, m_upBtRigidBody()
 	, m_mass(1.0f)
 	, m_useGravity(true)
 	, m_isKinematic(false)
 	, m_freezeState(FF_None)
 {
-	assert(m_spCollider != nullptr);
-	assert(m_spCollider->GetCollisionShape() != nullptr);
-
 	btVector3 inertia;
 	m_spCollider->GetCollisionShape()->calculateLocalInertia(m_mass, inertia);
 	btRigidBody::btRigidBodyConstructionInfo rbci(m_mass, m_upMotionState.get(), m_spCollider->GetCollisionShape(), inertia);
@@ -45,36 +39,6 @@ void Rigidbody::SetMass(float mass)
 	m_spCollider->GetCollisionShape()->calculateLocalInertia(m_mass, inertia);
 
 	m_upBtRigidBody->setMassProps(m_mass, inertia);
-}
-
-float Rigidbody::GetFriction() const
-{
-	return m_upBtRigidBody->getFriction();
-}
-
-void Rigidbody::SetFriction(float friction)
-{
-	m_upBtRigidBody->setFriction(friction);
-}
-
-float Rigidbody::GetRollingFriction() const
-{
-	return m_upBtRigidBody->getRollingFriction();
-}
-
-void Rigidbody::SetRollingFriction(float friction)
-{
-	m_upBtRigidBody->setRollingFriction(friction);
-}
-
-float Rigidbody::GetSpinningFriction() const
-{
-	return m_upBtRigidBody->getSpinningFriction();
-}
-
-void Rigidbody::SetSpinningFriction(float friction)
-{
-	m_upBtRigidBody->setSpinningFriction(friction);
 }
 
 XMFLOAT3 Rigidbody::GetLinearVelocity() const
@@ -116,9 +80,8 @@ void Rigidbody::SetKinematic(bool b)
 		m_upBtRigidBody->setActivationState(DISABLE_DEACTIVATION);	// Bullet_User_Manual p.23
 		// (Bullet 런타임이 시뮬레이션 프레임마다 btMotionState로부터 새로운 월드 변환을 요청
 
-		btVector3 inertia;
-		m_spCollider->GetCollisionShape()->calculateLocalInertia(0.0f, inertia);
-		m_upBtRigidBody->setMassProps(0, inertia);
+		const btVector3 inertia(0.0f, 0.0f, 0.0f);
+		m_upBtRigidBody->setMassProps(0.0f, inertia);
 	}
 	else
 	{
@@ -184,28 +147,4 @@ void Rigidbody::SetFreezeRotation(bool freezeX, bool freezeY, bool freezeZ)
 	m_freezeState & FF_RotationZ ? angularFactor.setZ(0.0f) : angularFactor.setZ(1.0f);
 
 	m_upBtRigidBody->setAngularFactor(angularFactor);
-}
-
-IComponentManager* Rigidbody::GetComponentManager() const
-{
-	return RigidbodyManager::GetInstance();
-}
-
-void Rigidbody::OnDeploySysJob()
-{
-	IComponent::OnDeploySysJob();
-
-	// 물리 월드에 등록
-	if (this->IsEnabled())
-		Physics::GetInstance()->GetDynamicsWorld()->addRigidBody(m_upBtRigidBody.get());
-}
-
-void Rigidbody::OnEnableSysJob()
-{
-	Physics::GetInstance()->GetDynamicsWorld()->addRigidBody(m_upBtRigidBody.get());
-}
-
-void Rigidbody::OnDisableSysJob()
-{
-	Physics::GetInstance()->GetDynamicsWorld()->removeRigidBody(m_upBtRigidBody.get());
 }

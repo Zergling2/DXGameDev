@@ -1,19 +1,14 @@
 #pragma once
 
 #include <ZergEngine\CoreSystem\Platform.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\Component\ComponentInterface.h>
-#include <memory>
-
-class btRigidBody;
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\RigidbodyInterface.h>
 
 namespace ze
 {
 	class MotionState;
-	class ICollider;
 
-	class Rigidbody : public IComponent
+	class Rigidbody : public IRigidbody
 	{
-		friend class RigidbodyManager;
 		enum FreezeFlag : uint8_t
 		{
 			FF_None			= 0b00000000,
@@ -36,15 +31,6 @@ namespace ze
 		float GetMass() const;
 		void SetMass(float mass);
 
-		float GetFriction() const;
-		void SetFriction(float friction);
-
-		float GetRollingFriction() const;
-		void SetRollingFriction(float friction);
-
-		float GetSpinningFriction() const;
-		void SetSpinningFriction(float friction);
-
 		XMFLOAT3 GetLinearVelocity() const;
 		XMFLOAT3 GetAngularVelocity() const;
 
@@ -58,15 +44,7 @@ namespace ze
 		void GetFreezeRotation(bool& freezeX, bool& freezeY, bool& freezeZ);
 		void SetFreezeRotation(bool freezeX, bool freezeY, bool freezeZ);
 	private:
-		virtual IComponentManager* GetComponentManager() const override;
-
-		virtual void OnDeploySysJob() override;
-		virtual void OnEnableSysJob() override;
-		virtual void OnDisableSysJob() override;
-	private:
 		std::unique_ptr<MotionState> m_upMotionState;
-		std::shared_ptr<ICollider> m_spCollider;
-		std::unique_ptr<btRigidBody> m_upBtRigidBody;
 		float m_mass;	// mass backup (kinematic <-> dynamic)
 		bool m_useGravity;
 		bool m_isKinematic;

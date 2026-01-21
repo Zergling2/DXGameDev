@@ -31,7 +31,9 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\Billboard.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\CollisionTrigger.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\Rigidbody.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\RigidbodyInterface.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\SkinnedMeshRenderer.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\StaticRigidbody.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\GroupSlot.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\MotionState.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\PackedGroup.h" />
@@ -120,6 +122,7 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Font.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\SkinnedMesh.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\SphereCollider.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\StaticPlaneCollider.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\TerrainCollider.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\SceneTable.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\ShaderResource\ConstantBuffer.h" />
@@ -155,7 +158,9 @@
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\Billboard.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\CollisionTrigger.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\Rigidbody.cpp" />
+    <ClCompile Include="source\CoreSystem\GamePlayBase\Component\RigidbodyInterface.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\SkinnedMeshRenderer.cpp" />
+    <ClCompile Include="source\CoreSystem\GamePlayBase\Component\StaticRigidbody.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\MotionState.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\Checkbox.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\RadioButton.cpp" />
@@ -218,6 +223,7 @@
     <ClCompile Include="source\CoreSystem\Resource\Font.cpp" />
     <ClCompile Include="source\CoreSystem\Resource\SkinnedMesh.cpp" />
     <ClCompile Include="source\CoreSystem\Resource\SphereCollider.cpp" />
+    <ClCompile Include="source\CoreSystem\Resource\StaticPlaneCollider.cpp" />
     <ClCompile Include="source\CoreSystem\Resource\TerrainCollider.cpp" />
     <ClCompile Include="source\CoreSystem\SceneTable.cpp" />
     <ClCompile Include="source\CoreSystem\ShaderResource\ConstantBuffer.cpp" />

@@ -19,6 +19,7 @@ namespace ze
 	{
 		friend class Runtime;
 		friend class Renderer;
+		friend class IRigidbody;
 		friend class Rigidbody;
 		friend class RigidbodyManager;
 		friend class CollisionTrigger;

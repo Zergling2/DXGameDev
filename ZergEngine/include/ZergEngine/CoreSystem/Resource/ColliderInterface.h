@@ -13,6 +13,7 @@ namespace ze
 		Capsule,
 		Cone,
 		Cylinder,
+		StaticPlane,
 		Terrain
 	};
 

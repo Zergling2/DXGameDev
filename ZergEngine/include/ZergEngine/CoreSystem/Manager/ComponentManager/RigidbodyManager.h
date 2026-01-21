@@ -4,12 +4,10 @@
 
 namespace ze
 {
-	class Rigidbody;
-
 	class RigidbodyManager : public IComponentManager
 	{
 		friend class Runtime;
-		friend class Rigidbody;
+		friend class IRigidbody;
 	public:
 		static RigidbodyManager* GetInstance() { return s_pInstance; }
 	private:

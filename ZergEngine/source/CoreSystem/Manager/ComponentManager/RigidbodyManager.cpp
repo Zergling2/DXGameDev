@@ -1,5 +1,5 @@
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\RigidbodyManager.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\Component\Rigidbody.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\RigidbodyInterface.h>
 #include <ZergEngine\CoreSystem\Physics.h>
 #include <bullet3\btBulletDynamicsCommon.h>
 
@@ -27,7 +27,7 @@ void RigidbodyManager::RemoveDestroyedComponents()
 	// 1. 물리 월드에서 제거 & Kinematic Body인 경우 m_kinematicBodys 배열에서 포인터 제거
 	for (IComponent* pComponent : m_destroyed)
 	{
-		Rigidbody* pRigidbody = static_cast<Rigidbody*>(pComponent);
+		IRigidbody* pRigidbody = static_cast<IRigidbody*>(pComponent);
 
 		// 물리 월드에서 제거
 		if (pRigidbody->IsEnabled())	// 활성화된 경우에만 물리 월드에 존재하므로

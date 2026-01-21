@@ -5,6 +5,36 @@ using namespace ze;
 
 ZE_IMPLEMENT_SCENE(Warehouse);
 
+void Warehouse::CreateClosedContainer(const XMFLOAT3& pos, const XMFLOAT3& rot)
+{
+	GameObjectHandle hGameObject = CreateGameObject(L"Closed Container");
+	GameObject* pGameObject = hGameObject.ToPtr();
+	pGameObject->m_transform.SetPosition(pos);
+	pGameObject->m_transform.SetRotationEuler(rot);
+
+	ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
+	MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+	pMeshRenderer->SetMesh(m_meshClosedContainer);
+	pMeshRenderer->SetMaterial(0, m_matClosedContainer);
+
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderClosedContainer, m_rbLocalPosClosedContainer, m_rbLocalRotClosedContainer);
+}
+
+void Warehouse::CreateClosedLongContainer(const XMFLOAT3& pos, const XMFLOAT3& rot)
+{
+	GameObjectHandle hGameObject = CreateGameObject(L"Closed Long Container");
+	GameObject* pGameObject = hGameObject.ToPtr();
+	pGameObject->m_transform.SetPosition(pos);
+	pGameObject->m_transform.SetRotationEuler(rot);
+
+	ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
+	MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+	pMeshRenderer->SetMesh(m_meshClosedLongContainer);
+	pMeshRenderer->SetMaterial(0, m_matClosedLongContainer);
+
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderClosedLongContainer, m_rbLocalPosClosedLongContainer, m_rbLocalRotClosedLongContainer);
+}
+
 void Warehouse::OnLoadScene()
 {
 	// Lights
@@ -616,8 +646,23 @@ void Warehouse::OnLoadScene()
 
 
 	// Resources
-	std::shared_ptr<StaticMesh> meshClosedContainer = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\props\\ClosedContainer\\ClosedContainer.obj").m_staticMeshes[0];
-	std::shared_ptr<StaticMesh> meshClosedLongContainer = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\props\\ClosedContainer\\ClosedLongContainer.obj").m_staticMeshes[0];
+	m_meshClosedContainer = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\props\\ClosedContainer\\ClosedContainer.obj").m_staticMeshes[0];
+	m_matClosedContainer = ResourceLoader::GetInstance()->CreateMaterial();
+	XMStoreFloat4A(&m_matClosedContainer->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.7f), 1.0f));
+	XMStoreFloat4A(&m_matClosedContainer->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 4.0f));
+	m_matClosedContainer->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\props\\ClosedContainer\\Diffuse.png");
+	m_colliderClosedContainer = std::make_shared<BoxCollider>(m_meshClosedContainer->GetAabb().Extents);
+	m_rbLocalPosClosedContainer = m_meshClosedContainer->GetAabb().Center;
+	m_rbLocalRotClosedContainer = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+
+
+	m_meshClosedLongContainer = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\props\\ClosedContainer\\ClosedLongContainer.obj").m_staticMeshes[0];
+	m_matClosedLongContainer = m_matClosedContainer;
+	m_colliderClosedLongContainer = std::make_shared<BoxCollider>(m_meshClosedLongContainer->GetAabb().Extents);
+	m_rbLocalPosClosedLongContainer = m_meshClosedLongContainer->GetAabb().Center;
+	m_rbLocalRotClosedLongContainer = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+
+
 	std::shared_ptr<StaticMesh> meshOpenContainer1 = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\props\\OpenContainer\\OpenContainer1.obj").m_staticMeshes[0];
 	std::shared_ptr<StaticMesh> meshOpenContainer2 = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\props\\OpenContainer\\OpenContainer2.obj").m_staticMeshes[0];
 	std::shared_ptr<StaticMesh> meshHouseFrame = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\HouseFrame\\HouseFrame.obj").m_staticMeshes[0];
@@ -630,6 +675,7 @@ void Warehouse::OnLoadScene()
 	std::shared_ptr<StaticMesh> meshRedTeamBase = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\RedTeamBase.obj").m_staticMeshes[0];
 	std::shared_ptr<StaticMesh> meshHouseRoof = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\HouseRoof\\HouseRoof.obj").m_staticMeshes[0];
 	std::shared_ptr<StaticMesh> meshDoorFrame = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\DoorFrame\\DoorFrame.obj").m_staticMeshes[0];
+
 
 	std::shared_ptr<Material> matAsphault = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matAsphault->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.8f), 1.0f));
@@ -655,12 +701,6 @@ void Warehouse::OnLoadScene()
 	XMStoreFloat4A(&matRoof24->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.75f), 1.0f));
 	XMStoreFloat4A(&matRoof24->m_specular, XMVectorSetW(ColorsLinear::Black, 4.0f));
 	matRoof24->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\roof\\Roof 24 - 256x256.png");
-
-
-	std::shared_ptr<Material> matClosedContainer = ResourceLoader::GetInstance()->CreateMaterial();
-	XMStoreFloat4A(&matClosedContainer->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.7f), 1.0f));
-	XMStoreFloat4A(&matClosedContainer->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 4.0f));
-	matClosedContainer->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\props\\ClosedContainer\\Diffuse.png");
 
 
 	std::shared_ptr<Material> matOpenContainer = ResourceLoader::GetInstance()->CreateMaterial();
@@ -916,6 +956,14 @@ void Warehouse::OnLoadScene()
 		}
 	}
 
+	{
+		GameObjectHandle hGameObject = CreateGameObject(L"Ground");
+		GameObject* pGameObject = hGameObject.ToPtr();
+		
+		std::shared_ptr<StaticPlaneCollider> collider = std::make_shared<StaticPlaneCollider>();
+		pGameObject->AddComponent<StaticRigidbody>(collider);
+	}
+
 	// Kinematic 발판 테스트
 	GameObjectHandle hKinematicFootboard;
 	{
@@ -977,41 +1025,11 @@ void Warehouse::OnLoadScene()
 		pMeshRenderer->SetArmature(armaSteven);
 		pMeshRenderer->PlayAnimation("run", 1.0f, true, 0.0f);
 	}
-	{
-		GameObjectHandle hContainer = CreateGameObject(L"Closed Long Container");
-		GameObject* pContainer = hContainer.ToPtr();
-		pContainer->m_transform.SetPosition(XMVectorSet(-4.5371f, 0.0f, -15.518f, 0.0f));
-		pContainer->m_transform.SetRotationEuler(XMVectorSet(0.0f, XMConvertToRadians(-45.0f), 0.0f, 0.0f));
 
-		ComponentHandle<MeshRenderer> hMeshRenderer = pContainer->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshClosedLongContainer);
-		pMeshRenderer->SetMaterial(0, matClosedContainer);
-	}
 
-	// Mesh Game Objects
-	{
-		GameObjectHandle hContainer = CreateGameObject(L"Closed Container");
-		GameObject* pContainer = hContainer.ToPtr();
-		pContainer->m_transform.SetPosition(XMVectorSet(-9.5598f, 0.0f, -16.722f, 0.0f));
-		pContainer->m_transform.SetRotationEuler(XMVectorSet(0.0f, XMConvertToRadians(45.0f), 0.0f, 0.0f));
+	CreateClosedLongContainer(XMFLOAT3(-4.5371f, 0.0f, -15.518f), XMFLOAT3(0.0f, XMConvertToRadians(-45.0f), 0.0f));
+	CreateClosedContainer(XMFLOAT3(-9.5598f, 0.0f, -16.722f), XMFLOAT3(0.0f, XMConvertToRadians(45.0f), 0.0f));
 
-		ComponentHandle<MeshRenderer> hMeshRenderer = pContainer->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshClosedContainer);
-		pMeshRenderer->SetMaterial(0, matClosedContainer);
-	}
-	{
-		GameObjectHandle hContainer = CreateGameObject(L"Closed Long Container");
-		GameObject* pContainer = hContainer.ToPtr();
-		pContainer->m_transform.SetPosition(XMVectorSet(-4.5371f, 0.0f, -15.518f, 0.0f));
-		pContainer->m_transform.SetRotationEuler(XMVectorSet(0.0f, XMConvertToRadians(-45.0f), 0.0f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pContainer->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshClosedLongContainer);
-		pMeshRenderer->SetMaterial(0, matClosedContainer);
-	}
 	// 가운데 박스 2개
 	{
 		GameObjectHandle hGameObject = CreateGameObject(L"Box");
@@ -1088,17 +1106,7 @@ void Warehouse::OnLoadScene()
 		pMeshRenderer->SetMaterial(0, matWoodenBox);
 	}
 
-	{
-		GameObjectHandle hContainer = CreateGameObject(L"Closed Long Container");
-		GameObject* pContainer = hContainer.ToPtr();
-		pContainer->m_transform.SetPosition(XMVectorSet(9.0f, 0.0f, -17.7f, 0.0f));
-		pContainer->m_transform.SetRotationEuler(XMVectorSet(0.0f, XMConvertToRadians(90.0f), 0.0f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pContainer->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshClosedLongContainer);
-		pMeshRenderer->SetMaterial(0, matClosedContainer);
-	}
+	CreateClosedLongContainer(XMFLOAT3(9.0f, 0.0f, -17.7f), XMFLOAT3(0.0f, XMConvertToRadians(90.0f), 0.0f));
 
 	{
 		GameObjectHandle hContainer = CreateGameObject(L"Open Container1");
@@ -1112,28 +1120,9 @@ void Warehouse::OnLoadScene()
 		pMeshRenderer->SetMaterial(0, matOpenContainer);
 	}
 
-	{
-		GameObjectHandle hContainer = CreateGameObject(L"Closed Long Container");
-		GameObject* pContainer = hContainer.ToPtr();
-		pContainer->m_transform.SetPosition(XMVectorSet(-1.4f, 0.0f, -7.6f, 0.0f));
-		pContainer->m_transform.SetRotationEuler(XMVectorSet(0.0f, XMConvertToRadians(-70.0f), 0.0f, 0.0f));
 
-		ComponentHandle<MeshRenderer> hMeshRenderer = pContainer->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshClosedLongContainer);
-		pMeshRenderer->SetMaterial(0, matClosedContainer);
-	}
-
-	{
-		GameObjectHandle hContainer = CreateGameObject(L"Closed Long Container");
-		GameObject* pContainer = hContainer.ToPtr();
-		pContainer->m_transform.SetPosition(XMVectorSet(12.7f, 0.0f, -9.0f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pContainer->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshClosedLongContainer);
-		pMeshRenderer->SetMaterial(0, matClosedContainer);
-	}
+	CreateClosedLongContainer(XMFLOAT3(-1.4f, 0.0f, -7.6f), XMFLOAT3(0.0f, XMConvertToRadians(-70.0f), 0.0f));
+	CreateClosedLongContainer(XMFLOAT3(12.7f, 0.0f, -9.0f));
 
 	// 박스 4개
 	{
@@ -1422,51 +1411,12 @@ void Warehouse::OnLoadScene()
 	}
 
 
-	{
-		GameObjectHandle hContainer = CreateGameObject(L"Closed Container");
-		GameObject* pContainer = hContainer.ToPtr();
-		pContainer->m_transform.SetPosition(XMVectorSet(-9.6709f, 0.0f, 3.5936f, 0.0f));
-		pContainer->m_transform.SetRotationEuler(XMVectorSet(0.0f, XMConvertToRadians(68.856f), 0.0f, 0.0f));
+	CreateClosedContainer(XMFLOAT3(-9.6709f, 0.0f, 3.5936f), XMFLOAT3(0.0f, XMConvertToRadians(68.856f), 0.0f));
+	CreateClosedContainer(XMFLOAT3(-6.0f, 0.0f, 6.3f), XMFLOAT3(0.0f, XMConvertToRadians(-21.144f), 0.0f));
+	CreateClosedContainer(XMFLOAT3(-2.3291f, 0.0f, 9.0064f), XMFLOAT3(0.0f, XMConvertToRadians(68.856f), 0.0f));
 
-		ComponentHandle<MeshRenderer> hMeshRenderer = pContainer->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshClosedContainer);
-		pMeshRenderer->SetMaterial(0, matClosedContainer);
-	}
-	{
-		GameObjectHandle hContainer = CreateGameObject(L"Closed Container");
-		GameObject* pContainer = hContainer.ToPtr();
-		pContainer->m_transform.SetPosition(XMVectorSet(-6.0f, 0.0f, 6.3f, 0.0f));
-		pContainer->m_transform.SetRotationEuler(XMVectorSet(0.0f, XMConvertToRadians(-21.144f), 0.0f, 0.0f));
 
-		ComponentHandle<MeshRenderer> hMeshRenderer = pContainer->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshClosedContainer);
-		pMeshRenderer->SetMaterial(0, matClosedContainer);
-	}
-	{
-		GameObjectHandle hContainer = CreateGameObject(L"Closed Container");
-		GameObject* pContainer = hContainer.ToPtr();
-		pContainer->m_transform.SetPosition(XMVectorSet(-2.3291f, 0.0f, 9.0064f, 0.0f));
-		pContainer->m_transform.SetRotationEuler(XMVectorSet(0.0f, XMConvertToRadians(68.856f), 0.0f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pContainer->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshClosedContainer);
-		pMeshRenderer->SetMaterial(0, matClosedContainer);
-	}
-
-	{
-		GameObjectHandle hContainer = CreateGameObject(L"Closed Container");
-		GameObject* pContainer = hContainer.ToPtr();
-		pContainer->m_transform.SetPosition(XMVectorSet(4.7f, 0.0f, 3.9f, 0.0f));
-		pContainer->m_transform.SetRotationEuler(XMVectorSet(0.0f, XMConvertToRadians(90.0f), 0.0f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pContainer->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshClosedContainer);
-		pMeshRenderer->SetMaterial(0, matClosedContainer);
-	}
+	CreateClosedContainer(XMFLOAT3(4.7f, 0.0f, 3.9f), XMFLOAT3(0.0f, XMConvertToRadians(90.0f), 0.0f));
 	{
 		GameObjectHandle hContainer = CreateGameObject(L"Open Container2");
 		GameObject* pContainer = hContainer.ToPtr();
@@ -1478,95 +1428,23 @@ void Warehouse::OnLoadScene()
 		pMeshRenderer->SetMesh(meshOpenContainer2);
 		pMeshRenderer->SetMaterial(0, matOpenContainer);
 	}
-	{
-		GameObjectHandle hContainer = CreateGameObject(L"Closed Container");
-		GameObject* pContainer = hContainer.ToPtr();
-		pContainer->m_transform.SetPosition(XMVectorSet(9.1f, 0.0f, 5.7f, 0.0f));
+	CreateClosedContainer(XMFLOAT3(9.1f, 0.0f, 5.7f));
+	CreateClosedContainer(XMFLOAT3(10.9f, 0.0f, 1.3f), XMFLOAT3(0.0f, XMConvertToRadians(90.0f), 0.0f));
 
-		ComponentHandle<MeshRenderer> hMeshRenderer = pContainer->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshClosedContainer);
-		pMeshRenderer->SetMaterial(0, matClosedContainer);
-	}
-	{
-		GameObjectHandle hContainer = CreateGameObject(L"Closed Container");
-		GameObject* pContainer = hContainer.ToPtr();
-		pContainer->m_transform.SetPosition(XMVectorSet(10.9f, 0.0f, 1.3f, 0.0f));
-		pContainer->m_transform.SetRotationEuler(XMVectorSet(0.0f, XMConvertToRadians(90.0f), 0.0f, 0.0f));
 
-		ComponentHandle<MeshRenderer> hMeshRenderer = pContainer->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshClosedContainer);
-		pMeshRenderer->SetMaterial(0, matClosedContainer);
-	}
+	CreateClosedLongContainer(XMFLOAT3(-10.0f, 0.0f, 17.4f), XMFLOAT3(0.0f, XMConvertToRadians(-90.0f), 0.0f));
+	CreateClosedContainer(XMFLOAT3(-12.7f, 0.0f, 21.8f));
 
-	{
-		GameObjectHandle hContainer = CreateGameObject(L"Closed LongContainer");
-		GameObject* pContainer = hContainer.ToPtr();
-		pContainer->m_transform.SetPosition(XMVectorSet(-10.0f, 0.0f, 17.4f, 0.0f));
-		pContainer->m_transform.SetRotationEuler(XMVectorSet(0.0f, XMConvertToRadians(-90.0f), 0.0f, 0.0f));
 
-		ComponentHandle<MeshRenderer> hMeshRenderer = pContainer->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshClosedLongContainer);
-		pMeshRenderer->SetMaterial(0, matClosedContainer);
-	}
-	{
-		GameObjectHandle hContainer = CreateGameObject(L"Closed Container");
-		GameObject* pContainer = hContainer.ToPtr();
-		pContainer->m_transform.SetPosition(XMVectorSet(-12.7f, 0.0f, 21.8f, 0.0f));
+	CreateClosedContainer(XMFLOAT3(1.7f, 0.0f, 16.5f), XMFLOAT3(0.0f, XMConvertToRadians(75.0f), 0.0f));
 
-		ComponentHandle<MeshRenderer> hMeshRenderer = pContainer->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshClosedContainer);
-		pMeshRenderer->SetMaterial(0, matClosedContainer);
-	}
 
-	{
-		GameObjectHandle hContainer = CreateGameObject(L"Closed Container");
-		GameObject* pContainer = hContainer.ToPtr();
-		pContainer->m_transform.SetPosition(XMVectorSet(1.7f, 0.0f, 16.5f, 0.0f));
-		pContainer->m_transform.SetRotationEuler(XMVectorSet(0.0f, XMConvertToRadians(75.0f), 0.0f, 0.0f));
+	CreateClosedContainer(XMFLOAT3(0.5f, 0.0f, 23.6f), XMFLOAT3(0.0f, XMConvertToRadians(90.0f), 0.0f));
 
-		ComponentHandle<MeshRenderer> hMeshRenderer = pContainer->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshClosedContainer);
-		pMeshRenderer->SetMaterial(0, matClosedContainer);
-	}
 
-	{
-		GameObjectHandle hContainer = CreateGameObject(L"Closed Container");
-		GameObject* pContainer = hContainer.ToPtr();
-		pContainer->m_transform.SetPosition(XMVectorSet(0.5f, 0.0f, 23.6f, 0.0f));
-		pContainer->m_transform.SetRotationEuler(XMVectorSet(0.0f, XMConvertToRadians(90.0f), 0.0f, 0.0f));
+	CreateClosedContainer(XMFLOAT3(10.9f, 0.0f, 23.6f), XMFLOAT3(0.0f, XMConvertToRadians(90.0f), 0.0f));
+	CreateClosedLongContainer(XMFLOAT3(12.7f, 0.0f, 18.3f));
 
-		ComponentHandle<MeshRenderer> hMeshRenderer = pContainer->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshClosedContainer);
-		pMeshRenderer->SetMaterial(0, matClosedContainer);
-	}
-
-	{
-		GameObjectHandle hContainer = CreateGameObject(L"Closed Container");
-		GameObject* pContainer = hContainer.ToPtr();
-		pContainer->m_transform.SetPosition(XMVectorSet(10.9f, 0.0f, 23.6f, 0.0f));
-		pContainer->m_transform.SetRotationEuler(XMVectorSet(0.0f, XMConvertToRadians(90.0f), 0.0f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pContainer->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshClosedContainer);
-		pMeshRenderer->SetMaterial(0, matClosedContainer);
-	}
-	{
-		GameObjectHandle hContainer = CreateGameObject(L"Closed LongContainer");
-		GameObject* pContainer = hContainer.ToPtr();
-		pContainer->m_transform.SetPosition(XMVectorSet(12.7f, 0.0f, 18.3f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pContainer->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshClosedLongContainer);
-		pMeshRenderer->SetMaterial(0, matClosedContainer);
-	}
 
 	{
 		GameObjectHandle hGameObject = CreateGameObject(L"House Frame");
