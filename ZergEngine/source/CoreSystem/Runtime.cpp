@@ -329,7 +329,6 @@ void Runtime::OnIdle()
         // FixedUpdate 우선
         MonoBehaviourManager::GetInstance()->FixedUpdate();
 
-        RigidbodyManager::GetInstance()->UpdateKinematicRigidbodyTransform();
         CollisionTriggerManager::GetInstance()->UpdateCollisionTriggerTransform();   // 트리거 오브젝트의 Transform을 동기화 (ZergEngine -> Bullet)
 
         // 물리 시뮬레이션 스텝
@@ -342,7 +341,6 @@ void Runtime::OnIdle()
     MonoBehaviourManager::GetInstance()->Update();
     MonoBehaviourManager::GetInstance()->LateUpdate();
 
-    RigidbodyManager::GetInstance()->UpdateKinematicRigidbodyTransform();
     CollisionTriggerManager::GetInstance()->UpdateCollisionTriggerTransform();      // 트리거 오브젝트의 Transform을 동기화 (ZergEngine -> Bullet)
 
     // Update animation time cursor

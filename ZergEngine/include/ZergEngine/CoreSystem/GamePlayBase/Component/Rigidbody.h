@@ -14,6 +14,16 @@ namespace ze
 	class Rigidbody : public IComponent
 	{
 		friend class RigidbodyManager;
+		enum FreezeFlag : uint8_t
+		{
+			FF_None			= 0b00000000,
+			FF_PositionX	= 0b00000001,
+			FF_PositionY	= 0b00000010,
+			FF_PositionZ	= 0b00000100,
+			FF_RotationX	= 0b00001000,
+			FF_RotationY	= 0b00010000,
+			FF_RotationZ	= 0b00100000
+		};
 	public:
 		static constexpr ComponentType TYPE = ComponentType::Rigidbody;
 		static bool IsCreatable() { return true; }
@@ -43,18 +53,10 @@ namespace ze
 		bool IsKinematic() const { return m_isKinematic; }
 		void SetKinematic(bool b);
 
-		void FreezePositionX(bool b);
-		void FreezePositionY(bool b);
-		void FreezePositionZ(bool b);
-		void FreezeRotationX(bool b);
-		void FreezeRotationY(bool b);
-		void FreezeRotationZ(bool b);
-		bool IsPositionXFreezed() const { return m_freezePositionX; }
-		bool IsPositionYFreezed() const { return m_freezePositionY; }
-		bool IsPositionZFreezed() const { return m_freezePositionZ; }
-		bool IsRotationXFreezed() const { return m_freezeRotationX; }
-		bool IsRotationYFreezed() const { return m_freezeRotationY; }
-		bool IsRotationZFreezed() const { return m_freezeRotationZ; }
+		void GetFreezePosition(bool& freezeX, bool& freezeY, bool& freezeZ);
+		void SetFreezePosition(bool freezeX, bool freezeY, bool freezeZ);
+		void GetFreezeRotation(bool& freezeX, bool& freezeY, bool& freezeZ);
+		void SetFreezeRotation(bool freezeX, bool freezeY, bool freezeZ);
 	private:
 		virtual IComponentManager* GetComponentManager() const override;
 
@@ -65,14 +67,9 @@ namespace ze
 		std::unique_ptr<MotionState> m_upMotionState;
 		std::shared_ptr<ICollider> m_spCollider;
 		std::unique_ptr<btRigidBody> m_upBtRigidBody;
+		float m_mass;	// mass backup (kinematic <-> dynamic)
 		bool m_useGravity;
 		bool m_isKinematic;
-		bool m_freezePositionX;
-		bool m_freezePositionY;
-		bool m_freezePositionZ;
-		bool m_freezeRotationX;
-		bool m_freezeRotationY;
-		bool m_freezeRotationZ;
-		uint32_t m_kinematicIndex;	// Component Manager에서의 kinematic 배열 index
+		uint8_t m_freezeState;
 	};
 }

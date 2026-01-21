@@ -123,8 +123,10 @@ void Camera::SetDepth(int8_t depth)
 	assert(m_pGameObject != nullptr);
 
 	// 지연된 오브젝트인 경우에는 비동기 씬에서 생성되었을 수 있으므로 함부로 CameraManager.Update()를 호출하면 안된다.
-	if (!m_pGameObject->IsPending())
-		CameraManager::GetInstance()->Update();	// 카메라 깊이값으로 정렬 다시
+	if (m_pGameObject->IsPending())
+		return;
+	
+	CameraManager::GetInstance()->Update();	// 카메라 깊이값으로 정렬 다시
 }
 
 bool Camera::SetMinimumTessellationExponent(float exponent)

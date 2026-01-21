@@ -13,6 +13,9 @@ MotionState::MotionState(Transform& transform, const XMFLOAT3& localPos, const X
 
 void MotionState::getWorldTransform(btTransform& worldTrans) const
 {
+	// Dynamic body의 경우 물리 월드 투입 시 최초 한 번 호출됨.
+	// Kinematic body의 경우 매 프레임 이 함수가 호출됨.
+
 	XMVECTOR vScaleW;
 	XMVECTOR vWorldRot;
 	XMVECTOR vWorldPos;
@@ -69,6 +72,7 @@ void MotionState::setWorldTransform(const btTransform& worldTrans)
 		// World Pos = (Local Pos * Parent World Rot) + Parent World Pos
 		// 따라서 Local Pos = (World Pos - Parent World Pos) * Inv(Parent World Rot)
 		// 
+		// 
 		// World Rot = Local Rot * Parent World Rot
 		// 따라서 Local Rot = World Rot * Inv(Parent World Rot)
 
@@ -78,12 +82,11 @@ void MotionState::setWorldTransform(const btTransform& worldTrans)
 		m_transform.GetParent()->GetWorldTransform(&parentWorldScale, &parentWorldRot, &parentWorldPos);
 
 		XMVECTOR vInvParentWorldRot = XMQuaternionConjugate(parentWorldRot);
-		
-		XMVECTOR vLocalPos = XMVector3Rotate(XMVectorSubtract(vWorldPos, parentWorldPos), vInvParentWorldRot);
 
 		// v' = qvq-1
 		// vLocalRot = vInvParentWorldRot(vWorldRot(v))
 		XMVECTOR vLocalRot = XMQuaternionMultiply(vWorldRot, vInvParentWorldRot);	// vWorldRot먼저, vInvParentWorldRot 나중에
+		XMVECTOR vLocalPos = XMVector3Rotate(XMVectorSubtract(vWorldPos, parentWorldPos), vInvParentWorldRot);
 
 		m_transform.SetPosition(vLocalPos);
 		m_transform.SetRotationQuaternion(vLocalRot);

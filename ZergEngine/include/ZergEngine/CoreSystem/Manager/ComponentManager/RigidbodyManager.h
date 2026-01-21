@@ -19,14 +19,8 @@ namespace ze
 		static void CreateInstance();
 		static void DestroyInstance();
 
-		void AddToKinematicBodyGroup(Rigidbody* pRigidbody);
-		void RemoveFromKinematicBodyGroup(Rigidbody* pRigidbody);
-
 		virtual void RemoveDestroyedComponents() override;
-
-		void UpdateKinematicRigidbodyTransform() {}
 	private:
 		static RigidbodyManager* s_pInstance;
-		std::vector<Rigidbody*> m_kinematicBodys;
 	};
 }

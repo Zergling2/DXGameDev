@@ -21,11 +21,38 @@ void FirstPersonMovement::Awake()
 	SetResolution(1920, 1080, DisplayMode::BorderlessWindowed);
 }
 
+void FirstPersonMovement::FixedUpdate()
+{
+	if (Input::GetInstance()->GetKey(KEYCODE::KEY_ADD))
+	{
+		GameObject* pGameObject = m_hKinematicFootboard.ToPtr();
+		pGameObject->m_transform.SetPositionY(pGameObject->m_transform.GetPositionY() + 0.01f);
+	}
+	if (Input::GetInstance()->GetKey(KEYCODE::KEY_SUBTRACT))
+	{
+		GameObject* pGameObject = m_hKinematicFootboard.ToPtr();
+		pGameObject->m_transform.SetPositionY(pGameObject->m_transform.GetPositionY() - 0.01f);
+	}
+}
+
 void FirstPersonMovement::Update()
 {
 	GameObject* pGameObject = this->GetGameObjectHandle().ToPtr();
 	if (!pGameObject)
 		return;
+
+
+	if (Input::GetInstance()->GetKeyDown(KEYCODE::KEY_MULTIPLY))
+	{
+		GameObject* pGameObject = m_hKinematicFootboard.ToPtr();
+
+		ComponentHandle<Rigidbody> hRigidbody = pGameObject->GetComponent<Rigidbody>();
+		Rigidbody* pRigidbody = hRigidbody.ToPtr();
+
+		pRigidbody->SetKinematic(!pRigidbody->IsKinematic());
+	}
+
+
 
 	if (m_ui)
 	{

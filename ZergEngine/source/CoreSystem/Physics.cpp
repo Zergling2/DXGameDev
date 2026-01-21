@@ -101,7 +101,6 @@ bool Physics::Init()
 	m_upDynamicsWorld->setGravity(btVector3(m_gravity.x, m_gravity.y, m_gravity.z));
 
 
-
 	// {
 	// 	btCollisionShape* pCollisionShape = new btBoxShape(btVector3(0.25, 0.25, 0.25));
 	// 	btScalar mass = 10.0f;
@@ -115,42 +114,44 @@ bool Physics::Init()
 	// 
 	// 	m_upDynamicsWorld->addRigidBody(pRigidBody);
 	// }
-	{
-		btCompoundShape* pCollisionShape = new btCompoundShape();
 
-		btTransform offset;
-		offset.setIdentity();
-		offset.setOrigin(btVector3(0, -0.25f, 0));
-		btCollisionShape* pChildShape1 = new btBoxShape(btVector3(0.25f, 0.25f, 0.25f));
-		pCollisionShape->addChildShape(offset, pChildShape1);
-
-		offset.setIdentity();
-		offset.setOrigin(btVector3(0, 0.25f, 0));
-		btCollisionShape* pChildShape2 = new btConeShape(0.25f, 0.5f);
-		pCollisionShape->addChildShape(offset, pChildShape2);
-
-		btScalar mass = 1.0f;
-		btVector3 inertia(0, 0, 0);
-		pCollisionShape->calculateLocalInertia(mass, inertia);
-
-		btDefaultMotionState* pMotionState = new btDefaultMotionState(btTransform(btQuaternion::getIdentity(), btVector3(0.4, 8, 0.4)));
-		btRigidBody::btRigidBodyConstructionInfo rbci(mass, pMotionState, pCollisionShape, inertia);
-		btRigidBody* pRigidBody = new btRigidBody(rbci);
-
-		m_upDynamicsWorld->addRigidBody(pRigidBody);
-	}
-	{
-		btCollisionShape* pCollisionShape = new btCapsuleShape(0.5f, 1.0f);
-		btScalar mass = 2.5f;
-		btVector3 inertia(0, 0, 0);
-		pCollisionShape->calculateLocalInertia(mass, inertia);
-	
-		btCollisionObject* pCollisionObject = new btCollisionObject();
-		pCollisionObject->setWorldTransform(btTransform(btQuaternion::getIdentity(), btVector3(0, 0.75, 0)));
-		pCollisionObject->setCollisionShape(pCollisionShape);
-		
-		m_upDynamicsWorld->addCollisionObject(pCollisionObject);
-	}
+	// Box + Cone
+	// {
+	// 	btCompoundShape* pCollisionShape = new btCompoundShape();
+	// 
+	// 	btTransform offset;
+	// 	offset.setIdentity();
+	// 	offset.setOrigin(btVector3(0, -0.25f, 0));
+	// 	btCollisionShape* pChildShape1 = new btBoxShape(btVector3(0.25f, 0.25f, 0.25f));
+	// 	pCollisionShape->addChildShape(offset, pChildShape1);
+	// 
+	// 	offset.setIdentity();
+	// 	offset.setOrigin(btVector3(0, 0.25f, 0));
+	// 	btCollisionShape* pChildShape2 = new btConeShape(0.25f, 0.5f);
+	// 	pCollisionShape->addChildShape(offset, pChildShape2);
+	// 
+	// 	btScalar mass = 1.0f;
+	// 	btVector3 inertia(0, 0, 0);
+	// 	pCollisionShape->calculateLocalInertia(mass, inertia);
+	// 
+	// 	btDefaultMotionState* pMotionState = new btDefaultMotionState(btTransform(btQuaternion::getIdentity(), btVector3(0.4f, 8.0f, 0.4f)));
+	// 	btRigidBody::btRigidBodyConstructionInfo rbci(mass, pMotionState, pCollisionShape, inertia);
+	// 	btRigidBody* pRigidBody = new btRigidBody(rbci);
+	// 
+	// 	m_upDynamicsWorld->addRigidBody(pRigidBody);
+	// }
+	// {
+	// 	btCollisionShape* pCollisionShape = new btCapsuleShape(0.5f, 1.0f);
+	// 	btScalar mass = 2.5f;
+	// 	btVector3 inertia(0, 0, 0);
+	// 	pCollisionShape->calculateLocalInertia(mass, inertia);
+	// 
+	// 	btCollisionObject* pCollisionObject = new btCollisionObject();
+	// 	pCollisionObject->setWorldTransform(btTransform(btQuaternion::getIdentity(), btVector3(0.0f, 0.75f, 0.0f)));
+	// 	pCollisionObject->setCollisionShape(pCollisionShape);
+	// 	
+	// 	m_upDynamicsWorld->addCollisionObject(pCollisionObject);
+	// }
 	{
 		btCollisionShape* pCollisionShape = new btCylinderShape(btVector3(0.25f, 0.5f, 0.25f));
 		btScalar mass = 2.5f;

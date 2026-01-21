@@ -16,7 +16,9 @@ namespace ze
 		virtual void getWorldTransform(btTransform& worldTrans) const override;
 		virtual void setWorldTransform(const btTransform& worldTrans) override;
 
+		XMFLOAT3 GetLocalPos() const { return m_localPos; }
 		void SetLocalPos(const XMFLOAT3& localPos);
+		XMFLOAT4 GetLocalRot() const { return m_localRot; }
 		void SetLocalRot(const XMFLOAT4& localRot);
 	private:
 		Transform& m_transform;

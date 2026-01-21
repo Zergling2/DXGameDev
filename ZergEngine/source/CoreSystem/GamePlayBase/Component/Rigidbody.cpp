@@ -14,24 +14,17 @@ Rigidbody::Rigidbody(GameObject& owner, std::shared_ptr<ICollider> collider, con
 	, m_upMotionState(std::make_unique<MotionState>(owner.m_transform, localPos, localRot))
 	, m_spCollider(std::move(collider))
 	, m_upBtRigidBody()
+	, m_mass(1.0f)
 	, m_useGravity(true)
 	, m_isKinematic(false)
-	, m_freezePositionX(false)
-	, m_freezePositionY(false)
-	, m_freezePositionZ(false)
-	, m_freezeRotationX(false)
-	, m_freezeRotationY(false)
-	, m_freezeRotationZ(false)
-	, m_kinematicIndex((std::numeric_limits<uint32_t>::max)())
+	, m_freezeState(FF_None)
 {
 	assert(m_spCollider != nullptr);
 	assert(m_spCollider->GetCollisionShape() != nullptr);
 
-	constexpr float DEFAULT_MASS = 1.0f;
-
 	btVector3 inertia;
-	m_spCollider->GetCollisionShape()->calculateLocalInertia(DEFAULT_MASS, inertia);
-	btRigidBody::btRigidBodyConstructionInfo rbci(DEFAULT_MASS, m_upMotionState.get(), m_spCollider->GetCollisionShape(), inertia);
+	m_spCollider->GetCollisionShape()->calculateLocalInertia(m_mass, inertia);
+	btRigidBody::btRigidBodyConstructionInfo rbci(m_mass, m_upMotionState.get(), m_spCollider->GetCollisionShape(), inertia);
 
 	m_upBtRigidBody = std::make_unique<btRigidBody>(rbci);
 }
@@ -43,10 +36,15 @@ float Rigidbody::GetMass() const
 
 void Rigidbody::SetMass(float mass)
 {
-	btVector3 inertia;
-	m_spCollider->GetCollisionShape()->calculateLocalInertia(mass, inertia);
+	m_mass = mass;
+	
+	if (this->IsKinematic())
+		return;
 
-	m_upBtRigidBody->setMassProps(mass, inertia);
+	btVector3 inertia;
+	m_spCollider->GetCollisionShape()->calculateLocalInertia(m_mass, inertia);
+
+	m_upBtRigidBody->setMassProps(m_mass, inertia);
 }
 
 float Rigidbody::GetFriction() const
@@ -106,86 +104,84 @@ void Rigidbody::SetKinematic(bool b)
 
 	m_isKinematic = b;
 
-	// 지연 오브젝트일 경우 더 수행할 작업 없음.
+	// 씬에 배치되어 있는 상태인 경우에만
+	// Step 1. 물리 월드에서 제거
 	if (!m_pGameObject->IsPending())
-		return;
+		Physics::GetInstance()->GetDynamicsWorld()->removeRigidBody(m_upBtRigidBody.get());
 
-	m_upBtRigidBody->setLinearVelocity(btVector3(0.0f, 0.0f, 0.0f));
-	m_upBtRigidBody->setAngularVelocity(btVector3(0.0f, 0.0f, 0.0f));
-
+	// Step 2. 플래그 & 상태 재설정
 	if (b)
 	{
 		m_upBtRigidBody->setCollisionFlags(m_upBtRigidBody->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+		m_upBtRigidBody->setActivationState(DISABLE_DEACTIVATION);	// Bullet_User_Manual p.23
+		// (Bullet 런타임이 시뮬레이션 프레임마다 btMotionState로부터 새로운 월드 변환을 요청
 
-		RigidbodyManager::GetInstance()->AddToKinematicBodyGroup(this);
+		btVector3 inertia;
+		m_spCollider->GetCollisionShape()->calculateLocalInertia(0.0f, inertia);
+		m_upBtRigidBody->setMassProps(0, inertia);
 	}
 	else
 	{
+		m_upBtRigidBody->setLinearVelocity(btVector3(0.0f, 0.0f, 0.0f));
+		m_upBtRigidBody->setAngularVelocity(btVector3(0.0f, 0.0f, 0.0f));
+
 		m_upBtRigidBody->setCollisionFlags(m_upBtRigidBody->getCollisionFlags() & ~btCollisionObject::CF_KINEMATIC_OBJECT);
+		m_upBtRigidBody->forceActivationState(ACTIVE_TAG);
+
+		btVector3 inertia;
+		m_spCollider->GetCollisionShape()->calculateLocalInertia(m_mass, inertia);
+		m_upBtRigidBody->setMassProps(m_mass, inertia);
 
 		// sleeping 상태에 있을 수 있으므로 solver가 새로운 질량/관성모멘트를 기준으로 물리력 계산을 하도록 activate
-		m_upBtRigidBody->activate();
-
-		RigidbodyManager::GetInstance()->RemoveFromKinematicBodyGroup(this);
+		m_upBtRigidBody->activate(true);
 	}
+
+	// Step 3. 물리 월드에 재배치
+	// 씬에 배치되어 있는 상태인 경우에만
+	if (!m_pGameObject->IsPending())
+		Physics::GetInstance()->GetDynamicsWorld()->addRigidBody(m_upBtRigidBody.get());
 }
 
-void Rigidbody::FreezePositionX(bool b)
+void Rigidbody::GetFreezePosition(bool& freezeX, bool& freezeY, bool& freezeZ)
 {
-	m_freezePositionX = b;
+	m_freezeState & FF_PositionX ? freezeX = true : freezeX = false;
+	m_freezeState & FF_PositionY ? freezeY = true : freezeY = false;
+	m_freezeState & FF_PositionZ ? freezeZ = true : freezeZ = false;
+}
 
-	btVector3 linearFactor = m_upBtRigidBody->getLinearFactor();
-	linearFactor.setX(b ? 0.0f : 1.0f);
-	
+void Rigidbody::SetFreezePosition(bool freezeX, bool freezeY, bool freezeZ)
+{
+	freezeX ? m_freezeState |= FF_PositionX : m_freezeState &= ~FF_PositionX;
+	freezeY ? m_freezeState |= FF_PositionY : m_freezeState &= ~FF_PositionY;
+	freezeZ ? m_freezeState |= FF_PositionZ : m_freezeState &= ~FF_PositionZ;
+
+	btVector3 linearFactor;
+
+	m_freezeState & FF_PositionX ? linearFactor.setX(0.0f) : linearFactor.setX(1.0f);
+	m_freezeState & FF_PositionY ? linearFactor.setY(0.0f) : linearFactor.setY(1.0f);
+	m_freezeState & FF_PositionZ ? linearFactor.setZ(0.0f) : linearFactor.setZ(1.0f);
+
 	m_upBtRigidBody->setLinearFactor(linearFactor);
 }
 
-void Rigidbody::FreezePositionY(bool b)
+void Rigidbody::GetFreezeRotation(bool& freezeX, bool& freezeY, bool& freezeZ)
 {
-	m_freezePositionY = b;
-
-	btVector3 linearFactor = m_upBtRigidBody->getLinearFactor();
-	linearFactor.setY(b ? 0.0f : 1.0f);
-
-	m_upBtRigidBody->setLinearFactor(linearFactor);
+	m_freezeState & FF_RotationX ? freezeX = true : freezeX = false;
+	m_freezeState & FF_RotationY ? freezeY = true : freezeY = false;
+	m_freezeState & FF_RotationZ ? freezeZ = true : freezeZ = false;
 }
 
-void Rigidbody::FreezePositionZ(bool b)
+void Rigidbody::SetFreezeRotation(bool freezeX, bool freezeY, bool freezeZ)
 {
-	m_freezePositionZ = b;
+	freezeX ? m_freezeState |= FF_RotationX : m_freezeState &= ~FF_RotationX;
+	freezeY ? m_freezeState |= FF_RotationY : m_freezeState &= ~FF_RotationY;
+	freezeZ ? m_freezeState |= FF_RotationZ : m_freezeState &= ~FF_RotationZ;
 
-	btVector3 linearFactor = m_upBtRigidBody->getLinearFactor();
-	linearFactor.setZ(b ? 0.0f : 1.0f);
+	btVector3 angularFactor;
 
-	m_upBtRigidBody->setLinearFactor(linearFactor);
-}
-
-void Rigidbody::FreezeRotationX(bool b)
-{
-	m_freezeRotationX = b;
-
-	btVector3 angularFactor = m_upBtRigidBody->getAngularFactor();
-	angularFactor.setX(b ? 0.0f : 1.0f);
-
-	m_upBtRigidBody->setAngularFactor(angularFactor);
-}
-
-void Rigidbody::FreezeRotationY(bool b)
-{
-	m_freezeRotationY = b;
-
-	btVector3 angularFactor = m_upBtRigidBody->getAngularFactor();
-	angularFactor.setY(b ? 0.0f : 1.0f);
-
-	m_upBtRigidBody->setAngularFactor(angularFactor);
-}
-
-void Rigidbody::FreezeRotationZ(bool b)
-{
-	m_freezeRotationZ = b;
-
-	btVector3 angularFactor = m_upBtRigidBody->getAngularFactor();
-	angularFactor.setZ(b ? 0.0f : 1.0f);
+	m_freezeState & FF_RotationX ? angularFactor.setX(0.0f) : angularFactor.setX(1.0f);
+	m_freezeState & FF_RotationY ? angularFactor.setY(0.0f) : angularFactor.setY(1.0f);
+	m_freezeState & FF_RotationZ ? angularFactor.setZ(0.0f) : angularFactor.setZ(1.0f);
 
 	m_upBtRigidBody->setAngularFactor(angularFactor);
 }
@@ -202,10 +198,6 @@ void Rigidbody::OnDeploySysJob()
 	// 물리 월드에 등록
 	if (this->IsEnabled())
 		Physics::GetInstance()->GetDynamicsWorld()->addRigidBody(m_upBtRigidBody.get());
-
-	// Kinematic인 경우 group 인덱스 저장 (빠른 접근)
-	if (this->IsKinematic())
-		RigidbodyManager::GetInstance()->AddToKinematicBodyGroup(this);
 }
 
 void Rigidbody::OnEnableSysJob()

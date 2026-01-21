@@ -883,7 +883,7 @@ void Warehouse::OnLoadScene()
 		pGameObject->m_transform.SetPosition(-0.5f, 6.0f, 0.5f);
 		// pGameObject->m_transform.SetRotationEuler(XMConvertToRadians(20.0f), 0, 0);
 		// pGameObject->m_transform.SetRotationEuler(0, XMConvertToRadians(20.0f), 0);
-		pGameObject->m_transform.SetRotationEuler(0, 0, XMConvertToRadians(20.0f));
+		// pGameObject->m_transform.SetRotationEuler(0, 0, XMConvertToRadians(20.0f));
 
 		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
 		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
@@ -893,8 +893,49 @@ void Warehouse::OnLoadScene()
 		std::shared_ptr<BoxCollider> collider = std::make_shared<BoxCollider>(meshBox->GetAabb().Extents);
 		ComponentHandle<Rigidbody> hRigidbody = pGameObject->AddComponent<Rigidbody>(collider, meshBox->GetAabb().Center);
 		Rigidbody* pRigidbody = hRigidbody.ToPtr();
+		pRigidbody->SetFreezePosition(true, false, true);
+		pRigidbody->SetFreezeRotation(true, true, true);
 		pRigidbody->SetFriction(0.5);
+
+		// 계층구조 작동 테스트
+		{
+			GameObjectHandle hGameObject = CreateGameObject(L"Box");
+			GameObject* pGameObject1 = hGameObject.ToPtr();
+
+			pGameObject1->m_transform.SetParent(&pGameObject->m_transform);
+
+			pGameObject1->m_transform.SetPosition(0.0f, 2.5f, 0.0f);
+			pGameObject1->m_transform.SetRotationEuler(XMConvertToRadians(20.0f), 0, 0);
+			// pGameObject1->m_transform.SetRotationEuler(0, XMConvertToRadians(20.0f), 0);
+			// pGameObject1->m_transform.SetRotationEuler(0, 0, XMConvertToRadians(20.0f));
+
+			ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject1->AddComponent<MeshRenderer>();
+			MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+			pMeshRenderer->SetMesh(meshBox);
+			pMeshRenderer->SetMaterial(0, matPaperBox);
+		}
 	}
+
+	// Kinematic 발판 테스트
+	GameObjectHandle hKinematicFootboard;
+	{
+		GameObjectHandle hGameObject = CreateGameObject(L"Footboard");
+		hKinematicFootboard = hGameObject;
+
+		GameObject* pGameObject = hGameObject.ToPtr();
+		pGameObject->m_transform.SetPosition(-1.0f, 0.5f, 1.0f);
+		
+		// ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
+		// MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+		// pMeshRenderer->SetMesh(meshBox);
+		// pMeshRenderer->SetMaterial(0, matPaperBox);
+		
+		std::shared_ptr<BoxCollider> collider = std::make_shared<BoxCollider>(XMFLOAT3(1.0f, 0.25f, 1.0f));
+		ComponentHandle<Rigidbody> hRigidbody = pGameObject->AddComponent<Rigidbody>(collider);
+		Rigidbody* pRigidbody = hRigidbody.ToPtr();
+		pRigidbody->SetKinematic(true);
+	}
+	pScriptFPSMovement->m_hKinematicFootboard = hKinematicFootboard;
 
 
 	// 캐릭터 Skinned Mesh Test

@@ -10,6 +10,7 @@ public:
 	virtual ~FirstPersonMovement() = default;
 
 	virtual void Awake() override;
+	virtual void FixedUpdate() override;
 	virtual void Update() override;
 
 	void MovementProcess(ze::GameObject* pGameObject);
@@ -21,6 +22,7 @@ public:
 	void EventHandlerMSAAChange();
 public:
 	ze::GameObjectHandle m_hWeapons[4];
+	ze::GameObjectHandle m_hKinematicFootboard;
 	bool m_ui;
 	ze::UIObjectHandle m_hWeaponChangePanel;
 	ze::ComponentHandle<ze::Camera> m_hComponentCamera;

@@ -126,6 +126,9 @@ namespace ze
 		void SetPosition(const XMFLOAT3A& position) { m_position = position; }
 		void SetPosition(const XMFLOAT3& position) { m_position.x = position.x;	m_position.y = position.y; m_position.z = position.z; }
 		void SetPosition(FLOAT x, FLOAT y, FLOAT z) { m_position.x = x;	m_position.y = y; m_position.z = z;	}
+		FLOAT GetPositionX() const { return m_position.x; }
+		FLOAT GetPositionY() const { return m_position.y; }
+		FLOAT GetPositionZ() const { return m_position.z; }
 		void SetPositionX(FLOAT x) { m_position.x = x; }
 		void SetPositionY(FLOAT y) { m_position.y = y; }
 		void SetPositionZ(FLOAT z) { m_position.z = z; }
