@@ -41,7 +41,6 @@ void FirstPersonMovement::Update()
 	if (!pGameObject)
 		return;
 
-
 	if (Input::GetInstance()->GetKeyDown(KEYCODE::KEY_MULTIPLY))
 	{
 		GameObject* pGameObject = m_hKinematicFootboard.ToPtr();

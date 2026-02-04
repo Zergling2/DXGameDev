@@ -51,9 +51,6 @@ namespace ze
 		float GetDuration() const { return m_duration; }
 
 		const BoneAnimation* GetBoneAnimations() const { return m_upBoneAnims.get(); }
-
-		// 출력 행렬은 HLSL 전달 시 전치해야 함
-		void ComputeFinalTransform(float time, XMFLOAT4X4A* pOutFinalTransform, size_t count) const;
 	private:
 		const Armature& m_armature;
 		const float m_duration;		// sec

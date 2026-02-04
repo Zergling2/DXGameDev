@@ -12,59 +12,6 @@ Animation::Animation(const Armature& armature, float duration)
 {
 }
 
-void Animation::ComputeFinalTransform(float time, XMFLOAT4X4A* pOutFinalTransform, size_t count) const
-{
-	const XMFLOAT4X4A* pMdInvArray = m_armature.GetMdInvArray();
-
-	// Assimp로 로드한 키 프레임 = Ml * Mp (리깅 시 애니메이션 프레임에서 뼈의 스케일링 & 회전 & 이동은 Ml * Mp이다.)
-	// const XMFLOAT4X4A* pMpArray = m_armature.GetMpArray();
-
-	const BYTE* pBoneHierarchy = m_armature.GetBoneHierarchy();
-
-	// Ma(i) = Ml(i) * Mp(i) * Ma(i - 1)
-
-	// 1. Ma 팔레트 계산
-	XMFLOAT4X4A MaArray[MAX_BONE_COUNT];
-	for (size_t currBoneIndex = 0; currBoneIndex < count; ++currBoneIndex)
-	{
-		const BYTE parentBoneIndex = pBoneHierarchy[currBoneIndex];
-
-		assert(parentBoneIndex <= currBoneIndex);	// 부모 뼈의 인덱스를 담아두었으므로 반드시 충족해야 함
-
-		// 애니메이션 스케일 행렬
-		XMFLOAT3A scale;
-		XMFLOAT4A rotation;
-		XMFLOAT3A translation;
-		m_upBoneAnims[currBoneIndex].Interpolate(time, &scale, &rotation, &translation);
-
-		XMMATRIX MlMp = 
-			XMMatrixScalingFromVector(XMLoadFloat3A(&scale)) *
-			XMMatrixRotationQuaternion(XMLoadFloat4A(&rotation)) *
-			XMMatrixTranslationFromVector(XMLoadFloat3A(&translation));
-		
-		XMMATRIX Ma;
-		if (parentBoneIndex == currBoneIndex)
-		{
-			assert(currBoneIndex == 0);
-			Ma = MlMp;
-		}
-		else
-		{
-			Ma = MlMp * XMLoadFloat4x4A(&MaArray[parentBoneIndex]);
-		}
-
-		XMStoreFloat4x4A(&MaArray[currBoneIndex], Ma);
-	}
-
-	// 2. Mf 팔레트 계산	(Final transform 행렬)
-	// Mf = MdInv(i) * Ma(i)
-	for (size_t currBoneIndex = 0; currBoneIndex < count; ++currBoneIndex)
-	{
-		XMMATRIX Mf = XMLoadFloat4x4A(&pMdInvArray[currBoneIndex]) * XMLoadFloat4x4A(&MaArray[currBoneIndex]);
-		XMStoreFloat4x4A(&pOutFinalTransform[currBoneIndex], Mf);
-	}
-}
-
 void BoneAnimation::Interpolate(float time, XMFLOAT3* pOutScale, XMFLOAT4* pOutRotation, XMFLOAT3* pOutTranslate) const
 {
 	size_t kfc;	// Key frame count
@@ -73,8 +20,8 @@ void BoneAnimation::Interpolate(float time, XMFLOAT3* pOutScale, XMFLOAT4* pOutR
 	kfc = m_scaleKeyFrames.size();
 	if (kfc == 0)
 	{
-		// 키 프레임이 0개이면 기본 값을 내보낸다.
-		XMStoreFloat3(pOutScale, Vector3::One3());
+		// 키 프레임이 없는 경우
+		*pOutScale = XMFLOAT3(1.0f, 1.0f, 1.0f);
 	}
 	else if (kfc == 1)
 	{
@@ -124,8 +71,8 @@ void BoneAnimation::Interpolate(float time, XMFLOAT3* pOutScale, XMFLOAT4* pOutR
 	kfc = m_rotationKeyFrames.size();
 	if (kfc == 0)
 	{
-		// 키 프레임이 0개이면 기본 값을 내보낸다.
-		XMStoreFloat4(pOutRotation, Quaternion::Identity());
+		// 키 프레임이 없는 경우
+		*pOutRotation = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
 	}
 	else if (kfc == 1)
 	{
@@ -175,8 +122,10 @@ void BoneAnimation::Interpolate(float time, XMFLOAT3* pOutScale, XMFLOAT4* pOutR
 	kfc = m_positionKeyFrames.size();
 	if (kfc == 0)
 	{
-		// 키 프레임이 0개이면 기본 값을 내보낸다.
-		XMStoreFloat3(pOutTranslate, Vector3::Zero());
+		// 키 프레임이 없는 경우
+		// 일반적으로 좋지 않은 시각적 효과를 얻음. 본의 부모 공간 기준 Translation 성분이 Zero이므로 뼈가 부모 공간에 그대로 위치한 셈이 된다.
+		// 하지만 값을 출력하지 않을 수는 없으므로 XMFLOAT3 all zero를 내보낸다.
+		*pOutTranslate = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	}
 	else if (kfc == 1)
 	{

@@ -334,6 +334,10 @@ void Runtime::OnIdle()
         // 물리 시뮬레이션 스텝
         Physics::GetInstance()->StepSimulation(FIXED_DELTA_TIME);
 
+        // 충돌 콜백 함수 호출
+        // ...
+        // Physics::GetInstance()->CallEventHandler();
+
         m_accumDeltaTime -= Time::GetInstance()->GetFixedDeltaTime();
     }
     Time::GetInstance()->RecoverToDeltaTimeMode();  // DeltaTime이 실제 Delta time을 가리키도록 복구
@@ -347,21 +351,37 @@ void Runtime::OnIdle()
     for (IComponent* pComponent : SkinnedMeshRendererManager::GetInstance()->m_directAccessGroup)
     {
         SkinnedMeshRenderer* pSkinnedMeshRenderer = static_cast<SkinnedMeshRenderer*>(pComponent);
-        const Animation* pCurrAnim = pSkinnedMeshRenderer->GetCurrentAnimationPtr();
-        const bool pauseAnim = pSkinnedMeshRenderer->IsAnimationPaused();
 
-        if (pCurrAnim == nullptr || pauseAnim == true)
-            continue;
+        auto iter = pSkinnedMeshRenderer->m_currAnims.begin();
+        while (iter != pSkinnedMeshRenderer->m_currAnims.cend())
+        {
+            const std::string& boneGroupName = iter->first;
+            PlayingAnimation& pa = iter->second;
+            assert(pa.m_pAnim);
 
-        float newAnimTimeCursor =
-            pSkinnedMeshRenderer->GetAnimationTimeCursor() + Time::GetInstance()->GetDeltaTime() * pSkinnedMeshRenderer->GetAnimationSpeed();
+            const float animDuration = pa.m_pAnim->GetDuration();
+            float newTimeCursor = pa.m_timeCursor + Time::GetInstance()->GetDeltaTime() * pa.m_playbackSpeed;
 
-        if (pSkinnedMeshRenderer->IsLoopAnimation())
-            newAnimTimeCursor = Math::WrapFloat(newAnimTimeCursor, pCurrAnim->GetDuration());
-        else
-            newAnimTimeCursor = Math::Clamp(newAnimTimeCursor, 0.0f, pCurrAnim->GetDuration());
+            if (pa.m_loop)
+            {
+                newTimeCursor = Math::WrapFloat(newTimeCursor, animDuration);
+                pa.m_timeCursor = newTimeCursor;
 
-        pSkinnedMeshRenderer->SetAnimationTimeCursor(newAnimTimeCursor);
+                ++iter;
+            }
+            else
+            {
+                if (0.0f <= newTimeCursor && newTimeCursor <= animDuration)
+                {
+                    pa.m_timeCursor = newTimeCursor;
+                    ++iter;
+                }
+                else
+                {
+                    iter = pSkinnedMeshRenderer->m_currAnims.erase(iter);
+                }
+            }
+        }
     }
 
     RemoveDestroyedComponentsAndObjects();

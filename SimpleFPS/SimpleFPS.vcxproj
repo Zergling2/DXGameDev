@@ -156,14 +156,14 @@
     <ClCompile Include="source\Scene\TestScene1.cpp" />
     <ClCompile Include="source\Scene\Warehouse.cpp" />
     <ClCompile Include="source\Script\FirstPersonMovement.cpp" />
-    <ClCompile Include="source\Script\Planet.cpp" />
+    <ClCompile Include="source\Resource\Weapon.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Scene\Lobby.h" />
     <ClInclude Include="source\Scene\TestScene1.h" />
     <ClInclude Include="source\Scene\Warehouse.h" />
     <ClInclude Include="source\Script\FirstPersonMovement.h" />
-    <ClInclude Include="source\Script\Planet.h" />
+    <ClInclude Include="source\Resource\Weapon.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

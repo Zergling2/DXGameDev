@@ -7,12 +7,12 @@ namespace ze
 	class Ray
 	{
 	public:
-		Ray() noexcept
+		Ray()
 		{
 			XMStoreFloat3A(&m_origin, XMVectorZero());
 			XMStoreFloat3A(&m_direction, XMVectorZero());
 		}
-		Ray(FXMVECTOR origin, FXMVECTOR direction) noexcept
+		Ray(FXMVECTOR origin, FXMVECTOR direction)
 		{
 			XMStoreFloat3A(&m_origin, origin);
 			XMStoreFloat3A(&m_direction, direction);

@@ -46,9 +46,6 @@
     <Filter Include="Files\ZergEngine\CoreSystem\GamePlayBase\UIObject">
       <UniqueIdentifier>{76db95bf-73ee-420f-8187-f914763a1df1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Files\ZergEngine\CoreSystem\RenderPass">
-      <UniqueIdentifier>{38482f98-02c2-48fc-a03a-6d5548272892}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Files\ZergEngine\CoreSystem\RenderContext">
       <UniqueIdentifier>{42897642-bd97-4a56-9cb8-a63142bf1766}</UniqueIdentifier>
     </Filter>
@@ -285,9 +282,6 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\RenderSettings.h">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\RenderPass\RenderPassInterface.h">
-      <Filter>Files\ZergEngine\CoreSystem\RenderPass</Filter>
-    </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\RenderContext\RenderContext.h">
       <Filter>Files\ZergEngine\CoreSystem\RenderContext</Filter>
     </ClInclude>
@@ -365,9 +359,6 @@
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\UIEventHandler.h">
       <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\UIObject</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\BoneIndexType.h">
-      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\Physics.h">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
@@ -637,9 +628,6 @@
     </ClCompile>
     <ClCompile Include="source\CoreSystem\RenderSettings.cpp">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\RenderPass\RenderPassInterface.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\RenderPass</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\RenderContext\RenderContext.cpp">
       <Filter>Files\ZergEngine\CoreSystem\RenderContext</Filter>

@@ -75,7 +75,7 @@ namespace ze
 		uint32_t m_tableIndex;
 		uint32_t m_groupIndex;
 		ComponentFlag m_flag;
-		uint16_t m_reserved0;
-		uint32_t m_reserved1;
+		// uint16_t m_reserved0;
+		// uint32_t m_reserved1;
 	};
 }

@@ -95,9 +95,7 @@ namespace ze
 
 		EffectDeviceContext m_effectImmediateContext;
 
-		XMFLOAT4X4A* m_pAnimFinalTransformBufferSpace;
 		XMFLOAT4X4A* m_pAnimFinalTransformIdentity;
-		XMFLOAT4X4A* m_pAnimFinalTransformBuffer;
 
 		// Unused
 		DebugLinesEffect m_debugLinesEffect;

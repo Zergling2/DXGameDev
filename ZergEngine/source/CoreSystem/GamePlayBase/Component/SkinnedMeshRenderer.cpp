@@ -12,14 +12,10 @@ SkinnedMeshRenderer::SkinnedMeshRenderer(GameObject& owner) noexcept
 	, m_materials()
 	, m_castShadows(false)
 	, m_receiveShadows(false)
-	, m_animLoop(true)
-	, m_pauseAnim(false)
 	, m_spMesh()
 	, m_spArmature()
 	, m_additiveTransform()
-	, m_pCurrAnim(nullptr)
-	, m_animTimeCursor(0.0f)
-	, m_animSpeed(1.0f)
+	, m_currAnims()
 {
 }
 
@@ -39,21 +35,21 @@ std::shared_ptr<Material> SkinnedMeshRenderer::GetMaterial(size_t subsetIndex) c
 		return nullptr;
 }
 
-bool SkinnedMeshRenderer::SetMaterial(size_t subsetIndex, std::shared_ptr<Material> spMaterial)
+bool SkinnedMeshRenderer::SetMaterial(size_t subsetIndex, std::shared_ptr<Material> material)
 {
 	if (m_materials.size() <= subsetIndex)
 		return false;
 
-	m_materials[subsetIndex] = std::move(spMaterial);
+	m_materials[subsetIndex] = std::move(material);
 
 	return true;
 }
 
-void SkinnedMeshRenderer::SetMesh(std::shared_ptr<SkinnedMesh> spMesh)
+void SkinnedMeshRenderer::SetMesh(std::shared_ptr<SkinnedMesh> mesh)
 {
 	this->StopAnimation();
 
-	m_spMesh = std::move(spMesh);
+	m_spMesh = std::move(mesh);
 
 	// 재질 슬롯을 새로운 메시의 서브셋 개수만큼 할당
 	m_materials.clear();
@@ -61,11 +57,12 @@ void SkinnedMeshRenderer::SetMesh(std::shared_ptr<SkinnedMesh> spMesh)
 		m_materials.resize(m_spMesh->m_subsets.size());	// subset 개수만큼 재질 슬롯 할당
 }
 
-void SkinnedMeshRenderer::SetArmature(std::shared_ptr<Armature> spArmature)
+void SkinnedMeshRenderer::SetArmature(std::shared_ptr<Armature> armature)
 {
 	this->StopAnimation();
 
-	m_spArmature = std::move(spArmature);
+	m_currAnims.clear();
+	m_spArmature = std::move(armature);
 
 	if (m_spArmature)
 		m_additiveTransform.resize(m_spArmature->GetBoneCount());
@@ -73,35 +70,112 @@ void SkinnedMeshRenderer::SetArmature(std::shared_ptr<Armature> spArmature)
 		std::vector<XMFLOAT4X4A> tmp(std::move(m_additiveTransform));	// 행렬 팔레트용 메모리 버퍼 해제
 }
 
-bool SkinnedMeshRenderer::PlayAnimation(const char* animName, float speed, bool loop, float timeCursor)
+bool SkinnedMeshRenderer::PlayAnimation(const std::string& animName, bool loop, float playbackSpeed, float timeCursor)
 {
-	if (m_spArmature == nullptr)
+	if (!m_spArmature)
 		return false;
 
+	// 지정한 이름을 가진 애니메이션이 없는 경우
 	const Animation* pAnim = m_spArmature->GetAnimation(animName);
 	if (pAnim == nullptr)
 		return false;
 
-	const float duration = pAnim->GetDuration();
-	if (loop)
-		timeCursor = Math::WrapFloat(timeCursor, duration);
-	else
-		timeCursor = Math::Clamp(timeCursor, 0.0f, duration);
+	// 본 그룹이 없는 경우
+	if (m_spArmature->GetBoneGroups().size() == 0)
+		return false;
 
-	m_pCurrAnim = pAnim;
-	m_animSpeed = speed;
-	m_animLoop = loop;
-	m_animTimeCursor = timeCursor;
+	const float animDuration = pAnim->GetDuration();
+	if (loop)
+		timeCursor = Math::WrapFloat(timeCursor, animDuration);
+	else
+		timeCursor = Math::Clamp(timeCursor, 0.0f, animDuration);
+
+	const auto& boneGroups = m_spArmature->GetBoneGroups();
+
+	PlayingAnimation pa(pAnim, loop, playbackSpeed, timeCursor);
+	for (const auto& iter : boneGroups)
+		m_currAnims[iter.first] = pa;
+	     
+	return true;
+}
+
+bool SkinnedMeshRenderer::PlayGroupAnimation(const std::string& animName, const std::string& groupName, bool loop, float playbackSpeed, float timeCursor)
+{
+	if (!m_spArmature)
+		return false;
+
+	// 지정한 이름을 가진 애니메이션이 없는 경우
+	const Animation* pAnim = m_spArmature->GetAnimation(animName);
+	if (pAnim == nullptr)
+		return false;
+
+	// 지정한 이름을 가진 그룹이 존재하지 않는 경우
+	if (!m_spArmature->GetBoneGroup(groupName))
+		return false;
+
+	const float animDuration = pAnim->GetDuration();
+	if (loop)
+		timeCursor = Math::WrapFloat(timeCursor, animDuration);
+	else
+		timeCursor = Math::Clamp(timeCursor, 0.0f, animDuration);
+
+	PlayingAnimation pa(pAnim, loop, playbackSpeed, timeCursor);
+	m_currAnims[groupName] = pa;
+
+	return true;
+}
+
+bool SkinnedMeshRenderer::SetGroupAnimationSpeed(const std::string& groupName, float playbackSpeed)
+{
+	if (!m_spArmature)
+		return false;
+
+	// 지정한 이름을 가진 그룹이 존재하지 않는 경우
+	if (!m_spArmature->GetBoneGroup(groupName))
+		return false;
+
+	const auto iter = m_currAnims.find(groupName);
+	if (iter == m_currAnims.cend())
+		return false;
+
+	iter->second.m_playbackSpeed = playbackSpeed;
+
+	return true;
+}
+
+bool SkinnedMeshRenderer::SetGroupAnimationTimeCursor(const std::string& groupName, float timeCursor)
+{
+	if (!m_spArmature)
+		return false;
+
+	// 지정한 이름을 가진 그룹이 존재하지 않는 경우
+	if (!m_spArmature->GetBoneGroup(groupName))
+		return false;
+
+	const auto iter = m_currAnims.find(groupName);
+	if (iter == m_currAnims.cend())
+		return false;
+
+	const float animDuration = iter->second.m_pAnim->GetDuration();
+
+	if (iter->second.m_loop)
+		timeCursor = Math::WrapFloat(timeCursor, animDuration);
+	else
+		timeCursor = Math::Clamp(timeCursor, 0.0f, animDuration);
+
+	iter->second.m_timeCursor = timeCursor;
 
 	return true;
 }
 
 void SkinnedMeshRenderer::StopAnimation()
 {
-	m_pCurrAnim = nullptr;
-	m_animSpeed = 1.0f;
-	m_animLoop = false;
-	m_animTimeCursor = 0.0f;
+	m_currAnims.clear();
+}
+
+void SkinnedMeshRenderer::StopGroupAnimation(const std::string groupName)
+{
+	m_currAnims.erase(groupName);
 }
 
 IComponentManager* SkinnedMeshRenderer::GetComponentManager() const

@@ -68,6 +68,7 @@ namespace ze
 
 		// 로컬 스케일을 재설정합니다.
 		void XM_CALLCONV SetScale(FXMVECTOR scale) { XMStoreFloat3A(&m_scale, scale); }
+		void SetScale(const XMFLOAT3& scale) { m_scale.x = scale.x; m_scale.y = scale.y; m_scale.z = scale.z; }
 		void SetScale(FLOAT sx, FLOAT sy, FLOAT sz) { m_scale.x = sx; m_scale.y = sy; m_scale.z = sz; }
 		void SetScaleX(FLOAT sx) { m_scale.x = sx; }
 		void SetScaleY(FLOAT sy) { m_scale.y = sy; }

@@ -91,7 +91,6 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\FileSystem.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\GameObjectManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\RenderContext\RenderContext.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\RenderPass\RenderPassInterface.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\RenderSettings.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Handle.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\ComponentType.h" />
@@ -113,7 +112,6 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\RenderState.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Animation.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Armature.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\BoneIndexType.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\BoxCollider.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\CapsuleCollider.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\ColliderInterface.h" />
@@ -193,7 +191,6 @@
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\AudioSourceManager.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\ComponentManagerMap.cpp" />
     <ClCompile Include="source\CoreSystem\RenderContext\RenderContext.cpp" />
-    <ClCompile Include="source\CoreSystem\RenderPass\RenderPassInterface.cpp" />
     <ClCompile Include="source\CoreSystem\RenderSettings.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Handle.cpp" />
     <ClCompile Include="source\CoreSystem\Helper.cpp" />

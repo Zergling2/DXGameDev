@@ -66,7 +66,6 @@ Renderer::Renderer()
 	, m_pVBCheckbox(nullptr)
 	, m_effectImmediateContext()
 	, m_pAnimFinalTransformIdentity(nullptr)
-	, m_pAnimFinalTransformBuffer(nullptr)
 	, m_debugLinesEffect()
 	// , m_basicEffectP()
 	// , m_basicEffectPC()
@@ -90,11 +89,7 @@ Renderer::Renderer()
 {
 	m_uiRenderQueue.clear();
 
-	constexpr size_t XMFLOAT4X4A_ALIGNMENT = 16;
-
-	m_pAnimFinalTransformBufferSpace = reinterpret_cast<XMFLOAT4X4A*>(_aligned_malloc_dbg(sizeof(XMFLOAT4X4A) * MAX_BONE_COUNT * 2, XMFLOAT4X4A_ALIGNMENT, __FILE__, __LINE__));
-	m_pAnimFinalTransformIdentity = m_pAnimFinalTransformBufferSpace;
-	m_pAnimFinalTransformBuffer = m_pAnimFinalTransformIdentity + MAX_BONE_COUNT;
+	m_pAnimFinalTransformIdentity = reinterpret_cast<XMFLOAT4X4A*>(_aligned_malloc_dbg(sizeof(XMFLOAT4X4A) * MAX_BONE_COUNT, alignof(XMFLOAT4X4A), __FILE__, __LINE__));;
 
 	for (size_t i = 0; i < MAX_BONE_COUNT; ++i)
 		XMStoreFloat4x4A(&m_pAnimFinalTransformIdentity[i], XMMatrixIdentity());
@@ -102,7 +97,7 @@ Renderer::Renderer()
 
 Renderer::~Renderer()
 {
-	_aligned_free_dbg(m_pAnimFinalTransformBufferSpace);
+	_aligned_free_dbg(m_pAnimFinalTransformIdentity);
 }
 
 void Renderer::CreateInstance()
@@ -1001,28 +996,78 @@ void XM_CALLCONV Renderer::RenderPNTTSkinnedMesh(const SkinnedMeshRenderer* pSki
 		return;
 
 	m_basicEffectPNTTSkinned.SetWorldMatrix(worldMatrix);
-	
-	const Animation* pCurrAnim = pSkinnedMeshRenderer->GetCurrentAnimationPtr();
-	const Armature* pArmature = pSkinnedMeshRenderer->GetArmaturePtr();
-	if (pCurrAnim)
-	{
-		pCurrAnim->ComputeFinalTransform(
-			pSkinnedMeshRenderer->GetAnimationTimeCursor(),
-			m_pAnimFinalTransformBuffer,
-			pArmature->GetBoneCount()
-		);
 
-		for (size_t i = 0; i < pArmature->GetBoneCount(); ++i)
-		{
-			XMMATRIX m = XMLoadFloat4x4A(&m_pAnimFinalTransformBuffer[i]);
-			m = ConvertToHLSLMatrix(m);
-			XMStoreFloat4x4A(&m_pAnimFinalTransformBuffer[i], m);
-		}
-		m_basicEffectPNTTSkinned.SetArmatureFinalTransform(m_pAnimFinalTransformBuffer, pArmature->GetBoneCount());
+	const Armature* const pArmature = pSkinnedMeshRenderer->GetArmaturePtr();
+
+	if (!pArmature || pSkinnedMeshRenderer->GetCurrentAnims().size() == 0)
+	{
+		m_basicEffectPNTTSkinned.SetArmatureFinalTransform(m_pAnimFinalTransformIdentity, MAX_BONE_COUNT);
 	}
 	else
 	{
-		m_basicEffectPNTTSkinned.SetArmatureFinalTransform(m_pAnimFinalTransformIdentity, MAX_BONE_COUNT);
+		XMFLOAT4X4A transformBuffer1[MAX_BONE_COUNT];
+		XMFLOAT4X4A transformBuffer2[MAX_BONE_COUNT];
+		// 2패스 구조
+		// Pass 1.
+		// 모든 뼈 각각에 대해 현재 재생중인 애니메이션에 대한 로컬 변환을 구해둔다. 이때 키 프레임의 로컬 변환에 Additive Transform도 성분을 추가해줄 수 있을듯.
+
+		// Assimp로 로드한 키 프레임 = Ml * Mp (리깅 시 애니메이션 프레임에서 뼈의 스케일링 & 회전 & 이동은 Ml * Mp이다.)
+
+		XMFLOAT4X4A* pMlMp = transformBuffer1;
+		for (size_t i = 0; i < MAX_BONE_COUNT; ++i)	// 애니메이션을 재생중이지 않은 뼈들은 Identity 변환행렬 사용.
+			XMStoreFloat4x4A(&pMlMp[i], XMMatrixIdentity());
+
+		// 각 본마다 자신이 재생중인 애니메이션 키 프레임을 보간 샘플링 및 변환행렬 저장.
+		const auto& currAnims = pSkinnedMeshRenderer->GetCurrentAnims();
+		for (const auto& pair : currAnims)
+		{
+			const BoneAnimation* const pBoneAnimations = pair.second.m_pAnim->GetBoneAnimations();
+			const std::vector<bone_index_type>* const pBoneGroup = pSkinnedMeshRenderer->GetArmature()->GetBoneGroup(pair.first);
+
+			for (const bone_index_type boneIndex : *pBoneGroup)
+			{
+				XMFLOAT3A scale;
+				XMFLOAT4A rotation;
+				XMFLOAT3A translation;
+				pBoneAnimations[boneIndex].Interpolate(pair.second.m_timeCursor, &scale, &rotation, &translation);
+
+				XMStoreFloat4x4A(
+					&pMlMp[boneIndex],
+					XMMatrixScalingFromVector(XMLoadFloat3A(&scale)) *
+					XMMatrixRotationQuaternion(XMLoadFloat4A(&rotation)) *
+					XMMatrixTranslationFromVector(XMLoadFloat3A(&translation))
+				);
+			}
+		}
+
+		// Pass 2.
+		// 0번 뼈부터 높은 인덱스로 가며 Ma 행렬을 계산하고 최종적으로 Mf(i) = MdInv(i) * Ml(i) * Mp(i) * Ma(i-1)를 계산한다.
+		const Armature* const pArmature = pSkinnedMeshRenderer->GetArmaturePtr();
+		const BYTE* const pBoneHierarchy = pArmature->GetBoneHierarchy();
+		const size_t boneCount = pArmature->GetBoneCount();
+
+		// Ma 계산
+		XMFLOAT4X4A* pMa = transformBuffer2;
+		if (boneCount > 0)	// 먼저 Ma 배열의 0번 인덱스를 채우고 (Ma(0) = Ml(0) * Mp(0))
+			XMStoreFloat4x4A(&pMa[0], XMLoadFloat4x4A(&pMlMp[0]));
+
+		for (size_t boneIndex = 1; boneIndex < boneCount; ++boneIndex)	// Ma(i) = Ml(i) * Mp(i) * Ma(i - 1)
+			XMStoreFloat4x4A(&pMa[boneIndex], XMLoadFloat4x4A(&pMlMp[boneIndex]) * XMLoadFloat4x4A(&pMa[pBoneHierarchy[boneIndex]]));
+
+
+
+		// Mf (Final transform) 계산
+		XMFLOAT4X4A* Mf = transformBuffer1;	// MlMp 저장에 사용하던 임시 버퍼를 재활용(이 시점에서는 MlMp 버퍼 내용은 필요 없음)
+		const XMFLOAT4X4A* pMdInvArray = pArmature->GetMdInvArray();
+		for (size_t boneIndex = 0; boneIndex < boneCount; ++boneIndex)
+			XMStoreFloat4x4A(&Mf[boneIndex], XMLoadFloat4x4A(&pMdInvArray[boneIndex]) * XMLoadFloat4x4A(&pMa[boneIndex]));
+
+
+		// HLSL 전달을 위해 Mf 전치
+		for (size_t boneIndex = 0; boneIndex < boneCount; ++boneIndex)
+			XMStoreFloat4x4A(&Mf[boneIndex], ConvertToHLSLMatrix(XMLoadFloat4x4A(&Mf[boneIndex])));
+
+		m_basicEffectPNTTSkinned.SetArmatureFinalTransform(Mf, boneCount);
 	}
 
 	// 버텍스 버퍼 설정

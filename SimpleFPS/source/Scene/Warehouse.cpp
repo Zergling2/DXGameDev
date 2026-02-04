@@ -35,6 +35,44 @@ void Warehouse::CreateClosedLongContainer(const XMFLOAT3& pos, const XMFLOAT3& r
 	pGameObject->AddComponent<StaticRigidbody>(m_colliderClosedLongContainer, m_rbLocalPosClosedLongContainer, m_rbLocalRotClosedLongContainer);
 }
 
+void Warehouse::CreateWoodenBox(const XMFLOAT3& pos, const XMFLOAT3& rot, const XMFLOAT3& scale)
+{
+	GameObjectHandle hGameObject = CreateGameObject(L"Wooden Box");
+	GameObject* pGameObject = hGameObject.ToPtr();
+	pGameObject->m_transform.SetPosition(pos);
+	pGameObject->m_transform.SetRotationEuler(rot);
+	pGameObject->m_transform.SetScale(scale);
+
+	ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
+	MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+	pMeshRenderer->SetMesh(m_meshWoodenBox);
+	pMeshRenderer->SetMaterial(0, m_matWoodenBox);
+
+	XMFLOAT3A finalRbLocalPos;
+	XMStoreFloat3A(&finalRbLocalPos, XMVectorMultiply(XMLoadFloat3(&m_rbLocalPosWoodenBox), XMLoadFloat3(&scale)));
+
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderWoodenBox, finalRbLocalPos, m_rbLocalRotWoodenBox);
+}
+
+void Warehouse::CreatePaperBox(const XMFLOAT3& pos, const XMFLOAT3& rot, const XMFLOAT3& scale)
+{
+	GameObjectHandle hGameObject = CreateGameObject(L"Paper Box");
+	GameObject* pGameObject = hGameObject.ToPtr();
+	pGameObject->m_transform.SetPosition(pos);
+	pGameObject->m_transform.SetRotationEuler(rot);
+	pGameObject->m_transform.SetScale(scale);
+
+	ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
+	MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+	pMeshRenderer->SetMesh(m_meshPaperBox);
+	pMeshRenderer->SetMaterial(0, m_matPaperBox);
+
+	XMFLOAT3A finalRbLocalPos;
+	XMStoreFloat3A(&finalRbLocalPos, XMVectorMultiply(XMLoadFloat3(&m_rbLocalPosPaperBox), XMLoadFloat3(&scale)));
+
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderPaperBox, finalRbLocalPos, m_rbLocalRotPaperBox);
+}
+
 void Warehouse::OnLoadScene()
 {
 	// Lights
@@ -113,7 +151,6 @@ void Warehouse::OnLoadScene()
 		pBillboard->SetBillboardType(BillboardType::Spherical);
 		pBillboard->SetMaterial(treeBillboardMtl);
 	}
-
 	{
 		GameObjectHandle hGameObject = CreateGameObject(L"CylindricalY");
 		GameObject* pGameObject = hGameObject.ToPtr();
@@ -125,7 +162,6 @@ void Warehouse::OnLoadScene()
 		pBillboard->SetBillboardType(BillboardType::CylindricalY);
 		pBillboard->SetMaterial(treeBillboardMtl);
 	}
-
 	{
 		GameObjectHandle hGameObject = CreateGameObject(L"ScreenAligned");
 		GameObject* pGameObject = hGameObject.ToPtr();
@@ -137,7 +173,6 @@ void Warehouse::OnLoadScene()
 		pBillboard->SetBillboardType(BillboardType::ScreenAligned);
 		pBillboard->SetMaterial(treeBillboardMtl);
 	}
-
 	{
 		GameObjectHandle hGameObject = CreateGameObject(L"ScreenAligned");
 		GameObject* pGameObject = hGameObject.ToPtr();
@@ -150,88 +185,86 @@ void Warehouse::OnLoadScene()
 		pBillboard->SetMaterial(treeBillboardMtl);
 	}
 	
+	// Adapter Info UI
 	{
-		// Adapter Info UI
-		{
-			UIObjectHandle hText = CreateText();
-			Text* pText = static_cast<Text*>(hText.ToPtr());
-			pText->SetSize(XMFLOAT2(256, 16));
-			std::wstring text = GraphicDevice::GetInstance()->GetAdapterDescription();
-			pText->SetText(std::move(text));
-			pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-			pText->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
-			pText->m_transform.SetPosition(128 + 2, -(8));
-			pText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-			pText->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-			pText->SetColor(ColorsLinear::Orange);
-			pText->GetTextFormat().SetSize(12);
-			pText->GetTextFormat().SetFontFamilyName(L"Consolas");
-			pText->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
-			pText->ApplyTextFormat();
-		}
+		UIObjectHandle hText = CreateText();
+		Text* pText = static_cast<Text*>(hText.ToPtr());
+		pText->SetSize(XMFLOAT2(256, 16));
+		std::wstring text = GraphicDevice::GetInstance()->GetAdapterDescription();
+		pText->SetText(std::move(text));
+		pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+		pText->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
+		pText->m_transform.SetPosition(128 + 2, -(8));
+		pText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+		pText->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+		pText->SetColor(ColorsLinear::Orange);
+		pText->GetTextFormat().SetSize(12);
+		pText->GetTextFormat().SetFontFamilyName(L"Consolas");
+		pText->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
+		pText->ApplyTextFormat();
+	}
 
-		{
-			UIObjectHandle hText = CreateText();
-			Text* pText = static_cast<Text*>(hText.ToPtr());
-			pText->SetSize(XMFLOAT2(256, 16));
-			std::wstring text = L"DedicatedVideoMemory: ";
-			size_t val = GraphicDevice::GetInstance()->GetAdapterDedicatedVideoMemory();
-			text += std::to_wstring(val / (1024 * 1024));
-			text += L"MB";
-			pText->SetText(std::move(text));
-			pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-			pText->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
-			pText->m_transform.SetPosition(128 + 2, -(8 + 16 * 1));
-			pText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-			pText->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-			pText->SetColor(ColorsLinear::Orange);
-			pText->GetTextFormat().SetSize(12);
-			pText->GetTextFormat().SetFontFamilyName(L"Consolas");
-			pText->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
-			pText->ApplyTextFormat();
-		}
+	{
+		UIObjectHandle hText = CreateText();
+		Text* pText = static_cast<Text*>(hText.ToPtr());
+		pText->SetSize(XMFLOAT2(256, 16));
+		std::wstring text = L"DedicatedVideoMemory: ";
+		size_t val = GraphicDevice::GetInstance()->GetAdapterDedicatedVideoMemory();
+		text += std::to_wstring(val / (1024 * 1024));
+		text += L"MB";
+		pText->SetText(std::move(text));
+		pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+		pText->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
+		pText->m_transform.SetPosition(128 + 2, -(8 + 16 * 1));
+		pText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+		pText->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+		pText->SetColor(ColorsLinear::Orange);
+		pText->GetTextFormat().SetSize(12);
+		pText->GetTextFormat().SetFontFamilyName(L"Consolas");
+		pText->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
+		pText->ApplyTextFormat();
+	}
 
-		{
-			UIObjectHandle hText = CreateText();
-			Text* pText = static_cast<Text*>(hText.ToPtr());
-			pText->SetSize(XMFLOAT2(256, 16));
-			std::wstring text = L"DedicatedSystemMemory: ";
-			size_t val = GraphicDevice::GetInstance()->GetAdapterDedicatedSystemMemory();
-			text += std::to_wstring(val / (1024 * 1024));
-			text += L"MB";
-			pText->SetText(std::move(text));
-			pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-			pText->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
-			pText->m_transform.SetPosition(128 + 2, -(8 + 16 * 2));
-			pText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-			pText->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-			pText->SetColor(ColorsLinear::Orange);
-			pText->GetTextFormat().SetSize(12);
-			pText->GetTextFormat().SetFontFamilyName(L"Consolas");
-			pText->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
-			pText->ApplyTextFormat();
-		}
+	{
+		UIObjectHandle hText = CreateText();
+		Text* pText = static_cast<Text*>(hText.ToPtr());
+		pText->SetSize(XMFLOAT2(256, 16));
+		std::wstring text = L"DedicatedSystemMemory: ";
+		size_t val = GraphicDevice::GetInstance()->GetAdapterDedicatedSystemMemory();
+		text += std::to_wstring(val / (1024 * 1024));
+		text += L"MB";
+		pText->SetText(std::move(text));
+		pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+		pText->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
+		pText->m_transform.SetPosition(128 + 2, -(8 + 16 * 2));
+		pText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+		pText->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+		pText->SetColor(ColorsLinear::Orange);
+		pText->GetTextFormat().SetSize(12);
+		pText->GetTextFormat().SetFontFamilyName(L"Consolas");
+		pText->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
+		pText->ApplyTextFormat();
+	}
 
-		{
-			UIObjectHandle hText = CreateText();
-			Text* pText = static_cast<Text*>(hText.ToPtr());
-			pText->SetSize(XMFLOAT2(256, 16));
-			std::wstring text = L"SharedSystemMemory: ";
-			size_t val = GraphicDevice::GetInstance()->GetAdapterSharedSystemMemory();
-			text += std::to_wstring(val / (1024 * 1024));
-			text += L"MB";
-			pText->SetText(std::move(text));
-			pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-			pText->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
-			pText->m_transform.SetPosition(128 + 2, -(8 + 16 * 3));
-			pText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-			pText->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-			pText->SetColor(ColorsLinear::Orange);
-			pText->GetTextFormat().SetSize(12);
-			pText->GetTextFormat().SetFontFamilyName(L"Consolas");
-			pText->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
-			pText->ApplyTextFormat();
-		}
+	{
+		UIObjectHandle hText = CreateText();
+		Text* pText = static_cast<Text*>(hText.ToPtr());
+		pText->SetSize(XMFLOAT2(256, 16));
+		std::wstring text = L"SharedSystemMemory: ";
+		size_t val = GraphicDevice::GetInstance()->GetAdapterSharedSystemMemory();
+		text += std::to_wstring(val / (1024 * 1024));
+		text += L"MB";
+		pText->SetText(std::move(text));
+		pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+		pText->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
+		pText->m_transform.SetPosition(128 + 2, -(8 + 16 * 3));
+		pText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+		pText->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+		pText->SetColor(ColorsLinear::Orange);
+		pText->GetTextFormat().SetSize(12);
+		pText->GetTextFormat().SetFontFamilyName(L"Consolas");
+		pText->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
+		pText->ApplyTextFormat();
 	}
 
 	// UI
@@ -668,7 +701,29 @@ void Warehouse::OnLoadScene()
 	std::shared_ptr<StaticMesh> meshHouseFrame = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\HouseFrame\\HouseFrame.obj").m_staticMeshes[0];
 	std::shared_ptr<StaticMesh> meshHouseSideWall = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\HouseSideWall.obj").m_staticMeshes[0];
 	std::shared_ptr<StaticMesh> meshHouseFloor = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\HouseFloor\\HouseFloor.obj").m_staticMeshes[0];
-	std::shared_ptr<StaticMesh> meshBox = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\props\\box\\box.obj").m_staticMeshes[0];
+
+
+	m_meshWoodenBox = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\props\\box\\box.obj").m_staticMeshes[0];
+	m_matWoodenBox = ResourceLoader::GetInstance()->CreateMaterial();
+	XMStoreFloat4A(&m_matWoodenBox->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.6f), 1.0f));
+	XMStoreFloat4A(&m_matWoodenBox->m_specular, XMVectorSetW(ColorsLinear::Black, 4.0f));
+	m_matWoodenBox->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\props\\box\\WoodenBox.png");
+	m_colliderWoodenBox = std::make_shared<BoxCollider>(m_meshWoodenBox->GetAabb().Extents);
+	m_rbLocalPosWoodenBox = m_meshWoodenBox->GetAabb().Center;
+	m_rbLocalRotWoodenBox = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+
+
+	m_meshPaperBox = m_meshWoodenBox;
+	m_matPaperBox = ResourceLoader::GetInstance()->CreateMaterial();
+	XMStoreFloat4A(&m_matPaperBox->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.7f), 1.0f));
+	XMStoreFloat4A(&m_matPaperBox->m_specular, XMVectorSetW(ColorsLinear::Black, 4.0f));
+	m_matPaperBox->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\props\\box\\PaperBox.png");
+	m_colliderPaperBox = std::make_shared<BoxCollider>(m_meshPaperBox->GetAabb().Extents);
+	m_rbLocalPosPaperBox = m_meshPaperBox->GetAabb().Center;
+	m_rbLocalRotPaperBox = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+
+
+
 	std::shared_ptr<StaticMesh> meshHouseRedSideWall = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\HouseRedSideWall.obj").m_staticMeshes[0];
 	std::shared_ptr<StaticMesh> meshHouseBlueSideWall = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\HouseBlueSideWall.obj").m_staticMeshes[0];
 	std::shared_ptr<StaticMesh> meshBlueTeamBase = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\BlueTeamBase.obj").m_staticMeshes[0];
@@ -713,17 +768,6 @@ void Warehouse::OnLoadScene()
 	XMStoreFloat4A(&matHouseFrame->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::Brown, 0.4f), 1.0f));
 	XMStoreFloat4A(&matHouseFrame->m_specular, XMVectorScale(ColorsLinear::White, 0.25f));
 	matHouseFrame->m_specular.w = 8.0f;
-
-	std::shared_ptr<Material> matWoodenBox = ResourceLoader::GetInstance()->CreateMaterial();
-	XMStoreFloat4A(&matWoodenBox->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.6f), 1.0f));
-	XMStoreFloat4A(&matWoodenBox->m_specular, XMVectorSetW(ColorsLinear::Black, 4.0f));
-	matWoodenBox->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\props\\box\\WoodenBox.png");
-
-
-	std::shared_ptr<Material> matPaperBox = ResourceLoader::GetInstance()->CreateMaterial();
-	XMStoreFloat4A(&matPaperBox->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.7f), 1.0f));
-	XMStoreFloat4A(&matPaperBox->m_specular, XMVectorSetW(ColorsLinear::Black, 4.0f));
-	matPaperBox->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\props\\box\\PaperBox.png");
 
 
 	// std::shared_ptr<Material> matRustedSteelHotspot = ResourceLoader::GetInstance()->CreateMaterial();
@@ -793,11 +837,13 @@ void Warehouse::OnLoadScene()
 	constexpr XMFLOAT3 FPSARM_POS(0.0f, -0.2f, -0.06f);
 	constexpr XMFLOAT3 FPSM16_OFFSET(0.1f, -0.04f, 0.23f);
 	constexpr XMFLOAT3 FPSM16_POS(FPSARM_POS.x + FPSM16_OFFSET.x, FPSARM_POS.y + FPSM16_OFFSET.y, FPSARM_POS.z + FPSM16_OFFSET.z);
-	// FPS Arm
+	// FPS Arms
 	{
-		ModelData mdFPSArms = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\Characters\\Steven\\fps\\fpsarms.glb");
+		ModelData mdFPSArms = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\characters\\steven\\fps\\fpsarms.glb");
 		std::shared_ptr<SkinnedMesh> meshFPSArms = mdFPSArms.m_skinnedMeshes[0];
 		std::shared_ptr<Armature> armaFPSArms = mdFPSArms.m_armatures[0];
+		bool grouping = armaFPSArms->CreateBoneGroupByRootBoneName("whole", "Root");
+		assert(grouping);
 
 		GameObjectHandle hGameObject = CreateGameObject(L"FPS Arms");
 		GameObject* pGameObject = hGameObject.ToPtr();
@@ -811,16 +857,16 @@ void Warehouse::OnLoadScene()
 		auto matArms = ResourceLoader::GetInstance()->CreateMaterial();
 		XMStoreFloat4A(&matArms->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.25f), 1.0f));
 		XMStoreFloat4A(&matArms->m_specular, XMVectorSetW(ColorsLinear::Black, 1.0f));
-		matArms->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\Characters\\Steven\\fps\\tex_diffuse.jpg");
+		matArms->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\characters\\steven\\fps\\tex_diffuse.jpg");
 
 		pMeshRenderer->SetMesh(meshFPSArms);
 		pMeshRenderer->SetMaterial(0, matArms);
 
 		pMeshRenderer->SetArmature(armaFPSArms);
-		pMeshRenderer->PlayAnimation("arms_idle_m16a1", 1.0f, true, 0.0f);
-		// pMeshRenderer->PlayAnimation("arms_reload_m16a1", 1.0f, true, 0.0f);
-		// pMeshRenderer->PlayAnimation("arms_shoot_m16a1", 1.0f, true, 0.0f);
-		// pMeshRenderer->PlayAnimation("arms_run_m16a1", 1.0f, true, 0.0f);
+		pMeshRenderer->PlayAnimation("arms_idle_m16a1", true);
+		// pMeshRenderer->PlayAnimation("arms_reload_m16a1", true);
+		// pMeshRenderer->PlayAnimation("arms_shoot_m16a1", true);
+		// pMeshRenderer->PlayAnimation("arms_run_m16a1", true);
 	}
 
 	auto matSTANAG30Rds = ResourceLoader::GetInstance()->CreateMaterial();
@@ -829,6 +875,8 @@ void Warehouse::OnLoadScene()
 	ModelData md = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\M16A1\\m16a1_pv.glb");
 	std::shared_ptr<SkinnedMesh> mesh = md.m_skinnedMeshes[0];
 	std::shared_ptr<Armature> armaM16 = md.m_armatures[0];
+	bool grouping = armaM16->CreateBoneGroupByRootBoneName("whole", "bone_m16a1_body");
+	assert(grouping);
 	// Animated Weapons(m16a1)
 	{
 		GameObjectHandle hGameObject = CreateGameObject(L"M16A1");
@@ -864,17 +912,17 @@ void Warehouse::OnLoadScene()
 		
 		
 		pMeshRenderer->SetArmature(armaM16);
-		pMeshRenderer->PlayAnimation("m16a1_idle", 1.0f, true, 0.0f);
-		// pMeshRenderer->PlayAnimation("m16a1_reload", 1.0f, true, 0.0f);
-		// pMeshRenderer->PlayAnimation("m16a1_shoot", 1.0f, true, 0.0f);
-		// pMeshRenderer->PlayAnimation("m16a1_run", 1.0f, true, 0.0f);
+		pMeshRenderer->PlayAnimation("m16a1_idle", true);
+		// pMeshRenderer->PlayAnimation("m16a1_reload", true);
+		// pMeshRenderer->PlayAnimation("m16a1_shoot", true);
+		// pMeshRenderer->PlayAnimation("m16a1_run", true);
 	}
 
 	// Animated Weapons(m4a1)
 	{
 		// ModelData md = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\m4a1\\m4a1_pv.glb");
 		// std::shared_ptr<SkinnedMesh> mesh = md.m_skinnedMeshes[0];
-		// // std::shared_ptr<Armature> arma = md.armatures[0];
+		// // std::shared_ptr<Armature> arma = md.armatures[0];	// M16 뼈대 공유
 		// 
 		// GameObjectHandle hGameObject = CreateGameObject(L"M4A1");
 		// GameObject* pGameObject = hGameObject.ToPtr();
@@ -909,10 +957,10 @@ void Warehouse::OnLoadScene()
 		// pMeshRenderer->SetMaterial(3, matSTANAG30Rds);
 		// 
 		// pMeshRenderer->SetArmature(armaM16);
-		// // pMeshRenderer->PlayAnimation("m16a1_idle", 1.0f, true, 0.0f);
-		// pMeshRenderer->PlayAnimation("m16a1_reload", 1.0f, true, 0.0f);
-		// // pMeshRenderer->PlayAnimation("m16a1_shoot", 1.0f, true, 0.0f);
-		// // pMeshRenderer->PlayAnimation("m16a1_run", 1.0f, true, 0.0f);
+		// // pMeshRenderer->PlayAnimation("m16a1_idle", true);
+		// pMeshRenderer->PlayAnimation("m16a1_reload", true);
+		// // pMeshRenderer->PlayAnimation("m16a1_shoot", true);
+		// // pMeshRenderer->PlayAnimation("m16a1_run", true);
 	}
 
 
@@ -927,33 +975,15 @@ void Warehouse::OnLoadScene()
 
 		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
 		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matPaperBox);
+		pMeshRenderer->SetMesh(m_meshPaperBox);
+		pMeshRenderer->SetMaterial(0, m_matPaperBox);
 
-		std::shared_ptr<BoxCollider> collider = std::make_shared<BoxCollider>(meshBox->GetAabb().Extents);
-		ComponentHandle<Rigidbody> hRigidbody = pGameObject->AddComponent<Rigidbody>(collider, meshBox->GetAabb().Center);
+		std::shared_ptr<BoxCollider> collider = std::make_shared<BoxCollider>(m_meshPaperBox->GetAabb().Extents);
+		ComponentHandle<Rigidbody> hRigidbody = pGameObject->AddComponent<Rigidbody>(collider, m_meshPaperBox->GetAabb().Center);
 		Rigidbody* pRigidbody = hRigidbody.ToPtr();
 		pRigidbody->SetFreezePosition(true, false, true);
 		pRigidbody->SetFreezeRotation(true, true, true);
 		pRigidbody->SetFriction(0.5);
-
-		// 계층구조 작동 테스트
-		{
-			GameObjectHandle hGameObject = CreateGameObject(L"Box");
-			GameObject* pGameObject1 = hGameObject.ToPtr();
-
-			pGameObject1->m_transform.SetParent(&pGameObject->m_transform);
-
-			pGameObject1->m_transform.SetPosition(0.0f, 2.5f, 0.0f);
-			pGameObject1->m_transform.SetRotationEuler(XMConvertToRadians(20.0f), 0, 0);
-			// pGameObject1->m_transform.SetRotationEuler(0, XMConvertToRadians(20.0f), 0);
-			// pGameObject1->m_transform.SetRotationEuler(0, 0, XMConvertToRadians(20.0f));
-
-			ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject1->AddComponent<MeshRenderer>();
-			MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-			pMeshRenderer->SetMesh(meshBox);
-			pMeshRenderer->SetMaterial(0, matPaperBox);
-		}
 	}
 
 	{
@@ -988,11 +1018,16 @@ void Warehouse::OnLoadScene()
 
 	// 캐릭터 Skinned Mesh Test
 	{
-		ModelData mdMaleBase = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\Characters\\Steven\\steven.glb");
+		ModelData mdMaleBase = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\characters\\steven\\steven.glb");
 		std::shared_ptr<SkinnedMesh> meshSteven = mdMaleBase.m_skinnedMeshes[0];
 		std::shared_ptr<Armature> armaSteven = mdMaleBase.m_armatures[0];
-
-		GameObjectHandle hGameObject = CreateGameObject(L"Steven");
+		bool grouping;
+		grouping = armaSteven->CreateBoneGroupByRootBoneName("upper_body", "Spine0");
+		assert(grouping);
+		grouping = armaSteven->CreateBoneGroupByExcludeGroup("lower_body", "upper_body");
+		assert(grouping);
+		
+		GameObjectHandle hGameObject = CreateGameObject(L"steven");
 		GameObject* pGameObject = hGameObject.ToPtr();
 		pGameObject->m_transform.SetPosition(XMVectorZero());
 
@@ -1003,14 +1038,14 @@ void Warehouse::OnLoadScene()
 		XMStoreFloat4A(&matBody->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.6f), 1.0f));
 		XMStoreFloat4A(&matBody->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 1.0f));
 		matBody->m_specular.w = 4.0f;
-		matBody->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\Characters\\Steven\\textures\\body.png");
+		matBody->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\characters\\steven\\textures\\body.png");
 		
 		auto matSuit = ResourceLoader::GetInstance()->CreateMaterial();
 		XMStoreFloat4A(&matSuit->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.6f), 1.0f));
 		XMStoreFloat4A(&matSuit->m_specular, XMVectorSetW(ColorsLinear::Black, 1.0f));
 		matSuit->m_specular.w = 4.0f;
-		matSuit->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\Characters\\Steven\\textures\\suit_diffuse.png");
-		matSuit->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\Characters\\Steven\\textures\\suit_normal.png");
+		matSuit->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\characters\\steven\\textures\\suit_diffuse.png");
+		matSuit->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\characters\\steven\\textures\\suit_normal.png");
 		
 		auto matShoes = ResourceLoader::GetInstance()->CreateMaterial();
 		XMStoreFloat4A(&matShoes->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
@@ -1023,7 +1058,13 @@ void Warehouse::OnLoadScene()
 		pMeshRenderer->SetMaterial(2, matShoes);
 
 		pMeshRenderer->SetArmature(armaSteven);
-		pMeshRenderer->PlayAnimation("run", 1.0f, true, 0.0f);
+		// pMeshRenderer->PlayAnimation("run", false);
+		// pMeshRenderer->PlayAnimation("reload_rifle", true);
+		// pMeshRenderer->PlayAnimation("aim_rifle", true);
+		// pMeshRenderer->PlayAnimation("aim_pistol", true);
+
+		pMeshRenderer->PlayGroupAnimation("run", "lower_body", true);
+		pMeshRenderer->PlayGroupAnimation("aim_pistol", "upper_body", true);
 	}
 
 
@@ -1031,82 +1072,20 @@ void Warehouse::OnLoadScene()
 	CreateClosedContainer(XMFLOAT3(-9.5598f, 0.0f, -16.722f), XMFLOAT3(0.0f, XMConvertToRadians(45.0f), 0.0f));
 
 	// 가운데 박스 2개
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(-6.45f, 0.0f, -16.15f, 0.0f));
-		pGameObject->m_transform.SetRotationEuler(XMVectorSet(0.0f, XMConvertToRadians(-45.0f), 0.0f, 0.0f));
+	CreateWoodenBox(XMFLOAT3(-6.45f, 0.0f, -16.15f), XMFLOAT3(0.0f, XMConvertToRadians(-45.0f), 0.0f));
+	CreateWoodenBox(XMFLOAT3(-6.45f, 1.0f, -16.15f), XMFLOAT3(0.0f, XMConvertToRadians(-45.0f), 0.0f));
 
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matWoodenBox);
-	}
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(-6.45f, 1.0f, -16.15f, 0.0f));
-		pGameObject->m_transform.SetRotationEuler(XMVectorSet(0.0f, XMConvertToRadians(-45.0f), 0.0f, 0.0f));
-		pGameObject->m_transform.SetScale(XMVectorScale(Vector3::One(), 0.8f));
 
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matWoodenBox);
-	}
 	// 오른쪽 박스 5개
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(-2.5f, 0.0f, -20.8f, 0.0f));
+	CreateWoodenBox(XMFLOAT3(-2.5f, 0.0f, -20.8f));
+	CreateWoodenBox(XMFLOAT3(-2.2f, 1.0f, -20.8f));
+	CreateWoodenBox(XMFLOAT3(-2.4f, 0.0f, -19.8f));
+	CreateWoodenBox(XMFLOAT3(-2.2f, 1.0f, -19.8f));
+	CreateWoodenBox(XMFLOAT3(-2.2f, 2.0f, -19.8f));
 
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matWoodenBox);
-	}
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(-2.2f, 1.0f, -20.8f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matWoodenBox);
-	}
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(-2.4f, 0.0f, -19.8f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matWoodenBox);
-	}
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(-2.2f, 1.0f, -19.8f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matWoodenBox);
-	}
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(-2.2f, 2.0f, -19.8f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matWoodenBox);
-	}
 
 	CreateClosedLongContainer(XMFLOAT3(9.0f, 0.0f, -17.7f), XMFLOAT3(0.0f, XMConvertToRadians(90.0f), 0.0f));
+
 
 	{
 		GameObjectHandle hContainer = CreateGameObject(L"Open Container1");
@@ -1125,290 +1104,52 @@ void Warehouse::OnLoadScene()
 	CreateClosedLongContainer(XMFLOAT3(12.7f, 0.0f, -9.0f));
 
 	// 박스 4개
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(6.05f, 0.0f, -12.55f, 0.0f));
-		pGameObject->m_transform.SetScale(XMVectorSet(1.1f, 0.9f, 1.1f, 0.0f));
+	CreateWoodenBox(XMFLOAT3(6.05f, 0.0f, -12.55f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.1f, 0.9f, 1.1f));
+	CreateWoodenBox(XMFLOAT3(7.1f, 0.0f, -12.5f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 0.8f, 1.0f));
+	CreateWoodenBox(XMFLOAT3(6.1f, 0.0f, -11.5f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 0.8f, 1.0f));
+	CreateWoodenBox(XMFLOAT3(7.15f, 0.0f, -11.45f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.1f, 0.9f, 1.1f));
 
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matWoodenBox);
-	}
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(7.1f, 0.0f, -12.5f, 0.0f));
-		pGameObject->m_transform.SetScale(XMVectorSet(1.0f, 0.8f, 1.0f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matWoodenBox);
-	}
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(6.1f, 0.0f, -11.5f, 0.0f));
-		pGameObject->m_transform.SetScale(XMVectorSet(1.0f, 0.8f, 1.0f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matWoodenBox);
-	}
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(7.15f, 0.0f, -11.45f, 0.0f));
-		pGameObject->m_transform.SetScale(XMVectorSet(1.1f, 0.9f, 1.1f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matWoodenBox);
-	}
 
 	// 박스 2개
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(8.1f, 0.0f, -5.9f, 0.0f));
-		pGameObject->m_transform.SetScale(XMVectorSet(1.0f, 0.8f, 1.0f, 0.0f));
+	CreateWoodenBox(XMFLOAT3(8.1f, 0.0f, -5.9f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 0.8f, 1.0f));
+	CreateWoodenBox(XMFLOAT3(8.0f, 0.0f, -4.9f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 0.8f, 1.0f));
 
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matWoodenBox);
-	}
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(8.0f, 0.0f, -4.9f, 0.0f));
-		pGameObject->m_transform.SetScale(XMVectorSet(1.0f, 0.8f, 1.0f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matWoodenBox);
-	}
 
 	// 박스 4개
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(-4.95f, 0.0f, -1.55f, 0.0f));
-		pGameObject->m_transform.SetScale(XMVectorSet(1.1f, 0.9f, 1.1f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matWoodenBox);
-	}
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(-3.9f, 0.0f, -1.5f, 0.0f));
-		pGameObject->m_transform.SetScale(XMVectorSet(1.0f, 0.8f, 1.0f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matWoodenBox);
-	}
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(-4.9f, 0.0f, -0.5f, 0.0f));
-		pGameObject->m_transform.SetScale(XMVectorSet(1.0f, 0.8f, 1.0f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matWoodenBox);
-	}
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(-3.85f, 0.0f, -0.45f, 0.0f));
-		pGameObject->m_transform.SetScale(XMVectorSet(1.1f, 0.9f, 1.1f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matWoodenBox);
-	}
+	CreateWoodenBox(XMFLOAT3(-4.95f, 0.0f, -1.55f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.1f, 0.9f, 1.1f));
+	CreateWoodenBox(XMFLOAT3(-3.9f, 0.0f, -1.5f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 0.8f, 1.0f));
+	CreateWoodenBox(XMFLOAT3(-4.9f, 0.0f, -0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 0.8f, 1.0f));
+	CreateWoodenBox(XMFLOAT3(-3.85f, 0.0f, -0.45f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.1f, 0.9f, 1.1f));
 
 
 	// 박스 3개
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(10.9f, 1.0f, 3.1f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matWoodenBox);
-	}
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(11.9f, 0.0f, 3.1f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matWoodenBox);
-	}
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(10.9f, 0.0f, 4.1f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matWoodenBox);
-	}
+	CreateWoodenBox(XMFLOAT3(10.9f, 1.0f, 3.1f));
+	CreateWoodenBox(XMFLOAT3(11.9f, 0.0f, 3.1f));
+	CreateWoodenBox(XMFLOAT3(10.9f, 0.0f, 4.1f));
 
 
 	// 왼쪽 벽면 박스 2개
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(-13.5f, 0.0f, 10.2f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matWoodenBox);
-	}
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(-13.6f, 1.0f, 10.2f, 0.0f));
-		pGameObject->m_transform.SetScale(XMVectorSet(0.8f, 0.8f, 0.8f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matWoodenBox);
-	}
+	CreateWoodenBox(XMFLOAT3(-13.5f, 0.0f, 10.2f));
+	CreateWoodenBox(XMFLOAT3(-13.6f, 1.0f, 10.2f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.8f, 0.8f, 0.8f));
 
 
 	// 블루팀 기지 오른쪽 입구 앞 컨테이너 박스 3개
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(-10.9f, 0.0f, 19.2f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matWoodenBox);
-	}
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(-11.0f, 1.0f, 19.1f, 0.0f));
-		pGameObject->m_transform.SetScale(XMVectorSet(0.8f, 0.8f, 0.8f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matWoodenBox);
-	}
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(-9.95f, 0.0f, 19.15f, 0.0f));
-		pGameObject->m_transform.SetScale(XMVectorSet(0.9f, 0.9f, 0.9f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matWoodenBox);
-	}
+	CreateWoodenBox(XMFLOAT3(-10.9f, 0.0f, 19.2f));
+	CreateWoodenBox(XMFLOAT3(-11.0f, 1.0f, 19.1f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.8f, 0.8f, 0.8f));
+	CreateWoodenBox(XMFLOAT3(-9.95f, 0.0f, 19.15f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.9f, 0.9f, 0.9f));
 
 
 	// 블루팀 기지 왼쪽 입구 앞 컨테이너 박스 3개
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(9.9f, 0.0f, 17.4f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matWoodenBox);
-	}
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(10.9f, 0.0f, 17.6f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matWoodenBox);
-	}
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(10.9f, 1.0f, 17.6f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matWoodenBox);
-	}
+	CreateWoodenBox(XMFLOAT3(9.9f, 0.0f, 17.4f));
+	CreateWoodenBox(XMFLOAT3(10.9f, 0.0f, 17.6f));
+	CreateWoodenBox(XMFLOAT3(10.9f, 1.0f, 17.6f));
 
 
 	// 블루팀 입구 사이 박스 2개 x 2 (총 4개)
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(-3.5f, 0.0f, 23.5f, 0.0f));
-		pGameObject->m_transform.SetScale(XMVectorSet(1.1f, 1.1f, 1.1f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matWoodenBox);
-	}
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(-3.5f, 1.1f, 23.5f, 0.0f));
-		pGameObject->m_transform.SetScale(XMVectorSet(1.1f, 1.1f, 1.1f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matWoodenBox);
-	}
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(-1.2f, 0.0f, 21.8f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matWoodenBox);
-	}
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(-1.2f, 1.0f, 21.8f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matWoodenBox);
-	}
+	CreateWoodenBox(XMFLOAT3(-3.5f, 0.0f, 23.5f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.1f, 1.1f, 1.1f));
+	CreateWoodenBox(XMFLOAT3(-3.5f, 1.1f, 23.5f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.1f, 1.1f, 1.1f));
+	CreateWoodenBox(XMFLOAT3(-1.2f, 0.0f, 21.8f));
+	CreateWoodenBox(XMFLOAT3(-1.2f, 1.0f, 21.8f));
 
 
 	CreateClosedContainer(XMFLOAT3(-9.6709f, 0.0f, 3.5936f), XMFLOAT3(0.0f, XMConvertToRadians(68.856f), 0.0f));
@@ -1565,26 +1306,10 @@ void Warehouse::OnLoadScene()
 		pMeshRenderer->SetMaterial(3, matBambooWoodSemigloss);
 	}
 
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Paper Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(8.4f, 0.0f, 25.6f, 0.0f));
 
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matPaperBox);
-	}
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Paper Box");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(8.4f, 0.0f, 26.6f, 0.0f));
+	CreatePaperBox(XMFLOAT3(8.4f, 0.0f, 25.6f));
+	CreatePaperBox(XMFLOAT3(8.4f, 0.0f, 26.6f));
 
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBox);
-		pMeshRenderer->SetMaterial(0, matPaperBox);
-	}
 
 	{
 		GameObjectHandle hGameObject = CreateGameObject(L"Red Team Base");
@@ -1751,14 +1476,14 @@ void Warehouse::OnLoadScene()
 			ComponentHandle<MeshRenderer> hMeshRenderer = pWeaponLight->AddComponent<MeshRenderer>();
 			MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 			// 메시 설정
-			auto meshX300U = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\x300u\\x300u.obj").staticMeshes[0];
-			pMeshRenderer->SetMesh(meshX300U);
+			auto meshx300 = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\x300\\x300.obj").staticMeshes[0];
+			pMeshRenderer->SetMesh(meshx300);
 			// 재질 설정
-			auto matX300U = ResourceLoader::GetInstance()->CreateMaterial();
-			XMStoreFloat4A(&matX300U->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 1.0f));
-			XMStoreFloat4A(&matX300U->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 4.0f));
-			matX300U->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\x300u\\textures\\Body_Black_albedo.jpg");
-			pMeshRenderer->SetMaterial(0, matX300U);
+			auto matx300 = ResourceLoader::GetInstance()->CreateMaterial();
+			XMStoreFloat4A(&matx300->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 1.0f));
+			XMStoreFloat4A(&matx300->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 4.0f));
+			matx300->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\x300\\textures\\Body_Black_albedo.jpg");
+			pMeshRenderer->SetMaterial(0, matx300);
 		}
 	}
 

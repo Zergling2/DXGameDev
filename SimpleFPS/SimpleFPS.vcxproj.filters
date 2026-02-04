@@ -11,6 +11,9 @@
     <Filter Include="source\Script">
       <UniqueIdentifier>{80210b4b-c3fb-4455-abaf-5c757092f2f8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Resource">
+      <UniqueIdentifier>{28db0856-fca3-49af-9a2d-e5b9de824a5a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\main.cpp">
@@ -25,11 +28,11 @@
     <ClCompile Include="source\Script\FirstPersonMovement.cpp">
       <Filter>source\Script</Filter>
     </ClCompile>
-    <ClCompile Include="source\Script\Planet.cpp">
-      <Filter>source\Script</Filter>
-    </ClCompile>
     <ClCompile Include="source\Scene\Warehouse.cpp">
       <Filter>source\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Resource\Weapon.cpp">
+      <Filter>source\Resource</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -42,11 +45,11 @@
     <ClInclude Include="source\Script\FirstPersonMovement.h">
       <Filter>source\Script</Filter>
     </ClInclude>
-    <ClInclude Include="source\Script\Planet.h">
-      <Filter>source\Script</Filter>
-    </ClInclude>
     <ClInclude Include="source\Scene\Warehouse.h">
       <Filter>source\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Resource\Weapon.h">
+      <Filter>source\Resource</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

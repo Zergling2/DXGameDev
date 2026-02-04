@@ -5,7 +5,6 @@
 #include <ZergEngine\CoreSystem\DataStructure\RawVector.h>
 #include <ZergEngine\CoreSystem\Resource\Armature.h>
 #include <ZergEngine\CoreSystem\Resource\Animation.h>
-#include <ZergEngine\CoreSystem\Resource\BoneIndexType.h>
 #include <ZergEngine\CoreSystem\Resource\StaticMesh.h>
 #include <ZergEngine\CoreSystem\Resource\SkinnedMesh.h>
 #include <ZergEngine\CoreSystem\Resource\Material.h>

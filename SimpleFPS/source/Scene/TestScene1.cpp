@@ -1,6 +1,5 @@
 #include "TestScene1.h"
 #include "..\Script\FirstPersonMovement.h"
-#include "..\Script\Planet.h"
 
 using namespace ze;
 

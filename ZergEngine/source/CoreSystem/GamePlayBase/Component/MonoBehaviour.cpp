@@ -63,6 +63,7 @@ void MonoBehaviour::OnEnableSysJob()
 {
 	IComponent::OnEnableSysJob();
 
+	// 사용자 스크립트
     this->OnEnable();
 
     // Start() 함수가 호출된 적이 없고 Start() 함수 호출 대기열에 들어있지도 않은 경우
