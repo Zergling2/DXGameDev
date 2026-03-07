@@ -14,7 +14,6 @@
 #include <ZergEngine\CoreSystem\Manager\GameObjectManager.h>
 #include <ZergEngine\CoreSystem\Manager\UIObjectManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\RigidbodyManager.h>
-#include <ZergEngine\CoreSystem\Manager\ComponentManager\CollisionTriggerManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\AudioSourceManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\CameraManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\DirectionalLightManager.h>
@@ -102,7 +101,6 @@ void Runtime::Init(HINSTANCE hInstance, int nCmdShow, uint32_t width, uint32_t h
     GameObjectManager::CreateInstance();
     UIObjectManager::CreateInstance();
     RigidbodyManager::CreateInstance();
-    CollisionTriggerManager::CreateInstance();
     AudioSourceManager::CreateInstance();
     CameraManager::CreateInstance();
     DirectionalLightManager::CreateInstance();
@@ -132,7 +130,6 @@ void Runtime::Init(HINSTANCE hInstance, int nCmdShow, uint32_t width, uint32_t h
     GameObjectManager::GetInstance()->Init();
     UIObjectManager::GetInstance()->Init();
     RigidbodyManager::GetInstance()->Init();
-    CollisionTriggerManager::GetInstance()->Init();
     AudioSourceManager::GetInstance()->Init();
     CameraManager::GetInstance()->Init();
     DirectionalLightManager::GetInstance()->Init();
@@ -170,7 +167,6 @@ void Runtime::InitEditor(HINSTANCE hInstance, HWND hMainFrameWnd, HWND hViewWnd,
     GameObjectManager::CreateInstance();
     UIObjectManager::CreateInstance();
     RigidbodyManager::CreateInstance();
-    CollisionTriggerManager::CreateInstance();
     AudioSourceManager::CreateInstance();
     CameraManager::CreateInstance();
     DirectionalLightManager::CreateInstance();
@@ -198,7 +194,6 @@ void Runtime::InitEditor(HINSTANCE hInstance, HWND hMainFrameWnd, HWND hViewWnd,
     GameObjectManager::GetInstance()->Init();
     UIObjectManager::GetInstance()->Init();
     RigidbodyManager::GetInstance()->Init();
-    CollisionTriggerManager::GetInstance()->Init();
     AudioSourceManager::GetInstance()->Init();
     CameraManager::GetInstance()->Init();
     DirectionalLightManager::GetInstance()->Init();
@@ -226,7 +221,6 @@ void Runtime::Release()
     DirectionalLightManager::GetInstance()->Shutdown();
     CameraManager::GetInstance()->Shutdown();
     AudioSourceManager::GetInstance()->Shutdown();
-    CollisionTriggerManager::GetInstance()->Shutdown();
     RigidbodyManager::GetInstance()->Shutdown();
     UIObjectManager::GetInstance()->Shutdown();
     GameObjectManager::GetInstance()->Shutdown();
@@ -253,7 +247,6 @@ void Runtime::Release()
     DirectionalLightManager::DestroyInstance();
     CameraManager::DestroyInstance();
     AudioSourceManager::DestroyInstance();
-    CollisionTriggerManager::DestroyInstance();
     RigidbodyManager::DestroyInstance();
     UIObjectManager::DestroyInstance();
     GameObjectManager::DestroyInstance();
@@ -329,23 +322,17 @@ void Runtime::OnIdle()
         // FixedUpdate 우선
         MonoBehaviourManager::GetInstance()->FixedUpdate();
 
-        CollisionTriggerManager::GetInstance()->UpdateCollisionTriggerTransform();   // 트리거 오브젝트의 Transform을 동기화 (ZergEngine -> Bullet)
-
         // 물리 시뮬레이션 스텝
         Physics::GetInstance()->StepSimulation(FIXED_DELTA_TIME);
 
-        // 충돌 콜백 함수 호출
-        // ...
-        // Physics::GetInstance()->CallEventHandler();
+        Physics::GetInstance()->DispatchCollisionEvents();
 
         m_accumDeltaTime -= Time::GetInstance()->GetFixedDeltaTime();
     }
-    Time::GetInstance()->RecoverToDeltaTimeMode();  // DeltaTime이 실제 Delta time을 가리키도록 복구
+    Time::GetInstance()->RecoverToDeltaTimeMode();  // Time::DeltaTime이 실제 Delta time을 가리키도록 복구
     
     MonoBehaviourManager::GetInstance()->Update();
     MonoBehaviourManager::GetInstance()->LateUpdate();
-
-    CollisionTriggerManager::GetInstance()->UpdateCollisionTriggerTransform();      // 트리거 오브젝트의 Transform을 동기화 (ZergEngine -> Bullet)
 
     // Update animation time cursor
     for (IComponent* pComponent : SkinnedMeshRendererManager::GetInstance()->m_directAccessGroup)
@@ -642,7 +629,6 @@ void Runtime::RemoveDestroyedComponentsAndObjects()
     // 컴포넌트 제거 작업
     MonoBehaviourManager::GetInstance()->RemoveDestroyedComponents();   // 가장 먼저 수행하여 오브젝트 및 컴포넌트에 대해 최대한의 접근도 보장
     RigidbodyManager::GetInstance()->RemoveDestroyedComponents();
-    CollisionTriggerManager::GetInstance()->RemoveDestroyedComponents();
     TerrainManager::GetInstance()->RemoveDestroyedComponents();
     MeshRendererManager::GetInstance()->RemoveDestroyedComponents();
     SkinnedMeshRendererManager::GetInstance()->RemoveDestroyedComponents();

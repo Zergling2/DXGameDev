@@ -34,7 +34,7 @@ namespace ze
 	protected:
 		uint64_t m_uniqueId;
 		SlimRWLock m_lock;
-		std::vector<IComponent*> m_destroyed;
+		std::vector<IComponent*> m_destroyed;	// 파괴 예약 목록
 		std::vector<IComponent*> m_directAccessGroup;
 		std::vector<uint32_t> m_emptyHandleTableIndex;
 		std::vector<IComponent*> m_handleTable;

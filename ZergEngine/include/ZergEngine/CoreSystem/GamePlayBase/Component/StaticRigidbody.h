@@ -9,12 +9,12 @@ namespace ze
 	class StaticRigidbody : public IRigidbody
 	{
 	public:
-		static constexpr ComponentType TYPE = ComponentType::StaticRigidbody;
+		static constexpr ComponentType TYPE = ComponentType::Rigidbody;
 		static bool IsCreatable() { return true; }
 
 		StaticRigidbody(GameObject& owner, std::shared_ptr<ICollider> collider, const XMFLOAT3& localPos = XMFLOAT3(0.0f, 0.0f, 0.0f), const XMFLOAT4& localRot = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
 		virtual ~StaticRigidbody() = default;
 
-		virtual ComponentType GetType() const override { return ComponentType::StaticRigidbody; }
+		virtual ComponentType GetType() const override { return ComponentType::Rigidbody; }
 	};
 }

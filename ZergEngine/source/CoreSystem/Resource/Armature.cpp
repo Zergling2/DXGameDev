@@ -73,7 +73,7 @@ bool Armature::CreateBoneGroupByExcludeGroup(std::string groupName, const std::s
 	return true;
 }
 
-const std::vector<bone_index_type>* Armature::GetBoneGroup(const std::string& groupName)
+const std::vector<bone_index_type>* Armature::GetBoneGroup(const std::string& groupName) const
 {
 	auto iter = m_boneGroup.find(groupName);
 	if (iter == m_boneGroup.cend())

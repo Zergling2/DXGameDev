@@ -24,14 +24,28 @@ void RigidbodyManager::DestroyInstance()
 
 void RigidbodyManager::RemoveDestroyedComponents()
 {
+	auto& collisionPairs = Physics::GetInstance()->m_prevCollisionPairs;
+
 	// 1. 물리 월드에서 제거 & Kinematic Body인 경우 m_kinematicBodys 배열에서 포인터 제거
 	for (IComponent* pComponent : m_destroyed)
 	{
 		IRigidbody* pRigidbody = static_cast<IRigidbody*>(pComponent);
 
+		btRigidBody* const pBtRigidBody = pRigidbody->m_upBtRigidBody.get();
+
+		// 충돌쌍 목록에서 제거 (댕글링 포인터 방지)
+		auto iter = collisionPairs.begin();
+		while (iter != collisionPairs.end())
+		{
+			if (iter->first == pBtRigidBody || iter->second == pBtRigidBody)
+				iter = collisionPairs.erase(iter);
+			else
+				++iter;
+		}
+
 		// 물리 월드에서 제거
 		if (pRigidbody->IsEnabled())	// 활성화된 경우에만 물리 월드에 존재하므로
-			Physics::GetInstance()->GetDynamicsWorld()->removeRigidBody(pRigidbody->m_upBtRigidBody.get());
+			Physics::GetInstance()->GetDynamicsWorld()->removeRigidBody(pBtRigidBody);
 	}
 
 	// 2. 부모 기능 호출

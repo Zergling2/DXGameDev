@@ -52,7 +52,7 @@ namespace ze
 		* @param groupName 본 그룹 이름
 		* @return 본 인덱스 벡터.
 		*/
-		const std::vector<bone_index_type>* GetBoneGroup(const std::string& groupName);
+		const std::vector<bone_index_type>* GetBoneGroup(const std::string& groupName) const;
 
 		/**
 		* @brief 이 뼈대의 포함된 애니메이션의 갯수를 반환합니다.

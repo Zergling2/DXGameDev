@@ -156,10 +156,10 @@ void IComponentManager::RemoveDestroyedComponents()
 		m_handleTable[pComponent->m_tableIndex] = nullptr;
 		m_emptyHandleTableIndex.push_back(pComponent->m_tableIndex);		// 파괴되는 오브젝트가 사용하던 핸들 테이블 인덱스를 다시 재사용
 
-		delete pComponent;
+		delete pComponent;	// 컴포넌트 메모리 해제
 	}
 
-	m_destroyed.clear();	// 파괴된 컴포넌트 포인터 목록 제거
+	m_destroyed.clear();	// 파괴 예약 컴포넌트 포인터 목록 제거
 }
 
 void IComponentManager::AddToDestroyQueue(IComponent* pComponent)

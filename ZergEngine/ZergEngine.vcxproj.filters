@@ -381,17 +381,11 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\RigidbodyManager.h">
       <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\CollisionTriggerManager.h">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
-    </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\GroupSlot.h">
       <Filter>Files\ZergEngine\CoreSystem\GamePlayBase</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\PackedGroup.h">
       <Filter>Files\ZergEngine\CoreSystem\GamePlayBase</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\CollisionTrigger.h">
-      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
     </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\BoxCollider.h">
       <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
@@ -712,12 +706,6 @@
     </ClCompile>
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\RigidbodyManager.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\CollisionTriggerManager.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\GamePlayBase\Component\CollisionTrigger.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\Resource\BoxCollider.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>

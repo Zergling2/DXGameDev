@@ -155,6 +155,8 @@
     <ClCompile Include="source\Scene\Lobby.cpp" />
     <ClCompile Include="source\Scene\TestScene1.cpp" />
     <ClCompile Include="source\Scene\Warehouse.cpp" />
+    <ClCompile Include="source\Script\Character.cpp" />
+    <ClCompile Include="source\Script\CollisionEventTest.cpp" />
     <ClCompile Include="source\Script\FirstPersonMovement.cpp" />
     <ClCompile Include="source\Resource\Weapon.cpp" />
   </ItemGroup>
@@ -162,6 +164,8 @@
     <ClInclude Include="source\Scene\Lobby.h" />
     <ClInclude Include="source\Scene\TestScene1.h" />
     <ClInclude Include="source\Scene\Warehouse.h" />
+    <ClInclude Include="source\Script\Character.h" />
+    <ClInclude Include="source\Script\CollisionEventTest.h" />
     <ClInclude Include="source\Script\FirstPersonMovement.h" />
     <ClInclude Include="source\Resource\Weapon.h" />
   </ItemGroup>

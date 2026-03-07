@@ -131,6 +131,16 @@ namespace ze
 		*/
 		void StopGroupAnimation(const std::string groupName);
 
+		/**
+		* @brief 현재 애니메이션 키 프레임에서 로컬 공간 기준의 뼈의 Transform을 계산합니다.
+		* 
+		* @param Transform을 얻을 본 이름.
+		* @return 지정된 이름의 본이 존재하지 않을 경우 함수는 false를 반환합니다.
+		*/
+		bool GetBoneTransform(const std::string& boneName, XMFLOAT3& scale, XMFLOAT4& rot, XMFLOAT3& translation) const;
+
+		void ComputeFinalTransform(XMFLOAT4X4A* pOut, size_t len) const;
+
 		const std::unordered_map<std::string, PlayingAnimation>& GetCurrentAnims() const { return m_currAnims; }
 	private:
 		virtual IComponentManager* GetComponentManager() const override;

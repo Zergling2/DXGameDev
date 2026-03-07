@@ -29,7 +29,6 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Rigidbody.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\StaticRigidbody.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\Component\CollisionTrigger.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\MonoBehaviour.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Camera.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Light.h>

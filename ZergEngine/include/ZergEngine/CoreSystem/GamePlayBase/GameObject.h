@@ -25,6 +25,7 @@ namespace ze
 	class GameObject
 	{
 		friend class Runtime;
+		friend class Physics;
 		friend class GameObjectManager;
 		friend class SceneManager;
 		friend class IScene;
@@ -73,11 +74,11 @@ namespace ze
 		template<class ComponentType>
 		uint32_t GetComponents(ComponentHandle<ComponentType> componentArr[], uint32_t len);
 
+		const std::list<IComponent*>& GetComponentList() const { return m_components; }
+
 		const GameObjectHandle ToHandle() const;
 		bool IsPending() const { return static_cast<goft>(m_flag) & static_cast<goft>(GAMEOBJECT_FLAG::PENDING); }
 		bool IsOnTheDestroyQueue() const { return static_cast<goft>(m_flag) & static_cast<goft>(GAMEOBJECT_FLAG::ON_DESTROY_QUEUE); }
-
-		const std::list<IComponent*> GetComponentList() const { return m_components; }
 	private:
 		void OnFlag(GAMEOBJECT_FLAG flag) { m_flag = static_cast<GAMEOBJECT_FLAG>(static_cast<goft>(m_flag) | static_cast<goft>(flag)); }
 		void OffFlag(GAMEOBJECT_FLAG flag) { m_flag = static_cast<GAMEOBJECT_FLAG>(static_cast<goft>(m_flag) & ~static_cast<goft>(flag)); }

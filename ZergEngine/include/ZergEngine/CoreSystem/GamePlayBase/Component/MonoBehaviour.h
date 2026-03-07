@@ -30,6 +30,13 @@ namespace ze
 		virtual void LateUpdate();
 		virtual void OnDisable();
 		virtual void OnDestroy();
+
+		virtual void OnTriggerEnter() {}
+		virtual void OnTriggerStay() {}
+		virtual void OnTriggerExit() {}
+		virtual void OnCollisionEnter() {}
+		virtual void OnCollisionStay() {}
+		virtual void OnCollisionExit() {}
 	protected:
 		// mode가 DisplayMode::BorderlessWindowed일 경우 width, height는 무시됩니다.
 		// mode가 DisplayMode::Fullscreen일 경우 width, height는 각각 전체화면 해상도의 너비, 높이값으로 사용됩니다.

@@ -1,0 +1,4 @@
+1. 모든 애니메이션 재생은 최소 하나의 그룹의 존재를 필요로 함.
+bool grouping = arma->CreateBoneGroupByRootBoneName("default", "bone_usp_body");	// 디폴트 그룹은 필수
+assert(grouping);
+

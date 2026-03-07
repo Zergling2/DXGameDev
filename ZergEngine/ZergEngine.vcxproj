@@ -29,7 +29,6 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\ShadedEdgeCircleEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\ShadedEdgeQuadEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\Billboard.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\CollisionTrigger.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\Rigidbody.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\RigidbodyInterface.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\SkinnedMeshRenderer.h" />
@@ -43,7 +42,6 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\Text.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\UIEventHandler.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\BillboardManager.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\CollisionTriggerManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\RigidbodyManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\SkinnedMeshRendererManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Physics.h" />
@@ -154,7 +152,6 @@
     <ClCompile Include="source\CoreSystem\Effect\ShadedEdgeCircleEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\ShadedEdgeQuadEffect.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\Billboard.cpp" />
-    <ClCompile Include="source\CoreSystem\GamePlayBase\Component\CollisionTrigger.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\Rigidbody.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\RigidbodyInterface.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\SkinnedMeshRenderer.cpp" />
@@ -165,7 +162,6 @@
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\SliderControl.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\Text.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\BillboardManager.cpp" />
-    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\CollisionTriggerManager.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\RigidbodyManager.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\SkinnedMeshRendererManager.cpp" />
     <ClCompile Include="source\CoreSystem\Physics.cpp" />

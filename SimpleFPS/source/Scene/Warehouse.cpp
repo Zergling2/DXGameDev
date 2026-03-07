@@ -1,5 +1,7 @@
 #include "Warehouse.h"
 #include "..\Script\FirstPersonMovement.h"
+#include "..\Script\Character.h"
+#include "..\Script\CollisionEventTest.h"
 
 using namespace ze;
 
@@ -92,9 +94,9 @@ void Warehouse::OnLoadScene()
 		GameObject* pFL = hFlashLight.ToPtr();
 		pFL->m_transform.SetPosition(XMVectorSet(0.0f, 1.0f, 1.0f, 0.0f));
 
-		ComponentHandle<MeshRenderer> hMR = pFL->AddComponent<MeshRenderer>();
+		ComponentHandle<MeshRenderer> hMeshRenderer = pFL->AddComponent<MeshRenderer>();
 		auto mesh = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\props\\flash.obj").m_staticMeshes[0];
-		hMR.ToPtr()->SetMesh(mesh);
+		hMeshRenderer.ToPtr()->SetMesh(mesh);
 
 		ComponentHandle<SpotLight> hSpotLight = pFL->AddComponent<SpotLight>();
 		SpotLight* pSpotLight = hSpotLight.ToPtr();
@@ -835,8 +837,8 @@ void Warehouse::OnLoadScene()
 	XMStoreFloat4A(&matDoorFrame->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 2.0f));
 
 	constexpr XMFLOAT3 FPSARM_POS(0.0f, -0.2f, -0.06f);
-	constexpr XMFLOAT3 FPSM16_OFFSET(0.1f, -0.04f, 0.23f);
-	constexpr XMFLOAT3 FPSM16_POS(FPSARM_POS.x + FPSM16_OFFSET.x, FPSARM_POS.y + FPSM16_OFFSET.y, FPSARM_POS.z + FPSM16_OFFSET.z);
+	constexpr XMFLOAT3 M16_PV_OFFSET(0.1f, -0.04f, 0.23f);
+	constexpr XMFLOAT3 M16_PV_POS(FPSARM_POS.x + M16_PV_OFFSET.x, FPSARM_POS.y + M16_PV_OFFSET.y, FPSARM_POS.z + M16_PV_OFFSET.z);
 	// FPS Arms
 	{
 		ModelData mdFPSArms = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\characters\\steven\\fps\\fpsarms.glb");
@@ -863,10 +865,14 @@ void Warehouse::OnLoadScene()
 		pMeshRenderer->SetMaterial(0, matArms);
 
 		pMeshRenderer->SetArmature(armaFPSArms);
-		pMeshRenderer->PlayAnimation("arms_idle_m16a1", true);
+		// pMeshRenderer->PlayAnimation("arms_idle_m16a1", true);
+		// pMeshRenderer->PlayAnimation("arms_idle_usp", true);
 		// pMeshRenderer->PlayAnimation("arms_reload_m16a1", true);
+		pMeshRenderer->PlayAnimation("arms_reload_usp", true);
 		// pMeshRenderer->PlayAnimation("arms_shoot_m16a1", true);
+		// pMeshRenderer->PlayAnimation("arms_shoot_usp", true);
 		// pMeshRenderer->PlayAnimation("arms_run_m16a1", true);
+		// pMeshRenderer->PlayAnimation("arms_run_usp", true);
 	}
 
 	auto matSTANAG30Rds = ResourceLoader::GetInstance()->CreateMaterial();
@@ -875,95 +881,189 @@ void Warehouse::OnLoadScene()
 	ModelData md = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\M16A1\\m16a1_pv.glb");
 	std::shared_ptr<SkinnedMesh> mesh = md.m_skinnedMeshes[0];
 	std::shared_ptr<Armature> armaM16 = md.m_armatures[0];
-	bool grouping = armaM16->CreateBoneGroupByRootBoneName("whole", "bone_m16a1_body");
+	bool grouping = armaM16->CreateBoneGroupByRootBoneName("default", "bone_m16a1_body");	// 디폴트 그룹은 필수
 	assert(grouping);
 	// Animated Weapons(m16a1)
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"M16A1");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetParent(&pMainCamera->m_transform);
-		
-		pGameObject->m_transform.SetPosition(FPSM16_POS);
-		
-		ComponentHandle<SkinnedMeshRenderer> hMeshRenderer = pGameObject->AddComponent<SkinnedMeshRenderer>();
-		SkinnedMeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		
-		// 재질 설정
-		auto matM16A1Receiver = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matM16A1Receiver->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 1.0f));
-		XMStoreFloat4A(&matM16A1Receiver->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 2.0f));
-		matM16A1Receiver->m_diffuseMap =
-			ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M16A1\\textures\\receiver_diffuse.jpg");
-		matM16A1Receiver->m_normalMap =
-			ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M16A1\\textures\\receiver_normal.jpg");
-		
-		auto matM16A1Furniture = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matM16A1Furniture->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 1.0f));
-		XMStoreFloat4A(&matM16A1Furniture->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 4.0f));
-		matM16A1Furniture->m_diffuseMap =
-			ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M16A1\\textures\\furniture_diffuse.jpg");
-		matM16A1Furniture->m_normalMap =
-			ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M16A1\\textures\\furniture_normal.jpg");
-		
-		pMeshRenderer->SetMesh(mesh);
-		pMeshRenderer->SetMaterial(0, matM16A1Receiver);
-		pMeshRenderer->SetMaterial(1, matM16A1Furniture);
-		pMeshRenderer->SetMaterial(2, matSTANAG30Rds);
-		
-		
-		pMeshRenderer->SetArmature(armaM16);
-		pMeshRenderer->PlayAnimation("m16a1_idle", true);
-		// pMeshRenderer->PlayAnimation("m16a1_reload", true);
-		// pMeshRenderer->PlayAnimation("m16a1_shoot", true);
-		// pMeshRenderer->PlayAnimation("m16a1_run", true);
-	}
+	// {
+	// 	GameObjectHandle hGameObject = CreateGameObject(L"M16A1");
+	// 	GameObject* pGameObject = hGameObject.ToPtr();
+	// 	pGameObject->m_transform.SetParent(&pMainCamera->m_transform);
+	// 	
+	// 	pGameObject->m_transform.SetPosition(M16_PV_POS);
+	// 	
+	// 	ComponentHandle<SkinnedMeshRenderer> hMeshRenderer = pGameObject->AddComponent<SkinnedMeshRenderer>();
+	// 	SkinnedMeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+	// 	
+	// 	// 재질 설정
+	// 	auto matM16A1Receiver = ResourceLoader::GetInstance()->CreateMaterial();
+	// 	XMStoreFloat4A(&matM16A1Receiver->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 1.0f));
+	// 	XMStoreFloat4A(&matM16A1Receiver->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 2.0f));
+	// 	matM16A1Receiver->m_diffuseMap =
+	// 		ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M16A1\\textures\\receiver_diffuse.jpg");
+	// 	matM16A1Receiver->m_normalMap =
+	// 		ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M16A1\\textures\\receiver_normal.jpg");
+	// 	
+	// 	auto matM16A1Furniture = ResourceLoader::GetInstance()->CreateMaterial();
+	// 	XMStoreFloat4A(&matM16A1Furniture->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 1.0f));
+	// 	XMStoreFloat4A(&matM16A1Furniture->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 4.0f));
+	// 	matM16A1Furniture->m_diffuseMap =
+	// 		ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M16A1\\textures\\furniture_diffuse.jpg");
+	// 	matM16A1Furniture->m_normalMap =
+	// 		ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M16A1\\textures\\furniture_normal.jpg");
+	// 	
+	// 	pMeshRenderer->SetMesh(mesh);
+	// 	pMeshRenderer->SetMaterial(0, matM16A1Receiver);
+	// 	pMeshRenderer->SetMaterial(1, matM16A1Furniture);
+	// 	pMeshRenderer->SetMaterial(2, matSTANAG30Rds);
+	// 	
+	// 	
+	// 	pMeshRenderer->SetArmature(armaM16);
+	// 	// pMeshRenderer->PlayAnimation("m16a1_idle", true);
+	// 	pMeshRenderer->PlayAnimation("m16a1_reload", true);
+	// 	// pMeshRenderer->PlayAnimation("m16a1_shoot", true);
+	// 	// pMeshRenderer->PlayAnimation("m16a1_run", true);
+	// }
 
 	// Animated Weapons(m4a1)
+	// {
+	// 	ModelData md = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\m4a1\\m4a1_pv.glb");
+	// 	std::shared_ptr<SkinnedMesh> mesh = md.m_skinnedMeshes[0];
+	// 	// std::shared_ptr<Armature> arma = md.m_armatures[0];	// M16 뼈대 공유
+	// 	
+	// 	GameObjectHandle hGameObject = CreateGameObject(L"M4A1");
+	// 	GameObject* pGameObject = hGameObject.ToPtr();
+	// 	pGameObject->m_transform.SetParent(&pMainCamera->m_transform);
+	// 	
+	// 	pGameObject->m_transform.SetPosition(M16_PV_POS);
+	// 	
+	// 	ComponentHandle<SkinnedMeshRenderer> hMeshRenderer = pGameObject->AddComponent<SkinnedMeshRenderer>();
+	// 	SkinnedMeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+	// 	
+	// 	// 재질 설정
+	// 	auto matM4A1Receiver = ResourceLoader::GetInstance()->CreateMaterial();
+	// 	XMStoreFloat4A(&matM4A1Receiver->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
+	// 	XMStoreFloat4A(&matM4A1Receiver->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 4.0f));
+	// 	matM4A1Receiver->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\receiver_diffuse.png");
+	// 	matM4A1Receiver->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\receiver_normal.png");
+	// 	auto matM4A1Furniture = ResourceLoader::GetInstance()->CreateMaterial();
+	// 	XMStoreFloat4A(&matM4A1Furniture->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
+	// 	XMStoreFloat4A(&matM4A1Furniture->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 8.0f));
+	// 	matM4A1Furniture->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\furniture_diffuse.png");
+	// 	matM4A1Furniture->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\furniture_normal.png");
+	// 	auto matRearSight = ResourceLoader::GetInstance()->CreateMaterial();
+	// 	XMStoreFloat4A(&matRearSight->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
+	// 	XMStoreFloat4A(&matRearSight->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 4.0f));
+	// 	matRearSight->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\rearsight_diffuse.png");
+	// 	matRearSight->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\rearsight_normal.png");
+	// 	
+	// 	pMeshRenderer->SetMesh(mesh);
+	// 	pMeshRenderer->SetMaterial(0, matM4A1Receiver);
+	// 	pMeshRenderer->SetMaterial(1, matM4A1Furniture);
+	// 	pMeshRenderer->SetMaterial(2, matRearSight);
+	// 	pMeshRenderer->SetMaterial(3, matSTANAG30Rds);
+	// 	
+	// 	pMeshRenderer->SetArmature(armaM16);
+	// 	// pMeshRenderer->PlayAnimation("m16a1_idle", true);
+	// 	pMeshRenderer->PlayAnimation("m16a1_reload", true);
+	// 	// pMeshRenderer->PlayAnimation("m16a1_shoot", true);
+	// 	// pMeshRenderer->PlayAnimation("m16a1_run", true);
+	// }
+
+
+	// Animated Weapons(usp)
+	constexpr XMFLOAT3 USP_PV_OFFSET(0.034f, -0.01f, 0.41f);
+	constexpr XMFLOAT3 USP_PV_POS(FPSARM_POS.x + USP_PV_OFFSET.x, FPSARM_POS.y + USP_PV_OFFSET.y, FPSARM_POS.z + USP_PV_OFFSET.z);
 	{
-		// ModelData md = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\m4a1\\m4a1_pv.glb");
-		// std::shared_ptr<SkinnedMesh> mesh = md.m_skinnedMeshes[0];
-		// // std::shared_ptr<Armature> arma = md.armatures[0];	// M16 뼈대 공유
-		// 
-		// GameObjectHandle hGameObject = CreateGameObject(L"M4A1");
-		// GameObject* pGameObject = hGameObject.ToPtr();
-		// pGameObject->m_transform.SetParent(&pMainCamera->m_transform);
-		// 
-		// pGameObject->m_transform.SetPosition(FPSM16_POS);
-		// 
-		// ComponentHandle<SkinnedMeshRenderer> hMeshRenderer = pGameObject->AddComponent<SkinnedMeshRenderer>();
-		// SkinnedMeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		// 
-		// // 재질 설정
-		// auto matM4A1Receiver = ResourceLoader::GetInstance()->CreateMaterial();
-		// XMStoreFloat4A(&matM4A1Receiver->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
-		// XMStoreFloat4A(&matM4A1Receiver->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 4.0f));
-		// matM4A1Receiver->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\receiver_diffuse.png");
-		// matM4A1Receiver->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\receiver_normal.png");
-		// auto matM4A1Furniture = ResourceLoader::GetInstance()->CreateMaterial();
-		// XMStoreFloat4A(&matM4A1Furniture->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
-		// XMStoreFloat4A(&matM4A1Furniture->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 8.0f));
-		// matM4A1Furniture->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\furniture_diffuse.png");
-		// matM4A1Furniture->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\furniture_normal.png");
-		// auto matRearSight = ResourceLoader::GetInstance()->CreateMaterial();
-		// XMStoreFloat4A(&matRearSight->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
-		// XMStoreFloat4A(&matRearSight->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 4.0f));
-		// matRearSight->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\rearsight_diffuse.png");
-		// matRearSight->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\rearsight_normal.png");
-		// 
-		// pMeshRenderer->SetMesh(mesh);
-		// pMeshRenderer->SetMaterial(0, matM4A1Receiver);
-		// pMeshRenderer->SetMaterial(1, matM4A1Furniture);
-		// pMeshRenderer->SetMaterial(2, matRearSight);
-		// pMeshRenderer->SetMaterial(3, matSTANAG30Rds);
-		// 
-		// pMeshRenderer->SetArmature(armaM16);
-		// // pMeshRenderer->PlayAnimation("m16a1_idle", true);
-		// pMeshRenderer->PlayAnimation("m16a1_reload", true);
-		// // pMeshRenderer->PlayAnimation("m16a1_shoot", true);
-		// // pMeshRenderer->PlayAnimation("m16a1_run", true);
+		ModelData md = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\usp\\usp_pv.glb");
+		std::shared_ptr<SkinnedMesh> meshUSP = md.m_skinnedMeshes[0];
+		std::shared_ptr<Armature> arma = md.m_armatures[0];	// USP 뼈대 공유
+		bool grouping = arma->CreateBoneGroupByRootBoneName("default", "bone_usp_body");	// 디폴트 그룹은 필수
+		assert(grouping);
+
+		GameObjectHandle hGameObject = CreateGameObject(L"C.USP");
+		GameObject* pGameObject = hGameObject.ToPtr();
+		pGameObject->m_transform.SetParent(&pMainCamera->m_transform);
+
+		pGameObject->m_transform.SetPosition(USP_PV_POS);
+
+		ComponentHandle<SkinnedMeshRenderer> hMeshRenderer = pGameObject->AddComponent<SkinnedMeshRenderer>();
+		SkinnedMeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+
+		// 재질 설정
+		auto matUSP = ResourceLoader::GetInstance()->CreateMaterial();
+		XMStoreFloat4A(&matUSP->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 1.0f));
+		XMStoreFloat4A(&matUSP->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.25f), 4.0f));
+		matUSP->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\usp\\textures\\diffuse.png");
+		matUSP->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\usp\\textures\\normal.png");
+
+		pMeshRenderer->SetMesh(meshUSP);
+		pMeshRenderer->SetMaterial(0, matUSP);
+
+		pMeshRenderer->SetArmature(arma);
+		// pMeshRenderer->PlayAnimation("usp_idle", true);
+		pMeshRenderer->PlayAnimation("usp_reload", true);
+		// pMeshRenderer->PlayAnimation("usp_shoot", true);
+		// pMeshRenderer->PlayAnimation("usp_run", true);
 	}
 
+	// Animated Weapons(b92fs black)
+	// {
+	// 	ModelData md = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\b92fsb\\b92fsb_pv.glb");
+	// 	std::shared_ptr<SkinnedMesh> meshB92fsB = md.m_skinnedMeshes[0];
+	// 	std::shared_ptr<Armature> arma = md.m_armatures[0];	// USP 뼈대 공유
+	// 	bool grouping = arma->CreateBoneGroupByRootBoneName("default", "bone_usp_body");	// 디폴트 그룹은 필수
+	// 	assert(grouping);
+	// 
+	// 	GameObjectHandle hGameObject = CreateGameObject(L"B.92Fs black");
+	// 	GameObject* pGameObject = hGameObject.ToPtr();
+	// 	pGameObject->m_transform.SetParent(&pMainCamera->m_transform);
+	// 
+	// 	pGameObject->m_transform.SetPosition(USP_PV_POS);
+	// 
+	// 	ComponentHandle<SkinnedMeshRenderer> hMeshRenderer = pGameObject->AddComponent<SkinnedMeshRenderer>();
+	// 	SkinnedMeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+	// 
+	// 	// 재질 설정
+	// 	auto matB92fsB = ResourceLoader::GetInstance()->CreateMaterial();
+	// 	XMStoreFloat4A(&matB92fsB->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 1.0f));
+	// 	XMStoreFloat4A(&matB92fsB->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.25f), 4.0f));
+	// 	matB92fsB->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\b92fsb\\textures\\diffuse.png");
+	// 	matB92fsB->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\b92fsb\\textures\\normal.png");
+	// 
+	// 	auto matB92fsBx300Body = ResourceLoader::GetInstance()->CreateMaterial();
+	// 	XMStoreFloat4A(&matB92fsBx300Body->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 1.0f));
+	// 	XMStoreFloat4A(&matB92fsBx300Body->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.25f), 4.0f));
+	// 	matB92fsBx300Body->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\b92fsb\\textures\\x300_body_diffuse.jpg");
+	// 	matB92fsBx300Body->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\b92fsb\\textures\\x300_body_normal.png");
+	// 
+	// 	auto matB92fsBx300Lamp = ResourceLoader::GetInstance()->CreateMaterial();
+	// 	XMStoreFloat4A(&matB92fsBx300Lamp->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 1.0f));
+	// 	XMStoreFloat4A(&matB92fsBx300Lamp->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.25f), 4.0f));
+	// 	matB92fsBx300Lamp->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\b92fsb\\textures\\x300_lamp_diffuse.jpg");
+	// 
+	// 	pMeshRenderer->SetMesh(meshB92fsB);
+	// 	pMeshRenderer->SetMaterial(0, matB92fsB);
+	// 	pMeshRenderer->SetMaterial(1, matB92fsBx300Body);
+	// 	pMeshRenderer->SetMaterial(2, matB92fsBx300Lamp);
+	// 
+	// 	pMeshRenderer->SetArmature(arma);
+	// 	// pMeshRenderer->PlayAnimation("usp_idle", true);
+	// 	pMeshRenderer->PlayAnimation("usp_reload", true);
+	// 	// pMeshRenderer->PlayAnimation("usp_shoot", true);
+	// 	// pMeshRenderer->PlayAnimation("usp_run", true);
+	// }
 
+
+
+	// 바닥 콜라이더
+	{
+		GameObjectHandle hGameObject = CreateGameObject(L"Ground");
+		GameObject* pGameObject = hGameObject.ToPtr();
+	
+		std::shared_ptr<StaticPlaneCollider> collider = std::make_shared<StaticPlaneCollider>();
+		auto c = pGameObject->AddComponent<StaticRigidbody>(collider);
+	}
+	
 	// 물리엔진 테스트 박스
 	{
 		GameObjectHandle hGameObject = CreateGameObject(L"Box");
@@ -972,12 +1072,12 @@ void Warehouse::OnLoadScene()
 		// pGameObject->m_transform.SetRotationEuler(XMConvertToRadians(20.0f), 0, 0);
 		// pGameObject->m_transform.SetRotationEuler(0, XMConvertToRadians(20.0f), 0);
 		// pGameObject->m_transform.SetRotationEuler(0, 0, XMConvertToRadians(20.0f));
-
+	
 		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
 		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 		pMeshRenderer->SetMesh(m_meshPaperBox);
 		pMeshRenderer->SetMaterial(0, m_matPaperBox);
-
+	
 		std::shared_ptr<BoxCollider> collider = std::make_shared<BoxCollider>(m_meshPaperBox->GetAabb().Extents);
 		ComponentHandle<Rigidbody> hRigidbody = pGameObject->AddComponent<Rigidbody>(collider, m_meshPaperBox->GetAabb().Center);
 		Rigidbody* pRigidbody = hRigidbody.ToPtr();
@@ -985,21 +1085,13 @@ void Warehouse::OnLoadScene()
 		pRigidbody->SetFreezeRotation(true, true, true);
 		pRigidbody->SetFriction(0.5);
 	}
-
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Ground");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		
-		std::shared_ptr<StaticPlaneCollider> collider = std::make_shared<StaticPlaneCollider>();
-		pGameObject->AddComponent<StaticRigidbody>(collider);
-	}
-
+	
 	// Kinematic 발판 테스트
 	GameObjectHandle hKinematicFootboard;
 	{
 		GameObjectHandle hGameObject = CreateGameObject(L"Footboard");
 		hKinematicFootboard = hGameObject;
-
+	
 		GameObject* pGameObject = hGameObject.ToPtr();
 		pGameObject->m_transform.SetPosition(-1.0f, 0.5f, 1.0f);
 		
@@ -1014,9 +1106,29 @@ void Warehouse::OnLoadScene()
 		pRigidbody->SetKinematic(true);
 	}
 	pScriptFPSMovement->m_hKinematicFootboard = hKinematicFootboard;
+	
+	
+	// CollisionTrigger 테스트
+	GameObjectHandle hCollisionTriggerObj;
+	{
+		GameObjectHandle hGameObject = CreateGameObject(L"CollisionTrigger");
+		hCollisionTriggerObj = hGameObject;
+	
+		GameObject* pGameObject = hGameObject.ToPtr();
+		pGameObject->m_transform.SetPosition(0.0f, 3.0f, 0.0f);
+	
+		std::shared_ptr<BoxCollider> collider = std::make_shared<BoxCollider>(XMFLOAT3(0.5f, 0.5f, 0.5f));
+		ComponentHandle<Rigidbody> hCollisionTrigger = pGameObject->AddComponent<Rigidbody>(collider);
+		Rigidbody* pCollisionTrigger = hCollisionTrigger.ToPtr();
+		pCollisionTrigger->SetKinematic(true);
+		pCollisionTrigger->SetTrigger(true);
+	
+		ComponentHandle<CollisionEventTest> hCollisionEventTest = pGameObject->AddComponent<CollisionEventTest>();
+		hCollisionEventTest.ToPtr()->m_hRigidbody = hCollisionTrigger;
+	}
 
 
-	// 캐릭터 Skinned Mesh Test
+	// Character Test
 	{
 		ModelData mdMaleBase = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\characters\\steven\\steven.glb");
 		std::shared_ptr<SkinnedMesh> meshSteven = mdMaleBase.m_skinnedMeshes[0];
@@ -1029,10 +1141,17 @@ void Warehouse::OnLoadScene()
 		
 		GameObjectHandle hGameObject = CreateGameObject(L"steven");
 		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorZero());
+		pGameObject->m_transform.SetPosition(-4, 0, -2);
+
+		// 캐릭터 스크립트 컴포넌트
+		ComponentHandle<Character> hCharacter = pGameObject->AddComponent<Character>();
+		Character* pCharacter = hCharacter.ToPtr();
+
 
 		ComponentHandle<SkinnedMeshRenderer> hMeshRenderer = pGameObject->AddComponent<SkinnedMeshRenderer>();
+		pCharacter->m_hSkinnedMeshRenderer = hMeshRenderer;		// 컴포넌트 핸들을 멤버로 저장
 		SkinnedMeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+
 
 		auto matBody = ResourceLoader::GetInstance()->CreateMaterial();
 		XMStoreFloat4A(&matBody->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.6f), 1.0f));
@@ -1058,13 +1177,111 @@ void Warehouse::OnLoadScene()
 		pMeshRenderer->SetMaterial(2, matShoes);
 
 		pMeshRenderer->SetArmature(armaSteven);
+
 		// pMeshRenderer->PlayAnimation("run", false);
 		// pMeshRenderer->PlayAnimation("reload_rifle", true);
 		// pMeshRenderer->PlayAnimation("aim_rifle", true);
 		// pMeshRenderer->PlayAnimation("aim_pistol", true);
+		// pMeshRenderer->PlayAnimation("reload_pistol", true);
 
-		pMeshRenderer->PlayGroupAnimation("run", "lower_body", true);
-		pMeshRenderer->PlayGroupAnimation("aim_pistol", "upper_body", true);
+		pMeshRenderer->PlayGroupAnimation("aim_rifle", "lower_body", true);
+		// pMeshRenderer->PlayGroupAnimation("shoot_pistol", "upper_body", true);
+		pMeshRenderer->PlayGroupAnimation("reload_pistol", "upper_body", true);
+
+
+
+		// 주 무기 3인칭 핸들링 테스트
+		GameObjectHandle hTvWeaponBase = CreateGameObject(L"tv weapon base");
+		GameObject* pTvWeaponBase = hTvWeaponBase.ToPtr();
+		pTvWeaponBase->m_transform.SetParent(&pGameObject->m_transform);
+		pCharacter->m_hTvWeaponBase = hTvWeaponBase;		// 오브젝트 핸들 저장
+
+		/*
+		{
+			GameObjectHandle hPrimaryWeapon = CreateGameObject(L"Primary Weapon");
+			GameObject* pPrimaryWeapon = hPrimaryWeapon.ToPtr();
+			XMVECTOR q = XMQuaternionRotationNormal(Vector3::Up(), XMConvertToRadians(+90));
+			q = XMQuaternionMultiply(q, XMQuaternionRotationNormal(Vector3::Forward(), XMConvertToRadians(+81)));
+			q = XMQuaternionMultiply(q, XMQuaternionRotationNormal(Vector3::Right(), XMConvertToRadians(+8)));
+
+			pPrimaryWeapon->m_transform.SetRotationQuaternion(q1);
+			constexpr XMFLOAT3 PRIMARY_WEAPON_OFFSET(-0.004f, +0.06f, +0.03f);		// SAVE
+			pPrimaryWeapon->m_transform.SetPosition(PRIMARY_WEAPON_OFFSET);
+			pPrimaryWeapon->m_transform.SetParent(&pTvWeaponBase->m_transform);
+			pCharacter->m_hPrimaryWeapon = hPrimaryWeapon;		// 오브젝트 핸들 저장
+
+			ComponentHandle<MeshRenderer> hPrimaryWeaponMeshRenderer = pPrimaryWeapon->AddComponent<MeshRenderer>();
+			MeshRenderer* pPrimaryWeaponMeshRenderer = hPrimaryWeaponMeshRenderer.ToPtr();
+
+			// 메시 설정
+			auto meshM4A1 = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\m4a1\\m4a1_tv.obj").m_staticMeshes[0];
+			pPrimaryWeaponMeshRenderer->SetMesh(meshM4A1);
+			// 재질 설정
+			auto matM4A1Receiver = ResourceLoader::GetInstance()->CreateMaterial();
+			XMStoreFloat4A(&matM4A1Receiver->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
+			XMStoreFloat4A(&matM4A1Receiver->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 4.0f));
+			matM4A1Receiver->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\receiver_diffuse.png");
+			matM4A1Receiver->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\receiver_normal.png");
+			auto matM4A1Furniture = ResourceLoader::GetInstance()->CreateMaterial();
+			XMStoreFloat4A(&matM4A1Furniture->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
+			XMStoreFloat4A(&matM4A1Furniture->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 8.0f));
+			matM4A1Furniture->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\furniture_diffuse.png");
+			matM4A1Furniture->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\furniture_normal.png");
+			auto matRearSight = ResourceLoader::GetInstance()->CreateMaterial();
+			XMStoreFloat4A(&matRearSight->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
+			XMStoreFloat4A(&matRearSight->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 4.0f));
+			matRearSight->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\rearsight_diffuse.png");
+			matRearSight->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\rearsight_normal.png");
+
+			pPrimaryWeaponMeshRenderer->SetMaterial(0, matM4A1Receiver);
+			pPrimaryWeaponMeshRenderer->SetMaterial(1, matM4A1Furniture);
+			pPrimaryWeaponMeshRenderer->SetMaterial(2, matRearSight);
+			pPrimaryWeaponMeshRenderer->SetMaterial(3, matSTANAG30Rds);
+		}
+		*/
+		
+		{
+			GameObjectHandle hSecondaryWeapon = CreateGameObject(L"Secondary Weapon");
+			GameObject* pSecondaryWeapon = hSecondaryWeapon.ToPtr();
+			XMVECTOR q = XMQuaternionRotationNormal(Vector3::Up(), XMConvertToRadians(+90));
+			q = XMQuaternionMultiply(q, XMQuaternionRotationNormal(Vector3::Forward(), XMConvertToRadians(+81)));
+			q = XMQuaternionMultiply(q, XMQuaternionRotationNormal(Vector3::Right(), XMConvertToRadians(-10)));
+			pSecondaryWeapon->m_transform.SetRotationQuaternion(q);
+			constexpr XMFLOAT3 SECONDARY_WEAPON_OFFSET(-0.014f, +0.07f, +0.03f);		// SAVE
+			pSecondaryWeapon->m_transform.SetPosition(SECONDARY_WEAPON_OFFSET);
+			pSecondaryWeapon->m_transform.SetParent(&pTvWeaponBase->m_transform);
+			pCharacter->m_hSecondaryWeapon = hSecondaryWeapon;		// 오브젝트 핸들 저장
+
+			ComponentHandle<MeshRenderer> hSecondaryWeaponMeshRenderer = pSecondaryWeapon->AddComponent<MeshRenderer>();
+			MeshRenderer* pSecondaryWeaponMeshRenderer = hSecondaryWeaponMeshRenderer.ToPtr();
+
+			// 메시 설정
+			auto meshB92fsB = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\b92fsb\\b92fsb_tv.obj").m_staticMeshes[0];
+			// 재질 설정
+			auto matB92fsB = ResourceLoader::GetInstance()->CreateMaterial();
+			XMStoreFloat4A(&matB92fsB->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 1.0f));
+			XMStoreFloat4A(&matB92fsB->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.25f), 4.0f));
+			matB92fsB->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\b92fsb\\textures\\diffuse.png");
+			matB92fsB->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\b92fsb\\textures\\normal.png");
+			
+			auto matB92fsBx300Body = ResourceLoader::GetInstance()->CreateMaterial();
+			XMStoreFloat4A(&matB92fsBx300Body->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 1.0f));
+			XMStoreFloat4A(&matB92fsBx300Body->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.25f), 4.0f));
+			matB92fsBx300Body->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\b92fsb\\textures\\x300_body_diffuse.jpg");
+			matB92fsBx300Body->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\b92fsb\\textures\\x300_body_normal.png");
+
+			auto matB92fsBx300Lamp = ResourceLoader::GetInstance()->CreateMaterial();
+			XMStoreFloat4A(&matB92fsBx300Lamp->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 1.0f));
+			XMStoreFloat4A(&matB92fsBx300Lamp->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.25f), 4.0f));
+			matB92fsBx300Lamp->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\b92fsb\\textures\\x300_lamp_diffuse.jpg");
+
+			pSecondaryWeaponMeshRenderer->SetMesh(meshB92fsB);
+			pSecondaryWeaponMeshRenderer->SetMaterial(0, matB92fsB);
+			pSecondaryWeaponMeshRenderer->SetMaterial(1, matB92fsBx300Body);
+			pSecondaryWeaponMeshRenderer->SetMaterial(2, matB92fsBx300Lamp);
+		}
+
+
 	}
 
 

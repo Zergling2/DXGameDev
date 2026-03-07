@@ -178,7 +178,7 @@ void FirstPersonMovement::TestHandlerOnClick01()
 
 void FirstPersonMovement::TestHandlerOnClick02()
 {
-	printf("OnClick02!\n");
+	SceneManager::GetInstance()->LoadScene(L"Warehouse");
 }
 
 void FirstPersonMovement::TestHandlerOnClick03()

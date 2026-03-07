@@ -34,6 +34,12 @@
     <ClCompile Include="source\Resource\Weapon.cpp">
       <Filter>source\Resource</Filter>
     </ClCompile>
+    <ClCompile Include="source\Script\Character.cpp">
+      <Filter>source\Script</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Script\CollisionEventTest.cpp">
+      <Filter>source\Script</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Scene\Lobby.h">
@@ -50,6 +56,12 @@
     </ClInclude>
     <ClInclude Include="source\Resource\Weapon.h">
       <Filter>source\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Script\Character.h">
+      <Filter>source\Script</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Script\CollisionEventTest.h">
+      <Filter>source\Script</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
