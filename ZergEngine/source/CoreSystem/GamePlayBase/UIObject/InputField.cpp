@@ -87,6 +87,8 @@ void InputField::OnChar(TCHAR ch)
 		ct = PUNCT;
 
 	std::wstring& text = m_text.GetText();
+	if (ct != BACKSPACE && text.length() >= m_text.GetMaxChar())
+		return;
 
 	switch (ct)
 	{

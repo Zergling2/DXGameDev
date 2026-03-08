@@ -81,6 +81,9 @@ namespace ze
 		float GetRadiusX() const { return m_radius.x; }
 		float GetRadiusY() const { return m_radius.y; }
 
+		uint32_t GetMaxChar() const { return m_text.GetMaxChar(); }
+		void SetMaxChar(uint32_t count) { m_text.SetMaxChar(count); }
+
 		void AllowReturn(bool b);
 		bool IsReturnAllowed() const { return m_iff & IFF_RETURN; }
 

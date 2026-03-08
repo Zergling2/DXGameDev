@@ -138,6 +138,8 @@ namespace ze
 		const std::wstring& GetText() const { return m_text; }
 		void SetText(PCWSTR text) { m_text = text; }
 		void SetText(std::wstring text) { m_text = std::move(text); }
+		uint32_t GetMaxChar() const { return m_maxChar; }
+		void SetMaxChar(uint32_t count);
 		TextFormat& GetTextFormat() { return m_tf; }
 		const TextFormat& GetTextFormat() const { return m_tf; }
 		DWRITE_TEXT_ALIGNMENT GetTextAlignment() const { return m_textAlignment; }
@@ -149,6 +151,7 @@ namespace ze
 		IDWriteTextFormat* GetDWriteTextFormat() const { return m_spDWriteTextFormatWrapper->GetDWriteTextFormat(); }
 	protected:
 		std::wstring m_text;
+		uint32_t m_maxChar;
 		TextFormat m_tf;
 		DWRITE_TEXT_ALIGNMENT m_textAlignment;
 		DWRITE_PARAGRAPH_ALIGNMENT m_paragraphAlignment;

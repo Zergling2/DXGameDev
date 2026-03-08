@@ -45,6 +45,7 @@ namespace ze
 
 		void SetRadiusX(float rx) { m_radius.x = rx; }
 		void SetRadiusY(float ry) { m_radius.y = ry; }
+		void SetRadius(float rx, float ry) { m_radius.x = rx; m_radius.y = ry; }
 		float GetRadiusX() const { return m_radius.x; }
 		float GetRadiusY() const { return m_radius.y; }
 
