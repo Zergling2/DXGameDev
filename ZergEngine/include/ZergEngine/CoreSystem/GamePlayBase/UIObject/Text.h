@@ -49,7 +49,7 @@ namespace ze
 		void SetColorA(FLOAT a) { m_color.SetColorA(a); }
 
 		// Windows 좌표계 마우스 위치와 충돌 테스트 수행
-		virtual bool HitTest(POINT pt) const override { return false; }
+		virtual bool HitTest(POINT pt) const override;
 	private:
 		UISize m_size;	// Text box size
 		UIText m_text;

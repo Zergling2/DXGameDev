@@ -45,7 +45,7 @@ void GameObjectManager::Init()
 
 	// 가장 밑에 높은 인덱스를 넣어두어 0번 인덱스부터 사용할 수 있도록 한다.
 	const size_t handleTableEndIndex = m_handleTable.size() - 1;
-	for (size_t i = 0; i < m_emptyHandleTableIndex.size() - 1; ++i)
+	for (size_t i = 0; i <= handleTableEndIndex; ++i)
 		m_emptyHandleTableIndex.push_back(static_cast<uint32_t>(handleTableEndIndex - i));
 }
 
@@ -76,7 +76,10 @@ GameObjectHandle GameObjectManager::FindGameObject(PCWSTR name)
 
 GameObjectHandle GameObjectManager::CreateObject(PCWSTR name)
 {
-	GAMEOBJECT_FLAG flag = GAMEOBJECT_FLAG::ACTIVE;
+	GAMEOBJECT_FLAG flag = static_cast<GAMEOBJECT_FLAG>(
+		static_cast<goft>(GAMEOBJECT_FLAG::ACTIVE_SELF) |
+		static_cast<goft>(GAMEOBJECT_FLAG::ACTIVE_IN_HIERARCHY)	// 루트 오브젝트로 생성이므로 플래그 ON으로 시작
+		);
 
 	GameObject* pNewGameObject = new GameObject(this->AssignUniqueId(), flag, name);
 
@@ -88,8 +91,11 @@ GameObjectHandle GameObjectManager::CreateObject(PCWSTR name)
 
 GameObjectHandle GameObjectManager::CreatePendingObject(GameObject** ppNewGameObject, PCWSTR name)
 {
-	GAMEOBJECT_FLAG flag =
-		static_cast<GAMEOBJECT_FLAG>(static_cast<uint16_t>(GAMEOBJECT_FLAG::PENDING) | static_cast<uint16_t>(GAMEOBJECT_FLAG::ACTIVE));
+	GAMEOBJECT_FLAG flag = static_cast<GAMEOBJECT_FLAG>(
+		static_cast<goft>(GAMEOBJECT_FLAG::PENDING) |
+		static_cast<goft>(GAMEOBJECT_FLAG::ACTIVE_SELF) |
+		static_cast<goft>(GAMEOBJECT_FLAG::ACTIVE_IN_HIERARCHY)		// 루트 오브젝트로 생성이므로 플래그 ON으로 시작
+		);
 
 	// PENDING GAME OBJECT
 	GameObject* pNewGameObject = new GameObject(this->AssignUniqueId(), flag, name);
@@ -180,6 +186,8 @@ void GameObjectManager::AddToDestroyQueue(GameObject* pGameObject)
 
 void GameObjectManager::MoveToActiveGroup(GameObject* pGameObject)
 {
+	assert(!pGameObject->IsPending());
+
 	// 1. Inactive group에서 제거
 	this->RemoveFromInactiveGroup(pGameObject);
 
@@ -189,6 +197,8 @@ void GameObjectManager::MoveToActiveGroup(GameObject* pGameObject)
 
 void GameObjectManager::MoveToInactiveGroup(GameObject* pGameObject)
 {
+	assert(!pGameObject->IsPending());
+
 	// 1. Active group에서 제거
 	this->RemoveFromActiveGroup(pGameObject);
 
@@ -198,14 +208,14 @@ void GameObjectManager::MoveToInactiveGroup(GameObject* pGameObject)
 
 void GameObjectManager::AddToActiveGroup(GameObject* pGameObject)
 {
-	assert(pGameObject->IsActive());
+	assert(pGameObject->IsActiveInHierarchy());
 
 	this->AddToActInactGroupImpl(pGameObject, m_activeGroup);
 }
 
 void GameObjectManager::AddToInactiveGroup(GameObject* pGameObject)
 {
-	assert(!pGameObject->IsActive());
+	assert(!pGameObject->IsActiveInHierarchy());
 
 	this->AddToActInactGroupImpl(pGameObject, m_inactiveGroup);
 }
@@ -274,7 +284,7 @@ void GameObjectManager::RemoveDestroyedGameObjects()
 		}
 		// pTransform->m_children.clear();	// 객체 delete시 자동 소멸
 
-		if (pGameObject->IsActive())
+		if (pGameObject->IsActiveInHierarchy())
 			this->RemoveFromActiveGroup(pGameObject);
 		else
 			this->RemoveFromInactiveGroup(pGameObject);
@@ -338,19 +348,24 @@ bool GameObjectManager::SetParent(Transform* pTransform, Transform* pNewParentTr
 		assert(found == true);	// 자식으로 존재했었어야 함
 	}
 
-	// 만약 부모가 nullptr이 아니라면
+	// 멤버 부모 포인터 업데이트
+	pTransform->m_pParent = pNewParentTransform;
+
 	if (pNewParentTransform != nullptr)
 	{
+		// 만약 부모가 nullptr이 아니라면
+
 		// 부모의 자식 목록을 업데이트
 		pNewParentTransform->m_children.push_back(pTransform);
 
-		// 부모가 비활성 상태이면 자식도 비활성화
-		if (pNewParentTransform->m_pGameObject->IsActive() == false)
-			pTransform->m_pGameObject->SetActive(false);
+		// ActiveInHierarchy 플래그 업데이트
+		pTransform->m_pGameObject->UpdateActiveState(pNewParentTransform->m_pGameObject->IsActiveInHierarchy());
 	}
-
-	// 멤버 부모 포인터 업데이트
-	pTransform->m_pParent = pNewParentTransform;
+	else
+	{
+		// ActiveInHierarchy 플래그 업데이트
+		pTransform->m_pGameObject->UpdateActiveState(true);
+	}
 
 	return true;
 }

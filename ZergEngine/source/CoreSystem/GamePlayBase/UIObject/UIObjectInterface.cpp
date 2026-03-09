@@ -11,6 +11,7 @@ IUIObject::IUIObject(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name)
 	, m_tableIndex((std::numeric_limits<uint32_t>::max)())
 	, m_actInactGroupIndex((std::numeric_limits<uint32_t>::max)())
 	, m_flag(flag)
+	, m_handlerOnClick()
 {
 	StringCbCopyW(m_name, sizeof(m_name), name);
 }
@@ -31,26 +32,38 @@ void IUIObject::Destroy()
 
 void IUIObject::SetActive(bool active)
 {
-	// 자식 오브젝트들 재귀적 활성화
-	for (RectTransform* pChildTransform : m_transform.m_children)
-		pChildTransform->m_pUIObject->SetActive(active);
-
 	// 이미 해당 활성 상태가 설정되어 있는 경우 함수 리턴
-	if (this->IsActive() == active)
+	if (this->IsActiveSelf() == active)
 		return;
 
 	if (active)
-		this->OnFlag(UIOBJECT_FLAG::ACTIVE);
+		this->OnFlag(UIOBJECT_FLAG::ACTIVE_SELF);
 	else
-		this->OffFlag(UIOBJECT_FLAG::ACTIVE);
+		this->OffFlag(UIOBJECT_FLAG::ACTIVE_SELF);
 
-	if (this->IsPending())	// 지연 오브젝트인 경우 플래그만 설정하고 리턴
+	RectTransform* pParentTransform = m_transform.m_pParent;
+	if (pParentTransform)
+		this->UpdateActiveState(pParentTransform->m_pUIObject->IsActiveInHierarchy());
+	else
+		this->UpdateActiveState(true);	// 부모가 없는 경우 부모의 ActiveInHierarchy가 true라고 가정하면 된다.
+}
+
+void IUIObject::OnLButtonClick(POINT pt)
+{
+	// 지연 객체(예시: OnLoadScene)인 경우 콜백 호출 방지
+	if (this->IsPending())
 		return;
 
-	if (active)
-		this->OnActivationSysJob();
-	else
-		this->OnDeactivationSysJob();
+	// 상태 업데이트
+	// 버튼은 상태 플래그 업데이트할 값 없음.
+
+	// UI Event Callback
+	if (m_handlerOnClick)
+	{
+		bool success = m_handlerOnClick();
+		if (!success)	// 객체가 파괴된 경우
+			m_handlerOnClick = nullptr;
+	}
 }
 
 const UIObjectHandle IUIObject::ToHandle() const
@@ -58,6 +71,32 @@ const UIObjectHandle IUIObject::ToHandle() const
 	assert(UIObjectManager::GetInstance()->m_handleTable[m_tableIndex] == this);
 
 	return UIObjectHandle(m_tableIndex, m_id);
+}
+
+void IUIObject::UpdateActiveState(bool isParentActiveInHierarchy)
+{
+	RectTransform* pParentTransform = m_transform.m_pParent;
+	
+	// DFS 구조로 상위 계층 -> 하위 계층으로 내려가면서 업데이트하므로 부모의 IsActiveInHierarchy는 이미 업데이트되어있으므로 한 단계 부모의 플래그만 확인해도 된다.
+	// bool activeInHierarchy = this->IsActiveSelf() && (pParentTransform ? pParentTransform->m_pUIObject->IsActiveInHierarchy() : true);
+	bool activeInHierarchy = this->IsActiveSelf() && isParentActiveInHierarchy;
+
+	if (this->IsActiveInHierarchy() == activeInHierarchy)
+		return;
+
+	if (activeInHierarchy)
+	{
+		this->OnFlag(UIOBJECT_FLAG::ACTIVE_IN_HIERARCHY);
+		this->OnActivationSysJob();
+	}
+	else
+	{
+		this->OffFlag(UIOBJECT_FLAG::ACTIVE_IN_HIERARCHY);
+		this->OnDeactivationSysJob();
+	}
+
+	for (RectTransform* pChildTransform : m_transform.m_children)
+		pChildTransform->m_pUIObject->UpdateActiveState(activeInHierarchy);
 }
 
 void IUIObject::OnDeploySysJob()
@@ -69,7 +108,7 @@ void IUIObject::OnDeploySysJob()
 	if (m_transform.GetParent() == nullptr)
 		UIObjectManager::GetInstance()->AddToRootArray(this);
 
-	if (this->IsActive())
+	if (this->IsActiveInHierarchy())
 		UIObjectManager::GetInstance()->AddToActiveGroup(this);
 	else
 		UIObjectManager::GetInstance()->AddToInactiveGroup(this);
@@ -77,11 +116,17 @@ void IUIObject::OnDeploySysJob()
 
 void IUIObject::OnActivationSysJob()
 {
+	if (this->IsPending())
+		return;
+
 	UIObjectManager::GetInstance()->MoveToActiveGroup(this);
 }
 
 void IUIObject::OnDeactivationSysJob()
 {
+	if (this->IsPending())
+		return;
+
 	UIObjectManager::GetInstance()->MoveToInactiveGroup(this);
 }
 

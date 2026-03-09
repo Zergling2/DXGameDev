@@ -11,3 +11,11 @@ Text::Text(uint64_t id, UIOBJECT_FLAG flag, PCWSTR name)
 	m_text.SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 	m_text.SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
 }
+
+bool Text::HitTest(POINT pt) const
+{
+	POINT wcp;
+	m_transform.GetWinCoordPosition(&wcp);
+
+	return m_size.HitTest(pt, wcp);
+}

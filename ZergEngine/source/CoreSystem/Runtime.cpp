@@ -398,7 +398,6 @@ GameObjectHandle Runtime::CreateGameObject(PCWSTR name)
 
 UIObjectHandle Runtime::CreatePanel(PCWSTR name)
 {
-    // Not deferred ui object.
     return UIObjectManager::GetInstance()->CreateObject<Panel>(name);
 }
 

@@ -696,7 +696,7 @@ void Renderer::RenderFrame()
 
 			// 큐는 노드 할당이 일어나므로 배열을 사용.
 
-			if (pRootUIObject->IsActive())
+			if (pRootUIObject->IsActiveInHierarchy())
 				m_uiRenderQueue.push_back(pRootUIObject);
 
 			while (index < m_uiRenderQueue.size())
@@ -709,7 +709,7 @@ void Renderer::RenderFrame()
 					const IUIObject* pChildUIObject = pChildTransform->m_pUIObject;
 					assert(pChildUIObject != nullptr);
 
-					if (pChildUIObject->IsActive())
+					if (pChildUIObject->IsActiveInHierarchy())
 						m_uiRenderQueue.push_back(pChildUIObject);
 				}
 

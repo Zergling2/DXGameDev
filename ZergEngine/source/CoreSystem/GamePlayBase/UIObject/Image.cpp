@@ -39,21 +39,6 @@ bool Image::HitTest(POINT pt) const
 	return m_size.HitTest(pt, wcp);
 }
 
-void Image::OnLButtonClick(POINT pt)
-{
-	// 지연 객체(예시: OnLoadScene)인 경우 콜백 호출 방지
-	if (this->IsPending())
-		return;
-
-	// UI Event Callback
-	if (m_handlerOnClick)
-	{
-		bool success = m_handlerOnClick();
-		if (!success)	// 객체가 파괴된 경우
-			m_handlerOnClick = nullptr;
-	}
-}
-
 void Image::UpdateToNativeSize()
 {
 	if (m_texture.GetTexture2D())

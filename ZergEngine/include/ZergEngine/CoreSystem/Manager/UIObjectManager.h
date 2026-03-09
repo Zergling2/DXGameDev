@@ -105,7 +105,10 @@ namespace ze
 	template<typename T>
 	UIObjectHandle UIObjectManager::CreateObject(PCWSTR name)
 	{
-		UIOBJECT_FLAG flag = UIOBJECT_FLAG::ACTIVE;
+		UIOBJECT_FLAG flag = static_cast<UIOBJECT_FLAG>(
+			static_cast<uioft>(UIOBJECT_FLAG::ACTIVE_SELF) |
+			static_cast<uioft>(UIOBJECT_FLAG::ACTIVE_IN_HIERARCHY)
+			);
 
 		T* pNewUIObject = new T(this->AssignUniqueId(), flag, name);
 		UIObjectHandle hNewUIObject = this->RegisterToHandleTable(pNewUIObject);
@@ -120,8 +123,11 @@ namespace ze
 	UIObjectHandle UIObjectManager::CreatePendingObject(T** ppNewUIObject, PCWSTR name)
 	{
 		// REAL_ROOT 플래그 활성화 및 Root Vector에 추가는 SceneManager에서 씬 변경 시 수행한다.
-		UIOBJECT_FLAG flag =
-			static_cast<UIOBJECT_FLAG>(static_cast<uint16_t>(UIOBJECT_FLAG::PENDING) | static_cast<uint16_t>(UIOBJECT_FLAG::ACTIVE));
+		UIOBJECT_FLAG flag = static_cast<UIOBJECT_FLAG>(
+			static_cast<uioft>(UIOBJECT_FLAG::PENDING) |
+			static_cast<uioft>(UIOBJECT_FLAG::ACTIVE_SELF) |
+			static_cast<uioft>(UIOBJECT_FLAG::ACTIVE_IN_HIERARCHY)
+			);
 
 		// PENDING GAME OBJECT
 		T* pNewUIObject = new T(this->AssignUniqueId(), flag, name);

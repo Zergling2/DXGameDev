@@ -47,8 +47,6 @@ namespace ze
 		// Windows 좌표계 마우스 위치와 충돌 테스트 수행
 		virtual bool HitTest(POINT pt) const override;
 	private:
-		virtual void OnLButtonClick(POINT pt) override;
-
 		void UpdateToNativeSize();
 	private:
 		UISize m_size;

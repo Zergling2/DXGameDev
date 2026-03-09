@@ -124,4 +124,3 @@ void InputField::OnLButtonClick(POINT pt)
 	// 텍스트 입력을 받게 등록 요청
 	UIObjectManager::GetInstance()->SetFocusedUI(this);
 }
-

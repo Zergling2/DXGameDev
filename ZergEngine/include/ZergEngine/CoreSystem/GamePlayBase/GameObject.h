@@ -18,8 +18,9 @@ namespace ze
 		STATIC					= 1 << 0,
 		DONT_DESTROY_ON_LOAD	= 1 << 1,
 		PENDING					= 1 << 2,
-		ACTIVE					= 1 << 3,
-		ON_DESTROY_QUEUE		= 1 << 4,
+		ACTIVE_SELF				= 1 << 3,
+		ACTIVE_IN_HIERARCHY		= 1 << 4,
+		ON_DESTROY_QUEUE		= 1 << 5
 	};
 
 	class GameObject
@@ -51,8 +52,8 @@ namespace ze
 		void Destroy();
 		void Destroy(float delay);
 		bool IsDontDestroyOnLoad() const { return static_cast<goft>(m_flag) & static_cast<goft>(GAMEOBJECT_FLAG::DONT_DESTROY_ON_LOAD); }
-		bool IsActive() const { return static_cast<goft>(m_flag) & static_cast<goft>(GAMEOBJECT_FLAG::ACTIVE); }
-
+		bool IsActiveSelf() const { return static_cast<goft>(m_flag) & static_cast<goft>(GAMEOBJECT_FLAG::ACTIVE_SELF); }
+		bool IsActiveInHierarchy() const { return static_cast<goft>(m_flag) & static_cast<goft>(GAMEOBJECT_FLAG::ACTIVE_IN_HIERARCHY); }
 		PCWSTR GetName() const { return m_name; }
 		uint64_t GetId() const { return m_id; }
 
@@ -82,6 +83,7 @@ namespace ze
 	private:
 		void OnFlag(GAMEOBJECT_FLAG flag) { m_flag = static_cast<GAMEOBJECT_FLAG>(static_cast<goft>(m_flag) | static_cast<goft>(flag)); }
 		void OffFlag(GAMEOBJECT_FLAG flag) { m_flag = static_cast<GAMEOBJECT_FLAG>(static_cast<goft>(m_flag) & ~static_cast<goft>(flag)); }
+		void UpdateActiveState(bool isParentActiveInHierarchy);
 
 		ComponentHandleBase AddComponentImpl(IComponent* pComponent);
 

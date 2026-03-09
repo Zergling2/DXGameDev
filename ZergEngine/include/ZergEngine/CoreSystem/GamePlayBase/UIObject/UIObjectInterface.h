@@ -18,9 +18,10 @@ namespace ze
 		STATIC					= 1 << 0,
 		DONT_DESTROY_ON_LOAD	= 1 << 1,
 		PENDING					= 1 << 2,
-		ACTIVE					= 1 << 3,
-		ON_DESTROY_QUEUE		= 1 << 4,
-		REAL_ROOT				= 1 << 5		// 오브젝트 제거 과정에서 진짜 루트였는지를 판별하는 용도로 사용된다.
+		ACTIVE_SELF				= 1 << 3,
+		ACTIVE_IN_HIERARCHY		= 1 << 4,
+		ON_DESTROY_QUEUE		= 1 << 5,
+		REAL_ROOT				= 1 << 6		// 오브젝트 제거 과정에서 진짜 루트였는지를 판별하는 용도로 사용된다.
 	};
 
 	class IUIObject
@@ -38,10 +39,13 @@ namespace ze
 		void Destroy();
 		void Destroy(float delay);
 		bool IsDontDestroyOnLoad() const { return static_cast<uioft>(m_flag) & static_cast<uioft>(UIOBJECT_FLAG::DONT_DESTROY_ON_LOAD); }
-		bool IsActive() const { return static_cast<uioft>(m_flag) & static_cast<uioft>(UIOBJECT_FLAG::ACTIVE); }
+		bool IsActiveSelf() const { return static_cast<uioft>(m_flag) & static_cast<uioft>(UIOBJECT_FLAG::ACTIVE_SELF); }
+		bool IsActiveInHierarchy() const { return static_cast<uioft>(m_flag) & static_cast<uioft>(UIOBJECT_FLAG::ACTIVE_IN_HIERARCHY); }
 		PCWSTR GetName() const { return m_name; }
 		uint64_t GetId() const { return m_id; }
 		void SetActive(bool active);
+
+		void SetHandlerOnClick(std::function<bool()> handler) { m_handlerOnClick = std::move(handler); }
 
 		virtual UIObjectType GetType() const = 0;
 
@@ -52,7 +56,7 @@ namespace ze
 		virtual void OnMouseMove(POINT pt) {}
 		virtual void OnLButtonDown(POINT pt) {}
 		virtual void OnLButtonUp(POINT pt) {}
-		virtual void OnLButtonClick(POINT pt) {}
+		virtual void OnLButtonClick(POINT pt);
 		virtual void OnMButtonDown(POINT pt) {}
 		virtual void OnMButtonUp(POINT pt) {}
 		virtual void OnMButtonClick(POINT pt) {}
@@ -66,6 +70,7 @@ namespace ze
 
 		void OnFlag(UIOBJECT_FLAG flag) { m_flag = static_cast<UIOBJECT_FLAG>(static_cast<uioft>(m_flag) | static_cast<uioft>(flag)); }
 		void OffFlag(UIOBJECT_FLAG flag) { m_flag = static_cast<UIOBJECT_FLAG>(static_cast<uioft>(m_flag) & ~static_cast<uioft>(flag)); }
+		void UpdateActiveState(bool isParentActiveInHierarchy);
 
 		void OnDeploySysJob();
 		void OnActivationSysJob();
@@ -82,6 +87,7 @@ namespace ze
 		uint32_t m_actInactGroupIndex;
 		UIOBJECT_FLAG m_flag;
 		WCHAR m_name[16];
+		std::function<bool()> m_handlerOnClick;
 	};
 
 	class UISize

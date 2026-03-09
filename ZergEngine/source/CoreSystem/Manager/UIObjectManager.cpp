@@ -52,7 +52,7 @@ void UIObjectManager::Init()
 
 	// 가장 밑에 높은 인덱스를 넣어두어 0번 인덱스부터 사용할 수 있도록 한다.
 	const size_t handleTableEndIndex = m_handleTable.size() - 1;
-	for (size_t i = 0; i < m_emptyHandleTableIndex.size() - 1; ++i)
+	for (size_t i = 0; i <= handleTableEndIndex; ++i)
 		m_emptyHandleTableIndex.push_back(static_cast<uint32_t>(handleTableEndIndex - i));
 }
 
@@ -158,6 +158,8 @@ UIObjectHandle UIObjectManager::FindUIObject(PCWSTR name)
 
 void UIObjectManager::MoveToActiveGroup(IUIObject* pUIObject)
 {
+	assert(!pUIObject->IsPending());
+
 	// 1. Inactive group에서 제거
 	this->RemoveFromInactiveGroup(pUIObject);
 
@@ -167,6 +169,8 @@ void UIObjectManager::MoveToActiveGroup(IUIObject* pUIObject)
 
 void UIObjectManager::MoveToInactiveGroup(IUIObject* pUIObject)
 {
+	assert(!pUIObject->IsPending());
+
 	// 0. UI 상호작용 중(클릭되거나 포커싱된 경우)이었다면 해제
 	this->DetachUIFromManager(pUIObject);
 
@@ -189,14 +193,14 @@ void UIObjectManager::AddToRootArray(IUIObject* pUIObject)
 
 void UIObjectManager::AddToActiveGroup(IUIObject* pUIObject)
 {
-	assert(pUIObject->IsActive());
+	assert(pUIObject->IsActiveInHierarchy());
 
 	this->AddToActInactGroupImpl(pUIObject, m_activeGroup);
 }
 
 void UIObjectManager::AddToInactiveGroup(IUIObject* pUIObject)
 {
-	assert(!pUIObject->IsActive());
+	assert(!pUIObject->IsActiveInHierarchy());
 
 	this->AddToActInactGroupImpl(pUIObject, m_inactiveGroup);
 }
@@ -307,7 +311,7 @@ void UIObjectManager::RemoveDestroyedUIObjects()
 		if (pUIObject->IsRoot())	// REAL_ROOT 플래그 체크
 			this->RemoveFromRootArray(pUIObject);
 
-		if (pUIObject->IsActive())
+		if (pUIObject->IsActiveInHierarchy())
 			this->RemoveFromActiveGroup(pUIObject);
 		else
 			this->RemoveFromInactiveGroup(pUIObject);
@@ -371,19 +375,24 @@ bool UIObjectManager::SetParent(RectTransform* pTransform, RectTransform* pNewPa
 		assert(found == true);	// 자식으로 존재했었어야 함
 	}
 
-	// 만약 새 부모가 nullptr이 아니라면
+	// 멤버 부모 포인터 업데이트
+	pTransform->m_pParent = pNewParentTransform;
+
 	if (pNewParentTransform != nullptr)
 	{
+		// 만약 새 부모가 nullptr이 아니라면
+
 		// 부모의 자식 목록을 업데이트
 		pNewParentTransform->m_children.push_back(pTransform);
 
-		// 부모가 비활성 상태이면 자식도 비활성화
-		if (pNewParentTransform->m_pUIObject->IsActive() == false)
-			pTransform->m_pUIObject->SetActive(false);
+		// ActiveInHierarchy 플래그 업데이트
+		pTransform->m_pUIObject->UpdateActiveState(pNewParentTransform->m_pUIObject->IsActiveInHierarchy());
 	}
-
-	// 멤버 부모 포인터 업데이트
-	pTransform->m_pParent = pNewParentTransform;
+	else
+	{
+		// ActiveInHierarchy 플래그 업데이트
+		pTransform->m_pUIObject->UpdateActiveState(true);
+	}
 
 	// 로딩 중이 아닌 오브젝트는 Root 그룹에서 존재할지 여부를 업데이트해야함.
 	if (!pUIObject->IsPending())
@@ -425,7 +434,7 @@ IUIObject* XM_CALLCONV UIObjectManager::SearchForHitUI(POINT pt) const
 
 IUIObject* XM_CALLCONV UIObjectManager::PostOrderHitTest(POINT pt, const IUIObject* pUIObject)
 {
-	if (!pUIObject->IsActive())
+	if (!pUIObject->IsActiveInHierarchy())
 		return nullptr;
 
 	const std::vector<RectTransform*>& children = pUIObject->m_transform.m_children;
