@@ -54,8 +54,7 @@ void IUIObject::OnLButtonClick(POINT pt)
 	if (this->IsPending())
 		return;
 
-	// 상태 업데이트
-	// 버튼은 상태 플래그 업데이트할 값 없음.
+	// 시각적 상태 업데이트 등... (ex. ImageButton)
 
 	// UI Event Callback
 	if (m_handlerOnClick)

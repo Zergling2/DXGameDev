@@ -23,8 +23,29 @@ void LobbyHandler::Update()
 		m_uiUpdateReq = false;
 	}
 
-	if (Input::GetInstance()->GetKeyDown(KEYCODE::KEY_ESCAPE))
-		Runtime::GetInstance()->Exit();
+	if (m_lobbyState == LobbyState::GameListBrowser)
+	{
+		bool selected = false;
+		for (size_t i = 0; i < MAX_GAME_PER_LIST_PAGE; ++i)
+		{
+			const POINT mp = Input::GetInstance()->GetMousePosition();
+			const IUIObject* pUIObject = m_hButtonEnterGame[i].ToPtr();
+			if (pUIObject->HitTest(mp))
+			{
+				if (!m_hPanelGameSelectedIndicator.ToPtr()->IsActiveSelf())
+					m_hPanelGameSelectedIndicator.ToPtr()->SetActive(true);
+				m_hPanelGameSelectedIndicator.ToPtr()->m_transform.SetPositionY(pUIObject->m_transform.GetPositionY());
+				selected = true;
+				break;
+			}
+		}
+
+		if (!selected)
+		{
+			if (m_hPanelGameSelectedIndicator.ToPtr()->IsActiveSelf())
+				m_hPanelGameSelectedIndicator.ToPtr()->SetActive(false);
+		}
+	}
 }
 
 void LobbyHandler::OnClickLogin()
@@ -39,9 +60,8 @@ void LobbyHandler::OnClickLogin()
 	
 	
 	// 로그인 창 UI 숨기기
-	m_hPanelLoginUIRoot.ToPtr()->SetActive(false);
-	// static_cast<Image*>(m_hImageLobbyBgr.ToPtr())->SetActive(false);
-	static_cast<Image*>(m_hImageLobbyBgr.ToPtr())->SetTexture(m_hScriptGameResources.ToPtr()->m_texGameListBgr);
+	this->SetLobbyState(LobbyState::GameListBrowser);
+	this->RequestUIUpdate();
 }
 
 void LobbyHandler::OnClickExitGame()
@@ -57,13 +77,19 @@ void LobbyHandler::UpdateUI()
 		// #########################################################
 		// 현재 상태에 대응하지 않는 UI 숨기기
 		m_hPanelGameListBrowserRoot.ToPtr()->SetActive(false);
+
+		// 상점/정비 버튼 표시
+		m_hButtonOpenShop.ToPtr()->SetActive(false);
+		m_hButtonUserInfo.ToPtr()->SetActive(false);
 		// #########################################################
 		
 		// 현재 상태에 대응하는 UI 보이기
 		// 배경 이미지 교체
 		static_cast<Image*>(m_hImageLobbyBgr.ToPtr())->SetTexture(m_hScriptGameResources.ToPtr()->m_texLoginBgr);
-
 		m_hImageLobbyBgr.ToPtr()->SetActive(true);
+
+		// 로그인 UI 표시
+		m_hPanelLoginUIRoot.ToPtr()->SetActive(true);
 		// #########################################################
 		break;
 	case LobbyState::GameListBrowser:
@@ -73,13 +99,26 @@ void LobbyHandler::UpdateUI()
 
 		// #########################################################
 		// 현재 상태에 대응하는 UI 보이기
+		
+		// 배경 이미지 교체
 		static_cast<Image*>(m_hImageLobbyBgr.ToPtr())->SetTexture(m_hScriptGameResources.ToPtr()->m_texGameListBgr);
+		m_hImageLobbyBgr.ToPtr()->SetActive(true);
+
+		// 상점/정비 버튼 표시
+		m_hButtonOpenShop.ToPtr()->SetActive(true);
+		m_hButtonUserInfo.ToPtr()->SetActive(true);
+
+		// 게임 리스트 브라우저 UI 표시
 		m_hPanelGameListBrowserRoot.ToPtr()->SetActive(true);
 		// #########################################################
 		break;
 	case LobbyState::GameRoom:
+		// 상점/정비 버튼 표시
+		m_hButtonOpenShop.ToPtr()->SetActive(true);
+		m_hButtonUserInfo.ToPtr()->SetActive(true);
 		break;
 	case LobbyState::Scoreboard:
+
 		break;
 	default:
 		break;

@@ -53,9 +53,6 @@ void GameObject::SetActive(bool active)
 		this->UpdateActiveState(pParentTransform->m_pGameObject->IsActiveInHierarchy());
 	else
 		this->UpdateActiveState(true);	// 부모가 없는 경우 부모의 ActiveInHierarchy가 true라고 가정하면 된다.
-
-	if (this->IsPending())	// 지연 오브젝트인 경우 플래그만 설정하고 리턴
-		return;
 }
 
 const GameObjectHandle GameObject::ToHandle() const
