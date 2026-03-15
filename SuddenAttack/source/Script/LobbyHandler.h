@@ -1,15 +1,19 @@
 #pragma once
 
 #include <ZergEngine\ZergEngine.h>
-#include "GameResources.h"
-#include "../Common/Constants.h"
+#include "Constants.h"
+
+class GameResources;
+class Network;
 
 enum class LobbyState
 {
 	Login,
 	GameListBrowser,
 	GameRoom,
-	Scoreboard
+	Scoreboard,
+
+	None
 };
 
 class LobbyHandler : public ze::MonoBehaviour
@@ -20,33 +24,40 @@ public:
 	virtual ~LobbyHandler() = default;
 
 	virtual void Awake() override;
+	virtual void Start() override;
 	virtual void Update();
 
 	// UI Event Handlers
 	void OnClickLogin();
 	void OnClickExitGame();
+	void OnClickSendChatMsg();
 
 	// Logic
-	void RequestUIUpdate() { m_uiUpdateReq = true; }
-	void SetLobbyState(LobbyState state) { m_lobbyState = state; }
-
+	void SetLobbyState(LobbyState state);
+	void ClearChatMsgs();
+	void AddChatMsg(const wchar_t* msg);
 private:
 	void UpdateUI();
 private:
-	bool m_connectionWithServer;
-	bool m_uiUpdateReq;
+	bool m_needUIUpdate;
 	LobbyState m_lobbyState;
+	size_t m_textLobbyChatMsgCount;
 public:
 	ze::ComponentHandle<GameResources> m_hScriptGameResources;
+	ze::ComponentHandle<Network> m_hScriptNetwork;
 
 	ze::UIObjectHandle m_hImageLobbyBgr;
 	ze::UIObjectHandle m_hPanelLoginUIRoot;
 	ze::UIObjectHandle m_hInputFieldId;
 	ze::UIObjectHandle m_hInputFieldPw;
+	ze::UIObjectHandle m_hTextIdPwInputFieldHelpMsg;
+	ze::UIObjectHandle m_hPanelChat;
+	ze::UIObjectHandle m_hInputFieldChatMsg;
+	ze::UIObjectHandle m_hTextLobbyChatMsg[CHAT_MSG_ITEM_ROW_COUNT];
 	ze::UIObjectHandle m_hButtonOpenShop;
 	ze::UIObjectHandle m_hButtonUserInfo;
 
-	ze::UIObjectHandle m_hPanelGameListBrowserRoot;
+	ze::UIObjectHandle m_hPanelGameBrowserRoot;
 	ze::UIObjectHandle m_hPanelGameSelectedIndicator;
 	ze::UIObjectHandle m_hTextGameNo[MAX_GAME_PER_LIST_PAGE];
 	ze::UIObjectHandle m_hTextGameName[MAX_GAME_PER_LIST_PAGE];

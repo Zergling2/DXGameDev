@@ -6,9 +6,9 @@ namespace ze
 {
 	enum class InputFieldShape : uint8_t
 	{
-		ClientEdge,
-		Rectangle,
-		RoundedRectangle
+		ClientEdge,			// concave 음영을 가진 타입.
+		Rectangle,			// 음영 없는 직사각형 타입.
+		RoundedRectangle	// 둥근 모서리를 갖는 사각형 타입.
 	};
 
 	enum INPUT_FIELD_FLAG : uint32_t

@@ -31,6 +31,9 @@ void Character::Update()
 
 void Character::LateUpdate()
 {
-	// 캐릭터 위 닉네임 표시 코드 테스트
-	// ...
+	// Update 루틴에서 카메라 최종 위치 결정된 상태로 가정
+	// -> 카메라 행렬을 이용해서 캐릭터 위 닉네임에 대한 스크린 좌표 위치 획득 및 Text UI 이동
+	// 코드 구현...
+
+
 }

@@ -183,7 +183,7 @@ UIColor::UIColor(FXMVECTOR color)
 }
 
 constexpr uint32_t DEFAULT_FONT_SIZE = 11;
-constexpr uint32_t DEFAULT_MAX_CHAR = 16;
+constexpr uint32_t DEFAULT_MAX_CHAR = 64;
 
 UIText::UIText()
 	: m_text()

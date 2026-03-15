@@ -52,6 +52,9 @@
     <ClCompile Include="source\Script\Network.cpp">
       <Filter>source\Script</Filter>
     </ClCompile>
+    <ClCompile Include="source\Script\Account.cpp">
+      <Filter>source\Script</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Scene\Lobby.h">
@@ -81,10 +84,10 @@
     <ClInclude Include="source\Script\GameResources.h">
       <Filter>source\Script</Filter>
     </ClInclude>
-    <ClInclude Include="source\Common\Constants.h">
-      <Filter>source\Common</Filter>
-    </ClInclude>
     <ClInclude Include="source\Script\Network.h">
+      <Filter>source\Script</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Script\Account.h">
       <Filter>source\Script</Filter>
     </ClInclude>
   </ItemGroup>

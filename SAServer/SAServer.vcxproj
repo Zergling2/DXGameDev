@@ -21,10 +21,9 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{43116663-9e54-48a2-abd2-8841e7892ace}</ProjectGuid>
-    <RootNamespace>SuddenAttack</RootNamespace>
+    <ProjectGuid>{971015bb-58c4-4dc5-87ca-9b0e4d0acc42}</ProjectGuid>
+    <RootNamespace>SAServer</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>SuddenAttack</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -71,21 +70,21 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <TargetName>$(ProjectName)_$(PlatformTarget)</TargetName>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>$(SolutionDir)bin\</OutDir>
+    <TargetName>$(ProjectName)_$(PlatformTarget)_dbg</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)bin\</OutDir>
     <TargetName>$(ProjectName)_$(PlatformTarget)</TargetName>
-    <OutDir>$(SolutionDir)bin\</OutDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <TargetName>$(ProjectName)_$(PlatformTarget)_dbg</TargetName>
-    <OutDir>$(SolutionDir)bin\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <TargetName>$(ProjectName)_$(PlatformTarget)_dbg</TargetName>
     <OutDir>$(SolutionDir)bin\</OutDir>
+    <TargetName>$(ProjectName)_$(PlatformTarget)_dbg</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)bin\</OutDir>
+    <TargetName>$(ProjectName)_$(PlatformTarget)</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -93,13 +92,12 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)ZergEngine\include;$(SolutionDir)SAServer;$(ProjectDir)include;C:\Program Files\OpenSSL-Win64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)SuddenAttack\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)ZergEngine\lib\Debug\;%(AdditionalLibraryDirectories);$(ProjectDir)bin\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>ze.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)SuddenAttack\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -110,13 +108,12 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)ZergEngine\include;$(SolutionDir)SAServer;$(ProjectDir)include;C:\Program Files\OpenSSL-Win64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)SuddenAttack\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)ZergEngine\lib\Release\;%(AdditionalLibraryDirectories);$(ProjectDir)bin\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>ze.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)SuddenAttack\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -125,13 +122,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)ZergEngine\include;$(SolutionDir)SAServer;$(ProjectDir)include;C:\Program Files\OpenSSL-Win64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)SuddenAttack\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)ZergEngine\lib\x64\Debug\;%(AdditionalLibraryDirectories);$(ProjectDir)bin\;C:\Program Files\OpenSSL-Win64\lib\VC\x64\MDd</AdditionalLibraryDirectories>
-      <AdditionalDependencies>ze.lib;Winppy_x64_dbg.lib;libssl.lib;libcrypto.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)SuddenAttack\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Winppy_x64_dbg.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -142,41 +139,29 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)ZergEngine\include;$(SolutionDir)SAServer;$(ProjectDir)include;C:\Program Files\OpenSSL-Win64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)SuddenAttack\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)ZergEngine\lib\x64\Release\;%(AdditionalLibraryDirectories);$(ProjectDir)bin\;C:\Program Files\OpenSSL-Win64\lib\VC\x64\MD</AdditionalLibraryDirectories>
-      <AdditionalDependencies>ze.lib;Winppy_x64.lib;libssl.lib;libcrypto.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)SuddenAttack\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Winppy_x64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="source\main.cpp" />
-    <ClCompile Include="source\Scene\Lobby.cpp" />
-    <ClCompile Include="source\Scene\TestScene1.cpp" />
-    <ClCompile Include="source\Scene\Warehouse.cpp" />
-    <ClCompile Include="source\Script\Account.cpp" />
-    <ClCompile Include="source\Script\Character.cpp" />
-    <ClCompile Include="source\Script\CollisionEventTest.cpp" />
-    <ClCompile Include="source\Script\FirstPersonMovement.cpp" />
-    <ClCompile Include="source\Resource\Weapon.cpp" />
-    <ClCompile Include="source\Script\GameResources.cpp" />
-    <ClCompile Include="source\Script\LobbyHandler.cpp" />
-    <ClCompile Include="source\Script\Network.cpp" />
+    <ClCompile Include="Channel.cpp" />
+    <ClCompile Include="Room.cpp" />
+    <ClCompile Include="SASession.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="SlimRWLock.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="source\Scene\Lobby.h" />
-    <ClInclude Include="source\Scene\TestScene1.h" />
-    <ClInclude Include="source\Scene\Warehouse.h" />
-    <ClInclude Include="source\Script\Account.h" />
-    <ClInclude Include="source\Script\Character.h" />
-    <ClInclude Include="source\Script\CollisionEventTest.h" />
-    <ClInclude Include="source\Script\FirstPersonMovement.h" />
-    <ClInclude Include="source\Resource\Weapon.h" />
-    <ClInclude Include="source\Script\GameResources.h" />
-    <ClInclude Include="source\Script\LobbyHandler.h" />
-    <ClInclude Include="source\Script\Network.h" />
+    <ClInclude Include="Channel.h" />
+    <ClInclude Include="Constants.h" />
+    <ClInclude Include="Protocol.h" />
+    <ClInclude Include="Room.h" />
+    <ClInclude Include="SASession.h" />
+    <ClInclude Include="SlimRWLock.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

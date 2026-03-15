@@ -1,4 +1,7 @@
 #include <ZergEngine\ZergEngine.h>
+#include <WinSock2.h>
+#include <Windows.h>
+#include <clocale>
 
 #if defined(DEBUG) || defined(_DEBUG)
 #if defined(UNICODE) || defined(_UNICODE)
@@ -19,6 +22,12 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	// and generate an error report if the application failed to free all the memory it allocated.
 #endif
 
+	_wsetlocale(LC_ALL, L"");
+
+	WSADATA wsaData;
+	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
+		return -1;
+
 	Runtime::CreateInstance();
 	Runtime::GetInstance()->Init(hInstance, nShowCmd, 1366, 768, L"Sudden Attack", L"Lobby");
 
@@ -26,6 +35,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
 	Runtime::GetInstance()->Release();
 	Runtime::DestroyInstance();
+
+	WSACleanup();
 
 	return 0;
 }
