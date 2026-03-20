@@ -57,12 +57,15 @@ public:
 private:
 	void PktProcSCResLogin(winppy::Packet packet);
 	void PktProcSCResBroadcastChatMsg(winppy::Packet packet);
+	void PktProcSCResGameList(winppy::Packet packet);
 private:
 	ListenServer m_listenServer;
 	winppy::TCPClientEngine m_ce;
 	Client m_client;
 	SRWLOCK m_lock;	// m_packetQueue¿ë ¶ô
 	std::queue<winppy::Packet> m_packetQueue;
+	bool m_connected;
+	bool m_disconnectJobDone;
 public:
 	ze::ComponentHandle<Account> m_hScriptAccount;
 	ze::ComponentHandle<LobbyHandler> m_hScriptLobbyHandler;

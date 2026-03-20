@@ -158,6 +158,7 @@
   <ItemGroup>
     <ClInclude Include="Channel.h" />
     <ClInclude Include="Constants.h" />
+    <ClInclude Include="Contents.h" />
     <ClInclude Include="Protocol.h" />
     <ClInclude Include="Room.h" />
     <ClInclude Include="SASession.h" />

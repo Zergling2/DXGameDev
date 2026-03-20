@@ -153,6 +153,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="source\main.cpp" />
+    <ClCompile Include="source\Resource\GameInfo.cpp" />
     <ClCompile Include="source\Scene\Lobby.cpp" />
     <ClCompile Include="source\Scene\TestScene1.cpp" />
     <ClCompile Include="source\Scene\Warehouse.cpp" />
@@ -166,6 +167,7 @@
     <ClCompile Include="source\Script\Network.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="source\Resource\GameInfo.h" />
     <ClInclude Include="source\Scene\Lobby.h" />
     <ClInclude Include="source\Scene\TestScene1.h" />
     <ClInclude Include="source\Scene\Warehouse.h" />

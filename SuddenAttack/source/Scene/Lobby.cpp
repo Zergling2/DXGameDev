@@ -19,10 +19,11 @@ const wchar_t* BTN_TEXT_CREATE_ACCOUNT = L"계정 생성";
 const wchar_t* BTN_TEXT_LOGIN = L"로그인";
 const wchar_t* BTN_TEXT_EXIT = L"나가기";
 
-constexpr uint32_t STATIC_TEXT_SIZE = 16;
+constexpr uint32_t STATIC_TEXT_SIZE_MEDIUM = 16;
+constexpr uint32_t STATIC_TEXT_SIZE_SMALL = 12;
 constexpr uint32_t CHAT_MSG_TEXT_SIZE = 12;
-constexpr uint32_t LOGIN_BUTTON_TEXT_SIZE = 12;
 constexpr uint32_t GAME_LIST_TEXT_SIZE = 18;
+constexpr DWRITE_FONT_WEIGHT GAME_LIST_TEXT_WEIGHT = DWRITE_FONT_WEIGHT_BOLD;
 
 void Lobby::OnLoadScene()
 {
@@ -137,7 +138,7 @@ void Lobby::OnLoadScene()
 	pTextId->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pTextId->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 	pTextId->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
-	pTextId->GetTextFormat().SetSize(STATIC_TEXT_SIZE);
+	pTextId->GetTextFormat().SetSize(STATIC_TEXT_SIZE_MEDIUM);
 	pTextId->ApplyTextFormat();
 	pTextId->SetSize(40, 20);
 
@@ -152,7 +153,7 @@ void Lobby::OnLoadScene()
 	pTextPw->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pTextPw->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 	pTextPw->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
-	pTextPw->GetTextFormat().SetSize(STATIC_TEXT_SIZE);
+	pTextPw->GetTextFormat().SetSize(STATIC_TEXT_SIZE_MEDIUM);
 	pTextPw->ApplyTextFormat();
 	pTextPw->SetSize(100, 20);
 
@@ -228,7 +229,7 @@ void Lobby::OnLoadScene()
 	pButtonCreateAccount->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 	pButtonCreateAccount->SetText(BTN_TEXT_CREATE_ACCOUNT);
 	pButtonCreateAccount->SetTextColor(ColorsLinear::Black);
-	pButtonCreateAccount->GetTextFormat().SetSize(LOGIN_BUTTON_TEXT_SIZE);
+	pButtonCreateAccount->GetTextFormat().SetSize(STATIC_TEXT_SIZE_SMALL);
 	pButtonCreateAccount->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
 	pButtonCreateAccount->ApplyTextFormat();
 
@@ -245,7 +246,7 @@ void Lobby::OnLoadScene()
 	pButtonLogin->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pButtonLogin->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 	pButtonLogin->SetText(BTN_TEXT_LOGIN);
-	pButtonLogin->GetTextFormat().SetSize(LOGIN_BUTTON_TEXT_SIZE);
+	pButtonLogin->GetTextFormat().SetSize(STATIC_TEXT_SIZE_SMALL);
 	pButtonLogin->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
 	pButtonLogin->ApplyTextFormat();
 	pButtonLogin->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickLogin));
@@ -263,7 +264,7 @@ void Lobby::OnLoadScene()
 	pButtonExit->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pButtonExit->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 	pButtonExit->SetText(BTN_TEXT_EXIT);
-	pButtonExit->GetTextFormat().SetSize(LOGIN_BUTTON_TEXT_SIZE);
+	pButtonExit->GetTextFormat().SetSize(STATIC_TEXT_SIZE_SMALL);
 	pButtonExit->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
 	pButtonExit->ApplyTextFormat();
 	pButtonExit->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickExitGame));
@@ -283,7 +284,24 @@ void Lobby::OnLoadScene()
 	pPanelGameBrowserRoot->SetSize(GAME_BROWSER_PANEL_SIZE);
 	pPanelGameBrowserRoot->SetColor(XMVectorSetW(Colors::DimGray, 0.6f));
 	pPanelGameBrowserRoot->SetShape(PanelShape::RoundedRectangle);
-	// pPanelGameBrowserRoot->SetRadius(4.0f, 4.0f);
+	pPanelGameBrowserRoot->SetRadius(8.0f, 8.0f);
+
+	UIObjectHandle hButtonExitGame = CreateButton();
+	Button* pButtonExitGame = static_cast<Button*>(hButtonExitGame.ToPtr());
+	pButtonExitGame->m_transform.SetParent(&pPanelGameBrowserRoot->m_transform);
+	pButtonExitGame->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+	pButtonExitGame->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
+	pButtonExitGame->m_transform.SetPosition(+45, +18);
+	pButtonExitGame->SetSize(80, 26);
+	pButtonExitGame->SetButtonColor(Colors::Red);
+	pButtonExitGame->SetTextColor(Colors::White);
+	pButtonExitGame->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pButtonExitGame->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pButtonExitGame->SetText(L"게임종료");
+	pButtonExitGame->GetTextFormat().SetSize(STATIC_TEXT_SIZE_MEDIUM);
+	pButtonExitGame->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pButtonExitGame->ApplyTextFormat();
+	pButtonExitGame->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickExitGame));
 
 	constexpr XMFLOAT2 GAME_BROWSER_HEAD_TEXT_OFFSET(-GAME_BROWSER_PANEL_SIZE.x / 2 + 80 + GAME_BROWSER_PANEL_OFFSET.x, GAME_BROWSER_PANEL_SIZE.y / 2 - 40 + GAME_BROWSER_PANEL_OFFSET.y);
 	UIObjectHandle hTextGameBrowserHead = CreateText();
@@ -296,8 +314,8 @@ void Lobby::OnLoadScene()
 	pTextGameBrowserHead->SetColor(Colors::Goldenrod);
 	pTextGameBrowserHead->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pTextGameBrowserHead->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pTextGameBrowserHead->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_HEAVY);
-	pTextGameBrowserHead->GetTextFormat().SetSize(22);
+	pTextGameBrowserHead->GetTextFormat().SetWeight(GAME_LIST_TEXT_WEIGHT);
+	pTextGameBrowserHead->GetTextFormat().SetSize(GAME_LIST_TEXT_SIZE);
 	pTextGameBrowserHead->ApplyTextFormat();
 	pTextGameBrowserHead->SetSize(100, 30);
 
@@ -336,7 +354,7 @@ void Lobby::OnLoadScene()
 	pTextGameNoTab->SetColor(Colors::Goldenrod);
 	pTextGameNoTab->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pTextGameNoTab->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pTextGameNoTab->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_HEAVY);
+	pTextGameNoTab->GetTextFormat().SetWeight(GAME_LIST_TEXT_WEIGHT);
 	pTextGameNoTab->GetTextFormat().SetSize(GAME_LIST_TEXT_SIZE);
 	pTextGameNoTab->ApplyTextFormat();
 	pTextGameNoTab->SetSize(GAME_NO_TAB_SIZE);
@@ -353,7 +371,7 @@ void Lobby::OnLoadScene()
 	pTextGameNameTab->SetColor(Colors::Goldenrod);
 	pTextGameNameTab->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pTextGameNameTab->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pTextGameNameTab->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_HEAVY);
+	pTextGameNameTab->GetTextFormat().SetWeight(GAME_LIST_TEXT_WEIGHT);
 	pTextGameNameTab->GetTextFormat().SetSize(GAME_LIST_TEXT_SIZE);
 	pTextGameNameTab->ApplyTextFormat();
 	pTextGameNameTab->SetSize(GAME_NAME_TAB_SIZE);
@@ -370,7 +388,7 @@ void Lobby::OnLoadScene()
 	pTextGameMapTab->SetColor(Colors::Goldenrod);
 	pTextGameMapTab->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pTextGameMapTab->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pTextGameMapTab->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_HEAVY);
+	pTextGameMapTab->GetTextFormat().SetWeight(GAME_LIST_TEXT_WEIGHT);
 	pTextGameMapTab->GetTextFormat().SetSize(GAME_LIST_TEXT_SIZE);
 	pTextGameMapTab->ApplyTextFormat();
 	pTextGameMapTab->SetSize(GAME_MAP_TAB_SIZE);
@@ -387,7 +405,7 @@ void Lobby::OnLoadScene()
 	pTextGameHeadcountTab->SetColor(Colors::Goldenrod);
 	pTextGameHeadcountTab->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pTextGameHeadcountTab->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pTextGameHeadcountTab->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_HEAVY);
+	pTextGameHeadcountTab->GetTextFormat().SetWeight(GAME_LIST_TEXT_WEIGHT);
 	pTextGameHeadcountTab->GetTextFormat().SetSize(GAME_LIST_TEXT_SIZE);
 	pTextGameHeadcountTab->ApplyTextFormat();
 	pTextGameHeadcountTab->SetSize(GAME_HEADCOUNT_TAB_SIZE);
@@ -404,7 +422,7 @@ void Lobby::OnLoadScene()
 	pTextGameModeTab->SetColor(Colors::Goldenrod);
 	pTextGameModeTab->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pTextGameModeTab->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pTextGameModeTab->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_HEAVY);
+	pTextGameModeTab->GetTextFormat().SetWeight(GAME_LIST_TEXT_WEIGHT);
 	pTextGameModeTab->GetTextFormat().SetSize(GAME_LIST_TEXT_SIZE);
 	pTextGameModeTab->ApplyTextFormat();
 	pTextGameModeTab->SetSize(GAME_MODE_TAB_SIZE);
@@ -421,7 +439,7 @@ void Lobby::OnLoadScene()
 	pTextGameStateTab->SetColor(Colors::Goldenrod);
 	pTextGameStateTab->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pTextGameStateTab->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pTextGameStateTab->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_HEAVY);
+	pTextGameStateTab->GetTextFormat().SetWeight(GAME_LIST_TEXT_WEIGHT);
 	pTextGameStateTab->GetTextFormat().SetSize(GAME_LIST_TEXT_SIZE);
 	pTextGameStateTab->ApplyTextFormat();
 	pTextGameStateTab->SetSize(GAME_STATE_TAB_SIZE);
@@ -438,11 +456,10 @@ void Lobby::OnLoadScene()
 		pTextGameNo->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 		pTextGameNo->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 		pTextGameNo->m_transform.SetPosition(GAME_NO_TAB_OFFSET.x, GAME_NO_TAB_OFFSET.y - UI_TAB_ITEM_VERTICAL_DISTANCE - i * LIST_ITEM_VERTICAL_DISTANCE);
-		pTextGameNo->SetText(L"123");
 		pTextGameNo->SetColor(Colors::WhiteSmoke);
 		pTextGameNo->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 		pTextGameNo->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-		pTextGameNo->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+		pTextGameNo->GetTextFormat().SetWeight(GAME_LIST_TEXT_WEIGHT);
 		pTextGameNo->GetTextFormat().SetSize(GAME_LIST_TEXT_SIZE);
 		pTextGameNo->ApplyTextFormat();
 		pTextGameNo->SetSize(GAME_NO_TAB_SIZE);
@@ -454,11 +471,10 @@ void Lobby::OnLoadScene()
 		pTextGameName->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 		pTextGameName->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 		pTextGameName->m_transform.SetPosition(GAME_NAME_TAB_OFFSET.x, GAME_NAME_TAB_OFFSET.y - UI_TAB_ITEM_VERTICAL_DISTANCE - i * LIST_ITEM_VERTICAL_DISTANCE);
-		pTextGameName->SetText(L"Only the best there is!");
 		pTextGameName->SetColor(Colors::WhiteSmoke);
 		pTextGameName->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 		pTextGameName->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-		pTextGameName->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+		pTextGameName->GetTextFormat().SetWeight(GAME_LIST_TEXT_WEIGHT);
 		pTextGameName->GetTextFormat().SetSize(GAME_LIST_TEXT_SIZE);
 		pTextGameName->ApplyTextFormat();
 		pTextGameName->SetSize(GAME_NAME_TAB_SIZE);
@@ -470,11 +486,10 @@ void Lobby::OnLoadScene()
 		pTextGameMap->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 		pTextGameMap->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 		pTextGameMap->m_transform.SetPosition(GAME_MAP_TAB_OFFSET.x, GAME_MAP_TAB_OFFSET.y - UI_TAB_ITEM_VERTICAL_DISTANCE - i * LIST_ITEM_VERTICAL_DISTANCE);
-		pTextGameMap->SetText(L"웨어하우스");
 		pTextGameMap->SetColor(Colors::WhiteSmoke);
 		pTextGameMap->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 		pTextGameMap->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-		pTextGameMap->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+		pTextGameMap->GetTextFormat().SetWeight(GAME_LIST_TEXT_WEIGHT);
 		pTextGameMap->GetTextFormat().SetSize(GAME_LIST_TEXT_SIZE);
 		pTextGameMap->ApplyTextFormat();
 		pTextGameMap->SetSize(GAME_MAP_TAB_SIZE);
@@ -486,11 +501,10 @@ void Lobby::OnLoadScene()
 		pTextGameHeadcount->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 		pTextGameHeadcount->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 		pTextGameHeadcount->m_transform.SetPosition(GAME_HEADCOUNT_TAB_OFFSET.x, GAME_HEADCOUNT_TAB_OFFSET.y - UI_TAB_ITEM_VERTICAL_DISTANCE - i * LIST_ITEM_VERTICAL_DISTANCE);
-		pTextGameHeadcount->SetText(L"3 / 8");
 		pTextGameHeadcount->SetColor(Colors::WhiteSmoke);
 		pTextGameHeadcount->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 		pTextGameHeadcount->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-		pTextGameHeadcount->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+		pTextGameHeadcount->GetTextFormat().SetWeight(GAME_LIST_TEXT_WEIGHT);
 		pTextGameHeadcount->GetTextFormat().SetSize(GAME_LIST_TEXT_SIZE);
 		pTextGameHeadcount->ApplyTextFormat();
 		pTextGameHeadcount->SetSize(GAME_HEADCOUNT_TAB_SIZE);
@@ -502,11 +516,10 @@ void Lobby::OnLoadScene()
 		pTextGameMode->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 		pTextGameMode->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 		pTextGameMode->m_transform.SetPosition(GAME_MODE_TAB_POS.x, GAME_MODE_TAB_POS.y - UI_TAB_ITEM_VERTICAL_DISTANCE - i * LIST_ITEM_VERTICAL_DISTANCE);
-		pTextGameMode->SetText(L"팀데스매치");
 		pTextGameMode->SetColor(Colors::WhiteSmoke);
 		pTextGameMode->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 		pTextGameMode->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-		pTextGameMode->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+		pTextGameMode->GetTextFormat().SetWeight(GAME_LIST_TEXT_WEIGHT);
 		pTextGameMode->GetTextFormat().SetSize(GAME_LIST_TEXT_SIZE);
 		pTextGameMode->ApplyTextFormat();
 		pTextGameMode->SetSize(GAME_MODE_TAB_SIZE);
@@ -518,11 +531,10 @@ void Lobby::OnLoadScene()
 		pTextGameState->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 		pTextGameState->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 		pTextGameState->m_transform.SetPosition(GAME_STATE_TAB_OFFSET.x, GAME_STATE_TAB_OFFSET.y - UI_TAB_ITEM_VERTICAL_DISTANCE - i * LIST_ITEM_VERTICAL_DISTANCE);
-		pTextGameState->SetText(L"대기중");
 		pTextGameState->SetColor(Colors::GreenYellow);
 		pTextGameState->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 		pTextGameState->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-		pTextGameState->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+		pTextGameState->GetTextFormat().SetWeight(GAME_LIST_TEXT_WEIGHT);
 		pTextGameState->GetTextFormat().SetSize(GAME_LIST_TEXT_SIZE);
 		pTextGameState->ApplyTextFormat();
 		pTextGameState->SetSize(GAME_STATE_TAB_SIZE);
@@ -538,13 +550,13 @@ void Lobby::OnLoadScene()
 		pButtonEnterGame->SetButtonColorA(0.0f);
 		pButtonEnterGame->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 		pButtonEnterGame->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-		pButtonEnterGame->GetTextFormat().SetSize(STATIC_TEXT_SIZE);
-		pButtonEnterGame->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+		pButtonEnterGame->GetTextFormat().SetWeight(GAME_LIST_TEXT_WEIGHT);
+		pButtonEnterGame->GetTextFormat().SetSize(GAME_LIST_TEXT_SIZE);
 		pButtonEnterGame->ApplyTextFormat();
 	}
 
 	constexpr float BROWSER_BOTTOM_BUTTON_COMMON_Y_OFFSET = +30;
-	constexpr XMFLOAT2 GAME_LIST_PREV_BUTTON_OFFSET(-40, -GAME_BROWSER_PANEL_SIZE.y / 2 + BROWSER_BOTTOM_BUTTON_COMMON_Y_OFFSET + GAME_BROWSER_PANEL_OFFSET.y);
+	constexpr XMFLOAT2 GAME_LIST_PREV_BUTTON_OFFSET(-80, -GAME_BROWSER_PANEL_SIZE.y / 2 + BROWSER_BOTTOM_BUTTON_COMMON_Y_OFFSET + GAME_BROWSER_PANEL_OFFSET.y);
 	UIObjectHandle hButtonGameListPrev = CreateButton();
 	Button* pButtonGameListPrev = static_cast<Button*>(hButtonGameListPrev.ToPtr());
 	pButtonGameListPrev->m_transform.SetParent(&pPanelGameBrowserRoot->m_transform);
@@ -556,11 +568,12 @@ void Lobby::OnLoadScene()
 	pButtonGameListPrev->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pButtonGameListPrev->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 	pButtonGameListPrev->SetText(L"◀");
-	pButtonGameListPrev->GetTextFormat().SetSize(STATIC_TEXT_SIZE);
+	pButtonGameListPrev->GetTextFormat().SetSize(STATIC_TEXT_SIZE_MEDIUM);
 	pButtonGameListPrev->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
 	pButtonGameListPrev->ApplyTextFormat();
+	pButtonGameListPrev->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickGameListPrev));
 
-	constexpr XMFLOAT2 GAME_LIST_NEXT_BUTTON_OFFSET(+40, -GAME_BROWSER_PANEL_SIZE.y / 2 + BROWSER_BOTTOM_BUTTON_COMMON_Y_OFFSET + GAME_BROWSER_PANEL_OFFSET.y);
+	constexpr XMFLOAT2 GAME_LIST_NEXT_BUTTON_OFFSET(+80, GAME_LIST_PREV_BUTTON_OFFSET.y);
 	UIObjectHandle hButtonGameListNext = CreateButton();
 	Button* pButtonGameListNext = static_cast<Button*>(hButtonGameListNext.ToPtr());
 	pButtonGameListNext->m_transform.SetParent(&pPanelGameBrowserRoot->m_transform);
@@ -572,9 +585,26 @@ void Lobby::OnLoadScene()
 	pButtonGameListNext->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pButtonGameListNext->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 	pButtonGameListNext->SetText(L"▶");
-	pButtonGameListNext->GetTextFormat().SetSize(STATIC_TEXT_SIZE);
+	pButtonGameListNext->GetTextFormat().SetSize(STATIC_TEXT_SIZE_MEDIUM);
 	pButtonGameListNext->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
 	pButtonGameListNext->ApplyTextFormat();
+	pButtonGameListNext->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickGameListNext));
+
+	constexpr XMFLOAT2 GAME_LIST_PAGE_TEXT_OFFSET(0, GAME_LIST_PREV_BUTTON_OFFSET.y);
+	UIObjectHandle hTextGameListPage = CreateText();
+	pScriptLobbyHandler->m_hTextGameListPage = hTextGameListPage;
+	Text* pTextGameListPage = static_cast<Text*>(hTextGameListPage.ToPtr());
+	pTextGameListPage->m_transform.SetParent(&pPanelGameBrowserRoot->m_transform);
+	pTextGameListPage->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pTextGameListPage->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pTextGameListPage->m_transform.SetPosition(GAME_LIST_PAGE_TEXT_OFFSET);
+	pTextGameListPage->SetColor(Colors::GreenYellow);
+	pTextGameListPage->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pTextGameListPage->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pTextGameListPage->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pTextGameListPage->GetTextFormat().SetSize(STATIC_TEXT_SIZE_MEDIUM);
+	pTextGameListPage->ApplyTextFormat();
+	pTextGameListPage->SetSize(80, 20);
 
 	constexpr XMFLOAT2 GAME_LIST_REFRESH_BUTTON_OFFSET(+540, -GAME_BROWSER_PANEL_SIZE.y / 2 + BROWSER_BOTTOM_BUTTON_COMMON_Y_OFFSET + GAME_BROWSER_PANEL_OFFSET.y);
 	UIObjectHandle hButtonRefreshGameList = CreateButton();
@@ -588,36 +618,236 @@ void Lobby::OnLoadScene()
 	pButtonRefreshGameList->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pButtonRefreshGameList->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 	pButtonRefreshGameList->SetText(L"새로고침");
-	pButtonRefreshGameList->GetTextFormat().SetSize(STATIC_TEXT_SIZE);
+	pButtonRefreshGameList->GetTextFormat().SetSize(STATIC_TEXT_SIZE_MEDIUM);
 	pButtonRefreshGameList->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
 	pButtonRefreshGameList->ApplyTextFormat();
+	pButtonRefreshGameList->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickRefreshGameList));
+
+	constexpr XMFLOAT2 CREATE_GAME_ROOM_BUTTON_OFFSET(-540, GAME_LIST_REFRESH_BUTTON_OFFSET.y);
+	UIObjectHandle hButtonCreateGameRoom = CreateButton();
+	Button* pButtonCreateGameRoom = static_cast<Button*>(hButtonCreateGameRoom.ToPtr());
+	pButtonCreateGameRoom->m_transform.SetParent(&pPanelGameBrowserRoot->m_transform);
+	pButtonCreateGameRoom->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pButtonCreateGameRoom->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pButtonCreateGameRoom->m_transform.SetPosition(CREATE_GAME_ROOM_BUTTON_OFFSET);
+	pButtonCreateGameRoom->SetSize(100, 26);
+	pButtonCreateGameRoom->SetButtonColor(Colors::DodgerBlue);
+	pButtonCreateGameRoom->SetTextColor(Colors::Black);
+	pButtonCreateGameRoom->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pButtonCreateGameRoom->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pButtonCreateGameRoom->SetText(L"방생성");
+	pButtonCreateGameRoom->GetTextFormat().SetSize(STATIC_TEXT_SIZE_MEDIUM);
+	pButtonCreateGameRoom->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pButtonCreateGameRoom->ApplyTextFormat();
+	pButtonCreateGameRoom->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickCreateGameRoom));
+
+	// 방 생성 메뉴 UI
+	
+	constexpr XMFLOAT2 CREATE_GAME_PANEL_SIZE(600, 300);
+	UIObjectHandle hPanelCreateGameRoomRoot = CreatePanel();
+	pScriptLobbyHandler->m_hPanelCreateGameRoomRoot = hPanelCreateGameRoomRoot;
+	Panel* pPanelCreateGameRoomRoot = static_cast<Panel*>(hPanelCreateGameRoomRoot.ToPtr());
+	pPanelCreateGameRoomRoot->m_transform.SetParent(&pImageLobbyBgr->m_transform);
+	pPanelCreateGameRoomRoot->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pPanelCreateGameRoomRoot->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	// pPanelCreateGameRoomRoot->m_transform.SetPosition(0, 0);
+	pPanelCreateGameRoomRoot->SetSize(CREATE_GAME_PANEL_SIZE);
+	pPanelCreateGameRoomRoot->SetColor(ColorsLinear::DimGray);
+	pPanelCreateGameRoomRoot->SetShape(PanelShape::RoundedRectangle);
+	pPanelCreateGameRoomRoot->SetRadius(8.0f, 8.0f);
+
+	constexpr XMFLOAT2 CREATE_GAME_HEAD_TEXT_SIZE(200, 30);
+	UIObjectHandle hTextCreateGameHead = CreateText();
+	Text* pTextCreateGameHead = static_cast<Text*>(hTextCreateGameHead.ToPtr());
+	pTextCreateGameHead->m_transform.SetParent(&pPanelCreateGameRoomRoot->m_transform);
+	pTextCreateGameHead->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pTextCreateGameHead->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pTextCreateGameHead->m_transform.SetPosition(-CREATE_GAME_PANEL_SIZE.x / 2 + CREATE_GAME_HEAD_TEXT_SIZE.x / 2 + 20, CREATE_GAME_PANEL_SIZE.y / 2 - CREATE_GAME_HEAD_TEXT_SIZE.y / 2 - 10);
+	pTextCreateGameHead->SetSize(CREATE_GAME_HEAD_TEXT_SIZE);
+	pTextCreateGameHead->SetColor(Colors::WhiteSmoke);
+	pTextCreateGameHead->SetText(L"방생성");
+	pTextCreateGameHead->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+	pTextCreateGameHead->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pTextCreateGameHead->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_HEAVY);
+	pTextCreateGameHead->GetTextFormat().SetSize(STATIC_TEXT_SIZE_MEDIUM);
+	pTextCreateGameHead->ApplyTextFormat();
+
+	constexpr XMFLOAT2 CREATE_GAME_ROOM_NAME_DESC_TEXT_SIZE(60, 20);
+	constexpr XMFLOAT2 CREATE_GAME_ROOM_NAME_DESC_TEXT_OFFSET(-200, +50);
+	UIObjectHandle hTextCreateGameRoomNameDesc = CreateText();
+	Text* pTextCreateGameRoomNameDesc = static_cast<Text*>(hTextCreateGameRoomNameDesc.ToPtr());
+	pTextCreateGameRoomNameDesc->m_transform.SetParent(&pPanelCreateGameRoomRoot->m_transform);
+	pTextCreateGameRoomNameDesc->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pTextCreateGameRoomNameDesc->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pTextCreateGameRoomNameDesc->m_transform.SetPosition(CREATE_GAME_ROOM_NAME_DESC_TEXT_OFFSET);
+	pTextCreateGameRoomNameDesc->SetSize(CREATE_GAME_ROOM_NAME_DESC_TEXT_SIZE);
+	pTextCreateGameRoomNameDesc->SetColor(Colors::WhiteSmoke);
+	pTextCreateGameRoomNameDesc->SetText(L"방제목");
+	pTextCreateGameRoomNameDesc->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+	pTextCreateGameRoomNameDesc->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pTextCreateGameRoomNameDesc->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pTextCreateGameRoomNameDesc->GetTextFormat().SetSize(STATIC_TEXT_SIZE_SMALL);
+	pTextCreateGameRoomNameDesc->ApplyTextFormat();
+
+	constexpr XMFLOAT2 GAME_ROOM_NAME_INPUT_FIELD_SIZE(400, 20);
+	constexpr XMFLOAT2 GAME_ROOM_NAME_INPUT_FIELD_OFFSET(CREATE_GAME_ROOM_NAME_DESC_TEXT_OFFSET.x + CREATE_GAME_ROOM_NAME_DESC_TEXT_SIZE.x / 2 + GAME_ROOM_NAME_INPUT_FIELD_SIZE.x / 2 + 20, CREATE_GAME_ROOM_NAME_DESC_TEXT_OFFSET.y);
+	UIObjectHandle hInputFieldCreateGameRoomName = CreateInputField();
+	pScriptLobbyHandler->m_hInputFieldCreateGameRoomName = hInputFieldCreateGameRoomName;
+	InputField* pInputFieldCreateGameRoomName = static_cast<InputField*>(hInputFieldCreateGameRoomName.ToPtr());
+	pInputFieldCreateGameRoomName->m_transform.SetParent(&pPanelCreateGameRoomRoot->m_transform);
+	pInputFieldCreateGameRoomName->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pInputFieldCreateGameRoomName->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pInputFieldCreateGameRoomName->m_transform.SetPosition(GAME_ROOM_NAME_INPUT_FIELD_OFFSET);
+	pInputFieldCreateGameRoomName->SetSize(GAME_ROOM_NAME_INPUT_FIELD_SIZE);
+	pInputFieldCreateGameRoomName->SetMaxChar(MAX_CHAT_MSG_LEN);
+	pInputFieldCreateGameRoomName->SetTextColor(Colors::Black);
+	pInputFieldCreateGameRoomName->SetBkColor(ColorsLinear::DimGray);
+	pInputFieldCreateGameRoomName->GetTextFormat().SetSize(CHAT_MSG_TEXT_SIZE);
+	pInputFieldCreateGameRoomName->ApplyTextFormat();
+	pInputFieldCreateGameRoomName->SetMaxChar(MAX_GAME_NAME_LEN);
+	pInputFieldCreateGameRoomName->AllowReturn(false);
+	pInputFieldCreateGameRoomName->AllowSpace(true);
+
+	constexpr XMFLOAT2 CREATE_GAME_ROOM_MAX_PLAYER_DESC_TEXT_OFFSET(-220, -50);
+	UIObjectHandle hTextCreateGameRoomMaxPlayerDesc = CreateText();
+	Text* pTextCreateGameRoomMaxPlayerDesc = static_cast<Text*>(hTextCreateGameRoomMaxPlayerDesc.ToPtr());
+	pTextCreateGameRoomMaxPlayerDesc->m_transform.SetParent(&pPanelCreateGameRoomRoot->m_transform);
+	pTextCreateGameRoomMaxPlayerDesc->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pTextCreateGameRoomMaxPlayerDesc->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pTextCreateGameRoomMaxPlayerDesc->m_transform.SetPosition(CREATE_GAME_ROOM_MAX_PLAYER_DESC_TEXT_OFFSET);
+	pTextCreateGameRoomMaxPlayerDesc->SetSize(100, 20);
+	pTextCreateGameRoomMaxPlayerDesc->SetColor(Colors::WhiteSmoke);
+	pTextCreateGameRoomMaxPlayerDesc->SetText(L"최대 인원 수");
+	pTextCreateGameRoomMaxPlayerDesc->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+	pTextCreateGameRoomMaxPlayerDesc->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pTextCreateGameRoomMaxPlayerDesc->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pTextCreateGameRoomMaxPlayerDesc->GetTextFormat().SetSize(STATIC_TEXT_SIZE_SMALL);
+	pTextCreateGameRoomMaxPlayerDesc->ApplyTextFormat();
+
+	{
+		UIObjectHandle hRadioButtonGameRoomMaxPlayer1vs1 = CreateRadioButton();
+		pScriptLobbyHandler->m_hRadioButtonGameRoomMaxPlayer[0] = hRadioButtonGameRoomMaxPlayer1vs1;
+		RadioButton* pRadioButtonGameRoomMaxPlayer1vs1 = static_cast<RadioButton*>(hRadioButtonGameRoomMaxPlayer1vs1.ToPtr());
+		pRadioButtonGameRoomMaxPlayer1vs1->m_transform.SetParent(&pPanelCreateGameRoomRoot->m_transform);
+		pRadioButtonGameRoomMaxPlayer1vs1->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+		pRadioButtonGameRoomMaxPlayer1vs1->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+		pRadioButtonGameRoomMaxPlayer1vs1->m_transform.SetPosition(CREATE_GAME_ROOM_MAX_PLAYER_DESC_TEXT_OFFSET.x + 40, CREATE_GAME_ROOM_MAX_PLAYER_DESC_TEXT_OFFSET.y);
+		pRadioButtonGameRoomMaxPlayer1vs1->SetText(L"1 vs 1");
+		pRadioButtonGameRoomMaxPlayer1vs1->SetButtonColorRGB(ColorsLinear::SteelBlue);
+		pRadioButtonGameRoomMaxPlayer1vs1->GetTextFormat().SetSize(STATIC_TEXT_SIZE_SMALL);
+		pRadioButtonGameRoomMaxPlayer1vs1->ApplyTextFormat();
+		pRadioButtonGameRoomMaxPlayer1vs1->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickRadioButtonGameRoom1vs1));
+
+		for (int i = 1; i < MAX_PLAYER_PER_TEAM; ++i)
+		{
+			wchar_t buf[16];
+			StringCchPrintfW(buf, _countof(buf), L"%d vs %d", i + 1, i + 1);
+
+			UIObjectHandle hRadioButtonGameRoomMaxPlayer = CreateRadioButton();
+			pScriptLobbyHandler->m_hRadioButtonGameRoomMaxPlayer[i] = hRadioButtonGameRoomMaxPlayer;
+			RadioButton* pRadioButtonGameRoomMaxPlayer = static_cast<RadioButton*>(hRadioButtonGameRoomMaxPlayer.ToPtr());
+			pRadioButtonGameRoomMaxPlayer->m_transform.SetParent(&pPanelCreateGameRoomRoot->m_transform);
+			pRadioButtonGameRoomMaxPlayer->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+			pRadioButtonGameRoomMaxPlayer->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+			pRadioButtonGameRoomMaxPlayer->m_transform.SetPosition(CREATE_GAME_ROOM_MAX_PLAYER_DESC_TEXT_OFFSET.x + 40 + i * 60, CREATE_GAME_ROOM_MAX_PLAYER_DESC_TEXT_OFFSET.y);
+			pRadioButtonGameRoomMaxPlayer->SetText(buf);
+			pRadioButtonGameRoomMaxPlayer->SetButtonColorRGB(ColorsLinear::SteelBlue);
+			pRadioButtonGameRoomMaxPlayer->GetTextFormat().SetSize(STATIC_TEXT_SIZE_SMALL);
+			pRadioButtonGameRoomMaxPlayer->ApplyTextFormat();
+
+			switch (i)
+			{
+			case 1:
+				pRadioButtonGameRoomMaxPlayer->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickRadioButtonGameRoom2vs2));
+				break;
+			case 2:
+				pRadioButtonGameRoomMaxPlayer->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickRadioButtonGameRoom3vs3));
+				break;
+			case 3:
+				pRadioButtonGameRoomMaxPlayer->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickRadioButtonGameRoom4vs4));
+				break;
+			case 4:
+				pRadioButtonGameRoomMaxPlayer->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickRadioButtonGameRoom5vs5));
+				break;
+			case 5:
+				pRadioButtonGameRoomMaxPlayer->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickRadioButtonGameRoom6vs6));
+				break;
+			case 6:
+				pRadioButtonGameRoomMaxPlayer->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickRadioButtonGameRoom7vs7));
+				break;
+			case 7:
+				pRadioButtonGameRoomMaxPlayer->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickRadioButtonGameRoom8vs8));
+				break;
+			default:
+				assert(false);
+				break;
+			}
+
+			// 라디오버튼 그룹화
+			pRadioButtonGameRoomMaxPlayer1vs1->Join(pRadioButtonGameRoomMaxPlayer);
+		}
+	}
 
 
+	constexpr XMFLOAT2 CREATE_GAME_ROOM_REQ_BUTTON_SIZE(80, 22);
+	constexpr XMFLOAT2 CREATE_GAME_ROOM_REQ_BUTTON_OFFSET(CREATE_GAME_PANEL_SIZE.x / 2 - CREATE_GAME_ROOM_REQ_BUTTON_SIZE.x / 2 - CREATE_GAME_ROOM_REQ_BUTTON_SIZE.x - 25, -CREATE_GAME_PANEL_SIZE.y / 2 + CREATE_GAME_ROOM_REQ_BUTTON_SIZE.y / 2 + 15);
+	UIObjectHandle hButtonCreateGameRoomReq = CreateButton();
+	Button* pButtonCreateGameRoomReq = static_cast<Button*>(hButtonCreateGameRoomReq.ToPtr());
+	pButtonCreateGameRoomReq->m_transform.SetParent(&pPanelCreateGameRoomRoot->m_transform);
+	pButtonCreateGameRoomReq->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pButtonCreateGameRoomReq->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pButtonCreateGameRoomReq->m_transform.SetPosition(CREATE_GAME_ROOM_REQ_BUTTON_OFFSET);
+	pButtonCreateGameRoomReq->SetSize(CREATE_GAME_ROOM_REQ_BUTTON_SIZE);
+	pButtonCreateGameRoomReq->SetButtonColor(Colors::DodgerBlue);
+	pButtonCreateGameRoomReq->SetTextColor(Colors::Black);
+	pButtonCreateGameRoomReq->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pButtonCreateGameRoomReq->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pButtonCreateGameRoomReq->SetText(L"생성");
+	pButtonCreateGameRoomReq->GetTextFormat().SetSize(STATIC_TEXT_SIZE_MEDIUM);
+	pButtonCreateGameRoomReq->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pButtonCreateGameRoomReq->ApplyTextFormat();
 
-
+	constexpr XMFLOAT2 CREATE_GAME_ROOM_CANCEL_BUTTON_SIZE(80, 22);
+	constexpr XMFLOAT2 CREATE_GAME_ROOM_CANCEL_BUTTON_OFFSET(CREATE_GAME_PANEL_SIZE.x / 2 - CREATE_GAME_ROOM_REQ_BUTTON_SIZE.x / 2 - 15, CREATE_GAME_ROOM_REQ_BUTTON_OFFSET.y);
+	UIObjectHandle hButtonCreateGameRoomCancel = CreateButton();
+	Button* pButtonCreateGameRoomCancel = static_cast<Button*>(hButtonCreateGameRoomCancel.ToPtr());
+	pButtonCreateGameRoomCancel->m_transform.SetParent(&pPanelCreateGameRoomRoot->m_transform);
+	pButtonCreateGameRoomCancel->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pButtonCreateGameRoomCancel->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pButtonCreateGameRoomCancel->m_transform.SetPosition(CREATE_GAME_ROOM_CANCEL_BUTTON_OFFSET);
+	pButtonCreateGameRoomCancel->SetSize(CREATE_GAME_ROOM_CANCEL_BUTTON_SIZE);
+	pButtonCreateGameRoomCancel->SetButtonColor(Colors::DimGray);
+	pButtonCreateGameRoomCancel->SetTextColor(Colors::Black);
+	pButtonCreateGameRoomCancel->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pButtonCreateGameRoomCancel->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pButtonCreateGameRoomCancel->SetText(L"닫기");
+	pButtonCreateGameRoomCancel->GetTextFormat().SetSize(STATIC_TEXT_SIZE_MEDIUM);
+	pButtonCreateGameRoomCancel->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pButtonCreateGameRoomCancel->ApplyTextFormat();
+	pButtonCreateGameRoomCancel->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickCreateGameRoomCancel));
 
 
 	// ############################
 	// 채팅 UI
 	constexpr XMFLOAT2 CHAT_PANEL_SIZE(840, 200);
 	constexpr XMFLOAT2 CHAT_PANEL_OFFSET(-GAME_BROWSER_PANEL_SIZE.x / 2 + CHAT_PANEL_SIZE.x / 2, CHAT_PANEL_SIZE.y / 2 + 20);
-	UIObjectHandle hPanelChat = CreatePanel();
-	pScriptLobbyHandler->m_hPanelChat = hPanelChat;
-	Panel* pPanelChat = static_cast<Panel*>(hPanelChat.ToPtr());
-	pPanelChat->m_transform.SetParent(&pImageLobbyBgr->m_transform);
-	pPanelChat->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
-	pPanelChat->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
-	pPanelChat->m_transform.SetPosition(CHAT_PANEL_OFFSET);
-	pPanelChat->SetSize(CHAT_PANEL_SIZE);
-	pPanelChat->SetColor(XMVectorSetW(Colors::DimGray, 0.6f));
-	pPanelChat->SetShape(PanelShape::RoundedRectangle);
-	// pPanelGameBrowserRoot->SetRadius(4.0f, 4.0f);
+	UIObjectHandle hPanelChatRoot = CreatePanel();
+	pScriptLobbyHandler->m_hPanelChatRoot = hPanelChatRoot;
+	Panel* pPanelChatRoot = static_cast<Panel*>(hPanelChatRoot.ToPtr());
+	pPanelChatRoot->m_transform.SetParent(&pImageLobbyBgr->m_transform);
+	pPanelChatRoot->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pPanelChatRoot->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
+	pPanelChatRoot->m_transform.SetPosition(CHAT_PANEL_OFFSET);
+	pPanelChatRoot->SetSize(CHAT_PANEL_SIZE);
+	pPanelChatRoot->SetColor(XMVectorSetW(Colors::DimGray, 0.6f));
+	pPanelChatRoot->SetShape(PanelShape::RoundedRectangle);
+	pPanelGameBrowserRoot->SetRadius(8.0f, 8.0f);
 
 	constexpr XMFLOAT2 SEND_CHAT_MSG_BUTTON_SIZE(80, 22);
 	constexpr XMFLOAT2 SEND_CHAT_MSG_BUTTON_OFFSET(CHAT_PANEL_OFFSET.x + CHAT_PANEL_SIZE.x / 2 - SEND_CHAT_MSG_BUTTON_SIZE.x / 2 - 10, CHAT_PANEL_OFFSET.y - CHAT_PANEL_SIZE.y / 2 + SEND_CHAT_MSG_BUTTON_SIZE.y / 2 + 10);
 	UIObjectHandle hButtonSendChatMsg = CreateButton();
 	Button* pButtonSendChatMsg = static_cast<Button*>(hButtonSendChatMsg.ToPtr());
-	pButtonSendChatMsg->m_transform.SetParent(&pPanelChat->m_transform);
+	pButtonSendChatMsg->m_transform.SetParent(&pPanelChatRoot->m_transform);
 	pButtonSendChatMsg->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 	pButtonSendChatMsg->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
 	pButtonSendChatMsg->m_transform.SetPosition(SEND_CHAT_MSG_BUTTON_OFFSET);
@@ -626,7 +856,7 @@ void Lobby::OnLoadScene()
 	pButtonSendChatMsg->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pButtonSendChatMsg->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 	pButtonSendChatMsg->SetText(L"전송");
-	pButtonSendChatMsg->GetTextFormat().SetSize(STATIC_TEXT_SIZE);
+	pButtonSendChatMsg->GetTextFormat().SetSize(STATIC_TEXT_SIZE_MEDIUM);
 	pButtonSendChatMsg->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
 	pButtonSendChatMsg->ApplyTextFormat();
 	pButtonSendChatMsg->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickSendChatMsg));
@@ -636,16 +866,18 @@ void Lobby::OnLoadScene()
 	UIObjectHandle hInputFieldChatMsg = CreateInputField();
 	pScriptLobbyHandler->m_hInputFieldChatMsg = hInputFieldChatMsg;
 	InputField* pInputFieldChatInput = static_cast<InputField*>(hInputFieldChatMsg.ToPtr());
-	pInputFieldChatInput->m_transform.SetParent(&pPanelChat->m_transform);
+	pInputFieldChatInput->m_transform.SetParent(&pPanelChatRoot->m_transform);
 	pInputFieldChatInput->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 	pInputFieldChatInput->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
 	pInputFieldChatInput->m_transform.SetPosition(CHAT_INPUT_FIELD_OFFSET);
 	pInputFieldChatInput->SetSize(CHAT_INPUT_FIELD_SIZE);
 	pInputFieldChatInput->SetMaxChar(MAX_CHAT_MSG_LEN);
 	pInputFieldChatInput->SetTextColor(Colors::Black);
-	pInputFieldChatInput->SetBkColor(ColorsLinear::Orange);
+	pInputFieldChatInput->SetBkColor(ColorsLinear::DimGray);
 	pInputFieldChatInput->GetTextFormat().SetSize(CHAT_MSG_TEXT_SIZE);
 	pInputFieldChatInput->ApplyTextFormat();
+	pInputFieldChatInput->AllowReturn(false);
+	pInputFieldChatInput->AllowSpace(true);
 
 	constexpr XMFLOAT2 CHAT_MSG_SIZE(CHAT_INPUT_FIELD_SIZE.x + SEND_CHAT_MSG_BUTTON_SIZE.x, CHAT_INPUT_FIELD_SIZE.y);
 	constexpr XMFLOAT2 FIRST_CHAT_MSG_OFFSET(CHAT_PANEL_OFFSET.x, CHAT_PANEL_OFFSET.y + CHAT_PANEL_SIZE.y / 2 - CHAT_MSG_SIZE.y / 2 - 10);
@@ -654,7 +886,7 @@ void Lobby::OnLoadScene()
 		UIObjectHandle hTextLobbyChatMsg = CreateText();
 		pScriptLobbyHandler->m_hTextLobbyChatMsg[i] = hTextLobbyChatMsg;
 		Text* pTextLobbyChatMsg = static_cast<Text*>(hTextLobbyChatMsg.ToPtr());
-		pTextLobbyChatMsg->m_transform.SetParent(&pPanelChat->m_transform);
+		pTextLobbyChatMsg->m_transform.SetParent(&pPanelChatRoot->m_transform);
 		pTextLobbyChatMsg->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 		pTextLobbyChatMsg->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
 		pTextLobbyChatMsg->m_transform.SetPosition(FIRST_CHAT_MSG_OFFSET.x, FIRST_CHAT_MSG_OFFSET.y - i * CHAT_MSG_SIZE.y);
@@ -667,13 +899,172 @@ void Lobby::OnLoadScene()
 		pTextLobbyChatMsg->ApplyTextFormat();
 	}
 
+	// ########################################
+	// 방 UI
+	constexpr XMFLOAT2 GAME_ROOM_PANEL_SIZE(1280, 700);
+	constexpr XMFLOAT2 GAME_ROOM_PANEL_OFFSET(0, +40);
+	UIObjectHandle hPanelGameRoomRoot = CreatePanel();
+	pScriptLobbyHandler->m_hPanelGameRoomRoot = hPanelGameRoomRoot;
+	Panel* pPanelGameRoomRoot = static_cast<Panel*>(hPanelGameRoomRoot.ToPtr());
+	pPanelGameRoomRoot->m_transform.SetParent(&pImageLobbyBgr->m_transform);
+	pPanelGameRoomRoot->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pPanelGameRoomRoot->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pPanelGameRoomRoot->m_transform.SetPosition(GAME_ROOM_PANEL_OFFSET);
+	pPanelGameRoomRoot->SetSize(GAME_ROOM_PANEL_SIZE);
+	pPanelGameRoomRoot->SetColor(XMVectorSetW(Colors::DimGray, 0.6f));
+	pPanelGameRoomRoot->SetShape(PanelShape::RoundedRectangle);
+	pPanelGameRoomRoot->SetRadius(8.0f, 8.0f);
+
+	constexpr XMFLOAT2 GAME_ROOM_NAME_PANEL_SIZE(840, 30);
+	constexpr XMFLOAT2 GAME_ROOM_NAME_PANEL_OFFSET(GAME_ROOM_PANEL_SIZE.x / 2 - GAME_ROOM_NAME_PANEL_SIZE.x / 2 - 15 + GAME_ROOM_PANEL_OFFSET.x, GAME_ROOM_PANEL_SIZE.y / 2 - GAME_ROOM_NAME_PANEL_SIZE.y / 2 - 25 + GAME_ROOM_PANEL_OFFSET.y);
+	UIObjectHandle hPanelGameNamePanel = CreatePanel();
+	Panel* pPanelGameNamePanel = static_cast<Panel*>(hPanelGameNamePanel.ToPtr());
+	pPanelGameNamePanel->m_transform.SetParent(&pPanelGameRoomRoot->m_transform);
+	pPanelGameNamePanel->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pPanelGameNamePanel->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pPanelGameNamePanel->m_transform.SetPosition(GAME_ROOM_NAME_PANEL_OFFSET);
+	pPanelGameNamePanel->SetSize(GAME_ROOM_NAME_PANEL_SIZE);
+	pPanelGameNamePanel->SetColor(XMVectorSetW(Colors::Orange, 0.4f));
+	pPanelGameNamePanel->SetShape(PanelShape::Rectangle);
+
+	constexpr XMFLOAT2 GAME_ROOM_NAME_PANEL_TEXT_SIZE(GAME_ROOM_NAME_PANEL_SIZE.x - 20, 30);
+	constexpr XMFLOAT2 GAME_ROOM_NAME_PANEL_TEXT_OFFSET(GAME_ROOM_NAME_PANEL_OFFSET);
+	UIObjectHandle hTextGameRoomNamePanel = CreateText();
+	pScriptLobbyHandler->m_hTextGameRoomNamePanel = hTextGameRoomNamePanel;
+	Text* pTextGameRoomNamePanel = static_cast<Text*>(hTextGameRoomNamePanel.ToPtr());
+	pTextGameRoomNamePanel->m_transform.SetParent(&pPanelGameNamePanel->m_transform);
+	pTextGameRoomNamePanel->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pTextGameRoomNamePanel->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pTextGameRoomNamePanel->m_transform.SetPosition(GAME_ROOM_NAME_PANEL_TEXT_OFFSET);
+	pTextGameRoomNamePanel->SetText(L"[132] Only the best there is!");
+	pTextGameRoomNamePanel->SetColor(Colors::WhiteSmoke);
+	pTextGameRoomNamePanel->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+	pTextGameRoomNamePanel->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pTextGameRoomNamePanel->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pTextGameRoomNamePanel->GetTextFormat().SetSize(GAME_LIST_TEXT_SIZE);
+	pTextGameRoomNamePanel->ApplyTextFormat();
+	pTextGameRoomNamePanel->SetSize(GAME_ROOM_NAME_PANEL_TEXT_SIZE);
+
+	constexpr XMFLOAT2 MOVE_TEAM_BUTTON_SIZE(GAME_ROOM_NAME_PANEL_SIZE.x / 2 - 10, 50);
+	constexpr XMFLOAT2 MOVE_TO_RED_TEAM_BUTTON_OFFSET(GAME_ROOM_NAME_PANEL_OFFSET.x - MOVE_TEAM_BUTTON_SIZE.x / 2 - 10, GAME_ROOM_NAME_PANEL_OFFSET.y - MOVE_TEAM_BUTTON_SIZE.y / 2 - 40);
+	constexpr XMFLOAT4 MOVE_TEAM_BUTTON_COLOR(0.05f, 0.05f, 0.075f, 1.0f);
+	UIObjectHandle hButtonMoveToRedTeam = CreateButton();
+	Button* pButtonMoveToRedTeam = static_cast<Button*>(hButtonMoveToRedTeam.ToPtr());
+	pButtonMoveToRedTeam->m_transform.SetParent(&pPanelGameRoomRoot->m_transform);
+	pButtonMoveToRedTeam->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pButtonMoveToRedTeam->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pButtonMoveToRedTeam->m_transform.SetPosition(MOVE_TO_RED_TEAM_BUTTON_OFFSET);
+	pButtonMoveToRedTeam->SetSize(MOVE_TEAM_BUTTON_SIZE);
+	pButtonMoveToRedTeam->SetButtonColor(MOVE_TEAM_BUTTON_COLOR);
+	pButtonMoveToRedTeam->SetTextColor(Colors::OrangeRed);
+	pButtonMoveToRedTeam->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pButtonMoveToRedTeam->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pButtonMoveToRedTeam->SetText(L"RED TEAM");
+	pButtonMoveToRedTeam->GetTextFormat().SetSize(40);
+	pButtonMoveToRedTeam->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
+	pButtonMoveToRedTeam->ApplyTextFormat();
+
+	constexpr XMFLOAT2 MOVE_TO_BLUE_TEAM_BUTTON_OFFSET(GAME_ROOM_NAME_PANEL_OFFSET.x + MOVE_TEAM_BUTTON_SIZE.x / 2 + 10, MOVE_TO_RED_TEAM_BUTTON_OFFSET.y);
+	UIObjectHandle hButtonMoveToBlueTeam = CreateButton();
+	Button* pButtonMoveToBlueTeam = static_cast<Button*>(hButtonMoveToBlueTeam.ToPtr());
+	pButtonMoveToBlueTeam->m_transform.SetParent(&pPanelGameRoomRoot->m_transform);
+	pButtonMoveToBlueTeam->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pButtonMoveToBlueTeam->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pButtonMoveToBlueTeam->m_transform.SetPosition(MOVE_TO_BLUE_TEAM_BUTTON_OFFSET);
+	pButtonMoveToBlueTeam->SetSize(MOVE_TEAM_BUTTON_SIZE);
+	pButtonMoveToBlueTeam->SetButtonColor(MOVE_TEAM_BUTTON_COLOR);
+	pButtonMoveToBlueTeam->SetTextColor(Colors::DeepSkyBlue);
+	pButtonMoveToBlueTeam->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pButtonMoveToBlueTeam->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pButtonMoveToBlueTeam->SetText(L"BLUE TEAM");
+	pButtonMoveToBlueTeam->GetTextFormat().SetSize(40);
+	pButtonMoveToBlueTeam->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
+	pButtonMoveToBlueTeam->ApplyTextFormat();
+
+	constexpr XMFLOAT2 GAME_ROOM_TEAM_PANEL_SIZE(MOVE_TEAM_BUTTON_SIZE.x , 500);
+	constexpr XMFLOAT2 GAME_ROOM_RED_TEAM_PANEL_OFFSET(MOVE_TO_RED_TEAM_BUTTON_OFFSET.x, MOVE_TO_BLUE_TEAM_BUTTON_OFFSET.y - MOVE_TEAM_BUTTON_SIZE.y / 2 - GAME_ROOM_TEAM_PANEL_SIZE.y / 2 - 20);
+	UIObjectHandle hPanelGameRoomRedTeam = CreatePanel();
+	Panel* pPanelGameRoomRedTeam = static_cast<Panel*>(hPanelGameRoomRedTeam.ToPtr());
+	pPanelGameRoomRedTeam->m_transform.SetParent(&pPanelGameRoomRoot->m_transform);
+	pPanelGameRoomRedTeam->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pPanelGameRoomRedTeam->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pPanelGameRoomRedTeam->m_transform.SetPosition(GAME_ROOM_RED_TEAM_PANEL_OFFSET);
+	pPanelGameRoomRedTeam->SetSize(GAME_ROOM_TEAM_PANEL_SIZE);
+	pPanelGameRoomRedTeam->SetColor(XMVectorSetW(Colors::Red, 0.2f));
+	pPanelGameRoomRedTeam->SetShape(PanelShape::Rectangle);
+
+	constexpr XMFLOAT2 GAME_ROOM_BLUE_TEAM_PANEL_OFFSET(MOVE_TO_BLUE_TEAM_BUTTON_OFFSET.x, GAME_ROOM_RED_TEAM_PANEL_OFFSET.y);
+	UIObjectHandle hPanelGameRoomBlueTeam = CreatePanel();
+	Panel* pPanelGameRoomBlueTeam = static_cast<Panel*>(hPanelGameRoomBlueTeam.ToPtr());
+	pPanelGameRoomBlueTeam->m_transform.SetParent(&pPanelGameRoomRoot->m_transform);
+	pPanelGameRoomBlueTeam->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pPanelGameRoomBlueTeam->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pPanelGameRoomBlueTeam->m_transform.SetPosition(GAME_ROOM_BLUE_TEAM_PANEL_OFFSET);
+	pPanelGameRoomBlueTeam->SetSize(GAME_ROOM_TEAM_PANEL_SIZE);
+	pPanelGameRoomBlueTeam->SetColor(XMVectorSetW(Colors::Blue, 0.2f));
+	pPanelGameRoomBlueTeam->SetShape(PanelShape::Rectangle);
+
+	constexpr XMFLOAT2 GAME_ROOM_PLAYER_NAME_TEXT_SIZE(MOVE_TEAM_BUTTON_SIZE.x - 20, 30);
+	constexpr XMFLOAT2 FIRST_GAME_ROOM_RED_TEAM_PLAYER_NAME_TEXT_OFFSET(MOVE_TO_RED_TEAM_BUTTON_OFFSET.x, MOVE_TO_RED_TEAM_BUTTON_OFFSET.y - MOVE_TEAM_BUTTON_SIZE.y / 2 - GAME_ROOM_PLAYER_NAME_TEXT_SIZE.y / 2 - 30);
+	constexpr XMFLOAT2 FIRST_GAME_ROOM_BLUE_TEAM_PLAYER_NAME_TEXT_OFFSET(MOVE_TO_BLUE_TEAM_BUTTON_OFFSET.x, MOVE_TO_BLUE_TEAM_BUTTON_OFFSET.y - MOVE_TEAM_BUTTON_SIZE.y / 2 - GAME_ROOM_PLAYER_NAME_TEXT_SIZE.y / 2 - 30);
+	for (size_t i = 0; i < MAX_PLAYER_PER_TEAM; ++i)
+	{
+		UIObjectHandle hTextGameRoomRedTeamPlayer = CreateText();
+		pScriptLobbyHandler->m_hTextGameRoomRedTeamPlayer[i] = hTextGameRoomRedTeamPlayer;
+		Text* pTextGameRoomRedTeamPlayer = static_cast<Text*>(hTextGameRoomRedTeamPlayer.ToPtr());
+		pTextGameRoomRedTeamPlayer->m_transform.SetParent(&pPanelGameRoomRoot->m_transform);
+		pTextGameRoomRedTeamPlayer->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+		pTextGameRoomRedTeamPlayer->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+		pTextGameRoomRedTeamPlayer->m_transform.SetPosition(FIRST_GAME_ROOM_RED_TEAM_PLAYER_NAME_TEXT_OFFSET.x, FIRST_GAME_ROOM_RED_TEAM_PLAYER_NAME_TEXT_OFFSET.y - i * (GAME_ROOM_PLAYER_NAME_TEXT_SIZE.y + 20));
+		pTextGameRoomRedTeamPlayer->SetColor(Colors::WhiteSmoke);
+		pTextGameRoomRedTeamPlayer->SetText(L"Hello06");
+		pTextGameRoomRedTeamPlayer->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+		pTextGameRoomRedTeamPlayer->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+		pTextGameRoomRedTeamPlayer->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
+		pTextGameRoomRedTeamPlayer->GetTextFormat().SetSize(GAME_LIST_TEXT_SIZE);
+		pTextGameRoomRedTeamPlayer->ApplyTextFormat();
+		pTextGameRoomRedTeamPlayer->SetSize(GAME_ROOM_PLAYER_NAME_TEXT_SIZE);
+
+		UIObjectHandle hTextGameRoomBlueTeamPlayer = CreateText();
+		pScriptLobbyHandler->m_hTextGameRoomBlueTeamPlayer[i] = hTextGameRoomBlueTeamPlayer;
+		Text* pTextGameRoomBlueTeamPlayer = static_cast<Text*>(hTextGameRoomBlueTeamPlayer.ToPtr());
+		pTextGameRoomBlueTeamPlayer->m_transform.SetParent(&pPanelGameRoomRoot->m_transform);
+		pTextGameRoomBlueTeamPlayer->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+		pTextGameRoomBlueTeamPlayer->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+		pTextGameRoomBlueTeamPlayer->m_transform.SetPosition(FIRST_GAME_ROOM_BLUE_TEAM_PLAYER_NAME_TEXT_OFFSET.x, FIRST_GAME_ROOM_BLUE_TEAM_PLAYER_NAME_TEXT_OFFSET.y - i * (GAME_ROOM_PLAYER_NAME_TEXT_SIZE.y + 20));
+		pTextGameRoomBlueTeamPlayer->SetColor(Colors::WhiteSmoke);
+		pTextGameRoomBlueTeamPlayer->SetText(L"Hello06");
+		pTextGameRoomBlueTeamPlayer->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+		pTextGameRoomBlueTeamPlayer->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+		pTextGameRoomBlueTeamPlayer->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
+		pTextGameRoomBlueTeamPlayer->GetTextFormat().SetSize(GAME_LIST_TEXT_SIZE);
+		pTextGameRoomBlueTeamPlayer->ApplyTextFormat();
+		pTextGameRoomBlueTeamPlayer->SetSize(GAME_ROOM_PLAYER_NAME_TEXT_SIZE);
+	}
 
 
+
+	constexpr XMFLOAT2 EXIT_GAME_ROOM_BUTTON_SIZE(100, 26);
+	constexpr XMFLOAT2 EXIT_GAME_ROOM_BUTTON_OFFSET(GAME_ROOM_PANEL_SIZE.x / 2 - EXIT_GAME_ROOM_BUTTON_SIZE.x / 2 - 15 + GAME_ROOM_PANEL_OFFSET.x, -GAME_ROOM_PANEL_SIZE.y / 2 + EXIT_GAME_ROOM_BUTTON_SIZE.y / 2 + 15 + GAME_ROOM_PANEL_OFFSET.y);
+	UIObjectHandle hButtonExitGameRoom = CreateButton();
+	Button* pButtonExitGameRoom = static_cast<Button*>(hButtonExitGameRoom.ToPtr());
+	pButtonExitGameRoom->m_transform.SetParent(&pPanelGameRoomRoot->m_transform);
+	pButtonExitGameRoom->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pButtonExitGameRoom->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pButtonExitGameRoom->m_transform.SetPosition(EXIT_GAME_ROOM_BUTTON_OFFSET);
+	pButtonExitGameRoom->SetSize(EXIT_GAME_ROOM_BUTTON_SIZE);
+	pButtonExitGameRoom->SetButtonColor(Colors::OrangeRed);
+	pButtonExitGameRoom->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pButtonExitGameRoom->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pButtonExitGameRoom->SetText(L"나가기");
+	pButtonExitGameRoom->GetTextFormat().SetSize(STATIC_TEXT_SIZE_MEDIUM);
+	pButtonExitGameRoom->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pButtonExitGameRoom->ApplyTextFormat();
+	pButtonExitGameRoom->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickExitGameRoom));
 
 
 	// ########################################
 	// 로비 기타 UI
-
 	UIObjectHandle hButtonOpenShop = CreateButton();
 	pScriptLobbyHandler->m_hButtonOpenShop = hButtonOpenShop;
 	Button* pButtonOpenShop = static_cast<Button*>(hButtonOpenShop.ToPtr());
@@ -685,7 +1076,7 @@ void Lobby::OnLoadScene()
 	pButtonOpenShop->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pButtonOpenShop->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 	pButtonOpenShop->SetText(L"상점/정비");
-	pButtonOpenShop->GetTextFormat().SetSize(STATIC_TEXT_SIZE);
+	pButtonOpenShop->GetTextFormat().SetSize(STATIC_TEXT_SIZE_MEDIUM);
 	pButtonOpenShop->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
 	pButtonOpenShop->ApplyTextFormat();
 
@@ -701,28 +1092,8 @@ void Lobby::OnLoadScene()
 	pButtonUserInfo->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pButtonUserInfo->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 	pButtonUserInfo->SetText(L"내 정보");
-	pButtonUserInfo->GetTextFormat().SetSize(STATIC_TEXT_SIZE);
+	pButtonUserInfo->GetTextFormat().SetSize(STATIC_TEXT_SIZE_MEDIUM);
 	pButtonUserInfo->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
 	pButtonUserInfo->ApplyTextFormat();
-
-
-	UIObjectHandle hButtonExitGame = CreateButton();
-	Button* pButtonExitGame = static_cast<Button*>(hButtonExitGame.ToPtr());
-	pButtonExitGame->m_transform.SetParent(&pPanelGameBrowserRoot->m_transform);
-	pButtonExitGame->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-	pButtonExitGame->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
-	pButtonExitGame->m_transform.SetPosition(+45, +18);
-	pButtonExitGame->SetSize(80, 26);
-	pButtonExitGame->SetButtonColor(Colors::Red);
-	pButtonExitGame->SetTextColor(Colors::White);
-	pButtonExitGame->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-	pButtonExitGame->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pButtonExitGame->SetText(L"게임종료");
-	pButtonExitGame->GetTextFormat().SetSize(STATIC_TEXT_SIZE);
-	pButtonExitGame->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
-	pButtonExitGame->ApplyTextFormat();
-	pButtonExitGame->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickExitGame));
-
-
 
 }

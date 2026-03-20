@@ -9,6 +9,7 @@ using namespace ze;
 void Client::OnConnect()
 {
 	printf("Connected to the SAServer.\n");
+	m_network.m_connected = true;
 }
 
 void Client::OnReceive(winppy::Packet packet)
@@ -21,7 +22,7 @@ void Client::OnReceive(winppy::Packet packet)
 void Client::OnDisconnect()
 {
 	printf("Disconnected from the SAServer.\n");
-	this->Release();
+	m_network.m_disconnectJobDone = true;
 }
 
 Network::Network(ze::GameObject& owner)
@@ -29,6 +30,9 @@ Network::Network(ze::GameObject& owner)
 	, m_listenServer(*this)
 	, m_ce()
 	, m_client(*this)
+	, m_packetQueue()
+	, m_connected(false)
+	, m_disconnectJobDone(false)
 {
 	InitializeSRWLock(&m_lock);
 }
@@ -71,6 +75,9 @@ void Network::Update()
 		case Protocol::SC_RES_BROADCAST_CHAT_MSG:
 			PktProcSCResBroadcastChatMsg(std::move(packet));
 			break;
+		case Protocol::SC_RES_GAME_LIST:
+			PktProcSCResGameList(std::move(packet));
+			break;
 		default:
 			break;
 		}
@@ -83,7 +90,12 @@ void Network::OnDestroy()
 	m_listenServer.Shutdown();
 
 	m_client.Disconnect();
-	m_client.Release();
+
+	while (m_connected && !m_disconnectJobDone)
+	{
+		printf("Waiting disconnect job done!\n");
+		Sleep(5);
+	}
 
 	m_ce.Release();
 }
@@ -140,4 +152,40 @@ void Network::PktProcSCResBroadcastChatMsg(winppy::Packet packet)
 
 	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
 	pScriptLobbyHandler->AddChatMsg(finalString);
+}
+
+void Network::PktProcSCResGameList(winppy::Packet packet)
+{
+	SCResGameList res;
+	if (!packet->ReadBytes(&res, sizeof(res)))
+		return;
+
+	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
+
+	if (pScriptLobbyHandler->m_currGameListContextNo != res.m_reqContextNo)	// 이전 방 목록 컨텍스트인 경우 무시
+		return;
+
+	auto& gameRoomList = pScriptLobbyHandler->m_gameRoomList;
+	for (uint32_t i = 0; i < res.m_itemCount; ++i)
+	{
+		SCResGameListItem resItem;
+		packet->ReadBytes(&resItem, sizeof(resItem));
+
+		gameRoomList.emplace_back();
+		GameRoomItem& item = gameRoomList.back();
+
+		item.m_roomId = resItem.m_roomId;
+		item.m_gameNo = resItem.m_gameNo;
+		item.m_maxPlayer = resItem.m_maxPlayer;
+		item.m_currPlayer = resItem.m_currPlayer;
+		item.m_gameMap = resItem.m_gameMap;
+		item.m_gameMode = resItem.m_gameMode;
+		item.m_gameRoomState = resItem.m_gameRoomState;
+		if (resItem.m_gameNameLen > MAX_GAME_NAME_LEN)
+			resItem.m_gameNameLen = MAX_GAME_NAME_LEN;
+		wmemcpy_s(item.m_gameName, _countof(item.m_gameName), resItem.m_gameName, resItem.m_gameNameLen);
+		item.m_gameName[resItem.m_gameNameLen] = L'\0';
+	}
+
+	pScriptLobbyHandler->UpdateGameListBrowserUI();
 }

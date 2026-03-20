@@ -55,6 +55,9 @@
     <ClCompile Include="source\Script\Account.cpp">
       <Filter>source\Script</Filter>
     </ClCompile>
+    <ClCompile Include="source\Resource\GameInfo.cpp">
+      <Filter>source\Resource</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Scene\Lobby.h">
@@ -89,6 +92,9 @@
     </ClInclude>
     <ClInclude Include="source\Script\Account.h">
       <Filter>source\Script</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Resource\GameInfo.h">
+      <Filter>source\Resource</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

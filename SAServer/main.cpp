@@ -17,6 +17,7 @@ public:
 
 	bool PktProcCSReqLogin(uint64_t id, winppy::Packet packet);
 	bool PktProcCSReqSendChatMsg(uint64_t id, winppy::Packet packet);
+	bool PktProcCSReqGameList(uint64_t id, winppy::Packet packet);
 private:
 	SlimRWLock m_lock;
 	std::unordered_map<uint64_t, std::shared_ptr<SASession>> m_sessions;
@@ -131,6 +132,44 @@ bool SAServer::PktProcCSReqSendChatMsg(uint64_t id, winppy::Packet packet)
 	return true;
 }
 
+bool SAServer::PktProcCSReqGameList(uint64_t id, winppy::Packet packet)
+{
+	CSReqGameList req;
+	if (!packet->ReadBytes(&req, sizeof(req)))
+		return false;
+
+	for (size_t r = 0; r < 4; ++r)
+	{
+		SCResGameList res;
+		res.m_itemCount = 10;
+		res.m_reqContextNo = req.m_reqContextNo;
+
+		winppy::Packet outPacket;
+		outPacket->Write(static_cast<protocol_type>(Protocol::SC_RES_GAME_LIST));
+		outPacket->WriteBytes(&res, sizeof(res));
+
+		for (uint32_t i = 0; i < res.m_itemCount; ++i)
+		{
+			SCResGameListItem resItem;
+
+			resItem.m_roomId = 1234;
+			resItem.m_gameNo = 3;
+			resItem.m_maxPlayer = GameRoomMaxPlayer::Game8vs8;
+			resItem.m_currPlayer = 2;
+			resItem.m_gameMap = GameMap::Warehouse;
+			resItem.m_gameMode = GameMode::TeamDeathmatch;
+			resItem.m_gameRoomState = GameRoomState::InPlay;
+			resItem.m_gameNameLen = 9;
+			wmemcpy(resItem.m_gameName, L"Go go go!", 9);
+			outPacket->WriteBytes(&resItem, sizeof(resItem));
+		}
+
+		Send(id, std::move(outPacket));
+	}
+
+	return true;
+}
+
 SAServer::SAServer()
 {
 	m_lock.Init();
@@ -167,6 +206,9 @@ void SAServer::OnReceive(uint64_t id, winppy::Packet packet)
 		break;
 	case Protocol::CS_REQ_BROADCAST_CHAT_MSG:
 		keepConn = PktProcCSReqSendChatMsg(id, std::move(packet));
+		break;
+	case Protocol::CS_REQ_GAME_LIST:
+		keepConn = PktProcCSReqGameList(id, std::move(packet));
 		break;
 	default:
 		keepConn = false;
