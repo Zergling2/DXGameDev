@@ -12,7 +12,6 @@ SceneManager::SceneManager()
 	: m_lock()
 	, m_pNextScene(nullptr)
 {
-	m_lock.Init();
 }
 
 SceneManager::~SceneManager()

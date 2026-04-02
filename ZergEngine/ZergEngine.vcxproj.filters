@@ -455,9 +455,6 @@
     <ClCompile Include="source\CoreSystem\SceneInterface.cpp">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClCompile>
-    <ClCompile Include="source\CoreSystem\SlimRWLock.cpp">
-      <Filter>Files\ZergEngine\CoreSystem</Filter>
-    </ClCompile>
     <ClCompile Include="source\CoreSystem\FileSystem.cpp">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClCompile>

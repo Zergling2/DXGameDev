@@ -24,7 +24,6 @@ UIObjectManager::UIObjectManager()
 	, m_pFocusedUIObject(nullptr)
 {
 	m_emptyHandleTableIndex.reserve(HANDLE_TABLE_INIT_SIZE);
-	m_lock.Init();
 }
 
 UIObjectManager::~UIObjectManager()

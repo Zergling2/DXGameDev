@@ -223,7 +223,6 @@
     <ClCompile Include="source\CoreSystem\ShaderResource\DX11Buffer.cpp" />
     <ClCompile Include="source\CoreSystem\ShaderResource\IndexBuffer.cpp" />
     <ClCompile Include="source\CoreSystem\ShaderResource\VertexBuffer.cpp" />
-    <ClCompile Include="source\CoreSystem\SlimRWLock.cpp" />
     <ClCompile Include="source\CoreSystem\Resource\Material.cpp" />
     <ClCompile Include="source\CoreSystem\Resource\StaticMesh.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\Terrain.cpp" />

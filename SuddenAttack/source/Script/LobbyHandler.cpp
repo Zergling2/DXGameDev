@@ -12,7 +12,50 @@ LobbyHandler::LobbyHandler(ze::GameObject& owner)
 	, m_needUIUpdate(false)
 	, m_lobbyState(LobbyState::None)
 	, m_textLobbyChatMsgCount(0)
+	, m_hScriptGameResources()
+	, m_hScriptNetwork()
+	, m_hImageLobbyBgr()
+	, m_hPanelLoginUIRoot()
+	, m_hInputFieldId()
+	, m_hInputFieldPw()
+	, m_hTextIdPwInputFieldHelpMsg()
+	, m_hButtonExitGame()
+	, m_hButtonOpenShop()
+	, m_hButtonUserInfo()
+	, m_hPanelOkMsgBoxRoot()
+	, m_hTextOkMsgBoxMsg()
+	, m_hPanelChannelBrowserRoot()
+	, m_hTextChannelHeadcount{}
+	, m_hPanelChatRoot()
+	, m_hInputFieldChatMsg()
+	, m_hTextLobbyChatMsg()
+	, m_hPanelGameListBrowserRoot()
+	, m_hPanelGameSelectedIndicator()
+	, m_hTextGameNo{}
+	, m_hTextGameName{}
+	, m_hTextGameMap{}
+	, m_hTextGameHeadcount{}
+	, m_hTextGameMode{}
+	, m_hTextGameState{}
+	, m_hButtonJoinGameRoom{}
+	, m_hTextGameListPage()
+	, m_hPanelCreateGameRoomRoot()
+	, m_hInputFieldCreateGameRoomName()
+	, m_hRadioButtonGameRoomMaxPlayer{}
 	, m_createGameRoomMaxPlayerSelected(GameRoomMaxPlayer::Game8vs8)
+	, m_gameRoomId(0)
+	, m_gameRoomMaxPlayer(GameRoomMaxPlayer::Unknown)
+	, m_gameRoomGameMap(GameMap::Unknown)
+	, m_gameRoomGameMode(GameMode::Unknown)
+	, m_gameRoomMyTeam(GameTeam::Unknown)
+	, m_gameRoomRedTeamPlayers{}
+	, m_gameRoomBlueTeamPlayers{}
+	, m_gameRoomRedTeamPlayersCount(0)
+	, m_gameRoomBlueTeamPlayersCount(0)
+	, m_hPanelGameRoomRoot()
+	, m_hTextGameRoomNamePanel()
+	, m_hTextGameRoomRedTeamPlayers{}
+	, m_hTextGameRoomBlueTeamPlayers{}
 	, m_gameRoomList()
 	, m_currGameListContextNo(0)
 	, m_gameListReqContextNo(0)
@@ -47,7 +90,7 @@ void LobbyHandler::Update()
 		for (size_t i = 0; i < MAX_GAME_PER_LIST_PAGE; ++i)
 		{
 			const POINT mp = Input::GetInstance()->GetMousePosition();
-			const IUIObject* pUIObject = m_hButtonEnterGame[i].ToPtr();
+			const IUIObject* pUIObject = m_hButtonJoinGameRoom[i].ToPtr();
 
 			if (!pUIObject->IsActiveSelf())
 				break;
@@ -120,13 +163,13 @@ void LobbyHandler::OnClickLogin()
 	SHA256(reinterpret_cast<unsigned char*>(buf), len - 1, hpw);	// NULL 문자 제외하고 해싱
 
 	Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
-	// if (pScriptNetwork->GetClient().GetState() != winppy::ClientState::Connected)
-	// 	return;
+	if (pScriptNetwork->GetClient().GetState() != winppy::ClientState::Connected)
+		return;
 
 	winppy::Packet outPacket;
 	CSReqLogin req;
-	wmemcpy_s(req.m_id, _countof(req.m_id), pInputFieldId->GetText().c_str(), pInputFieldId->GetText().length());
 	req.m_idLen = static_cast<uint16_t>(pInputFieldId->GetText().length());
+	wmemcpy_s(req.m_id, _countof(req.m_id), pInputFieldId->GetText().c_str(), pInputFieldId->GetText().length());
 	memcpy(req.m_hpw, hpw, sizeof(req.m_hpw));
 	outPacket->Write(static_cast<protocol_type>(Protocol::CS_REQ_LOGIN));
 	outPacket->WriteBytes(&req, sizeof(req));
@@ -138,24 +181,114 @@ void LobbyHandler::OnClickExitGame()
 	Runtime::GetInstance()->Exit();
 }
 
+void LobbyHandler::SendJoinChannelPacket(uint16_t channelId)
+{
+	Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
+	if (pScriptNetwork->GetClient().GetState() != winppy::ClientState::Connected)
+		return;
+
+	CSReqJoinChannel req;
+	req.m_channelId = channelId;
+
+	winppy::Packet outPacket;
+	outPacket->Write(static_cast<protocol_type>(Protocol::CS_REQ_JOIN_CHANNEL));
+	outPacket->WriteBytes(&req, sizeof(req));
+
+	pScriptNetwork->GetClient().Send(std::move(outPacket));
+}
+
+void LobbyHandler::OnClickJoinGameRoomImpl(size_t index)
+{
+	Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
+	if (pScriptNetwork->GetClient().GetState() != winppy::ClientState::Connected)
+		return;
+
+	if (m_gameRoomList.size() > 0)
+	{
+		uint32_t firstItemIndex = (m_currGameListPage - 1) * MAX_GAME_PER_LIST_PAGE;
+		uint32_t lastItemIndex = firstItemIndex + (MAX_GAME_PER_LIST_PAGE - 1);
+		if (lastItemIndex > m_gameRoomList.size() - 1)
+			lastItemIndex = static_cast<uint32_t>(m_gameRoomList.size() - 1);
+
+		uint32_t currPageItemCount = lastItemIndex - firstItemIndex + 1;
+		assert(currPageItemCount <= MAX_GAME_PER_LIST_PAGE);
+
+		if (index >= currPageItemCount)
+			return;
+
+
+		CSReqJoinGameRoom req;
+		req.m_gameRoomId = m_gameRoomList[firstItemIndex + index].m_gameRoomId;
+
+		winppy::Packet outPacket;
+		outPacket->Write(static_cast<protocol_type>(Protocol::CS_REQ_JOIN_GAME_ROOM));
+		outPacket->WriteBytes(&req, sizeof(req));
+
+		pScriptNetwork->GetClient().Send(std::move(outPacket));
+	}
+}
+
+void LobbyHandler::OnClickJoinChannel0()
+{
+	this->SendJoinChannelPacket(0);
+}
+
+void LobbyHandler::OnClickJoinChannel1()
+{
+	this->SendJoinChannelPacket(1);
+}
+
+void LobbyHandler::OnClickJoinChannel2()
+{
+	this->SendJoinChannelPacket(2);
+}
+
+void LobbyHandler::OnClickJoinChannel3()
+{
+	this->SendJoinChannelPacket(3);
+}
+
+void LobbyHandler::OnClickJoinChannel4()
+{
+	this->SendJoinChannelPacket(4);
+}
+
+void LobbyHandler::OnClickJoinChannel5()
+{
+	this->SendJoinChannelPacket(5);
+}
+
+void LobbyHandler::OnClickRefreshChannelList()
+{
+	CSReqChannelInfo req;
+	req.m_serverId = 0;
+
+	winppy::Packet outPacket;
+	outPacket->Write(static_cast<protocol_type>(Protocol::CS_REQ_CHANNEL_INFO));
+	outPacket->WriteBytes(&req, sizeof(req));
+
+	Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
+	pScriptNetwork->GetClient().Send(std::move(outPacket));
+}
+
 void LobbyHandler::OnClickSendChatMsg()
 {
 	InputField* pInputFieldChatMsg = static_cast<InputField*>(m_hInputFieldChatMsg.ToPtr());
 	if (pInputFieldChatMsg->GetText().length() == 0)
 		return;
-
-	Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
-	CSReqBroadcastChatMsg req;
+	
+	CSReqSendChatMsg req;
 	req.m_chatMsgLen = static_cast<uint16_t>(pInputFieldChatMsg->GetText().length());
 	assert(req.m_chatMsgLen <= MAX_CHAT_MSG_LEN);
 
 	winppy::Packet outPacket;
-	outPacket->Write(static_cast<protocol_type>(Protocol::CS_REQ_BROADCAST_CHAT_MSG));
+	outPacket->Write(static_cast<protocol_type>(Protocol::CS_REQ_SEND_CHAT_MSG));
 	outPacket->WriteBytes(&req, sizeof(req));
 	outPacket->WriteBytes(pInputFieldChatMsg->GetText().c_str(), sizeof(wchar_t) * req.m_chatMsgLen);
 
 	pInputFieldChatMsg->GetText().clear();	// 채팅 입력 클리어
 
+	Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
 	pScriptNetwork->GetClient().Send(std::move(outPacket));
 }
 
@@ -166,9 +299,7 @@ void LobbyHandler::OnClickRefreshGameList()
 	m_gameRoomList.clear();
 	m_currGameListPage = 1;
 
-	Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
-
-	CSReqGameList req;
+	CSReqGameRoomList req;
 	m_currGameListContextNo = m_gameListReqContextNo;
 	req.m_reqContextNo = m_currGameListContextNo;
 	++m_gameListReqContextNo;
@@ -177,6 +308,7 @@ void LobbyHandler::OnClickRefreshGameList()
 	outPacket->Write(static_cast<protocol_type>(Protocol::CS_REQ_GAME_LIST));
 	outPacket->WriteBytes(&req, sizeof(req));
 	
+	Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
 	pScriptNetwork->GetClient().Send(std::move(outPacket));
 }
 
@@ -201,23 +333,44 @@ void LobbyHandler::OnClickGameListNext()
 
 void LobbyHandler::OnClickCreateGameRoom()
 {
-	m_hPanelGameBrowserRoot.ToPtr()->SetActive(false);
+	m_hPanelGameListBrowserRoot.ToPtr()->SetActive(false);
 
 	static_cast<RadioButton*>(m_hRadioButtonGameRoomMaxPlayer[static_cast<size_t>(m_createGameRoomMaxPlayerSelected)].ToPtr())->SetCheck();
 
 	m_hPanelCreateGameRoomRoot.ToPtr()->SetActive(true);
 }
 
+void LobbyHandler::OnClickCreateGameRoomReq()
+{
+	InputField* pInputFieldCreateGameRoomName = static_cast<InputField*>(m_hInputFieldCreateGameRoomName.ToPtr());
+
+	CSReqCreateGameRoom req;
+	req.m_maxPlayer = m_createGameRoomMaxPlayerSelected;
+	req.m_gameRoomNameLen = static_cast<uint16_t>(pInputFieldCreateGameRoomName->GetText().length());
+
+	winppy::Packet outPacket;
+	outPacket->Write(static_cast<protocol_type>(Protocol::CS_REQ_CREATE_GAME_ROOM));
+	outPacket->WriteBytes(&req, sizeof(req));
+	outPacket->WriteBytes(pInputFieldCreateGameRoomName->GetText().c_str(), sizeof(wchar_t) * pInputFieldCreateGameRoomName->GetText().length());
+
+	Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
+	pScriptNetwork->GetClient().Send(std::move(outPacket));
+}
+
 void LobbyHandler::OnClickExitGameRoom()
 {
-	this->SetLobbyState(LobbyState::GameListBrowser);
+	winppy::Packet outPacket;
+	outPacket->Write(static_cast<protocol_type>(Protocol::CS_REQ_EXIT_GAME_ROOM));
+
+	Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
+	pScriptNetwork->GetClient().Send(std::move(outPacket));
 }
 
 void LobbyHandler::OnClickCreateGameRoomCancel()
 {
 	static_cast<InputField*>(m_hInputFieldCreateGameRoomName.ToPtr())->GetText().clear();
 	m_hPanelCreateGameRoomRoot.ToPtr()->SetActive(false);
-	m_hPanelGameBrowserRoot.ToPtr()->SetActive(true);
+	m_hPanelGameListBrowserRoot.ToPtr()->SetActive(true);
 }
 
 void LobbyHandler::OnClickRadioButtonGameRoom1vs1()
@@ -260,6 +413,105 @@ void LobbyHandler::OnClickRadioButtonGameRoom8vs8()
 	m_createGameRoomMaxPlayerSelected = GameRoomMaxPlayer::Game8vs8;
 }
 
+void LobbyHandler::OnClickJoinGameRoom0()
+{
+	OnClickJoinGameRoomImpl(0);
+}
+
+void LobbyHandler::OnClickJoinGameRoom1()
+{
+	OnClickJoinGameRoomImpl(1);
+}
+
+void LobbyHandler::OnClickJoinGameRoom2()
+{
+	OnClickJoinGameRoomImpl(2);
+}
+
+void LobbyHandler::OnClickJoinGameRoom3()
+{
+	OnClickJoinGameRoomImpl(3);
+}
+
+void LobbyHandler::OnClickJoinGameRoom4()
+{
+	OnClickJoinGameRoomImpl(4);
+}
+
+void LobbyHandler::OnClickJoinGameRoom5()
+{
+	OnClickJoinGameRoomImpl(5);
+}
+
+void LobbyHandler::OnClickJoinGameRoom6()
+{
+	OnClickJoinGameRoomImpl(6);
+}
+
+void LobbyHandler::OnClickJoinGameRoom7()
+{
+	OnClickJoinGameRoomImpl(7);
+}
+
+void LobbyHandler::OnClickJoinGameRoom8()
+{
+	OnClickJoinGameRoomImpl(8);
+}
+
+void LobbyHandler::OnClickJoinGameRoom9()
+{
+	OnClickJoinGameRoomImpl(9);
+}
+
+void LobbyHandler::OnClickJoinGameRoom10()
+{
+	OnClickJoinGameRoomImpl(10);
+}
+
+void LobbyHandler::OnClickJoinGameRoom11()
+{
+	OnClickJoinGameRoomImpl(11);
+}
+
+void LobbyHandler::OnClickMoveToBlueTeam()
+{
+	if (m_gameRoomMyTeam == GameTeam::BlueTeam)
+		return;
+
+	CSReqChangeTeam req;
+	req.m_newTeam = GameTeam::BlueTeam;
+
+	winppy::Packet outPacket;
+	outPacket->Write(static_cast<protocol_type>(Protocol::CS_REQ_CHANGE_TEAM));
+	outPacket->WriteBytes(&req, sizeof(req));
+
+	Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
+	pScriptNetwork->GetClient().Send(std::move(outPacket));
+}
+
+void LobbyHandler::OnClickMoveToRedTeam()
+{
+	if (m_gameRoomMyTeam == GameTeam::RedTeam)
+		return;
+
+	CSReqChangeTeam req;
+	req.m_newTeam = GameTeam::RedTeam;
+
+	winppy::Packet outPacket;
+	outPacket->Write(static_cast<protocol_type>(Protocol::CS_REQ_CHANGE_TEAM));
+	outPacket->WriteBytes(&req, sizeof(req));
+
+	Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
+	pScriptNetwork->GetClient().Send(std::move(outPacket));
+}
+
+void LobbyHandler::OnClickOkMsgBoxOk()
+{
+	IUIObject* pPanelOkMsgBoxRoot = m_hPanelOkMsgBoxRoot.ToPtr();
+	pPanelOkMsgBoxRoot->SetActive(false);
+	pPanelOkMsgBoxRoot->m_transform.SetParent(&m_hImageLobbyBgr.ToPtr()->m_transform);
+}
+
 void LobbyHandler::SetLobbyState(LobbyState state)
 {
 	LobbyState old = m_lobbyState;
@@ -275,6 +527,137 @@ void LobbyHandler::ClearChatMsgs()
 		static_cast<Text*>(m_hTextLobbyChatMsg[i].ToPtr())->GetText().clear();
 
 	m_textLobbyChatMsgCount = 0;
+}
+
+void LobbyHandler::ClearGameRoomInfo()
+{
+	m_gameRoomId = 0;
+	m_gameRoomHostNetId = 0;
+	m_gameRoomMaxPlayer = GameRoomMaxPlayer::Unknown;
+	m_gameRoomGameMap = GameMap::Unknown;
+	m_gameRoomGameMode = GameMode::Unknown;
+	m_gameRoomMyTeam = GameTeam::Unknown;
+	static_cast<Text*>(m_hTextGameRoomNamePanel.ToPtr())->GetText().clear();
+
+	for (size_t i = 0; i < _countof(m_hTextGameRoomRedTeamPlayers); ++i)
+		static_cast<Text*>(m_hTextGameRoomRedTeamPlayers[i].ToPtr())->GetText().clear();
+
+	for (size_t i = 0; i < _countof(m_hTextGameRoomBlueTeamPlayers); ++i)
+		static_cast<Text*>(m_hTextGameRoomBlueTeamPlayers[i].ToPtr())->GetText().clear();
+
+	m_gameRoomRedTeamPlayersCount = 0;
+	m_gameRoomBlueTeamPlayersCount = 0;
+}
+
+void LobbyHandler::SetGameRoomInfo(uint64_t gameRoomId, uint64_t hostNetId, GameRoomMaxPlayer maxPlayer, GameMap gameMap, GameMode gameMode, const wchar_t* gameRoomHeadText, GameTeam myTeam)
+{
+	m_gameRoomId = gameRoomId;
+	m_gameRoomHostNetId = hostNetId;
+	m_gameRoomMaxPlayer = maxPlayer;
+	m_gameRoomGameMap = gameMap;
+	m_gameRoomGameMode = gameMode;
+	static_cast<Text*>(m_hTextGameRoomNamePanel.ToPtr())->SetText(gameRoomHeadText);
+
+	m_gameRoomMyTeam = myTeam;	// 현재 내 팀 정보 설정
+}
+
+void LobbyHandler::AddGameRoomPlayerInfo(GameTeam team, uint64_t netId, uint16_t level, const wchar_t* nickname)
+{
+	assert(team != GameTeam::Unknown);
+	assert(m_gameRoomMaxPlayer != GameRoomMaxPlayer::Unknown);
+
+	const size_t maxPlayerPerTeam = static_cast<size_t>(m_gameRoomMaxPlayer) + 1;
+
+	wchar_t textBuf[MAX_NICKNAME_LEN + 16];
+	StringCchPrintfW(textBuf, _countof(textBuf), L"Lv.%u\t%s", static_cast<uint32_t>(level), nickname);
+
+	switch (team)
+	{
+	case GameTeam::RedTeam:
+		assert(m_gameRoomRedTeamPlayersCount < maxPlayerPerTeam);
+		m_gameRoomRedTeamPlayers[m_gameRoomRedTeamPlayersCount].m_netId = netId;
+		m_gameRoomRedTeamPlayers[m_gameRoomRedTeamPlayersCount].m_level = level;
+		wcscpy_s(m_gameRoomRedTeamPlayers[m_gameRoomRedTeamPlayersCount].m_nickname, nickname);
+
+		static_cast<Text*>(m_hTextGameRoomRedTeamPlayers[m_gameRoomRedTeamPlayersCount].ToPtr())->SetText(textBuf);
+		++m_gameRoomRedTeamPlayersCount;
+		break;
+	case GameTeam::BlueTeam:
+		assert(m_gameRoomBlueTeamPlayersCount < maxPlayerPerTeam);
+		m_gameRoomBlueTeamPlayers[m_gameRoomBlueTeamPlayersCount].m_netId = netId;
+		m_gameRoomBlueTeamPlayers[m_gameRoomBlueTeamPlayersCount].m_level = level;
+		wcscpy_s(m_gameRoomBlueTeamPlayers[m_gameRoomBlueTeamPlayersCount].m_nickname, nickname);
+
+		static_cast<Text*>(m_hTextGameRoomBlueTeamPlayers[m_gameRoomBlueTeamPlayersCount].ToPtr())->SetText(textBuf);
+		++m_gameRoomBlueTeamPlayersCount;
+		break;
+	default:
+		*reinterpret_cast<int*>(0) = 0;
+		break;
+	}
+}
+
+void LobbyHandler::MoveGameRoomPlayerInfo(uint64_t netId, GameTeam newTeam)
+{
+	uint16_t level;
+	wchar_t nickname[MAX_NICKNAME_LEN + 1];
+
+	bool found = false;
+	do
+	{
+		for (uint8_t i = 0; i < m_gameRoomRedTeamPlayersCount; ++i)
+		{
+			const GameRoomPlayer& player = m_gameRoomRedTeamPlayers[i];
+			if (player.m_netId == netId)
+			{
+				found = true;
+
+				// 정보 백업
+				level = player.m_level;
+				wcscpy_s(nickname, player.m_nickname);
+
+				for (uint8_t j = i + 1; j < m_gameRoomRedTeamPlayersCount; ++j)
+				{
+					m_gameRoomRedTeamPlayers[j - 1] = std::move(m_gameRoomRedTeamPlayers[j]);
+					static_cast<Text*>(m_hTextGameRoomRedTeamPlayers[j - 1].ToPtr())->GetText() = std::move(static_cast<Text*>(m_hTextGameRoomRedTeamPlayers[j].ToPtr())->GetText());
+				}
+				static_cast<Text*>(m_hTextGameRoomRedTeamPlayers[m_gameRoomRedTeamPlayersCount - 1].ToPtr())->GetText().clear();
+
+				--m_gameRoomRedTeamPlayersCount;
+				break;
+			}
+		}
+
+		if (found)
+			break;
+
+		for (uint8_t i = 0; i < m_gameRoomBlueTeamPlayersCount; ++i)
+		{
+			const GameRoomPlayer& player = m_gameRoomBlueTeamPlayers[i];
+			if (player.m_netId == netId)
+			{
+				found = true;
+
+				// 정보 백업
+				level = player.m_level;
+				wcscpy_s(nickname, player.m_nickname);
+
+				for (uint8_t j = i + 1; j < m_gameRoomBlueTeamPlayersCount; ++j)
+				{
+					m_gameRoomBlueTeamPlayers[j - 1] = std::move(m_gameRoomBlueTeamPlayers[j]);
+					static_cast<Text*>(m_hTextGameRoomBlueTeamPlayers[j - 1].ToPtr())->GetText() = std::move(static_cast<Text*>(m_hTextGameRoomBlueTeamPlayers[j].ToPtr())->GetText());
+				}
+				static_cast<Text*>(m_hTextGameRoomBlueTeamPlayers[m_gameRoomBlueTeamPlayersCount - 1].ToPtr())->GetText().clear();
+
+				--m_gameRoomBlueTeamPlayersCount;
+				break;
+			}
+		}
+
+		assert(found);
+	} while (false);
+
+	AddGameRoomPlayerInfo(newTeam, netId, level, nickname);
 }
 
 void LobbyHandler::AddChatMsg(const wchar_t* msg)
@@ -331,7 +714,7 @@ void LobbyHandler::UpdateGameListBrowserUI()
 			const GameRoomItem& item = m_gameRoomList[index];
 			wchar_t buf[128];
 
-			StringCchPrintfW(buf, _countof(buf), L"%u", static_cast<unsigned int>(item.m_gameNo));
+			StringCchPrintfW(buf, _countof(buf), L"%u", static_cast<unsigned int>(item.m_gameRoomNo));
 			static_cast<Text*>(m_hTextGameNo[i].ToPtr())->SetText(buf);
 
 			static_cast<Text*>(m_hTextGameName[i].ToPtr())->SetText(item.m_gameName);
@@ -357,7 +740,7 @@ void LobbyHandler::UpdateGameListBrowserUI()
 				break;
 			}
 
-			static_cast<Button*>(m_hButtonEnterGame[i].ToPtr())->SetActive(true);
+			static_cast<Button*>(m_hButtonJoinGameRoom[i].ToPtr())->SetActive(true);
 		}
 	}
 }
@@ -369,7 +752,10 @@ void LobbyHandler::UpdateUI()
 	case LobbyState::Login:
 		// #########################################################
 		// 현재 상태에 대응하지 않는 UI 숨기기
-		m_hPanelGameBrowserRoot.ToPtr()->SetActive(false);
+		m_hPanelOkMsgBoxRoot.ToPtr()->SetActive(false);
+		m_hButtonExitGame.ToPtr()->SetActive(false);
+		m_hPanelChannelBrowserRoot.ToPtr()->SetActive(false);
+		m_hPanelGameListBrowserRoot.ToPtr()->SetActive(false);
 		m_hPanelGameRoomRoot.ToPtr()->SetActive(false);
 		m_hPanelChatRoot.ToPtr()->SetActive(false);
 		m_hButtonOpenShop.ToPtr()->SetActive(false);
@@ -386,10 +772,31 @@ void LobbyHandler::UpdateUI()
 		m_hPanelLoginUIRoot.ToPtr()->SetActive(true);
 		// #########################################################
 		break;
+	case LobbyState::ChannelListBrowser:
+		m_hPanelOkMsgBoxRoot.ToPtr()->SetActive(false);
+		m_hPanelLoginUIRoot.ToPtr()->SetActive(false);
+		m_hPanelGameListBrowserRoot.ToPtr()->SetActive(false);
+		m_hPanelGameRoomRoot.ToPtr()->SetActive(false);
+		m_hPanelChatRoot.ToPtr()->SetActive(false);
+		m_hButtonOpenShop.ToPtr()->SetActive(false);
+		m_hButtonUserInfo.ToPtr()->SetActive(false);
+		m_hPanelCreateGameRoomRoot.ToPtr()->SetActive(false);
+
+		m_hButtonExitGame.ToPtr()->SetActive(true);
+		// 게임 리스트 브라우저 UI 표시
+		m_hPanelChannelBrowserRoot.ToPtr()->SetActive(true);
+		
+		OnClickRefreshChannelList();
+		break;
 	case LobbyState::GameListBrowser:
+		// 채팅 목록 클리어
+		ClearChatMsgs();
+
 		// #########################################################
 		// 현재 상태에 대응하지 않는 UI 숨기기
+		m_hPanelOkMsgBoxRoot.ToPtr()->SetActive(false);
 		m_hPanelLoginUIRoot.ToPtr()->SetActive(false);
+		m_hPanelChannelBrowserRoot.ToPtr()->SetActive(false);
 		m_hPanelGameRoomRoot.ToPtr()->SetActive(false);
 		m_hPanelCreateGameRoomRoot.ToPtr()->SetActive(false);
 
@@ -400,19 +807,25 @@ void LobbyHandler::UpdateUI()
 		static_cast<Image*>(m_hImageLobbyBgr.ToPtr())->SetTexture(m_hScriptGameResources.ToPtr()->m_texGameListBgr);
 		m_hImageLobbyBgr.ToPtr()->SetActive(true);
 
+		m_hButtonExitGame.ToPtr()->SetActive(true);
 		m_hPanelChatRoot.ToPtr()->SetActive(true);
 		m_hButtonOpenShop.ToPtr()->SetActive(true);
 		m_hButtonUserInfo.ToPtr()->SetActive(true);
 
 		// 게임 리스트 브라우저 UI 표시
-		m_hPanelGameBrowserRoot.ToPtr()->SetActive(true);
+		m_hPanelGameListBrowserRoot.ToPtr()->SetActive(true);
 		// #########################################################
 
 		OnClickRefreshGameList();
 		break;
 	case LobbyState::GameRoom:
+		// 채팅 목록 클리어
+		ClearChatMsgs();
+
+		m_hPanelOkMsgBoxRoot.ToPtr()->SetActive(false);
 		m_hPanelLoginUIRoot.ToPtr()->SetActive(false);
-		m_hPanelGameBrowserRoot.ToPtr()->SetActive(false);
+		m_hPanelChannelBrowserRoot.ToPtr()->SetActive(false);
+		m_hPanelGameListBrowserRoot.ToPtr()->SetActive(false);
 		m_hPanelCreateGameRoomRoot.ToPtr()->SetActive(false);
 
 		// 상점/정비 버튼 표시
@@ -448,6 +861,6 @@ void LobbyHandler::ClearAllGameListItem()
 		static_cast<Text*>(m_hTextGameHeadcount[i].ToPtr())->GetText().clear();
 		static_cast<Text*>(m_hTextGameMode[i].ToPtr())->GetText().clear();
 		static_cast<Text*>(m_hTextGameState[i].ToPtr())->GetText().clear();
-		static_cast<Button*>(m_hButtonEnterGame[i].ToPtr())->SetActive(false);
+		static_cast<Button*>(m_hButtonJoinGameRoom[i].ToPtr())->SetActive(false);
 	}
 }

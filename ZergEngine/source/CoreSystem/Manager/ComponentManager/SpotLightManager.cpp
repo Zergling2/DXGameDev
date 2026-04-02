@@ -1,4 +1,5 @@
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\SpotLightManager.h>
+#include <cassert>
 
 using namespace ze;
 

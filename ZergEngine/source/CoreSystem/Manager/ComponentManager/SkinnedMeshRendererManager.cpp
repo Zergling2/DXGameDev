@@ -1,4 +1,5 @@
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\SkinnedMeshRendererManager.h>
+#include <cassert>
 
 using namespace ze;
 

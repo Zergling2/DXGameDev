@@ -56,8 +56,18 @@ public:
 	virtual void OnDestroy() override;
 private:
 	void PktProcSCResLogin(winppy::Packet packet);
-	void PktProcSCResBroadcastChatMsg(winppy::Packet packet);
+	void PktProcSCResChannelInfo(winppy::Packet packet);
+	void PktProcSCResJoinChannel(winppy::Packet packet);
+	void PktProcSCResSendChatMsg(winppy::Packet packet);
 	void PktProcSCResGameList(winppy::Packet packet);
+	void PktProcSCResCreateGameRoom(winppy::Packet packet);
+	void PktProcSCResJoinGameRoom(winppy::Packet packet);
+	void PktProcSCResChangeTeam(winppy::Packet packet);
+	void PktProcSCResExitGameRoom(winppy::Packet packet);
+	void PktProcSCNotifyPlayerTeamChanged(winppy::Packet packet);
+	void PktProcSCNotifyPlayerJoined(winppy::Packet packet);
+	void PktProcSCNotifyGameRoomPlayer(winppy::Packet packet);
+	//void PktProcSCNotifyHostGameStart(winppy::Packet packet);
 private:
 	ListenServer m_listenServer;
 	winppy::TCPClientEngine m_ce;
@@ -66,6 +76,7 @@ private:
 	std::queue<winppy::Packet> m_packetQueue;
 	bool m_connected;
 	bool m_disconnectJobDone;
+	uint64_t m_netId;
 public:
 	ze::ComponentHandle<Account> m_hScriptAccount;
 	ze::ComponentHandle<LobbyHandler> m_hScriptLobbyHandler;

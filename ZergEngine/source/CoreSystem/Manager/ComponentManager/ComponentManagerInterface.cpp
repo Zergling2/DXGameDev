@@ -15,7 +15,6 @@ IComponentManager::IComponentManager()
 	, m_handleTable(HANDLE_TABLE_INIT_SIZE, nullptr)
 {
 	m_emptyHandleTableIndex.reserve(HANDLE_TABLE_INIT_SIZE);
-	m_lock.Init();
 }
 
 void IComponentManager::Init()

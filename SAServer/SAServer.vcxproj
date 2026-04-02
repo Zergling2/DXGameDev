@@ -149,19 +149,42 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Channel.cpp" />
-    <ClCompile Include="Room.cpp" />
-    <ClCompile Include="SASession.cpp" />
+    <ClCompile Include="ChannelJob.cpp" />
+    <ClCompile Include="ChJobReqChangeTeam.cpp" />
+    <ClCompile Include="ChJobReqCreateGameRoom.cpp" />
+    <ClCompile Include="ChJobReqExitChannel.cpp" />
+    <ClCompile Include="ChJobReqExitGameRoom.cpp" />
+    <ClCompile Include="ChJobReqGameRoomList.cpp" />
+    <ClCompile Include="ChJobReqJoinChannel.cpp" />
+    <ClCompile Include="ChJobReqChannelInfo.cpp" />
+    <ClCompile Include="ChJobReqJoinGameRoom.cpp" />
+    <ClCompile Include="ChJobReqSendChatMsg.cpp" />
+    <ClCompile Include="ChJobSessionLogout.cpp" />
+    <ClCompile Include="GameChannel.cpp" />
+    <ClCompile Include="GameRoom.cpp" />
+    <ClCompile Include="GameServer.cpp" />
+    <ClCompile Include="GameSession.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="SlimRWLock.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Channel.h" />
+    <ClInclude Include="ChannelJob.h" />
+    <ClInclude Include="ChJobReqChangeTeam.h" />
+    <ClInclude Include="ChJobReqCreateGameRoom.h" />
+    <ClInclude Include="ChJobReqExitChannel.h" />
+    <ClInclude Include="ChJobReqExitGameRoom.h" />
+    <ClInclude Include="ChJobReqGameRoomList.h" />
+    <ClInclude Include="ChJobReqJoinChannel.h" />
+    <ClInclude Include="ChJobReqChannelInfo.h" />
+    <ClInclude Include="ChJobReqJoinGameRoom.h" />
+    <ClInclude Include="ChJobReqSendChatMsg.h" />
+    <ClInclude Include="ChJobSessionLogout.h" />
+    <ClInclude Include="GameChannel.h" />
     <ClInclude Include="Constants.h" />
     <ClInclude Include="Contents.h" />
+    <ClInclude Include="GameServer.h" />
     <ClInclude Include="Protocol.h" />
-    <ClInclude Include="Room.h" />
-    <ClInclude Include="SASession.h" />
+    <ClInclude Include="GameRoom.h" />
+    <ClInclude Include="GameSession.h" />
     <ClInclude Include="SlimRWLock.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

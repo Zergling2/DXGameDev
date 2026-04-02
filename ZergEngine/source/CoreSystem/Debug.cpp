@@ -404,8 +404,6 @@ bool AsyncConsoleLogger::Init()
 
 	do
 	{
-		m_lock.Init();
-
 		assert(m_hWorker == NULL);
 		uintptr_t hWorker = _beginthreadex(nullptr, 0, AsyncConsoleLogger::WorkerThreadEntry, this, 0, nullptr);
 		if (hWorker == static_cast<uintptr_t>(0) || hWorker == static_cast<uintptr_t>(-1))
@@ -636,8 +634,6 @@ bool AsyncFileLogger::Init(PCWSTR fileName)
 
 	do
 	{
-		m_lock.Init();
-
 		assert(m_pFile == NULL);
 		errno_t e = _wfopen_s(&m_pFile, fileName, L"wt");
 		if (e != 0)

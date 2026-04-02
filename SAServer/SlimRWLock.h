@@ -2,45 +2,30 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
-#include <assert.h>
 
 class SlimRWLock
 {
 public:
 	SlimRWLock()
-#if defined(DEBUG) || defined(_DEBUG)
-		: m_init(false)
-		, m_lock{}
-#else
-		: m_lock{}
-#endif
 	{
+		InitializeSRWLock(&m_lock);
 	}
 	~SlimRWLock() = default;
 
-	void Init();
+	void AcquireLockExclusive() { AcquireSRWLockExclusive(&m_lock); }
 
-	void AcquireLockExclusive() { assert(m_init == true); AcquireSRWLockExclusive(&m_lock); }
+	void ReleaseLockExclusive() { ReleaseSRWLockExclusive(&m_lock); }
 
-	void ReleaseLockExclusive() { assert(m_init == true); ReleaseSRWLockExclusive(&m_lock); }
+	void AcquireLockShared() { AcquireSRWLockShared(&m_lock); }
 
-	void AcquireLockShared() { assert(m_init == true); AcquireSRWLockShared(&m_lock); }
-
-	void ReleaseLockShared() { assert(m_init == true); ReleaseSRWLockShared(&m_lock); }
+	void ReleaseLockShared() { ReleaseSRWLockShared(&m_lock); }
 
 	// If the lock is successfully acquired, the return value is true.
-	bool TryAcquireLockExclusive() { assert(m_init == true); return TryAcquireSRWLockExclusive(&m_lock) != 0; }
+	bool TryAcquireLockExclusive() { return TryAcquireSRWLockExclusive(&m_lock) != 0; }
 
 	// If the lock is successfully acquired, the return value is true.
-	bool TryAcquireLockShared() { assert(m_init == true); return TryAcquireSRWLockShared(&m_lock) != 0; }
-
-#if defined(DEBUG) || defined(_DEBUG)
-	bool IsInitialized() const { return m_init; }
-#endif
+	bool TryAcquireLockShared() { return TryAcquireSRWLockShared(&m_lock) != 0; }
 private:
-#if defined(DEBUG) || defined(_DEBUG)
-	bool m_init;
-#endif
 	SRWLOCK m_lock;
 };
 
@@ -51,7 +36,6 @@ public:
 	AutoAcquireSlimRWLockExclusive(SlimRWLock& lock)
 		: m_lock(lock)
 	{
-		assert(m_lock.IsInitialized());
 		m_lock.AcquireLockExclusive();
 	}
 	~AutoAcquireSlimRWLockExclusive()
@@ -69,7 +53,6 @@ public:
 	AutoAcquireSlimRWLockShared(SlimRWLock& lock)
 		: m_lock(lock)
 	{
-		assert(m_lock.IsInitialized());
 		m_lock.AcquireLockShared();
 	}
 	~AutoAcquireSlimRWLockShared()

@@ -6,13 +6,17 @@ enum class GameMode : uint8_t
 {
 	TeamDeathmatch,
 	Demolition,
-	Domination
+	Domination,
+
+	Unknown
 };
 
 enum class GameMap : uint8_t
 {
 	Warehouse,
-	ASupplyBase
+	ASupplyBase,
+
+	Unknown
 };
 
 enum class GameRoomState : uint8_t
@@ -30,5 +34,15 @@ enum class GameRoomMaxPlayer : uint8_t
 	Game5vs5,
 	Game6vs6,
 	Game7vs7,
-	Game8vs8
+	Game8vs8,
+
+	Unknown
+};
+
+enum class GameTeam : uint8_t
+{
+	RedTeam,
+	BlueTeam,
+
+	Unknown
 };

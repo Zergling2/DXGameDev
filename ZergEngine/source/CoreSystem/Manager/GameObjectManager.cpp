@@ -17,7 +17,6 @@ GameObjectManager::GameObjectManager()
 	, m_destroyed()
 {
 	m_emptyHandleTableIndex.reserve(HANDLE_TABLE_INIT_SIZE);
-	m_lock.Init();
 }
 
 GameObjectManager::~GameObjectManager()

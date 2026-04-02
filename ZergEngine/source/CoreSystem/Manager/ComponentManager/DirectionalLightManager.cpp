@@ -1,4 +1,5 @@
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\DirectionalLightManager.h>
+#include <cassert>
 
 using namespace ze;
 
