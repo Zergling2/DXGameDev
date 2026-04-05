@@ -44,7 +44,10 @@ void ChJobReqSendChatMsg::Execute(GameChannel& channel)
 			auto iter = channel.Sessions().cbegin();
 			while (iter != channel.Sessions().cend())
 			{
-				m_server.Send(iter->second->GetNetId(), outPacket);
+				if (iter->second->GetJoiningGameRoom() == nullptr)	// 방에 입장해있는 경우 생략
+					m_server.Send(iter->second->GetNetId(), outPacket);
+
+
 				++iter;
 			}
 		}
