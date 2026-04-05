@@ -19,7 +19,6 @@ LobbyHandler::LobbyHandler(ze::GameObject& owner)
 	, m_hInputFieldId()
 	, m_hInputFieldPw()
 	, m_hTextIdPwInputFieldHelpMsg()
-	, m_hButtonExitGame()
 	, m_hButtonOpenShop()
 	, m_hButtonUserInfo()
 	, m_hPanelOkMsgBoxRoot()
@@ -179,6 +178,11 @@ void LobbyHandler::OnClickLogin()
 void LobbyHandler::OnClickExitGame()
 {
 	Runtime::GetInstance()->Exit();
+}
+
+void LobbyHandler::OnClickExitGameListBrowser()
+{
+	// TEST CODE
 }
 
 void LobbyHandler::SendJoinChannelPacket(uint16_t channelId)
@@ -558,6 +562,15 @@ void LobbyHandler::SetGameRoomInfo(uint64_t gameRoomId, uint64_t hostNetId, Game
 	m_gameRoomGameMode = gameMode;
 	static_cast<Text*>(m_hTextGameRoomNamePanel.ToPtr())->SetText(gameRoomHeadText);
 
+	wchar_t gameInfoBuf[128];
+	const uint32_t maxPlayerPerTeam = static_cast<uint32_t>(m_gameRoomMaxPlayer) + 1;
+	StringCchPrintfW(gameInfoBuf, _countof(gameInfoBuf), L"맵\t\t%s\n게임 모드\t%s\n최대 인원\t%u vs %u\n게임 시간\t10분",
+		GameMapInfo::GetGameMapString(m_gameRoomGameMap),
+		GameModeInfo::GetGameModeString(m_gameRoomGameMode),
+		maxPlayerPerTeam, maxPlayerPerTeam
+	);
+	static_cast<Text*>(m_hTextGameRoomInfo.ToPtr())->SetText(gameInfoBuf);
+
 	m_gameRoomMyTeam = myTeam;	// 현재 내 팀 정보 설정
 }
 
@@ -568,8 +581,11 @@ void LobbyHandler::AddGameRoomPlayerInfo(GameTeam team, uint64_t netId, uint16_t
 
 	const size_t maxPlayerPerTeam = static_cast<size_t>(m_gameRoomMaxPlayer) + 1;
 
-	wchar_t textBuf[MAX_NICKNAME_LEN + 16];
-	StringCchPrintfW(textBuf, _countof(textBuf), L"Lv.%u\t%s", static_cast<uint32_t>(level), nickname);
+	wchar_t textBuf[MAX_NICKNAME_LEN + 32];
+	if (m_gameRoomHostNetId == netId)
+		StringCchPrintfW(textBuf, _countof(textBuf), L"[HOST] Lv.%u\t%s", static_cast<uint32_t>(level), nickname);
+	else
+		StringCchPrintfW(textBuf, _countof(textBuf), L"Lv.%u\t%s", static_cast<uint32_t>(level), nickname);
 
 	switch (team)
 	{
@@ -599,7 +615,7 @@ void LobbyHandler::AddGameRoomPlayerInfo(GameTeam team, uint64_t netId, uint16_t
 
 void LobbyHandler::MoveGameRoomPlayerInfo(uint64_t netId, GameTeam newTeam)
 {
-	uint16_t level;
+	uint16_t level = (std::numeric_limits<uint16_t>::max)();
 	wchar_t nickname[MAX_NICKNAME_LEN + 1];
 
 	bool found = false;
@@ -653,11 +669,101 @@ void LobbyHandler::MoveGameRoomPlayerInfo(uint64_t netId, GameTeam newTeam)
 				break;
 			}
 		}
-
-		assert(found);
 	} while (false);
 
+	assert(found);
+
 	AddGameRoomPlayerInfo(newTeam, netId, level, nickname);
+}
+
+void LobbyHandler::RemoveGameRoomPlayerInfo(uint64_t netId)
+{
+	bool found = false;
+
+	do
+	{
+		for (uint8_t i = 0; i < m_gameRoomRedTeamPlayersCount; ++i)
+		{
+			if (m_gameRoomRedTeamPlayers[i].m_netId == netId)
+			{
+				found = true;
+
+				for (uint8_t j = i + 1; j < m_gameRoomRedTeamPlayersCount; ++j)
+				{
+					m_gameRoomRedTeamPlayers[j - 1] = std::move(m_gameRoomRedTeamPlayers[j]);
+					static_cast<Text*>(m_hTextGameRoomRedTeamPlayers[j - 1].ToPtr())->GetText() = std::move(static_cast<Text*>(m_hTextGameRoomRedTeamPlayers[j].ToPtr())->GetText());
+				}
+				static_cast<Text*>(m_hTextGameRoomRedTeamPlayers[m_gameRoomRedTeamPlayersCount - 1].ToPtr())->GetText().clear();
+
+				--m_gameRoomRedTeamPlayersCount;
+				break;
+			}
+		}
+
+		if (found)
+			break;
+
+		for (uint8_t i = 0; i < m_gameRoomBlueTeamPlayersCount; ++i)
+		{
+			if (m_gameRoomBlueTeamPlayers[i].m_netId == netId)
+			{
+				found = true;
+
+				for (uint8_t j = i + 1; j < m_gameRoomBlueTeamPlayersCount; ++j)
+				{
+					m_gameRoomBlueTeamPlayers[j - 1] = std::move(m_gameRoomBlueTeamPlayers[j]);
+					static_cast<Text*>(m_hTextGameRoomBlueTeamPlayers[j - 1].ToPtr())->GetText() = std::move(static_cast<Text*>(m_hTextGameRoomBlueTeamPlayers[j].ToPtr())->GetText());
+				}
+				static_cast<Text*>(m_hTextGameRoomBlueTeamPlayers[m_gameRoomBlueTeamPlayersCount - 1].ToPtr())->GetText().clear();
+
+				--m_gameRoomBlueTeamPlayersCount;
+				break;
+			}
+		}
+	} while (false);
+	
+}
+
+void LobbyHandler::OnGameRoomHostChanged(uint64_t newHostNetId)
+{
+	const uint64_t prevHostNetId = m_gameRoomHostNetId;
+	m_gameRoomHostNetId = newHostNetId;
+
+	wchar_t textBuf[MAX_NICKNAME_LEN + 32];
+	do
+	{
+		for (uint8_t i = 0; i < m_gameRoomRedTeamPlayersCount; ++i)
+		{
+			const GameRoomPlayer& player = m_gameRoomRedTeamPlayers[i];
+			if (player.m_netId == prevHostNetId)
+			{
+				StringCchPrintfW(textBuf, _countof(textBuf), L"Lv.%u\t%s", static_cast<uint32_t>(player.m_level), player.m_nickname);
+				static_cast<Text*>(m_hTextGameRoomRedTeamPlayers[i].ToPtr())->SetText(textBuf);
+			}
+
+			if (player.m_netId == newHostNetId)
+			{
+				StringCchPrintfW(textBuf, _countof(textBuf), L"[HOST] Lv.%u\t%s", static_cast<uint32_t>(player.m_level), player.m_nickname);
+				static_cast<Text*>(m_hTextGameRoomRedTeamPlayers[i].ToPtr())->SetText(textBuf);
+			}
+		}
+
+		for (uint8_t i = 0; i < m_gameRoomBlueTeamPlayersCount; ++i)
+		{
+			const GameRoomPlayer& player = m_gameRoomBlueTeamPlayers[i];
+			if (player.m_netId == prevHostNetId)
+			{
+				StringCchPrintfW(textBuf, _countof(textBuf), L"Lv.%u\t%s", static_cast<uint32_t>(player.m_level), player.m_nickname);
+				static_cast<Text*>(m_hTextGameRoomBlueTeamPlayers[i].ToPtr())->SetText(textBuf);
+			}
+
+			if (player.m_netId == newHostNetId)
+			{
+				StringCchPrintfW(textBuf, _countof(textBuf), L"[HOST] Lv.%u\t%s", static_cast<uint32_t>(player.m_level), player.m_nickname);
+				static_cast<Text*>(m_hTextGameRoomBlueTeamPlayers[i].ToPtr())->SetText(textBuf);
+			}
+		}
+	} while (false);
 }
 
 void LobbyHandler::AddChatMsg(const wchar_t* msg)
@@ -753,7 +859,6 @@ void LobbyHandler::UpdateUI()
 		// #########################################################
 		// 현재 상태에 대응하지 않는 UI 숨기기
 		m_hPanelOkMsgBoxRoot.ToPtr()->SetActive(false);
-		m_hButtonExitGame.ToPtr()->SetActive(false);
 		m_hPanelChannelBrowserRoot.ToPtr()->SetActive(false);
 		m_hPanelGameListBrowserRoot.ToPtr()->SetActive(false);
 		m_hPanelGameRoomRoot.ToPtr()->SetActive(false);
@@ -782,7 +887,6 @@ void LobbyHandler::UpdateUI()
 		m_hButtonUserInfo.ToPtr()->SetActive(false);
 		m_hPanelCreateGameRoomRoot.ToPtr()->SetActive(false);
 
-		m_hButtonExitGame.ToPtr()->SetActive(true);
 		// 게임 리스트 브라우저 UI 표시
 		m_hPanelChannelBrowserRoot.ToPtr()->SetActive(true);
 		
@@ -807,7 +911,6 @@ void LobbyHandler::UpdateUI()
 		static_cast<Image*>(m_hImageLobbyBgr.ToPtr())->SetTexture(m_hScriptGameResources.ToPtr()->m_texGameListBgr);
 		m_hImageLobbyBgr.ToPtr()->SetActive(true);
 
-		m_hButtonExitGame.ToPtr()->SetActive(true);
 		m_hPanelChatRoot.ToPtr()->SetActive(true);
 		m_hButtonOpenShop.ToPtr()->SetActive(true);
 		m_hButtonUserInfo.ToPtr()->SetActive(true);

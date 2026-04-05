@@ -7,6 +7,7 @@
 #include "ChJobReqGameRoomList.h"
 #include "ChJobReqCreateGameRoom.h"
 #include "ChJobReqJoinGameRoom.h"
+#include "ChJobReqExitGameRoom.h"
 #include "ChJobReqChangeTeam.h"
 
 GameServer::GameServer()
@@ -68,6 +69,7 @@ void GameServer::OnReceive(uint64_t id, winppy::Packet packet)
 				keepConn = PktProcCSReqChangeTeam(id, std::move(packet), std::move(spSession));
 				break;
 			case Protocol::CS_REQ_EXIT_GAME_ROOM:
+				keepConn = PktProcCSReqExitGameRoom(id, std::move(spSession));
 				break;
 			case Protocol::CS_REQ_HOST_GAME_START:
 				break;
@@ -218,6 +220,16 @@ bool GameServer::PktProcCSReqJoinGameRoom(uint64_t id, winppy::Packet packet, st
 		return false;
 
 	pJoiningGameChannel->DispatchJob(std::make_unique<ChJobReqJoinGameRoom>(*this, id, std::move(packet), std::move(spSession)));
+	return true;
+}
+
+bool GameServer::PktProcCSReqExitGameRoom(uint64_t id, std::shared_ptr<GameSession> spSession)
+{
+	GameChannel* pJoiningGameChannel = spSession->GetJoiningGameChannel();
+	if (!pJoiningGameChannel)
+		return false;
+
+	pJoiningGameChannel->DispatchJob(std::make_unique<ChJobReqExitGameRoom>(*this, std::move(spSession)));
 	return true;
 }
 

@@ -51,6 +51,7 @@ public:
 	// UI Event Handlers
 	void OnClickLogin();
 	void OnClickExitGame();
+	void OnClickExitGameListBrowser();
 	void OnClickJoinChannel0();
 	void OnClickJoinChannel1();
 	void OnClickJoinChannel2();
@@ -99,6 +100,7 @@ public:
 	void AddGameRoomPlayerInfo(GameTeam team, uint64_t netId, uint16_t level, const wchar_t* nickname);
 	void MoveGameRoomPlayerInfo(uint64_t netId, GameTeam newTeam);
 	void RemoveGameRoomPlayerInfo(uint64_t netId);
+	void OnGameRoomHostChanged(uint64_t newHostNetId);
 	void AddChatMsg(const wchar_t* msg);
 	void UpdateGameListBrowserUI();
 private:
@@ -127,7 +129,6 @@ public:
 	ze::UIObjectHandle m_hTextIdPwInputFieldHelpMsg;
 
 	// 공통 버튼 UI 관련
-	ze::UIObjectHandle m_hButtonExitGame;
 	ze::UIObjectHandle m_hButtonOpenShop;
 	ze::UIObjectHandle m_hButtonUserInfo;
 
@@ -172,6 +173,8 @@ public:
 	uint8_t m_gameRoomRedTeamPlayersCount;
 	uint8_t m_gameRoomBlueTeamPlayersCount;
 	ze::UIObjectHandle m_hPanelGameRoomRoot;
+	ze::UIObjectHandle m_hImageGameRoomMapPreview;
+	ze::UIObjectHandle m_hTextGameRoomInfo;
 	ze::UIObjectHandle m_hTextGameRoomNamePanel;
 	ze::UIObjectHandle m_hTextGameRoomRedTeamPlayers[MAX_PLAYERS_PER_TEAM];
 	ze::UIObjectHandle m_hTextGameRoomBlueTeamPlayers[MAX_PLAYERS_PER_TEAM];

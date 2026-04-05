@@ -29,8 +29,10 @@ enum class Protocol : protocol_type
 	SC_RES_CHANGE_TEAM,
 	SC_RES_EXIT_GAME_ROOM,
 	SC_NOTIFY_PLAYER_TEAM_CHANGED,
-	SC_NOTIFY_PLAYER_JOINED,
+	SC_NOTIFY_PLAYER_JOINED_GAME_ROOM,
 	SC_NOTIFY_GAME_ROOM_PLAYER,
+	SC_NOTIFY_PLAYER_EXIT_GAME_ROOM,
+	SC_NOTIFY_HOST_CHANGED,
 	SC_NOTIFY_HOST_GAME_START
 };
 
@@ -167,20 +169,15 @@ struct SCResJoinGameRoom
 	wchar_t m_gameRoomName[MAX_GAME_ROOM_NAME_LEN];
 };
 
-struct SCNotifyGameRoomPlayer
-{
-	uint64_t m_gameRoomId;
-	uint64_t m_netId;
-	GameTeam m_team;
-	uint16_t m_level;	// 레벨
-	uint16_t m_nicknameLen;
-	wchar_t m_nickname[MAX_NICKNAME_LEN];
-};
-
 struct SCResChangeTeam
 {
 	bool m_result;
 	GameTeam m_newTeam;
+};
+
+struct SCResExitGameRoom
+{
+	bool m_result;
 };
 
 struct SCNotifyPlayerJoined
@@ -189,6 +186,16 @@ struct SCNotifyPlayerJoined
 	uint64_t m_netId;
 	GameTeam m_joinedTeam;
 	uint16_t m_level;
+	uint16_t m_nicknameLen;
+	wchar_t m_nickname[MAX_NICKNAME_LEN];
+};
+
+struct SCNotifyGameRoomPlayer
+{
+	uint64_t m_gameRoomId;
+	uint64_t m_netId;
+	GameTeam m_team;
+	uint16_t m_level;	// 레벨
 	uint16_t m_nicknameLen;
 	wchar_t m_nickname[MAX_NICKNAME_LEN];
 };

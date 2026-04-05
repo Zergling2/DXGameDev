@@ -100,11 +100,17 @@ void Network::Update()
 		case Protocol::SC_NOTIFY_PLAYER_TEAM_CHANGED:
 			PktProcSCNotifyPlayerTeamChanged(std::move(packet));
 			break;
-		case Protocol::SC_NOTIFY_PLAYER_JOINED:
-			PktProcSCNotifyPlayerJoined(std::move(packet));
+		case Protocol::SC_NOTIFY_PLAYER_JOINED_GAME_ROOM:
+			PktProcSCNotifyPlayerJoinedGameRoom(std::move(packet));
 			break;
 		case Protocol::SC_NOTIFY_GAME_ROOM_PLAYER:
 			PktProcSCNotifyGameRoomPlayer(std::move(packet));
+			break;
+		case Protocol::SC_NOTIFY_PLAYER_EXIT_GAME_ROOM:
+			PktProcSCNotifyPlayerExitGameRoom(std::move(packet));
+			break;
+		case Protocol::SC_NOTIFY_HOST_CHANGED:
+			PktProcSCNotifyHostChanged(std::move(packet));
 			break;
 		case Protocol::SC_NOTIFY_HOST_GAME_START:
 			//PktProcSCNotifyHostGameStart(std::move(packet));
@@ -293,6 +299,7 @@ void Network::PktProcSCResCreateGameRoom(winppy::Packet packet)
 		StringCchPrintfW(gameRoomHeadText, _countof(gameRoomHeadText), L"[%u] %s", static_cast<uint32_t>(res.m_gameRoomNo), gameRoomName);
 		
 		pScriptLobbyHandler->ClearGameRoomInfo();
+
 		pScriptLobbyHandler->SetGameRoomInfo(res.m_gameRoomId, res.m_gameRoomHostNetId, res.m_maxPlayer, res.m_gameMap, res.m_gameMode, gameRoomHeadText, res.m_joinedTeam);
 		pScriptLobbyHandler->AddGameRoomPlayerInfo(res.m_joinedTeam, m_netId, pScriptAccount->GetLevel(), pScriptAccount->GetNickname());
 
@@ -378,6 +385,7 @@ void Network::PktProcSCResExitGameRoom(winppy::Packet packet)
 {
 	// TEST CODE
 	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
+	pScriptLobbyHandler->ClearGameRoomInfo();
 
 	pScriptLobbyHandler->SetLobbyState(LobbyState::GameListBrowser);
 }
@@ -395,7 +403,7 @@ void Network::PktProcSCNotifyPlayerTeamChanged(winppy::Packet packet)
 	pScriptLobbyHandler->MoveGameRoomPlayerInfo(notify.m_netId, notify.m_newTeam);
 }
 
-void Network::PktProcSCNotifyPlayerJoined(winppy::Packet packet)
+void Network::PktProcSCNotifyPlayerJoinedGameRoom(winppy::Packet packet)
 {
 	SCNotifyPlayerJoined notify;
 	if (!packet->ReadBytes(&notify, sizeof(notify)))
@@ -413,6 +421,24 @@ void Network::PktProcSCNotifyPlayerJoined(winppy::Packet packet)
 	nickname[notify.m_nicknameLen] = L'\0';
 
 	pScriptLobbyHandler->AddGameRoomPlayerInfo(notify.m_joinedTeam, notify.m_netId, notify.m_level, nickname);
+}
+
+void Network::PktProcSCNotifyPlayerExitGameRoom(winppy::Packet packet)
+{
+	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
+
+	uint64_t gameRoomId;
+	uint64_t exitPlayerNetId;
+	if (!packet->Read(&gameRoomId))
+		return;
+
+	if (!packet->Read(&exitPlayerNetId))
+		return;
+
+	if (pScriptLobbyHandler->m_gameRoomId != gameRoomId)
+		return;
+
+	pScriptLobbyHandler->RemoveGameRoomPlayerInfo(exitPlayerNetId);
 }
 
 void Network::PktProcSCNotifyGameRoomPlayer(winppy::Packet packet)
@@ -433,4 +459,21 @@ void Network::PktProcSCNotifyGameRoomPlayer(winppy::Packet packet)
 	nickname[notify.m_nicknameLen] = L'\0';
 
 	pScriptLobbyHandler->AddGameRoomPlayerInfo(notify.m_team, notify.m_netId, notify.m_level, nickname);
+}
+
+void Network::PktProcSCNotifyHostChanged(winppy::Packet packet)
+{
+	uint64_t gameRoomId;
+	uint64_t newHostNetId;
+	if (!packet->Read(&gameRoomId))
+		return;
+
+	if (!packet->Read(&newHostNetId))
+		return;
+
+	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
+	if (pScriptLobbyHandler->m_gameRoomId != gameRoomId)
+		return;
+
+	pScriptLobbyHandler->OnGameRoomHostChanged(newHostNetId);
 }

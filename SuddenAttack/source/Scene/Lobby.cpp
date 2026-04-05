@@ -102,25 +102,6 @@ void Lobby::OnLoadScene()
 	pImageLobbyBgr->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 	pImageLobbyBgr->SetNativeSize(true);
 
-	UIObjectHandle hButtonExitGame = CreateButton();
-	Button* pButtonExitGame = static_cast<Button*>(hButtonExitGame.ToPtr());
-	pScriptLobbyHandler->m_hButtonExitGame = hButtonExitGame;
-	pButtonExitGame->m_transform.SetParent(&pImageLobbyBgr->m_transform);
-	pButtonExitGame->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-	pButtonExitGame->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
-	pButtonExitGame->m_transform.SetPosition(+45, +18);
-	pButtonExitGame->SetSize(80, 26);
-	pButtonExitGame->SetButtonColor(Colors::Red);
-	pButtonExitGame->SetTextColor(Colors::White);
-	pButtonExitGame->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-	pButtonExitGame->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pButtonExitGame->SetText(L"게임종료");
-	pButtonExitGame->GetTextFormat().SetSize(STATIC_TEXT_SIZE_MEDIUM);
-	pButtonExitGame->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
-	pButtonExitGame->ApplyTextFormat();
-	pButtonExitGame->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickExitGame));
-
-
 	UIObjectHandle hPanelLoginUIRoot = CreatePanel();
 	pScriptLobbyHandler->m_hPanelLoginUIRoot = hPanelLoginUIRoot;
 	Panel* pPanelLoginWindowRoot = static_cast<Panel*>(hPanelLoginUIRoot.ToPtr());
@@ -384,6 +365,23 @@ void Lobby::OnLoadScene()
 	pPanelChannelBrowserRoot->SetShape(PanelShape::RoundedRectangle);
 	pPanelChannelBrowserRoot->SetRadius(8.0f, 8.0f);
 
+	UIObjectHandle hButtonExitGame = CreateButton();
+	Button* pButtonExitGame = static_cast<Button*>(hButtonExitGame.ToPtr());
+	pButtonExitGame->m_transform.SetParent(&pPanelChannelBrowserRoot->m_transform);
+	pButtonExitGame->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
+	pButtonExitGame->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
+	pButtonExitGame->m_transform.SetPosition(-55, -18);
+	pButtonExitGame->SetSize(100, 26);
+	// pButtonExitGame->SetButtonColor(Colors::Red);
+	pButtonExitGame->SetTextColor(Colors::Gold);
+	pButtonExitGame->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pButtonExitGame->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pButtonExitGame->SetText(L"게임종료");
+	pButtonExitGame->GetTextFormat().SetSize(STATIC_TEXT_SIZE_MEDIUM);
+	pButtonExitGame->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pButtonExitGame->ApplyTextFormat();
+	pButtonExitGame->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickExitGame));
+
 	constexpr float BROWSER_BOTTOM_BUTTON_COMMON_Y_OFFSET = +30;
 	constexpr XMFLOAT2 CHANNEL_LIST_REFRESH_BUTTON_OFFSET(+540, -CHANNEL_BROWSER_PANEL_SIZE.y / 2 + BROWSER_BOTTOM_BUTTON_COMMON_Y_OFFSET + CHANNEL_BROWSER_PANEL_OFFSET.y);
 	UIObjectHandle hButtonRefreshChannelList = CreateButton();
@@ -549,6 +547,55 @@ void Lobby::OnLoadScene()
 	pPanelGameListBrowserRoot->SetColor(XMVectorSetW(Colors::DimGray, 0.6f));
 	pPanelGameListBrowserRoot->SetShape(PanelShape::RoundedRectangle);
 	pPanelGameListBrowserRoot->SetRadius(8.0f, 8.0f);
+
+	UIObjectHandle hButtonExitGameListBrowser = CreateButton();
+	Button* pButtonExitGameListBrowser = static_cast<Button*>(hButtonExitGameListBrowser.ToPtr());
+	pButtonExitGameListBrowser->m_transform.SetParent(&pPanelGameListBrowserRoot->m_transform);
+	pButtonExitGameListBrowser->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
+	pButtonExitGameListBrowser->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
+	pButtonExitGameListBrowser->m_transform.SetPosition(-55, -18);
+	pButtonExitGameListBrowser->SetSize(100, 26);
+	pButtonExitGameListBrowser->SetButtonColor(Colors::DeepSkyBlue);
+	pButtonExitGameListBrowser->SetTextColor(Colors::Black);
+	pButtonExitGameListBrowser->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pButtonExitGameListBrowser->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pButtonExitGameListBrowser->SetText(L"채널선택");
+	pButtonExitGameListBrowser->GetTextFormat().SetSize(STATIC_TEXT_SIZE_MEDIUM);
+	pButtonExitGameListBrowser->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pButtonExitGameListBrowser->ApplyTextFormat();
+	pButtonExitGameListBrowser->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickExitGameListBrowser));
+
+	UIObjectHandle hButtonOpenShop = CreateButton();
+	pScriptLobbyHandler->m_hButtonOpenShop = hButtonOpenShop;
+	Button* pButtonOpenShop = static_cast<Button*>(hButtonOpenShop.ToPtr());
+	pButtonOpenShop->m_transform.SetParent(&pPanelGameListBrowserRoot->m_transform);
+	pButtonOpenShop->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+	pButtonOpenShop->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
+	pButtonOpenShop->m_transform.SetPosition(+55, -18);
+	pButtonOpenShop->SetSize(100, 26);
+	pButtonOpenShop->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pButtonOpenShop->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pButtonOpenShop->SetText(L"상점/정비");
+	pButtonOpenShop->GetTextFormat().SetSize(STATIC_TEXT_SIZE_MEDIUM);
+	pButtonOpenShop->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pButtonOpenShop->ApplyTextFormat();
+
+
+	UIObjectHandle hButtonUserInfo = CreateButton();
+	pScriptLobbyHandler->m_hButtonUserInfo = hButtonUserInfo;
+	Button* pButtonUserInfo = static_cast<Button*>(hButtonUserInfo.ToPtr());
+	pButtonUserInfo->m_transform.SetParent(&pPanelGameListBrowserRoot->m_transform);
+	pButtonUserInfo->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+	pButtonUserInfo->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
+	pButtonUserInfo->m_transform.SetPosition(+55, -18 - 31);
+	pButtonUserInfo->SetSize(100, 26);
+	pButtonUserInfo->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pButtonUserInfo->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pButtonUserInfo->SetText(L"내 정보");
+	pButtonUserInfo->GetTextFormat().SetSize(STATIC_TEXT_SIZE_MEDIUM);
+	pButtonUserInfo->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pButtonUserInfo->ApplyTextFormat();
+
 
 	constexpr XMFLOAT2 GAME_BROWSER_HEAD_TEXT_OFFSET(-GAME_BROWSER_PANEL_SIZE.x / 2 + 80 + GAME_BROWSER_PANEL_OFFSET.x, GAME_BROWSER_PANEL_SIZE.y / 2 - 40 + GAME_BROWSER_PANEL_OFFSET.y);
 	UIObjectHandle hTextGameBrowserHead = CreateText();
@@ -1157,6 +1204,56 @@ void Lobby::OnLoadScene()
 	pPanelGameRoomRoot->SetShape(PanelShape::RoundedRectangle);
 	pPanelGameRoomRoot->SetRadius(8.0f, 8.0f);
 
+	// 맵 미리보기 이미지
+	constexpr XMFLOAT2 GAME_ROOM_MAP_PREVIEW_IMAGE_SIZE(400, 300);
+	constexpr XMFLOAT2 GAME_ROOM_MAP_PREVIEW_IMAGE_OFFSET(-GAME_ROOM_PANEL_SIZE.x / 2 + GAME_ROOM_MAP_PREVIEW_IMAGE_SIZE.x / 2 + 10, +GAME_ROOM_PANEL_SIZE.y / 2 - GAME_ROOM_MAP_PREVIEW_IMAGE_SIZE.y / 2 - 110);
+	UIObjectHandle hImageGameRoomMapPreview = CreateImage();
+	pScriptLobbyHandler->m_hImageGameRoomMapPreview = hImageGameRoomMapPreview;
+	Image* pImageGameRoomMapPreview = static_cast<Image*>(hImageGameRoomMapPreview.ToPtr());
+	pImageGameRoomMapPreview->m_transform.SetParent(&pPanelGameRoomRoot->m_transform);
+	pImageGameRoomMapPreview->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pImageGameRoomMapPreview->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pImageGameRoomMapPreview->m_transform.SetPosition(GAME_ROOM_MAP_PREVIEW_IMAGE_OFFSET);
+	pImageGameRoomMapPreview->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\warehouse_preview.png", false));
+	pImageGameRoomMapPreview->SetSize(GAME_ROOM_MAP_PREVIEW_IMAGE_SIZE);
+	pImageGameRoomMapPreview->SetNativeSize(false);
+
+	constexpr XMFLOAT2 GAME_ROOM_CHANGE_MAP_BUTTON_SIZE(GAME_ROOM_MAP_PREVIEW_IMAGE_SIZE.x, 26);
+	constexpr XMFLOAT2 GAME_ROOM_CHANGE_MAP_BUTTON_OFFSET(GAME_ROOM_MAP_PREVIEW_IMAGE_OFFSET.x, GAME_ROOM_MAP_PREVIEW_IMAGE_OFFSET.y - GAME_ROOM_MAP_PREVIEW_IMAGE_SIZE.y / 2 - GAME_ROOM_CHANGE_MAP_BUTTON_SIZE.y / 2 - 10);
+	UIObjectHandle hButtonGameRoomChangeMap = CreateButton();
+	Button* pButtonGameRoomChangeMap = static_cast<Button*>(hButtonGameRoomChangeMap.ToPtr());
+	pButtonGameRoomChangeMap->m_transform.SetParent(&pPanelGameRoomRoot->m_transform);
+	pButtonGameRoomChangeMap->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pButtonGameRoomChangeMap->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pButtonGameRoomChangeMap->m_transform.SetPosition(GAME_ROOM_CHANGE_MAP_BUTTON_OFFSET);
+	pButtonGameRoomChangeMap->SetSize(GAME_ROOM_CHANGE_MAP_BUTTON_SIZE);
+	pButtonGameRoomChangeMap->SetButtonColor(Colors::DarkOrange);
+	pButtonGameRoomChangeMap->SetTextColor(Colors::Black);
+	pButtonGameRoomChangeMap->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pButtonGameRoomChangeMap->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pButtonGameRoomChangeMap->SetText(L"맵 변경");
+	pButtonGameRoomChangeMap->GetTextFormat().SetSize(STATIC_TEXT_SIZE_MEDIUM);
+	pButtonGameRoomChangeMap->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pButtonGameRoomChangeMap->ApplyTextFormat();
+
+	// 현재 게임 정보 표시 UI
+	constexpr XMFLOAT2 GAME_ROOM_INFO_TEXT_SIZE(400, 120);
+	constexpr XMFLOAT2 GAME_ROOM_INFO_TEXT_OFFSET(-GAME_ROOM_PANEL_SIZE.x / 2 + GAME_ROOM_INFO_TEXT_SIZE.x / 2 + 10, -GAME_ROOM_PANEL_SIZE.y / 2 + GAME_ROOM_INFO_TEXT_SIZE.y / 2 + 100);
+	UIObjectHandle hTextGameRoomInfo = CreateText();
+	pScriptLobbyHandler->m_hTextGameRoomInfo = hTextGameRoomInfo;
+	Text* pTextGameRoomInfo = static_cast<Text*>(hTextGameRoomInfo.ToPtr());
+	pTextGameRoomInfo->m_transform.SetParent(&pPanelGameRoomRoot->m_transform);
+	pTextGameRoomInfo->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pTextGameRoomInfo->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pTextGameRoomInfo->m_transform.SetPosition(GAME_ROOM_INFO_TEXT_OFFSET);
+	pTextGameRoomInfo->SetColor(Colors::WhiteSmoke);
+	pTextGameRoomInfo->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+	pTextGameRoomInfo->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
+	pTextGameRoomInfo->GetTextFormat().SetWeight(MEDIUM_TEXT_WEIGHT);
+	pTextGameRoomInfo->GetTextFormat().SetSize(MEDIUM_TEXT_SIZE);
+	pTextGameRoomInfo->ApplyTextFormat();
+	pTextGameRoomInfo->SetSize(GAME_ROOM_INFO_TEXT_SIZE);
+
 	constexpr XMFLOAT2 GAME_ROOM_NAME_PANEL_SIZE(840, 30);
 	constexpr XMFLOAT2 GAME_ROOM_NAME_PANEL_OFFSET(GAME_ROOM_PANEL_SIZE.x / 2 - GAME_ROOM_NAME_PANEL_SIZE.x / 2 - 15 + GAME_ROOM_PANEL_OFFSET.x, GAME_ROOM_PANEL_SIZE.y / 2 - GAME_ROOM_NAME_PANEL_SIZE.y / 2 - 25 + GAME_ROOM_PANEL_OFFSET.y);
 	UIObjectHandle hPanelGameNamePanel = CreatePanel();
@@ -1182,7 +1279,7 @@ void Lobby::OnLoadScene()
 	pTextGameRoomNamePanel->SetColor(Colors::WhiteSmoke);
 	pTextGameRoomNamePanel->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 	pTextGameRoomNamePanel->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pTextGameRoomNamePanel->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pTextGameRoomNamePanel->GetTextFormat().SetWeight(MEDIUM_TEXT_WEIGHT);
 	pTextGameRoomNamePanel->GetTextFormat().SetSize(MEDIUM_TEXT_SIZE);
 	pTextGameRoomNamePanel->ApplyTextFormat();
 	pTextGameRoomNamePanel->SetSize(GAME_ROOM_NAME_PANEL_TEXT_SIZE);
@@ -1286,8 +1383,6 @@ void Lobby::OnLoadScene()
 		pTextGameRoomBlueTeamPlayer->SetSize(GAME_ROOM_PLAYER_NAME_TEXT_SIZE);
 	}
 
-
-
 	constexpr XMFLOAT2 EXIT_GAME_ROOM_BUTTON_SIZE(100, 26);
 	constexpr XMFLOAT2 EXIT_GAME_ROOM_BUTTON_OFFSET(GAME_ROOM_PANEL_SIZE.x / 2 - EXIT_GAME_ROOM_BUTTON_SIZE.x / 2 - 15 + GAME_ROOM_PANEL_OFFSET.x, -GAME_ROOM_PANEL_SIZE.y / 2 + EXIT_GAME_ROOM_BUTTON_SIZE.y / 2 + 15 + GAME_ROOM_PANEL_OFFSET.y);
 	UIObjectHandle hButtonExitGameRoom = CreateButton();
@@ -1298,6 +1393,7 @@ void Lobby::OnLoadScene()
 	pButtonExitGameRoom->m_transform.SetPosition(EXIT_GAME_ROOM_BUTTON_OFFSET);
 	pButtonExitGameRoom->SetSize(EXIT_GAME_ROOM_BUTTON_SIZE);
 	pButtonExitGameRoom->SetButtonColor(Colors::OrangeRed);
+	pButtonExitGameRoom->SetTextColor(Colors::Black);
 	pButtonExitGameRoom->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pButtonExitGameRoom->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 	pButtonExitGameRoom->SetText(L"나가기");
@@ -1305,39 +1401,4 @@ void Lobby::OnLoadScene()
 	pButtonExitGameRoom->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
 	pButtonExitGameRoom->ApplyTextFormat();
 	pButtonExitGameRoom->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickExitGameRoom));
-
-
-	// ########################################
-	// 로비 기타 UI
-	UIObjectHandle hButtonOpenShop = CreateButton();
-	pScriptLobbyHandler->m_hButtonOpenShop = hButtonOpenShop;
-	Button* pButtonOpenShop = static_cast<Button*>(hButtonOpenShop.ToPtr());
-	pButtonOpenShop->m_transform.SetParent(&pImageLobbyBgr->m_transform);
-	pButtonOpenShop->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-	pButtonOpenShop->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
-	pButtonOpenShop->m_transform.SetPosition(+55, -18);
-	pButtonOpenShop->SetSize(100, 26);
-	pButtonOpenShop->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-	pButtonOpenShop->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pButtonOpenShop->SetText(L"상점/정비");
-	pButtonOpenShop->GetTextFormat().SetSize(STATIC_TEXT_SIZE_MEDIUM);
-	pButtonOpenShop->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
-	pButtonOpenShop->ApplyTextFormat();
-
-
-	UIObjectHandle hButtonUserInfo = CreateButton();
-	pScriptLobbyHandler->m_hButtonUserInfo = hButtonUserInfo;
-	Button* pButtonUserInfo = static_cast<Button*>(hButtonUserInfo.ToPtr());
-	pButtonUserInfo->m_transform.SetParent(&pImageLobbyBgr->m_transform);
-	pButtonUserInfo->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-	pButtonUserInfo->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
-	pButtonUserInfo->m_transform.SetPosition(+55, -18 - 31);
-	pButtonUserInfo->SetSize(100, 26);
-	pButtonUserInfo->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-	pButtonUserInfo->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pButtonUserInfo->SetText(L"내 정보");
-	pButtonUserInfo->GetTextFormat().SetSize(STATIC_TEXT_SIZE_MEDIUM);
-	pButtonUserInfo->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
-	pButtonUserInfo->ApplyTextFormat();
-
 }

@@ -26,6 +26,7 @@ public:
 	bool PktProcCSReqGameList(uint64_t id, winppy::Packet packet, std::shared_ptr<GameSession> spSession);
 	bool PktProcCSReqCreateGameRoom(uint64_t id, winppy::Packet packet, std::shared_ptr<GameSession> spSession);
 	bool PktProcCSReqJoinGameRoom(uint64_t id, winppy::Packet packet, std::shared_ptr<GameSession> spSession);
+	bool PktProcCSReqExitGameRoom(uint64_t id, std::shared_ptr<GameSession> spSession);
 	bool PktProcCSReqChangeTeam(uint64_t id, winppy::Packet packet, std::shared_ptr<GameSession> spSession);
 private:
 	std::shared_ptr<GameSession> FindSession(uint64_t netId) const;

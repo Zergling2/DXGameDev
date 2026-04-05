@@ -65,8 +65,10 @@ private:
 	void PktProcSCResChangeTeam(winppy::Packet packet);
 	void PktProcSCResExitGameRoom(winppy::Packet packet);
 	void PktProcSCNotifyPlayerTeamChanged(winppy::Packet packet);
-	void PktProcSCNotifyPlayerJoined(winppy::Packet packet);
+	void PktProcSCNotifyPlayerJoinedGameRoom(winppy::Packet packet);
+	void PktProcSCNotifyPlayerExitGameRoom(winppy::Packet packet);
 	void PktProcSCNotifyGameRoomPlayer(winppy::Packet packet);
+	void PktProcSCNotifyHostChanged(winppy::Packet packet);
 	//void PktProcSCNotifyHostGameStart(winppy::Packet packet);
 private:
 	ListenServer m_listenServer;

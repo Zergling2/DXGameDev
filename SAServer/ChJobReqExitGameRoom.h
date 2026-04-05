@@ -11,9 +11,8 @@ class GameChannel;
 class ChJobReqExitGameRoom : public IChannelJob
 {
 public:
-	ChJobReqExitGameRoom(GameServer& server, uint64_t netId, std::shared_ptr<GameSession> spSession)
+	ChJobReqExitGameRoom(GameServer& server, std::shared_ptr<GameSession> spSession)
 		: m_server(server)
-		, m_netId(netId)
 		, m_spSession(std::move(spSession))
 	{
 	}
@@ -22,6 +21,5 @@ public:
 	virtual void Execute(GameChannel& channel) override;
 private:
 	GameServer& m_server;
-	uint64_t m_netId;	// 요청 세션 net id
 	std::shared_ptr<GameSession> m_spSession;
 };

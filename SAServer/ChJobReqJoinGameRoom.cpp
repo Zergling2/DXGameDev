@@ -108,7 +108,7 @@ void ChJobReqJoinGameRoom::Execute(GameChannel& channel)
 	wmemcpy_s(notifyPlayerJoined.m_nickname, _countof(notifyPlayerJoined.m_nickname), m_spSession->GetNickname(), m_spSession->GetNicknameLen());
 
 	winppy::Packet toAlreadyExistingPlayer;
-	toAlreadyExistingPlayer->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_PLAYER_JOINED));
+	toAlreadyExistingPlayer->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_PLAYER_JOINED_GAME_ROOM));
 	toAlreadyExistingPlayer->WriteBytes(&notifyPlayerJoined, sizeof(notifyPlayerJoined));	// 현재 입장하는 플레이어에 대한 정보 write
 
 	for (uint8_t i = 0; i < spGameRoom->m_redTeamSessionsCount; ++i)
