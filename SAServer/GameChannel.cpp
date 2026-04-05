@@ -91,13 +91,18 @@ unsigned int __stdcall GameChannel::ThreadEntry(void* pArg)
 
 		for (;;)
 		{
-			AutoAcquireSlimRWLockExclusive lock(jobQueueLock);
+			jobQueueLock.AcquireLockExclusive();
 
 			if (jobQueue.empty())
+			{
+				jobQueueLock.ReleaseLockExclusive();
 				break;
+			}
 
 			std::unique_ptr<IChannelJob> upJob = std::move(jobQueue.front());
 			jobQueue.pop();
+
+			jobQueueLock.ReleaseLockExclusive();
 
 			upJob->Execute(*pChannel);
 		}
