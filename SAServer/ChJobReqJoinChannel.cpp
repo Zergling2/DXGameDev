@@ -11,10 +11,10 @@ void ChJobReqJoinChannel::Execute(GameChannel& channel)
 	{
 		res.m_result = true;
 
-		channel.AddSession(m_netId, m_spSession);
+		channel.AddSession(m_spSession->GetNetId(), m_spSession);
 		if (!m_spSession->SetJoiningGameChannel(&channel))	// 접속한 채널의 포인터를 세션 구조체에 저장
 		{
-			channel.RemoveSession(m_netId);
+			channel.RemoveSession(m_spSession->GetNetId());
 			return;
 		}
 	}
@@ -27,5 +27,5 @@ void ChJobReqJoinChannel::Execute(GameChannel& channel)
 	outPacket->Write(static_cast<protocol_type>(Protocol::SC_RES_JOIN_CHANNEL));
 	outPacket->WriteBytes(&res, sizeof(res));
 
-	m_server.Send(m_netId, std::move(outPacket));
+	m_server.Send(m_spSession->GetNetId(), std::move(outPacket));
 }

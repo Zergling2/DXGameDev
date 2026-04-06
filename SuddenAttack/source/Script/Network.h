@@ -64,6 +64,7 @@ private:
 	void PktProcSCResJoinGameRoom(winppy::Packet packet);
 	void PktProcSCResChangeTeam(winppy::Packet packet);
 	void PktProcSCResExitGameRoom(winppy::Packet packet);
+	void PktProcSCResExitGameChannel(winppy::Packet packet);
 	void PktProcSCNotifyPlayerTeamChanged(winppy::Packet packet);
 	void PktProcSCNotifyPlayerJoinedGameRoom(winppy::Packet packet);
 	void PktProcSCNotifyPlayerExitGameRoom(winppy::Packet packet);

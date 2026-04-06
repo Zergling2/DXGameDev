@@ -12,9 +12,8 @@ class GameChannel;
 class ChJobReqJoinGameRoom : public IChannelJob
 {
 public:
-	ChJobReqJoinGameRoom(GameServer& server, uint64_t netId, winppy::Packet packet, std::shared_ptr<GameSession> spSession)
+	ChJobReqJoinGameRoom(GameServer& server, winppy::Packet packet, std::shared_ptr<GameSession> spSession)
 		: m_server(server)
-		, m_netId(netId)
 		, m_packet(std::move(packet))
 		, m_spSession(std::move(spSession))
 	{
@@ -24,7 +23,6 @@ public:
 	virtual void Execute(GameChannel& channel) override;
 private:
 	GameServer& m_server;
-	uint64_t m_netId;
 	winppy::Packet m_packet;
-	std::shared_ptr<GameSession> m_spSession;
+	std::shared_ptr<GameSession> m_spSession;	// 요청 세션
 };

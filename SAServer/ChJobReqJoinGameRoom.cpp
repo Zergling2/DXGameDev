@@ -11,13 +11,13 @@ void ChJobReqJoinGameRoom::Execute(GameChannel& channel)
 
 	if (!m_packet->ReadBytes(&req, sizeof(req)))
 	{
-		m_server.Disconnect(m_netId);
+		m_server.Disconnect(m_spSession->GetNetId());
 		return;
 	}
 
 	if (m_spSession->GetJoiningGameRoom() != nullptr)
 	{
-		m_server.Disconnect(m_netId);
+		m_server.Disconnect(m_spSession->GetNetId());
 		return;
 	}
 
@@ -32,7 +32,7 @@ void ChJobReqJoinGameRoom::Execute(GameChannel& channel)
 		winppy::Packet outPacket;
 		outPacket->Write(static_cast<protocol_type>(Protocol::SC_RES_JOIN_GAME_ROOM));
 		outPacket->WriteBytes(&res, sizeof(res));
-		m_server.Send(m_netId, std::move(outPacket));
+		m_server.Send(m_spSession->GetNetId(), std::move(outPacket));
 		return;
 	}
 
@@ -51,7 +51,7 @@ void ChJobReqJoinGameRoom::Execute(GameChannel& channel)
 		winppy::Packet outPacket;
 		outPacket->Write(static_cast<protocol_type>(Protocol::SC_RES_JOIN_GAME_ROOM));
 		outPacket->WriteBytes(&res, sizeof(res));
-		m_server.Send(m_netId, std::move(outPacket));
+		m_server.Send(m_spSession->GetNetId(), std::move(outPacket));
 		return;
 	}
 
@@ -95,7 +95,7 @@ void ChJobReqJoinGameRoom::Execute(GameChannel& channel)
 	winppy::Packet outPacket;
 	outPacket->Write(static_cast<protocol_type>(Protocol::SC_RES_JOIN_GAME_ROOM));
 	outPacket->WriteBytes(&res, sizeof(res));
-	m_server.Send(m_netId, std::move(outPacket));
+	m_server.Send(m_spSession->GetNetId(), std::move(outPacket));
 
 
 	
@@ -131,7 +131,7 @@ void ChJobReqJoinGameRoom::Execute(GameChannel& channel)
 		winppy::Packet toJoiningPlayer;
 		toJoiningPlayer->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_GAME_ROOM_PLAYER));
 		toJoiningPlayer->WriteBytes(&notifyPlayer, sizeof(notifyPlayer));
-		m_server.Send(m_netId, std::move(toJoiningPlayer));
+		m_server.Send(m_spSession->GetNetId(), std::move(toJoiningPlayer));
 	}
 	for (uint8_t i = 0; i < spGameRoom->m_blueTeamSessionsCount; ++i)
 	{
@@ -153,6 +153,6 @@ void ChJobReqJoinGameRoom::Execute(GameChannel& channel)
 		winppy::Packet toJoiningPlayer;
 		toJoiningPlayer->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_GAME_ROOM_PLAYER));
 		toJoiningPlayer->WriteBytes(&notifyPlayer, sizeof(notifyPlayer));
-		m_server.Send(m_netId, std::move(toJoiningPlayer));
+		m_server.Send(m_spSession->GetNetId(), std::move(toJoiningPlayer));
 	}
 }

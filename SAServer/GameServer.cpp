@@ -8,6 +8,7 @@
 #include "ChJobReqCreateGameRoom.h"
 #include "ChJobReqJoinGameRoom.h"
 #include "ChJobReqExitGameRoom.h"
+#include "ChJobReqExitGameChannel.h"
 #include "ChJobReqChangeTeam.h"
 
 GameServer::GameServer()
@@ -51,25 +52,25 @@ void GameServer::OnReceive(uint64_t id, winppy::Packet packet)
 				keepConn = PktProcCSReqChannelInfo(id, std::move(packet));
 				break;
 			case Protocol::CS_REQ_JOIN_CHANNEL:
-				keepConn = PktProcCSReqJoinChannel(id, std::move(packet), std::move(spSession));
+				keepConn = PktProcCSReqJoinChannel(std::move(packet), std::move(spSession));
 				break;
 			case Protocol::CS_REQ_SEND_CHAT_MSG:
-				keepConn = PktProcCSReqSendChatMsg(id, std::move(packet), std::move(spSession));
+				keepConn = PktProcCSReqSendChatMsg(std::move(packet), std::move(spSession));
 				break;
 			case Protocol::CS_REQ_GAME_LIST:
 				keepConn = PktProcCSReqGameList(id, std::move(packet), std::move(spSession));
 				break;
 			case Protocol::CS_REQ_CREATE_GAME_ROOM:
-				keepConn = PktProcCSReqCreateGameRoom(id, std::move(packet), std::move(spSession));
+				keepConn = PktProcCSReqCreateGameRoom(std::move(packet), std::move(spSession));
 				break;
 			case Protocol::CS_REQ_JOIN_GAME_ROOM:
-				keepConn = PktProcCSReqJoinGameRoom(id, std::move(packet), std::move(spSession));
+				keepConn = PktProcCSReqJoinGameRoom(std::move(packet), std::move(spSession));
 				break;
 			case Protocol::CS_REQ_CHANGE_TEAM:
-				keepConn = PktProcCSReqChangeTeam(id, std::move(packet), std::move(spSession));
+				keepConn = PktProcCSReqChangeTeam(std::move(packet), std::move(spSession));
 				break;
 			case Protocol::CS_REQ_EXIT_GAME_ROOM:
-				keepConn = PktProcCSReqExitGameRoom(id, std::move(spSession));
+				keepConn = PktProcCSReqExitGameRoom(std::move(spSession));
 				break;
 			case Protocol::CS_REQ_HOST_GAME_START:
 				break;
@@ -169,7 +170,7 @@ bool GameServer::PktProcCSReqChannelInfo(uint64_t id, winppy::Packet packet)
 	return true;
 }
 
-bool GameServer::PktProcCSReqJoinChannel(uint64_t id, winppy::Packet packet, std::shared_ptr<GameSession> spSession)
+bool GameServer::PktProcCSReqJoinChannel(winppy::Packet packet, std::shared_ptr<GameSession> spSession)
 {
 	CSReqJoinChannel req;
 	if (!packet->ReadBytes(&req, sizeof(req)))
@@ -178,18 +179,18 @@ bool GameServer::PktProcCSReqJoinChannel(uint64_t id, winppy::Packet packet, std
 	if (req.m_channelId >= CHANNEL_COUNT)
 		return false;
 
-	m_channel[req.m_channelId].DispatchJob(std::make_unique<ChJobReqJoinChannel>(*this, id, std::move(spSession)));
+	m_channel[req.m_channelId].DispatchJob(std::make_unique<ChJobReqJoinChannel>(*this, std::move(spSession)));
 
 	return true;
 }
 
-bool GameServer::PktProcCSReqSendChatMsg(uint64_t id, winppy::Packet packet, std::shared_ptr<GameSession> spSession)
+bool GameServer::PktProcCSReqSendChatMsg(winppy::Packet packet, std::shared_ptr<GameSession> spSession)
 {
 	GameChannel* pJoiningGameChannel = spSession->GetJoiningGameChannel();
 	if (!pJoiningGameChannel)
 		return false;
 
-	pJoiningGameChannel->DispatchJob(std::make_unique<ChJobReqSendChatMsg>(*this, id, std::move(packet), std::move(spSession)));
+	pJoiningGameChannel->DispatchJob(std::make_unique<ChJobReqSendChatMsg>(*this, std::move(packet), std::move(spSession)));
 	return true;
 }
 
@@ -203,27 +204,27 @@ bool GameServer::PktProcCSReqGameList(uint64_t id, winppy::Packet packet, std::s
 	return true;
 }
 
-bool GameServer::PktProcCSReqCreateGameRoom(uint64_t id, winppy::Packet packet, std::shared_ptr<GameSession> spSession)
+bool GameServer::PktProcCSReqCreateGameRoom(winppy::Packet packet, std::shared_ptr<GameSession> spSession)
 {
 	GameChannel* pJoiningGameChannel = spSession->GetJoiningGameChannel();
 	if (!pJoiningGameChannel)
 		return false;
 
-	pJoiningGameChannel->DispatchJob(std::make_unique<ChJobReqCreateGameRoom>(*this, id, std::move(packet), std::move(spSession)));
+	pJoiningGameChannel->DispatchJob(std::make_unique<ChJobReqCreateGameRoom>(*this, std::move(packet), std::move(spSession)));
 	return true;
 }
 
-bool GameServer::PktProcCSReqJoinGameRoom(uint64_t id, winppy::Packet packet, std::shared_ptr<GameSession> spSession)
+bool GameServer::PktProcCSReqJoinGameRoom(winppy::Packet packet, std::shared_ptr<GameSession> spSession)
 {
 	GameChannel* pJoiningGameChannel = spSession->GetJoiningGameChannel();
 	if (!pJoiningGameChannel)
 		return false;
 
-	pJoiningGameChannel->DispatchJob(std::make_unique<ChJobReqJoinGameRoom>(*this, id, std::move(packet), std::move(spSession)));
+	pJoiningGameChannel->DispatchJob(std::make_unique<ChJobReqJoinGameRoom>(*this, std::move(packet), std::move(spSession)));
 	return true;
 }
 
-bool GameServer::PktProcCSReqExitGameRoom(uint64_t id, std::shared_ptr<GameSession> spSession)
+bool GameServer::PktProcCSReqExitGameRoom(std::shared_ptr<GameSession> spSession)
 {
 	GameChannel* pJoiningGameChannel = spSession->GetJoiningGameChannel();
 	if (!pJoiningGameChannel)
@@ -233,13 +234,23 @@ bool GameServer::PktProcCSReqExitGameRoom(uint64_t id, std::shared_ptr<GameSessi
 	return true;
 }
 
-bool GameServer::PktProcCSReqChangeTeam(uint64_t id, winppy::Packet packet, std::shared_ptr<GameSession> spSession)
+bool GameServer::PktProcCSReqExitGameChannel(std::shared_ptr<GameSession> spSession)
 {
 	GameChannel* pJoiningGameChannel = spSession->GetJoiningGameChannel();
 	if (!pJoiningGameChannel)
 		return false;
 
-	pJoiningGameChannel->DispatchJob(std::make_unique<ChJobReqChangeTeam>(*this, id, std::move(packet), std::move(spSession)));
+	pJoiningGameChannel->DispatchJob(std::make_unique<ChJobReqExitGameChannel>(*this, std::move(spSession)));
+	return true;
+}
+
+bool GameServer::PktProcCSReqChangeTeam(winppy::Packet packet, std::shared_ptr<GameSession> spSession)
+{
+	GameChannel* pJoiningGameChannel = spSession->GetJoiningGameChannel();
+	if (!pJoiningGameChannel)
+		return false;
+
+	pJoiningGameChannel->DispatchJob(std::make_unique<ChJobReqChangeTeam>(*this, std::move(packet), std::move(spSession)));
 	return true;
 }
 

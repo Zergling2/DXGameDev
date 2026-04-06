@@ -8,20 +8,18 @@ class GameServer;
 class GameSession;
 class GameChannel;
 
-class ChJobReqExitChannel : public IChannelJob
+class ChJobReqExitGameChannel : public IChannelJob
 {
 public:
-	ChJobReqExitChannel(GameServer& server, uint64_t netId, std::shared_ptr<GameSession> spSession)
+	ChJobReqExitGameChannel(GameServer& server, std::shared_ptr<GameSession> spSession)
 		: m_server(server)
-		, m_netId(netId)
 		, m_spSession(std::move(spSession))
 	{
 	}
-	virtual ~ChJobReqExitChannel() = default;
+	virtual ~ChJobReqExitGameChannel() = default;
 
 	virtual void Execute(GameChannel& channel) override;
 private:
 	GameServer& m_server;
-	uint64_t m_netId;	// 요청 세션 net id
 	std::shared_ptr<GameSession> m_spSession;
 };

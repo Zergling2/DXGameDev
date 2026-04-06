@@ -42,7 +42,7 @@
     <ClCompile Include="ChJobSessionLogout.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ChJobReqExitChannel.cpp">
+    <ClCompile Include="ChJobReqExitGameChannel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ChJobReqGameRoomList.cpp">
@@ -101,7 +101,7 @@
     <ClInclude Include="ChJobSessionLogout.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ChJobReqExitChannel.h">
+    <ClInclude Include="ChJobReqExitGameChannel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ChJobReqGameRoomList.h">

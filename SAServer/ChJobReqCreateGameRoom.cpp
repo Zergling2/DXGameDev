@@ -48,7 +48,7 @@ void ChJobReqCreateGameRoom::Execute(GameChannel& channel)
 		res.m_result = true;
 		res.m_gameRoomId = gameRoomId;
 		res.m_gameRoomNo = gameRoomNo;
-		res.m_gameRoomHostNetId = m_netId;
+		res.m_gameRoomHostNetId = m_spSession->GetNetId();
 		res.m_maxPlayer = spGameRoom->GetMaxPlayer();
 		res.m_gameMap = spGameRoom->GetGameMap();
 		res.m_gameMode = spGameRoom->GetGameMode();
@@ -60,11 +60,11 @@ void ChJobReqCreateGameRoom::Execute(GameChannel& channel)
 		outPacket->WriteBytes(&res, sizeof(res));
 		outPacket->WriteBytes(gameRoomName, sizeof(wchar_t) * req.m_gameRoomNameLen);
 
-		m_server.Send(m_netId, std::move(outPacket));
+		m_server.Send(m_spSession->GetNetId(), std::move(outPacket));
 
 		disconnect = false;
 	} while (false);
 
 	if (disconnect)
-		m_server.Disconnect(m_netId);
+		m_server.Disconnect(m_spSession->GetNetId());
 }

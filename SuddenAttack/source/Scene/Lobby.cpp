@@ -559,11 +559,11 @@ void Lobby::OnLoadScene()
 	pButtonExitGameListBrowser->SetTextColor(Colors::Black);
 	pButtonExitGameListBrowser->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pButtonExitGameListBrowser->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pButtonExitGameListBrowser->SetText(L"채널선택");
+	pButtonExitGameListBrowser->SetText(L"나가기");
 	pButtonExitGameListBrowser->GetTextFormat().SetSize(STATIC_TEXT_SIZE_MEDIUM);
 	pButtonExitGameListBrowser->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
 	pButtonExitGameListBrowser->ApplyTextFormat();
-	pButtonExitGameListBrowser->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickExitGameListBrowser));
+	pButtonExitGameListBrowser->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickExitGameChannel));
 
 	UIObjectHandle hButtonOpenShop = CreateButton();
 	pScriptLobbyHandler->m_hButtonOpenShop = hButtonOpenShop;

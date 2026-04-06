@@ -34,10 +34,10 @@ private:
 	static unsigned int __stdcall ThreadEntry(void* pArg);
 private:
 	HANDLE m_hThread;
-	HANDLE m_hJobEvent;
+	mutable SRWLOCK m_jobQueueLock;
+	CONDITION_VARIABLE m_jobConditionVar;
 	volatile bool m_exitFlag;
 	uint16_t m_channelId;
-	mutable SlimRWLock m_jobQueueLock;
 	std::queue<std::unique_ptr<IChannelJob>> m_jobQueue;
 	std::unordered_map<uint64_t, std::shared_ptr<GameSession>> m_sessions;
 	uint64_t m_gameRoomIdCounter;

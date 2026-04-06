@@ -21,13 +21,14 @@ public:
 
 	bool PktProcCSReqLogin(uint64_t id, winppy::Packet packet);
 	bool PktProcCSReqChannelInfo(uint64_t id, winppy::Packet packet);
-	bool PktProcCSReqJoinChannel(uint64_t id, winppy::Packet packet, std::shared_ptr<GameSession> spSession);
-	bool PktProcCSReqSendChatMsg(uint64_t id, winppy::Packet packet, std::shared_ptr<GameSession> spSession);
+	bool PktProcCSReqJoinChannel(winppy::Packet packet, std::shared_ptr<GameSession> spSession);
+	bool PktProcCSReqSendChatMsg(winppy::Packet packet, std::shared_ptr<GameSession> spSession);
 	bool PktProcCSReqGameList(uint64_t id, winppy::Packet packet, std::shared_ptr<GameSession> spSession);
-	bool PktProcCSReqCreateGameRoom(uint64_t id, winppy::Packet packet, std::shared_ptr<GameSession> spSession);
-	bool PktProcCSReqJoinGameRoom(uint64_t id, winppy::Packet packet, std::shared_ptr<GameSession> spSession);
-	bool PktProcCSReqExitGameRoom(uint64_t id, std::shared_ptr<GameSession> spSession);
-	bool PktProcCSReqChangeTeam(uint64_t id, winppy::Packet packet, std::shared_ptr<GameSession> spSession);
+	bool PktProcCSReqCreateGameRoom(winppy::Packet packet, std::shared_ptr<GameSession> spSession);
+	bool PktProcCSReqJoinGameRoom(winppy::Packet packet, std::shared_ptr<GameSession> spSession);
+	bool PktProcCSReqExitGameRoom(std::shared_ptr<GameSession> spSession);
+	bool PktProcCSReqExitGameChannel(std::shared_ptr<GameSession> spSession);
+	bool PktProcCSReqChangeTeam(winppy::Packet packet, std::shared_ptr<GameSession> spSession);
 private:
 	std::shared_ptr<GameSession> FindSession(uint64_t netId) const;
 private:

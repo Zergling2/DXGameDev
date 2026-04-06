@@ -180,9 +180,16 @@ void LobbyHandler::OnClickExitGame()
 	Runtime::GetInstance()->Exit();
 }
 
-void LobbyHandler::OnClickExitGameListBrowser()
+void LobbyHandler::OnClickExitGameChannel()
 {
-	// TEST CODE
+	Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
+	if (pScriptNetwork->GetClient().GetState() != winppy::ClientState::Connected)
+		return;
+
+	winppy::Packet outPacket;
+	outPacket->Write(static_cast<protocol_type>(Protocol::CS_REQ_EXIT_GAME_CHANNEL));
+
+	pScriptNetwork->GetClient().Send(std::move(outPacket));
 }
 
 void LobbyHandler::SendJoinChannelPacket(uint16_t channelId)

@@ -51,7 +51,7 @@ public:
 	// UI Event Handlers
 	void OnClickLogin();
 	void OnClickExitGame();
-	void OnClickExitGameListBrowser();
+	void OnClickExitGameChannel();
 	void OnClickJoinChannel0();
 	void OnClickJoinChannel1();
 	void OnClickJoinChannel2();

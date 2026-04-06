@@ -11,9 +11,8 @@ class GameChannel;
 class ChJobReqJoinChannel : public IChannelJob
 {
 public:
-	ChJobReqJoinChannel(GameServer& server, uint64_t netId, std::shared_ptr<GameSession> spSession)
+	ChJobReqJoinChannel(GameServer& server, std::shared_ptr<GameSession> spSession)
 		: m_server(server)
-		, m_netId(netId)
 		, m_spSession(std::move(spSession))
 	{
 	}
@@ -22,6 +21,5 @@ public:
 	virtual void Execute(GameChannel& channel) override;
 private:
 	GameServer& m_server;
-	uint64_t m_netId;	// 夸没 技记 net id
-	std::shared_ptr<GameSession> m_spSession;
+	std::shared_ptr<GameSession> m_spSession;	// 夸没 技记
 };

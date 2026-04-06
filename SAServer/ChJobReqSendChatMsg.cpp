@@ -56,5 +56,5 @@ void ChJobReqSendChatMsg::Execute(GameChannel& channel)
 	} while (false);
 
 	if (disconnect)
-		m_server.Disconnect(m_netId);
+		m_server.Disconnect(m_spSession->GetNetId());
 }

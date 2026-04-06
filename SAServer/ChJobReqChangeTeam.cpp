@@ -11,13 +11,13 @@ void ChJobReqChangeTeam::Execute(GameChannel& channel)
 	// 패킷 유효성 검사
 	if (!m_packet->ReadBytes(&req, sizeof(req)))
 	{
-		m_server.Disconnect(m_netId);
+		m_server.Disconnect(m_spSession->GetNetId());
 		return;
 	}
 
 	if (static_cast<uint8_t>(req.m_newTeam) >= static_cast<uint8_t>(GameTeam::Unknown))
 	{
-		m_server.Disconnect(m_netId);
+		m_server.Disconnect(m_spSession->GetNetId());
 		return;
 	}
 
@@ -39,7 +39,7 @@ void ChJobReqChangeTeam::Execute(GameChannel& channel)
 			uint8_t sessionIndex;
 			for (uint8_t i = 0; i < spGameRoom->m_redTeamSessionsCount; ++i)
 			{
-				if (spGameRoom->m_redTeamSessions[i]->GetNetId() == m_netId)
+				if (spGameRoom->m_redTeamSessions[i]->GetNetId() == m_spSession->GetNetId())
 				{
 					sessionIndex = i;
 					found = true;
@@ -70,7 +70,7 @@ void ChJobReqChangeTeam::Execute(GameChannel& channel)
 			uint8_t sessionIndex;
 			for (uint8_t i = 0; i < spGameRoom->m_blueTeamSessionsCount; ++i)
 			{
-				if (spGameRoom->m_blueTeamSessions[i]->GetNetId() == m_netId)
+				if (spGameRoom->m_blueTeamSessions[i]->GetNetId() == m_spSession->GetNetId())
 				{
 					sessionIndex = i;
 					found = true;
@@ -101,7 +101,7 @@ void ChJobReqChangeTeam::Execute(GameChannel& channel)
 			res.m_newTeam = req.m_newTeam;
 
 			SCNotifyPlayerTeamChanged notify;
-			notify.m_netId = m_netId;
+			notify.m_netId = m_spSession->GetNetId();
 			notify.m_gameRoomId = spGameRoom->GetRoomId();
 			notify.m_newTeam = req.m_newTeam;
 
@@ -112,14 +112,14 @@ void ChJobReqChangeTeam::Execute(GameChannel& channel)
 
 			for (uint8_t i = 0; i < spGameRoom->m_redTeamSessionsCount; ++i)
 			{
-				if (spGameRoom->m_redTeamSessions[i]->GetNetId() == m_netId)
+				if (spGameRoom->m_redTeamSessions[i]->GetNetId() == m_spSession->GetNetId())
 					continue;
 
 				m_server.Send(spGameRoom->m_redTeamSessions[i]->GetNetId(), notifyPacket);
 			}
 			for (uint8_t i = 0; i < spGameRoom->m_blueTeamSessionsCount; ++i)
 			{
-				if (spGameRoom->m_blueTeamSessions[i]->GetNetId() == m_netId)
+				if (spGameRoom->m_blueTeamSessions[i]->GetNetId() == m_spSession->GetNetId())
 					continue;
 
 				m_server.Send(spGameRoom->m_blueTeamSessions[i]->GetNetId(), notifyPacket);
@@ -133,6 +133,6 @@ void ChJobReqChangeTeam::Execute(GameChannel& channel)
 		winppy::Packet outPacket;
 		outPacket->Write(static_cast<protocol_type>(Protocol::SC_RES_CHANGE_TEAM));
 		outPacket->WriteBytes(&res, sizeof(res));
-		m_server.Send(m_netId, std::move(outPacket));
+		m_server.Send(m_spSession->GetNetId(), std::move(outPacket));
 	} while (false);
 }

@@ -12,9 +12,8 @@ class GameChannel;
 class ChJobReqSendChatMsg : public IChannelJob
 {
 public:
-	ChJobReqSendChatMsg(GameServer& server, uint64_t netId, winppy::Packet packet, std::shared_ptr<GameSession> spSession)
+	ChJobReqSendChatMsg(GameServer& server, winppy::Packet packet, std::shared_ptr<GameSession> spSession)
 		: m_server(server)
-		, m_netId(netId)
 		, m_packet(std::move(packet))
 		, m_spSession(std::move(spSession))
 	{
@@ -24,7 +23,6 @@ public:
 	virtual void Execute(GameChannel& channel) override;
 private:
 	GameServer& m_server;
-	uint64_t m_netId;	// 夸没 技记 net id
 	winppy::Packet m_packet;
-	std::shared_ptr<GameSession> m_spSession;
+	std::shared_ptr<GameSession> m_spSession;	// 夸没 技记
 };

@@ -383,11 +383,18 @@ void Network::PktProcSCResChangeTeam(winppy::Packet packet)
 
 void Network::PktProcSCResExitGameRoom(winppy::Packet packet)
 {
-	// TEST CODE
 	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
 	pScriptLobbyHandler->ClearGameRoomInfo();
 
 	pScriptLobbyHandler->SetLobbyState(LobbyState::GameListBrowser);
+}
+
+void Network::PktProcSCResExitGameChannel(winppy::Packet packet)
+{
+	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
+	pScriptLobbyHandler->ClearChatMsgs();
+
+	pScriptLobbyHandler->SetLobbyState(LobbyState::ChannelListBrowser);
 }
 
 void Network::PktProcSCNotifyPlayerTeamChanged(winppy::Packet packet)

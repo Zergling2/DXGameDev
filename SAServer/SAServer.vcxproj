@@ -152,7 +152,7 @@
     <ClCompile Include="ChannelJob.cpp" />
     <ClCompile Include="ChJobReqChangeTeam.cpp" />
     <ClCompile Include="ChJobReqCreateGameRoom.cpp" />
-    <ClCompile Include="ChJobReqExitChannel.cpp" />
+    <ClCompile Include="ChJobReqExitGameChannel.cpp" />
     <ClCompile Include="ChJobReqExitGameRoom.cpp" />
     <ClCompile Include="ChJobReqGameRoomList.cpp" />
     <ClCompile Include="ChJobReqJoinChannel.cpp" />
@@ -170,7 +170,7 @@
     <ClInclude Include="ChannelJob.h" />
     <ClInclude Include="ChJobReqChangeTeam.h" />
     <ClInclude Include="ChJobReqCreateGameRoom.h" />
-    <ClInclude Include="ChJobReqExitChannel.h" />
+    <ClInclude Include="ChJobReqExitGameChannel.h" />
     <ClInclude Include="ChJobReqExitGameRoom.h" />
     <ClInclude Include="ChJobReqGameRoomList.h" />
     <ClInclude Include="ChJobReqJoinChannel.h" />
