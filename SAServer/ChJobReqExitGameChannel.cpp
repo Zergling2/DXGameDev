@@ -2,6 +2,7 @@
 #include "GameSession.h"
 #include "GameServer.h"
 #include "ChJobReqExitGameRoom.h"
+#include "Protocol.h"
 
 void ChJobReqExitGameChannel::Execute(GameChannel& channel)
 {
@@ -11,5 +12,13 @@ void ChJobReqExitGameChannel::Execute(GameChannel& channel)
 		job.Execute(channel);
 	}
 
-	// 123
+	m_spSession->SetJoiningGameChannel(nullptr);
+	channel.RemoveSession(m_spSession->GetNetId());
+	
+	SCResExitGameChannel res;
+	res.m_result = true;
+	winppy::Packet outPacket;
+	outPacket->Write(static_cast<protocol_type>(Protocol::SC_RES_EXIT_GAME_CHANNEL));
+	outPacket->WriteBytes(&res, sizeof(res));
+	m_server.Send(m_spSession->GetNetId(), std::move(outPacket));
 }

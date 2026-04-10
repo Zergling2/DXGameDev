@@ -137,55 +137,6 @@ void Warehouse::OnLoadScene()
 		// 스크립트 멤버 대입
 		pScriptFPSMovement->m_hComponentCamera = hCameraComponent;
 	}
-
-
-	std::shared_ptr<Material> treeBillboardMtl = ResourceLoader::GetInstance()->CreateMaterial();
-	treeBillboardMtl->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\treebranchstylizedextraameixa.png");
-	// 빌보드 테스트
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Spherical");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPositionY(1.25f);
-
-		ComponentHandle<Billboard> hBillboard = pGameObject->AddComponent<Billboard>();
-		Billboard* pBillboard = hBillboard.ToPtr();
-		pBillboard->SetBillboardQuadWidth(4.0);
-		pBillboard->SetBillboardType(BillboardType::Spherical);
-		pBillboard->SetMaterial(treeBillboardMtl);
-	}
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"CylindricalY");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(-3.0f, 2.0f, 0.0f);
-
-		ComponentHandle<Billboard> hBillboard = pGameObject->AddComponent<Billboard>();
-		Billboard* pBillboard = hBillboard.ToPtr();
-		pBillboard->SetBillboardQuadHeight(4.0);
-		pBillboard->SetBillboardType(BillboardType::CylindricalY);
-		pBillboard->SetMaterial(treeBillboardMtl);
-	}
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"ScreenAligned");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(1.0f, 2.0f, 3.0f);
-
-		ComponentHandle<Billboard> hBillboard = pGameObject->AddComponent<Billboard>();
-		Billboard* pBillboard = hBillboard.ToPtr();
-		// pBillboard->SetBillboardQuadHeight(4.0);
-		pBillboard->SetBillboardType(BillboardType::ScreenAligned);
-		pBillboard->SetMaterial(treeBillboardMtl);
-	}
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"ScreenAligned");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(1.0f, 2.0f, 5.0f);
-
-		ComponentHandle<Billboard> hBillboard = pGameObject->AddComponent<Billboard>();
-		Billboard* pBillboard = hBillboard.ToPtr();
-		// pBillboard->SetBillboardQuadHeight(4.0);
-		pBillboard->SetBillboardType(BillboardType::ScreenAligned);
-		pBillboard->SetMaterial(treeBillboardMtl);
-	}
 	
 	// Adapter Info UI
 	{
@@ -971,7 +922,7 @@ void Warehouse::OnLoadScene()
 
 
 	// Animated Weapons(usp)
-	constexpr XMFLOAT3 USP_PV_OFFSET(0.034f, -0.01f, 0.41f);
+	constexpr XMFLOAT3 USP_PV_OFFSET(0.04f, -0.01f, 0.41f);
 	constexpr XMFLOAT3 USP_PV_POS(FPSARM_POS.x + USP_PV_OFFSET.x, FPSARM_POS.y + USP_PV_OFFSET.y, FPSARM_POS.z + USP_PV_OFFSET.z);
 	{
 		ModelData md = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\usp\\usp_pv.glb");
@@ -1242,6 +1193,7 @@ void Warehouse::OnLoadScene()
 		
 		{
 			GameObjectHandle hSecondaryWeapon = CreateGameObject(L"Secondary Weapon");
+			pCharacter->m_hSecondaryWeapon = hSecondaryWeapon;		// 오브젝트 핸들 저장
 			GameObject* pSecondaryWeapon = hSecondaryWeapon.ToPtr();
 			XMVECTOR q = XMQuaternionRotationNormal(Vector3::Up(), XMConvertToRadians(+90));
 			q = XMQuaternionMultiply(q, XMQuaternionRotationNormal(Vector3::Forward(), XMConvertToRadians(+81)));
@@ -1250,7 +1202,6 @@ void Warehouse::OnLoadScene()
 			constexpr XMFLOAT3 SECONDARY_WEAPON_OFFSET(-0.014f, +0.07f, +0.03f);		// SAVE
 			pSecondaryWeapon->m_transform.SetPosition(SECONDARY_WEAPON_OFFSET);
 			pSecondaryWeapon->m_transform.SetParent(&pTvWeaponBase->m_transform);
-			pCharacter->m_hSecondaryWeapon = hSecondaryWeapon;		// 오브젝트 핸들 저장
 
 			ComponentHandle<MeshRenderer> hSecondaryWeaponMeshRenderer = pSecondaryWeapon->AddComponent<MeshRenderer>();
 			MeshRenderer* pSecondaryWeaponMeshRenderer = hSecondaryWeaponMeshRenderer.ToPtr();

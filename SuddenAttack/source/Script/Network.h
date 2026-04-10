@@ -54,6 +54,8 @@ public:
 	virtual void Start() override;
 	virtual void Update() override;
 	virtual void OnDestroy() override;
+
+	uint64_t GetNetId() const { return m_netId; }
 private:
 	void PktProcSCResLogin(winppy::Packet packet);
 	void PktProcSCResChannelInfo(winppy::Packet packet);
@@ -63,6 +65,7 @@ private:
 	void PktProcSCResCreateGameRoom(winppy::Packet packet);
 	void PktProcSCResJoinGameRoom(winppy::Packet packet);
 	void PktProcSCResChangeTeam(winppy::Packet packet);
+	void PktProcSCResHostGameStart(winppy::Packet packet);
 	void PktProcSCResExitGameRoom(winppy::Packet packet);
 	void PktProcSCResExitGameChannel(winppy::Packet packet);
 	void PktProcSCNotifyPlayerTeamChanged(winppy::Packet packet);
@@ -71,6 +74,8 @@ private:
 	void PktProcSCNotifyGameRoomPlayer(winppy::Packet packet);
 	void PktProcSCNotifyHostChanged(winppy::Packet packet);
 	//void PktProcSCNotifyHostGameStart(winppy::Packet packet);
+	void PktProcSCNotifyPlayerGameReady(winppy::Packet packet);
+	void PktProcSCNotifyPlayerGameUnready(winppy::Packet packet);
 private:
 	ListenServer m_listenServer;
 	winppy::TCPClientEngine m_ce;

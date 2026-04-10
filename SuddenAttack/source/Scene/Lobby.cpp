@@ -1295,7 +1295,7 @@ void Lobby::OnLoadScene()
 	pButtonMoveToRedTeam->m_transform.SetPosition(MOVE_TO_RED_TEAM_BUTTON_OFFSET);
 	pButtonMoveToRedTeam->SetSize(MOVE_TEAM_BUTTON_SIZE);
 	pButtonMoveToRedTeam->SetButtonColor(MOVE_TEAM_BUTTON_COLOR);
-	pButtonMoveToRedTeam->SetTextColor(Colors::OrangeRed);
+	pButtonMoveToRedTeam->SetTextColor(ColorsLinear::OrangeRed);
 	pButtonMoveToRedTeam->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pButtonMoveToRedTeam->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 	pButtonMoveToRedTeam->SetText(L"RED TEAM");
@@ -1313,7 +1313,7 @@ void Lobby::OnLoadScene()
 	pButtonMoveToBlueTeam->m_transform.SetPosition(MOVE_TO_BLUE_TEAM_BUTTON_OFFSET);
 	pButtonMoveToBlueTeam->SetSize(MOVE_TEAM_BUTTON_SIZE);
 	pButtonMoveToBlueTeam->SetButtonColor(MOVE_TEAM_BUTTON_COLOR);
-	pButtonMoveToBlueTeam->SetTextColor(Colors::DeepSkyBlue);
+	pButtonMoveToBlueTeam->SetTextColor(ColorsLinear::DeepSkyBlue);
 	pButtonMoveToBlueTeam->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pButtonMoveToBlueTeam->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 	pButtonMoveToBlueTeam->SetText(L"BLUE TEAM");
@@ -1331,7 +1331,7 @@ void Lobby::OnLoadScene()
 	pPanelGameRoomRedTeam->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 	pPanelGameRoomRedTeam->m_transform.SetPosition(GAME_ROOM_RED_TEAM_PANEL_OFFSET);
 	pPanelGameRoomRedTeam->SetSize(GAME_ROOM_TEAM_PANEL_SIZE);
-	pPanelGameRoomRedTeam->SetColor(XMVectorSetW(Colors::Red, 0.2f));
+	pPanelGameRoomRedTeam->SetColor(XMVectorSetW(ColorsLinear::Red, 0.2f));
 	pPanelGameRoomRedTeam->SetShape(PanelShape::Rectangle);
 
 	constexpr XMFLOAT2 GAME_ROOM_BLUE_TEAM_PANEL_OFFSET(MOVE_TO_BLUE_TEAM_BUTTON_OFFSET.x, GAME_ROOM_RED_TEAM_PANEL_OFFSET.y);
@@ -1342,7 +1342,7 @@ void Lobby::OnLoadScene()
 	pPanelGameRoomBlueTeam->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 	pPanelGameRoomBlueTeam->m_transform.SetPosition(GAME_ROOM_BLUE_TEAM_PANEL_OFFSET);
 	pPanelGameRoomBlueTeam->SetSize(GAME_ROOM_TEAM_PANEL_SIZE);
-	pPanelGameRoomBlueTeam->SetColor(XMVectorSetW(Colors::Blue, 0.2f));
+	pPanelGameRoomBlueTeam->SetColor(XMVectorSetW(ColorsLinear::Blue, 0.2f));
 	pPanelGameRoomBlueTeam->SetShape(PanelShape::Rectangle);
 
 	constexpr XMFLOAT2 GAME_ROOM_PLAYER_NAME_TEXT_SIZE(MOVE_TEAM_BUTTON_SIZE.x - 20, 30);
@@ -1383,8 +1383,68 @@ void Lobby::OnLoadScene()
 		pTextGameRoomBlueTeamPlayer->SetSize(GAME_ROOM_PLAYER_NAME_TEXT_SIZE);
 	}
 
+	constexpr XMFLOAT2 HOST_GAME_START_BUTTON_SIZE(100, 26);
+	constexpr XMFLOAT2 HOST_GAME_START_BUTTON_OFFSET(GAME_ROOM_PANEL_SIZE.x / 2 - HOST_GAME_START_BUTTON_SIZE.x / 2 - 15 + GAME_ROOM_PANEL_OFFSET.x, -GAME_ROOM_PANEL_SIZE.y / 2 + HOST_GAME_START_BUTTON_SIZE.y / 2 + 15 + GAME_ROOM_PANEL_OFFSET.y);
+	UIObjectHandle hButtonHostGameStart = CreateButton();
+	pScriptLobbyHandler->m_hButtonHostGameStart = hButtonHostGameStart;
+	Button* pButtonHostGameStart = static_cast<Button*>(hButtonHostGameStart.ToPtr());
+	pButtonHostGameStart->m_transform.SetParent(&pPanelGameRoomRoot->m_transform);
+	pButtonHostGameStart->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pButtonHostGameStart->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pButtonHostGameStart->m_transform.SetPosition(HOST_GAME_START_BUTTON_OFFSET);
+	pButtonHostGameStart->SetSize(HOST_GAME_START_BUTTON_SIZE);
+	pButtonHostGameStart->SetButtonColor(ColorsLinear::Gold);
+	pButtonHostGameStart->SetTextColor(ColorsLinear::Olive);
+	pButtonHostGameStart->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pButtonHostGameStart->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pButtonHostGameStart->SetText(L"게임시작");
+	pButtonHostGameStart->GetTextFormat().SetSize(STATIC_TEXT_SIZE_MEDIUM);
+	pButtonHostGameStart->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pButtonHostGameStart->ApplyTextFormat();
+	pButtonHostGameStart->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickHostGameStart));
+
+	constexpr XMFLOAT2 GAME_READY_BUTTON_SIZE(HOST_GAME_START_BUTTON_SIZE);
+	constexpr XMFLOAT2 GAME_READY_BUTTON_OFFSET(HOST_GAME_START_BUTTON_OFFSET);
+	UIObjectHandle hButtonGameReady = CreateButton();
+	pScriptLobbyHandler->m_hButtonGameReady = hButtonGameReady;
+	Button* pButtonGameReady = static_cast<Button*>(hButtonGameReady.ToPtr());
+	pButtonGameReady->m_transform.SetParent(&pPanelGameRoomRoot->m_transform);
+	pButtonGameReady->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pButtonGameReady->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pButtonGameReady->m_transform.SetPosition(GAME_READY_BUTTON_OFFSET);
+	pButtonGameReady->SetSize(GAME_READY_BUTTON_SIZE);
+	pButtonGameReady->SetButtonColor(ColorsLinear::DarkOliveGreen);
+	pButtonGameReady->SetTextColor(ColorsLinear::Gold);
+	pButtonGameReady->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pButtonGameReady->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pButtonGameReady->SetText(L"준비완료");
+	pButtonGameReady->GetTextFormat().SetSize(STATIC_TEXT_SIZE_MEDIUM);
+	pButtonGameReady->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pButtonGameReady->ApplyTextFormat();
+	pButtonGameReady->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickGameReady));
+
+	constexpr XMFLOAT2 GAME_UNREADY_BUTTON_SIZE(GAME_READY_BUTTON_SIZE);
+	constexpr XMFLOAT2 GAME_UNREADY_BUTTON_OFFSET(GAME_READY_BUTTON_OFFSET);
+	UIObjectHandle hButtonGameUnready = CreateButton();
+	pScriptLobbyHandler->m_hButtonGameUnready = hButtonGameUnready;
+	Button* pButtonGameUnready = static_cast<Button*>(hButtonGameUnready.ToPtr());
+	pButtonGameUnready->m_transform.SetParent(&pPanelGameRoomRoot->m_transform);
+	pButtonGameUnready->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pButtonGameUnready->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pButtonGameUnready->m_transform.SetPosition(GAME_UNREADY_BUTTON_OFFSET);
+	pButtonGameUnready->SetSize(GAME_UNREADY_BUTTON_SIZE);
+	pButtonGameUnready->SetButtonColor(ColorsLinear::DarkOliveGreen);
+	pButtonGameUnready->SetTextColor(ColorsLinear::Gold);
+	pButtonGameUnready->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pButtonGameUnready->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pButtonGameUnready->SetText(L"준비해제");
+	pButtonGameUnready->GetTextFormat().SetSize(STATIC_TEXT_SIZE_MEDIUM);
+	pButtonGameUnready->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pButtonGameUnready->ApplyTextFormat();
+	pButtonGameUnready->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickGameUnready));
+
 	constexpr XMFLOAT2 EXIT_GAME_ROOM_BUTTON_SIZE(100, 26);
-	constexpr XMFLOAT2 EXIT_GAME_ROOM_BUTTON_OFFSET(GAME_ROOM_PANEL_SIZE.x / 2 - EXIT_GAME_ROOM_BUTTON_SIZE.x / 2 - 15 + GAME_ROOM_PANEL_OFFSET.x, -GAME_ROOM_PANEL_SIZE.y / 2 + EXIT_GAME_ROOM_BUTTON_SIZE.y / 2 + 15 + GAME_ROOM_PANEL_OFFSET.y);
+	constexpr XMFLOAT2 EXIT_GAME_ROOM_BUTTON_OFFSET(HOST_GAME_START_BUTTON_OFFSET.x - HOST_GAME_START_BUTTON_SIZE.x / 2 - 10 - EXIT_GAME_ROOM_BUTTON_SIZE.x / 2, HOST_GAME_START_BUTTON_OFFSET.y);
 	UIObjectHandle hButtonExitGameRoom = CreateButton();
 	Button* pButtonExitGameRoom = static_cast<Button*>(hButtonExitGameRoom.ToPtr());
 	pButtonExitGameRoom->m_transform.SetParent(&pPanelGameRoomRoot->m_transform);
@@ -1392,8 +1452,8 @@ void Lobby::OnLoadScene()
 	pButtonExitGameRoom->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 	pButtonExitGameRoom->m_transform.SetPosition(EXIT_GAME_ROOM_BUTTON_OFFSET);
 	pButtonExitGameRoom->SetSize(EXIT_GAME_ROOM_BUTTON_SIZE);
-	pButtonExitGameRoom->SetButtonColor(Colors::OrangeRed);
-	pButtonExitGameRoom->SetTextColor(Colors::Black);
+	pButtonExitGameRoom->SetButtonColor(ColorsLinear::DimGray);
+	pButtonExitGameRoom->SetTextColor(ColorsLinear::Black);
 	pButtonExitGameRoom->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pButtonExitGameRoom->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 	pButtonExitGameRoom->SetText(L"나가기");

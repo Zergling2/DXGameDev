@@ -55,6 +55,9 @@ LobbyHandler::LobbyHandler(ze::GameObject& owner)
 	, m_hTextGameRoomNamePanel()
 	, m_hTextGameRoomRedTeamPlayers{}
 	, m_hTextGameRoomBlueTeamPlayers{}
+	, m_hButtonHostGameStart()
+	, m_hButtonGameReady()
+	, m_hButtonGameUnready()
 	, m_gameRoomList()
 	, m_currGameListContextNo(0)
 	, m_gameListReqContextNo(0)
@@ -368,6 +371,39 @@ void LobbyHandler::OnClickCreateGameRoomReq()
 	pScriptNetwork->GetClient().Send(std::move(outPacket));
 }
 
+void LobbyHandler::OnClickHostGameStart()
+{
+	Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
+
+	if (pScriptNetwork->GetNetId() != m_gameRoomHostNetId)
+		return;
+
+	winppy::Packet outPacket;
+	outPacket->Write(static_cast<protocol_type>(Protocol::CS_REQ_HOST_GAME_START));
+
+	pScriptNetwork->GetClient().Send(std::move(outPacket));
+}
+
+void LobbyHandler::OnClickGameReady()
+{
+	winppy::Packet outPacket;
+	outPacket->Write(static_cast<protocol_type>(Protocol::CS_REQ_CHANGE_READY_STATE));
+	outPacket->Write(static_cast<uint8_t>(1));
+
+	Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
+	pScriptNetwork->GetClient().Send(std::move(outPacket));
+}
+
+void LobbyHandler::OnClickGameUnready()
+{
+	winppy::Packet outPacket;
+	outPacket->Write(static_cast<protocol_type>(Protocol::CS_REQ_CHANGE_READY_STATE));
+	outPacket->Write(static_cast<uint8_t>(0));
+
+	Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
+	pScriptNetwork->GetClient().Send(std::move(outPacket));
+}
+
 void LobbyHandler::OnClickExitGameRoom()
 {
 	winppy::Packet outPacket;
@@ -579,38 +615,66 @@ void LobbyHandler::SetGameRoomInfo(uint64_t gameRoomId, uint64_t hostNetId, Game
 	static_cast<Text*>(m_hTextGameRoomInfo.ToPtr())->SetText(gameInfoBuf);
 
 	m_gameRoomMyTeam = myTeam;	// 현재 내 팀 정보 설정
+
+
+	Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
+	if (m_gameRoomHostNetId == pScriptNetwork->GetNetId())
+	{
+		m_hButtonGameReady.ToPtr()->SetActive(false);
+		m_hButtonGameUnready.ToPtr()->SetActive(false);
+		m_hButtonHostGameStart.ToPtr()->SetActive(true);
+	}
+	else
+	{
+		m_hButtonGameReady.ToPtr()->SetActive(true);
+		m_hButtonGameUnready.ToPtr()->SetActive(false);
+		m_hButtonHostGameStart.ToPtr()->SetActive(false);
+	}
 }
 
-void LobbyHandler::AddGameRoomPlayerInfo(GameTeam team, uint64_t netId, uint16_t level, const wchar_t* nickname)
+void LobbyHandler::AddGameRoomPlayerInfo(GameTeam team, uint64_t netId, uint16_t level, const wchar_t* nickname, bool ready)
 {
 	assert(team != GameTeam::Unknown);
 	assert(m_gameRoomMaxPlayer != GameRoomMaxPlayer::Unknown);
 
 	const size_t maxPlayerPerTeam = static_cast<size_t>(m_gameRoomMaxPlayer) + 1;
-
 	wchar_t textBuf[MAX_NICKNAME_LEN + 32];
 	if (m_gameRoomHostNetId == netId)
+	{
+		assert(ready == false);	// 방장은 레디 상태 없음
 		StringCchPrintfW(textBuf, _countof(textBuf), L"[HOST] Lv.%u\t%s", static_cast<uint32_t>(level), nickname);
+	}
 	else
-		StringCchPrintfW(textBuf, _countof(textBuf), L"Lv.%u\t%s", static_cast<uint32_t>(level), nickname);
+	{
+		if (ready)
+			StringCchPrintfW(textBuf, _countof(textBuf), L"Lv.%u\t%s [준비완료]", static_cast<uint32_t>(level), nickname);
+		else
+			StringCchPrintfW(textBuf, _countof(textBuf), L"Lv.%u\t%s", static_cast<uint32_t>(level), nickname);
+	}
 
 	switch (team)
 	{
 	case GameTeam::RedTeam:
 		assert(m_gameRoomRedTeamPlayersCount < maxPlayerPerTeam);
-		m_gameRoomRedTeamPlayers[m_gameRoomRedTeamPlayersCount].m_netId = netId;
-		m_gameRoomRedTeamPlayers[m_gameRoomRedTeamPlayersCount].m_level = level;
-		wcscpy_s(m_gameRoomRedTeamPlayers[m_gameRoomRedTeamPlayersCount].m_nickname, nickname);
-
+		{
+			GameRoomPlayer& player = m_gameRoomRedTeamPlayers[m_gameRoomRedTeamPlayersCount];
+			player.m_netId = netId;
+			player.m_level = level;
+			wcscpy_s(player.m_nickname, nickname);
+			player.m_ready = ready;
+		}
 		static_cast<Text*>(m_hTextGameRoomRedTeamPlayers[m_gameRoomRedTeamPlayersCount].ToPtr())->SetText(textBuf);
 		++m_gameRoomRedTeamPlayersCount;
 		break;
 	case GameTeam::BlueTeam:
 		assert(m_gameRoomBlueTeamPlayersCount < maxPlayerPerTeam);
-		m_gameRoomBlueTeamPlayers[m_gameRoomBlueTeamPlayersCount].m_netId = netId;
-		m_gameRoomBlueTeamPlayers[m_gameRoomBlueTeamPlayersCount].m_level = level;
-		wcscpy_s(m_gameRoomBlueTeamPlayers[m_gameRoomBlueTeamPlayersCount].m_nickname, nickname);
-
+		{
+			GameRoomPlayer& player = m_gameRoomBlueTeamPlayers[m_gameRoomBlueTeamPlayersCount];
+			player.m_netId = netId;
+			player.m_level = level;
+			wcscpy_s(player.m_nickname, nickname);
+			player.m_ready = ready;
+		}
 		static_cast<Text*>(m_hTextGameRoomBlueTeamPlayers[m_gameRoomBlueTeamPlayersCount].ToPtr())->SetText(textBuf);
 		++m_gameRoomBlueTeamPlayersCount;
 		break;
@@ -624,6 +688,8 @@ void LobbyHandler::MoveGameRoomPlayerInfo(uint64_t netId, GameTeam newTeam)
 {
 	uint16_t level = (std::numeric_limits<uint16_t>::max)();
 	wchar_t nickname[MAX_NICKNAME_LEN + 1];
+	nickname[0] = L'\0';
+	bool ready;
 
 	bool found = false;
 	do
@@ -638,6 +704,7 @@ void LobbyHandler::MoveGameRoomPlayerInfo(uint64_t netId, GameTeam newTeam)
 				// 정보 백업
 				level = player.m_level;
 				wcscpy_s(nickname, player.m_nickname);
+				ready = player.m_ready;
 
 				for (uint8_t j = i + 1; j < m_gameRoomRedTeamPlayersCount; ++j)
 				{
@@ -664,6 +731,7 @@ void LobbyHandler::MoveGameRoomPlayerInfo(uint64_t netId, GameTeam newTeam)
 				// 정보 백업
 				level = player.m_level;
 				wcscpy_s(nickname, player.m_nickname);
+				ready = player.m_ready;
 
 				for (uint8_t j = i + 1; j < m_gameRoomBlueTeamPlayersCount; ++j)
 				{
@@ -680,7 +748,7 @@ void LobbyHandler::MoveGameRoomPlayerInfo(uint64_t netId, GameTeam newTeam)
 
 	assert(found);
 
-	AddGameRoomPlayerInfo(newTeam, netId, level, nickname);
+	AddGameRoomPlayerInfo(newTeam, netId, level, nickname, ready);
 }
 
 void LobbyHandler::RemoveGameRoomPlayerInfo(uint64_t netId)
@@ -728,7 +796,6 @@ void LobbyHandler::RemoveGameRoomPlayerInfo(uint64_t netId)
 			}
 		}
 	} while (false);
-	
 }
 
 void LobbyHandler::OnGameRoomHostChanged(uint64_t newHostNetId)
@@ -736,38 +803,195 @@ void LobbyHandler::OnGameRoomHostChanged(uint64_t newHostNetId)
 	const uint64_t prevHostNetId = m_gameRoomHostNetId;
 	m_gameRoomHostNetId = newHostNetId;
 
+	Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
+	if (m_gameRoomHostNetId == pScriptNetwork->GetNetId())
+	{
+		m_hButtonGameReady.ToPtr()->SetActive(false);
+		m_hButtonGameUnready.ToPtr()->SetActive(false);
+		m_hButtonHostGameStart.ToPtr()->SetActive(true);
+	}
+
 	wchar_t textBuf[MAX_NICKNAME_LEN + 32];
+	bool prevHostMarkRemoved = false;
+	bool newHostMarkAdded = false;
 	do
 	{
 		for (uint8_t i = 0; i < m_gameRoomRedTeamPlayersCount; ++i)
 		{
-			const GameRoomPlayer& player = m_gameRoomRedTeamPlayers[i];
+			GameRoomPlayer& player = m_gameRoomRedTeamPlayers[i];
 			if (player.m_netId == prevHostNetId)
 			{
+				player.m_ready = false;
 				StringCchPrintfW(textBuf, _countof(textBuf), L"Lv.%u\t%s", static_cast<uint32_t>(player.m_level), player.m_nickname);
 				static_cast<Text*>(m_hTextGameRoomRedTeamPlayers[i].ToPtr())->SetText(textBuf);
+				prevHostMarkRemoved = true;
 			}
 
 			if (player.m_netId == newHostNetId)
 			{
+				player.m_ready = false;
 				StringCchPrintfW(textBuf, _countof(textBuf), L"[HOST] Lv.%u\t%s", static_cast<uint32_t>(player.m_level), player.m_nickname);
 				static_cast<Text*>(m_hTextGameRoomRedTeamPlayers[i].ToPtr())->SetText(textBuf);
+				newHostMarkAdded = true;
 			}
 		}
 
+		if (prevHostMarkRemoved && newHostMarkAdded)
+			break;
+
 		for (uint8_t i = 0; i < m_gameRoomBlueTeamPlayersCount; ++i)
 		{
-			const GameRoomPlayer& player = m_gameRoomBlueTeamPlayers[i];
+			GameRoomPlayer& player = m_gameRoomBlueTeamPlayers[i];
 			if (player.m_netId == prevHostNetId)
 			{
+				player.m_ready = false;
 				StringCchPrintfW(textBuf, _countof(textBuf), L"Lv.%u\t%s", static_cast<uint32_t>(player.m_level), player.m_nickname);
 				static_cast<Text*>(m_hTextGameRoomBlueTeamPlayers[i].ToPtr())->SetText(textBuf);
+				prevHostMarkRemoved = true;
 			}
 
 			if (player.m_netId == newHostNetId)
 			{
+				player.m_ready = false;
 				StringCchPrintfW(textBuf, _countof(textBuf), L"[HOST] Lv.%u\t%s", static_cast<uint32_t>(player.m_level), player.m_nickname);
 				static_cast<Text*>(m_hTextGameRoomBlueTeamPlayers[i].ToPtr())->SetText(textBuf);
+				newHostMarkAdded = true;
+			}
+		}
+	} while (false);
+}
+
+void LobbyHandler::OnPlayerGameReady(uint64_t netId)
+{
+	Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
+
+	if (netId == pScriptNetwork->GetNetId())
+	{
+		m_hButtonGameReady.ToPtr()->SetActive(false);
+		m_hButtonGameUnready.ToPtr()->SetActive(true);
+	}
+
+	do
+	{
+		bool found = false;
+		wchar_t textBuf[MAX_NICKNAME_LEN + 32];
+
+		for (uint8_t i = 0; i < m_gameRoomRedTeamPlayersCount; ++i)
+		{
+			GameRoomPlayer& player = m_gameRoomRedTeamPlayers[i];
+			if (player.m_netId == netId)
+			{
+				found = true;
+
+				player.m_ready = true;
+
+				if (m_gameRoomHostNetId == player.m_netId)
+				{
+					// 방장인데 Ready 상태 On/Off ? 뭔가 잘못된 상황..
+					*reinterpret_cast<int*>(0) = 0;
+				}
+				else
+				{
+					StringCchPrintfW(textBuf, _countof(textBuf), L"Lv.%u\t%s [준비완료]", static_cast<uint32_t>(player.m_level), player.m_nickname);
+					static_cast<Text*>(m_hTextGameRoomRedTeamPlayers[i].ToPtr())->SetText(textBuf);
+				}
+
+				break;
+			}
+		}
+
+		if (found)
+			break;
+
+		for (uint8_t i = 0; i < m_gameRoomBlueTeamPlayersCount; ++i)
+		{
+			GameRoomPlayer& player = m_gameRoomBlueTeamPlayers[i];
+			if (player.m_netId == netId)
+			{
+				found = true;
+
+				player.m_ready = true;
+
+				if (m_gameRoomHostNetId == player.m_netId)
+				{
+					// 방장인데 Ready 상태 On/Off ? 뭔가 잘못된 상황..
+					*reinterpret_cast<int*>(0) = 0;
+				}
+				else
+				{
+					StringCchPrintfW(textBuf, _countof(textBuf), L"Lv.%u\t%s [준비완료]", static_cast<uint32_t>(player.m_level), player.m_nickname);
+					static_cast<Text*>(m_hTextGameRoomBlueTeamPlayers[i].ToPtr())->SetText(textBuf);
+				}
+
+				break;
+			}
+		}
+	} while (false);
+}
+
+void LobbyHandler::OnPlayerGameUnready(uint64_t netId)
+{
+	Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
+
+	if (netId == pScriptNetwork->GetNetId())
+	{
+		m_hButtonGameReady.ToPtr()->SetActive(true);
+		m_hButtonGameUnready.ToPtr()->SetActive(false);
+	}
+
+	do
+	{
+		bool found = false;
+		wchar_t textBuf[MAX_NICKNAME_LEN + 32];
+
+		for (uint8_t i = 0; i < m_gameRoomRedTeamPlayersCount; ++i)
+		{
+			GameRoomPlayer& player = m_gameRoomRedTeamPlayers[i];
+			if (player.m_netId == netId)
+			{
+				found = true;
+
+				player.m_ready = false;
+
+				if (m_gameRoomHostNetId == player.m_netId)
+				{
+					// 방장인데 Ready 상태 On/Off ? 뭔가 잘못된 상황..
+					*reinterpret_cast<int*>(0) = 0;
+				}
+				else
+				{
+					StringCchPrintfW(textBuf, _countof(textBuf), L"Lv.%u\t%s", static_cast<uint32_t>(player.m_level), player.m_nickname);
+					static_cast<Text*>(m_hTextGameRoomRedTeamPlayers[i].ToPtr())->SetText(textBuf);
+				}
+
+				break;
+			}
+		}
+
+		if (found)
+			break;
+
+		for (uint8_t i = 0; i < m_gameRoomBlueTeamPlayersCount; ++i)
+		{
+			GameRoomPlayer& player = m_gameRoomBlueTeamPlayers[i];
+			if (player.m_netId == netId)
+			{
+				found = true;
+
+				player.m_ready = false;
+
+				if (m_gameRoomHostNetId == player.m_netId)
+				{
+					// 방장인데 Ready 상태 On/Off ? 뭔가 잘못된 상황..
+					*reinterpret_cast<int*>(0) = 0;
+				}
+				else
+				{
+					StringCchPrintfW(textBuf, _countof(textBuf), L"Lv.%u\t%s", static_cast<uint32_t>(player.m_level), player.m_nickname);
+					static_cast<Text*>(m_hTextGameRoomBlueTeamPlayers[i].ToPtr())->SetText(textBuf);
+				}
+
+				break;
 			}
 		}
 	} while (false);

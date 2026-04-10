@@ -26,10 +26,17 @@ public:
 	uint32_t GetPoint() const { return m_point; }
 	void SetPoint(uint32_t point) { m_point = point; }
 	void SetDisconnectedFlag();
+	bool GetDisconnectedFlag();
 	GameChannel* GetJoiningGameChannel();
+	void SetJoiningGameChannel(GameChannel* pChannel);
 	std::shared_ptr<GameRoom> GetJoiningGameRoom() const { return m_wpJoiningGameRoom.lock(); }
-	bool SetJoiningGameChannel(GameChannel* pChannel);
 	void SetJoiningGameRoom(std::shared_ptr<GameRoom> spRoom) { m_wpJoiningGameRoom = spRoom; }
+	void SetCurrTeam(GameTeam team) { m_team = team; }
+	GameTeam GetCurrTeam() const { return m_team; }
+	void SetCurrTeamIndex(uint8_t index) { m_teamIndex = index; }
+	uint8_t GetCurrTeamIndex() const { return m_teamIndex; }
+	void SetReadyState(bool ready) { m_ready = ready; }
+	bool GetReadyState() const { return m_ready; }
 private:
 	const uint64_t m_netId;
 	const uint64_t m_accountId;
@@ -44,4 +51,7 @@ private:
 	GameChannel* m_pJoiningGameChannel;
 	// #######################
 	std::weak_ptr<GameRoom> m_wpJoiningGameRoom;
+	GameTeam m_team;
+	uint8_t m_teamIndex;
+	bool m_ready;
 };

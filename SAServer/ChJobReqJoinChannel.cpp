@@ -12,9 +12,12 @@ void ChJobReqJoinChannel::Execute(GameChannel& channel)
 		res.m_result = true;
 
 		channel.AddSession(m_spSession->GetNetId(), m_spSession);
-		if (!m_spSession->SetJoiningGameChannel(&channel))	// 접속한 채널의 포인터를 세션 구조체에 저장
+		m_spSession->SetJoiningGameChannel(&channel);
+
+		if (m_spSession->GetDisconnectedFlag())
 		{
 			channel.RemoveSession(m_spSession->GetNetId());
+			m_spSession->SetJoiningGameChannel(nullptr);
 			return;
 		}
 	}

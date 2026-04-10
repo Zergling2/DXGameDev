@@ -150,11 +150,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ChannelJob.cpp" />
+    <ClCompile Include="ChJobReqChangeReadyState.cpp" />
     <ClCompile Include="ChJobReqChangeTeam.cpp" />
     <ClCompile Include="ChJobReqCreateGameRoom.cpp" />
     <ClCompile Include="ChJobReqExitGameChannel.cpp" />
     <ClCompile Include="ChJobReqExitGameRoom.cpp" />
     <ClCompile Include="ChJobReqGameRoomList.cpp" />
+    <ClCompile Include="ChJobReqHostGameStart.cpp" />
     <ClCompile Include="ChJobReqJoinChannel.cpp" />
     <ClCompile Include="ChJobReqChannelInfo.cpp" />
     <ClCompile Include="ChJobReqJoinGameRoom.cpp" />
@@ -168,11 +170,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ChannelJob.h" />
+    <ClInclude Include="ChJobReqChangeReadyState.h" />
     <ClInclude Include="ChJobReqChangeTeam.h" />
     <ClInclude Include="ChJobReqCreateGameRoom.h" />
     <ClInclude Include="ChJobReqExitGameChannel.h" />
     <ClInclude Include="ChJobReqExitGameRoom.h" />
     <ClInclude Include="ChJobReqGameRoomList.h" />
+    <ClInclude Include="ChJobReqHostGameStart.h" />
     <ClInclude Include="ChJobReqJoinChannel.h" />
     <ClInclude Include="ChJobReqChannelInfo.h" />
     <ClInclude Include="ChJobReqJoinGameRoom.h" />

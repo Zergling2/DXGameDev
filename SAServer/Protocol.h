@@ -18,6 +18,7 @@ enum class Protocol : protocol_type
 	CS_REQ_CHANGE_TEAM,
 	CS_REQ_EXIT_GAME_ROOM,
 	CS_REQ_HOST_GAME_START,
+	CS_REQ_CHANGE_READY_STATE,
 	CS_REQ_EXIT_GAME_CHANNEL,
 
 	SC_RES_LOGIN,
@@ -28,13 +29,17 @@ enum class Protocol : protocol_type
 	SC_RES_CREATE_GAME_ROOM,
 	SC_RES_JOIN_GAME_ROOM,
 	SC_RES_CHANGE_TEAM,
+	SC_RES_HOST_GAME_START,
 	SC_RES_EXIT_GAME_ROOM,
+	SC_RES_EXIT_GAME_CHANNEL,
 	SC_NOTIFY_PLAYER_TEAM_CHANGED,
 	SC_NOTIFY_PLAYER_JOINED_GAME_ROOM,
 	SC_NOTIFY_GAME_ROOM_PLAYER,
 	SC_NOTIFY_PLAYER_EXIT_GAME_ROOM,
 	SC_NOTIFY_HOST_CHANGED,
-	SC_NOTIFY_HOST_GAME_START
+	SC_NOTIFY_HOST_GAME_START,
+	SC_NOTIFY_PLAYER_GAME_READY,
+	SC_NOTIFY_PLAYER_GAME_UNREADY
 };
 
 struct CSReqLogin
@@ -147,10 +152,12 @@ struct SCResCreateGameRoom
 	// m_gameName... (가변길이 데이터)
 };
 
-enum class FailReason
+enum class FailReason : uint8_t
 {
 	InvalidGame,
 	Full,
+
+	NotReady,
 
 	Success
 };
@@ -176,9 +183,27 @@ struct SCResChangeTeam
 	GameTeam m_newTeam;
 };
 
+struct SCResHostGameStart
+{
+	bool m_result;
+	FailReason m_reason;
+};
+
 struct SCResExitGameRoom
 {
 	bool m_result;
+};
+
+struct SCResExitGameChannel
+{
+	bool m_result;
+};
+
+struct SCNotifyPlayerTeamChanged
+{
+	uint64_t m_netId;
+	uint64_t m_gameRoomId;
+	GameTeam m_newTeam;
 };
 
 struct SCNotifyPlayerJoined
@@ -196,17 +221,12 @@ struct SCNotifyGameRoomPlayer
 	uint64_t m_gameRoomId;
 	uint64_t m_netId;
 	GameTeam m_team;
+	bool m_ready;
 	uint16_t m_level;	// 레벨
 	uint16_t m_nicknameLen;
 	wchar_t m_nickname[MAX_NICKNAME_LEN];
 };
 
-struct SCNotifyPlayerTeamChanged
-{
-	uint64_t m_netId;
-	uint64_t m_gameRoomId;
-	GameTeam m_newTeam;
-};
 
 // 압축 프로토콜들
 #pragma pack(push, 1)

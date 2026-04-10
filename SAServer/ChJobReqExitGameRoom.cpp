@@ -12,46 +12,7 @@ void ChJobReqExitGameRoom::Execute(GameChannel& channel)
 	if (!spGameRoom)
 		return;
 
-	bool found = false;
-	do
-	{
-		for (uint8_t i = 0; i < spGameRoom->m_redTeamSessionsCount; ++i)
-		{
-			if (spGameRoom->m_redTeamSessions[i] == m_spSession)
-			{
-				found = true;
-
-				// 한 칸씩 당기기
-				for (uint8_t j = i + 1; j < spGameRoom->m_redTeamSessionsCount; ++j)
-					spGameRoom->m_redTeamSessions[j - 1] = spGameRoom->m_redTeamSessions[j];
-
-				spGameRoom->m_redTeamSessions[spGameRoom->m_redTeamSessionsCount - 1].reset();
-
-				--spGameRoom->m_redTeamSessionsCount;
-				break;
-			}
-		}
-
-		if (found)
-			break;
-
-		for (uint8_t i = 0; i < spGameRoom->m_blueTeamSessionsCount; ++i)
-		{
-			if (spGameRoom->m_blueTeamSessions[i] == m_spSession)
-			{
-				found = true;
-
-				// 한 칸씩 당기기
-				for (uint8_t j = i + 1; j < spGameRoom->m_blueTeamSessionsCount; ++j)
-					spGameRoom->m_blueTeamSessions[j - 1] = spGameRoom->m_blueTeamSessions[j];
-
-				spGameRoom->m_blueTeamSessions[spGameRoom->m_blueTeamSessionsCount - 1].reset();
-
-				--spGameRoom->m_blueTeamSessionsCount;
-				break;
-			}
-		}
-	} while (false);
+	spGameRoom->RemoveSession(m_spSession);
 	m_spSession->SetJoiningGameRoom(nullptr);
 
 	SCResExitGameRoom res;
@@ -81,6 +42,8 @@ void ChJobReqExitGameRoom::Execute(GameChannel& channel)
 			spGameRoom->m_spHost = spGameRoom->m_redTeamSessions[0];
 		else
 			spGameRoom->m_spHost = spGameRoom->m_blueTeamSessions[0];
+
+		spGameRoom->m_spHost->SetReadyState(false);	// 방장은 레디 상태 없음
 	
 		// 방에 있는 다른 플레이어들에게 방장이 변경되었다는 패킷 전송
 		winppy::Packet notifyHostChangedPacket;

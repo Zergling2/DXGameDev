@@ -38,11 +38,14 @@ void ChJobReqJoinGameRoom::Execute(GameChannel& channel)
 
 	auto spGameRoom = iter->second;
 	assert(spGameRoom->m_spHost);
+	
+	// 1. 세션을 방 자료구조에 넣고
+	// 2. 입장을 요청한 세션에게 결과 패킷 전송
+	// 2. 기존 방 플레이어들에겐 새로 입장하는 플레이어의 정보를
+	// 3. 새로 입장하는 유저에겐 기존 방 플레이어들의 정보를 보내고
 
-
-	// 만약 방이 다 찬 경우
-	const size_t maxPlayerPerTeam = static_cast<size_t>(spGameRoom->GetMaxPlayer()) + 1;
-	if (spGameRoom->m_redTeamSessionsCount + spGameRoom->m_blueTeamSessionsCount == maxPlayerPerTeam * 2)
+	bool result = spGameRoom->AddSession(m_spSession);
+	if (!result)	// 만약 방이 다 찬 경우
 	{
 		SCResJoinGameRoom res;
 		res.m_result = false;
@@ -54,29 +57,7 @@ void ChJobReqJoinGameRoom::Execute(GameChannel& channel)
 		m_server.Send(m_spSession->GetNetId(), std::move(outPacket));
 		return;
 	}
-
-	// 아래부터 순서 다시 조정
-	// 1. 세션을 방 자료구조에 넣고
-	// 2. 입장을 요청한 세션에게 결과 패킷 전송
-	// 2. 기존 방 플레이어들에겐 새로 입장하는 플레이어의 정보를
-	// 3. 새로 입장하는 유저에겐 기존 방 플레이어들의 정보를 보내고
-
-	
-	// 빈 자리 찾아서 세션 삽입
-	GameTeam joinedTeam = GameTeam::Unknown;
-	if (spGameRoom->m_redTeamSessionsCount < maxPlayerPerTeam)
-	{
-		joinedTeam = GameTeam::RedTeam;
-		spGameRoom->m_redTeamSessions[spGameRoom->m_redTeamSessionsCount] = m_spSession;
-		++spGameRoom->m_redTeamSessionsCount;
-	}
-	else if (spGameRoom->m_blueTeamSessionsCount < maxPlayerPerTeam)
-	{
-		joinedTeam = GameTeam::BlueTeam;
-		spGameRoom->m_blueTeamSessions[spGameRoom->m_blueTeamSessionsCount] = m_spSession;
-		++spGameRoom->m_blueTeamSessionsCount;
-	}
-	m_spSession->SetJoiningGameRoom(spGameRoom);	// 설정...
+	m_spSession->SetJoiningGameRoom(spGameRoom);
 
 	// 결과 패킷 전송...
 	SCResJoinGameRoom res;
@@ -88,7 +69,7 @@ void ChJobReqJoinGameRoom::Execute(GameChannel& channel)
 	res.m_maxPlayer = spGameRoom->GetMaxPlayer();
 	res.m_gameMap = spGameRoom->GetGameMap();
 	res.m_gameMode = spGameRoom->GetGameMode();
-	res.m_joinedTeam = joinedTeam;
+	res.m_joinedTeam = m_spSession->GetCurrTeam();
 	res.m_gameRoomNameLen = spGameRoom->GetNameLen();
 	wmemcpy_s(res.m_gameRoomName, _countof(res.m_gameRoomName), spGameRoom->GetName(), spGameRoom->GetNameLen());
 
@@ -102,7 +83,7 @@ void ChJobReqJoinGameRoom::Execute(GameChannel& channel)
 	SCNotifyPlayerJoined notifyPlayerJoined;
 	notifyPlayerJoined.m_gameRoomId = spGameRoom->GetRoomId();
 	notifyPlayerJoined.m_netId = m_spSession->GetNetId();
-	notifyPlayerJoined.m_joinedTeam = joinedTeam;
+	notifyPlayerJoined.m_joinedTeam = m_spSession->GetCurrTeam();
 	notifyPlayerJoined.m_level = m_spSession->GetLevel();
 	notifyPlayerJoined.m_nicknameLen = m_spSession->GetNicknameLen();
 	wmemcpy_s(notifyPlayerJoined.m_nickname, _countof(notifyPlayerJoined.m_nickname), m_spSession->GetNickname(), m_spSession->GetNicknameLen());
@@ -124,6 +105,7 @@ void ChJobReqJoinGameRoom::Execute(GameChannel& channel)
 		notifyPlayer.m_gameRoomId = req.m_gameRoomId;
 		notifyPlayer.m_netId = player.GetNetId();
 		notifyPlayer.m_team = GameTeam::RedTeam;
+		notifyPlayer.m_ready = player.GetReadyState();
 		notifyPlayer.m_level = player.GetLevel();
 		notifyPlayer.m_nicknameLen = player.GetNicknameLen();
 		wmemcpy_s(notifyPlayer.m_nickname, _countof(notifyPlayer.m_nickname), player.GetNickname(), player.GetNicknameLen());
@@ -146,6 +128,7 @@ void ChJobReqJoinGameRoom::Execute(GameChannel& channel)
 		notifyPlayer.m_gameRoomId = req.m_gameRoomId;
 		notifyPlayer.m_netId = player.GetNetId();
 		notifyPlayer.m_team = GameTeam::BlueTeam;
+		notifyPlayer.m_ready = player.GetReadyState();
 		notifyPlayer.m_level = player.GetLevel();
 		notifyPlayer.m_nicknameLen = player.GetNicknameLen();
 		wmemcpy_s(notifyPlayer.m_nickname, _countof(notifyPlayer.m_nickname), player.GetNickname(), player.GetNicknameLen());

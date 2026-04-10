@@ -10,6 +10,8 @@
 #include "ChJobReqExitGameRoom.h"
 #include "ChJobReqExitGameChannel.h"
 #include "ChJobReqChangeTeam.h"
+#include "ChJobReqHostGameStart.h"
+#include "ChJobReqChangeReadyState.h"
 
 GameServer::GameServer()
 {
@@ -73,6 +75,13 @@ void GameServer::OnReceive(uint64_t id, winppy::Packet packet)
 				keepConn = PktProcCSReqExitGameRoom(std::move(spSession));
 				break;
 			case Protocol::CS_REQ_HOST_GAME_START:
+				keepConn = PktProcCSReqHostGameStart(std::move(spSession));
+				break;
+			case Protocol::CS_REQ_CHANGE_READY_STATE:
+				keepConn = PktProcCSReqChangeReadyState(std::move(packet), std::move(spSession));
+				break;
+			case Protocol::CS_REQ_EXIT_GAME_CHANNEL:
+				keepConn = PktProcCSReqExitGameChannel(std::move(spSession));
 				break;
 			default:
 				keepConn = false;
@@ -251,6 +260,26 @@ bool GameServer::PktProcCSReqChangeTeam(winppy::Packet packet, std::shared_ptr<G
 		return false;
 
 	pJoiningGameChannel->DispatchJob(std::make_unique<ChJobReqChangeTeam>(*this, std::move(packet), std::move(spSession)));
+	return true;
+}
+
+bool GameServer::PktProcCSReqHostGameStart(std::shared_ptr<GameSession> spSession)
+{
+	GameChannel* pJoiningGameChannel = spSession->GetJoiningGameChannel();
+	if (!pJoiningGameChannel)
+		return false;
+
+	pJoiningGameChannel->DispatchJob(std::make_unique<ChJobReqHostGameStart>(*this, std::move(spSession)));
+	return true;
+}
+
+bool GameServer::PktProcCSReqChangeReadyState(winppy::Packet packet, std::shared_ptr<GameSession> spSession)
+{
+	GameChannel* pJoiningGameChannel = spSession->GetJoiningGameChannel();
+	if (!pJoiningGameChannel)
+		return false;
+
+	pJoiningGameChannel->DispatchJob(std::make_unique<ChJobReqChangeReadyState>(*this, std::move(packet), std::move(spSession)));
 	return true;
 }
 

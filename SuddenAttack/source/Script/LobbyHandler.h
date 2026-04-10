@@ -35,6 +35,7 @@ struct GameRoomPlayer
 	uint64_t m_netId;
 	uint16_t m_level;	// 레벨
 	wchar_t m_nickname[MAX_NICKNAME_LEN + 1];	// null termination 상태로 저장
+	bool m_ready;
 };
 
 class LobbyHandler : public ze::MonoBehaviour
@@ -65,6 +66,9 @@ public:
 	void OnClickGameListNext();
 	void OnClickCreateGameRoom();
 	void OnClickCreateGameRoomReq();
+	void OnClickHostGameStart();
+	void OnClickGameReady();
+	void OnClickGameUnready();
 	void OnClickExitGameRoom();
 	void OnClickCreateGameRoomCancel();
 	void OnClickRadioButtonGameRoom1vs1();
@@ -97,10 +101,12 @@ public:
 	void ClearChatMsgs();
 	void ClearGameRoomInfo();
 	void SetGameRoomInfo(uint64_t gameRoomId, uint64_t hostNetId, GameRoomMaxPlayer maxPlayer, GameMap gameMap, GameMode gameMode, const wchar_t* gameRoomHeadText, GameTeam myTeam);
-	void AddGameRoomPlayerInfo(GameTeam team, uint64_t netId, uint16_t level, const wchar_t* nickname);
+	void AddGameRoomPlayerInfo(GameTeam team, uint64_t netId, uint16_t level, const wchar_t* nickname, bool ready);
 	void MoveGameRoomPlayerInfo(uint64_t netId, GameTeam newTeam);
 	void RemoveGameRoomPlayerInfo(uint64_t netId);
 	void OnGameRoomHostChanged(uint64_t newHostNetId);
+	void OnPlayerGameReady(uint64_t netId);
+	void OnPlayerGameUnready(uint64_t netId);
 	void AddChatMsg(const wchar_t* msg);
 	void UpdateGameListBrowserUI();
 private:
@@ -178,6 +184,9 @@ public:
 	ze::UIObjectHandle m_hTextGameRoomNamePanel;
 	ze::UIObjectHandle m_hTextGameRoomRedTeamPlayers[MAX_PLAYERS_PER_TEAM];
 	ze::UIObjectHandle m_hTextGameRoomBlueTeamPlayers[MAX_PLAYERS_PER_TEAM];
+	ze::UIObjectHandle m_hButtonHostGameStart;
+	ze::UIObjectHandle m_hButtonGameReady;
+	ze::UIObjectHandle m_hButtonGameUnready;
 
 
 	// 게임 리스트 컨텍스트 관련

@@ -13,6 +13,9 @@ GameSession::GameSession(uint64_t netId, uint64_t accountId)
 	, m_disconnected(false)
 	, m_pJoiningGameChannel(nullptr)
 	, m_wpJoiningGameRoom()
+	, m_team(GameTeam::Unknown)
+	, m_teamIndex((std::numeric_limits<uint8_t>::max)())
+	, m_ready(false)
 {
 }
 
@@ -26,26 +29,27 @@ void GameSession::SetNickname(const wchar_t* nickname, uint16_t len)
 void GameSession::SetDisconnectedFlag()
 {
 	AutoAcquireSlimRWLockExclusive lock(m_channelLock);
+
 	m_disconnected = true;
+}
+
+bool GameSession::GetDisconnectedFlag()
+{
+	AutoAcquireSlimRWLockShared lock(m_channelLock);
+
+	return m_disconnected;
 }
 
 GameChannel* GameSession::GetJoiningGameChannel()
 {
-	m_channelLock.AcquireLockShared();
-	GameChannel* pChannel = m_pJoiningGameChannel;
-	m_channelLock.ReleaseLockShared();
+	AutoAcquireSlimRWLockShared lock(m_channelLock);
 
-	return pChannel;
+	return m_pJoiningGameChannel;
 }
 
-bool GameSession::SetJoiningGameChannel(GameChannel* pChannel)
+void GameSession::SetJoiningGameChannel(GameChannel* pChannel)
 {
 	AutoAcquireSlimRWLockExclusive lock(m_channelLock);
 
-	if (m_disconnected)
-		return false;
-
 	m_pJoiningGameChannel = pChannel;
-		
-	return true;
 }

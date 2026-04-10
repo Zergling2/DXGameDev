@@ -209,7 +209,6 @@ void UIObjectManager::RemoveFromRootArray(IUIObject* pUIObject)
 	/*
 	대부분 UI 구성 시 루트 오브젝트의 개수는 적으므로 루트 포인터들을 선형 구조로 저장 및 검색한다.
 	*/
-	assert(pUIObject->m_transform.GetParent() == nullptr);
 	assert(m_roots.size() > 0);
 	assert(pUIObject->IsRoot() == true);
 
@@ -308,7 +307,10 @@ void UIObjectManager::RemoveDestroyedUIObjects()
 		// pTransform->m_children.clear();	// 객체 delete시 자동 소멸
 
 		if (pUIObject->IsRoot())	// REAL_ROOT 플래그 체크
+		{
+			assert(pUIObject->m_transform.GetParent() == nullptr);
 			this->RemoveFromRootArray(pUIObject);
+		}
 
 		if (pUIObject->IsActiveInHierarchy())
 			this->RemoveFromActiveGroup(pUIObject);
@@ -400,6 +402,7 @@ bool UIObjectManager::SetParent(RectTransform* pTransform, RectTransform* pNewPa
 		{
 			if (pNewParentTransform != nullptr)
 			{
+				assert(pUIObject->m_transform.GetParent() != nullptr);	// 부모가 더 이상 nullptr이 아니어서 RootArray에서 제거되는 것이어야 한다.
 				this->RemoveFromRootArray(pUIObject);
 			}
 		}

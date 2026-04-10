@@ -29,7 +29,7 @@ void GameRoom::SetName(const wchar_t* name, uint16_t len)
 	m_name[len] = L'\0';
 }
 
-bool GameRoom::AddSession(std::shared_ptr<GameSession> spSession, GameTeam& team)
+bool GameRoom::AddSession(std::shared_ptr<GameSession> spSession)
 {
 	const size_t maxPlayerForEachTeam = static_cast<size_t>(m_maxPlayer) + 1;
 
@@ -41,8 +41,10 @@ bool GameRoom::AddSession(std::shared_ptr<GameSession> spSession, GameTeam& team
 	{
 		assert(m_redTeamSessions[m_redTeamSessionsCount] == nullptr);
 
-		m_redTeamSessions[m_redTeamSessionsCount] = spSession;
-		team = GameTeam::RedTeam;
+		const uint8_t ti = m_redTeamSessionsCount;
+		m_redTeamSessions[ti] = spSession;
+		spSession->SetCurrTeam(GameTeam::RedTeam);
+		spSession->SetCurrTeamIndex(ti);
 
 		++m_redTeamSessionsCount;
 	}
@@ -50,66 +52,58 @@ bool GameRoom::AddSession(std::shared_ptr<GameSession> spSession, GameTeam& team
 	{
 		// 블루 팀에 빈자리
 		assert(m_blueTeamSessions[m_blueTeamSessionsCount] == nullptr);
-		m_blueTeamSessions[m_blueTeamSessionsCount] = spSession;
-		team = GameTeam::BlueTeam;
+
+		const uint8_t ti = m_blueTeamSessionsCount;
+		m_blueTeamSessions[ti] = spSession;
+		spSession->SetCurrTeam(GameTeam::BlueTeam);
+		spSession->SetCurrTeamIndex(ti);
 
 		++m_blueTeamSessionsCount;
 	}
 
+	spSession->SetReadyState(false);
+
 	return true;
 }
 
-void GameRoom::RemoveSession(uint64_t netId)
+void GameRoom::RemoveSession(std::shared_ptr<GameSession> spSession)
 {
-	size_t removalIndex = (std::numeric_limits<size_t>::max)();
-	GameTeam removalTeam = GameTeam::Unknown;
+	assert(spSession->GetCurrTeam() != GameTeam::Unknown);
 
-	do
+	const uint8_t removalIndex = spSession->GetCurrTeamIndex();
+
+	if (spSession->GetCurrTeam() == GameTeam::RedTeam)
 	{
-		// 레드팀에서 세션 검색 및 제거
-		for (size_t i = 0; i < _countof(m_redTeamSessions); ++i)
+		assert(m_redTeamSessions[spSession->GetCurrTeamIndex()] == spSession);
+		assert(m_redTeamSessionsCount > 0);
+
+		const uint8_t lastIndex = m_redTeamSessionsCount - 1;
+		if (removalIndex != lastIndex)
 		{
-			if (m_redTeamSessions[i]->GetNetId() == netId)
-			{
-				removalIndex = i;
-				break;
-			}
+			std::swap(m_redTeamSessions[removalIndex], m_redTeamSessions[lastIndex]);
+			m_redTeamSessions[removalIndex]->SetCurrTeamIndex(removalIndex);
 		}
 
-		if (removalIndex != (std::numeric_limits<size_t>::max)())
+		m_redTeamSessions[lastIndex].reset();
+		--m_redTeamSessionsCount;
+	}
+	else
+	{
+		assert(m_blueTeamSessions[spSession->GetCurrTeamIndex()] == spSession);
+		assert(m_blueTeamSessionsCount > 0);
+
+		const uint8_t lastIndex = m_blueTeamSessionsCount - 1;
+		if (removalIndex != lastIndex)
 		{
-			const size_t lastIndex = m_redTeamSessionsCount - 1;
-			if (removalIndex != lastIndex)
-				std::swap(m_redTeamSessions[removalIndex], m_redTeamSessions[lastIndex]);
-
-			m_redTeamSessions[lastIndex].reset();
-			--m_redTeamSessionsCount;
-
-			break;
+			std::swap(m_blueTeamSessions[removalIndex], m_blueTeamSessions[lastIndex]);
+			m_blueTeamSessions[removalIndex]->SetCurrTeamIndex(removalIndex);
 		}
 
-		// 블루팀에서 세션 검색 및 제거
-		for (size_t i = 0; i < _countof(m_blueTeamSessions); ++i)
-		{
-			if (m_blueTeamSessions[i]->GetNetId() == netId)
-			{
-				removalIndex = i;
-				break;
-			}
-		}
-		
-		if (removalIndex != (std::numeric_limits<size_t>::max)())
-		{
-			const size_t lastIndex = m_blueTeamSessionsCount - 1;
-			if (removalIndex != lastIndex)
-				std::swap(m_blueTeamSessions[removalIndex], m_blueTeamSessions[lastIndex]);
+		m_blueTeamSessions[lastIndex].reset();
+		--m_blueTeamSessionsCount;
+	}
 
-			m_blueTeamSessions[lastIndex].reset();
-			--m_blueTeamSessionsCount;
-
-			break;
-		}
-
-		assert(removalIndex != (std::numeric_limits<size_t>::max)());
-	} while (false);
+	spSession->SetCurrTeam(GameTeam::Unknown);
+	spSession->SetCurrTeamIndex((std::numeric_limits<uint8_t>::max)());
+	spSession->SetReadyState(false);
 }

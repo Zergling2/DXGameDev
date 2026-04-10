@@ -36,12 +36,11 @@ void ChJobReqCreateGameRoom::Execute(GameChannel& channel)
 			DEFAULT_GAME_MAP, DEFAULT_GAME_MODE, gameRoomName, req.m_gameRoomNameLen);
 		channel.GameRooms().insert(std::make_pair(gameRoomId, spGameRoom));
 
-		spGameRoom->m_spHost = m_spSession;
+		spGameRoom->m_spHost = m_spSession;	// 방장 참조 설정
 
-		GameTeam team;
-		bool result = spGameRoom->AddSession(m_spSession, team);	// 방 자료구조에 세션 추가
-		assert(result);
+		bool result = spGameRoom->AddSession(m_spSession);	// 방 자료구조에 세션 추가
 		m_spSession->SetJoiningGameRoom(spGameRoom);	// 방 생성을 요청한 세션의 입장 방 포인터 업데이트
+		assert(result);
 
 		// 결과 패킷 전송
 		SCResCreateGameRoom res;
@@ -53,7 +52,7 @@ void ChJobReqCreateGameRoom::Execute(GameChannel& channel)
 		res.m_gameMap = spGameRoom->GetGameMap();
 		res.m_gameMode = spGameRoom->GetGameMode();
 		res.m_gameRoomNameLen = spGameRoom->GetNameLen();
-		res.m_joinedTeam = team;
+		res.m_joinedTeam = m_spSession->GetCurrTeam();
 
 		winppy::Packet outPacket;
 		outPacket->Write(static_cast<protocol_type>(Protocol::SC_RES_CREATE_GAME_ROOM));

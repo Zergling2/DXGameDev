@@ -190,6 +190,20 @@ bool SkinnedMeshRenderer::GetBoneTransform(const std::string& boneName, XMFLOAT3
 
 	const bone_index_type targetBoneIndex = pair->second;
 
+	BoneTransform boneTransforms[MAX_BONE_COUNT];
+	GetBoneTransforms(boneTransforms, _countof(boneTransforms));
+
+	assert(targetBoneIndex < MAX_BONE_COUNT);
+
+	scale = boneTransforms[targetBoneIndex].m_scale;
+	rot = boneTransforms[targetBoneIndex].m_rot;
+	translation = boneTransforms[targetBoneIndex].m_translation;
+
+	return true;
+}
+
+void SkinnedMeshRenderer::GetBoneTransforms(BoneTransform* pArr, size_t len) const
+{
 	XMFLOAT4X4A MlMp[MAX_BONE_COUNT];
 	XMFLOAT4X4A Ma[MAX_BONE_COUNT];
 	// 2패스 구조
@@ -224,7 +238,7 @@ bool SkinnedMeshRenderer::GetBoneTransform(const std::string& boneName, XMFLOAT3
 	}
 
 	// Pass 2.
-	// 0번 뼈부터 높은 인덱스로 가며 Ma 행렬을 계산하고 최종적으로 Mf(i) = MdInv(i) * Ml(i) * Mp(i) * Ma(i-1)를 계산한다.
+	// 0번 뼈부터 높은 인덱스로 가며 Ma 행렬을 계산한다.
 	const BYTE* const pBoneHierarchy = m_spArmature->GetBoneHierarchy();
 	const size_t boneCount = m_spArmature->GetBoneCount();
 
@@ -233,18 +247,19 @@ bool SkinnedMeshRenderer::GetBoneTransform(const std::string& boneName, XMFLOAT3
 		XMStoreFloat4x4A(&Ma[0], XMLoadFloat4x4A(&MlMp[0]));
 	for (size_t boneIndex = 1; boneIndex < boneCount; ++boneIndex)	// Ma(i) = Ml(i) * Mp(i) * Ma(i - 1)
 		XMStoreFloat4x4A(&Ma[boneIndex], XMLoadFloat4x4A(&MlMp[boneIndex]) * XMLoadFloat4x4A(&Ma[pBoneHierarchy[boneIndex]]));
-	
-	XMMATRIX finalMatrix = XMLoadFloat4x4A(&Ma[targetBoneIndex]);
-	XMVECTOR s;
-	XMVECTOR r;
-	XMVECTOR t;
-	XMMatrixDecompose(&s, &r, &t, finalMatrix);
 
-	XMStoreFloat3(&scale, s);
-	XMStoreFloat4(&rot, r);
-	XMStoreFloat3(&translation, t);
+	for (size_t i = 0; i < boneCount && i < len; ++i)
+	{
+		XMMATRIX finalMatrix = XMLoadFloat4x4A(&Ma[i]);
+		XMVECTOR s;
+		XMVECTOR r;
+		XMVECTOR t;
+		XMMatrixDecompose(&s, &r, &t, finalMatrix);
 
-	return true;
+		XMStoreFloat3(&pArr[i].m_scale, s);
+		XMStoreFloat4(&pArr[i].m_rot, r);
+		XMStoreFloat3(&pArr[i].m_translation, t);
+	}
 }
 
 void SkinnedMeshRenderer::ComputeFinalTransform(XMFLOAT4X4A* pOut, size_t len) const

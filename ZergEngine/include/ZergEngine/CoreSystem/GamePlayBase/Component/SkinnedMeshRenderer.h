@@ -14,6 +14,13 @@ namespace ze
 	class Material;
 	class Animation;
 
+	struct BoneTransform
+	{
+		XMFLOAT3 m_scale;
+		XMFLOAT4 m_rot;
+		XMFLOAT3 m_translation;
+	};
+
 	struct PlayingAnimation
 	{
 	public:
@@ -132,12 +139,20 @@ namespace ze
 		void StopGroupAnimation(const std::string groupName);
 
 		/**
-		* @brief 현재 애니메이션 키 프레임에서 로컬 공간 기준의 뼈의 Transform을 계산합니다.
+		* @brief 현재 애니메이션 키 프레임에서 로컬 공간 기준의 본 Transform을 계산합니다.
 		* 
 		* @param Transform을 얻을 본 이름.
 		* @return 지정된 이름의 본이 존재하지 않을 경우 함수는 false를 반환합니다.
 		*/
 		bool GetBoneTransform(const std::string& boneName, XMFLOAT3& scale, XMFLOAT4& rot, XMFLOAT3& translation) const;
+
+		/**
+		* @brief 현재 애니메이션 키 프레임에서 로컬 공간 기준의 본 Transform 목록을 얻습니다.
+		* 
+		* @param pArr 본 Transform 목록을 저장할 배열 주소.
+		* @param len 배열의 (원소 단위)길이.
+		*/
+		void GetBoneTransforms(BoneTransform* pArr, size_t len) const;
 
 		void ComputeFinalTransform(XMFLOAT4X4A* pOut, size_t len) const;
 

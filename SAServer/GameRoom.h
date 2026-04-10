@@ -37,8 +37,8 @@ public:
 	uint8_t GetRedTeamSessionsCount() const { return m_redTeamSessionsCount; }
 	uint8_t GetBlueTeamSessionsCount() const { return m_blueTeamSessionsCount; }
 
-	bool AddSession(std::shared_ptr<GameSession> spSession, GameTeam& team);
-	void RemoveSession(uint64_t netId);
+	bool AddSession(std::shared_ptr<GameSession> spSession);
+	void RemoveSession(std::shared_ptr<GameSession> spSession);
 private:
 	const uint64_t m_gameRoomId;
 	const uint16_t m_gameRoomNo;

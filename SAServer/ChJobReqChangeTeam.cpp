@@ -3,6 +3,7 @@
 #include "GameRoom.h"
 #include "GameServer.h"
 #include "Protocol.h"
+#include <cassert>
 
 void ChJobReqChangeTeam::Execute(GameChannel& channel)
 {
@@ -32,62 +33,58 @@ void ChJobReqChangeTeam::Execute(GameChannel& channel)
 		const size_t maxPlayerPerTeam = static_cast<size_t>(spGameRoom->GetMaxPlayer()) + 1;
 		if (req.m_newTeam == GameTeam::BlueTeam)
 		{
+			if (m_spSession->GetCurrTeam() == GameTeam::BlueTeam)
+				break;
+
 			if (spGameRoom->m_blueTeamSessionsCount == maxPlayerPerTeam)
 				break;
 
-			bool found = false;
-			uint8_t sessionIndex;
-			for (uint8_t i = 0; i < spGameRoom->m_redTeamSessionsCount; ++i)
+			assert(spGameRoom->m_redTeamSessions[m_spSession->GetCurrTeamIndex()] == m_spSession);
+
+			const uint8_t removalIndex = m_spSession->GetCurrTeamIndex();
+			const uint8_t lastIndex = spGameRoom->m_redTeamSessionsCount - 1;
+			if (removalIndex != lastIndex)
 			{
-				if (spGameRoom->m_redTeamSessions[i]->GetNetId() == m_spSession->GetNetId())
-				{
-					sessionIndex = i;
-					found = true;
-					break;
-				}
+				std::swap(spGameRoom->m_redTeamSessions[removalIndex], spGameRoom->m_redTeamSessions[lastIndex]);
+				spGameRoom->m_redTeamSessions[removalIndex]->SetCurrTeamIndex(removalIndex);
 			}
 
-			if (!found)
-				break;
-
-			std::shared_ptr<GameSession> spSession = std::move(spGameRoom->m_redTeamSessions[sessionIndex]);
-			for (uint8_t i = sessionIndex + 1; i < spGameRoom->m_redTeamSessionsCount; ++i)
-				spGameRoom->m_redTeamSessions[i - 1] = std::move(spGameRoom->m_redTeamSessions[i]);
-
+			std::shared_ptr<GameSession> spSession = std::move(spGameRoom->m_redTeamSessions[lastIndex]);
 			--spGameRoom->m_redTeamSessionsCount;
 
+			
 			spGameRoom->m_blueTeamSessions[spGameRoom->m_blueTeamSessionsCount] = std::move(spSession);
+			spGameRoom->m_blueTeamSessions[spGameRoom->m_blueTeamSessionsCount]->SetCurrTeam(GameTeam::BlueTeam);
+			spGameRoom->m_blueTeamSessions[spGameRoom->m_blueTeamSessionsCount]->SetCurrTeamIndex(spGameRoom->m_blueTeamSessionsCount);
 			++spGameRoom->m_blueTeamSessionsCount;
 
 			success = true;
 		}
 		else
 		{
+			if (m_spSession->GetCurrTeam() == GameTeam::RedTeam)
+				break;
+
 			if (spGameRoom->m_redTeamSessionsCount == maxPlayerPerTeam)
 				break;
 
-			bool found = false;
-			uint8_t sessionIndex;
-			for (uint8_t i = 0; i < spGameRoom->m_blueTeamSessionsCount; ++i)
+			assert(spGameRoom->m_blueTeamSessions[m_spSession->GetCurrTeamIndex()] == m_spSession);
+
+			const uint8_t removalIndex = m_spSession->GetCurrTeamIndex();
+			const uint8_t lastIndex = spGameRoom->m_blueTeamSessionsCount - 1;
+			if (removalIndex != lastIndex)
 			{
-				if (spGameRoom->m_blueTeamSessions[i]->GetNetId() == m_spSession->GetNetId())
-				{
-					sessionIndex = i;
-					found = true;
-					break;
-				}
+				std::swap(spGameRoom->m_blueTeamSessions[removalIndex], spGameRoom->m_blueTeamSessions[lastIndex]);
+				spGameRoom->m_blueTeamSessions[removalIndex]->SetCurrTeamIndex(removalIndex);
 			}
 
-			if (!found)
-				break;
-
-			std::shared_ptr<GameSession> spSession = std::move(spGameRoom->m_blueTeamSessions[sessionIndex]);
-			for (uint8_t i = sessionIndex + 1; i < spGameRoom->m_blueTeamSessionsCount; ++i)
-				spGameRoom->m_blueTeamSessions[i - 1] = std::move(spGameRoom->m_blueTeamSessions[i]);
-
+			std::shared_ptr<GameSession> spSession = std::move(spGameRoom->m_blueTeamSessions[lastIndex]);
 			--spGameRoom->m_blueTeamSessionsCount;
 
+
 			spGameRoom->m_redTeamSessions[spGameRoom->m_redTeamSessionsCount] = std::move(spSession);
+			spGameRoom->m_redTeamSessions[spGameRoom->m_redTeamSessionsCount]->SetCurrTeam(GameTeam::RedTeam);
+			spGameRoom->m_redTeamSessions[spGameRoom->m_redTeamSessionsCount]->SetCurrTeamIndex(spGameRoom->m_redTeamSessionsCount);
 			++spGameRoom->m_redTeamSessionsCount;
 
 			success = true;
@@ -98,12 +95,12 @@ void ChJobReqChangeTeam::Execute(GameChannel& channel)
 		if (success)
 		{
 			res.m_result = true;
-			res.m_newTeam = req.m_newTeam;
+			res.m_newTeam = m_spSession->GetCurrTeam();
 
 			SCNotifyPlayerTeamChanged notify;
 			notify.m_netId = m_spSession->GetNetId();
 			notify.m_gameRoomId = spGameRoom->GetRoomId();
-			notify.m_newTeam = req.m_newTeam;
+			notify.m_newTeam = m_spSession->GetCurrTeam();
 
 			winppy::Packet notifyPacket;
 			notifyPacket->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_PLAYER_TEAM_CHANGED));
