@@ -29,8 +29,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 		return -1;
 
 	Runtime::CreateInstance();
-	Runtime::GetInstance()->Init(hInstance, nShowCmd, 1366, 768, L"Sudden Attack", L"Lobby");
-	// Runtime::GetInstance()->Init(hInstance, nShowCmd, 1366, 768, L"Sudden Attack", L"Warehouse");
+	// Runtime::GetInstance()->Init(hInstance, nShowCmd, 1366, 768, L"Sudden Attack", L"Lobby");
+	Runtime::GetInstance()->Init(hInstance, nShowCmd, 1366, 768, L"Sudden Attack", L"Warehouse");
 
 	Runtime::GetInstance()->Run();
 

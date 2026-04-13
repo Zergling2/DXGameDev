@@ -28,7 +28,7 @@
     <ClCompile Include="source\Scene\TestScene1.cpp">
       <Filter>source\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="source\Script\FirstPersonMovement.cpp">
+    <ClCompile Include="source\Script\FirstPersonController.cpp">
       <Filter>source\Script</Filter>
     </ClCompile>
     <ClCompile Include="source\Scene\Warehouse.cpp">
@@ -37,7 +37,7 @@
     <ClCompile Include="source\Resource\Weapon.cpp">
       <Filter>source\Resource</Filter>
     </ClCompile>
-    <ClCompile Include="source\Script\Character.cpp">
+    <ClCompile Include="source\Script\ThirdPersonCharacter.cpp">
       <Filter>source\Script</Filter>
     </ClCompile>
     <ClCompile Include="source\Script\CollisionEventTest.cpp">
@@ -58,6 +58,9 @@
     <ClCompile Include="source\Resource\GameInfo.cpp">
       <Filter>source\Resource</Filter>
     </ClCompile>
+    <ClCompile Include="source\Script\UIHandler.cpp">
+      <Filter>source\Script</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Scene\Lobby.h">
@@ -66,7 +69,7 @@
     <ClInclude Include="source\Scene\TestScene1.h">
       <Filter>source\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="source\Script\FirstPersonMovement.h">
+    <ClInclude Include="source\Script\FirstPersonController.h">
       <Filter>source\Script</Filter>
     </ClInclude>
     <ClInclude Include="source\Scene\Warehouse.h">
@@ -75,7 +78,7 @@
     <ClInclude Include="source\Resource\Weapon.h">
       <Filter>source\Resource</Filter>
     </ClInclude>
-    <ClInclude Include="source\Script\Character.h">
+    <ClInclude Include="source\Script\ThirdPersonCharacter.h">
       <Filter>source\Script</Filter>
     </ClInclude>
     <ClInclude Include="source\Script\CollisionEventTest.h">
@@ -95,6 +98,9 @@
     </ClInclude>
     <ClInclude Include="source\Resource\GameInfo.h">
       <Filter>source\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Script\UIHandler.h">
+      <Filter>source\Script</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

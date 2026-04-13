@@ -1,5 +1,5 @@
 #include "TestScene1.h"
-#include "..\Script\FirstPersonMovement.h"
+#include "..\Script\FirstPersonController.h"
 
 using namespace ze;
 

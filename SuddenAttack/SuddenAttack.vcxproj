@@ -158,13 +158,14 @@
     <ClCompile Include="source\Scene\TestScene1.cpp" />
     <ClCompile Include="source\Scene\Warehouse.cpp" />
     <ClCompile Include="source\Script\Account.cpp" />
-    <ClCompile Include="source\Script\Character.cpp" />
+    <ClCompile Include="source\Script\ThirdPersonCharacter.cpp" />
     <ClCompile Include="source\Script\CollisionEventTest.cpp" />
-    <ClCompile Include="source\Script\FirstPersonMovement.cpp" />
+    <ClCompile Include="source\Script\FirstPersonController.cpp" />
     <ClCompile Include="source\Resource\Weapon.cpp" />
     <ClCompile Include="source\Script\GameResources.cpp" />
     <ClCompile Include="source\Script\LobbyHandler.cpp" />
     <ClCompile Include="source\Script\Network.cpp" />
+    <ClCompile Include="source\Script\UIHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Resource\GameInfo.h" />
@@ -172,13 +173,14 @@
     <ClInclude Include="source\Scene\TestScene1.h" />
     <ClInclude Include="source\Scene\Warehouse.h" />
     <ClInclude Include="source\Script\Account.h" />
-    <ClInclude Include="source\Script\Character.h" />
+    <ClInclude Include="source\Script\ThirdPersonCharacter.h" />
     <ClInclude Include="source\Script\CollisionEventTest.h" />
-    <ClInclude Include="source\Script\FirstPersonMovement.h" />
+    <ClInclude Include="source\Script\FirstPersonController.h" />
     <ClInclude Include="source\Resource\Weapon.h" />
     <ClInclude Include="source\Script\GameResources.h" />
     <ClInclude Include="source\Script\LobbyHandler.h" />
     <ClInclude Include="source\Script\Network.h" />
+    <ClInclude Include="source\Script\UIHandler.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

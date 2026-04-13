@@ -1,141 +1,481 @@
 #include "Warehouse.h"
-#include "..\Script\FirstPersonMovement.h"
-#include "..\Script\Character.h"
+#include "..\Script\FirstPersonController.h"
+#include "..\Script\UIHandler.h"
+#include "..\Script\ThirdPersonCharacter.h"
 #include "..\Script\CollisionEventTest.h"
 
 using namespace ze;
 
 ZE_IMPLEMENT_SCENE(Warehouse);
 
-void Warehouse::CreateClosedContainer(const XMFLOAT3& pos, const XMFLOAT3& rot)
+void Warehouse::CreateShortContainer(const XMFLOAT3& pos, const XMFLOAT3& rot)
 {
-	GameObjectHandle hGameObject = CreateGameObject(L"Closed Container");
+	GameObjectHandle hGameObject = CreateGameObject(L"short container");
 	GameObject* pGameObject = hGameObject.ToPtr();
 	pGameObject->m_transform.SetPosition(pos);
 	pGameObject->m_transform.SetRotationEuler(rot);
 
 	ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
 	MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-	pMeshRenderer->SetMesh(m_meshClosedContainer);
-	pMeshRenderer->SetMaterial(0, m_matClosedContainer);
+	pMeshRenderer->SetMesh(m_meshShortContainer);
+	pMeshRenderer->SetMaterial(0, m_matShortContainer);
 
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderClosedContainer, m_rbLocalPosClosedContainer, m_rbLocalRotClosedContainer);
+	// 콜라이더 로컬 오프셋
+	const XMFLOAT3& rbLocalPos = m_meshShortContainer->GetAabb().Center;	// 로컬 위치
+	XMFLOAT4 rbLocalRot;	// 로컬 회전
+	XMStoreFloat4(&rbLocalRot, XMQuaternionIdentity());
+
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderShortContainer, rbLocalPos, rbLocalRot);
 }
 
-void Warehouse::CreateClosedLongContainer(const XMFLOAT3& pos, const XMFLOAT3& rot)
+void Warehouse::CreateLongContainer(const XMFLOAT3& pos, const XMFLOAT3& rot)
 {
-	GameObjectHandle hGameObject = CreateGameObject(L"Closed Long Container");
+	GameObjectHandle hGameObject = CreateGameObject(L"long container");
 	GameObject* pGameObject = hGameObject.ToPtr();
 	pGameObject->m_transform.SetPosition(pos);
 	pGameObject->m_transform.SetRotationEuler(rot);
 
 	ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
 	MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-	pMeshRenderer->SetMesh(m_meshClosedLongContainer);
-	pMeshRenderer->SetMaterial(0, m_matClosedLongContainer);
+	pMeshRenderer->SetMesh(m_meshLongContainer);
+	pMeshRenderer->SetMaterial(0, m_matLongContainer);
 
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderClosedLongContainer, m_rbLocalPosClosedLongContainer, m_rbLocalRotClosedLongContainer);
+	// 콜라이더 로컬 오프셋
+	const XMFLOAT3& rbLocalPos = m_meshLongContainer->GetAabb().Center;	// 로컬 위치
+	XMFLOAT4 rbLocalRot;	// 로컬 회전
+	XMStoreFloat4(&rbLocalRot, XMQuaternionIdentity());
+
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderLongContainer, rbLocalPos, rbLocalRot);
 }
 
-void Warehouse::CreateWoodenBox(const XMFLOAT3& pos, const XMFLOAT3& rot, const XMFLOAT3& scale)
+void Warehouse::CreateWoodenBox8060(const XMFLOAT3& pos, const XMFLOAT3& rot)
 {
-	GameObjectHandle hGameObject = CreateGameObject(L"Wooden Box");
+	GameObjectHandle hGameObject = CreateGameObject(L"wooden box");
 	GameObject* pGameObject = hGameObject.ToPtr();
 	pGameObject->m_transform.SetPosition(pos);
 	pGameObject->m_transform.SetRotationEuler(rot);
-	pGameObject->m_transform.SetScale(scale);
 
 	ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
 	MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-	pMeshRenderer->SetMesh(m_meshWoodenBox);
+	pMeshRenderer->SetMesh(m_meshWoodenBox8060);
 	pMeshRenderer->SetMaterial(0, m_matWoodenBox);
 
-	XMFLOAT3A finalRbLocalPos;
-	XMStoreFloat3A(&finalRbLocalPos, XMVectorMultiply(XMLoadFloat3(&m_rbLocalPosWoodenBox), XMLoadFloat3(&scale)));
+	// 콜라이더 로컬 오프셋
+	const XMFLOAT3& rbLocalPos = m_meshWoodenBox8060->GetAabb().Center;	// 로컬 위치
+	XMFLOAT4 rbLocalRot;	// 로컬 회전
+	XMStoreFloat4(&rbLocalRot, XMQuaternionIdentity());
 
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderWoodenBox, finalRbLocalPos, m_rbLocalRotWoodenBox);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderWoodenBox8060, rbLocalPos, rbLocalRot);
 }
 
-void Warehouse::CreatePaperBox(const XMFLOAT3& pos, const XMFLOAT3& rot, const XMFLOAT3& scale)
+void Warehouse::CreateWoodenBox9070(const XMFLOAT3& pos, const XMFLOAT3& rot)
 {
-	GameObjectHandle hGameObject = CreateGameObject(L"Paper Box");
+	GameObjectHandle hGameObject = CreateGameObject(L"wooden box");
 	GameObject* pGameObject = hGameObject.ToPtr();
 	pGameObject->m_transform.SetPosition(pos);
 	pGameObject->m_transform.SetRotationEuler(rot);
-	pGameObject->m_transform.SetScale(scale);
+
+	ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
+	MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+	pMeshRenderer->SetMesh(m_meshWoodenBox9070);
+	pMeshRenderer->SetMaterial(0, m_matWoodenBox);
+
+	// 콜라이더 로컬 오프셋
+	const XMFLOAT3& rbLocalPos = m_meshWoodenBox9070->GetAabb().Center;	// 로컬 위치
+	XMFLOAT4 rbLocalRot;	// 로컬 회전
+	XMStoreFloat4(&rbLocalRot, XMQuaternionIdentity());
+
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderWoodenBox9070, rbLocalPos, rbLocalRot);
+}
+
+void Warehouse::CreateWoodenBox10090(const XMFLOAT3& pos, const XMFLOAT3& rot)
+{
+	GameObjectHandle hGameObject = CreateGameObject(L"wooden box");
+	GameObject* pGameObject = hGameObject.ToPtr();
+	pGameObject->m_transform.SetPosition(pos);
+	pGameObject->m_transform.SetRotationEuler(rot);
+
+	ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
+	MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+	pMeshRenderer->SetMesh(m_meshWoodenBox10090);
+	pMeshRenderer->SetMaterial(0, m_matWoodenBox);
+
+	// 콜라이더 로컬 오프셋
+	const XMFLOAT3& rbLocalPos = m_meshWoodenBox10090->GetAabb().Center;	// 로컬 위치
+	XMFLOAT4 rbLocalRot;	// 로컬 회전
+	XMStoreFloat4(&rbLocalRot, XMQuaternionIdentity());
+
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderWoodenBox10090, rbLocalPos, rbLocalRot);
+}
+
+void Warehouse::CreatePaperBox(const XMFLOAT3& pos, const XMFLOAT3& rot)
+{
+	GameObjectHandle hGameObject = CreateGameObject(L"paper box");
+	GameObject* pGameObject = hGameObject.ToPtr();
+	pGameObject->m_transform.SetPosition(pos);
+	pGameObject->m_transform.SetRotationEuler(rot);
 
 	ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
 	MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 	pMeshRenderer->SetMesh(m_meshPaperBox);
 	pMeshRenderer->SetMaterial(0, m_matPaperBox);
 
-	XMFLOAT3A finalRbLocalPos;
-	XMStoreFloat3A(&finalRbLocalPos, XMVectorMultiply(XMLoadFloat3(&m_rbLocalPosPaperBox), XMLoadFloat3(&scale)));
+	// 콜라이더 로컬 오프셋
+	const XMFLOAT3& rbLocalPos = m_meshPaperBox->GetAabb().Center;	// 로컬 위치
+	XMFLOAT4 rbLocalRot;	// 로컬 회전
+	XMStoreFloat4(&rbLocalRot, XMQuaternionIdentity());
 
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderPaperBox, finalRbLocalPos, m_rbLocalRotPaperBox);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderPaperBox, rbLocalPos, rbLocalRot);
+}
+
+void Warehouse::CreateOpenContainer1(const XMFLOAT3& pos, const XMFLOAT3& rot)
+{
+	GameObjectHandle hGameObject = CreateGameObject(L"open container1");
+	GameObject* pGameObject = hGameObject.ToPtr();
+	pGameObject->m_transform.SetPosition(pos);
+	pGameObject->m_transform.SetRotationEuler(rot);
+
+	ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
+	MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+	pMeshRenderer->SetMesh(m_meshOpenContainer1);
+	pMeshRenderer->SetMaterial(0, m_matOpenContainer1);
+
+	// 콜라이더 로컬 오프셋
+	const XMFLOAT3 rbLocalPos[8] =
+	{
+		XMFLOAT3(0.0f, 0.03f, 0.0f),
+		XMFLOAT3(-1.27f, 1.3f, 0.0f),
+		XMFLOAT3(0.0f, 2.57f, 0.0f),
+		XMFLOAT3(1.27f, 1.3f, 0.0f),
+		XMFLOAT3(-1.9159f, 1.3f, -3.3105f),
+		XMFLOAT3(-1.6515f, 1.3f, 2.5531f),
+		XMFLOAT3(1.6513f, 1.3f, 2.5532f),
+		XMFLOAT3(0.65f, 1.3f, -3.13f)
+	};
+	XMFLOAT4 rbLocalRot[8];
+	XMStoreFloat4(&rbLocalRot[0], XMQuaternionRotationRollPitchYaw(0.0f, 0.0f, 0.0f));
+	XMStoreFloat4(&rbLocalRot[1], XMQuaternionRotationRollPitchYaw(0.0f, 0.0f, XMConvertToRadians(-90.0f)));
+	XMStoreFloat4(&rbLocalRot[2], XMQuaternionRotationRollPitchYaw(0.0f, 0.0f, 0.0f));
+	XMStoreFloat4(&rbLocalRot[3], XMQuaternionRotationRollPitchYaw(0.0f, 0.0f, XMConvertToRadians(-90.0f)));
+	XMStoreFloat4(&rbLocalRot[4], XMQuaternionRotationRollPitchYaw(0.0f, XMConvertToRadians(-16.146f), 0.0f));
+	XMStoreFloat4(&rbLocalRot[5], XMQuaternionRotationRollPitchYaw(0.0f, XMConvertToRadians(-60.033f), 0.0f));
+	XMStoreFloat4(&rbLocalRot[6], XMQuaternionRotationRollPitchYaw(0.0f, XMConvertToRadians(59.963f), 0.0f));
+	XMStoreFloat4(&rbLocalRot[7], XMQuaternionRotationRollPitchYaw(0.0f, 0.0f, 0.0f));
+
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderOpenContainer1[0], rbLocalPos[0], rbLocalRot[0]);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderOpenContainer1[0], rbLocalPos[1], rbLocalRot[1]);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderOpenContainer1[0], rbLocalPos[2], rbLocalRot[2]);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderOpenContainer1[0], rbLocalPos[3], rbLocalRot[3]);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderOpenContainer1[1], rbLocalPos[4], rbLocalRot[4]);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderOpenContainer1[1], rbLocalPos[5], rbLocalRot[5]);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderOpenContainer1[1], rbLocalPos[6], rbLocalRot[6]);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderOpenContainer1[1], rbLocalPos[7], rbLocalRot[7]);
+}
+
+void Warehouse::CreateOpenContainer2(const XMFLOAT3& pos, const XMFLOAT3& rot)
+{
+	GameObjectHandle hGameObject = CreateGameObject(L"open container2");
+	GameObject* pGameObject = hGameObject.ToPtr();
+	pGameObject->m_transform.SetPosition(pos);
+	pGameObject->m_transform.SetRotationEuler(rot);
+
+	ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
+	MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+	pMeshRenderer->SetMesh(m_meshOpenContainer2);
+	pMeshRenderer->SetMaterial(0, m_matOpenContainer2);
+
+	// 콜라이더 로컬 오프셋
+	const XMFLOAT3 rbLocalPos[8] =
+	{
+		XMFLOAT3(0.0f, 0.03f, 0.0f),
+		XMFLOAT3(-1.27f, 1.3f, 0.0f),
+		XMFLOAT3(0.0f, 2.57f, 0.0f),
+		XMFLOAT3(1.27f, 1.3f, 0.0f),
+		XMFLOAT3(-1.9356f, 1.3f, -3.2394f),
+		XMFLOAT3(-1.7224f, 1.3f, 2.6051f),
+		XMFLOAT3(1.7064f, 1.3f, 2.5917f),
+		XMFLOAT3(1.9337f, 1.3f, -3.2473f)
+	};
+	XMFLOAT4 rbLocalRot[8];
+	XMStoreFloat4(&rbLocalRot[0], XMQuaternionRotationRollPitchYaw(0.0f, 0.0f, 0.0f));
+	XMStoreFloat4(&rbLocalRot[1], XMQuaternionRotationRollPitchYaw(0.0f, 0.0f, XMConvertToRadians(-90.0f)));
+	XMStoreFloat4(&rbLocalRot[2], XMQuaternionRotationRollPitchYaw(0.0f, 0.0f, 0.0f));
+	XMStoreFloat4(&rbLocalRot[3], XMQuaternionRotationRollPitchYaw(0.0f, 0.0f, XMConvertToRadians(-90.0f)));
+	XMStoreFloat4(&rbLocalRot[4], XMQuaternionRotationRollPitchYaw(0.0f, XMConvertToRadians(-9.7258f), 0.0f));
+	XMStoreFloat4(&rbLocalRot[5], XMQuaternionRotationRollPitchYaw(0.0f, XMConvertToRadians(-52.155f), 0.0f));
+	XMStoreFloat4(&rbLocalRot[6], XMQuaternionRotationRollPitchYaw(0.0f, XMConvertToRadians(53.995f), 0.0f));
+	XMStoreFloat4(&rbLocalRot[7], XMQuaternionRotationRollPitchYaw(0.0f, XMConvertToRadians(10.442f), 0.0f));
+
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderOpenContainer2[0], rbLocalPos[0], rbLocalRot[0]);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderOpenContainer2[0], rbLocalPos[1], rbLocalRot[1]);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderOpenContainer2[0], rbLocalPos[2], rbLocalRot[2]);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderOpenContainer2[0], rbLocalPos[3], rbLocalRot[3]);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderOpenContainer2[1], rbLocalPos[4], rbLocalRot[4]);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderOpenContainer2[1], rbLocalPos[5], rbLocalRot[5]);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderOpenContainer2[1], rbLocalPos[6], rbLocalRot[6]);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderOpenContainer2[1], rbLocalPos[7], rbLocalRot[7]);
+}
+
+void Warehouse::CreateHouseSideWall(const XMFLOAT3& pos, const XMFLOAT3& rot)
+{
+	GameObjectHandle hGameObject = CreateGameObject(L"house side wall");
+	GameObject* pGameObject = hGameObject.ToPtr();
+	pGameObject->m_transform.SetPosition(pos);
+	pGameObject->m_transform.SetRotationEuler(rot);
+
+	ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
+	MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+	pMeshRenderer->SetMesh(m_meshHouseSideWall);
+	pMeshRenderer->SetMaterial(0, m_matHouseSideWall[0]);
+	pMeshRenderer->SetMaterial(1, m_matHouseSideWall[1]);
+
+	// 콜라이더 로컬 오프셋
+	const XMFLOAT3& rbLocalPos = m_meshHouseSideWall->GetAabb().Center;	// 로컬 위치
+	XMFLOAT4 rbLocalRot;	// 로컬 회전
+	XMStoreFloat4(&rbLocalRot, XMQuaternionIdentity());
+
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseSideWall, rbLocalPos, rbLocalRot);
+}
+
+void Warehouse::CreateRedTeamBase(const XMFLOAT3& pos, const XMFLOAT3& rot)
+{
+	GameObjectHandle hGameObject = CreateGameObject(L"redbase");
+	GameObject* pGameObject = hGameObject.ToPtr();
+	pGameObject->m_transform.SetPosition(pos);
+	pGameObject->m_transform.SetRotationEuler(rot);
+
+	ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
+	MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+	pMeshRenderer->SetMesh(m_meshHouseRedBase);
+	pMeshRenderer->SetMaterial(0, m_matHouseRedBase[0]);
+	pMeshRenderer->SetMaterial(1, m_matHouseRedBase[1]);
+
+	// 콜라이더 로컬 오프셋
+	const XMFLOAT3 rbLocalPos[8] =
+	{
+		XMFLOAT3(0.0f, 1.5f, 9.9f),
+		XMFLOAT3(-14.1f, 1.5f, -2.0f),
+		XMFLOAT3(-14.1f, 4.5f, -2.0f),
+		XMFLOAT3(-19.0f, 1.5f, 2.9f),
+		XMFLOAT3(-19.0f, 4.5f, 2.9f),
+		XMFLOAT3(-18.0f, 1.5f, 5.0f),
+		XMFLOAT3(-19.0f, 1.5f, 9.9f),
+		XMFLOAT3(14.1f, 1.5f, 5.0f)
+	};
+	XMFLOAT4 rbLocalRot[8];
+	XMStoreFloat4(&rbLocalRot[0], XMQuaternionIdentity());
+	XMStoreFloat4(&rbLocalRot[1], XMQuaternionIdentity());
+	XMStoreFloat4(&rbLocalRot[2], XMQuaternionIdentity());
+	XMStoreFloat4(&rbLocalRot[3], XMQuaternionRotationRollPitchYaw(0.0f, XMConvertToRadians(-90.0f), 0.0f));
+	XMStoreFloat4(&rbLocalRot[4], XMQuaternionRotationRollPitchYaw(0.0f, XMConvertToRadians(-90.0f), 0.0f));
+	XMStoreFloat4(&rbLocalRot[5], XMQuaternionIdentity());
+	XMStoreFloat4(&rbLocalRot[6], XMQuaternionRotationRollPitchYaw(0.0f, XMConvertToRadians(-90.0f), 0.0f));
+	XMStoreFloat4(&rbLocalRot[7], XMQuaternionIdentity());
+
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseRedBase[0], rbLocalPos[0], rbLocalRot[0]);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseRedBase[1], rbLocalPos[1], rbLocalRot[1]);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseRedBase[1], rbLocalPos[2], rbLocalRot[2]);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseRedBase[1], rbLocalPos[3], rbLocalRot[3]);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseRedBase[1], rbLocalPos[4], rbLocalRot[4]);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseRedBase[1], rbLocalPos[5], rbLocalRot[5]);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseRedBase[1], rbLocalPos[6], rbLocalRot[6]);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseRedBase[1], rbLocalPos[7], rbLocalRot[7]);
+}
+
+void Warehouse::CreateRedBaseWall(const XMFLOAT3& pos, const XMFLOAT3& rot)
+{
+	GameObjectHandle hGameObject = CreateGameObject(L"redbasewall");
+	GameObject* pGameObject = hGameObject.ToPtr();
+	pGameObject->m_transform.SetPosition(pos);
+	pGameObject->m_transform.SetRotationEuler(rot);
+
+	ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
+	MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+	pMeshRenderer->SetMesh(m_meshHouseRedBaseWall);
+	pMeshRenderer->SetMaterial(0, m_matHouseRedBaseWall[0]);
+	pMeshRenderer->SetMaterial(1, m_matHouseRedBaseWall[1]);
+	pMeshRenderer->SetMaterial(2, m_matHouseRedBaseWall[2]);
+
+	// 콜라이더 로컬 오프셋
+	const XMFLOAT3 rbLocalPos[6] =
+	{
+		XMFLOAT3(0.0f, 6.0f, 0.0f),
+		XMFLOAT3(-13.4f, 1.0f, 0.0f),
+		XMFLOAT3(0.0f, 1.0f, -0.0f),
+		XMFLOAT3(+13.4f, 1.0f, 0.0f),
+		XMFLOAT3(-6.7f, 2.85f, 0.65f),
+		XMFLOAT3(+6.7f, 2.85f, 0.65f),
+	};
+	// XMFLOAT4 rbLocalRot[6];
+	// XMStoreFloat4(&rbLocalRot[0], XMQuaternionIdentity());
+	// XMStoreFloat4(&rbLocalRot[1], XMQuaternionIdentity());
+	// XMStoreFloat4(&rbLocalRot[2], XMQuaternionIdentity());
+	// XMStoreFloat4(&rbLocalRot[3], XMQuaternionIdentity());
+	// XMStoreFloat4(&rbLocalRot[4], XMQuaternionIdentity());
+	// XMStoreFloat4(&rbLocalRot[5], XMQuaternionIdentity());
+	XMFLOAT4 rbLocalRot;
+	XMStoreFloat4(&rbLocalRot, XMQuaternionIdentity());
+
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseRedBaseWall[0], rbLocalPos[0], rbLocalRot);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseRedBaseWall[1], rbLocalPos[1], rbLocalRot);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseRedBaseWall[1], rbLocalPos[2], rbLocalRot);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseRedBaseWall[1], rbLocalPos[3], rbLocalRot);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseRedBaseWall[2], rbLocalPos[4], rbLocalRot);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseRedBaseWall[2], rbLocalPos[5], rbLocalRot);
+}
+
+void Warehouse::CreateBlueTeamBase(const XMFLOAT3& pos, const XMFLOAT3& rot)
+{
+	GameObjectHandle hGameObject = CreateGameObject(L"bluebase");
+	GameObject* pGameObject = hGameObject.ToPtr();
+	pGameObject->m_transform.SetPosition(pos);
+	pGameObject->m_transform.SetRotationEuler(rot);
+
+	ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
+	MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+	pMeshRenderer->SetMesh(m_meshHouseBlueBase);
+	pMeshRenderer->SetMaterial(0, m_matHouseBlueBase[0]);
+	pMeshRenderer->SetMaterial(1, m_matHouseBlueBase[1]);
+	pMeshRenderer->SetMaterial(2, m_matHouseBlueBase[2]);
+
+	// 콜라이더 로컬 오프셋
+	const XMFLOAT3 rbLocalPos[10] =
+	{
+		XMFLOAT3(0.0f, 3.1f, -5.0f),
+		XMFLOAT3(14.1f, 1.5f, -5.0f),
+		XMFLOAT3(-14.1f, 1.5f, -5.0f),
+		XMFLOAT3(0.0f, 1.5f, -10.1f),
+		XMFLOAT3(0.0f, 0.5f, -2.15f),
+		XMFLOAT3(0.0f, 1.45f, -4.1f),
+		XMFLOAT3(0.0f, 1.45f, -0.2f),
+		XMFLOAT3(0.0f, 2.8f, -2.15f),
+		XMFLOAT3(0.0f, 1.95f, -2.15f),
+		XMFLOAT3(0.0f, 1.45f, -3.25f)
+	};
+	// XMFLOAT4 rbLocalRot[10];
+	// XMStoreFloat4(&rbLocalRot[0], XMQuaternionIdentity());
+	// XMStoreFloat4(&rbLocalRot[1], XMQuaternionIdentity());
+	// XMStoreFloat4(&rbLocalRot[2], XMQuaternionIdentity());
+	// XMStoreFloat4(&rbLocalRot[3], XMQuaternionIdentity());
+	// XMStoreFloat4(&rbLocalRot[4], XMQuaternionIdentity());
+	// XMStoreFloat4(&rbLocalRot[5], XMQuaternionIdentity());
+	// XMStoreFloat4(&rbLocalRot[6], XMQuaternionIdentity());
+	// XMStoreFloat4(&rbLocalRot[7], XMQuaternionIdentity());
+	// XMStoreFloat4(&rbLocalRot[8], XMQuaternionIdentity());
+	// XMStoreFloat4(&rbLocalRot[9], XMQuaternionIdentity());
+	XMFLOAT4 rbLocalRot;
+	XMStoreFloat4(&rbLocalRot, XMQuaternionIdentity());
+
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseBlueBase[0], rbLocalPos[0], rbLocalRot);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseBlueBase[1], rbLocalPos[1], rbLocalRot);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseBlueBase[1], rbLocalPos[2], rbLocalRot);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseBlueBase[2], rbLocalPos[3], rbLocalRot);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseBlueBase[3], rbLocalPos[4], rbLocalRot);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseBlueBase[4], rbLocalPos[5], rbLocalRot);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseBlueBase[4], rbLocalPos[6], rbLocalRot);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseBlueBase[5], rbLocalPos[7], rbLocalRot);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseBlueBase[6], rbLocalPos[8], rbLocalRot);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseBlueBase[7], rbLocalPos[9], rbLocalRot);
+}
+
+void Warehouse::CreateBlueBaseWall(const XMFLOAT3& pos, const XMFLOAT3& rot)
+{
+	GameObjectHandle hGameObject = CreateGameObject(L"bluebasewall");
+	GameObject* pGameObject = hGameObject.ToPtr();
+	pGameObject->m_transform.SetPosition(pos);
+	pGameObject->m_transform.SetRotationEuler(rot);
+
+	ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
+	MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+	pMeshRenderer->SetMesh(m_meshHouseBlueBaseWall);
+	pMeshRenderer->SetMaterial(0, m_matHouseBlueBaseWall[0]);
+	pMeshRenderer->SetMaterial(1, m_matHouseBlueBaseWall[1]);
+	pMeshRenderer->SetMaterial(2, m_matHouseBlueBaseWall[2]);
+	pMeshRenderer->SetMaterial(3, m_matHouseBlueBaseWall[3]);
+
+	// 콜라이더 로컬 오프셋
+	const XMFLOAT3 rbLocalPos[4] =
+	{
+		XMFLOAT3(0.0f, 6.0f, 0.0f),
+		XMFLOAT3(-13.4f, 1.0f, 0.0f),
+		XMFLOAT3(0.0f, 1.0f, -0.0f),
+		XMFLOAT3(+13.4f, 1.0f, 0.0f)
+	};
+	XMFLOAT4 rbLocalRot[4];
+	XMStoreFloat4(&rbLocalRot[0], XMQuaternionIdentity());
+	XMStoreFloat4(&rbLocalRot[1], XMQuaternionIdentity());
+	XMStoreFloat4(&rbLocalRot[2], XMQuaternionIdentity());
+	XMStoreFloat4(&rbLocalRot[3], XMQuaternionIdentity());
+
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseBlueBaseWall[0], rbLocalPos[0], rbLocalRot[0]);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseBlueBaseWall[1], rbLocalPos[1], rbLocalRot[1]);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseBlueBaseWall[1], rbLocalPos[2], rbLocalRot[2]);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseBlueBaseWall[1], rbLocalPos[3], rbLocalRot[3]);
+}
+
+void Warehouse::CreateHouseRoof(const XMFLOAT3& pos, const XMFLOAT3& rot)
+{
+	GameObjectHandle hGameObject = CreateGameObject(L"houseroof");
+	GameObject* pGameObject = hGameObject.ToPtr();
+	pGameObject->m_transform.SetPosition(pos);
+	pGameObject->m_transform.SetRotationEuler(rot);
+
+	ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
+	MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+	pMeshRenderer->SetMesh(m_meshHouseRoof);
+	pMeshRenderer->SetMaterial(0, m_matHouseRoof);
+
+	// 콜라이더 로컬 오프셋
+	const XMFLOAT3 rbLocalPos[2] =
+	{
+		XMFLOAT3(-7.6746f, 2.1692f, 0.0f),
+		XMFLOAT3(+7.6746f, 2.1692f, 0.0f)
+	};
+	XMFLOAT4 rbLocalRot[2];
+	XMStoreFloat4(&rbLocalRot[0], XMQuaternionRotationRollPitchYaw(0.0f, 0.0f, XMConvertToRadians(15.7f)));
+	XMStoreFloat4(&rbLocalRot[1], XMQuaternionRotationRollPitchYaw(0.0f, 0.0f, XMConvertToRadians(-15.7f)));
+
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseRoof, rbLocalPos[0], rbLocalRot[0]);
+	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseRoof, rbLocalPos[1], rbLocalRot[1]);
 }
 
 void Warehouse::OnLoadScene()
 {
-	// Lights
-	// {
-	// 	GameObjectHandle hSun = CreateGameObject(L"Sun");
-	// 	GameObject* pSun = hSun.ToPtr();
-	// 	pSun->m_transform.SetRotationEuler(XMVectorSet(XMConvertToRadians(45), XMConvertToRadians(150), 0.0f, 0.0f));
-	// 	ComponentHandle<DirectionalLight> hLight = pSun->AddComponent<DirectionalLight>();
-	// 	DirectionalLight* pLight = hLight.ToPtr();
-	// 	XMStoreFloat4A(&pLight->m_ambient, XMVectorScale(Vector3::One(), 0.1f));
-	// 	XMStoreFloat4A(&pLight->m_diffuse, XMVectorScale(Vector3::One(), 0.6f));
-	// 	XMStoreFloat4A(&pLight->m_specular, Vector3::One());
-	// }
-
-	GameObjectHandle hFlashLight = CreateGameObject(L"손전등");
+	// ## Lights
 	{
-		GameObject* pFL = hFlashLight.ToPtr();
-		pFL->m_transform.SetPosition(XMVectorSet(0.0f, 1.0f, 1.0f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pFL->AddComponent<MeshRenderer>();
-		auto mesh = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\props\\flash.obj").m_staticMeshes[0];
-		hMeshRenderer.ToPtr()->SetMesh(mesh);
-
-		ComponentHandle<SpotLight> hSpotLight = pFL->AddComponent<SpotLight>();
-		SpotLight* pSpotLight = hSpotLight.ToPtr();
-		XMStoreFloat4A(&pSpotLight->m_diffuse, XMVectorScale(ColorsLinear::White, 1.0f));
-		XMStoreFloat4A(&pSpotLight->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 1.0f), 1.0f));
-		pSpotLight->SetDistAtt(0.0f, 1.0f, 0.0f);
-		pSpotLight->SetRange(50.0f);
-
-		ComponentHandle<PointLight> hPointLight = pFL->AddComponent<PointLight>();
-		PointLight* pPointLight = hPointLight.ToPtr();
-		XMStoreFloat4A(&pPointLight->m_diffuse, XMVectorScale(ColorsLinear::GreenYellow, 0.6f));
-		XMStoreFloat4A(&pPointLight->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::GreenYellow, 0.2f), 2.0f));
-		pPointLight->SetDistAtt(0.0f, 1.0f, 0.0f);
-		pPointLight->SetRange(3.0f);
+		GameObjectHandle hSun = CreateGameObject(L"house light1");
+		GameObject* pSun = hSun.ToPtr();
+		pSun->m_transform.SetRotationEuler(XMConvertToRadians(50), XMConvertToRadians(45), 0.0f);
+		ComponentHandle<DirectionalLight> hLight = pSun->AddComponent<DirectionalLight>();
+		DirectionalLight* pLight = hLight.ToPtr();
+		XMStoreFloat4A(&pLight->m_diffuse, XMVectorScale(Vector3::One(), 0.15f));
+		XMStoreFloat4A(&pLight->m_specular, Vector3::OneHalf());
 	}
 
-	// Main Camera
-	GameObject* pMainCamera = nullptr;
-	ComponentHandle<FirstPersonMovement> hScriptFPSMovement;
-	FirstPersonMovement* pScriptFPSMovement = nullptr;
 	{
-		GameObjectHandle hMainCamera = CreateGameObject(L"Main Camera");
+		GameObjectHandle hSun = CreateGameObject(L"house light2");
+		GameObject* pSun = hSun.ToPtr();
+		pSun->m_transform.SetRotationEuler(XMConvertToRadians(50), XMConvertToRadians(-135), 0.0f);
+		ComponentHandle<DirectionalLight> hLight = pSun->AddComponent<DirectionalLight>();
+		DirectionalLight* pLight = hLight.ToPtr();
+		XMStoreFloat4A(&pLight->m_diffuse, XMVectorScale(Vector3::One(), 0.15f));
+		XMStoreFloat4A(&pLight->m_specular, Vector3::OneHalf());
+	}
 
-		pMainCamera = hMainCamera.ToPtr();
-		pMainCamera->m_transform.SetPosition(XMVectorSet(0.0f, 1.6f, -5.0f, 0.0f));
+	// ## Main Camera
+	GameObject* pGameObjectPlayerCamera = nullptr;
+	{
+		GameObjectHandle hGameObjectPlayerCamera = CreateGameObject(L"Main Camera");
 
-		ComponentHandle<Camera> hCameraComponent = pMainCamera->AddComponent<Camera>();
-		Camera* pCameraComponent = hCameraComponent.ToPtr();
-		pCameraComponent->SetDepth(0);
-		pCameraComponent->SetFieldOfView(82);
-		pCameraComponent->SetClippingPlanes(0.1f, 300.0f);
+		pGameObjectPlayerCamera = hGameObjectPlayerCamera.ToPtr();
 
-		hScriptFPSMovement = pMainCamera->AddComponent<FirstPersonMovement>();		// 1인칭 카메라 조작
-		pScriptFPSMovement = hScriptFPSMovement.ToPtr();
+		ComponentHandle<Camera> hCamera = pGameObjectPlayerCamera->AddComponent<Camera>();
+		Camera* pCamera = hCamera.ToPtr();
+		pCamera->SetDepth(0);
+		pCamera->SetFieldOfView(82);
+		pCamera->SetClippingPlanes(0.1f, 300.0f);
 
-
-		// ####################
-		// 스크립트 멤버 대입
-		pScriptFPSMovement->m_hComponentCamera = hCameraComponent;
+		pGameObjectPlayerCamera->AddComponent<FirstPersonController>();		// 1인칭 카메라 조작
 	}
 	
 	// Adapter Info UI
@@ -220,477 +560,137 @@ void Warehouse::OnLoadScene()
 		pText->ApplyTextFormat();
 	}
 
-	// UI
+	GameObjectHandle hGameObjectUIHandler = CreateGameObject();
+	GameObject* pGameObjectUIHandler = hGameObjectUIHandler.ToPtr();
+	ComponentHandle<UIHandler> hScriptUIHandler = pGameObjectUIHandler->AddComponent<UIHandler>();
+	UIHandler* pScriptUIHandler = hScriptUIHandler.ToPtr();
+
+	// ## UI
 	{
-		UIObjectHandle hCrosshair = CreateImage();
-		Image* pCrosshair = static_cast<Image*>(hCrosshair.ToPtr());
-		pCrosshair->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\crosshair.dds"));
-		pCrosshair->SetNativeSize(true);
-		pCrosshair->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
-		pCrosshair->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+		UIObjectHandle hImageCrosshair = CreateImage();
+		pScriptUIHandler->m_hImageCrosshair = hImageCrosshair;
+		Image* pImageCrosshair = static_cast<Image*>(hImageCrosshair.ToPtr());
+		pImageCrosshair->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\crosshair.dds"));
+		pImageCrosshair->SetNativeSize(true);
+		pImageCrosshair->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+		pImageCrosshair->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 
-		UIObjectHandle hHealthBgr = CreateImage();
-		Image* pHealthBgr = static_cast<Image*>(hHealthBgr.ToPtr());
-		pHealthBgr->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\health.png"));
-		pHealthBgr->SetNativeSize(true);
-		pHealthBgr->m_transform.SetPosition(pHealthBgr->GetHalfSizeX() + 4, pHealthBgr->GetHalfSizeY() + 4);
-		pHealthBgr->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-		pHealthBgr->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
+		UIObjectHandle hImageHealthBackground = CreateImage();
+		pScriptUIHandler->m_hImageHealthBackground = hImageHealthBackground;
+		Image* pImageHealthBackground = static_cast<Image*>(hImageHealthBackground.ToPtr());
+		pImageHealthBackground->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\health.png"));
+		pImageHealthBackground->SetNativeSize(true);
+		pImageHealthBackground->m_transform.SetPosition(pImageHealthBackground->GetHalfSizeX() + 4, pImageHealthBackground->GetHalfSizeY() + 4);
+		pImageHealthBackground->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+		pImageHealthBackground->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
 
-		UIObjectHandle hWeaponIndicatorBgr = CreateImage();
-		Image* pWeaponIndicatorBgr = static_cast<Image*>(hWeaponIndicatorBgr.ToPtr());
-		pWeaponIndicatorBgr->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\weapon_indicator.png"));
-		pWeaponIndicatorBgr->SetNativeSize(true);
-		pWeaponIndicatorBgr->m_transform.SetPosition(-pWeaponIndicatorBgr->GetHalfSizeX() - 4, pWeaponIndicatorBgr->GetHalfSizeY() + 4);
-		pWeaponIndicatorBgr->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
-		pWeaponIndicatorBgr->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
+		UIObjectHandle hImageRBUIBackground = CreateImage();
+		pScriptUIHandler->m_hImageRBUIBackground = hImageRBUIBackground;
+		Image* pImageRBUIBackground = static_cast<Image*>(hImageRBUIBackground.ToPtr());
+		pImageRBUIBackground->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\weapon_indicator.png"));
+		pImageRBUIBackground->SetNativeSize(true);
+		pImageRBUIBackground->m_transform.SetPosition(-pImageRBUIBackground->GetHalfSizeX() - 4, pImageRBUIBackground->GetHalfSizeY() + 4);
+		pImageRBUIBackground->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
+		pImageRBUIBackground->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
 
-		{
-			UIObjectHandle hHPText = CreateText();
-			Text* pHPText = static_cast<Text*>(hHPText.ToPtr());
-			pHPText->SetText(L"100");
-			pHPText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-			pHPText->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
-			pHPText->m_transform.SetPosition(pHealthBgr->m_transform.GetPosition());
-			pHPText->m_transform.TranslateX(-56);
-			pHPText->SetSize(XMFLOAT2(128, 48));
-			pHPText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-			pHPText->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-			pHPText->SetColor(ColorsLinear::White);
-			pHPText->GetTextFormat().SetSize(28);
-			pHPText->GetTextFormat().SetFontFamilyName(L"Impact");
-			pHPText->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
-			pHPText->ApplyTextFormat();
-		}
+		UIObjectHandle hTextHP = CreateText();
+		pScriptUIHandler->m_hTextHP = hTextHP;
+		Text* pTextHP = static_cast<Text*>(hTextHP.ToPtr());
+		pTextHP->SetText(L"100");
+		pTextHP->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+		pTextHP->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
+		pTextHP->m_transform.SetPosition(pImageHealthBackground->m_transform.GetPosition());
+		pTextHP->m_transform.TranslateX(-56);
+		pTextHP->SetSize(128, 48);
+		pTextHP->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+		pTextHP->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+		pTextHP->SetColor(ColorsLinear::White);
+		pTextHP->GetTextFormat().SetSize(28);
+		pTextHP->GetTextFormat().SetFontFamilyName(L"Impact");
+		pTextHP->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
+		pTextHP->ApplyTextFormat();
 
-		{
-			UIObjectHandle hAPText = CreateText();
-			Text* pAPText = static_cast<Text*>(hAPText.ToPtr());
-			pAPText->SetText(L"100");
-			pAPText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-			pAPText->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
-			pAPText->m_transform.SetPosition(pHealthBgr->m_transform.GetPosition());
-			pAPText->m_transform.TranslateX(120);
-			pAPText->SetSize(XMFLOAT2(128, 48));
-			pAPText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-			pAPText->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-			pAPText->SetColor(ColorsLinear::White);
-			pAPText->GetTextFormat().SetSize(28);
-			pAPText->GetTextFormat().SetFontFamilyName(L"Impact");
-			pAPText->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
-			pAPText->ApplyTextFormat();
-		}
+		UIObjectHandle hTextAP = CreateText();
+		pScriptUIHandler->m_hTextAP = hTextAP;
+		Text* pTextAP = static_cast<Text*>(hTextAP.ToPtr());
+		pTextAP->SetText(L"100");
+		pTextAP->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+		pTextAP->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
+		pTextAP->m_transform.SetPosition(pImageHealthBackground->m_transform.GetPosition());
+		pTextAP->m_transform.TranslateX(120);
+		pTextAP->SetSize(128, 48);
+		pTextAP->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+		pTextAP->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+		pTextAP->SetColor(ColorsLinear::White);
+		pTextAP->GetTextFormat().SetSize(28);
+		pTextAP->GetTextFormat().SetFontFamilyName(L"Impact");
+		pTextAP->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
+		pTextAP->ApplyTextFormat();
 
-		{
-			UIObjectHandle hPointText = CreateText();
-			Text* pPointText = static_cast<Text*>(hPointText.ToPtr());
-			pPointText->SetText(L"126P");
-			pPointText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
-			pPointText->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
-			pPointText->m_transform.SetPosition(pWeaponIndicatorBgr->m_transform.GetPosition());
-			pPointText->m_transform.Translate(-45, 34);
-			pPointText->SetSize(XMFLOAT2(128, 32));
-			pPointText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-			pPointText->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-			pPointText->SetColor(ColorsLinear::White);
-			pPointText->GetTextFormat().SetSize(22);
-			pPointText->GetTextFormat().SetFontFamilyName(L"Agency FB");
-			pPointText->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_ULTRA_BOLD);
-			pPointText->GetTextFormat().SetStyle(DWRITE_FONT_STYLE_ITALIC);
-			pPointText->ApplyTextFormat();
-		}
+		UIObjectHandle hTextPoint = CreateText();
+		pScriptUIHandler->m_hTextPoint = hTextPoint;
+		Text* pTextPoint = static_cast<Text*>(hTextPoint.ToPtr());
+		pTextPoint->SetText(L"126P");
+		pTextPoint->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
+		pTextPoint->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
+		pTextPoint->m_transform.SetPosition(pImageRBUIBackground->m_transform.GetPosition());
+		pTextPoint->m_transform.Translate(-45, 34);
+		pTextPoint->SetSize(128, 32);
+		pTextPoint->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+		pTextPoint->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+		pTextPoint->SetColor(ColorsLinear::White);
+		pTextPoint->GetTextFormat().SetSize(22);
+		pTextPoint->GetTextFormat().SetFontFamilyName(L"Agency FB");
+		pTextPoint->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_ULTRA_BOLD);
+		pTextPoint->GetTextFormat().SetStyle(DWRITE_FONT_STYLE_ITALIC);
+		pTextPoint->ApplyTextFormat();
 
-		{
-			UIObjectHandle hWeaponNameText = CreateText();
-			Text* pWeaponNameText = static_cast<Text*>(hWeaponNameText.ToPtr());
-			pWeaponNameText->SetText(L"M16");
-			pWeaponNameText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
-			pWeaponNameText->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
-			pWeaponNameText->m_transform.SetPosition(pWeaponIndicatorBgr->m_transform.GetPosition());
-			pWeaponNameText->m_transform.TranslateY(6);
-			pWeaponNameText->SetSize(XMFLOAT2(200, 32));
-			pWeaponNameText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-			pWeaponNameText->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-			pWeaponNameText->SetColor(ColorsLinear::White);
-			pWeaponNameText->GetTextFormat().SetSize(22);
-			pWeaponNameText->GetTextFormat().SetFontFamilyName(L"Agency FB");
-			pWeaponNameText->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_ULTRA_BOLD);
-			pWeaponNameText->ApplyTextFormat();
-		}
+		UIObjectHandle hTextWeaponName = CreateText();
+		pScriptUIHandler->m_hTextWeaponName = hTextWeaponName;
+		Text* pTextWeaponName = static_cast<Text*>(hTextWeaponName.ToPtr());
+		pTextWeaponName->SetText(L"M16");
+		pTextWeaponName->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
+		pTextWeaponName->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
+		pTextWeaponName->m_transform.SetPosition(pImageRBUIBackground->m_transform.GetPosition());
+		pTextWeaponName->m_transform.TranslateY(6);
+		pTextWeaponName->SetSize(XMFLOAT2(200, 32));
+		pTextWeaponName->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+		pTextWeaponName->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+		pTextWeaponName->SetColor(ColorsLinear::White);
+		pTextWeaponName->GetTextFormat().SetSize(22);
+		pTextWeaponName->GetTextFormat().SetFontFamilyName(L"Agency FB");
+		pTextWeaponName->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_ULTRA_BOLD);
+		pTextWeaponName->ApplyTextFormat();
 
-		{
-			UIObjectHandle hWeaponNameText = CreateText();
-			Text* pWeaponNameText = static_cast<Text*>(hWeaponNameText.ToPtr());
-			pWeaponNameText->SetText(L"30 / 90");
-			pWeaponNameText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
-			pWeaponNameText->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
-			pWeaponNameText->m_transform.SetPosition(pWeaponIndicatorBgr->m_transform.GetPosition());
-			pWeaponNameText->m_transform.Translate(16, -28);
-			pWeaponNameText->SetSize(XMFLOAT2(128, 40));
-			pWeaponNameText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-			pWeaponNameText->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-			pWeaponNameText->SetColor(ColorsLinear::White);
-			pWeaponNameText->GetTextFormat().SetSize(34);
-			pWeaponNameText->GetTextFormat().SetFontFamilyName(L"Agency FB");
-			pWeaponNameText->GetTextFormat().SetStyle(DWRITE_FONT_STYLE_ITALIC);
-			pWeaponNameText->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_ULTRA_BOLD);
-			pWeaponNameText->ApplyTextFormat();
-		}
-
-		// 무기교체 UI
-		{
-			constexpr FLOAT WEAPON_CHANGE_PANEL_WIDTH = 180.0f;
-			constexpr FLOAT WEAPON_CHANGE_PANEL_HEIGHT = 220.0f;
-			UIObjectHandle hPanel = CreatePanel();
-			Panel* pPanel = static_cast<Panel*>(hPanel.ToPtr());
-			// pPanel->SetShape(PanelShape::RoundedRectangle);		// Default
-			pPanel->SetColor(ColorsLinear::DarkGray);
-			pPanel->SetColorA(0.5f);
-			pPanel->SetSize(WEAPON_CHANGE_PANEL_WIDTH, WEAPON_CHANGE_PANEL_HEIGHT);
-			pPanel->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
-			pPanel->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-			pPanel->m_transform.SetPositionX(pPanel->GetSizeX() / 2.0f + 5);
-
-
-			pScriptFPSMovement->m_hWeaponChangePanel = hPanel;
-			pPanel->SetActive(false);
-
-
-
-			{
-				UIObjectHandle hSlot1 = CreateImage();
-				Image* pSlot1 = static_cast<Image*>(hSlot1.ToPtr());
-				pSlot1->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\weapons\\m16a1.png"));
-				pSlot1->SetNativeSize(true);
-				pSlot1->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
-				pSlot1->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
-				pSlot1->m_transform.SetPosition(-300, 80);
-
-				UIObjectHandle hSlot2 = CreateImage();
-				Image* pSlot2 = static_cast<Image*>(hSlot2.ToPtr());
-				pSlot2->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\weapons\\m4a1.png"));
-				pSlot2->SetNativeSize(true);
-				pSlot2->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
-				pSlot2->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
-				pSlot2->m_transform.SetPosition(0, 80);
-
-				UIObjectHandle hSlot3 = CreateImage();
-				Image* pSlot3 = static_cast<Image*>(hSlot3.ToPtr());
-				pSlot3->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\weapons\\m762.png"));
-				pSlot3->SetNativeSize(true);
-				pSlot3->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
-				pSlot3->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
-				pSlot3->m_transform.SetPosition(300, 80);
-			}
-
-
-			constexpr float BUTTON_WIDTH = 40;
-			constexpr float BUTTON_HEIGHT = 18;
-			const float WEAPON_NAME_TEXT_WIDTH = pPanel->GetSizeX() - BUTTON_WIDTH - 10;
-			const float WEAPON_NAME_TEXT_HEIGHT = 20;
-			const float BUTTON_POS_X = pPanel->m_transform.GetPositionX() + pPanel->GetHalfSizeX() - 5 - (BUTTON_WIDTH / 2.0f);
-			const float WEAPON_NAME_TEXT_POS_X = pPanel->m_transform.GetPositionX() - pPanel->GetHalfSizeX() + 5 + (WEAPON_NAME_TEXT_WIDTH / 2.0f);
-			{
-				UIObjectHandle hInputField = CreateInputField();
-				InputField* pInputField = static_cast<InputField*>(hInputField.ToPtr());
-				pInputField->m_transform.SetParent(&pPanel->m_transform);
-
-				pInputField->AllowReturn(true);
-				pInputField->SetSize(pPanel->GetSizeX() - 16, 20);
-				pInputField->SetText(L"테스트 입력 필드");
-				pInputField->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
-				pInputField->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-				pInputField->m_transform.SetPosition(
-					pPanel->m_transform.GetPositionX(),
-					-30
-				);
-			}
-
-			{
-				UIObjectHandle hSlider = CreateSliderControl();
-				SliderControl* pSlider = static_cast<SliderControl*>(hSlider.ToPtr());
-				pSlider->m_transform.SetParent(&pPanel->m_transform);
-				
-				pSlider->SetRange(0, 10);
-				pSlider->SetThumbColor(ColorsLinear::Green);
-				pSlider->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
-				pSlider->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-				pSlider->m_transform.SetPosition(
-					pPanel->m_transform.GetPositionX(),
-					-60
-				);
-
-				pScriptFPSMovement->m_hSlider = hSlider;
-				pSlider->SetHandlerOnPosChange(MakeUIHandler(hScriptFPSMovement, &FirstPersonMovement::EventHandlerAmbientChange));
-			}
-
-			{
-				UIObjectHandle hSlider = CreateSliderControl();
-				SliderControl* pSlider = static_cast<SliderControl*>(hSlider.ToPtr());
-				pSlider->m_transform.SetParent(&pPanel->m_transform);
-
-				pSlider->SetSliderControlType(SliderControlType::Vertical);
-				pSlider->SetThumbSize(16, 8);
-				pSlider->SetThumbColor(ColorsLinear::Red);
-				pSlider->SetTrackColor(ColorsLinear::YellowGreen);
-				pSlider->SetRange(0, 3);
-				pSlider->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
-				pSlider->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-				pSlider->m_transform.SetPosition(
-					pPanel->m_transform.GetPositionX() + 200,
-					-60
-				);
-
-				pScriptFPSMovement->m_hSliderMSAAChanger = hSlider;
-				pSlider->SetHandlerOnPosChange(MakeUIHandler(hScriptFPSMovement, &FirstPersonMovement::EventHandlerMSAAChange));
-			}
-
-			{
-				UIObjectHandle hRadioButton1 = CreateRadioButton();
-				RadioButton* pRadioButton1 = static_cast<RadioButton*>(hRadioButton1.ToPtr());
-				pRadioButton1->m_transform.SetParent(&pPanel->m_transform);
-
-				pRadioButton1->SetHandlerOnClick(MakeUIHandler(hScriptFPSMovement, &FirstPersonMovement::TestHandlerOnClick01));
-				pRadioButton1->SetText(L"Radio Button 1");
-				pRadioButton1->SetButtonColorRGB(ColorsLinear::DarkOrange);
-				pRadioButton1->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
-				pRadioButton1->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-				pRadioButton1->m_transform.SetPosition(
-					pPanel->m_transform.GetPositionX(),
-					-120
-				);
-
-				UIObjectHandle hRadioButton2 = CreateRadioButton();
-				RadioButton* pRadioButton2 = static_cast<RadioButton*>(hRadioButton2.ToPtr());
-				pRadioButton2->m_transform.SetParent(&pPanel->m_transform);
-
-				pRadioButton2->SetHandlerOnClick(MakeUIHandler(hScriptFPSMovement, &FirstPersonMovement::TestHandlerOnClick02));
-				pRadioButton2->SetText(L"Radio Button 2");
-				pRadioButton2->SetButtonColorRGB(ColorsLinear::CadetBlue);
-				pRadioButton2->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
-				pRadioButton2->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-				pRadioButton2->m_transform.SetPosition(
-					pPanel->m_transform.GetPositionX(),
-					-140
-				);
-
-				UIObjectHandle hRadioButton3 = CreateRadioButton();
-				RadioButton* pRadioButton3 = static_cast<RadioButton*>(hRadioButton3.ToPtr());
-				pRadioButton3->m_transform.SetParent(&pPanel->m_transform);
-
-				pRadioButton3->SetHandlerOnClick(MakeUIHandler(hScriptFPSMovement, &FirstPersonMovement::TestHandlerOnClick03));
-				pRadioButton3->SetText(L"Radio Button 3");
-				pRadioButton3->SetButtonColorRGB(ColorsLinear::Gray);
-				pRadioButton3->SetDotColorRGB(ColorsLinear::Red);
-				pRadioButton3->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
-				pRadioButton3->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-				pRadioButton3->m_transform.SetPosition(
-					pPanel->m_transform.GetPositionX(),
-					-160
-				);
-
-
-				// 라디오버튼 그룹 생성
-				pRadioButton1->Join(pRadioButton2);
-				pRadioButton1->Join(pRadioButton3);
-			}
-
-			{
-				UIObjectHandle hCheckbox = CreateCheckbox();
-				Checkbox* pCheckbox = static_cast<Checkbox*>(hCheckbox.ToPtr());
-				pCheckbox->m_transform.SetParent(&pPanel->m_transform);
-
-				pCheckbox->SetBoxColorA(0.9f);
-				pCheckbox->SetBoxColorRGB(ColorsLinear::Red);
-				pCheckbox->SetText(L"빨간 체크박스 (Right Text)");
-
-				pCheckbox->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
-				pCheckbox->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-				pCheckbox->m_transform.SetPosition(
-					pPanel->m_transform.GetPositionX() - WEAPON_CHANGE_PANEL_WIDTH / 2.0f +
-					pCheckbox->GetCheckboxHalfSizeX() + 5.0f,
-					-80
-				);
-			}
-
-			{
-				UIObjectHandle hCheckbox = CreateCheckbox();
-				Checkbox* pCheckbox = static_cast<Checkbox*>(hCheckbox.ToPtr());
-				pCheckbox->m_transform.SetParent(&pPanel->m_transform);
-
-				pCheckbox->SetLeftText();
-				pCheckbox->SetBoxColorRGB(ColorsLinear::Blue);
-				pCheckbox->SetCheckColor(ColorsLinear::White);
-				pCheckbox->SetText(L"Left Text Checkbox");
-
-				pCheckbox->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
-				pCheckbox->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-				pCheckbox->m_transform.SetPosition(
-					pPanel->m_transform.GetPositionX() + WEAPON_CHANGE_PANEL_WIDTH / 2.0f - pCheckbox->GetCheckboxHalfSizeX() - 5.0f,
-					-100
-				);
-			}
-
-			{
-				UIObjectHandle hText = CreateText();
-				Text* pText = static_cast<Text*>(hText.ToPtr());
-				pText->m_transform.SetParent(&pPanel->m_transform);
-
-				pText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-				pText->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_BOLD);
-				pText->ApplyTextFormat();
-				pText->SetSize(pPanel->GetSizeX() - 10, 20);
-				pText->SetColor(ColorsLinear::White);
-				pText->SetText(L"무기교체 (단축키: N)");
-				pText->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
-				pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-				pText->m_transform.SetPosition(
-					pPanel->m_transform.GetPositionX(),
-					pPanel->m_transform.GetPositionY() + pPanel->GetHalfSizeY() - 5 - pText->GetHalfSizeY()
-				);
-			}
-
-			{
-				UIObjectHandle hText = CreateText();
-				Text* pText = static_cast<Text*>(hText.ToPtr());
-				pText->m_transform.SetParent(&pPanel->m_transform);
-
-				pText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-				pText->SetSize(WEAPON_NAME_TEXT_WIDTH, WEAPON_NAME_TEXT_HEIGHT);
-				pText->SetColor(ColorsLinear::WhiteSmoke);
-				pText->SetText(L"1. B.92Fs Black");
-				pText->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
-				pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-				pText->m_transform.SetPosition(WEAPON_NAME_TEXT_POS_X, 70);
-
-				UIObjectHandle hBtn = CreateButton();
-				Button* pButton = static_cast<Button*>(hBtn.ToPtr());
-				pButton->m_transform.SetParent(&pPanel->m_transform);
-
-				pButton->SetSize(BUTTON_WIDTH, BUTTON_HEIGHT);
-				pButton->SetTextColor(ColorsLinear::WhiteSmoke);
-				pButton->SetButtonColor(ColorsLinear::Chocolate);
-				pButton->SetText(L"교체");
-				pButton->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
-				pButton->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-				pButton->m_transform.SetPosition(BUTTON_POS_X, 70);
-			}
-
-			{
-				UIObjectHandle hText = CreateText();
-				Text* pText = static_cast<Text*>(hText.ToPtr());
-				pText->m_transform.SetParent(&pPanel->m_transform);
-
-				pText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-				pText->SetSize(WEAPON_NAME_TEXT_WIDTH, WEAPON_NAME_TEXT_HEIGHT);
-				pText->SetColor(ColorsLinear::WhiteSmoke);
-				pText->SetText(L"2. M4A1 Carbine");
-				pText->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
-				pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-				pText->m_transform.SetPosition(WEAPON_NAME_TEXT_POS_X, 50);
-
-				UIObjectHandle hBtn = CreateButton();
-				Button* pButton = static_cast<Button*>(hBtn.ToPtr());
-				pButton->m_transform.SetParent(&pPanel->m_transform);
-
-				pButton->SetSize(BUTTON_WIDTH, BUTTON_HEIGHT);
-				pButton->SetTextColor(ColorsLinear::Black);
-				pButton->SetButtonColor(ColorsLinear::Orange);
-				pButton->SetText(L"교체");
-				pButton->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
-				pButton->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-				pButton->m_transform.SetPosition(BUTTON_POS_X, 50);
-			}
-
-			{
-				UIObjectHandle hText = CreateText();
-				Text* pText = static_cast<Text*>(hText.ToPtr());
-				pText->m_transform.SetParent(&pPanel->m_transform);
-
-				pText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-				pText->SetSize(WEAPON_NAME_TEXT_WIDTH, WEAPON_NAME_TEXT_HEIGHT);
-				pText->SetColor(ColorsLinear::WhiteSmoke);
-				pText->SetText(L"3. M16");
-				pText->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
-				pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-				pText->m_transform.SetPosition(WEAPON_NAME_TEXT_POS_X, 30);
-
-				UIObjectHandle hBtn = CreateButton();
-				Button* pButton = static_cast<Button*>(hBtn.ToPtr());
-				pButton->m_transform.SetParent(&pPanel->m_transform);
-
-				pButton->SetSize(BUTTON_WIDTH, BUTTON_HEIGHT);
-				pButton->SetTextColor(ColorsLinear::WhiteSmoke);
-				pButton->SetButtonColor(ColorsLinear::DarkOliveGreen);
-				pButton->SetText(L"교체");
-				pButton->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
-				pButton->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-				pButton->m_transform.SetPosition(BUTTON_POS_X, 30);
-			}
-		}
+		UIObjectHandle hTextAmmo = CreateText();
+		pScriptUIHandler->m_hTextAmmo = hTextAmmo;
+		Text* pTextAmmo = static_cast<Text*>(hTextAmmo.ToPtr());
+		pTextAmmo->SetText(L"30 / 90");
+		pTextAmmo->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
+		pTextAmmo->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
+		pTextAmmo->m_transform.SetPosition(pImageRBUIBackground->m_transform.GetPosition());
+		pTextAmmo->m_transform.Translate(16, -28);
+		pTextAmmo->SetSize(XMFLOAT2(128, 40));
+		pTextAmmo->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+		pTextAmmo->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+		pTextAmmo->SetColor(ColorsLinear::White);
+		pTextAmmo->GetTextFormat().SetSize(34);
+		pTextAmmo->GetTextFormat().SetFontFamilyName(L"Agency FB");
+		pTextAmmo->GetTextFormat().SetStyle(DWRITE_FONT_STYLE_ITALIC);
+		pTextAmmo->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_ULTRA_BOLD);
+		pTextAmmo->ApplyTextFormat();
 	}
 
 
-	// Resources
-	m_meshClosedContainer = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\props\\ClosedContainer\\ClosedContainer.obj").m_staticMeshes[0];
-	m_matClosedContainer = ResourceLoader::GetInstance()->CreateMaterial();
-	XMStoreFloat4A(&m_matClosedContainer->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.7f), 1.0f));
-	XMStoreFloat4A(&m_matClosedContainer->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 4.0f));
-	m_matClosedContainer->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\props\\ClosedContainer\\Diffuse.png");
-	m_colliderClosedContainer = std::make_shared<BoxCollider>(m_meshClosedContainer->GetAabb().Extents);
-	m_rbLocalPosClosedContainer = m_meshClosedContainer->GetAabb().Center;
-	m_rbLocalRotClosedContainer = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
-
-
-	m_meshClosedLongContainer = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\props\\ClosedContainer\\ClosedLongContainer.obj").m_staticMeshes[0];
-	m_matClosedLongContainer = m_matClosedContainer;
-	m_colliderClosedLongContainer = std::make_shared<BoxCollider>(m_meshClosedLongContainer->GetAabb().Extents);
-	m_rbLocalPosClosedLongContainer = m_meshClosedLongContainer->GetAabb().Center;
-	m_rbLocalRotClosedLongContainer = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
-
-
-	std::shared_ptr<StaticMesh> meshOpenContainer1 = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\props\\OpenContainer\\OpenContainer1.obj").m_staticMeshes[0];
-	std::shared_ptr<StaticMesh> meshOpenContainer2 = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\props\\OpenContainer\\OpenContainer2.obj").m_staticMeshes[0];
-	std::shared_ptr<StaticMesh> meshHouseFrame = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\HouseFrame\\HouseFrame.obj").m_staticMeshes[0];
-	std::shared_ptr<StaticMesh> meshHouseSideWall = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\HouseSideWall.obj").m_staticMeshes[0];
-	std::shared_ptr<StaticMesh> meshHouseFloor = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\HouseFloor\\HouseFloor.obj").m_staticMeshes[0];
-
-
-	m_meshWoodenBox = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\props\\box\\box.obj").m_staticMeshes[0];
-	m_matWoodenBox = ResourceLoader::GetInstance()->CreateMaterial();
-	XMStoreFloat4A(&m_matWoodenBox->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.6f), 1.0f));
-	XMStoreFloat4A(&m_matWoodenBox->m_specular, XMVectorSetW(ColorsLinear::Black, 4.0f));
-	m_matWoodenBox->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\props\\box\\WoodenBox.png");
-	m_colliderWoodenBox = std::make_shared<BoxCollider>(m_meshWoodenBox->GetAabb().Extents);
-	m_rbLocalPosWoodenBox = m_meshWoodenBox->GetAabb().Center;
-	m_rbLocalRotWoodenBox = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
-
-
-	m_meshPaperBox = m_meshWoodenBox;
-	m_matPaperBox = ResourceLoader::GetInstance()->CreateMaterial();
-	XMStoreFloat4A(&m_matPaperBox->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.7f), 1.0f));
-	XMStoreFloat4A(&m_matPaperBox->m_specular, XMVectorSetW(ColorsLinear::Black, 4.0f));
-	m_matPaperBox->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\props\\box\\PaperBox.png");
-	m_colliderPaperBox = std::make_shared<BoxCollider>(m_meshPaperBox->GetAabb().Extents);
-	m_rbLocalPosPaperBox = m_meshPaperBox->GetAabb().Center;
-	m_rbLocalRotPaperBox = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
 
 
 
-	std::shared_ptr<StaticMesh> meshHouseRedSideWall = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\HouseRedSideWall.obj").m_staticMeshes[0];
-	std::shared_ptr<StaticMesh> meshHouseBlueSideWall = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\HouseBlueSideWall.obj").m_staticMeshes[0];
-	std::shared_ptr<StaticMesh> meshBlueTeamBase = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\BlueTeamBase.obj").m_staticMeshes[0];
-	std::shared_ptr<StaticMesh> meshRedTeamBase = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\RedTeamBase.obj").m_staticMeshes[0];
-	std::shared_ptr<StaticMesh> meshHouseRoof = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\HouseRoof\\HouseRoof.obj").m_staticMeshes[0];
-	std::shared_ptr<StaticMesh> meshDoorFrame = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\DoorFrame\\DoorFrame.obj").m_staticMeshes[0];
-
-
+	// ## MATERIALS
 	std::shared_ptr<Material> matAsphault = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matAsphault->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.8f), 1.0f));
 	XMStoreFloat4A(&matAsphault->m_specular, XMVectorSetW(ColorsLinear::Black, 4.0f));
 	matAsphault->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\asphault\\AsphaultStreet_d.tga");
 	matAsphault->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\asphault\\AsphaultStreet_n.tga");
-
 
 	std::shared_ptr<Material> matBambooWoodSemigloss = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matBambooWoodSemigloss->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.4f), 1.0f));
@@ -698,30 +698,20 @@ void Warehouse::OnLoadScene()
 	matBambooWoodSemigloss->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\wood\\bamboo-wood-semigloss-diffuse.png");
 	matBambooWoodSemigloss->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\wood\\bamboo-wood-semigloss-normal.png");
 
-
 	std::shared_ptr<Material> matBrick22 = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matBrick22->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.75f), 1.0f));
 	XMStoreFloat4A(&matBrick22->m_specular, XMVectorSetW(ColorsLinear::Black, 4.0f));
 	matBrick22->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\bricks\\Brick 22 - 256x256.png");
-
 
 	std::shared_ptr<Material> matRoof24 = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matRoof24->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.75f), 1.0f));
 	XMStoreFloat4A(&matRoof24->m_specular, XMVectorSetW(ColorsLinear::Black, 4.0f));
 	matRoof24->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\roof\\Roof 24 - 256x256.png");
 
-
-	std::shared_ptr<Material> matOpenContainer = ResourceLoader::GetInstance()->CreateMaterial();
-	XMStoreFloat4A(&matOpenContainer->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.7f), 1.0f));
-	XMStoreFloat4A(&matOpenContainer->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 4.0f));
-	matOpenContainer->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\props\\OpenContainer\\Diffuse.png");
-
-
 	std::shared_ptr<Material> matHouseFrame = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matHouseFrame->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::Brown, 0.4f), 1.0f));
 	XMStoreFloat4A(&matHouseFrame->m_specular, XMVectorScale(ColorsLinear::White, 0.25f));
 	matHouseFrame->m_specular.w = 8.0f;
-
 
 	// std::shared_ptr<Material> matRustedSteelHotspot = ResourceLoader::GetInstance()->CreateMaterial();
 	// XMStoreFloat4A(&matRustedSteelHotspot->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.75f), 1.0f));
@@ -729,12 +719,16 @@ void Warehouse::OnLoadScene()
 	// matRustedSteelHotspot->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\metals\\RustedSteel\\RustedSteel_Diffuse.png");
 	// matRustedSteelHotspot->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\metals\\RustedSteel\\RustedSteel_Normal.png");
 
-
 	std::shared_ptr<Material> matConcrete3 = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matConcrete3->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.6f), 1.0f));
 	XMStoreFloat4A(&matConcrete3->m_specular, XMVectorSetW(ColorsLinear::Black, 1.0f));
 	matConcrete3->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\concrete\\concrete3_diffuse.png");
 	matConcrete3->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\concrete\\concrete3_normal.png");
+
+	std::shared_ptr<Material> matConcrete2 = ResourceLoader::GetInstance()->CreateMaterial();
+	XMStoreFloat4A(&matConcrete2->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.6f), 1.0f));
+	XMStoreFloat4A(&matConcrete2->m_specular, XMVectorSetW(ColorsLinear::Black, 1.0f));
+	matConcrete2->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\concrete\\concrete2_diffuse.png");
 
 	std::shared_ptr<Material> matSprayedWall1 = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matSprayedWall1->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.5f), 1.0f));
@@ -777,62 +771,164 @@ void Warehouse::OnLoadScene()
 	XMStoreFloat4A(&matStoneTile4b->m_specular, XMVectorSetW(ColorsLinear::Black, 4.0f));
 	matStoneTile4b->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\floor\\stone-tile4b_diffuse.png");
 	matStoneTile4b->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\floor\\stone-tile4b_normal.png");
-	
-	std::shared_ptr<Material> matSolidLightPink = ResourceLoader::GetInstance()->CreateMaterial();
-	XMStoreFloat4A(&matSolidLightPink->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::LightPink, 0.7f), 1.0f));
-	XMStoreFloat4A(&matSolidLightPink->m_specular, XMVectorSetW(ColorsLinear::Black, 4.0f));
-
 
 	std::shared_ptr<Material> matDoorFrame = ResourceLoader::GetInstance()->CreateMaterial();
-	XMStoreFloat4A(&matDoorFrame->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::Brown, 0.4f), 1.0f));
-	XMStoreFloat4A(&matDoorFrame->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 2.0f));
+	XMStoreFloat4A(&matDoorFrame->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::DarkOliveGreen, 0.75f), 1.0f));
+	XMStoreFloat4A(&matDoorFrame->m_specular, XMVectorSetW(ColorsLinear::Black, 4.0f));
+
+	std::shared_ptr<Material> matSolidStone = ResourceLoader::GetInstance()->CreateMaterial();
+	XMStoreFloat4A(&matDoorFrame->m_diffuse, ColorsLinear::DimGray);
+	XMStoreFloat4A(&matDoorFrame->m_specular, XMVectorSetW(ColorsLinear::DarkGray, 1.0f));
+
+
+
+	m_meshShortContainer = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\props\\container\\short_container.obj").m_staticMeshes[0];
+	m_matShortContainer = ResourceLoader::GetInstance()->CreateMaterial();
+	XMStoreFloat4A(&m_matShortContainer->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.7f), 1.0f));
+	XMStoreFloat4A(&m_matShortContainer->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 4.0f));
+	m_matShortContainer->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\props\\container\\diffuse.png");
+	m_colliderShortContainer = std::make_shared<BoxCollider>(m_meshShortContainer->GetAabb().Extents);
+
+
+	m_meshLongContainer = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\props\\container\\long_container.obj").m_staticMeshes[0];
+	m_matLongContainer = m_matShortContainer;
+	m_colliderLongContainer = std::make_shared<BoxCollider>(m_meshLongContainer->GetAabb().Extents);
+
+
+	m_meshOpenContainer1 = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\props\\container\\open_container.obj").m_staticMeshes[0];
+	m_matOpenContainer1 = m_matShortContainer;
+	m_colliderOpenContainer1[0] = std::make_shared<BoxCollider>(XMFLOAT3(1.3f, 0.03f, 3.1f));
+	m_colliderOpenContainer1[1] = std::make_shared<BoxCollider>(XMFLOAT3(0.65f, 1.3f, 0.03f));
+
+
+	m_meshOpenContainer2 = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\props\\container\\open_container2.obj").m_staticMeshes[0];
+	m_matOpenContainer2 = m_matShortContainer;
+	m_colliderOpenContainer2[0] = m_colliderOpenContainer1[0];
+	m_colliderOpenContainer2[1] = m_colliderOpenContainer1[1];
+
+	m_meshWoodenBox8060 = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\props\\box\\box_80_60.obj").m_staticMeshes[0];
+	m_colliderWoodenBox8060 = std::make_shared<BoxCollider>(m_meshWoodenBox8060->GetAabb().Extents);
+
+	m_meshWoodenBox9070 = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\props\\box\\box_90_70.obj").m_staticMeshes[0];
+	m_colliderWoodenBox9070 = std::make_shared<BoxCollider>(m_meshWoodenBox9070->GetAabb().Extents);
+
+	m_meshWoodenBox10090 = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\props\\box\\box_100_90.obj").m_staticMeshes[0];
+	m_colliderWoodenBox10090 = std::make_shared<BoxCollider>(m_meshWoodenBox10090->GetAabb().Extents);
+
+	m_matWoodenBox = ResourceLoader::GetInstance()->CreateMaterial();
+	XMStoreFloat4A(&m_matWoodenBox->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.6f), 1.0f));
+	XMStoreFloat4A(&m_matWoodenBox->m_specular, XMVectorSetW(ColorsLinear::Black, 4.0f));
+	m_matWoodenBox->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\props\\box\\wooden_box_diffuse.png");
+
+
+	m_meshPaperBox = m_meshWoodenBox10090;
+	m_matPaperBox = ResourceLoader::GetInstance()->CreateMaterial();
+	XMStoreFloat4A(&m_matPaperBox->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.7f), 1.0f));
+	XMStoreFloat4A(&m_matPaperBox->m_specular, XMVectorSetW(ColorsLinear::Black, 4.0f));
+	m_matPaperBox->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\props\\box\\paper_box_diffuse.png");
+	m_colliderPaperBox = std::make_shared<BoxCollider>(m_meshPaperBox->GetAabb().Extents);
+
+	m_meshHouseSideWall = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\house_sidewall.obj").m_staticMeshes[0];
+	m_matHouseSideWall[0] = matNarrowbrick1;
+	m_matHouseSideWall[1] = matVentedMetalPanel1;
+	m_colliderHouseSideWall = std::make_shared<BoxCollider>(m_meshHouseSideWall->GetAabb().Extents);
+
+
+	m_meshHouseBlueBase = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\house_bluebase.obj").m_staticMeshes[0];
+	m_matHouseBlueBase[0] = matStoneTile4b;
+	m_matHouseBlueBase[1] = matConcrete2;
+	m_matHouseBlueBase[2] = matBambooWoodSemigloss;
+	m_colliderHouseBlueBase[0] = std::make_shared<BoxCollider>(XMFLOAT3(14.0f, 0.1f, 5.0f));
+	m_colliderHouseBlueBase[1] = std::make_shared<BoxCollider>(XMFLOAT3(0.1f, 1.5f, 5.0f));
+	m_colliderHouseBlueBase[2] = std::make_shared<BoxCollider>(XMFLOAT3(14.0f, 1.5f, 0.1f));
+	m_colliderHouseBlueBase[3] = std::make_shared<BoxCollider>(XMFLOAT3(0.1f, 0.5f, 1.85f));
+	m_colliderHouseBlueBase[4] = std::make_shared<BoxCollider>(XMFLOAT3(0.1f, 1.45f, 0.1f));
+	m_colliderHouseBlueBase[5] = std::make_shared<BoxCollider>(XMFLOAT3(0.1f, 0.1f, 1.85f));
+	m_colliderHouseBlueBase[6] = std::make_shared<BoxCollider>(XMFLOAT3(0.05f, 0.05f, 1.85f));
+	m_colliderHouseBlueBase[7] = std::make_shared<BoxCollider>(XMFLOAT3(0.05f, 0.45f, 0.05f));
+
+
+	m_meshHouseBlueBaseWall = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\house_bluebasewall.obj").m_staticMeshes[0];
+	m_matHouseBlueBaseWall[0] = matRedbricks2b;
+	m_matHouseBlueBaseWall[1] = matSprayedWall1;
+	m_matHouseBlueBaseWall[2] = matBambooWoodSemigloss;
+	m_matHouseBlueBaseWall[3] = matDoorFrame;
+	m_colliderHouseBlueBaseWall[0] = std::make_shared<BoxCollider>(XMFLOAT3(14.2f, 4.0f, 0.1f));
+	m_colliderHouseBlueBaseWall[1] = std::make_shared<BoxCollider>(XMFLOAT3(6.1f, 1.0f, 0.1f));
+
+
+	m_meshHouseRedBase = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\house_redbase.obj").m_staticMeshes[0];
+	m_matHouseRedBase[0] = matBrick22;
+	m_matHouseRedBase[1] = matConcrete3;
+	m_colliderHouseRedBase[0] = m_colliderHouseBlueBase[2];
+	m_colliderHouseRedBase[1] = m_colliderHouseBlueBase[1];
+
+	m_meshHouseRedBaseWall = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\house_redbasewall.obj").m_staticMeshes[0];
+	m_matHouseRedBaseWall[0] = matRedbricks2b;
+	m_matHouseRedBaseWall[1] = matSolidStone;
+	m_matHouseRedBaseWall[2] = matDoorFrame;
+	m_colliderHouseRedBaseWall[0] = m_colliderHouseBlueBaseWall[0];
+	m_colliderHouseRedBaseWall[1] = m_colliderHouseBlueBaseWall[1];
+	m_colliderHouseRedBaseWall[2] = std::make_shared<BoxCollider>(XMFLOAT3(1.0f, 0.15f, 0.55f));
+
+
+	m_meshHouseRoof = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\house_roof.obj").m_staticMeshes[0];
+	m_matHouseRoof = matRoof24;
+	m_colliderHouseRoof = std::make_shared<BoxCollider>(XMFLOAT3(8.0f, 0.1f, 26.0f));
+
+
+	std::shared_ptr<StaticMesh> meshHouseFrame = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\house_frame.obj").m_staticMeshes[0];
+	std::shared_ptr<StaticMesh> meshHouseFloor = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\house_floor.obj").m_staticMeshes[0];
+
+
+
 
 	constexpr XMFLOAT3 FPSARM_POS(0.0f, -0.2f, -0.06f);
 	constexpr XMFLOAT3 M16_PV_OFFSET(0.1f, -0.04f, 0.23f);
 	constexpr XMFLOAT3 M16_PV_POS(FPSARM_POS.x + M16_PV_OFFSET.x, FPSARM_POS.y + M16_PV_OFFSET.y, FPSARM_POS.z + M16_PV_OFFSET.z);
 	// FPS Arms
 	{
-		ModelData mdFPSArms = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\characters\\steven\\fps\\fpsarms.glb");
-		std::shared_ptr<SkinnedMesh> meshFPSArms = mdFPSArms.m_skinnedMeshes[0];
-		std::shared_ptr<Armature> armaFPSArms = mdFPSArms.m_armatures[0];
-		bool grouping = armaFPSArms->CreateBoneGroupByRootBoneName("whole", "Root");
+		ModelData md_fpsarms = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\characters\\steven\\fps\\fpsarms.glb");
+		std::shared_ptr<SkinnedMesh> mesh_fpsarms = md_fpsarms.m_skinnedMeshes[0];
+		std::shared_ptr<Armature> arma_fpsarms = md_fpsarms.m_armatures[0];
+		bool grouping = arma_fpsarms->CreateBoneGroupByRootBoneName("whole", "Root");
 		assert(grouping);
 
 		GameObjectHandle hGameObject = CreateGameObject(L"FPS Arms");
 		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetParent(&pMainCamera->m_transform);
+		pGameObject->m_transform.SetParent(&pGameObjectPlayerCamera->m_transform);
 
 		pGameObject->m_transform.SetPosition(FPSARM_POS);
 
-		ComponentHandle<SkinnedMeshRenderer> hMeshRenderer = pGameObject->AddComponent<SkinnedMeshRenderer>();
-		SkinnedMeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+		ComponentHandle<SkinnedMeshRenderer> hSkinnedMeshRenderer = pGameObject->AddComponent<SkinnedMeshRenderer>();
+		SkinnedMeshRenderer* pSkinnedMeshRenderer = hSkinnedMeshRenderer.ToPtr();
 
 		auto matArms = ResourceLoader::GetInstance()->CreateMaterial();
 		XMStoreFloat4A(&matArms->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.25f), 1.0f));
 		XMStoreFloat4A(&matArms->m_specular, XMVectorSetW(ColorsLinear::Black, 1.0f));
 		matArms->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\characters\\steven\\fps\\tex_diffuse.jpg");
 
-		pMeshRenderer->SetMesh(meshFPSArms);
-		pMeshRenderer->SetMaterial(0, matArms);
+		pSkinnedMeshRenderer->SetMesh(mesh_fpsarms);
+		pSkinnedMeshRenderer->SetMaterial(0, matArms);
 
-		pMeshRenderer->SetArmature(armaFPSArms);
-		// pMeshRenderer->PlayAnimation("arms_idle_m16a1", true);
-		// pMeshRenderer->PlayAnimation("arms_idle_usp", true);
-		// pMeshRenderer->PlayAnimation("arms_reload_m16a1", true);
-		pMeshRenderer->PlayAnimation("arms_reload_usp", true);
-		// pMeshRenderer->PlayAnimation("arms_shoot_m16a1", true);
-		// pMeshRenderer->PlayAnimation("arms_shoot_usp", true);
-		// pMeshRenderer->PlayAnimation("arms_run_m16a1", true);
-		// pMeshRenderer->PlayAnimation("arms_run_usp", true);
+		pSkinnedMeshRenderer->SetArmature(arma_fpsarms);
+		// pSkinnedMeshRenderer->PlayAnimation("arms_idle_m16a1", true);
+		// pSkinnedMeshRenderer->PlayAnimation("arms_idle_usp", true);
+		// pSkinnedMeshRenderer->PlayAnimation("arms_reload_m16a1", true);
+		pSkinnedMeshRenderer->PlayAnimation("arms_reload_usp", true);
+		// pSkinnedMeshRenderer->PlayAnimation("arms_shoot_m16a1", true);
+		// pSkinnedMeshRenderer->PlayAnimation("arms_shoot_usp", true);
+		// pSkinnedMeshRenderer->PlayAnimation("arms_run_m16a1", true);
+		// pSkinnedMeshRenderer->PlayAnimation("arms_run_usp", true);
 	}
 
 	auto matSTANAG30Rds = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matSTANAG30Rds->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.05f), 1.0f));
 	XMStoreFloat4A(&matSTANAG30Rds->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 2.0f));
-	ModelData md = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\M16A1\\m16a1_pv.glb");
-	std::shared_ptr<SkinnedMesh> mesh = md.m_skinnedMeshes[0];
-	std::shared_ptr<Armature> armaM16 = md.m_armatures[0];
-	bool grouping = armaM16->CreateBoneGroupByRootBoneName("default", "bone_m16a1_body");	// 디폴트 그룹은 필수
+	ModelData md_m16a1_pv = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\M16A1\\m16a1_pv.glb");
+	std::shared_ptr<SkinnedMesh> mesh = md_m16a1_pv.m_skinnedMeshes[0];
+	std::shared_ptr<Armature> arma_m16a1 = md_m16a1_pv.m_armatures[0];
+	bool grouping = arma_m16a1->CreateBoneGroupByRootBoneName("default", "bone_m16a1_body");	// 디폴트 그룹은 필수
 	assert(grouping);
 	// Animated Weapons(m16a1)
 	// {
@@ -925,36 +1021,35 @@ void Warehouse::OnLoadScene()
 	constexpr XMFLOAT3 USP_PV_OFFSET(0.04f, -0.01f, 0.41f);
 	constexpr XMFLOAT3 USP_PV_POS(FPSARM_POS.x + USP_PV_OFFSET.x, FPSARM_POS.y + USP_PV_OFFSET.y, FPSARM_POS.z + USP_PV_OFFSET.z);
 	{
-		ModelData md = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\usp\\usp_pv.glb");
-		std::shared_ptr<SkinnedMesh> meshUSP = md.m_skinnedMeshes[0];
-		std::shared_ptr<Armature> arma = md.m_armatures[0];	// USP 뼈대 공유
-		bool grouping = arma->CreateBoneGroupByRootBoneName("default", "bone_usp_body");	// 디폴트 그룹은 필수
+		ModelData md_usp_pv = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\usp\\usp_pv.glb");
+		std::shared_ptr<SkinnedMesh> mesh_usp = md_usp_pv.m_skinnedMeshes[0];
+		std::shared_ptr<Armature> arma_usp = md_usp_pv.m_armatures[0];	// USP 뼈대 공유
+		bool grouping = arma_usp->CreateBoneGroupByRootBoneName("default", "bone_usp_body");	// 디폴트 그룹은 필수
 		assert(grouping);
 
-		GameObjectHandle hGameObject = CreateGameObject(L"C.USP");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetParent(&pMainCamera->m_transform);
+		GameObjectHandle hGameObjectSecondaryWeaponPV = CreateGameObject(L"C.USP");
+		GameObject* pGameObjectSecondaryWeaponPV = hGameObjectSecondaryWeaponPV.ToPtr();
+		pGameObjectSecondaryWeaponPV->m_transform.SetParent(&pGameObjectPlayerCamera->m_transform);
+		pGameObjectSecondaryWeaponPV->m_transform.SetPosition(USP_PV_POS);
 
-		pGameObject->m_transform.SetPosition(USP_PV_POS);
-
-		ComponentHandle<SkinnedMeshRenderer> hMeshRenderer = pGameObject->AddComponent<SkinnedMeshRenderer>();
-		SkinnedMeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+		ComponentHandle<SkinnedMeshRenderer> hMeshRendererSecondaryWeaponPV = pGameObjectSecondaryWeaponPV->AddComponent<SkinnedMeshRenderer>();
+		SkinnedMeshRenderer* pMeshRendererSecondaryWeaponPV = hMeshRendererSecondaryWeaponPV.ToPtr();
 
 		// 재질 설정
-		auto matUSP = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matUSP->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 1.0f));
-		XMStoreFloat4A(&matUSP->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.25f), 4.0f));
-		matUSP->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\usp\\textures\\diffuse.png");
-		matUSP->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\usp\\textures\\normal.png");
+		auto mat_usp = ResourceLoader::GetInstance()->CreateMaterial();
+		XMStoreFloat4A(&mat_usp->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 1.0f));
+		XMStoreFloat4A(&mat_usp->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.25f), 4.0f));
+		mat_usp->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\usp\\textures\\diffuse.png");
+		mat_usp->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\usp\\textures\\normal.png");
 
-		pMeshRenderer->SetMesh(meshUSP);
-		pMeshRenderer->SetMaterial(0, matUSP);
+		pMeshRendererSecondaryWeaponPV->SetMesh(mesh_usp);
+		pMeshRendererSecondaryWeaponPV->SetMaterial(0, mat_usp);
 
-		pMeshRenderer->SetArmature(arma);
-		// pMeshRenderer->PlayAnimation("usp_idle", true);
-		pMeshRenderer->PlayAnimation("usp_reload", true);
-		// pMeshRenderer->PlayAnimation("usp_shoot", true);
-		// pMeshRenderer->PlayAnimation("usp_run", true);
+		pMeshRendererSecondaryWeaponPV->SetArmature(arma_usp);
+		// pMeshRendererSecondaryWeaponPV->PlayAnimation("usp_idle", true);
+		pMeshRendererSecondaryWeaponPV->PlayAnimation("usp_reload", true);
+		// pMeshRendererSecondaryWeaponPV->PlayAnimation("usp_shoot", true);
+		// pMeshRendererSecondaryWeaponPV->PlayAnimation("usp_run", true);
 	}
 
 	// Animated Weapons(b92fs black)
@@ -1003,18 +1098,7 @@ void Warehouse::OnLoadScene()
 	// 	// pMeshRenderer->PlayAnimation("usp_shoot", true);
 	// 	// pMeshRenderer->PlayAnimation("usp_run", true);
 	// }
-
-
-
-	// 바닥 콜라이더
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Ground");
-		GameObject* pGameObject = hGameObject.ToPtr();
-	
-		std::shared_ptr<StaticPlaneCollider> collider = std::make_shared<StaticPlaneCollider>();
-		auto c = pGameObject->AddComponent<StaticRigidbody>(collider);
-	}
-	
+	// 
 	// 물리엔진 테스트 박스
 	{
 		GameObjectHandle hGameObject = CreateGameObject(L"Box");
@@ -1056,7 +1140,6 @@ void Warehouse::OnLoadScene()
 		Rigidbody* pRigidbody = hRigidbody.ToPtr();
 		pRigidbody->SetKinematic(true);
 	}
-	pScriptFPSMovement->m_hKinematicFootboard = hKinematicFootboard;
 	
 	
 	// CollisionTrigger 테스트
@@ -1079,29 +1162,28 @@ void Warehouse::OnLoadScene()
 	}
 
 
-	// Character Test
+	// ## Third person character test
 	{
-		ModelData mdMaleBase = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\characters\\steven\\steven.glb");
-		std::shared_ptr<SkinnedMesh> meshSteven = mdMaleBase.m_skinnedMeshes[0];
-		std::shared_ptr<Armature> armaSteven = mdMaleBase.m_armatures[0];
+		ModelData md_steven_tv = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\characters\\steven\\steven.glb");
+		std::shared_ptr<SkinnedMesh> meshSteven = md_steven_tv.m_skinnedMeshes[0];
+		std::shared_ptr<Armature> armaSteven = md_steven_tv.m_armatures[0];
 		bool grouping;
 		grouping = armaSteven->CreateBoneGroupByRootBoneName("upper_body", "Spine0");
 		assert(grouping);
 		grouping = armaSteven->CreateBoneGroupByExcludeGroup("lower_body", "upper_body");
 		assert(grouping);
 		
-		GameObjectHandle hGameObject = CreateGameObject(L"steven");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(-4, 0, -2);
+		GameObjectHandle hGameObjectThirdPersonCharacter = CreateGameObject(L"steven");
+		GameObject* pGameObjectThirdPersonCharacter = hGameObjectThirdPersonCharacter.ToPtr();
+		pGameObjectThirdPersonCharacter->m_transform.SetPosition(-1, 0, 1);
 
 		// 캐릭터 스크립트 컴포넌트
-		ComponentHandle<Character> hCharacter = pGameObject->AddComponent<Character>();
-		Character* pCharacter = hCharacter.ToPtr();
+		ComponentHandle<ThirdPersonCharacter> hScriptThirdPersonCharacter = pGameObjectThirdPersonCharacter->AddComponent<ThirdPersonCharacter>();
+		ThirdPersonCharacter* pScriptThirdPersonCharacter = hScriptThirdPersonCharacter.ToPtr();
 
-
-		ComponentHandle<SkinnedMeshRenderer> hMeshRenderer = pGameObject->AddComponent<SkinnedMeshRenderer>();
-		pCharacter->m_hSkinnedMeshRenderer = hMeshRenderer;		// 컴포넌트 핸들을 멤버로 저장
-		SkinnedMeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+		ComponentHandle<SkinnedMeshRenderer> hSkinnedMeshRendererThirdPersonCharacter = pGameObjectThirdPersonCharacter->AddComponent<SkinnedMeshRenderer>();
+		pScriptThirdPersonCharacter->m_hSkinnedMeshRendererThirdPersonCharacter = hSkinnedMeshRendererThirdPersonCharacter;	// 컴포넌트 핸들을 멤버로 저장
+		SkinnedMeshRenderer* pSkinnedMeshRendererThirdPersonCharacter = hSkinnedMeshRendererThirdPersonCharacter.ToPtr();
 
 
 		auto matBody = ResourceLoader::GetInstance()->CreateMaterial();
@@ -1122,52 +1204,39 @@ void Warehouse::OnLoadScene()
 		XMStoreFloat4A(&matShoes->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
 		matShoes->m_specular.w = 4.0f;
 		
-		pMeshRenderer->SetMesh(meshSteven);
-		pMeshRenderer->SetMaterial(0, matBody);
-		pMeshRenderer->SetMaterial(1, matSuit);
-		pMeshRenderer->SetMaterial(2, matShoes);
+		pSkinnedMeshRendererThirdPersonCharacter->SetMesh(meshSteven);
+		pSkinnedMeshRendererThirdPersonCharacter->SetMaterial(0, matBody);
+		pSkinnedMeshRendererThirdPersonCharacter->SetMaterial(1, matSuit);
+		pSkinnedMeshRendererThirdPersonCharacter->SetMaterial(2, matShoes);
 
-		pMeshRenderer->SetArmature(armaSteven);
+		pSkinnedMeshRendererThirdPersonCharacter->SetArmature(armaSteven);
 
-		// pMeshRenderer->PlayAnimation("run", false);
-		// pMeshRenderer->PlayAnimation("reload_rifle", true);
-		// pMeshRenderer->PlayAnimation("aim_rifle", true);
-		// pMeshRenderer->PlayAnimation("aim_pistol", true);
-		// pMeshRenderer->PlayAnimation("reload_pistol", true);
+		// pSkinnedMeshRendererThirdPersonCharacter->PlayAnimation("run", false);
+		// pSkinnedMeshRendererThirdPersonCharacter->PlayAnimation("reload_rifle", true);
+		// pSkinnedMeshRendererThirdPersonCharacter->PlayAnimation("aim_rifle", true);
+		// pSkinnedMeshRendererThirdPersonCharacter->PlayAnimation("aim_pistol", true);
+		// pSkinnedMeshRendererThirdPersonCharacter->PlayAnimation("reload_pistol", true);
 
-		pMeshRenderer->PlayGroupAnimation("aim_rifle", "lower_body", true);
-		// pMeshRenderer->PlayGroupAnimation("shoot_pistol", "upper_body", true);
-		pMeshRenderer->PlayGroupAnimation("reload_pistol", "upper_body", true);
-
+		pSkinnedMeshRendererThirdPersonCharacter->PlayGroupAnimation("aim_rifle", "lower_body", true);
+		// pSkinnedMeshRendererThirdPersonCharacter->PlayGroupAnimation("shoot_pistol", "upper_body", true);
+		// pSkinnedMeshRendererThirdPersonCharacter->PlayGroupAnimation("reload_pistol", "upper_body", true
+		pSkinnedMeshRendererThirdPersonCharacter->PlayGroupAnimation("aim_rifle", "upper_body", true);
 
 
 		// 주 무기 3인칭 핸들링 테스트
-		GameObjectHandle hTvWeaponBase = CreateGameObject(L"tv weapon base");
-		GameObject* pTvWeaponBase = hTvWeaponBase.ToPtr();
-		pTvWeaponBase->m_transform.SetParent(&pGameObject->m_transform);
-		pCharacter->m_hTvWeaponBase = hTvWeaponBase;		// 오브젝트 핸들 저장
+		GameObjectHandle hGameObjectTVWeaponBase = CreateGameObject(L"tv weapon base");
+		pScriptThirdPersonCharacter->m_hGameObjectTVWeaponBase = hGameObjectTVWeaponBase;		// 오브젝트 핸들 저장
+		GameObject* pGameObjectTVWeaponBase = hGameObjectTVWeaponBase.ToPtr();
+		pGameObjectTVWeaponBase->m_transform.SetParent(&pGameObjectThirdPersonCharacter->m_transform);
 
-		/*
+		
+		constexpr XMFLOAT3 PRIMARY_WEAPON_OFFSET(-0.004f, +0.06f, +0.03f);		// Primary weapon local pos
+		XMVECTOR primaryWeaponLocalRot = XMQuaternionRotationNormal(Vector3::Up(), XMConvertToRadians(+90));
+		primaryWeaponLocalRot = XMQuaternionMultiply(primaryWeaponLocalRot, XMQuaternionRotationNormal(Vector3::Forward(), XMConvertToRadians(+81)));
+		primaryWeaponLocalRot = XMQuaternionMultiply(primaryWeaponLocalRot, XMQuaternionRotationNormal(Vector3::Right(), XMConvertToRadians(+8)));
 		{
-			GameObjectHandle hPrimaryWeapon = CreateGameObject(L"Primary Weapon");
-			GameObject* pPrimaryWeapon = hPrimaryWeapon.ToPtr();
-			XMVECTOR q = XMQuaternionRotationNormal(Vector3::Up(), XMConvertToRadians(+90));
-			q = XMQuaternionMultiply(q, XMQuaternionRotationNormal(Vector3::Forward(), XMConvertToRadians(+81)));
-			q = XMQuaternionMultiply(q, XMQuaternionRotationNormal(Vector3::Right(), XMConvertToRadians(+8)));
-
-			pPrimaryWeapon->m_transform.SetRotationQuaternion(q1);
-			constexpr XMFLOAT3 PRIMARY_WEAPON_OFFSET(-0.004f, +0.06f, +0.03f);		// SAVE
-			pPrimaryWeapon->m_transform.SetPosition(PRIMARY_WEAPON_OFFSET);
-			pPrimaryWeapon->m_transform.SetParent(&pTvWeaponBase->m_transform);
-			pCharacter->m_hPrimaryWeapon = hPrimaryWeapon;		// 오브젝트 핸들 저장
-
-			ComponentHandle<MeshRenderer> hPrimaryWeaponMeshRenderer = pPrimaryWeapon->AddComponent<MeshRenderer>();
-			MeshRenderer* pPrimaryWeaponMeshRenderer = hPrimaryWeaponMeshRenderer.ToPtr();
-
-			// 메시 설정
-			auto meshM4A1 = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\m4a1\\m4a1_tv.obj").m_staticMeshes[0];
-			pPrimaryWeaponMeshRenderer->SetMesh(meshM4A1);
-			// 재질 설정
+			// m4a1_tv모델 메시 & 재질 불러오기
+			auto mesh_m4a1_tv = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\m4a1\\m4a1_tv.obj").m_staticMeshes[0];
 			auto matM4A1Receiver = ResourceLoader::GetInstance()->CreateMaterial();
 			XMStoreFloat4A(&matM4A1Receiver->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
 			XMStoreFloat4A(&matM4A1Receiver->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 4.0f));
@@ -1184,181 +1253,154 @@ void Warehouse::OnLoadScene()
 			matRearSight->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\rearsight_diffuse.png");
 			matRearSight->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\rearsight_normal.png");
 
-			pPrimaryWeaponMeshRenderer->SetMaterial(0, matM4A1Receiver);
-			pPrimaryWeaponMeshRenderer->SetMaterial(1, matM4A1Furniture);
-			pPrimaryWeaponMeshRenderer->SetMaterial(2, matRearSight);
-			pPrimaryWeaponMeshRenderer->SetMaterial(3, matSTANAG30Rds);
-		}
-		*/
-		
-		{
-			GameObjectHandle hSecondaryWeapon = CreateGameObject(L"Secondary Weapon");
-			pCharacter->m_hSecondaryWeapon = hSecondaryWeapon;		// 오브젝트 핸들 저장
-			GameObject* pSecondaryWeapon = hSecondaryWeapon.ToPtr();
-			XMVECTOR q = XMQuaternionRotationNormal(Vector3::Up(), XMConvertToRadians(+90));
-			q = XMQuaternionMultiply(q, XMQuaternionRotationNormal(Vector3::Forward(), XMConvertToRadians(+81)));
-			q = XMQuaternionMultiply(q, XMQuaternionRotationNormal(Vector3::Right(), XMConvertToRadians(-10)));
-			pSecondaryWeapon->m_transform.SetRotationQuaternion(q);
-			constexpr XMFLOAT3 SECONDARY_WEAPON_OFFSET(-0.014f, +0.07f, +0.03f);		// SAVE
-			pSecondaryWeapon->m_transform.SetPosition(SECONDARY_WEAPON_OFFSET);
-			pSecondaryWeapon->m_transform.SetParent(&pTvWeaponBase->m_transform);
+			GameObjectHandle hGameObjectTVWeapon = CreateGameObject(L"tv_weapon_pri");
+			pScriptThirdPersonCharacter->m_hGameObjectTVWeapons[0] = hGameObjectTVWeapon;		// 오브젝트 핸들 저장
+			GameObject* pGameObjectTVWeapon = hGameObjectTVWeapon.ToPtr();
+			pGameObjectTVWeapon->m_transform.SetRotationQuaternion(primaryWeaponLocalRot);
+			pGameObjectTVWeapon->m_transform.SetPosition(PRIMARY_WEAPON_OFFSET);
+			pGameObjectTVWeapon->m_transform.SetParent(&pGameObjectTVWeaponBase->m_transform);
 
-			ComponentHandle<MeshRenderer> hSecondaryWeaponMeshRenderer = pSecondaryWeapon->AddComponent<MeshRenderer>();
-			MeshRenderer* pSecondaryWeaponMeshRenderer = hSecondaryWeaponMeshRenderer.ToPtr();
+			ComponentHandle<MeshRenderer> hMeshRendererTVWeapon = pGameObjectTVWeapon->AddComponent<MeshRenderer>();
+			MeshRenderer* pMeshRendererTVWeapon = hMeshRendererTVWeapon.ToPtr();
 
 			// 메시 설정
-			auto meshB92fsB = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\b92fsb\\b92fsb_tv.obj").m_staticMeshes[0];
-			// 재질 설정
-			auto matB92fsB = ResourceLoader::GetInstance()->CreateMaterial();
-			XMStoreFloat4A(&matB92fsB->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 1.0f));
-			XMStoreFloat4A(&matB92fsB->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.25f), 4.0f));
-			matB92fsB->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\b92fsb\\textures\\diffuse.png");
-			matB92fsB->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\b92fsb\\textures\\normal.png");
-			
-			auto matB92fsBx300Body = ResourceLoader::GetInstance()->CreateMaterial();
-			XMStoreFloat4A(&matB92fsBx300Body->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 1.0f));
-			XMStoreFloat4A(&matB92fsBx300Body->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.25f), 4.0f));
-			matB92fsBx300Body->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\b92fsb\\textures\\x300_body_diffuse.jpg");
-			matB92fsBx300Body->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\b92fsb\\textures\\x300_body_normal.png");
-
-			auto matB92fsBx300Lamp = ResourceLoader::GetInstance()->CreateMaterial();
-			XMStoreFloat4A(&matB92fsBx300Lamp->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 1.0f));
-			XMStoreFloat4A(&matB92fsBx300Lamp->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.25f), 4.0f));
-			matB92fsBx300Lamp->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\b92fsb\\textures\\x300_lamp_diffuse.jpg");
-
-			pSecondaryWeaponMeshRenderer->SetMesh(meshB92fsB);
-			pSecondaryWeaponMeshRenderer->SetMaterial(0, matB92fsB);
-			pSecondaryWeaponMeshRenderer->SetMaterial(1, matB92fsBx300Body);
-			pSecondaryWeaponMeshRenderer->SetMaterial(2, matB92fsBx300Lamp);
+			pMeshRendererTVWeapon->SetMesh(mesh_m4a1_tv);
+			pMeshRendererTVWeapon->SetMaterial(0, matM4A1Receiver);
+			pMeshRendererTVWeapon->SetMaterial(1, matM4A1Furniture);
+			pMeshRendererTVWeapon->SetMaterial(2, matRearSight);
+			pMeshRendererTVWeapon->SetMaterial(3, matSTANAG30Rds);
 		}
+		
+		constexpr XMFLOAT3 SECONDARY_WEAPON_OFFSET(-0.014f, +0.07f, +0.03f);		// SAVE
+		XMVECTOR secondaryWeaponLocalRot = XMQuaternionRotationNormal(Vector3::Up(), XMConvertToRadians(+90));
+		secondaryWeaponLocalRot = XMQuaternionMultiply(secondaryWeaponLocalRot, XMQuaternionRotationNormal(Vector3::Forward(), XMConvertToRadians(+81)));
+		secondaryWeaponLocalRot = XMQuaternionMultiply(secondaryWeaponLocalRot, XMQuaternionRotationNormal(Vector3::Right(), XMConvertToRadians(-10)));
+
+		{
+			auto mesh_b92fsb = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\b92fsb\\b92fsb_tv.obj").m_staticMeshes[0];
+			auto mat_b92fsb = ResourceLoader::GetInstance()->CreateMaterial();
+			XMStoreFloat4A(&mat_b92fsb->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 1.0f));
+			XMStoreFloat4A(&mat_b92fsb->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.25f), 4.0f));
+			mat_b92fsb->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\b92fsb\\textures\\diffuse.png");
+			mat_b92fsb->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\b92fsb\\textures\\normal.png");
+
+			auto mat_b92fsb_x300Body = ResourceLoader::GetInstance()->CreateMaterial();
+			XMStoreFloat4A(&mat_b92fsb_x300Body->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 1.0f));
+			XMStoreFloat4A(&mat_b92fsb_x300Body->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.25f), 4.0f));
+			mat_b92fsb_x300Body->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\b92fsb\\textures\\x300_body_diffuse.jpg");
+			mat_b92fsb_x300Body->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\b92fsb\\textures\\x300_body_normal.png");
+
+			auto mat_b92fsb_x300Lamp = ResourceLoader::GetInstance()->CreateMaterial();
+			XMStoreFloat4A(&mat_b92fsb_x300Lamp->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 1.0f));
+			XMStoreFloat4A(&mat_b92fsb_x300Lamp->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.25f), 4.0f));
+			mat_b92fsb_x300Lamp->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\b92fsb\\textures\\x300_lamp_diffuse.jpg");
 
 
+			GameObjectHandle hGameObjectTVWeapon = CreateGameObject(L"tv_weapon_sec");
+			pScriptThirdPersonCharacter->m_hGameObjectTVWeapons[1] = hGameObjectTVWeapon;		// 오브젝트 핸들 저장
+			GameObject* pGameObjectTVWeapon = hGameObjectTVWeapon.ToPtr();
+			pGameObjectTVWeapon->m_transform.SetPosition(SECONDARY_WEAPON_OFFSET);
+			pGameObjectTVWeapon->m_transform.SetRotationQuaternion(secondaryWeaponLocalRot);
+			pGameObjectTVWeapon->m_transform.SetParent(&pGameObjectTVWeaponBase->m_transform);
+
+			ComponentHandle<MeshRenderer> hMeshRendererTVWeapon = pGameObjectTVWeapon->AddComponent<MeshRenderer>();
+			MeshRenderer* pMeshRendererTVWeapon = hMeshRendererTVWeapon.ToPtr();
+
+			pMeshRendererTVWeapon->SetMesh(mesh_b92fsb);
+			pMeshRendererTVWeapon->SetMaterial(0, mat_b92fsb);
+			pMeshRendererTVWeapon->SetMaterial(1, mat_b92fsb_x300Body);
+			pMeshRendererTVWeapon->SetMaterial(2, mat_b92fsb_x300Lamp);
+		}
 	}
 
 
-	CreateClosedLongContainer(XMFLOAT3(-4.5371f, 0.0f, -15.518f), XMFLOAT3(0.0f, XMConvertToRadians(-45.0f), 0.0f));
-	CreateClosedContainer(XMFLOAT3(-9.5598f, 0.0f, -16.722f), XMFLOAT3(0.0f, XMConvertToRadians(45.0f), 0.0f));
+	// Static Meshes
+	CreateWoodenBox10090(XMFLOAT3(2.3f, 0.0f, 24.2f));
+	CreateWoodenBox10090(XMFLOAT3(2.3f, 0.0f, 23.2f));
+	CreateWoodenBox10090(XMFLOAT3(2.2f, 0.9f, 24.2f));
+	CreateWoodenBox10090(XMFLOAT3(2.2f, 0.9f, 23.2f));
+	CreateWoodenBox10090(XMFLOAT3(2.2f, 1.8f, 23.2f));
 
-	// 가운데 박스 2개
-	CreateWoodenBox(XMFLOAT3(-6.45f, 0.0f, -16.15f), XMFLOAT3(0.0f, XMConvertToRadians(-45.0f), 0.0f));
-	CreateWoodenBox(XMFLOAT3(-6.45f, 1.0f, -16.15f), XMFLOAT3(0.0f, XMConvertToRadians(-45.0f), 0.0f));
+	CreateWoodenBox10090(XMFLOAT3(6.445f, 0.0f, 19.32f), XMFLOAT3(0.0f, XMConvertToRadians(45), 0.0f));
+	CreateWoodenBox9070(XMFLOAT3(6.445f, 0.9f, 19.25f), XMFLOAT3(0.0f, XMConvertToRadians(45), 0.0f));
 
+	CreateWoodenBox8060(XMFLOAT3(-6.95f, 0.0f, 12.85f));
+	CreateWoodenBox9070(XMFLOAT3(-6.1f, 0.0f, 12.9f));
+	CreateWoodenBox9070(XMFLOAT3(-7.0f, 0.0f, 12.0f));
+	CreateWoodenBox8060(XMFLOAT3(-6.15f, 0.0f, 12.05f));
 
-	// 오른쪽 박스 5개
-	CreateWoodenBox(XMFLOAT3(-2.5f, 0.0f, -20.8f));
-	CreateWoodenBox(XMFLOAT3(-2.2f, 1.0f, -20.8f));
-	CreateWoodenBox(XMFLOAT3(-2.4f, 0.0f, -19.8f));
-	CreateWoodenBox(XMFLOAT3(-2.2f, 1.0f, -19.8f));
-	CreateWoodenBox(XMFLOAT3(-2.2f, 2.0f, -19.8f));
+	CreateWoodenBox9070(XMFLOAT3(-7.775f, 0.0f, 6.9f));
+	CreateWoodenBox9070(XMFLOAT3(-7.875f, 0.0f, 6.0f));
 
+	CreateWoodenBox8060(XMFLOAT3(6.05f, 0.0f, 3.85f));
+	CreateWoodenBox9070(XMFLOAT3(6.9f, 0.0f, 3.9f));
+	CreateWoodenBox9070(XMFLOAT3(6.0f, 0.0f, 3.0f));
+	CreateWoodenBox8060(XMFLOAT3(6.85f, 0.0f, 3.05f));
 
-	CreateClosedLongContainer(XMFLOAT3(9.0f, 0.0f, -17.7f), XMFLOAT3(0.0f, XMConvertToRadians(90.0f), 0.0f));
+	CreateWoodenBox10090(XMFLOAT3(-11.9f, 0.0f, -1.4f));
+	CreateWoodenBox10090(XMFLOAT3(-10.9f, 0.9f, -1.4f));
+	CreateWoodenBox10090(XMFLOAT3(-10.9f, 0.0f, -2.4f));
 
+	CreateWoodenBox10090(XMFLOAT3(13.5f, 0.0f, -10.5f));
+	CreateWoodenBox9070(XMFLOAT3(13.55f, 0.9f, -10.5f));
 
-	{
-		GameObjectHandle hContainer = CreateGameObject(L"Open Container1");
-		GameObject* pContainer = hContainer.ToPtr();
-		pContainer->m_transform.SetPosition(XMVectorSet(-12.7f, 0.0f, -7.1f, 0.0f));
-		pContainer->m_transform.SetRotationEuler(XMVectorSet(0.0f, XMConvertToRadians(180.0f), 0.0f, 0.0f));
+	CreateWoodenBox10090(XMFLOAT3(-10.9f, 0.0f, -18.0f));
+	CreateWoodenBox10090(XMFLOAT3(-9.9f, 0.0f, -18.0f));
+	CreateWoodenBox10090(XMFLOAT3(-10.9f, 0.9f, -18.0f));
 
-		ComponentHandle<MeshRenderer> hMeshRenderer = pContainer->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshOpenContainer1);
-		pMeshRenderer->SetMaterial(0, matOpenContainer);
-	}
+	CreateWoodenBox10090(XMFLOAT3(9.9f, 0.0f, -19.2f));
+	CreateWoodenBox10090(XMFLOAT3(10.9f, 0.0f, -19.2f));
+	CreateWoodenBox9070(XMFLOAT3(10.945f, 0.9f, -19.15f));
 
+	CreateWoodenBox10090(XMFLOAT3(1.2f, 0.0f, -21.7f));
+	CreateWoodenBox10090(XMFLOAT3(1.2f, 0.9f, -21.7f));
 
-	CreateClosedLongContainer(XMFLOAT3(-1.4f, 0.0f, -7.6f), XMFLOAT3(0.0f, XMConvertToRadians(-70.0f), 0.0f));
-	CreateClosedLongContainer(XMFLOAT3(12.7f, 0.0f, -9.0f));
+	CreateWoodenBox10090(XMFLOAT3(3.4f, 0.0f, -23.4f), XMFLOAT3(0.0f, XMConvertToRadians(45.0f), 0.0f));
+	CreateWoodenBox10090(XMFLOAT3(3.4f, 0.9f, -23.4f), XMFLOAT3(0.0f, XMConvertToRadians(45.0f), 0.0f));
 
-	// 박스 4개
-	CreateWoodenBox(XMFLOAT3(6.05f, 0.0f, -12.55f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.1f, 0.9f, 1.1f));
-	CreateWoodenBox(XMFLOAT3(7.1f, 0.0f, -12.5f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 0.8f, 1.0f));
-	CreateWoodenBox(XMFLOAT3(6.1f, 0.0f, -11.5f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 0.8f, 1.0f));
-	CreateWoodenBox(XMFLOAT3(7.15f, 0.0f, -11.45f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.1f, 0.9f, 1.1f));
-
-
-	// 박스 2개
-	CreateWoodenBox(XMFLOAT3(8.1f, 0.0f, -5.9f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 0.8f, 1.0f));
-	CreateWoodenBox(XMFLOAT3(8.0f, 0.0f, -4.9f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 0.8f, 1.0f));
-
-
-	// 박스 4개
-	CreateWoodenBox(XMFLOAT3(-4.95f, 0.0f, -1.55f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.1f, 0.9f, 1.1f));
-	CreateWoodenBox(XMFLOAT3(-3.9f, 0.0f, -1.5f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 0.8f, 1.0f));
-	CreateWoodenBox(XMFLOAT3(-4.9f, 0.0f, -0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 0.8f, 1.0f));
-	CreateWoodenBox(XMFLOAT3(-3.85f, 0.0f, -0.45f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.1f, 0.9f, 1.1f));
+	CreateWoodenBox10090(XMFLOAT3(12.3f, 2.6f, -23.4f));
+	CreateWoodenBox10090(XMFLOAT3(13.3f, 2.6f, -23.4f));
+	CreateWoodenBox10090(XMFLOAT3(12.3f, 2.6f, -24.4f));
+	CreateWoodenBox10090(XMFLOAT3(12.3f, 3.5f, -24.4f));
+	CreateWoodenBox10090(XMFLOAT3(13.3f, 3.5f, -24.4f));
 
 
-	// 박스 3개
-	CreateWoodenBox(XMFLOAT3(10.9f, 1.0f, 3.1f));
-	CreateWoodenBox(XMFLOAT3(11.9f, 0.0f, 3.1f));
-	CreateWoodenBox(XMFLOAT3(10.9f, 0.0f, 4.1f));
+	CreateShortContainer(XMFLOAT3(9.5598f, 0.0f, 19.885f), XMFLOAT3(0.0f, XMConvertToRadians(45.0f), 0.0f));
+	CreateLongContainer(XMFLOAT3(4.5371f, 0.0f, 18.681f), XMFLOAT3(0.0f, XMConvertToRadians(-45.0f), 0.0f));
 
+	CreateLongContainer(XMFLOAT3(-7.7f, 0.0f, 20.2f), XMFLOAT3(0.0f, XMConvertToRadians(90.0f), 0.0f));
 
-	// 왼쪽 벽면 박스 2개
-	CreateWoodenBox(XMFLOAT3(-13.5f, 0.0f, 10.2f));
-	CreateWoodenBox(XMFLOAT3(-13.6f, 1.0f, 10.2f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.8f, 0.8f, 0.8f));
+	CreateLongContainer(XMFLOAT3(-12.7f, 0.0f, 11.2f));
 
+	CreateLongContainer(XMFLOAT3(2.3f, 0.0f, 10.2f), XMFLOAT3(0.0f, XMConvertToRadians(-70.0f), 0.0f));
 
-	// 블루팀 기지 오른쪽 입구 앞 컨테이너 박스 3개
-	CreateWoodenBox(XMFLOAT3(-10.9f, 0.0f, 19.2f));
-	CreateWoodenBox(XMFLOAT3(-11.0f, 1.0f, 19.1f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.8f, 0.8f, 0.8f));
-	CreateWoodenBox(XMFLOAT3(-9.95f, 0.0f, 19.15f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.9f, 0.9f, 0.9f));
+	CreateShortContainer(XMFLOAT3(-10.9f, 0.0f, 0.4f), XMFLOAT3(0.0f, XMConvertToRadians(-90.0f), 0.0f));
+	CreateShortContainer(XMFLOAT3(-9.1f, 0.0f, -4.0f));
+	CreateShortContainer(XMFLOAT3(-4.7f, 0.0f, -2.2f), XMFLOAT3(0.0f, XMConvertToRadians(-90.0f), 0.0f));
 
+	CreateShortContainer(XMFLOAT3(1.7864f, 0.0f, -7.1945f), XMFLOAT3(0.0f, XMConvertToRadians(-105.0f), 0.0f));
+	CreateShortContainer(XMFLOAT3(5.7f, 0.0f, -4.8f), XMFLOAT3(0.0f, XMConvertToRadians(-195.0f), 0.0f));
+	CreateShortContainer(XMFLOAT3(9.6136f, 0.0f, -2.4055f), XMFLOAT3(0.0f, XMConvertToRadians(-105.0f), 0.0f));
 
-	// 블루팀 기지 왼쪽 입구 앞 컨테이너 박스 3개
-	CreateWoodenBox(XMFLOAT3(9.9f, 0.0f, 17.4f));
-	CreateWoodenBox(XMFLOAT3(10.9f, 0.0f, 17.6f));
-	CreateWoodenBox(XMFLOAT3(10.9f, 1.0f, 17.6f));
+	CreateShortContainer(XMFLOAT3(-1.3f, 0.0f, -14.8f), XMFLOAT3(0.0f, XMConvertToRadians(-105.0f), 0.0f));
 
+	CreateLongContainer(XMFLOAT3(-12.7f, 0.0f, -18.3f));
+	CreateShortContainer(XMFLOAT3(-10.9f, 0.0f, -23.6f), XMFLOAT3(0.0f, XMConvertToRadians(-90.0f), 0.0f));
 
-	// 블루팀 입구 사이 박스 2개 x 2 (총 4개)
-	CreateWoodenBox(XMFLOAT3(-3.5f, 0.0f, 23.5f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.1f, 1.1f, 1.1f));
-	CreateWoodenBox(XMFLOAT3(-3.5f, 1.1f, 23.5f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.1f, 1.1f, 1.1f));
-	CreateWoodenBox(XMFLOAT3(-1.2f, 0.0f, 21.8f));
-	CreateWoodenBox(XMFLOAT3(-1.2f, 1.0f, 21.8f));
+	CreateShortContainer(XMFLOAT3(-0.5f, 0.0f, -23.6f), XMFLOAT3(0.0f, XMConvertToRadians(-90.0f), 0.0f));
 
+	CreateLongContainer(XMFLOAT3(10.0f, 0.0f, -17.4f), XMFLOAT3(0.0f, XMConvertToRadians(90.0f), 0.0f));
+	CreateShortContainer(XMFLOAT3(12.7f, 0.0f, -21.8f));
 
-	CreateClosedContainer(XMFLOAT3(-9.6709f, 0.0f, 3.5936f), XMFLOAT3(0.0f, XMConvertToRadians(68.856f), 0.0f));
-	CreateClosedContainer(XMFLOAT3(-6.0f, 0.0f, 6.3f), XMFLOAT3(0.0f, XMConvertToRadians(-21.144f), 0.0f));
-	CreateClosedContainer(XMFLOAT3(-2.3291f, 0.0f, 9.0064f), XMFLOAT3(0.0f, XMConvertToRadians(68.856f), 0.0f));
+	CreateOpenContainer1(XMFLOAT3(12.7f, 0.0f, 8.0f));
 
-
-	CreateClosedContainer(XMFLOAT3(4.7f, 0.0f, 3.9f), XMFLOAT3(0.0f, XMConvertToRadians(90.0f), 0.0f));
-	{
-		GameObjectHandle hContainer = CreateGameObject(L"Open Container2");
-		GameObject* pContainer = hContainer.ToPtr();
-		pContainer->m_transform.SetPosition(XMVectorSet(5.6f, 1.6f, 0.4f, 0.0f));
-		pContainer->m_transform.SetRotationEuler(XMVectorSet(XMConvertToRadians(-30.0f), XMConvertToRadians(45.0f), 0.0f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pContainer->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshOpenContainer2);
-		pMeshRenderer->SetMaterial(0, matOpenContainer);
-	}
-	CreateClosedContainer(XMFLOAT3(9.1f, 0.0f, 5.7f));
-	CreateClosedContainer(XMFLOAT3(10.9f, 0.0f, 1.3f), XMFLOAT3(0.0f, XMConvertToRadians(90.0f), 0.0f));
-
-
-	CreateClosedLongContainer(XMFLOAT3(-10.0f, 0.0f, 17.4f), XMFLOAT3(0.0f, XMConvertToRadians(-90.0f), 0.0f));
-	CreateClosedContainer(XMFLOAT3(-12.7f, 0.0f, 21.8f));
-
-
-	CreateClosedContainer(XMFLOAT3(1.7f, 0.0f, 16.5f), XMFLOAT3(0.0f, XMConvertToRadians(75.0f), 0.0f));
-
-
-	CreateClosedContainer(XMFLOAT3(0.5f, 0.0f, 23.6f), XMFLOAT3(0.0f, XMConvertToRadians(90.0f), 0.0f));
-
-
-	CreateClosedContainer(XMFLOAT3(10.9f, 0.0f, 23.6f), XMFLOAT3(0.0f, XMConvertToRadians(90.0f), 0.0f));
-	CreateClosedLongContainer(XMFLOAT3(12.7f, 0.0f, 18.3f));
+	CreateOpenContainer2(XMFLOAT3(-5.6f, 1.568f, 1.3f), XMFLOAT3(XMConvertToRadians(30.0f), XMConvertToRadians(45.0f), 0.0f));
 
 
 	{
 		GameObjectHandle hGameObject = CreateGameObject(L"House Frame");
 		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(0.0f, 0.0f, -0.3f, 0.0f));
+		pGameObject->m_transform.SetPosition(0.0f, 0.0f, 24.6f);
 
 		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
 		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
@@ -1368,7 +1410,7 @@ void Warehouse::OnLoadScene()
 	{
 		GameObjectHandle hGameObject = CreateGameObject(L"House Frame");
 		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(0.0f, 0.0f, 12.7f, 0.0f));
+		pGameObject->m_transform.SetPosition(0.0f, 0.0f, 13.3f);
 
 		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
 		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
@@ -1378,7 +1420,7 @@ void Warehouse::OnLoadScene()
 	{
 		GameObjectHandle hGameObject = CreateGameObject(L"House Frame");
 		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(0.0f, 0.0f, -13.3f, 0.0f));
+		pGameObject->m_transform.SetPosition(0.0f, 0.0f, 2.0f);
 
 		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
 		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
@@ -1388,7 +1430,7 @@ void Warehouse::OnLoadScene()
 	{
 		GameObjectHandle hGameObject = CreateGameObject(L"House Frame");
 		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(0.0f, 0.0f, 24.6f, 0.0f));
+		pGameObject->m_transform.SetPosition(0.0f, 0.0f, -12.2f);
 
 		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
 		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
@@ -1398,7 +1440,7 @@ void Warehouse::OnLoadScene()
 	{
 		GameObjectHandle hGameObject = CreateGameObject(L"House Frame");
 		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(0.0f, 0.0f, -21.6f, 0.0f));
+		pGameObject->m_transform.SetPosition(0.0f, 0.0f, -24.6f);
 
 		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
 		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
@@ -1406,144 +1448,20 @@ void Warehouse::OnLoadScene()
 		pMeshRenderer->SetMaterial(0, matHouseFrame);
 	}
 
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"House Side Wall");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(-14.1f, 0.0f, 0.0f, 0.0f));
-		pGameObject->m_transform.SetRotationEuler(XMVectorSet(0.0f, XMConvertToRadians(90.0f), 0.0f, 0.0f));
+	CreateHouseSideWall(XMFLOAT3(-14.1f, 0.0f, 0.0f));
+	CreateHouseSideWall(XMFLOAT3(14.1f, 0.0f, 0.0f));
 
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshHouseSideWall);
-		pMeshRenderer->SetMaterial(0, matNarrowbrick1);
-		pMeshRenderer->SetMaterial(1, matVentedMetalPanel1);
-	}
+	CreateRedTeamBase(XMFLOAT3(0.0f, 0.0f, 25.0f));
+	CreateRedBaseWall(XMFLOAT3(0.0f, 0.0f, 25.0f));
 
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"House Side Wall");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(14.1f, 0.0f, 0.0f, 0.0f));
-		pGameObject->m_transform.SetRotationEuler(XMVectorSet(0.0f, XMConvertToRadians(-90.0f), 0.0f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshHouseSideWall);
-		pMeshRenderer->SetMaterial(0, matNarrowbrick1);
-		pMeshRenderer->SetMaterial(1, matVentedMetalPanel1);
-	}
-
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"House Red Side Wall");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(0.0f, 0.0f, -22.0f, 0.0f));
-		pGameObject->m_transform.SetRotationEuler(XMVectorSet(0.0f, XMConvertToRadians(180.0f), 0.0f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshHouseRedSideWall);
-		pMeshRenderer->SetMaterial(0, matRedbricks2b);
-		pMeshRenderer->SetMaterial(1, matSolidLightPink);
-	}
-
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"HouseWallBlueSide");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(0.0f, 0.0f, 25.0f, 0.0f));
-		pGameObject->m_transform.SetRotationEuler(XMVectorSet(0.0f, XMConvertToRadians(180.0f), 0.0f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshHouseBlueSideWall);
-		pMeshRenderer->SetMaterial(0, matRedbricks2b);
-		pMeshRenderer->SetMaterial(1, matSprayedWall1);
-		pMeshRenderer->SetMaterial(2, matBambooWoodSemigloss);
-	}
-
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Blue Team Base");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(0.0f, 0.0f, 30.0f, 0.0f));
-		pGameObject->m_transform.SetRotationEuler(XMVectorSet(0.0f, XMConvertToRadians(180.0f), 0.0f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshBlueTeamBase);
-		pMeshRenderer->SetMaterial(0, matStoneTile4b);
-		pMeshRenderer->SetMaterial(1, matConcrete3);
-		pMeshRenderer->SetMaterial(2, matSprayedWall1);
-		pMeshRenderer->SetMaterial(3, matBambooWoodSemigloss);
-	}
+	CreateBlueBaseWall(XMFLOAT3(0.0f, 0.0f, -25.0f));
+	CreateBlueTeamBase(XMFLOAT3(0.0f, 0.0f, -25.0f));
 
 
-	CreatePaperBox(XMFLOAT3(8.4f, 0.0f, 25.6f));
-	CreatePaperBox(XMFLOAT3(8.4f, 0.0f, 26.6f));
+	CreatePaperBox(XMFLOAT3(-9.8f, 0.0f, -25.6f));
+	CreatePaperBox(XMFLOAT3(-9.8f, 0.0f, -26.6f));
 
-
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Red Team Base");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(0.0f, 0.0f, -28.5f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshRedTeamBase);
-		pMeshRenderer->SetMaterial(0, matBrick22);
-	}
-
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"House Roof");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(0.0f, 10.0f, 0.0f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshHouseRoof);
-		pMeshRenderer->SetMaterial(0, matRoof24);
-	}
-
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Door Frame");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(-6.7f, 0.0f, -22.0f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshDoorFrame);
-		pMeshRenderer->SetMaterial(0, matDoorFrame);
-	}
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Door Frame");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(6.7f, 0.0f, -22.0f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshDoorFrame);
-		pMeshRenderer->SetMaterial(0, matDoorFrame);
-	}
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Door Frame");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(-6.7f, 0.0f, 25.0f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshDoorFrame);
-		pMeshRenderer->SetMaterial(0, matDoorFrame);
-	}
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Door Frame");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(XMVectorSet(6.7f, 0.0f, 25.0f, 0.0f));
-
-		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		pMeshRenderer->SetMesh(meshDoorFrame);
-		pMeshRenderer->SetMaterial(0, matDoorFrame);
-	}
-
-
-
+	CreateHouseRoof(XMFLOAT3(0.0f, 5.8f, 0.0f));
 	{
 		GameObjectHandle hGameObject = CreateGameObject(L"House Floor");
 		GameObject* pGameObject = hGameObject.ToPtr();
@@ -1551,222 +1469,11 @@ void Warehouse::OnLoadScene()
 		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
 		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 		pMeshRenderer->SetMesh(meshHouseFloor);
-		pMeshRenderer->SetMaterial(0, matConcrete3);
+		pMeshRenderer->SetMaterial(0, matConcrete2);
+
+		std::shared_ptr<StaticPlaneCollider> collider = std::make_shared<StaticPlaneCollider>();
+		auto c = pGameObject->AddComponent<StaticRigidbody>(collider);
 	}
-
-
-	/*
-	// TEST CODE
-	// WEAPON
-	// 
-	// Primary weapon
-	std::shared_ptr<StaticMesh> meshSTANAG30Rds = 
-		ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\Magazine\\STANAG\\STANAG30Rds.obj").staticMeshes[0];
-	auto matSTANAG30Rds = ResourceLoader::GetInstance()->CreateMaterial();
-	XMStoreFloat4A(&matSTANAG30Rds->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.05f), 1.0f));
-	XMStoreFloat4A(&matSTANAG30Rds->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 2.0f));
-	{
-		GameObjectHandle hPrimaryWeapon = CreateGameObject(L"Primary Weapon");
-		pScriptFPSMovement->m_hWeapons[0] = hPrimaryWeapon;	// 1번 슬롯
-
-		GameObject* pPrimaryWeapon = hPrimaryWeapon.ToPtr();
-		pPrimaryWeapon->m_transform.SetParent(&pMainCamera->m_transform);
-
-		pPrimaryWeapon->m_transform.SetPosition(0.1f, -0.2f, 0.12f);
-		ComponentHandle<MeshRenderer> hRifleMeshRenderer = pPrimaryWeapon->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hRifleMeshRenderer.ToPtr();
-		// 메시 설정
-		auto meshM16A1 = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\M16A1\\M16A1.obj").staticMeshes[0];
-		pMeshRenderer->SetMesh(meshM16A1);
-		// 재질 설정
-		auto matM16A1Receiver = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matM16A1Receiver->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 1.0f));
-		XMStoreFloat4A(&matM16A1Receiver->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 2.0f));
-		matM16A1Receiver->m_diffuseMap = 
-			ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M16A1\\textures\\receiver_diffuse.jpg");
-		matM16A1Receiver->m_normalMap = 
-			ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M16A1\\textures\\receiver_normal.jpg");
-
-		auto matM16A1Furniture = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matM16A1Furniture->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 1.0f));
-		XMStoreFloat4A(&matM16A1Furniture->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 4.0f));
-		matM16A1Furniture->m_diffuseMap = 
-			ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M16A1\\textures\\furniture_diffuse.jpg");
-		matM16A1Furniture->m_normalMap = 
-			ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M16A1\\textures\\furniture_normal.jpg");
-		pMeshRenderer->SetMaterial(0, matM16A1Receiver);
-		pMeshRenderer->SetMaterial(1, matM16A1Furniture);
-
-		{
-			GameObjectHandle hMagazine = CreateGameObject(L"PW Magazine");
-			GameObject* pPWMagazine = hMagazine.ToPtr();
-			pPWMagazine->m_transform.SetParent(&pPrimaryWeapon->m_transform);
-
-			pPWMagazine->m_transform.SetPosition(0.0, -0.032f, 0.068f);
-			ComponentHandle<MeshRenderer> hMeshRenderer = pPWMagazine->AddComponent<MeshRenderer>();
-			MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-			// 메시 설정
-			pMeshRenderer->SetMesh(meshSTANAG30Rds);
-			// 재질 설정
-			pMeshRenderer->SetMaterial(0, matSTANAG30Rds);
-		}
-	}
-
-	// Secondary weapon
-	{
-		GameObjectHandle hSecondaryWeapon = CreateGameObject(L"Secondary Weapon");
-		pScriptFPSMovement->m_hWeapons[1] = hSecondaryWeapon;		// 2번 슬롯
-
-		GameObject* pSecondaryWeapon = hSecondaryWeapon.ToPtr();
-		pSecondaryWeapon->m_transform.SetParent(&pMainCamera->m_transform);
-
-		pSecondaryWeapon->SetActive(false);	// 안보이게 비활성화 상태로 초기화
-		pSecondaryWeapon->m_transform.SetPosition(0.1f, -0.14f, 0.28f);
-		ComponentHandle<MeshRenderer> hMeshRenderer = pSecondaryWeapon->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		// 메시 설정
-		auto meshM9A1 = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\m9a1\\m9a1_tv.obj").staticMeshes[0];
-		pMeshRenderer->SetMesh(meshM9A1);
-		// 재질 설정
-		auto matM9A1 = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matM9A1->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 1.0f));
-		XMStoreFloat4A(&matM9A1->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.25f), 4.0f));
-		matM9A1->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m9a1\\textures\\diffuse.png");
-		matM9A1->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m9a1\\textures\\normal.png");
-		pMeshRenderer->SetMaterial(0, matM9A1);
-
-		{
-			GameObjectHandle hWeaponLight = CreateGameObject(L"Weapon Light");
-			GameObject* pWeaponLight = hWeaponLight.ToPtr();
-			pWeaponLight->m_transform.SetParent(&pSecondaryWeapon->m_transform);
-
-			pWeaponLight->m_transform.SetPosition(0.0f, -0.004f, 0.028f);
-			ComponentHandle<MeshRenderer> hMeshRenderer = pWeaponLight->AddComponent<MeshRenderer>();
-			MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-			// 메시 설정
-			auto meshx300 = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\x300\\x300.obj").staticMeshes[0];
-			pMeshRenderer->SetMesh(meshx300);
-			// 재질 설정
-			auto matx300 = ResourceLoader::GetInstance()->CreateMaterial();
-			XMStoreFloat4A(&matx300->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 1.0f));
-			XMStoreFloat4A(&matx300->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 4.0f));
-			matx300->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\x300\\textures\\Body_Black_albedo.jpg");
-			pMeshRenderer->SetMaterial(0, matx300);
-		}
-	}
-
-
-	{
-		GameObjectHandle hPrimaryWeapon = CreateGameObject(L"Primary Weapon");
-		pScriptFPSMovement->m_hWeapons[2] = hPrimaryWeapon;		// 3번 슬롯
-
-		GameObject* pPrimaryWeapon = hPrimaryWeapon.ToPtr();
-		pPrimaryWeapon->m_transform.SetParent(&pMainCamera->m_transform);
-
-		pPrimaryWeapon->SetActive(false);	// 안보이게 비활성화 상태로 초기화
-		pPrimaryWeapon->m_transform.SetPosition(0.1f, -0.2f, 0.12f);
-		ComponentHandle<MeshRenderer> hMeshRenderer = pPrimaryWeapon->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		// 메시 설정
-		auto meshM4A1 = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\m4a1\\m4a1_tv.obj").staticMeshes[0];
-		pMeshRenderer->SetMesh(meshM4A1);
-		// 재질 설정
-		auto matM4A1Receiver = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matM4A1Receiver->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
-		XMStoreFloat4A(&matM4A1Receiver->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 4.0f));
-		matM4A1Receiver->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\receiver_diffuse.png");
-		matM4A1Receiver->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\receiver_normal.png");
-		auto matM4A1Furniture = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matM4A1Furniture->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
-		XMStoreFloat4A(&matM4A1Furniture->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 8.0f));
-		matM4A1Furniture->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\furniture_diffuse.png");
-		matM4A1Furniture->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\furniture_normal.png");
-		auto matRearSight = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matRearSight->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
-		XMStoreFloat4A(&matRearSight->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 4.0f));
-		matRearSight->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\rearsight_diffuse.png");
-		matRearSight->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\rearsight_normal.png");
-
-		pMeshRenderer->SetMaterial(0, matM4A1Receiver);
-		pMeshRenderer->SetMaterial(1, matM4A1Furniture);
-		pMeshRenderer->SetMaterial(2, matRearSight);
-
-		
-
-		{
-			GameObjectHandle hMagazine = CreateGameObject(L"PW Magazine");
-			GameObject* pPWMagazine = hMagazine.ToPtr();
-			pPWMagazine->m_transform.SetParent(&pPrimaryWeapon->m_transform);
-
-			pPWMagazine->m_transform.SetPosition(0.0, -0.034f, 0.064f);
-			ComponentHandle<MeshRenderer> hMeshRenderer = pPWMagazine->AddComponent<MeshRenderer>();
-			MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-			// 메시 설정
-			pMeshRenderer->SetMesh(meshSTANAG30Rds);
-			// 재질 설정
-			pMeshRenderer->SetMaterial(0, matSTANAG30Rds);
-		}
-	}
-
-
-	{
-		GameObjectHandle hPrimaryWeapon = CreateGameObject(L"Primary Weapon");
-		pScriptFPSMovement->m_hWeapons[3] = hPrimaryWeapon;		// 4번 슬롯
-
-		GameObject* pPrimaryWeapon = hPrimaryWeapon.ToPtr();
-		pPrimaryWeapon->m_transform.SetParent(&pMainCamera->m_transform);
-
-		pPrimaryWeapon->SetActive(false);	// 안보이게 비활성화 상태로 초기화
-		pPrimaryWeapon->m_transform.SetPosition(0.1f, -0.21f, 0.135f);
-		ComponentHandle<MeshRenderer> hMeshRenderer = pPrimaryWeapon->AddComponent<MeshRenderer>();
-		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		// 메시 설정
-		auto mesh = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\M762\\m762.obj").staticMeshes[0];
-		pMeshRenderer->SetMesh(mesh);
-		// 재질 설정
-		auto matReceiver = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matReceiver->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.5f), 1.0f));
-		XMStoreFloat4A(&matReceiver->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 4.0f));
-		matReceiver->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M762\\textures\\Receiver_Albedo2.png");
-		matReceiver->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M762\\textures\\Receiver_Normal.png");
-		auto matFurniture = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matFurniture->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
-		XMStoreFloat4A(&matFurniture->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 2.0f));
-		matFurniture->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M762\\textures\\Furniture_Albedo.png");
-		matFurniture->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M762\\textures\\Furniture_Normal.png");
-		auto matRail = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matRail->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
-		XMStoreFloat4A(&matRail->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 4.0f));
-		matRail->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M762\\textures\\Rail_Albedo.png");
-		matRail->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M762\\textures\\Rail_Normal.png");
-		
-		pMeshRenderer->SetMaterial(0, matReceiver);
-		pMeshRenderer->SetMaterial(1, matFurniture);
-		pMeshRenderer->SetMaterial(2, matRail);
-		{
-			GameObjectHandle hMagazine = CreateGameObject(L"PW Magazine");
-			GameObject* pPWMagazine = hMagazine.ToPtr();
-			pPWMagazine->m_transform.SetParent(&pPrimaryWeapon->m_transform);
-
-			pPWMagazine->m_transform.SetPosition(0.0, 0.0f, 0.169f);
-			ComponentHandle<MeshRenderer> hMeshRenderer = pPWMagazine->AddComponent<MeshRenderer>();
-			MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-
-			// 메시 설정
-
-			std::shared_ptr<StaticMesh> meshMagazine =
-				ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\Magazine\\SteelStamped\\762SteelStampedMag.obj").staticMeshes[0];
-			pMeshRenderer->SetMesh(meshMagazine);
-
-
-			// 재질 설정
-			auto matMagazine = ResourceLoader::GetInstance()->CreateMaterial();
-			XMStoreFloat4A(&matMagazine->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.05f), 1.0f));
-			XMStoreFloat4A(&matMagazine->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 4.0f));
-			pMeshRenderer->SetMaterial(0, matMagazine);
-		}
-	}
-	*/
 
 
 	// Skybox
