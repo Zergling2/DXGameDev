@@ -1,5 +1,5 @@
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\RigidbodyManager.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\Component\RigidbodyInterface.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\Rigidbody.h>
 #include <ZergEngine\CoreSystem\Physics.h>
 #include <bullet3\btBulletDynamicsCommon.h>
 
@@ -26,10 +26,10 @@ void RigidbodyManager::RemoveDestroyedComponents()
 {
 	auto& collisionPairs = Physics::GetInstance()->m_prevCollisionPairs;
 
-	// 1. 물리 월드에서 제거 & Kinematic Body인 경우 m_kinematicBodys 배열에서 포인터 제거
+	// 1. 물리 월드에서 제거
 	for (IComponent* pComponent : m_destroyed)
 	{
-		IRigidbody* pRigidbody = static_cast<IRigidbody*>(pComponent);
+		Rigidbody* pRigidbody = static_cast<Rigidbody*>(pComponent);
 
 		btRigidBody* const pBtRigidBody = pRigidbody->m_upBtRigidBody.get();
 

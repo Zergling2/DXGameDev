@@ -2,6 +2,8 @@
 
 #include <ZergEngine\ZergEngine.h>
 
+class GameUIManager;
+
 class Warehouse : public ze::IScene
 {
 	ZE_DECLARE_SCENE(Warehouse);
@@ -22,6 +24,10 @@ private:
 	void CreateBlueTeamBase(const XMFLOAT3& pos = XMFLOAT3(0.0f, 0.0f, 0.0f), const XMFLOAT3& rot = XMFLOAT3(0.0f, 0.0f, 0.0f));
 	void CreateBlueBaseWall(const XMFLOAT3& pos = XMFLOAT3(0.0f, 0.0f, 0.0f), const XMFLOAT3& rot = XMFLOAT3(0.0f, 0.0f, 0.0f));
 	void CreateHouseRoof(const XMFLOAT3& pos = XMFLOAT3(0.0f, 0.0f, 0.0f), const XMFLOAT3& rot = XMFLOAT3(0.0f, 0.0f, 0.0f));
+	void CreateBarrel1(const XMFLOAT3& pos = XMFLOAT3(0.0f, 0.0f, 0.0f), const XMFLOAT3& rot = XMFLOAT3(0.0f, 0.0f, 0.0f));
+	void CreateBarrel2(const XMFLOAT3& pos = XMFLOAT3(0.0f, 0.0f, 0.0f), const XMFLOAT3& rot = XMFLOAT3(0.0f, 0.0f, 0.0f));
+	void CreateBarrel3(const XMFLOAT3& pos = XMFLOAT3(0.0f, 0.0f, 0.0f), const XMFLOAT3& rot = XMFLOAT3(0.0f, 0.0f, 0.0f));
+	void CreateBarrelImpl(size_t matIndex, const XMFLOAT3& pos = XMFLOAT3(0.0f, 0.0f, 0.0f), const XMFLOAT3& rot = XMFLOAT3(0.0f, 0.0f, 0.0f));
 private:
 	std::shared_ptr<ze::StaticMesh> m_meshShortContainer;
 	std::shared_ptr<ze::Material> m_matShortContainer;
@@ -75,4 +81,8 @@ private:
 	std::shared_ptr<ze::StaticMesh> m_meshHouseRoof;
 	std::shared_ptr<ze::Material> m_matHouseRoof;
 	std::shared_ptr<ze::ICollider> m_colliderHouseRoof;
+
+	std::shared_ptr<ze::StaticMesh> m_meshBarrel;
+	std::shared_ptr<ze::Material> m_matBarrel[3];
+	std::shared_ptr<ze::ICollider> m_colliderBarrel;
 };

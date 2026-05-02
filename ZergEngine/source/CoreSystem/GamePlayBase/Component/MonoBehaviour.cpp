@@ -1,5 +1,6 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\MonoBehaviour.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\MonoBehaviourManager.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 #include <ZergEngine\CoreSystem\Runtime.h>
 
 using namespace ze;
@@ -61,6 +62,8 @@ void MonoBehaviour::OnDeploySysJob()
 
 void MonoBehaviour::OnEnableSysJob()
 {
+	assert(this->IsEnabled() && m_pGameObject->IsActiveInHierarchy());
+
 	IComponent::OnEnableSysJob();
 
 	// 사용자 스크립트

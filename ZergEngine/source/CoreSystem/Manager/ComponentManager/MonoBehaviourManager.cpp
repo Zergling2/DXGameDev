@@ -54,7 +54,7 @@ void MonoBehaviourManager::AwakeDeployedComponents()
 
         pMonoBehaviour->Awake();            // 1. Awake는 활성화 여부와 관계 없이 호출
 
-        if (pMonoBehaviour->IsEnabled())    // 2. Enabled된 상태로 씬에 배치된 경우 스크립트의 OnEnable() 호출 및 Start 큐에 등록
+        if (pMonoBehaviour->IsEnabled() && pMonoBehaviour->m_pGameObject->IsActiveInHierarchy())    // 2. Enabled된 상태로 씬에 배치된 경우 스크립트의 OnEnable() 호출 및 Start 큐에 등록
             pMonoBehaviour->OnEnableSysJob();   // 작업은 이 함수 내부에서
     }
 
@@ -90,8 +90,10 @@ void MonoBehaviourManager::FixedUpdate()
     for (size_t i = 0; i < m_directAccessGroup.size(); ++i)
     {
         MonoBehaviour* pScript = static_cast<MonoBehaviour*>(m_directAccessGroup[i]);
-        if (pScript->IsEnabled())
-            pScript->FixedUpdate();
+        if (!pScript->IsEnabled() || !pScript->m_pGameObject->IsActiveInHierarchy())
+            continue;
+
+        pScript->FixedUpdate();
     }
 }
 
@@ -100,8 +102,10 @@ void MonoBehaviourManager::Update()
     for (size_t i = 0; i < m_directAccessGroup.size(); ++i)
     {
         MonoBehaviour* pScript = static_cast<MonoBehaviour*>(m_directAccessGroup[i]);
-        if (pScript->IsEnabled())
-            pScript->Update();
+        if (!pScript->IsEnabled() || !pScript->m_pGameObject->IsActiveInHierarchy())
+            continue;
+
+        pScript->Update();
     }
 }
 
@@ -110,8 +114,10 @@ void MonoBehaviourManager::LateUpdate()
     for (size_t i = 0; i < m_directAccessGroup.size(); ++i)
     {
         MonoBehaviour* pScript = static_cast<MonoBehaviour*>(m_directAccessGroup[i]);
-        if (pScript->IsEnabled())
-            pScript->LateUpdate();
+        if (!pScript->IsEnabled() || !pScript->m_pGameObject->IsActiveInHierarchy())
+            continue;
+
+        pScript->LateUpdate();
     }
 }
 
@@ -122,7 +128,7 @@ void MonoBehaviourManager::RemoveDestroyedComponents()
     for (size_t i = 0; i < m_destroyed.size(); ++i)
     {
         MonoBehaviour* pScript = static_cast<MonoBehaviour*>(m_destroyed[i]);
-        if (pScript->IsEnabled())   // 활성화 되어있는 스크립트에 한해서만 OnDestroy() 호출
+        if (pScript->IsEnabled() && pScript->m_pGameObject->IsActiveInHierarchy())   // 활성화 되어있는 스크립트에 한해서만 OnDestroy() 호출
         {
             pScript->Disable(); // 파괴 전 비활성화
             pScript->OnDestroy();

@@ -25,6 +25,7 @@ namespace ze
 		friend class Runtime;
 		friend class IComponentManager;
 		friend class MonoBehaviourManager;
+		friend class SkinnedMeshRendererManager;
 		friend class SceneManager;
 		friend class GameObject;
 		friend class Transform;
@@ -49,6 +50,7 @@ namespace ze
 		void Disable();
 
 		const GameObjectHandle GetGameObjectHandle() const;
+		const ComponentHandleBase ToHandle() const;
 
 		uint64_t GetId() const { return m_id; }
 		bool IsEnabled() const { return static_cast<cft>(m_flag) & static_cast<cft>(ComponentFlag::Enabled); }
@@ -64,8 +66,6 @@ namespace ze
 		virtual void OnDisableSysJob();
 	private:
 		virtual IComponentManager* GetComponentManager() const = 0;
-
-		const ComponentHandleBase ToHandle() const;
 		void OnFlag(ComponentFlag flag) { m_flag = static_cast<ComponentFlag>(static_cast<cft>(m_flag) | static_cast<cft>(flag)); }
 		void OffFlag(ComponentFlag flag) { m_flag = static_cast<ComponentFlag>(static_cast<cft>(m_flag) & ~static_cast<cft>(flag)); }
 	protected:

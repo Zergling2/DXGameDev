@@ -18,5 +18,5 @@ public:
 	virtual void OnCollisionStay() override;
 	virtual void OnCollisionExit() override;
 public:
-	ze::ComponentHandle<ze::Rigidbody> m_hRigidbody;
+	ze::ComponentHandle<ze::Rigidbody> m_hRigidbodyCollider;
 };

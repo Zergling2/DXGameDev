@@ -2,17 +2,43 @@
 #include <ZergEngine\CoreSystem\PhysicsDebugDrawer.h>
 #include <ZergEngine\CoreSystem\GraphicDevice.h>
 #include <ZergEngine\CoreSystem\BulletDXMath.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\Component\RigidbodyInterface.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\Rigidbody.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\MonoBehaviour.h>
+#include <ZergEngine\CoreSystem\Resource\BoxCollider.h>
+#include <ZergEngine\CoreSystem\Resource\SphereCollider.h>
+#include <ZergEngine\CoreSystem\Resource\CapsuleCollider.h>
 #include <bullet3\btBulletCollisionCommon.h>
 #include <bullet3\btBulletDynamicsCommon.h>
-#include <bullet3\BulletCollision\CollisionDispatch\btGhostObject.h>
 #include <cassert>
 
 using namespace ze;
 
 Physics* Physics::s_pInstance = nullptr;
+
+struct AllHitsConvexResultCallback : public btCollisionWorld::ConvexResultCallback
+{
+public:
+	virtual btScalar addSingleResult(btCollisionWorld::LocalConvexResult& result, bool normalInWorldSpace) override
+	{
+		SweepHit h;
+
+		h.m_pHitObject = static_cast<Rigidbody*>(result.m_hitCollisionObject->getUserPointer());
+
+		h.m_hitNormalWorld = BtToDX::ConvertVector(normalInWorldSpace ?
+			result.m_hitNormalLocal : result.m_hitCollisionObject->getWorldTransform().getBasis() * result.m_hitNormalLocal
+		);
+
+		h.m_hitPointWorld = BtToDX::ConvertVector(result.m_hitPointLocal);
+		h.m_hitFraction = result.m_hitFraction;
+
+		m_hits.push_back(h);
+
+		return result.m_hitFraction;
+	}
+public:
+	std::vector<SweepHit> m_hits;
+};
 
 void Physics::DrawDebugInfo(bool b)
 {
@@ -27,6 +53,85 @@ void Physics::DrawDebugInfo(bool b)
 void Physics::SetGravity(const XMFLOAT3& gravity)
 {
 	m_upDynamicsWorld->setGravity(DXToBt::ConvertVector(gravity));
+}
+
+std::vector<SweepHit>XM_CALLCONV Physics::BoxSweepTest(FXMMATRIX transform, const XMFLOAT3& move, const BoxCollider* pCollider)
+{
+	return ConvexSweepTestImpl(transform, move, static_cast<const btConvexShape*>(pCollider->GetCollisionShape()));
+}
+
+std::vector<SweepHit>XM_CALLCONV Physics::SphereSweepTest(FXMMATRIX transform, const XMFLOAT3& move, const SphereCollider* pCollider)
+{
+	return ConvexSweepTestImpl(transform, move, static_cast<const btConvexShape*>(pCollider->GetCollisionShape()));
+}
+
+std::vector<SweepHit> XM_CALLCONV Physics::CapsuleSweepTest(FXMMATRIX transform, const XMFLOAT3& move, const CapsuleCollider* pCollider)
+{
+	return ConvexSweepTestImpl(transform, move, static_cast<const btConvexShape*>(pCollider->GetCollisionShape()));
+}
+
+std::vector<SweepHit>XM_CALLCONV Physics::ConvexSweepTestImpl(FXMMATRIX transform, const XMFLOAT3& move, const btConvexShape* pBtConvexShape)
+{
+	btTransform from = DXToBt::ConvertMatrix(transform);
+	btTransform to = from;
+
+	to.setOrigin(from.getOrigin() + DXToBt::ConvertVector(move));
+
+	AllHitsConvexResultCallback cb;
+	m_upDynamicsWorld->convexSweepTest(pBtConvexShape, from, to, cb);
+
+	return cb.m_hits;
+}
+
+RayHit Physics::ClosestRaycastTest(const XMFLOAT3& fromWorld, const XMFLOAT3& toWorld)
+{
+	const btVector3 btFromWorld = DXToBt::ConvertVector(fromWorld);
+	const btVector3 btToWorld = DXToBt::ConvertVector(toWorld);
+
+	btCollisionWorld::ClosestRayResultCallback cb(btFromWorld, btToWorld);
+	m_upDynamicsWorld->rayTest(btFromWorld, btToWorld, cb);
+
+	RayHit result;
+	if (cb.hasHit())
+	{
+		result.m_pHitObject = static_cast<Rigidbody*>(cb.m_collisionObject->getUserPointer());
+		result.m_hitNormalWorld = BtToDX::ConvertVector(cb.m_hitNormalWorld);
+		result.m_hitPointWorld = BtToDX::ConvertVector(cb.m_hitPointWorld);
+		result.m_hitFraction = cb.m_closestHitFraction;
+	}
+	else
+	{
+		result.m_pHitObject = nullptr;
+	}
+
+	return result;
+}
+
+std::vector<RayHit> Physics::RaycastTest(const XMFLOAT3& fromWorld, const XMFLOAT3& toWorld)
+{
+	const btVector3 btFromWorld = DXToBt::ConvertVector(fromWorld);
+	const btVector3 btToWorld = DXToBt::ConvertVector(toWorld);
+
+	btCollisionWorld::AllHitsRayResultCallback cb(btFromWorld, btToWorld);
+	m_upDynamicsWorld->rayTest(btFromWorld, btToWorld, cb);
+
+	int hitCount = cb.m_collisionObjects.size();
+
+	std::vector<RayHit> result;
+	for (int i = 0; i < hitCount; ++i)
+	{
+		const btCollisionObject* obj = cb.m_collisionObjects[i];
+
+		RayHit hit;
+		hit.m_pHitObject = static_cast<Rigidbody*>(cb.m_collisionObjects[i]->getUserPointer());
+		hit.m_hitNormalWorld = BtToDX::ForwardVector(cb.m_hitNormalWorld[i]);
+		hit.m_hitPointWorld = BtToDX::ForwardVector(cb.m_hitPointWorld[i]);
+		hit.m_hitFraction = cb.m_hitFractions[i];
+
+		result.push_back(hit);
+	}
+
+	return result;
 }
 
 Physics::Physics()
@@ -143,8 +248,8 @@ void Physics::StepSimulation(float timeStep, int maxSubSteps, float fixedTimeSte
 
 void Physics::DispatchTriggerEnter(const std::pair<const btCollisionObject*, const btCollisionObject*>& pair) const
 {
-	IRigidbody* pRbA = static_cast<IRigidbody*>(pair.first->getUserPointer());
-	IRigidbody* pRbB = static_cast<IRigidbody*>(pair.second->getUserPointer());
+	Rigidbody* pRbA = static_cast<Rigidbody*>(pair.first->getUserPointer());
+	Rigidbody* pRbB = static_cast<Rigidbody*>(pair.second->getUserPointer());
 
 	if (pRbA->IsListeningCollisionEvent())
 	{
@@ -163,8 +268,8 @@ void Physics::DispatchTriggerEnter(const std::pair<const btCollisionObject*, con
 
 void Physics::DispatchTriggerStay(const std::pair<const btCollisionObject*, const btCollisionObject*>& pair) const
 {
-	IRigidbody* pRbA = static_cast<IRigidbody*>(pair.first->getUserPointer());
-	IRigidbody* pRbB = static_cast<IRigidbody*>(pair.second->getUserPointer());
+	Rigidbody* pRbA = static_cast<Rigidbody*>(pair.first->getUserPointer());
+	Rigidbody* pRbB = static_cast<Rigidbody*>(pair.second->getUserPointer());
 
 	if (pRbA->IsListeningCollisionEvent())
 	{
@@ -183,8 +288,8 @@ void Physics::DispatchTriggerStay(const std::pair<const btCollisionObject*, cons
 
 void Physics::DispatchTriggerExit(const std::pair<const btCollisionObject*, const btCollisionObject*>& pair) const
 {
-	IRigidbody* pRbA = static_cast<IRigidbody*>(pair.first->getUserPointer());
-	IRigidbody* pRbB = static_cast<IRigidbody*>(pair.second->getUserPointer());
+	Rigidbody* pRbA = static_cast<Rigidbody*>(pair.first->getUserPointer());
+	Rigidbody* pRbB = static_cast<Rigidbody*>(pair.second->getUserPointer());
 
 	if (pRbA->IsListeningCollisionEvent())
 	{
@@ -203,8 +308,8 @@ void Physics::DispatchTriggerExit(const std::pair<const btCollisionObject*, cons
 
 void Physics::DispatchCollisionEnter(const std::pair<const btCollisionObject*, const btCollisionObject*>& pair) const
 {
-	IRigidbody* pRbA = static_cast<IRigidbody*>(pair.first->getUserPointer());
-	IRigidbody* pRbB = static_cast<IRigidbody*>(pair.second->getUserPointer());
+	Rigidbody* pRbA = static_cast<Rigidbody*>(pair.first->getUserPointer());
+	Rigidbody* pRbB = static_cast<Rigidbody*>(pair.second->getUserPointer());
 
 	if (pRbA->IsListeningCollisionEvent())
 	{
@@ -223,8 +328,8 @@ void Physics::DispatchCollisionEnter(const std::pair<const btCollisionObject*, c
 
 void Physics::DispatchCollisionStay(const std::pair<const btCollisionObject*, const btCollisionObject*>& pair) const
 {
-	IRigidbody* pRbA = static_cast<IRigidbody*>(pair.first->getUserPointer());
-	IRigidbody* pRbB = static_cast<IRigidbody*>(pair.second->getUserPointer());
+	Rigidbody* pRbA = static_cast<Rigidbody*>(pair.first->getUserPointer());
+	Rigidbody* pRbB = static_cast<Rigidbody*>(pair.second->getUserPointer());
 
 	if (pRbA->IsListeningCollisionEvent())
 	{
@@ -243,8 +348,8 @@ void Physics::DispatchCollisionStay(const std::pair<const btCollisionObject*, co
 
 void Physics::DispatchCollisionExit(const std::pair<const btCollisionObject*, const btCollisionObject*>& pair) const
 {
-	IRigidbody* pRbA = static_cast<IRigidbody*>(pair.first->getUserPointer());
-	IRigidbody* pRbB = static_cast<IRigidbody*>(pair.second->getUserPointer());
+	Rigidbody* pRbA = static_cast<Rigidbody*>(pair.first->getUserPointer());
+	Rigidbody* pRbB = static_cast<Rigidbody*>(pair.second->getUserPointer());
 
 	if (pRbA->IsListeningCollisionEvent())
 	{
@@ -288,8 +393,8 @@ void Physics::DispatchCollisionEvents()
 	// 2. Enter & Stay 이벤트 디스패칭
 	for (const auto& pair : m_currCollisionPairs)
 	{
-		const bool isTriggerA = static_cast<IRigidbody*>(pair.first->getUserPointer())->IsTrigger();
-		const bool isTriggerB = static_cast<IRigidbody*>(pair.second->getUserPointer())->IsTrigger();
+		const bool isTriggerA = static_cast<Rigidbody*>(pair.first->getUserPointer())->IsTrigger();
+		const bool isTriggerB = static_cast<Rigidbody*>(pair.second->getUserPointer())->IsTrigger();
 		assert(isTriggerA == static_cast<bool>(pair.first->getCollisionFlags() & btCollisionObject::CF_NO_CONTACT_RESPONSE));
 		assert(isTriggerB == static_cast<bool>(pair.second->getCollisionFlags() & btCollisionObject::CF_NO_CONTACT_RESPONSE));
 
@@ -314,8 +419,8 @@ void Physics::DispatchCollisionEvents()
 	{
 		if (m_currCollisionPairs.find(pair) == m_currCollisionPairs.cend())
 		{
-			const bool isTriggerA = static_cast<IRigidbody*>(pair.first->getUserPointer())->IsTrigger();
-			const bool isTriggerB = static_cast<IRigidbody*>(pair.second->getUserPointer())->IsTrigger();
+			const bool isTriggerA = static_cast<Rigidbody*>(pair.first->getUserPointer())->IsTrigger();
+			const bool isTriggerB = static_cast<Rigidbody*>(pair.second->getUserPointer())->IsTrigger();
 			assert(isTriggerA == static_cast<bool>(pair.first->getCollisionFlags() & btCollisionObject::CF_NO_CONTACT_RESPONSE));
 			assert(isTriggerB == static_cast<bool>(pair.second->getCollisionFlags() & btCollisionObject::CF_NO_CONTACT_RESPONSE));
 

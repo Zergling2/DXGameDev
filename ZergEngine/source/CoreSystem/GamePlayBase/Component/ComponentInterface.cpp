@@ -25,7 +25,8 @@ void IComponent::Enable()
 	if (m_pGameObject->IsPending())
 		return;
 
-	this->OnEnableSysJob();
+	if (m_pGameObject->IsActiveInHierarchy())
+		this->OnEnableSysJob();
 }
 
 void IComponent::Disable()
@@ -39,6 +40,7 @@ void IComponent::Disable()
 	if (m_pGameObject->IsPending())
 		return;
 
+	// 게임 오브젝트가 Inactive 상태에서 컴포넌트만 Enable <-> Disable 전환이 반복되는 케이스의 경우 올바르게 처리할 수 있는가?
 	this->OnDisableSysJob();
 }
 
@@ -47,6 +49,14 @@ const GameObjectHandle IComponent::GetGameObjectHandle() const
 	assert(m_pGameObject != nullptr);
 
 	return m_pGameObject->ToHandle();
+}
+
+const ComponentHandleBase IComponent::ToHandle() const
+{
+	IComponentManager* pComponentManager = this->GetComponentManager();
+	assert(pComponentManager->ToPtr(m_tableIndex, m_id) == this);
+
+	return ComponentHandleBase(m_tableIndex, m_id);
 }
 
 void IComponent::Destroy()
@@ -72,12 +82,4 @@ void IComponent::OnEnableSysJob()
 
 void IComponent::OnDisableSysJob()
 {
-}
-
-const ComponentHandleBase IComponent::ToHandle() const
-{
-	IComponentManager* pComponentManager = this->GetComponentManager();
-	assert(pComponentManager->ToPtr(m_tableIndex, m_id) == this);
-
-	return ComponentHandleBase(m_tableIndex, m_id);
 }

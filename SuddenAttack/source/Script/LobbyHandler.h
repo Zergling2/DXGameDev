@@ -109,6 +109,7 @@ public:
 	void OnPlayerGameUnready(uint64_t netId);
 	void AddChatMsg(const wchar_t* msg);
 	void UpdateGameListBrowserUI();
+	void ShowSelectedGameRoomIndicator(bool b) { m_showSelectedGameRoomIndicator = b; }
 private:
 	void UpdateUI();
 	uint32_t GetGameListPageCount() const;
@@ -118,6 +119,7 @@ private:
 	void OnClickJoinGameRoomImpl(size_t index);
 private:
 	bool m_needUIUpdate;
+	bool m_showSelectedGameRoomIndicator;
 	LobbyState m_lobbyState;
 	size_t m_textLobbyChatMsgCount;
 public:

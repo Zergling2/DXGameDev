@@ -30,9 +30,7 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\ShadedEdgeQuadEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\Billboard.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\Rigidbody.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\RigidbodyInterface.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\SkinnedMeshRenderer.h" />
-    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\StaticRigidbody.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\GroupSlot.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\MotionState.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\PackedGroup.h" />
@@ -153,9 +151,7 @@
     <ClCompile Include="source\CoreSystem\Effect\ShadedEdgeQuadEffect.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\Billboard.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\Rigidbody.cpp" />
-    <ClCompile Include="source\CoreSystem\GamePlayBase\Component\RigidbodyInterface.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\SkinnedMeshRenderer.cpp" />
-    <ClCompile Include="source\CoreSystem\GamePlayBase\Component\StaticRigidbody.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\MotionState.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\Checkbox.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\RadioButton.cpp" />

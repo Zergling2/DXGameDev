@@ -10,6 +10,7 @@ using namespace ze;
 LobbyHandler::LobbyHandler(ze::GameObject& owner)
 	: MonoBehaviour(owner)
 	, m_needUIUpdate(false)
+	, m_showSelectedGameRoomIndicator(true)
 	, m_lobbyState(LobbyState::None)
 	, m_textLobbyChatMsgCount(0)
 	, m_hScriptGameResources()
@@ -80,13 +81,19 @@ void LobbyHandler::Start()
 
 void LobbyHandler::Update()
 {
+	if (Input::GetInstance()->GetKeyDown(KEYCODE::KEY_Q))
+		SetResolution(1366, 768, DisplayMode::Windowed);
+
+	if (Input::GetInstance()->GetKeyDown(KEYCODE::KEY_E))
+		SetResolution(0, 0, DisplayMode::BorderlessWindowed);
+
 	if (m_needUIUpdate)
 	{
 		this->UpdateUI();
 		m_needUIUpdate = false;
 	}
 
-	if (m_lobbyState == LobbyState::GameListBrowser && !m_hPanelCreateGameRoomRoot.ToPtr()->IsActiveSelf())	// 방 목록 탐색중인 경우 선택 게임 행 강조 표시
+	if (m_lobbyState == LobbyState::GameListBrowser && m_showSelectedGameRoomIndicator)	// 방 목록 탐색중인 경우 선택 게임 행 강조 표시
 	{
 		bool selected = false;
 		for (size_t i = 0; i < MAX_GAME_PER_LIST_PAGE; ++i)
@@ -352,6 +359,8 @@ void LobbyHandler::OnClickCreateGameRoom()
 	static_cast<RadioButton*>(m_hRadioButtonGameRoomMaxPlayer[static_cast<size_t>(m_createGameRoomMaxPlayerSelected)].ToPtr())->SetCheck();
 
 	m_hPanelCreateGameRoomRoot.ToPtr()->SetActive(true);
+
+	ShowSelectedGameRoomIndicator(false);
 }
 
 void LobbyHandler::OnClickCreateGameRoomReq()
@@ -373,15 +382,19 @@ void LobbyHandler::OnClickCreateGameRoomReq()
 
 void LobbyHandler::OnClickHostGameStart()
 {
-	Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
+	SceneManager::GetInstance()->LoadScene(L"Warehouse");
 
-	if (pScriptNetwork->GetNetId() != m_gameRoomHostNetId)
-		return;
 
-	winppy::Packet outPacket;
-	outPacket->Write(static_cast<protocol_type>(Protocol::CS_REQ_HOST_GAME_START));
 
-	pScriptNetwork->GetClient().Send(std::move(outPacket));
+	// Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
+	// 
+	// if (pScriptNetwork->GetNetId() != m_gameRoomHostNetId)
+	// 	return;
+	// 
+	// winppy::Packet outPacket;
+	// outPacket->Write(static_cast<protocol_type>(Protocol::CS_REQ_HOST_GAME_START));
+	// 
+	// pScriptNetwork->GetClient().Send(std::move(outPacket));
 }
 
 void LobbyHandler::OnClickGameReady()
@@ -418,6 +431,8 @@ void LobbyHandler::OnClickCreateGameRoomCancel()
 	static_cast<InputField*>(m_hInputFieldCreateGameRoomName.ToPtr())->GetText().clear();
 	m_hPanelCreateGameRoomRoot.ToPtr()->SetActive(false);
 	m_hPanelGameListBrowserRoot.ToPtr()->SetActive(true);
+
+	ShowSelectedGameRoomIndicator(true);
 }
 
 void LobbyHandler::OnClickRadioButtonGameRoom1vs1()
@@ -1101,7 +1116,7 @@ void LobbyHandler::UpdateUI()
 		
 		// 현재 상태에 대응하는 UI 보이기
 		// 배경 이미지 교체
-		static_cast<Image*>(m_hImageLobbyBgr.ToPtr())->SetTexture(m_hScriptGameResources.ToPtr()->m_texLoginBgr);
+		static_cast<Image*>(m_hImageLobbyBgr.ToPtr())->SetTexture(m_hScriptGameResources.ToPtr()->GetTexture(L"login_bgr"));
 		m_hImageLobbyBgr.ToPtr()->SetActive(true);
 
 		// 로그인 UI 표시
@@ -1139,7 +1154,7 @@ void LobbyHandler::UpdateUI()
 		// 현재 상태에 대응하는 UI 보이기
 		
 		// 배경 이미지 교체
-		static_cast<Image*>(m_hImageLobbyBgr.ToPtr())->SetTexture(m_hScriptGameResources.ToPtr()->m_texGameListBgr);
+		static_cast<Image*>(m_hImageLobbyBgr.ToPtr())->SetTexture(m_hScriptGameResources.ToPtr()->GetTexture(L"gamelist_bgr"));
 		m_hImageLobbyBgr.ToPtr()->SetActive(true);
 
 		m_hPanelChatRoot.ToPtr()->SetActive(true);

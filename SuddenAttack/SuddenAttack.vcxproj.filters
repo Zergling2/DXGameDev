@@ -28,7 +28,7 @@
     <ClCompile Include="source\Scene\TestScene1.cpp">
       <Filter>source\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="source\Script\FirstPersonController.cpp">
+    <ClCompile Include="source\Script\PlayerController.cpp">
       <Filter>source\Script</Filter>
     </ClCompile>
     <ClCompile Include="source\Scene\Warehouse.cpp">
@@ -58,7 +58,13 @@
     <ClCompile Include="source\Resource\GameInfo.cpp">
       <Filter>source\Resource</Filter>
     </ClCompile>
-    <ClCompile Include="source\Script\UIHandler.cpp">
+    <ClCompile Include="source\Script\GameUIManager.cpp">
+      <Filter>source\Script</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Resource\GlobalGameObjects.cpp">
+      <Filter>source\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Script\AnimControl.cpp">
       <Filter>source\Script</Filter>
     </ClCompile>
   </ItemGroup>
@@ -69,7 +75,7 @@
     <ClInclude Include="source\Scene\TestScene1.h">
       <Filter>source\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="source\Script\FirstPersonController.h">
+    <ClInclude Include="source\Script\PlayerController.h">
       <Filter>source\Script</Filter>
     </ClInclude>
     <ClInclude Include="source\Scene\Warehouse.h">
@@ -99,7 +105,13 @@
     <ClInclude Include="source\Resource\GameInfo.h">
       <Filter>source\Resource</Filter>
     </ClInclude>
-    <ClInclude Include="source\Script\UIHandler.h">
+    <ClInclude Include="source\Script\GameUIManager.h">
+      <Filter>source\Script</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Resource\GlobalGameObjects.h">
+      <Filter>source\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Script\AnimControl.h">
       <Filter>source\Script</Filter>
     </ClInclude>
   </ItemGroup>

@@ -48,7 +48,7 @@ namespace ze
 
 	class SkinnedMeshRenderer : public IComponent
 	{
-		friend class Runtime;
+		friend class SkinnedMeshRendererManager;
 	public:
 		static constexpr ComponentType TYPE = ComponentType::SkinnedMeshRenderer;
 		static constexpr bool IsCreatable() { return true; }
@@ -156,6 +156,10 @@ namespace ze
 
 		void ComputeFinalTransform(XMFLOAT4X4A* pOut, size_t len) const;
 
+		/**
+		* @brief 현재 애니메이션을 재생 중인 본 그룹의 정보 맵<본 그룹 이름, PlayingAnimation>을 얻습니다.
+		* @return 본 그룹 애니메이션 정보 맵
+		*/
 		const std::unordered_map<std::string, PlayingAnimation>& GetCurrentAnims() const { return m_currAnims; }
 	private:
 		virtual IComponentManager* GetComponentManager() const override;

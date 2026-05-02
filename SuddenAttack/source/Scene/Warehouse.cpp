@@ -1,6 +1,6 @@
 #include "Warehouse.h"
-#include "..\Script\FirstPersonController.h"
-#include "..\Script\UIHandler.h"
+#include "..\Script\PlayerController.h"
+#include "..\Script\GameUIManager.h"
 #include "..\Script\ThirdPersonCharacter.h"
 #include "..\Script\CollisionEventTest.h"
 
@@ -25,7 +25,7 @@ void Warehouse::CreateShortContainer(const XMFLOAT3& pos, const XMFLOAT3& rot)
 	XMFLOAT4 rbLocalRot;	// 로컬 회전
 	XMStoreFloat4(&rbLocalRot, XMQuaternionIdentity());
 
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderShortContainer, rbLocalPos, rbLocalRot);
+	pGameObject->AddComponent<Rigidbody>(m_colliderShortContainer, rbLocalPos, rbLocalRot).ToPtr()->SetBodyType(RigidbodyType::Static);
 }
 
 void Warehouse::CreateLongContainer(const XMFLOAT3& pos, const XMFLOAT3& rot)
@@ -45,7 +45,7 @@ void Warehouse::CreateLongContainer(const XMFLOAT3& pos, const XMFLOAT3& rot)
 	XMFLOAT4 rbLocalRot;	// 로컬 회전
 	XMStoreFloat4(&rbLocalRot, XMQuaternionIdentity());
 
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderLongContainer, rbLocalPos, rbLocalRot);
+	pGameObject->AddComponent<Rigidbody>(m_colliderLongContainer, rbLocalPos, rbLocalRot).ToPtr()->SetBodyType(RigidbodyType::Static);
 }
 
 void Warehouse::CreateWoodenBox8060(const XMFLOAT3& pos, const XMFLOAT3& rot)
@@ -65,7 +65,7 @@ void Warehouse::CreateWoodenBox8060(const XMFLOAT3& pos, const XMFLOAT3& rot)
 	XMFLOAT4 rbLocalRot;	// 로컬 회전
 	XMStoreFloat4(&rbLocalRot, XMQuaternionIdentity());
 
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderWoodenBox8060, rbLocalPos, rbLocalRot);
+	pGameObject->AddComponent<Rigidbody>(m_colliderWoodenBox8060, rbLocalPos, rbLocalRot).ToPtr()->SetBodyType(RigidbodyType::Static);
 }
 
 void Warehouse::CreateWoodenBox9070(const XMFLOAT3& pos, const XMFLOAT3& rot)
@@ -85,7 +85,7 @@ void Warehouse::CreateWoodenBox9070(const XMFLOAT3& pos, const XMFLOAT3& rot)
 	XMFLOAT4 rbLocalRot;	// 로컬 회전
 	XMStoreFloat4(&rbLocalRot, XMQuaternionIdentity());
 
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderWoodenBox9070, rbLocalPos, rbLocalRot);
+	pGameObject->AddComponent<Rigidbody>(m_colliderWoodenBox9070, rbLocalPos, rbLocalRot).ToPtr()->SetBodyType(RigidbodyType::Static);
 }
 
 void Warehouse::CreateWoodenBox10090(const XMFLOAT3& pos, const XMFLOAT3& rot)
@@ -105,7 +105,7 @@ void Warehouse::CreateWoodenBox10090(const XMFLOAT3& pos, const XMFLOAT3& rot)
 	XMFLOAT4 rbLocalRot;	// 로컬 회전
 	XMStoreFloat4(&rbLocalRot, XMQuaternionIdentity());
 
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderWoodenBox10090, rbLocalPos, rbLocalRot);
+	pGameObject->AddComponent<Rigidbody>(m_colliderWoodenBox10090, rbLocalPos, rbLocalRot).ToPtr()->SetBodyType(RigidbodyType::Static);
 }
 
 void Warehouse::CreatePaperBox(const XMFLOAT3& pos, const XMFLOAT3& rot)
@@ -125,7 +125,7 @@ void Warehouse::CreatePaperBox(const XMFLOAT3& pos, const XMFLOAT3& rot)
 	XMFLOAT4 rbLocalRot;	// 로컬 회전
 	XMStoreFloat4(&rbLocalRot, XMQuaternionIdentity());
 
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderPaperBox, rbLocalPos, rbLocalRot);
+	pGameObject->AddComponent<Rigidbody>(m_colliderPaperBox, rbLocalPos, rbLocalRot).ToPtr()->SetBodyType(RigidbodyType::Static);
 }
 
 void Warehouse::CreateOpenContainer1(const XMFLOAT3& pos, const XMFLOAT3& rot)
@@ -162,14 +162,14 @@ void Warehouse::CreateOpenContainer1(const XMFLOAT3& pos, const XMFLOAT3& rot)
 	XMStoreFloat4(&rbLocalRot[6], XMQuaternionRotationRollPitchYaw(0.0f, XMConvertToRadians(59.963f), 0.0f));
 	XMStoreFloat4(&rbLocalRot[7], XMQuaternionRotationRollPitchYaw(0.0f, 0.0f, 0.0f));
 
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderOpenContainer1[0], rbLocalPos[0], rbLocalRot[0]);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderOpenContainer1[0], rbLocalPos[1], rbLocalRot[1]);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderOpenContainer1[0], rbLocalPos[2], rbLocalRot[2]);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderOpenContainer1[0], rbLocalPos[3], rbLocalRot[3]);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderOpenContainer1[1], rbLocalPos[4], rbLocalRot[4]);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderOpenContainer1[1], rbLocalPos[5], rbLocalRot[5]);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderOpenContainer1[1], rbLocalPos[6], rbLocalRot[6]);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderOpenContainer1[1], rbLocalPos[7], rbLocalRot[7]);
+	pGameObject->AddComponent<Rigidbody>(m_colliderOpenContainer1[0], rbLocalPos[0], rbLocalRot[0]).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderOpenContainer1[0], rbLocalPos[1], rbLocalRot[1]).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderOpenContainer1[0], rbLocalPos[2], rbLocalRot[2]).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderOpenContainer1[0], rbLocalPos[3], rbLocalRot[3]).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderOpenContainer1[1], rbLocalPos[4], rbLocalRot[4]).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderOpenContainer1[1], rbLocalPos[5], rbLocalRot[5]).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderOpenContainer1[1], rbLocalPos[6], rbLocalRot[6]).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderOpenContainer1[1], rbLocalPos[7], rbLocalRot[7]).ToPtr()->SetBodyType(RigidbodyType::Static);
 }
 
 void Warehouse::CreateOpenContainer2(const XMFLOAT3& pos, const XMFLOAT3& rot)
@@ -206,14 +206,14 @@ void Warehouse::CreateOpenContainer2(const XMFLOAT3& pos, const XMFLOAT3& rot)
 	XMStoreFloat4(&rbLocalRot[6], XMQuaternionRotationRollPitchYaw(0.0f, XMConvertToRadians(53.995f), 0.0f));
 	XMStoreFloat4(&rbLocalRot[7], XMQuaternionRotationRollPitchYaw(0.0f, XMConvertToRadians(10.442f), 0.0f));
 
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderOpenContainer2[0], rbLocalPos[0], rbLocalRot[0]);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderOpenContainer2[0], rbLocalPos[1], rbLocalRot[1]);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderOpenContainer2[0], rbLocalPos[2], rbLocalRot[2]);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderOpenContainer2[0], rbLocalPos[3], rbLocalRot[3]);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderOpenContainer2[1], rbLocalPos[4], rbLocalRot[4]);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderOpenContainer2[1], rbLocalPos[5], rbLocalRot[5]);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderOpenContainer2[1], rbLocalPos[6], rbLocalRot[6]);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderOpenContainer2[1], rbLocalPos[7], rbLocalRot[7]);
+	pGameObject->AddComponent<Rigidbody>(m_colliderOpenContainer2[0], rbLocalPos[0], rbLocalRot[0]).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderOpenContainer2[0], rbLocalPos[1], rbLocalRot[1]).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderOpenContainer2[0], rbLocalPos[2], rbLocalRot[2]).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderOpenContainer2[0], rbLocalPos[3], rbLocalRot[3]).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderOpenContainer2[1], rbLocalPos[4], rbLocalRot[4]).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderOpenContainer2[1], rbLocalPos[5], rbLocalRot[5]).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderOpenContainer2[1], rbLocalPos[6], rbLocalRot[6]).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderOpenContainer2[1], rbLocalPos[7], rbLocalRot[7]).ToPtr()->SetBodyType(RigidbodyType::Static);
 }
 
 void Warehouse::CreateHouseSideWall(const XMFLOAT3& pos, const XMFLOAT3& rot)
@@ -234,7 +234,7 @@ void Warehouse::CreateHouseSideWall(const XMFLOAT3& pos, const XMFLOAT3& rot)
 	XMFLOAT4 rbLocalRot;	// 로컬 회전
 	XMStoreFloat4(&rbLocalRot, XMQuaternionIdentity());
 
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseSideWall, rbLocalPos, rbLocalRot);
+	pGameObject->AddComponent<Rigidbody>(m_colliderHouseSideWall, rbLocalPos, rbLocalRot).ToPtr()->SetBodyType(RigidbodyType::Static);
 }
 
 void Warehouse::CreateRedTeamBase(const XMFLOAT3& pos, const XMFLOAT3& rot)
@@ -272,14 +272,14 @@ void Warehouse::CreateRedTeamBase(const XMFLOAT3& pos, const XMFLOAT3& rot)
 	XMStoreFloat4(&rbLocalRot[6], XMQuaternionRotationRollPitchYaw(0.0f, XMConvertToRadians(-90.0f), 0.0f));
 	XMStoreFloat4(&rbLocalRot[7], XMQuaternionIdentity());
 
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseRedBase[0], rbLocalPos[0], rbLocalRot[0]);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseRedBase[1], rbLocalPos[1], rbLocalRot[1]);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseRedBase[1], rbLocalPos[2], rbLocalRot[2]);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseRedBase[1], rbLocalPos[3], rbLocalRot[3]);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseRedBase[1], rbLocalPos[4], rbLocalRot[4]);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseRedBase[1], rbLocalPos[5], rbLocalRot[5]);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseRedBase[1], rbLocalPos[6], rbLocalRot[6]);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseRedBase[1], rbLocalPos[7], rbLocalRot[7]);
+	pGameObject->AddComponent<Rigidbody>(m_colliderHouseRedBase[0], rbLocalPos[0], rbLocalRot[0]).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderHouseRedBase[1], rbLocalPos[1], rbLocalRot[1]).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderHouseRedBase[1], rbLocalPos[2], rbLocalRot[2]).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderHouseRedBase[1], rbLocalPos[3], rbLocalRot[3]).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderHouseRedBase[1], rbLocalPos[4], rbLocalRot[4]).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderHouseRedBase[1], rbLocalPos[5], rbLocalRot[5]).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderHouseRedBase[1], rbLocalPos[6], rbLocalRot[6]).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderHouseRedBase[1], rbLocalPos[7], rbLocalRot[7]).ToPtr()->SetBodyType(RigidbodyType::Static);
 }
 
 void Warehouse::CreateRedBaseWall(const XMFLOAT3& pos, const XMFLOAT3& rot)
@@ -316,12 +316,12 @@ void Warehouse::CreateRedBaseWall(const XMFLOAT3& pos, const XMFLOAT3& rot)
 	XMFLOAT4 rbLocalRot;
 	XMStoreFloat4(&rbLocalRot, XMQuaternionIdentity());
 
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseRedBaseWall[0], rbLocalPos[0], rbLocalRot);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseRedBaseWall[1], rbLocalPos[1], rbLocalRot);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseRedBaseWall[1], rbLocalPos[2], rbLocalRot);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseRedBaseWall[1], rbLocalPos[3], rbLocalRot);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseRedBaseWall[2], rbLocalPos[4], rbLocalRot);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseRedBaseWall[2], rbLocalPos[5], rbLocalRot);
+	pGameObject->AddComponent<Rigidbody>(m_colliderHouseRedBaseWall[0], rbLocalPos[0], rbLocalRot).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderHouseRedBaseWall[1], rbLocalPos[1], rbLocalRot).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderHouseRedBaseWall[1], rbLocalPos[2], rbLocalRot).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderHouseRedBaseWall[1], rbLocalPos[3], rbLocalRot).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderHouseRedBaseWall[2], rbLocalPos[4], rbLocalRot).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderHouseRedBaseWall[2], rbLocalPos[5], rbLocalRot).ToPtr()->SetBodyType(RigidbodyType::Static);
 }
 
 void Warehouse::CreateBlueTeamBase(const XMFLOAT3& pos, const XMFLOAT3& rot)
@@ -366,16 +366,16 @@ void Warehouse::CreateBlueTeamBase(const XMFLOAT3& pos, const XMFLOAT3& rot)
 	XMFLOAT4 rbLocalRot;
 	XMStoreFloat4(&rbLocalRot, XMQuaternionIdentity());
 
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseBlueBase[0], rbLocalPos[0], rbLocalRot);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseBlueBase[1], rbLocalPos[1], rbLocalRot);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseBlueBase[1], rbLocalPos[2], rbLocalRot);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseBlueBase[2], rbLocalPos[3], rbLocalRot);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseBlueBase[3], rbLocalPos[4], rbLocalRot);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseBlueBase[4], rbLocalPos[5], rbLocalRot);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseBlueBase[4], rbLocalPos[6], rbLocalRot);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseBlueBase[5], rbLocalPos[7], rbLocalRot);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseBlueBase[6], rbLocalPos[8], rbLocalRot);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseBlueBase[7], rbLocalPos[9], rbLocalRot);
+	pGameObject->AddComponent<Rigidbody>(m_colliderHouseBlueBase[0], rbLocalPos[0], rbLocalRot).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderHouseBlueBase[1], rbLocalPos[1], rbLocalRot).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderHouseBlueBase[1], rbLocalPos[2], rbLocalRot).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderHouseBlueBase[2], rbLocalPos[3], rbLocalRot).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderHouseBlueBase[3], rbLocalPos[4], rbLocalRot).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderHouseBlueBase[4], rbLocalPos[5], rbLocalRot).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderHouseBlueBase[4], rbLocalPos[6], rbLocalRot).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderHouseBlueBase[5], rbLocalPos[7], rbLocalRot).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderHouseBlueBase[6], rbLocalPos[8], rbLocalRot).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderHouseBlueBase[7], rbLocalPos[9], rbLocalRot).ToPtr()->SetBodyType(RigidbodyType::Static);
 }
 
 void Warehouse::CreateBlueBaseWall(const XMFLOAT3& pos, const XMFLOAT3& rot)
@@ -407,10 +407,10 @@ void Warehouse::CreateBlueBaseWall(const XMFLOAT3& pos, const XMFLOAT3& rot)
 	XMStoreFloat4(&rbLocalRot[2], XMQuaternionIdentity());
 	XMStoreFloat4(&rbLocalRot[3], XMQuaternionIdentity());
 
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseBlueBaseWall[0], rbLocalPos[0], rbLocalRot[0]);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseBlueBaseWall[1], rbLocalPos[1], rbLocalRot[1]);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseBlueBaseWall[1], rbLocalPos[2], rbLocalRot[2]);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseBlueBaseWall[1], rbLocalPos[3], rbLocalRot[3]);
+	pGameObject->AddComponent<Rigidbody>(m_colliderHouseBlueBaseWall[0], rbLocalPos[0], rbLocalRot[0]).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderHouseBlueBaseWall[1], rbLocalPos[1], rbLocalRot[1]).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderHouseBlueBaseWall[1], rbLocalPos[2], rbLocalRot[2]).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderHouseBlueBaseWall[1], rbLocalPos[3], rbLocalRot[3]).ToPtr()->SetBodyType(RigidbodyType::Static);
 }
 
 void Warehouse::CreateHouseRoof(const XMFLOAT3& pos, const XMFLOAT3& rot)
@@ -435,8 +435,43 @@ void Warehouse::CreateHouseRoof(const XMFLOAT3& pos, const XMFLOAT3& rot)
 	XMStoreFloat4(&rbLocalRot[0], XMQuaternionRotationRollPitchYaw(0.0f, 0.0f, XMConvertToRadians(15.7f)));
 	XMStoreFloat4(&rbLocalRot[1], XMQuaternionRotationRollPitchYaw(0.0f, 0.0f, XMConvertToRadians(-15.7f)));
 
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseRoof, rbLocalPos[0], rbLocalRot[0]);
-	pGameObject->AddComponent<StaticRigidbody>(m_colliderHouseRoof, rbLocalPos[1], rbLocalRot[1]);
+	pGameObject->AddComponent<Rigidbody>(m_colliderHouseRoof, rbLocalPos[0], rbLocalRot[0]).ToPtr()->SetBodyType(RigidbodyType::Static);
+	pGameObject->AddComponent<Rigidbody>(m_colliderHouseRoof, rbLocalPos[1], rbLocalRot[1]).ToPtr()->SetBodyType(RigidbodyType::Static);
+}
+
+void Warehouse::CreateBarrel1(const XMFLOAT3& pos, const XMFLOAT3& rot)
+{
+	CreateBarrelImpl(0, pos, rot);
+}
+
+void Warehouse::CreateBarrel2(const XMFLOAT3& pos, const XMFLOAT3& rot)
+{
+	CreateBarrelImpl(1, pos, rot);
+}
+
+void Warehouse::CreateBarrel3(const XMFLOAT3& pos, const XMFLOAT3& rot)
+{
+	CreateBarrelImpl(2, pos, rot);
+}
+
+void Warehouse::CreateBarrelImpl(size_t matIndex, const XMFLOAT3& pos, const XMFLOAT3& rot)
+{
+	GameObjectHandle hGameObject = CreateGameObject(L"houseroof");
+	GameObject* pGameObject = hGameObject.ToPtr();
+	pGameObject->m_transform.SetPosition(pos);
+	pGameObject->m_transform.SetRotationEuler(rot);
+
+	ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
+	MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
+	pMeshRenderer->SetMesh(m_meshBarrel);
+	pMeshRenderer->SetMaterial(0, m_matBarrel[matIndex]);
+
+	// 콜라이더 로컬 오프셋
+	const XMFLOAT3& rbLocalPos = m_meshBarrel->GetAabb().Center;	// 로컬 위치
+	XMFLOAT4 rbLocalRot;	// 로컬 회전
+	XMStoreFloat4(&rbLocalRot, XMQuaternionIdentity());
+
+	pGameObject->AddComponent<Rigidbody>(m_colliderBarrel, rbLocalPos, rbLocalRot).ToPtr()->SetBodyType(RigidbodyType::Static);
 }
 
 void Warehouse::OnLoadScene()
@@ -462,21 +497,17 @@ void Warehouse::OnLoadScene()
 		XMStoreFloat4A(&pLight->m_specular, Vector3::OneHalf());
 	}
 
-	// ## Main Camera
-	GameObject* pGameObjectPlayerCamera = nullptr;
+	// ## Player
+	ComponentHandle<PlayerController> hScriptPlayerController;
 	{
-		GameObjectHandle hGameObjectPlayerCamera = CreateGameObject(L"Main Camera");
+		GameObjectHandle hGameObjectPlayer = CreateGameObject(L"Player");
+		GameObject* pGameObjectPlayer = hGameObjectPlayer.ToPtr();
 
-		pGameObjectPlayerCamera = hGameObjectPlayerCamera.ToPtr();
+		hScriptPlayerController = pGameObjectPlayer->AddComponent<PlayerController>();		// 1인칭 카메라 조작
 
-		ComponentHandle<Camera> hCamera = pGameObjectPlayerCamera->AddComponent<Camera>();
-		Camera* pCamera = hCamera.ToPtr();
-		pCamera->SetDepth(0);
-		pCamera->SetFieldOfView(82);
-		pCamera->SetClippingPlanes(0.1f, 300.0f);
-
-		pGameObjectPlayerCamera->AddComponent<FirstPersonController>();		// 1인칭 카메라 조작
+		pGameObjectPlayer->m_transform.SetPosition(-7.0f, 4.0f, -5.0f);
 	}
+	
 	
 	// Adapter Info UI
 	{
@@ -562,13 +593,14 @@ void Warehouse::OnLoadScene()
 
 	GameObjectHandle hGameObjectUIHandler = CreateGameObject();
 	GameObject* pGameObjectUIHandler = hGameObjectUIHandler.ToPtr();
-	ComponentHandle<UIHandler> hScriptUIHandler = pGameObjectUIHandler->AddComponent<UIHandler>();
-	UIHandler* pScriptUIHandler = hScriptUIHandler.ToPtr();
+	ComponentHandle<GameUIManager> hScriptGameUIManager = pGameObjectUIHandler->AddComponent<GameUIManager>();
+	GameUIManager* pScriptGameUIManager = hScriptGameUIManager.ToPtr();
+	pScriptGameUIManager->m_hScriptPlayerController = hScriptPlayerController;
 
 	// ## UI
 	{
 		UIObjectHandle hImageCrosshair = CreateImage();
-		pScriptUIHandler->m_hImageCrosshair = hImageCrosshair;
+		pScriptGameUIManager->m_hImageCrosshair = hImageCrosshair;
 		Image* pImageCrosshair = static_cast<Image*>(hImageCrosshair.ToPtr());
 		pImageCrosshair->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\crosshair.dds"));
 		pImageCrosshair->SetNativeSize(true);
@@ -576,7 +608,7 @@ void Warehouse::OnLoadScene()
 		pImageCrosshair->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 
 		UIObjectHandle hImageHealthBackground = CreateImage();
-		pScriptUIHandler->m_hImageHealthBackground = hImageHealthBackground;
+		pScriptGameUIManager->m_hImageHealthBackground = hImageHealthBackground;
 		Image* pImageHealthBackground = static_cast<Image*>(hImageHealthBackground.ToPtr());
 		pImageHealthBackground->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\health.png"));
 		pImageHealthBackground->SetNativeSize(true);
@@ -585,7 +617,7 @@ void Warehouse::OnLoadScene()
 		pImageHealthBackground->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
 
 		UIObjectHandle hImageRBUIBackground = CreateImage();
-		pScriptUIHandler->m_hImageRBUIBackground = hImageRBUIBackground;
+		pScriptGameUIManager->m_hImageRBUIBackground = hImageRBUIBackground;
 		Image* pImageRBUIBackground = static_cast<Image*>(hImageRBUIBackground.ToPtr());
 		pImageRBUIBackground->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\weapon_indicator.png"));
 		pImageRBUIBackground->SetNativeSize(true);
@@ -594,9 +626,8 @@ void Warehouse::OnLoadScene()
 		pImageRBUIBackground->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
 
 		UIObjectHandle hTextHP = CreateText();
-		pScriptUIHandler->m_hTextHP = hTextHP;
+		pScriptGameUIManager->m_hTextHP = hTextHP;
 		Text* pTextHP = static_cast<Text*>(hTextHP.ToPtr());
-		pTextHP->SetText(L"100");
 		pTextHP->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
 		pTextHP->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
 		pTextHP->m_transform.SetPosition(pImageHealthBackground->m_transform.GetPosition());
@@ -611,9 +642,8 @@ void Warehouse::OnLoadScene()
 		pTextHP->ApplyTextFormat();
 
 		UIObjectHandle hTextAP = CreateText();
-		pScriptUIHandler->m_hTextAP = hTextAP;
+		pScriptGameUIManager->m_hTextAP = hTextAP;
 		Text* pTextAP = static_cast<Text*>(hTextAP.ToPtr());
-		pTextAP->SetText(L"100");
 		pTextAP->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
 		pTextAP->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
 		pTextAP->m_transform.SetPosition(pImageHealthBackground->m_transform.GetPosition());
@@ -628,9 +658,8 @@ void Warehouse::OnLoadScene()
 		pTextAP->ApplyTextFormat();
 
 		UIObjectHandle hTextPoint = CreateText();
-		pScriptUIHandler->m_hTextPoint = hTextPoint;
+		pScriptGameUIManager->m_hTextPoint = hTextPoint;
 		Text* pTextPoint = static_cast<Text*>(hTextPoint.ToPtr());
-		pTextPoint->SetText(L"126P");
 		pTextPoint->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
 		pTextPoint->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
 		pTextPoint->m_transform.SetPosition(pImageRBUIBackground->m_transform.GetPosition());
@@ -646,9 +675,8 @@ void Warehouse::OnLoadScene()
 		pTextPoint->ApplyTextFormat();
 
 		UIObjectHandle hTextWeaponName = CreateText();
-		pScriptUIHandler->m_hTextWeaponName = hTextWeaponName;
+		pScriptGameUIManager->m_hTextWeaponName = hTextWeaponName;
 		Text* pTextWeaponName = static_cast<Text*>(hTextWeaponName.ToPtr());
-		pTextWeaponName->SetText(L"M16");
 		pTextWeaponName->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
 		pTextWeaponName->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
 		pTextWeaponName->m_transform.SetPosition(pImageRBUIBackground->m_transform.GetPosition());
@@ -663,9 +691,8 @@ void Warehouse::OnLoadScene()
 		pTextWeaponName->ApplyTextFormat();
 
 		UIObjectHandle hTextAmmo = CreateText();
-		pScriptUIHandler->m_hTextAmmo = hTextAmmo;
+		pScriptGameUIManager->m_hTextAmmo = hTextAmmo;
 		Text* pTextAmmo = static_cast<Text*>(hTextAmmo.ToPtr());
-		pTextAmmo->SetText(L"30 / 90");
 		pTextAmmo->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
 		pTextAmmo->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
 		pTextAmmo->m_transform.SetPosition(pImageRBUIBackground->m_transform.GetPosition());
@@ -681,16 +708,12 @@ void Warehouse::OnLoadScene()
 		pTextAmmo->ApplyTextFormat();
 	}
 
-
-
-
-
 	// ## MATERIALS
-	std::shared_ptr<Material> matAsphault = ResourceLoader::GetInstance()->CreateMaterial();
-	XMStoreFloat4A(&matAsphault->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.8f), 1.0f));
-	XMStoreFloat4A(&matAsphault->m_specular, XMVectorSetW(ColorsLinear::Black, 4.0f));
-	matAsphault->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\asphault\\AsphaultStreet_d.tga");
-	matAsphault->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\asphault\\AsphaultStreet_n.tga");
+	// std::shared_ptr<Material> matAsphault = ResourceLoader::GetInstance()->CreateMaterial();
+	// XMStoreFloat4A(&matAsphault->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.8f), 1.0f));
+	// XMStoreFloat4A(&matAsphault->m_specular, XMVectorSetW(ColorsLinear::Black, 4.0f));
+	// matAsphault->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\asphault\\AsphaultStreet_d.tga");
+	// matAsphault->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\textures\\asphault\\AsphaultStreet_n.tga");
 
 	std::shared_ptr<Material> matBambooWoodSemigloss = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&matBambooWoodSemigloss->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.4f), 1.0f));
@@ -876,65 +899,34 @@ void Warehouse::OnLoadScene()
 	m_matHouseRoof = matRoof24;
 	m_colliderHouseRoof = std::make_shared<BoxCollider>(XMFLOAT3(8.0f, 0.1f, 26.0f));
 
+	m_meshBarrel = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\props\\barrel\\barrel.obj").m_staticMeshes[0];
+	m_matBarrel[0] = ResourceLoader::GetInstance()->CreateMaterial();
+	m_matBarrel[0]->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\props\\barrel\\textures\\drum1_base_color.png");
+	m_matBarrel[0]->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\props\\barrel\\textures\\drum1_normal.png");
+	XMStoreFloat4A(&m_matBarrel[0]->m_diffuse, Vector3::One3());
+	XMStoreFloat4A(&m_matBarrel[0]->m_specular, XMVectorSetW(Colors::Gray, 4.0f));
+	m_matBarrel[1] = ResourceLoader::GetInstance()->CreateMaterial();
+	m_matBarrel[1]->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\props\\barrel\\textures\\drum2_base_color.png");
+	m_matBarrel[1]->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\props\\barrel\\textures\\drum2_normal.png");
+	XMStoreFloat4A(&m_matBarrel[1]->m_diffuse, Vector3::One3());
+	XMStoreFloat4A(&m_matBarrel[1]->m_specular, XMVectorSetW(Colors::Gray, 4.0f));
+	m_matBarrel[2] = ResourceLoader::GetInstance()->CreateMaterial();
+	m_matBarrel[2]->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\props\\barrel\\textures\\drum3_base_color.png");
+	m_matBarrel[2]->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\props\\barrel\\textures\\drum3_normal.png");
+	XMStoreFloat4A(&m_matBarrel[2]->m_diffuse, Vector3::One3());
+	XMStoreFloat4A(&m_matBarrel[2]->m_specular, XMVectorSetW(Colors::Gray, 4.0f));
+	m_colliderBarrel = std::make_shared<CylinderCollider>(m_meshBarrel->GetAabb().Extents.x, m_meshBarrel->GetAabb().Extents.y);
 
 	std::shared_ptr<StaticMesh> meshHouseFrame = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\house_frame.obj").m_staticMeshes[0];
 	std::shared_ptr<StaticMesh> meshHouseFloor = ResourceLoader::GetInstance()->LoadModel(L"resources\\maps\\warehouse\\house_floor.obj").m_staticMeshes[0];
 
 
 
-
-	constexpr XMFLOAT3 FPSARM_POS(0.0f, -0.2f, -0.06f);
-	constexpr XMFLOAT3 M16_PV_OFFSET(0.1f, -0.04f, 0.23f);
-	constexpr XMFLOAT3 M16_PV_POS(FPSARM_POS.x + M16_PV_OFFSET.x, FPSARM_POS.y + M16_PV_OFFSET.y, FPSARM_POS.z + M16_PV_OFFSET.z);
-	// FPS Arms
-	{
-		ModelData md_fpsarms = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\characters\\steven\\fps\\fpsarms.glb");
-		std::shared_ptr<SkinnedMesh> mesh_fpsarms = md_fpsarms.m_skinnedMeshes[0];
-		std::shared_ptr<Armature> arma_fpsarms = md_fpsarms.m_armatures[0];
-		bool grouping = arma_fpsarms->CreateBoneGroupByRootBoneName("whole", "Root");
-		assert(grouping);
-
-		GameObjectHandle hGameObject = CreateGameObject(L"FPS Arms");
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetParent(&pGameObjectPlayerCamera->m_transform);
-
-		pGameObject->m_transform.SetPosition(FPSARM_POS);
-
-		ComponentHandle<SkinnedMeshRenderer> hSkinnedMeshRenderer = pGameObject->AddComponent<SkinnedMeshRenderer>();
-		SkinnedMeshRenderer* pSkinnedMeshRenderer = hSkinnedMeshRenderer.ToPtr();
-
-		auto matArms = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matArms->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.25f), 1.0f));
-		XMStoreFloat4A(&matArms->m_specular, XMVectorSetW(ColorsLinear::Black, 1.0f));
-		matArms->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\characters\\steven\\fps\\tex_diffuse.jpg");
-
-		pSkinnedMeshRenderer->SetMesh(mesh_fpsarms);
-		pSkinnedMeshRenderer->SetMaterial(0, matArms);
-
-		pSkinnedMeshRenderer->SetArmature(arma_fpsarms);
-		// pSkinnedMeshRenderer->PlayAnimation("arms_idle_m16a1", true);
-		// pSkinnedMeshRenderer->PlayAnimation("arms_idle_usp", true);
-		// pSkinnedMeshRenderer->PlayAnimation("arms_reload_m16a1", true);
-		pSkinnedMeshRenderer->PlayAnimation("arms_reload_usp", true);
-		// pSkinnedMeshRenderer->PlayAnimation("arms_shoot_m16a1", true);
-		// pSkinnedMeshRenderer->PlayAnimation("arms_shoot_usp", true);
-		// pSkinnedMeshRenderer->PlayAnimation("arms_run_m16a1", true);
-		// pSkinnedMeshRenderer->PlayAnimation("arms_run_usp", true);
-	}
-
-	auto matSTANAG30Rds = ResourceLoader::GetInstance()->CreateMaterial();
-	XMStoreFloat4A(&matSTANAG30Rds->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.05f), 1.0f));
-	XMStoreFloat4A(&matSTANAG30Rds->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 2.0f));
-	ModelData md_m16a1_pv = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\M16A1\\m16a1_pv.glb");
-	std::shared_ptr<SkinnedMesh> mesh = md_m16a1_pv.m_skinnedMeshes[0];
-	std::shared_ptr<Armature> arma_m16a1 = md_m16a1_pv.m_armatures[0];
-	bool grouping = arma_m16a1->CreateBoneGroupByRootBoneName("default", "bone_m16a1_body");	// 디폴트 그룹은 필수
-	assert(grouping);
 	// Animated Weapons(m16a1)
 	// {
 	// 	GameObjectHandle hGameObject = CreateGameObject(L"M16A1");
 	// 	GameObject* pGameObject = hGameObject.ToPtr();
-	// 	pGameObject->m_transform.SetParent(&pMainCamera->m_transform);
+	// 	pGameObject->m_transform.SetParent(&pGameObjectPlayer->m_transform);
 	// 	
 	// 	pGameObject->m_transform.SetPosition(M16_PV_POS);
 	// 	
@@ -942,21 +934,6 @@ void Warehouse::OnLoadScene()
 	// 	SkinnedMeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 	// 	
 	// 	// 재질 설정
-	// 	auto matM16A1Receiver = ResourceLoader::GetInstance()->CreateMaterial();
-	// 	XMStoreFloat4A(&matM16A1Receiver->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 1.0f));
-	// 	XMStoreFloat4A(&matM16A1Receiver->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 2.0f));
-	// 	matM16A1Receiver->m_diffuseMap =
-	// 		ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M16A1\\textures\\receiver_diffuse.jpg");
-	// 	matM16A1Receiver->m_normalMap =
-	// 		ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M16A1\\textures\\receiver_normal.jpg");
-	// 	
-	// 	auto matM16A1Furniture = ResourceLoader::GetInstance()->CreateMaterial();
-	// 	XMStoreFloat4A(&matM16A1Furniture->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 1.0f));
-	// 	XMStoreFloat4A(&matM16A1Furniture->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 4.0f));
-	// 	matM16A1Furniture->m_diffuseMap =
-	// 		ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M16A1\\textures\\furniture_diffuse.jpg");
-	// 	matM16A1Furniture->m_normalMap =
-	// 		ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\M16A1\\textures\\furniture_normal.jpg");
 	// 	
 	// 	pMeshRenderer->SetMesh(mesh);
 	// 	pMeshRenderer->SetMaterial(0, matM16A1Receiver);
@@ -970,8 +947,8 @@ void Warehouse::OnLoadScene()
 	// 	// pMeshRenderer->PlayAnimation("m16a1_shoot", true);
 	// 	// pMeshRenderer->PlayAnimation("m16a1_run", true);
 	// }
-
-	// Animated Weapons(m4a1)
+	// 
+	// // Animated Weapons(m4a1)
 	// {
 	// 	ModelData md = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\m4a1\\m4a1_pv.glb");
 	// 	std::shared_ptr<SkinnedMesh> mesh = md.m_skinnedMeshes[0];
@@ -987,21 +964,6 @@ void Warehouse::OnLoadScene()
 	// 	SkinnedMeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 	// 	
 	// 	// 재질 설정
-	// 	auto matM4A1Receiver = ResourceLoader::GetInstance()->CreateMaterial();
-	// 	XMStoreFloat4A(&matM4A1Receiver->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
-	// 	XMStoreFloat4A(&matM4A1Receiver->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 4.0f));
-	// 	matM4A1Receiver->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\receiver_diffuse.png");
-	// 	matM4A1Receiver->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\receiver_normal.png");
-	// 	auto matM4A1Furniture = ResourceLoader::GetInstance()->CreateMaterial();
-	// 	XMStoreFloat4A(&matM4A1Furniture->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
-	// 	XMStoreFloat4A(&matM4A1Furniture->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 8.0f));
-	// 	matM4A1Furniture->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\furniture_diffuse.png");
-	// 	matM4A1Furniture->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\furniture_normal.png");
-	// 	auto matRearSight = ResourceLoader::GetInstance()->CreateMaterial();
-	// 	XMStoreFloat4A(&matRearSight->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
-	// 	XMStoreFloat4A(&matRearSight->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 4.0f));
-	// 	matRearSight->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\rearsight_diffuse.png");
-	// 	matRearSight->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\rearsight_normal.png");
 	// 	
 	// 	pMeshRenderer->SetMesh(mesh);
 	// 	pMeshRenderer->SetMaterial(0, matM4A1Receiver);
@@ -1015,95 +977,67 @@ void Warehouse::OnLoadScene()
 	// 	// pMeshRenderer->PlayAnimation("m16a1_shoot", true);
 	// 	// pMeshRenderer->PlayAnimation("m16a1_run", true);
 	// }
-
-
-	// Animated Weapons(usp)
-	constexpr XMFLOAT3 USP_PV_OFFSET(0.04f, -0.01f, 0.41f);
-	constexpr XMFLOAT3 USP_PV_POS(FPSARM_POS.x + USP_PV_OFFSET.x, FPSARM_POS.y + USP_PV_OFFSET.y, FPSARM_POS.z + USP_PV_OFFSET.z);
-	{
-		ModelData md_usp_pv = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\usp\\usp_pv.glb");
-		std::shared_ptr<SkinnedMesh> mesh_usp = md_usp_pv.m_skinnedMeshes[0];
-		std::shared_ptr<Armature> arma_usp = md_usp_pv.m_armatures[0];	// USP 뼈대 공유
-		bool grouping = arma_usp->CreateBoneGroupByRootBoneName("default", "bone_usp_body");	// 디폴트 그룹은 필수
-		assert(grouping);
-
-		GameObjectHandle hGameObjectSecondaryWeaponPV = CreateGameObject(L"C.USP");
-		GameObject* pGameObjectSecondaryWeaponPV = hGameObjectSecondaryWeaponPV.ToPtr();
-		pGameObjectSecondaryWeaponPV->m_transform.SetParent(&pGameObjectPlayerCamera->m_transform);
-		pGameObjectSecondaryWeaponPV->m_transform.SetPosition(USP_PV_POS);
-
-		ComponentHandle<SkinnedMeshRenderer> hMeshRendererSecondaryWeaponPV = pGameObjectSecondaryWeaponPV->AddComponent<SkinnedMeshRenderer>();
-		SkinnedMeshRenderer* pMeshRendererSecondaryWeaponPV = hMeshRendererSecondaryWeaponPV.ToPtr();
-
-		// 재질 설정
-		auto mat_usp = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&mat_usp->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 1.0f));
-		XMStoreFloat4A(&mat_usp->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.25f), 4.0f));
-		mat_usp->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\usp\\textures\\diffuse.png");
-		mat_usp->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\usp\\textures\\normal.png");
-
-		pMeshRendererSecondaryWeaponPV->SetMesh(mesh_usp);
-		pMeshRendererSecondaryWeaponPV->SetMaterial(0, mat_usp);
-
-		pMeshRendererSecondaryWeaponPV->SetArmature(arma_usp);
-		// pMeshRendererSecondaryWeaponPV->PlayAnimation("usp_idle", true);
-		pMeshRendererSecondaryWeaponPV->PlayAnimation("usp_reload", true);
-		// pMeshRendererSecondaryWeaponPV->PlayAnimation("usp_shoot", true);
-		// pMeshRendererSecondaryWeaponPV->PlayAnimation("usp_run", true);
-	}
-
-	// Animated Weapons(b92fs black)
+	// 
+	// 
+	// // Animated Weapons(usp)
+	// constexpr XMFLOAT3 USP_PV_OFFSET(0.04f, -0.01f, 0.41f);
+	// constexpr XMFLOAT3 USP_PV_POS(FPSARM_POS.x + USP_PV_OFFSET.x, FPSARM_POS.y + USP_PV_OFFSET.y, FPSARM_POS.z + USP_PV_OFFSET.z);
+	// {
+	// 	std::shared_ptr<SkinnedMesh> mesh_usp = md_usp_pv.m_skinnedMeshes[0];
+	// 
+	// 	GameObjectHandle hGameObjectSecondaryWeaponPV = CreateGameObject(L"C.USP");
+	// 	GameObject* pGameObjectSecondaryWeaponPV = hGameObjectSecondaryWeaponPV.ToPtr();
+	// 	pGameObjectSecondaryWeaponPV->m_transform.SetParent(&pGameObjectPlayer->m_transform);
+	// 	pGameObjectSecondaryWeaponPV->m_transform.SetPosition(USP_PV_POS);
+	// 
+	// 	ComponentHandle<SkinnedMeshRenderer> hMeshRendererSecondaryWeaponPV = pGameObjectSecondaryWeaponPV->AddComponent<SkinnedMeshRenderer>();
+	// 	SkinnedMeshRenderer* pMeshRendererSecondaryWeaponPV = hMeshRendererSecondaryWeaponPV.ToPtr();
+	// 
+	// 	// 재질 설정
+	// 
+	// 	pMeshRendererSecondaryWeaponPV->SetMesh(mesh_usp);
+	// 	pMeshRendererSecondaryWeaponPV->SetMaterial(0, mat_usp);
+	// 
+	// 	pMeshRendererSecondaryWeaponPV->SetArmature(arma_usp);
+	// 	// pMeshRendererSecondaryWeaponPV->PlayAnimation("usp_idle", true);
+	// 	pMeshRendererSecondaryWeaponPV->PlayAnimation("usp_reload", true);
+	// 	// pMeshRendererSecondaryWeaponPV->PlayAnimation("usp_shoot", true);
+	// 	// pMeshRendererSecondaryWeaponPV->PlayAnimation("usp_run", true);
+	// }
+	// 
+	// // Animated Weapons(b92fs black)
 	// {
 	// 	ModelData md = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\b92fsb\\b92fsb_pv.glb");
 	// 	std::shared_ptr<SkinnedMesh> meshB92fsB = md.m_skinnedMeshes[0];
-	// 	std::shared_ptr<Armature> arma = md.m_armatures[0];	// USP 뼈대 공유
-	// 	bool grouping = arma->CreateBoneGroupByRootBoneName("default", "bone_usp_body");	// 디폴트 그룹은 필수
-	// 	assert(grouping);
-	// 
+	// 	
 	// 	GameObjectHandle hGameObject = CreateGameObject(L"B.92Fs black");
 	// 	GameObject* pGameObject = hGameObject.ToPtr();
-	// 	pGameObject->m_transform.SetParent(&pMainCamera->m_transform);
-	// 
+	// 	pGameObject->m_transform.SetParent(&pGameObjectPlayer->m_transform);
+	// 	
 	// 	pGameObject->m_transform.SetPosition(USP_PV_POS);
-	// 
+	// 	
 	// 	ComponentHandle<SkinnedMeshRenderer> hMeshRenderer = pGameObject->AddComponent<SkinnedMeshRenderer>();
 	// 	SkinnedMeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-	// 
+	// 	
 	// 	// 재질 설정
-	// 	auto matB92fsB = ResourceLoader::GetInstance()->CreateMaterial();
-	// 	XMStoreFloat4A(&matB92fsB->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 1.0f));
-	// 	XMStoreFloat4A(&matB92fsB->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.25f), 4.0f));
-	// 	matB92fsB->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\b92fsb\\textures\\diffuse.png");
-	// 	matB92fsB->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\b92fsb\\textures\\normal.png");
-	// 
-	// 	auto matB92fsBx300Body = ResourceLoader::GetInstance()->CreateMaterial();
-	// 	XMStoreFloat4A(&matB92fsBx300Body->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 1.0f));
-	// 	XMStoreFloat4A(&matB92fsBx300Body->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.25f), 4.0f));
-	// 	matB92fsBx300Body->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\b92fsb\\textures\\x300_body_diffuse.jpg");
-	// 	matB92fsBx300Body->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\b92fsb\\textures\\x300_body_normal.png");
-	// 
-	// 	auto matB92fsBx300Lamp = ResourceLoader::GetInstance()->CreateMaterial();
-	// 	XMStoreFloat4A(&matB92fsBx300Lamp->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 1.0f));
-	// 	XMStoreFloat4A(&matB92fsBx300Lamp->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.25f), 4.0f));
-	// 	matB92fsBx300Lamp->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\b92fsb\\textures\\x300_lamp_diffuse.jpg");
-	// 
+	// 	
 	// 	pMeshRenderer->SetMesh(meshB92fsB);
 	// 	pMeshRenderer->SetMaterial(0, matB92fsB);
 	// 	pMeshRenderer->SetMaterial(1, matB92fsBx300Body);
 	// 	pMeshRenderer->SetMaterial(2, matB92fsBx300Lamp);
-	// 
-	// 	pMeshRenderer->SetArmature(arma);
+	// 	
+	// 	pMeshRenderer->SetArmature(arma_usp);
 	// 	// pMeshRenderer->PlayAnimation("usp_idle", true);
 	// 	pMeshRenderer->PlayAnimation("usp_reload", true);
 	// 	// pMeshRenderer->PlayAnimation("usp_shoot", true);
 	// 	// pMeshRenderer->PlayAnimation("usp_run", true);
 	// }
-	// 
+	
 	// 물리엔진 테스트 박스
 	{
 		GameObjectHandle hGameObject = CreateGameObject(L"Box");
 		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(-0.5f, 6.0f, 0.5f);
+		pGameObject->m_transform.SetPosition(-7.5f, 4.5f, -0.0f);
 		// pGameObject->m_transform.SetRotationEuler(XMConvertToRadians(20.0f), 0, 0);
 		// pGameObject->m_transform.SetRotationEuler(0, XMConvertToRadians(20.0f), 0);
 		// pGameObject->m_transform.SetRotationEuler(0, 0, XMConvertToRadians(20.0f));
@@ -1116,201 +1050,7 @@ void Warehouse::OnLoadScene()
 		std::shared_ptr<BoxCollider> collider = std::make_shared<BoxCollider>(m_meshPaperBox->GetAabb().Extents);
 		ComponentHandle<Rigidbody> hRigidbody = pGameObject->AddComponent<Rigidbody>(collider, m_meshPaperBox->GetAabb().Center);
 		Rigidbody* pRigidbody = hRigidbody.ToPtr();
-		pRigidbody->SetFreezePosition(true, false, true);
-		pRigidbody->SetFreezeRotation(true, true, true);
-		pRigidbody->SetFriction(0.5);
-	}
-	
-	// Kinematic 발판 테스트
-	GameObjectHandle hKinematicFootboard;
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"Footboard");
-		hKinematicFootboard = hGameObject;
-	
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(-1.0f, 0.5f, 1.0f);
-		
-		// ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
-		// MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
-		// pMeshRenderer->SetMesh(meshBox);
-		// pMeshRenderer->SetMaterial(0, matPaperBox);
-		
-		std::shared_ptr<BoxCollider> collider = std::make_shared<BoxCollider>(XMFLOAT3(1.0f, 0.25f, 1.0f));
-		ComponentHandle<Rigidbody> hRigidbody = pGameObject->AddComponent<Rigidbody>(collider);
-		Rigidbody* pRigidbody = hRigidbody.ToPtr();
-		pRigidbody->SetKinematic(true);
-	}
-	
-	
-	// CollisionTrigger 테스트
-	GameObjectHandle hCollisionTriggerObj;
-	{
-		GameObjectHandle hGameObject = CreateGameObject(L"CollisionTrigger");
-		hCollisionTriggerObj = hGameObject;
-	
-		GameObject* pGameObject = hGameObject.ToPtr();
-		pGameObject->m_transform.SetPosition(0.0f, 3.0f, 0.0f);
-	
-		std::shared_ptr<BoxCollider> collider = std::make_shared<BoxCollider>(XMFLOAT3(0.5f, 0.5f, 0.5f));
-		ComponentHandle<Rigidbody> hCollisionTrigger = pGameObject->AddComponent<Rigidbody>(collider);
-		Rigidbody* pCollisionTrigger = hCollisionTrigger.ToPtr();
-		pCollisionTrigger->SetKinematic(true);
-		pCollisionTrigger->SetTrigger(true);
-	
-		ComponentHandle<CollisionEventTest> hCollisionEventTest = pGameObject->AddComponent<CollisionEventTest>();
-		hCollisionEventTest.ToPtr()->m_hRigidbody = hCollisionTrigger;
-	}
-
-
-	// ## Third person character test
-	{
-		ModelData md_steven_tv = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\characters\\steven\\steven.glb");
-		std::shared_ptr<SkinnedMesh> meshSteven = md_steven_tv.m_skinnedMeshes[0];
-		std::shared_ptr<Armature> armaSteven = md_steven_tv.m_armatures[0];
-		bool grouping;
-		grouping = armaSteven->CreateBoneGroupByRootBoneName("upper_body", "Spine0");
-		assert(grouping);
-		grouping = armaSteven->CreateBoneGroupByExcludeGroup("lower_body", "upper_body");
-		assert(grouping);
-		
-		GameObjectHandle hGameObjectThirdPersonCharacter = CreateGameObject(L"steven");
-		GameObject* pGameObjectThirdPersonCharacter = hGameObjectThirdPersonCharacter.ToPtr();
-		pGameObjectThirdPersonCharacter->m_transform.SetPosition(-1, 0, 1);
-
-		// 캐릭터 스크립트 컴포넌트
-		ComponentHandle<ThirdPersonCharacter> hScriptThirdPersonCharacter = pGameObjectThirdPersonCharacter->AddComponent<ThirdPersonCharacter>();
-		ThirdPersonCharacter* pScriptThirdPersonCharacter = hScriptThirdPersonCharacter.ToPtr();
-
-		ComponentHandle<SkinnedMeshRenderer> hSkinnedMeshRendererThirdPersonCharacter = pGameObjectThirdPersonCharacter->AddComponent<SkinnedMeshRenderer>();
-		pScriptThirdPersonCharacter->m_hSkinnedMeshRendererThirdPersonCharacter = hSkinnedMeshRendererThirdPersonCharacter;	// 컴포넌트 핸들을 멤버로 저장
-		SkinnedMeshRenderer* pSkinnedMeshRendererThirdPersonCharacter = hSkinnedMeshRendererThirdPersonCharacter.ToPtr();
-
-
-		auto matBody = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matBody->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.6f), 1.0f));
-		XMStoreFloat4A(&matBody->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 1.0f));
-		matBody->m_specular.w = 4.0f;
-		matBody->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\characters\\steven\\textures\\body.png");
-		
-		auto matSuit = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matSuit->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.6f), 1.0f));
-		XMStoreFloat4A(&matSuit->m_specular, XMVectorSetW(ColorsLinear::Black, 1.0f));
-		matSuit->m_specular.w = 4.0f;
-		matSuit->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\characters\\steven\\textures\\suit_diffuse.png");
-		matSuit->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\characters\\steven\\textures\\suit_normal.png");
-		
-		auto matShoes = ResourceLoader::GetInstance()->CreateMaterial();
-		XMStoreFloat4A(&matShoes->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
-		XMStoreFloat4A(&matShoes->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
-		matShoes->m_specular.w = 4.0f;
-		
-		pSkinnedMeshRendererThirdPersonCharacter->SetMesh(meshSteven);
-		pSkinnedMeshRendererThirdPersonCharacter->SetMaterial(0, matBody);
-		pSkinnedMeshRendererThirdPersonCharacter->SetMaterial(1, matSuit);
-		pSkinnedMeshRendererThirdPersonCharacter->SetMaterial(2, matShoes);
-
-		pSkinnedMeshRendererThirdPersonCharacter->SetArmature(armaSteven);
-
-		// pSkinnedMeshRendererThirdPersonCharacter->PlayAnimation("run", false);
-		// pSkinnedMeshRendererThirdPersonCharacter->PlayAnimation("reload_rifle", true);
-		// pSkinnedMeshRendererThirdPersonCharacter->PlayAnimation("aim_rifle", true);
-		// pSkinnedMeshRendererThirdPersonCharacter->PlayAnimation("aim_pistol", true);
-		// pSkinnedMeshRendererThirdPersonCharacter->PlayAnimation("reload_pistol", true);
-
-		pSkinnedMeshRendererThirdPersonCharacter->PlayGroupAnimation("aim_rifle", "lower_body", true);
-		// pSkinnedMeshRendererThirdPersonCharacter->PlayGroupAnimation("shoot_pistol", "upper_body", true);
-		// pSkinnedMeshRendererThirdPersonCharacter->PlayGroupAnimation("reload_pistol", "upper_body", true
-		pSkinnedMeshRendererThirdPersonCharacter->PlayGroupAnimation("aim_rifle", "upper_body", true);
-
-
-		// 주 무기 3인칭 핸들링 테스트
-		GameObjectHandle hGameObjectTVWeaponBase = CreateGameObject(L"tv weapon base");
-		pScriptThirdPersonCharacter->m_hGameObjectTVWeaponBase = hGameObjectTVWeaponBase;		// 오브젝트 핸들 저장
-		GameObject* pGameObjectTVWeaponBase = hGameObjectTVWeaponBase.ToPtr();
-		pGameObjectTVWeaponBase->m_transform.SetParent(&pGameObjectThirdPersonCharacter->m_transform);
-
-		
-		constexpr XMFLOAT3 PRIMARY_WEAPON_OFFSET(-0.004f, +0.06f, +0.03f);		// Primary weapon local pos
-		XMVECTOR primaryWeaponLocalRot = XMQuaternionRotationNormal(Vector3::Up(), XMConvertToRadians(+90));
-		primaryWeaponLocalRot = XMQuaternionMultiply(primaryWeaponLocalRot, XMQuaternionRotationNormal(Vector3::Forward(), XMConvertToRadians(+81)));
-		primaryWeaponLocalRot = XMQuaternionMultiply(primaryWeaponLocalRot, XMQuaternionRotationNormal(Vector3::Right(), XMConvertToRadians(+8)));
-		{
-			// m4a1_tv모델 메시 & 재질 불러오기
-			auto mesh_m4a1_tv = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\m4a1\\m4a1_tv.obj").m_staticMeshes[0];
-			auto matM4A1Receiver = ResourceLoader::GetInstance()->CreateMaterial();
-			XMStoreFloat4A(&matM4A1Receiver->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
-			XMStoreFloat4A(&matM4A1Receiver->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 4.0f));
-			matM4A1Receiver->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\receiver_diffuse.png");
-			matM4A1Receiver->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\receiver_normal.png");
-			auto matM4A1Furniture = ResourceLoader::GetInstance()->CreateMaterial();
-			XMStoreFloat4A(&matM4A1Furniture->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
-			XMStoreFloat4A(&matM4A1Furniture->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 8.0f));
-			matM4A1Furniture->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\furniture_diffuse.png");
-			matM4A1Furniture->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\furniture_normal.png");
-			auto matRearSight = ResourceLoader::GetInstance()->CreateMaterial();
-			XMStoreFloat4A(&matRearSight->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
-			XMStoreFloat4A(&matRearSight->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 4.0f));
-			matRearSight->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\rearsight_diffuse.png");
-			matRearSight->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\m4a1\\textures\\rearsight_normal.png");
-
-			GameObjectHandle hGameObjectTVWeapon = CreateGameObject(L"tv_weapon_pri");
-			pScriptThirdPersonCharacter->m_hGameObjectTVWeapons[0] = hGameObjectTVWeapon;		// 오브젝트 핸들 저장
-			GameObject* pGameObjectTVWeapon = hGameObjectTVWeapon.ToPtr();
-			pGameObjectTVWeapon->m_transform.SetRotationQuaternion(primaryWeaponLocalRot);
-			pGameObjectTVWeapon->m_transform.SetPosition(PRIMARY_WEAPON_OFFSET);
-			pGameObjectTVWeapon->m_transform.SetParent(&pGameObjectTVWeaponBase->m_transform);
-
-			ComponentHandle<MeshRenderer> hMeshRendererTVWeapon = pGameObjectTVWeapon->AddComponent<MeshRenderer>();
-			MeshRenderer* pMeshRendererTVWeapon = hMeshRendererTVWeapon.ToPtr();
-
-			// 메시 설정
-			pMeshRendererTVWeapon->SetMesh(mesh_m4a1_tv);
-			pMeshRendererTVWeapon->SetMaterial(0, matM4A1Receiver);
-			pMeshRendererTVWeapon->SetMaterial(1, matM4A1Furniture);
-			pMeshRendererTVWeapon->SetMaterial(2, matRearSight);
-			pMeshRendererTVWeapon->SetMaterial(3, matSTANAG30Rds);
-		}
-		
-		constexpr XMFLOAT3 SECONDARY_WEAPON_OFFSET(-0.014f, +0.07f, +0.03f);		// SAVE
-		XMVECTOR secondaryWeaponLocalRot = XMQuaternionRotationNormal(Vector3::Up(), XMConvertToRadians(+90));
-		secondaryWeaponLocalRot = XMQuaternionMultiply(secondaryWeaponLocalRot, XMQuaternionRotationNormal(Vector3::Forward(), XMConvertToRadians(+81)));
-		secondaryWeaponLocalRot = XMQuaternionMultiply(secondaryWeaponLocalRot, XMQuaternionRotationNormal(Vector3::Right(), XMConvertToRadians(-10)));
-
-		{
-			auto mesh_b92fsb = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\b92fsb\\b92fsb_tv.obj").m_staticMeshes[0];
-			auto mat_b92fsb = ResourceLoader::GetInstance()->CreateMaterial();
-			XMStoreFloat4A(&mat_b92fsb->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 1.0f));
-			XMStoreFloat4A(&mat_b92fsb->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.25f), 4.0f));
-			mat_b92fsb->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\b92fsb\\textures\\diffuse.png");
-			mat_b92fsb->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\b92fsb\\textures\\normal.png");
-
-			auto mat_b92fsb_x300Body = ResourceLoader::GetInstance()->CreateMaterial();
-			XMStoreFloat4A(&mat_b92fsb_x300Body->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 1.0f));
-			XMStoreFloat4A(&mat_b92fsb_x300Body->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.25f), 4.0f));
-			mat_b92fsb_x300Body->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\b92fsb\\textures\\x300_body_diffuse.jpg");
-			mat_b92fsb_x300Body->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\b92fsb\\textures\\x300_body_normal.png");
-
-			auto mat_b92fsb_x300Lamp = ResourceLoader::GetInstance()->CreateMaterial();
-			XMStoreFloat4A(&mat_b92fsb_x300Lamp->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.2f), 1.0f));
-			XMStoreFloat4A(&mat_b92fsb_x300Lamp->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.25f), 4.0f));
-			mat_b92fsb_x300Lamp->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\weapons\\b92fsb\\textures\\x300_lamp_diffuse.jpg");
-
-
-			GameObjectHandle hGameObjectTVWeapon = CreateGameObject(L"tv_weapon_sec");
-			pScriptThirdPersonCharacter->m_hGameObjectTVWeapons[1] = hGameObjectTVWeapon;		// 오브젝트 핸들 저장
-			GameObject* pGameObjectTVWeapon = hGameObjectTVWeapon.ToPtr();
-			pGameObjectTVWeapon->m_transform.SetPosition(SECONDARY_WEAPON_OFFSET);
-			pGameObjectTVWeapon->m_transform.SetRotationQuaternion(secondaryWeaponLocalRot);
-			pGameObjectTVWeapon->m_transform.SetParent(&pGameObjectTVWeaponBase->m_transform);
-
-			ComponentHandle<MeshRenderer> hMeshRendererTVWeapon = pGameObjectTVWeapon->AddComponent<MeshRenderer>();
-			MeshRenderer* pMeshRendererTVWeapon = hMeshRendererTVWeapon.ToPtr();
-
-			pMeshRendererTVWeapon->SetMesh(mesh_b92fsb);
-			pMeshRendererTVWeapon->SetMaterial(0, mat_b92fsb);
-			pMeshRendererTVWeapon->SetMaterial(1, mat_b92fsb_x300Body);
-			pMeshRendererTVWeapon->SetMaterial(2, mat_b92fsb_x300Lamp);
-		}
+		pRigidbody->SetFriction(1.0);
 	}
 
 
@@ -1396,6 +1136,9 @@ void Warehouse::OnLoadScene()
 
 	CreateOpenContainer2(XMFLOAT3(-5.6f, 1.568f, 1.3f), XMFLOAT3(XMConvertToRadians(30.0f), XMConvertToRadians(45.0f), 0.0f));
 
+	CreateBarrel1(XMFLOAT3(0.0f, 0.2f, 0.0f));
+	CreateBarrel2(XMFLOAT3(0.0f, 0.0f, -1.0f));
+	CreateBarrel3(XMFLOAT3(-1.0f, 0.0f, 0.0f));
 
 	{
 		GameObjectHandle hGameObject = CreateGameObject(L"House Frame");
@@ -1465,14 +1208,18 @@ void Warehouse::OnLoadScene()
 	{
 		GameObjectHandle hGameObject = CreateGameObject(L"House Floor");
 		GameObject* pGameObject = hGameObject.ToPtr();
+		pGameObject->m_transform.SetPosition(0.0f, 0.0f, 0.0f);
 
 		ComponentHandle<MeshRenderer> hMeshRenderer = pGameObject->AddComponent<MeshRenderer>();
 		MeshRenderer* pMeshRenderer = hMeshRenderer.ToPtr();
 		pMeshRenderer->SetMesh(meshHouseFloor);
 		pMeshRenderer->SetMaterial(0, matConcrete2);
-
-		std::shared_ptr<StaticPlaneCollider> collider = std::make_shared<StaticPlaneCollider>();
-		auto c = pGameObject->AddComponent<StaticRigidbody>(collider);
+		
+		std::shared_ptr<StaticPlaneCollider> collider = std::make_shared<StaticPlaneCollider>(XMFLOAT3(0.0f, 1.0f, 0.0f), 0.0f);
+		pGameObject->AddComponent<Rigidbody>(collider).ToPtr()->SetBodyType(RigidbodyType::Static);
+		// constexpr XMFLOAT3 FLOOR_COLLIDER_HALF_EXTENTS(50.0f, 0.5f, 50.0f);
+		// std::shared_ptr<BoxCollider> collider = std::make_shared<BoxCollider>(FLOOR_COLLIDER_HALF_EXTENTS);
+		// pGameObject->AddComponent<Rigidbody>(collider, XMFLOAT3(0.0f, -FLOOR_COLLIDER_HALF_EXTENTS.y, 0.0f)).ToPtr()->SetBodyType(RigidbodyType::Static);
 	}
 
 

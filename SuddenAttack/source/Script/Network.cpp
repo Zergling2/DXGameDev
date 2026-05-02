@@ -430,6 +430,7 @@ void Network::PktProcSCResExitGameRoom(winppy::Packet packet)
 	pScriptLobbyHandler->ClearGameRoomInfo();
 
 	pScriptLobbyHandler->SetLobbyState(LobbyState::GameListBrowser);
+	pScriptLobbyHandler->ShowSelectedGameRoomIndicator(true);
 }
 
 void Network::PktProcSCResExitGameChannel(winppy::Packet packet)

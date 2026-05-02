@@ -408,12 +408,6 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\TerrainCollider.h">
       <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
     </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\StaticRigidbody.h">
-      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\RigidbodyInterface.h">
-      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
-    </ClInclude>
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\StaticPlaneCollider.h">
       <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
     </ClInclude>
@@ -724,12 +718,6 @@
     </ClCompile>
     <ClCompile Include="source\CoreSystem\BulletDXMath.cpp">
       <Filter>Files\ZergEngine\CoreSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\GamePlayBase\Component\StaticRigidbody.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="source\CoreSystem\GamePlayBase\Component\RigidbodyInterface.cpp">
-      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\Resource\StaticPlaneCollider.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>

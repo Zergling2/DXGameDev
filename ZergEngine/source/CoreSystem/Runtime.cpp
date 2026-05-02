@@ -35,9 +35,6 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\SliderControl.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\Checkbox.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\RadioButton.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\Component\SkinnedMeshRenderer.h>
-#include <ZergEngine\CoreSystem\Resource\Animation.h>
-#include <bullet3\LinearMath\btQuickprof.h>
 
 using namespace ze;
 
@@ -335,41 +332,7 @@ void Runtime::OnIdle()
     MonoBehaviourManager::GetInstance()->LateUpdate();
 
     // Update animation time cursor
-    for (IComponent* pComponent : SkinnedMeshRendererManager::GetInstance()->m_directAccessGroup)
-    {
-        SkinnedMeshRenderer* pSkinnedMeshRenderer = static_cast<SkinnedMeshRenderer*>(pComponent);
-
-        auto iter = pSkinnedMeshRenderer->m_currAnims.begin();
-        while (iter != pSkinnedMeshRenderer->m_currAnims.cend())
-        {
-            const std::string& boneGroupName = iter->first;
-            PlayingAnimation& pa = iter->second;
-            assert(pa.m_pAnim);
-
-            const float animDuration = pa.m_pAnim->GetDuration();
-            float newTimeCursor = pa.m_timeCursor + Time::GetInstance()->GetDeltaTime() * pa.m_playbackSpeed;
-
-            if (pa.m_loop)
-            {
-                newTimeCursor = Math::WrapFloat(newTimeCursor, animDuration);
-                pa.m_timeCursor = newTimeCursor;
-
-                ++iter;
-            }
-            else
-            {
-                if (0.0f <= newTimeCursor && newTimeCursor <= animDuration)
-                {
-                    pa.m_timeCursor = newTimeCursor;
-                    ++iter;
-                }
-                else
-                {
-                    iter = pSkinnedMeshRenderer->m_currAnims.erase(iter);
-                }
-            }
-        }
-    }
+    SkinnedMeshRendererManager::GetInstance()->UpdateAnimationTime();
 
     RemoveDestroyedComponentsAndObjects();
 

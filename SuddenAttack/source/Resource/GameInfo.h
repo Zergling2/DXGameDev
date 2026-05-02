@@ -19,3 +19,5 @@ class GameRoomStateInfo
 public:
 	static const wchar_t* GetGameRoomStateString(GameRoomState type);
 };
+
+

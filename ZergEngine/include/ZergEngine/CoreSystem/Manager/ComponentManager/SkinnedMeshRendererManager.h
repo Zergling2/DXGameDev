@@ -17,6 +17,8 @@ namespace ze
 
 		static void CreateInstance();
 		static void DestroyInstance();
+
+		void UpdateAnimationTime();
 	private:
 		static SkinnedMeshRendererManager* s_pInstance;
 	};

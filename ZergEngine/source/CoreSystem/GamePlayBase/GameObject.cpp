@@ -29,6 +29,14 @@ void GameObject::DontDestroyOnLoad()
 	this->OnFlag(GAMEOBJECT_FLAG::DONT_DESTROY_ON_LOAD);
 }
 
+void GameObject::DontDestroyOnLoadRecursively()
+{
+	this->OnFlag(GAMEOBJECT_FLAG::DONT_DESTROY_ON_LOAD);
+
+	for (auto pChild : m_transform.m_children)
+		pChild->m_pGameObject->DontDestroyOnLoadRecursively();
+}
+
 void GameObject::Destroy()
 {
 	if (this->IsPending())

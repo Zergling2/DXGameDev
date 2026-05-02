@@ -17,6 +17,7 @@
 #include <ZergEngine\CoreSystem\Resource\StaticMesh.h>
 #include <ZergEngine\CoreSystem\Resource\SkinnedMesh.h>
 #include <ZergEngine\CoreSystem\Resource\Armature.h>
+#include <ZergEngine\CoreSystem\Resource\Animation.h>
 #include <ZergEngine\CoreSystem\Resource\Material.h>
 #include <ZergEngine\CoreSystem\Resource\Texture.h>
 #include <ZergEngine\CoreSystem\Resource\BoxCollider.h>
@@ -28,7 +29,6 @@
 #include <ZergEngine\CoreSystem\Resource\TerrainCollider.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Rigidbody.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\Component\StaticRigidbody.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\MonoBehaviour.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Camera.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Light.h>

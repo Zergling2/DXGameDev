@@ -9,7 +9,7 @@ CollisionEventTest::CollisionEventTest(ze::GameObject& owner)
 
 void CollisionEventTest::Awake()
 {
-	if (Rigidbody* pRigidbody = m_hRigidbody.ToPtr())
+	if (Rigidbody* pRigidbody = m_hRigidbodyCollider.ToPtr())
 		pRigidbody->ListenCollisionEvent();
 }
 

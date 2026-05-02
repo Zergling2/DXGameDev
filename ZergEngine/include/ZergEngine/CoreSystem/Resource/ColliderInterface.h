@@ -8,11 +8,15 @@ namespace ze
 {
 	enum class ColliderType
 	{
+		// convex
 		Box,
 		Sphere,
 		Capsule,
 		Cone,
 		Cylinder,
+
+
+
 		StaticPlane,
 		Terrain
 	};

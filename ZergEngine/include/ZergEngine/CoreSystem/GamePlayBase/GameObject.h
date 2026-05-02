@@ -49,6 +49,7 @@ namespace ze
 		static GameObjectHandle Find(const std::wstring& name) { GameObject::Find(name.c_str()); }
 	public:
 		void DontDestroyOnLoad();
+		void DontDestroyOnLoadRecursively();
 		void Destroy();
 		void Destroy(float delay);
 		bool IsDontDestroyOnLoad() const { return static_cast<goft>(m_flag) & static_cast<goft>(GAMEOBJECT_FLAG::DONT_DESTROY_ON_LOAD); }

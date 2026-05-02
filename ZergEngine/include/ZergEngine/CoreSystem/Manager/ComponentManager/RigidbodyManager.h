@@ -7,7 +7,7 @@ namespace ze
 	class RigidbodyManager : public IComponentManager
 	{
 		friend class Runtime;
-		friend class IRigidbody;
+		friend class Rigidbody;
 	public:
 		static RigidbodyManager* GetInstance() { return s_pInstance; }
 	private:

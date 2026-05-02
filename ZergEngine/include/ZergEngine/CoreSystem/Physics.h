@@ -15,10 +15,15 @@ class btOverlappingPairCallback;
 class btSequentialImpulseConstraintSolver;
 class btDiscreteDynamicsWorld;
 class btCollisionObject;
+class btConvexShape;
 
 namespace ze
 {
 	class PhysicsDebugDrawer;
+	class BoxCollider;
+	class SphereCollider;
+	class CapsuleCollider;
+	class Rigidbody;
 
 	struct CollisionPairHash
 	{
@@ -47,22 +52,43 @@ namespace ze
 		}
 	};
 
+	struct SweepHit
+	{
+		const Rigidbody* m_pHitObject;
+		XMFLOAT3 m_hitNormalWorld;
+		XMFLOAT3 m_hitPointWorld;
+		FLOAT m_hitFraction;
+	};
+
+	struct RayHit
+	{
+		bool HasHit() const { return m_pHitObject != nullptr; }
+		const Rigidbody* m_pHitObject;
+		XMFLOAT3 m_hitNormalWorld;
+		XMFLOAT3 m_hitPointWorld;
+		FLOAT m_hitFraction;
+	};
+
 	class Physics
 	{
 		friend class Runtime;
 		friend class Renderer;
-		friend class IRigidbody;
 		friend class Rigidbody;
 		friend class RigidbodyManager;
-		friend class CollisionTrigger;
-		friend class CollisionTriggerManager;
 	public:
 		static Physics* GetInstance() { return s_pInstance; }
 
 		void DrawDebugInfo(bool b);
 
 		void SetGravity(const XMFLOAT3& gravity);
-		XMFLOAT3 GetGravity() const { return m_gravity; }
+		const XMFLOAT3& GetGravity() const { return m_gravity; }
+
+		std::vector<SweepHit> XM_CALLCONV BoxSweepTest(FXMMATRIX transform, const XMFLOAT3& move, const BoxCollider* pCollider);
+		std::vector<SweepHit> XM_CALLCONV SphereSweepTest(FXMMATRIX transform, const XMFLOAT3& move, const SphereCollider* pCollider);
+		std::vector<SweepHit> XM_CALLCONV CapsuleSweepTest(FXMMATRIX transform, const XMFLOAT3& move, const CapsuleCollider* pCollider);
+		std::vector<SweepHit> XM_CALLCONV ConvexSweepTestImpl(FXMMATRIX transform, const XMFLOAT3& move, const btConvexShape* pBtConvexShape);
+		RayHit ClosestRaycastTest(const XMFLOAT3& fromWorld, const XMFLOAT3& toWorld);
+		std::vector<RayHit> RaycastTest(const XMFLOAT3& fromWorld, const XMFLOAT3& toWorld);
 	private:
 		Physics();
 		~Physics();

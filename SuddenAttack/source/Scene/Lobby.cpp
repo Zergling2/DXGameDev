@@ -3,6 +3,7 @@
 #include "../Script/LobbyHandler.h"
 #include "../Script/Network.h"
 #include "../Script/Account.h"
+#include "../Resource/GlobalGameObjects.h"
 #include "Constants.h"
 
 using namespace ze;
@@ -10,10 +11,6 @@ using namespace ze;
 ZE_IMPLEMENT_SCENE(Lobby);
 
 static bool g_singleton = false;
-const wchar_t* GO_GAME_RESOURCES_NAME = L"%GameResources";
-const wchar_t* GO_LOBBY_HANDLER_NAME = L"%LobbyHandler";
-const wchar_t* GO_ACCOUNT_NAME = L"%Account";
-const wchar_t* GO_NETWORK_NAME = L"%Network";
 
 const wchar_t* BTN_TEXT_CREATE_ACCOUNT = L"계정 생성";
 const wchar_t* BTN_TEXT_LOGIN = L"로그인";
@@ -36,9 +33,6 @@ void Lobby::OnLoadScene()
 		GameObject* pGameObjectGameResources = hGameObjectGameResources.ToPtr();
 		pGameObjectGameResources->DontDestroyOnLoad();	// DontDestroyOnLoad
 		ComponentHandle<GameResources> hScriptGameResources = pGameObjectGameResources->AddComponent<GameResources>();
-		GameResources* pScriptGameResources = hScriptGameResources.ToPtr();
-		pScriptGameResources->m_texLoginBgr = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\login_bgr.png");
-		pScriptGameResources->m_texGameListBgr = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\gamelist_bgr.png");
 
 		// 2. 로비 핸들러 게임오브젝트 생성
 		GameObjectHandle hGameObjectLobbyHandler = CreateGameObject(GO_LOBBY_HANDLER_NAME);

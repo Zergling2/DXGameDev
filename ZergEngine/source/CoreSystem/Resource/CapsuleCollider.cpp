@@ -5,6 +5,8 @@
 using namespace ze;
 
 CapsuleCollider::CapsuleCollider(float radius, float height)
+	: m_radius(radius)
+	, m_height(height)
 {
 	m_upBtCollisionShape = std::make_unique<btCapsuleShape>(radius, height);
 }
