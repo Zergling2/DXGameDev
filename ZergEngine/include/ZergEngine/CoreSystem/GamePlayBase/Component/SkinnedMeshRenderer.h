@@ -109,10 +109,25 @@ namespace ze
 		bool PlayGroupAnimation(const std::string& animName, const std::string& groupName, bool loop, float playbackSpeed = 1.0f, float timeCursor = 0.0f);
 
 		/**
+		* @brief 모든 본 그룹에 대해 애니메이션의 재생 속도를 설정합니다.
+		*
+		* @param playbackSpeed 애니메이션의 새로운 재생 속도입니다.
+		*/
+		void SetAnimationSpeed(float playbackSpeed);
+
+		/**
+		* @brief 모든 본 그룹에 대해 애니메이션의 타임라인 커서를 설정합니다.
+		*
+		* @param groupName 본 그룹의 이름입니다.
+		* @param timeCursor 애니메이션 타임라인 커서의 새로운 값입니다.
+		*/
+		void SetAnimationTimeCursor(float timeCursor);
+
+		/**
 		* @brief 본 그룹 애니메이션의 재생 속도를 설정합니다.
 		*
 		* @param groupName 본 그룹의 이름입니다.
-		* @param playbackSpeed 새로운 애니메이션 재생 속도입니다.
+		* @param playbackSpeed 애니메이션 새로운 재생 속도입니다.
 		* @return 지정한 본 그룹이 애니메이션을 재생 중이지 않을 경우 false를 반환합니다. 재생 속도 변경에 성공하면 true를 반환합니다.
 		*/
 		bool SetGroupAnimationSpeed(const std::string& groupName, float playbackSpeed);

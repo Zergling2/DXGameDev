@@ -45,8 +45,6 @@ namespace ze
 		*/
 		uint32_t GetBoneCount() const { return static_cast<uint32_t>(m_boneIndexMap.size()); }
 
-		const std::unordered_map<std::string, std::vector<bone_index_type>>& GetBoneGroups() const { return m_boneGroup; }
-
 		/**
 		* @brief 본 그룹에 포함된 본 인덱스 벡터를 반환.
 		* @param groupName 본 그룹 이름
@@ -61,6 +59,7 @@ namespace ze
 		uint32_t GetAnimationCount() const { return static_cast<uint32_t>(m_anims.size()); }
 
 		const std::unordered_map<std::string, bone_index_type>& GetBoneIndexMap() const { return m_boneIndexMap; }
+		const std::unordered_map<std::string, std::vector<bone_index_type>>& GetBoneGroups() const { return m_boneGroup; }
 		const bone_index_type* GetBoneHierarchy() const { return m_upBoneHierarchy.get(); }
 		const XMFLOAT4X4A* GetMdInvArray() const { return m_upMdInvArray.get(); }
 		const Animation* GetAnimation(const std::string& animName) const;

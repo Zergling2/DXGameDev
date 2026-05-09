@@ -3,6 +3,7 @@
 #include <ZergEngine\ZergEngine.h>
 
 class GameResources;
+class CharacterViewInfo;
 
 class ThirdPersonCharacter : public ze::MonoBehaviour
 {
@@ -13,6 +14,8 @@ public:
 
 	virtual void Awake() override;
 	virtual void Update() override;
+
+	void CreateCharacterView(const CharacterViewInfo* pCharacterViewInfo);
 private:
 	ze::ComponentHandle<GameResources> m_hScriptGameResources;
 
@@ -21,7 +24,7 @@ private:
 	XMFLOAT4 m_primaryWeaponLocalRot;
 	XMFLOAT4 m_secondaryWeaponLocalRot;
 public:
-	ze::ComponentHandle<ze::SkinnedMeshRenderer> m_hSkinnedMeshRendererThirdPersonCharacter;
+	ze::ComponentHandle<ze::SkinnedMeshRenderer> m_hSkinnedMeshRendererCharacter;
 	ze::GameObjectHandle m_hGameObjectTVWeaponBase;
 	ze::GameObjectHandle m_hGameObjectTVWeapons[2];
 	ze::GameObjectHandle m_hGameObjectHitboxBody;

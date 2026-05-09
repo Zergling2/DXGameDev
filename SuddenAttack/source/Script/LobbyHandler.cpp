@@ -1116,7 +1116,7 @@ void LobbyHandler::UpdateUI()
 		
 		// 현재 상태에 대응하는 UI 보이기
 		// 배경 이미지 교체
-		static_cast<Image*>(m_hImageLobbyBgr.ToPtr())->SetTexture(m_hScriptGameResources.ToPtr()->GetTexture(L"login_bgr"));
+		static_cast<Image*>(m_hImageLobbyBgr.ToPtr())->SetTexture(m_hScriptGameResources.ToPtr()->GetTexture2D(L"login_bgr"));
 		m_hImageLobbyBgr.ToPtr()->SetActive(true);
 
 		// 로그인 UI 표시
@@ -1154,7 +1154,7 @@ void LobbyHandler::UpdateUI()
 		// 현재 상태에 대응하는 UI 보이기
 		
 		// 배경 이미지 교체
-		static_cast<Image*>(m_hImageLobbyBgr.ToPtr())->SetTexture(m_hScriptGameResources.ToPtr()->GetTexture(L"gamelist_bgr"));
+		static_cast<Image*>(m_hImageLobbyBgr.ToPtr())->SetTexture(m_hScriptGameResources.ToPtr()->GetTexture2D(L"gamelist_bgr"));
 		m_hImageLobbyBgr.ToPtr()->SetActive(true);
 
 		m_hPanelChatRoot.ToPtr()->SetActive(true);

@@ -1,5 +1,5 @@
 #include "Warehouse.h"
-#include "..\Script\PlayerController.h"
+#include "..\Script\Player.h"
 #include "..\Script\GameUIManager.h"
 #include "..\Script\ThirdPersonCharacter.h"
 #include "..\Script\CollisionEventTest.h"
@@ -7,6 +7,8 @@
 using namespace ze;
 
 ZE_IMPLEMENT_SCENE(Warehouse);
+
+static const wchar_t* PLAYER_UI_TEXT_FONT = L"Agency FB";
 
 void Warehouse::CreateShortContainer(const XMFLOAT3& pos, const XMFLOAT3& rot)
 {
@@ -498,15 +500,16 @@ void Warehouse::OnLoadScene()
 	}
 
 	// ## Player
-	ComponentHandle<PlayerController> hScriptPlayerController;
+	ComponentHandle<Player> hScriptPlayer;
 	{
 		GameObjectHandle hGameObjectPlayer = CreateGameObject(L"Player");
 		GameObject* pGameObjectPlayer = hGameObjectPlayer.ToPtr();
 
-		hScriptPlayerController = pGameObjectPlayer->AddComponent<PlayerController>();		// 1인칭 카메라 조작
+		hScriptPlayer = pGameObjectPlayer->AddComponent<Player>();		// 1인칭 카메라 조작
 
 		pGameObjectPlayer->m_transform.SetPosition(-7.0f, 4.0f, -5.0f);
 	}
+	Player* pScriptPlayer = hScriptPlayer.ToPtr();
 	
 	
 	// Adapter Info UI
@@ -591,11 +594,12 @@ void Warehouse::OnLoadScene()
 		pText->ApplyTextFormat();
 	}
 
-	GameObjectHandle hGameObjectUIHandler = CreateGameObject();
-	GameObject* pGameObjectUIHandler = hGameObjectUIHandler.ToPtr();
-	ComponentHandle<GameUIManager> hScriptGameUIManager = pGameObjectUIHandler->AddComponent<GameUIManager>();
+	GameObjectHandle hGameObjectGameUIManager = CreateGameObject();
+	GameObject* pGameObjectGameUIManager = hGameObjectGameUIManager.ToPtr();
+	ComponentHandle<GameUIManager> hScriptGameUIManager = pGameObjectGameUIManager->AddComponent<GameUIManager>();
+	pScriptPlayer->m_hScriptGameUIManager = hScriptGameUIManager;
 	GameUIManager* pScriptGameUIManager = hScriptGameUIManager.ToPtr();
-	pScriptGameUIManager->m_hScriptPlayerController = hScriptPlayerController;
+	pScriptGameUIManager->m_hScriptPlayer = hScriptPlayer;
 
 	// ## UI
 	{
@@ -669,7 +673,7 @@ void Warehouse::OnLoadScene()
 		pTextPoint->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 		pTextPoint->SetColor(ColorsLinear::White);
 		pTextPoint->GetTextFormat().SetSize(22);
-		pTextPoint->GetTextFormat().SetFontFamilyName(L"Agency FB");
+		pTextPoint->GetTextFormat().SetFontFamilyName(PLAYER_UI_TEXT_FONT);
 		pTextPoint->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_ULTRA_BOLD);
 		pTextPoint->GetTextFormat().SetStyle(DWRITE_FONT_STYLE_ITALIC);
 		pTextPoint->ApplyTextFormat();
@@ -686,26 +690,26 @@ void Warehouse::OnLoadScene()
 		pTextWeaponName->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 		pTextWeaponName->SetColor(ColorsLinear::White);
 		pTextWeaponName->GetTextFormat().SetSize(22);
-		pTextWeaponName->GetTextFormat().SetFontFamilyName(L"Agency FB");
+		pTextWeaponName->GetTextFormat().SetFontFamilyName(PLAYER_UI_TEXT_FONT);
 		pTextWeaponName->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_ULTRA_BOLD);
 		pTextWeaponName->ApplyTextFormat();
 
-		UIObjectHandle hTextAmmo = CreateText();
-		pScriptGameUIManager->m_hTextAmmo = hTextAmmo;
-		Text* pTextAmmo = static_cast<Text*>(hTextAmmo.ToPtr());
-		pTextAmmo->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
-		pTextAmmo->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
-		pTextAmmo->m_transform.SetPosition(pImageRBUIBackground->m_transform.GetPosition());
-		pTextAmmo->m_transform.Translate(16, -28);
-		pTextAmmo->SetSize(XMFLOAT2(128, 40));
-		pTextAmmo->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-		pTextAmmo->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-		pTextAmmo->SetColor(ColorsLinear::White);
-		pTextAmmo->GetTextFormat().SetSize(34);
-		pTextAmmo->GetTextFormat().SetFontFamilyName(L"Agency FB");
-		pTextAmmo->GetTextFormat().SetStyle(DWRITE_FONT_STYLE_ITALIC);
-		pTextAmmo->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_ULTRA_BOLD);
-		pTextAmmo->ApplyTextFormat();
+		UIObjectHandle hTextAmmoState = CreateText();
+		pScriptGameUIManager->m_hTextAmmoState = hTextAmmoState;
+		Text* pTextAmmoState = static_cast<Text*>(hTextAmmoState.ToPtr());
+		pTextAmmoState->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
+		pTextAmmoState->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
+		pTextAmmoState->m_transform.SetPosition(pImageRBUIBackground->m_transform.GetPosition());
+		pTextAmmoState->m_transform.Translate(16, -28);
+		pTextAmmoState->SetSize(XMFLOAT2(128, 40));
+		pTextAmmoState->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+		pTextAmmoState->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+		pTextAmmoState->SetColor(ColorsLinear::White);
+		pTextAmmoState->GetTextFormat().SetSize(34);
+		pTextAmmoState->GetTextFormat().SetFontFamilyName(PLAYER_UI_TEXT_FONT);
+		pTextAmmoState->GetTextFormat().SetStyle(DWRITE_FONT_STYLE_ITALIC);
+		pTextAmmoState->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_ULTRA_BOLD);
+		pTextAmmoState->ApplyTextFormat();
 	}
 
 	// ## MATERIALS

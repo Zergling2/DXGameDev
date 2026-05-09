@@ -1,5 +1,5 @@
 #include "GameUIManager.h"
-#include "PlayerController.h"
+#include "Player.h"
 
 using namespace ze;
 
@@ -57,9 +57,9 @@ void UIStateScoreboard::Exit(GameUIManager* pGameUIManager)
 
 void UIStateGameMenu::Enter(GameUIManager* pGameUIManager)
 {
-	PlayerController* pScriptPlayerController = pGameUIManager->m_hScriptPlayerController.ToPtr();
-	assert(pScriptPlayerController);
-	pScriptPlayerController->SetProcessingInput(false);
+	Player* pScriptPlayer = pGameUIManager->m_hScriptPlayer.ToPtr();
+	assert(pScriptPlayer);
+	pScriptPlayer->SetProcessingInput(false);
 
 	IUIObject* pPanelMenuRoot = pGameUIManager->m_hPanelGameMenuRoot.ToPtr();
 	assert(pPanelMenuRoot);
@@ -79,9 +79,9 @@ void UIStateGameMenu::Exit(GameUIManager* pGameUIManager)
 	assert(pPanelMenuRoot);
 	pPanelMenuRoot->SetActive(false);
 
-	PlayerController* pScriptPlayerController = pGameUIManager->m_hScriptPlayerController.ToPtr();
-	assert(pScriptPlayerController);
-	pScriptPlayerController->SetProcessingInput(true);
+	Player* pScriptPlayer = pGameUIManager->m_hScriptPlayer.ToPtr();
+	assert(pScriptPlayer);
+	pScriptPlayer->SetProcessingInput(true);
 
 	Cursor::SetVisible(false);
 	Cursor::SetLockState(CursorLockMode::Locked);
@@ -92,12 +92,6 @@ GameUIManager::GameUIManager(ze::GameObject& owner)
 	, m_pUIState(UIStateNone::GetState())
 	, m_redTeamPlayersCount(0)
 	, m_blueTeamPlayersCount(0)
-	, m_hp(0)
-	, m_ap(0)
-	, m_ammoInMag(0)
-	, m_ammoInReserve(0)
-	, m_currWeaponName()
-	, m_point(0)
 {
 	ZeroMemory(&m_scoreboardRedTeamPlayersNetId, sizeof(m_scoreboardRedTeamPlayersNetId));
 	ZeroMemory(&m_scoreboardBlueTeamPlayersNetId, sizeof(m_scoreboardBlueTeamPlayersNetId));
@@ -270,39 +264,36 @@ void GameUIManager::LateUpdate()
 
 }
 
-void GameUIManager::UpdateTextHP()
+void GameUIManager::SetTextHP(uint32_t hp)
 {
 	wchar_t buf[32];
-	StringCchPrintfW(buf, _countof(buf), L"%u", m_hp);
+	StringCchPrintfW(buf, _countof(buf), L"%u", hp);
 	static_cast<Text*>(m_hTextHP.ToPtr())->SetText(buf);
 }
 
-void GameUIManager::UpdateTextAP()
+void GameUIManager::SetTextAP(uint32_t ap)
 {
 	wchar_t buf[32];
-	StringCchPrintfW(buf, _countof(buf), L"%u", m_ap);
+	StringCchPrintfW(buf, _countof(buf), L"%u", ap);
 	static_cast<Text*>(m_hTextAP.ToPtr())->SetText(buf);
 }
 
-void GameUIManager::UpdateTextAmmo()
+void GameUIManager::SetTextAmmoState(const wchar_t* str)
 {
-	wchar_t buf[32];
-	StringCchPrintfW(buf, _countof(buf), L"%u / %u", m_ammoInMag, m_ammoInReserve);
-
-	static_cast<Text*>(m_hTextAmmo.ToPtr())->SetText(buf);
+	static_cast<Text*>(m_hTextAmmoState.ToPtr())->SetText(str);
 }
 
-void GameUIManager::UpdateTextPoint()
+void GameUIManager::SetTextPoint(uint32_t point)
 {
 	wchar_t buf[32];
-	StringCchPrintfW(buf, _countof(buf), L"%u", m_point);
+	StringCchPrintfW(buf, _countof(buf), L"%u", point);
 
 	static_cast<Text*>(m_hTextPoint.ToPtr())->SetText(buf);
 }
 
-void GameUIManager::UpdateTextWeaponName()
+void GameUIManager::SetTextWeaponName(const wchar_t* name)
 {
-	static_cast<Text*>(m_hTextWeaponName.ToPtr())->SetText(m_currWeaponName.c_str());
+	static_cast<Text*>(m_hTextWeaponName.ToPtr())->SetText(name);
 }
 
 void GameUIManager::SetState(IUIState* pUIState)
@@ -316,6 +307,20 @@ void GameUIManager::SetState(IUIState* pUIState)
 
 	if (m_pUIState)
 		m_pUIState->Enter(this);
+}
+
+void GameUIManager::ShowAliveUI()
+{
+	m_hImageCrosshair.ToPtr()->SetActive(true);
+	m_hImageHealthBackground.ToPtr()->SetActive(true);
+	m_hImageRBUIBackground.ToPtr()->SetActive(true);
+}
+
+void GameUIManager::HideAliveUI()
+{
+	m_hImageCrosshair.ToPtr()->SetActive(false);
+	m_hImageHealthBackground.ToPtr()->SetActive(false);
+	m_hImageRBUIBackground.ToPtr()->SetActive(false);
 }
 
 void GameUIManager::OnClickCloseGameMenu()

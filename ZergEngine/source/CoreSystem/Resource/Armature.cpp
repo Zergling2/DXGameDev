@@ -96,7 +96,7 @@ const Animation* Armature::GetAnimation(const std::string& animName) const
 
 Animation* Armature::AddNewAnimationNode(std::string animName, float duration)
 {
-	std::unique_ptr<Animation> upNewAnim = std::make_unique<Animation>(*this, duration);
+	std::unique_ptr<Animation> upNewAnim = std::make_unique<Animation>(this->GetBoneCount(), duration);
 
 	Animation* pNewAnim = upNewAnim.get();
 

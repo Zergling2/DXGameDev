@@ -2,29 +2,10 @@
 
 #include <ZergEngine\ZergEngine.h>
 
-struct MdlPack
-{
-	std::shared_ptr<ze::StaticMesh> m_staticMesh;
-	std::shared_ptr<ze::SkinnedMesh> m_skinnedMesh;
-	std::shared_ptr<ze::Armature> m_armature;
-};
-
-enum FireType
-{
-	Auto,
-	Semi
-};
-
-struct WeaponInfo
-{
-	std::wstring m_name;
-	size_t m_initCapacity;
-	size_t m_initReserved;
-	FireType m_fireType;
-	uint32_t m_rpm;
-	std::string m_armsDrawAnimName;
-	std::string m_drawAnimName;
-};
+class ArmsViewInfo;
+class CharacterViewInfo;
+class WeaponViewInfo;
+class WeaponInfo;
 
 class GameResources : public ze::MonoBehaviour
 {
@@ -35,14 +16,16 @@ public:
 
 	virtual void Awake() override;
 
-	bool AddModel(std::wstring key, MdlPack value);
-	bool AddTexture(std::wstring key, ze::Texture2D value);
-	bool AddMaterial(std::wstring key, std::shared_ptr<ze::Material> value);
-	bool AddWeaponInfo(std::wstring key, WeaponInfo info);
 
-	MdlPack GetModel(const std::wstring& key) const;
-	ze::Texture2D GetTexture(const std::wstring& key) const;
-	std::shared_ptr<ze::Material> GetMaterial(const std::wstring& key) const;
+	bool AddTexture2D(std::wstring key,ze::Texture2D texture);
+	bool AddArmsViewInfo(std::wstring key, std::unique_ptr<ArmsViewInfo> upArmsViewInfo);
+	bool AddCharacterViewInfo(std::wstring key, std::unique_ptr<CharacterViewInfo> upCharacterViewInfo);
+	bool AddWeaponViewInfo(std::wstring key, std::unique_ptr<WeaponViewInfo> upWeaponViewInfo);
+	bool AddWeaponInfo(std::wstring key, std::unique_ptr<WeaponInfo> upWeaponInfo);
+	ze::Texture2D GetTexture2D(const std::wstring& key) const;
+	const ArmsViewInfo* GetArmsViewinfo(const std::wstring& key) const;
+	const CharacterViewInfo* GetCharacterViewInfo(const std::wstring& key) const;
+	const WeaponViewInfo* GetWeaponViewInfo(const std::wstring& key) const;
 	const WeaponInfo* GetWeaponInfo(const std::wstring& key) const;
 	std::shared_ptr<ze::CapsuleCollider> GetCharacterCollider() const { return m_spCharacterCollider; }
 	std::shared_ptr<ze::SphereCollider> GetGroundCheckCollider() const { return m_spGroundCheckSweepCollider; }
@@ -51,11 +34,11 @@ public:
 private:
 	ze::Texture2D m_errTex;
 	std::shared_ptr<ze::Material> m_errMaterial;
-	MdlPack m_emptyMdlPack;
-	std::unordered_map<std::wstring, MdlPack> m_mdlPacks;
-	std::unordered_map<std::wstring, ze::Texture2D> m_texturePacks;
-	std::unordered_map<std::wstring, std::shared_ptr<ze::Material>> m_materialPacks;
-	std::unordered_map<std::wstring, WeaponInfo> m_weaponInfos;
+	std::unordered_map<std::wstring, ze::Texture2D> m_texture2ds;
+	std::unordered_map<std::wstring, std::unique_ptr<ArmsViewInfo>> m_armsViewInfos;
+	std::unordered_map<std::wstring, std::unique_ptr<CharacterViewInfo>> m_characterViewInfos;
+	std::unordered_map<std::wstring, std::unique_ptr<WeaponViewInfo>> m_weaponViewInfos;
+	std::unordered_map<std::wstring, std::unique_ptr<WeaponInfo>> m_weaponInfos;
 	std::shared_ptr<ze::CapsuleCollider> m_spCharacterCollider;
 	std::shared_ptr<ze::SphereCollider> m_spGroundCheckSweepCollider;
 };

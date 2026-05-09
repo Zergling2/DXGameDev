@@ -4,7 +4,7 @@
 #include <Constants.h>
 
 class GameUIManager;
-class PlayerController;
+class Player;
 
 class IUIState
 {
@@ -70,24 +70,19 @@ public:
 	virtual void Update() override;
 	virtual void LateUpdate() override;
 
-	void SetHP(uint32_t hp) { m_hp = hp; }
-	void SetAP(uint32_t ap) { m_ap = ap; }
-	void UpdateTextHP();
-	void UpdateTextAP();
-
-	void SetAmmoInMag(uint32_t ammoInMag) { m_ammoInMag = ammoInMag; }
-	void SetAmmoInReserve(uint32_t ammoInReserve) { m_ammoInReserve = ammoInReserve; }
-	void UpdateTextAmmo();
-
-	void SetPoint(uint32_t point) { m_point = point; }
-	void UpdateTextPoint();
-
-	void SetCurrWeaponName(std::wstring name) { m_currWeaponName = std::move(name); }
-	void UpdateTextWeaponName();
+	void SetTextHP(uint32_t hp);
+	void SetTextAP(uint32_t ap);
+	void SetTextAmmoState(const wchar_t* str);
+	void SetTextPoint(uint32_t point);
+	void SetTextWeaponName(const wchar_t* name);
 
 	void SetState(IUIState* pUIState);
 	IUIState* GetState() const { return m_pUIState; }
 
+	void ShowAliveUI();
+	void HideAliveUI();
+	void ShowRespawnUI() {}
+	void HideRespawnUI() {}
 
 	void OnClickCloseGameMenu();
 private:
@@ -100,7 +95,7 @@ public:
 	ze::UIObjectHandle m_hTextAP;
 	ze::UIObjectHandle m_hTextPoint;
 	ze::UIObjectHandle m_hTextWeaponName;
-	ze::UIObjectHandle m_hTextAmmo;
+	ze::UIObjectHandle m_hTextAmmoState;
 
 	ze::UIObjectHandle m_hPanelGameMenuRoot;
 	ze::UIObjectHandle m_hPanelScoreboardRoot;
@@ -119,12 +114,5 @@ public:
 	ze::UIObjectHandle m_hTextScoreboardBlueTeamPlayerDeath[MAX_PLAYERS_PER_TEAM];
 	ze::UIObjectHandle m_hTextScoreboardBlueTeamPlayerLatency[MAX_PLAYERS_PER_TEAM];
 
-	ze::ComponentHandle<PlayerController> m_hScriptPlayerController;
-
-	uint32_t m_hp;
-	uint32_t m_ap;
-	uint32_t m_ammoInMag;
-	uint32_t m_ammoInReserve;
-	uint32_t m_point;
-	std::wstring m_currWeaponName;
+	ze::ComponentHandle<Player> m_hScriptPlayer;
 };

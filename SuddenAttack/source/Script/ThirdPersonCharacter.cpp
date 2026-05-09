@@ -1,5 +1,6 @@
 #include "ThirdPersonCharacter.h"
 #include "../Resource/GlobalGameObjects.h"
+#include "../Resource/Character.h"
 #include "GameResources.h"
 
 using namespace ze;
@@ -17,12 +18,15 @@ ThirdPersonCharacter::ThirdPersonCharacter(ze::GameObject& owner)
 void ThirdPersonCharacter::Awake()
 {
 	// GameResources 오브젝트 검색 및 스크립트 저장
-	ze::GameObjectHandle hGameObjectGameResources = GameObject::Find(GO_GAME_RESOURCES_NAME);
+	GameObjectHandle hGameObjectGameResources = GameObject::Find(GO_GAME_RESOURCES_NAME);
 	assert(hGameObjectGameResources.IsValid());
 
-	m_hScriptGameResources = hGameObjectGameResources.ToPtr()->GetComponent<GameResources>();
-	assert(m_hScriptGameResources.IsValid());
-	std::shared_ptr<CapsuleCollider> spCharacterCollider = m_hScriptGameResources.ToPtr()->GetCharacterCollider();
+	ComponentHandle<GameResources> hScriptGameResources = hGameObjectGameResources.ToPtr()->GetComponent<GameResources>();
+	assert(hScriptGameResources.IsValid());
+	m_hScriptGameResources = hScriptGameResources;
+	GameResources* pScriptGameResources = hScriptGameResources.ToPtr();
+
+	std::shared_ptr<CapsuleCollider> spCharacterCollider = pScriptGameResources->GetCharacterCollider();
 	// ...
 
 	// ###################################################################
@@ -44,47 +48,36 @@ void ThirdPersonCharacter::Awake()
 	GameObject* pGameObjectTVWeaponBase = hGameObjectTVWeaponBase.ToPtr();
 	pGameObjectTVWeaponBase->m_transform.SetParent(&this->m_pGameObject->m_transform);
 
+	// 캐릭터 SkinnedMesh 렌더러 컴포넌트 추가 및 설정
+	ComponentHandle<SkinnedMeshRenderer> hSkinnedMeshRendererCharacter = this->m_pGameObject->AddComponent<SkinnedMeshRenderer>();
+	m_hSkinnedMeshRendererCharacter = hSkinnedMeshRendererCharacter;	// 컴포넌트 핸들을 멤버로 저장
+	SkinnedMeshRenderer* pSkinnedMeshRendererCharacter = hSkinnedMeshRendererCharacter.ToPtr();
 
+	
 
-	// 캐릭터 SkinnedMesh 렌더러 컴포넌트 추가 및 설정 
-	ComponentHandle<SkinnedMeshRenderer> hSkinnedMeshRendererThirdPersonCharacter = this->m_pGameObject->AddComponent<SkinnedMeshRenderer>();
-	m_hSkinnedMeshRendererThirdPersonCharacter = hSkinnedMeshRendererThirdPersonCharacter;	// 컴포넌트 핸들을 멤버로 저장
-	SkinnedMeshRenderer* pSkinnedMeshRendererThirdPersonCharacter = hSkinnedMeshRendererThirdPersonCharacter.ToPtr();
+	const CharacterViewInfo* pCharacterViewInfo = pScriptGameResources->GetCharacterViewInfo(L"steven");
+	this->CreateCharacterView(pCharacterViewInfo);
 
-
-
-	GameResources* pScriptGameResources = m_hScriptGameResources.ToPtr();
-	auto mdSteven = pScriptGameResources->GetModel(L"steven");
-	auto spStevenMtl0 = pScriptGameResources->GetMaterial(L"steven_mtl0");
-	auto spStevenMtl1 = pScriptGameResources->GetMaterial(L"steven_mtl1");
-	auto spStevenMtl2 = pScriptGameResources->GetMaterial(L"steven_mtl2");
-
-	pSkinnedMeshRendererThirdPersonCharacter->SetMesh(mdSteven.m_skinnedMesh);
-	pSkinnedMeshRendererThirdPersonCharacter->SetArmature(mdSteven.m_armature);
-	pSkinnedMeshRendererThirdPersonCharacter->SetMaterial(0, spStevenMtl0);
-	pSkinnedMeshRendererThirdPersonCharacter->SetMaterial(1, spStevenMtl1);
-	pSkinnedMeshRendererThirdPersonCharacter->SetMaterial(2, spStevenMtl2);
-
-	// pSkinnedMeshRendererThirdPersonCharacter->PlayAnimation("run", false);
-	// pSkinnedMeshRendererThirdPersonCharacter->PlayAnimation("reload_rifle", true);
-	// pSkinnedMeshRendererThirdPersonCharacter->PlayAnimation("aim_rifle", true);
-	// pSkinnedMeshRendererThirdPersonCharacter->PlayAnimation("aim_pistol", true);
-	// pSkinnedMeshRendererThirdPersonCharacter->PlayAnimation("reload_pistol", true);
-	pSkinnedMeshRendererThirdPersonCharacter->PlayGroupAnimation("aim_rifle", "lower_body", true);
-	// pSkinnedMeshRendererThirdPersonCharacter->PlayGroupAnimation("shoot_pistol", "upper_body", true);
-	// pSkinnedMeshRendererThirdPersonCharacter->PlayGroupAnimation("reload_pistol", "upper_body", true
-	pSkinnedMeshRendererThirdPersonCharacter->PlayGroupAnimation("aim_rifle", "upper_body", true);
+	// pSkinnedMeshRendererCharacter->PlayAnimation("run", false);
+	// pSkinnedMeshRendererCharacter->PlayAnimation("reload_rifle", true);
+	// pSkinnedMeshRendererCharacter->PlayAnimation("aim_rifle", true);
+	// pSkinnedMeshRendererCharacter->PlayAnimation("aim_pistol", true);
+	// pSkinnedMeshRendererCharacter->PlayAnimation("reload_pistol", true);
+	pSkinnedMeshRendererCharacter->PlayGroupAnimation("aim_rifle", "lower_body", true);
+	// pSkinnedMeshRendererCharacter->PlayGroupAnimation("shoot_pistol", "upper_body", true);
+	// pSkinnedMeshRendererCharacter->PlayGroupAnimation("reload_pistol", "upper_body", true
+	pSkinnedMeshRendererCharacter->PlayGroupAnimation("aim_rifle", "upper_body", true);
 }
 
 void ThirdPersonCharacter::Update()
 {
-	const SkinnedMeshRenderer* pSkinnedMeshRendererThirdPersonCharacter = m_hSkinnedMeshRendererThirdPersonCharacter.ToPtr();
-	assert(pSkinnedMeshRendererThirdPersonCharacter);
+	const SkinnedMeshRenderer* pSkinnedMeshRendererCharacter = m_hSkinnedMeshRendererCharacter.ToPtr();
+	assert(pSkinnedMeshRendererCharacter);
 
 	XMFLOAT3A s;
 	XMFLOAT4A r;
 	XMFLOAT3A t;
-	if (!pSkinnedMeshRendererThirdPersonCharacter->GetBoneTransform("Hand.R", s, r, t))
+	if (!pSkinnedMeshRendererCharacter->GetBoneTransform("Hand.R", s, r, t))
 		return;
 
 	GameObject* pGameObjectTVWeaponBase = m_hGameObjectTVWeaponBase.ToPtr();
@@ -93,4 +86,14 @@ void ThirdPersonCharacter::Update()
 	// pGameObjectTVWeaponBase->m_transform.SetScale(s);
 	pGameObjectTVWeaponBase->m_transform.SetRotationQuaternion(r);
 	pGameObjectTVWeaponBase->m_transform.SetPosition(t);
+}
+
+void ThirdPersonCharacter::CreateCharacterView(const CharacterViewInfo* pCharacterViewInfo)
+{
+	SkinnedMeshRenderer* pSkinnedMeshRendererCharacter = m_hSkinnedMeshRendererCharacter.ToPtr();
+	pSkinnedMeshRendererCharacter->SetMesh(pCharacterViewInfo->GetMesh());
+	pSkinnedMeshRendererCharacter->SetArmature(pCharacterViewInfo->GetArmature());
+	
+	for (size_t i = 0; i < pCharacterViewInfo->GetMaterials().size(); ++i)
+		pSkinnedMeshRendererCharacter->SetMaterial(i, pCharacterViewInfo->GetMaterials()[i]);
 }

@@ -5,10 +5,9 @@
 
 using namespace ze;
 
-Animation::Animation(const Armature& armature, float duration)
-	: m_armature(armature)
+Animation::Animation(size_t boneCount, float duration)
+	: m_upBoneAnims(std::make_unique<BoneAnimation[]>(boneCount))
 	, m_duration(duration)
-	, m_upBoneAnims(std::make_unique<BoneAnimation[]>(armature.GetBoneCount()))
 {
 }
 

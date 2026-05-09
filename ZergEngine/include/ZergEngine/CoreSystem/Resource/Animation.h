@@ -45,15 +45,13 @@ namespace ze
 	{
 		friend class ResourceLoader;
 	public:
-		Animation(const Armature& armature, float duration);
+		Animation(size_t boneCount, float duration);
 		~Animation() = default;
 
-		float GetDuration() const { return m_duration; }
-
 		const BoneAnimation* GetBoneAnimations() const { return m_upBoneAnims.get(); }
+		float GetDuration() const { return m_duration; }
 	private:
-		const Armature& m_armature;
-		const float m_duration;		// sec
 		std::unique_ptr<BoneAnimation[]> m_upBoneAnims;
+		const float m_duration;		// sec
 	};
 }

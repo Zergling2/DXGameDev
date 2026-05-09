@@ -126,6 +126,33 @@ bool SkinnedMeshRenderer::PlayGroupAnimation(const std::string& animName, const 
 	return true;
 }
 
+void SkinnedMeshRenderer::SetAnimationSpeed(float playbackSpeed)
+{
+	if (!m_spArmature)
+		return;
+
+	for (auto& pair : m_currAnims)
+		pair.second.m_playbackSpeed = playbackSpeed;
+}
+
+void SkinnedMeshRenderer::SetAnimationTimeCursor(float timeCursor)
+{
+	if (!m_spArmature)
+		return;
+
+	for (auto& pair : m_currAnims)
+	{
+		const float animDuration = pair.second.m_pAnim->GetDuration();
+
+		if (pair.second.m_loop)
+			timeCursor = Math::WrapFloat(timeCursor, animDuration);
+		else
+			timeCursor = Math::Clamp(timeCursor, 0.0f, animDuration);
+
+		pair.second.m_timeCursor = timeCursor;
+	}
+}
+
 bool SkinnedMeshRenderer::SetGroupAnimationSpeed(const std::string& groupName, float playbackSpeed)
 {
 	if (!m_spArmature)
