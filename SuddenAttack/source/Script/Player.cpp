@@ -177,7 +177,7 @@ void Player::Update()
 
 
 	// 팔과 무기 흔들림 업데이트
-	constexpr float BOUNCE_FREQ_WEIGHT_RUNNING = 10.0f;
+	constexpr float BOUNCE_FREQ_WEIGHT_RUNNING = 9.0f;
 	bool isRunning = m_isMoving && Input::GetInstance()->GetKey(KEYCODE::KEY_LSHIFT) == false;
 	float targetBounceFreq = isRunning ? BOUNCE_FREQ_WEIGHT_RUNNING : BOUNCE_FREQ_WEIGHT_RUNNING * 0.5f;
 	float targetAmpX = m_isMoving ? 0.01f : 0.0f;
