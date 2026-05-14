@@ -22,6 +22,9 @@ int Math::WrapInt(int val, int min, int max)
 
 float Math::WrapFloat(float val, float max)
 {
+	if (max <= 0.0f)
+		return val;
+
 	float newVal = std::fmodf(val, max);
 	if (newVal < 0.0f)
 		newVal += max;
@@ -32,7 +35,7 @@ float Math::WrapFloat(float val, float max)
 float Math::WrapFloat(float val, float min, float max)
 {
 	const float range = max - min;
-	if (range == 0.0f)
+	if (range <= 0.0f)
 		return val;
 
 	float newVal = std::fmodf(val - min, range);
@@ -44,8 +47,11 @@ float Math::WrapFloat(float val, float min, float max)
 
 double Math::WrapDouble(double val, double max)
 {
+	if (max <= 0.0)
+		return val;
+
 	double newVal = std::fmod(val, max);
-	if (newVal < 0.0f)
+	if (newVal < 0.0)
 		newVal += max;
 
 	return newVal;
@@ -54,7 +60,7 @@ double Math::WrapDouble(double val, double max)
 double Math::WrapDouble(double val, double min, double max)
 {
 	const double range = max - min;
-	if (range == 0.0)
+	if (range <= 0.0)
 		return val;
 
 	double newVal = std::fmod(val - min, range);

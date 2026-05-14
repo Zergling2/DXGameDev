@@ -71,6 +71,14 @@ namespace ze
 	class Math
 	{
 	public:
+		// Constants
+		static constexpr float C_PI() { return 3.141592654f; }
+		static constexpr float C_2PI() { return 6.283185307f; }
+		static constexpr float C_1DIVPI() { return 0.318309886f; }
+		static constexpr float C_1DIV2PI() { return 0.159154943f; }
+		static constexpr float C_PIDIV2() { return 1.570796327f; }
+		static constexpr float C_PIDIV4() { return 0.785398163f; }
+
 		class Index2DTo1D
 		{
 		public:
@@ -124,6 +132,12 @@ namespace ze
 				return max;
 			else
 				return val;
+		}
+
+		template<typename T>
+		static T Lerp(const T& a, const T& b, float t)
+		{
+			return a + (b - a) * t;
 		}
 
 		template <typename T>

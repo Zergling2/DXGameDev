@@ -510,7 +510,15 @@ void Warehouse::OnLoadScene()
 		pGameObjectPlayer->m_transform.SetPosition(-7.0f, 4.0f, -5.0f);
 	}
 	Player* pScriptPlayer = hScriptPlayer.ToPtr();
-	
+
+
+
+	GameObjectHandle hGameObjectThirdPersonCharacter = CreateGameObject(L"TPC");
+	GameObject* pGameObjectThirdPersonCharacter = hGameObjectThirdPersonCharacter.ToPtr();
+	pGameObjectThirdPersonCharacter->m_transform.SetPosition(1, 0, 1);
+	pGameObjectThirdPersonCharacter->AddComponent<ThirdPersonCharacter>();
+
+
 	
 	// Adapter Info UI
 	{

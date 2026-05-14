@@ -202,8 +202,8 @@ bool Physics::Init()
 
 	m_upDebugDrawer->setDebugMode(
 		btIDebugDraw::DBG_DrawWireframe |
-		btIDebugDraw::DBG_DrawAabb |
-		// btIDebugDraw::DBG_DrawContactPoints |
+		// btIDebugDraw::DBG_DrawAabb |
+		btIDebugDraw::DBG_DrawContactPoints |
 		btIDebugDraw::DBG_DrawConstraints |
 		btIDebugDraw::DBG_DrawFrames
 	);

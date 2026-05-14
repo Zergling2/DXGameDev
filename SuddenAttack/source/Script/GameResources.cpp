@@ -7,7 +7,20 @@ using namespace ze;
 
 constexpr float CHARACTER_COLLIDER_RADIUS = 0.35f;
 constexpr float GROUND_CHECK_COLLIDER_RADIUS_SUBTRACT_FACTOR = 0.0125f;
-constexpr float ANIMATION_DEAD_FRAME_TIME = 0.02f;
+constexpr float ANIMATION_DEAD_FRAME_TIME = 0.01f;
+constexpr XMFLOAT3 CHARACTER_BODY_COLLIDER_HALF_EXTENTS(0.17f, 0.28f, 0.095f);
+constexpr float CHARACTER_NECK_COLLIDER_RADIUS = 0.06f;
+constexpr float CHARACTER_NECK_COLLIDER_HEIGHT = 0.04f;
+constexpr float CHARACTER_HEAD_COLLIDER_RADIUS = 0.105f;
+constexpr float CHARACTER_UPPER_ARM_COLLIDER_HEIGHT = 0.22f;
+constexpr float CHARACTER_UPPER_ARM_COLLIDER_RADIUS = 0.05f;
+constexpr float CHARACTER_FORE_ARM_COLLIDER_HEIGHT = 0.3f;
+constexpr float CHARACTER_FORE_ARM_COLLIDER_RADIUS = 0.03f;
+constexpr float CHARACTER_THIGH_COLLIDER_HEIGHT = 0.4f;
+constexpr float CHARACTER_THIGH_COLLIDER_RADIUS = 0.08f;
+constexpr float CHARACTER_CALF_COLLIDER_HEIGHT = 0.3f;
+constexpr float CHARACTER_CALF_COLLIDER_RADIUS = 0.07f;
+constexpr XMFLOAT3 CHARACTER_FOOT_COLLIDER_HALF_EXTENTS(0.12f / 2.0f, 0.27f / 2.0f, 0.05f / 2.0f);
 
 GameResources::GameResources(ze::GameObject& owner)
 	: MonoBehaviour(owner)
@@ -25,6 +38,18 @@ void GameResources::Awake()
 	m_errTex = ResourceLoader::GetInstance()->GetErrorTexture2D();
 	m_spCharacterCollider = std::make_shared<CapsuleCollider>(CHARACTER_COLLIDER_RADIUS, 1.7f - 2 * CHARACTER_COLLIDER_RADIUS);
 	m_spGroundCheckSweepCollider = std::make_shared<SphereCollider>(CHARACTER_COLLIDER_RADIUS - GROUND_CHECK_COLLIDER_RADIUS_SUBTRACT_FACTOR);
+
+
+
+	m_spCharacterBodyCollider = std::make_shared<BoxCollider>(CHARACTER_BODY_COLLIDER_HALF_EXTENTS);
+	m_spCharacterNeckCollider = std::make_shared<CylinderCollider>(CHARACTER_NECK_COLLIDER_RADIUS, CHARACTER_NECK_COLLIDER_HEIGHT);
+	m_spCharacterHeadCollider = std::make_shared<SphereCollider>(CHARACTER_HEAD_COLLIDER_RADIUS);
+	m_spCharacterUpperArmCollider = std::make_shared<CapsuleCollider>(CHARACTER_UPPER_ARM_COLLIDER_RADIUS, CHARACTER_UPPER_ARM_COLLIDER_HEIGHT);
+	m_spCharacterForeArmCollider = std::make_shared<CapsuleCollider>(CHARACTER_FORE_ARM_COLLIDER_RADIUS, CHARACTER_FORE_ARM_COLLIDER_HEIGHT);
+	m_spCharacterThighCollider = std::make_shared<CapsuleCollider>(CHARACTER_THIGH_COLLIDER_RADIUS, CHARACTER_THIGH_COLLIDER_HEIGHT);
+	m_spCharacterCalfCollider = std::make_shared<CapsuleCollider>(CHARACTER_CALF_COLLIDER_RADIUS, CHARACTER_CALF_COLLIDER_HEIGHT);
+	m_spCharacterFootCollider = std::make_shared<BoxCollider>(CHARACTER_FOOT_COLLIDER_HALF_EXTENTS);
+
 
 	bool result;
 	bool grouping;
@@ -123,7 +148,7 @@ void GameResources::Awake()
 		"m16a1_idle", "arms_idle_m16a1", arma_m16a1->GetAnimation("m16a1_idle")->GetDuration() - ANIMATION_DEAD_FRAME_TIME,
 		mdl_m4a1_pv, arma_m4a1, mdl_m4a1_tv, std::move(m4a1_mtls), std::move(tex2d_m4a1_previewImage));
 	this->AddWeaponViewInfo(L"m4a1", std::move(wvi_m4a1));
-	std::unique_ptr<WeaponInfo> ei_m4a1 = std::make_unique<WeaponInfo>(L"M4A1 Carbine", 30, 90, 720.0f);
+	std::unique_ptr<WeaponInfo> ei_m4a1 = std::make_unique<WeaponInfo>(L"M4A1 Carbine", 30, 90, 680.0f);
 	this->AddWeaponInfo(L"m4a1", std::move(ei_m4a1));
 
 
@@ -156,7 +181,7 @@ void GameResources::Awake()
 		"usp_idle", "arms_idle_usp", arma_usp->GetAnimation("usp_idle")->GetDuration() - ANIMATION_DEAD_FRAME_TIME,
 		mdl_usp_pv, arma_usp, mdl_usp_tv, std::move(usp_mtls), std::move(tex2d_usp_previewImage));
 	this->AddWeaponViewInfo(L"usp", std::move(wvi_usp));
-	std::unique_ptr<WeaponInfo> ei_usp = std::make_unique<WeaponInfo>(L"C.USP", 12, 24, 300.0f);
+	std::unique_ptr<WeaponInfo> ei_usp = std::make_unique<WeaponInfo>(L"C.USP", 12, 24, 310.0f);
 	this->AddWeaponInfo(L"usp", std::move(ei_usp));
 
 
@@ -197,7 +222,7 @@ void GameResources::Awake()
 		"usp_idle", "arms_idle_usp", arma_usp->GetAnimation("usp_idle")->GetDuration() - ANIMATION_DEAD_FRAME_TIME,
 		mdl_b92fsb_pv, arma_b92fsb, mdl_b92fsb_tv, std::move(b92fsb_mtls), std::move(tex2d_b92fsb_previewImage));
 	this->AddWeaponViewInfo(L"b92fsb", std::move(wvi_b92fsb));
-	std::unique_ptr<WeaponInfo> ei_b92fsb = std::make_unique<WeaponInfo>(L"B.92Fs Black", 15, 30, 340.0f);
+	std::unique_ptr<WeaponInfo> ei_b92fsb = std::make_unique<WeaponInfo>(L"B.92Fs Black", 15, 30, 330.0f);
 	this->AddWeaponInfo(L"b92fsb", std::move(ei_b92fsb));
 
 	// ## SHARED_DATA
@@ -336,6 +361,66 @@ const WeaponInfo* GameResources::GetWeaponInfo(const std::wstring& key) const
 		return nullptr;
 	else
 		return iter->second.get();
+}
+
+const XMFLOAT3& GameResources::GetCharacterBodyColliderHalfExtents() const
+{
+	return CHARACTER_BODY_COLLIDER_HALF_EXTENTS;
+}
+
+float GameResources::GetCharacterNeckColliderHeight() const
+{
+	return CHARACTER_NECK_COLLIDER_HEIGHT;
+}
+
+float GameResources::GetCharacterHeadColliderRadius() const
+{
+	return CHARACTER_HEAD_COLLIDER_RADIUS;
+}
+
+float GameResources::GetCharacterUpperArmColliderRadius() const
+{
+	return CHARACTER_UPPER_ARM_COLLIDER_RADIUS;
+}
+
+float GameResources::GetCharacterUpperArmColliderHeight() const
+{
+	return CHARACTER_UPPER_ARM_COLLIDER_HEIGHT;
+}
+
+float GameResources::GetCharacterForeArmColliderRadius() const
+{
+	return CHARACTER_FORE_ARM_COLLIDER_RADIUS;
+}
+
+float GameResources::GetCharacterForeArmColliderHeight() const
+{
+	return CHARACTER_FORE_ARM_COLLIDER_HEIGHT;
+}
+
+float GameResources::GetCharacterThighColliderRadius() const
+{
+	return CHARACTER_THIGH_COLLIDER_RADIUS;
+}
+
+float GameResources::GetCharacterThighColliderHeight() const
+{
+	return CHARACTER_THIGH_COLLIDER_HEIGHT;
+}
+
+float GameResources::GetCharacterCalfColliderRadius() const
+{
+	return CHARACTER_CALF_COLLIDER_RADIUS;
+}
+
+float GameResources::GetCharacterCalfColliderHeight() const
+{
+	return CHARACTER_CALF_COLLIDER_HEIGHT;
+}
+
+const XMFLOAT3& GameResources::GetCharacterFootColliderHalfExtents() const
+{
+	return CHARACTER_FOOT_COLLIDER_HALF_EXTENTS;
 }
 
 float GameResources::GetCharacterColliderRadius() const

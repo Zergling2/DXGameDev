@@ -25,10 +25,15 @@ Player::Player(ze::GameObject& owner)
 	, m_processingInput(true)
 	, m_isStand(true)
 	, m_isGround(false)
+	, m_isMoving(false)
 	, m_groundCheckSweepDist(0.0f)
 	, m_stepHeight(0.2f)
 	, m_slope(0.707106f)	// 약 45도
 	, m_velocityY(0.0f)
+	, m_sinTimeAccum(0.0f)
+	, m_bounceFreq(0.0f)
+	, m_ampX(0.0f)
+	, m_ampY(0.0f)
 	, m_weapons()
 	, m_currWeaponSlot(WeaponSlot::Secondary)
 {
@@ -167,31 +172,69 @@ void Player::Update()
 {
 	const float dt = Time::GetInstance()->GetDeltaTime();
 
-	IWeapon* pCurrentWeapon = m_weapons[static_cast<size_t>(m_currWeaponSlot)].get();
-	pCurrentWeapon->Update(dt);
+	// 현재 무기 업데이트
+	m_weapons[static_cast<size_t>(m_currWeaponSlot)]->Update(dt);
 
-	// 메뉴창 등
+
+	// 팔과 무기 흔들림 업데이트
+	constexpr float BOUNCE_FREQ_WEIGHT_RUNNING = 10.0f;
+	bool isRunning = m_isMoving && Input::GetInstance()->GetKey(KEYCODE::KEY_LSHIFT) == false;
+	float targetBounceFreq = isRunning ? BOUNCE_FREQ_WEIGHT_RUNNING : BOUNCE_FREQ_WEIGHT_RUNNING * 0.5f;
+	float targetAmpX = m_isMoving ? 0.01f : 0.0f;
+	float targetAmpY = m_isMoving ? 0.02f : 0.0f;
+
+	constexpr float INTERPOLATION_SPEED = 12.0f;
+	m_bounceFreq = Math::Lerp(m_bounceFreq, targetBounceFreq, dt * INTERPOLATION_SPEED);
+	m_ampX = Math::Lerp(m_ampX, targetAmpX, dt * INTERPOLATION_SPEED);
+	m_ampY = Math::Lerp(m_ampY, targetAmpY, dt * INTERPOLATION_SPEED);
+
+	m_sinTimeAccum = Math::WrapFloat(m_sinTimeAccum + dt * m_bounceFreq, Math::C_2PI());
+
+	// z bounce weight, y bounce weight
+	float zw = m_ampX * std::sin(m_sinTimeAccum);
+	float yw = m_ampY * std::abs(std::cos(m_sinTimeAccum));
+
+	// 적용
+	m_hGameObjectArms.ToPtr()->m_transform.SetPosition(FPSARM_POS.x + zw, FPSARM_POS.y + yw, FPSARM_POS.z);
+	m_hGameObjectWeapons[0].ToPtr()->m_transform.SetPosition(PRIMARY_WEAPON_PV_OFFSET.x + zw, PRIMARY_WEAPON_PV_OFFSET.y + yw, PRIMARY_WEAPON_PV_OFFSET.z);
+	m_hGameObjectWeapons[1].ToPtr()->m_transform.SetPosition(SECONDARY_WEAPON_PV_OFFSET.x + zw, SECONDARY_WEAPON_PV_OFFSET.y + yw, SECONDARY_WEAPON_PV_OFFSET.z);
+
+
 	if (m_processingInput)
 	{
 		// 무기 드로잉 처리
 		if (Input::GetInstance()->GetKeyDown(KEYCODE::KEY_1))
 		{
+			if (m_currWeaponSlot != WeaponSlot::Primary && m_weapons[static_cast<size_t>(WeaponSlot::Primary)])
+			{
+				m_hGameObjectWeapons[static_cast<size_t>(WeaponSlot::Primary)].ToPtr()->SetActive(true);
+				m_hGameObjectWeapons[static_cast<size_t>(WeaponSlot::Secondary)].ToPtr()->SetActive(false);
+				m_currWeaponSlot = WeaponSlot::Primary;
+				m_weapons[static_cast<size_t>(WeaponSlot::Primary)]->StartDraw();
+			}
 		}
 		if (Input::GetInstance()->GetKeyDown(KEYCODE::KEY_2))
 		{
+			if (m_currWeaponSlot != WeaponSlot::Secondary && m_weapons[static_cast<size_t>(WeaponSlot::Secondary)])
+			{
+				m_hGameObjectWeapons[static_cast<size_t>(WeaponSlot::Primary)].ToPtr()->SetActive(false);
+				m_hGameObjectWeapons[static_cast<size_t>(WeaponSlot::Secondary)].ToPtr()->SetActive(true);
+				m_currWeaponSlot = WeaponSlot::Secondary;
+				m_weapons[static_cast<size_t>(WeaponSlot::Secondary)]->StartDraw();
+			}
 		}
 
 		// 장전 처리
 		if (Input::GetInstance()->GetKeyDown(KEYCODE::KEY_R))
 		{
-			pCurrentWeapon->StartReload();
+			m_weapons[static_cast<size_t>(m_currWeaponSlot)]->StartReload();
 		}
 
 
 		// 사격 처리
 		if (Input::GetInstance()->GetMouseButton(MouseButton::Left))
 		{
-			pCurrentWeapon->StartFire();
+			m_weapons[static_cast<size_t>(m_currWeaponSlot)]->StartFire();
 		}
 
 
@@ -228,6 +271,7 @@ void Player::Update()
 		}
 	}
 
+	m_hScriptGameUIManager.ToPtr()->SetTextWeaponName(m_weapons[static_cast<size_t>(m_currWeaponSlot)]->GetName());
 	m_hScriptGameUIManager.ToPtr()->SetTextAmmoState(m_weapons[static_cast<size_t>(m_currWeaponSlot)]->GetAmmoStateText());
 }
 
@@ -242,23 +286,39 @@ void Player::FixedUpdate()
 
 	XMVECTOR vFinalMove = XMVectorZero(); // 이동해야할 변위량 누적
 
+	m_isMoving = false;
+
 	if (m_processingInput)
 	{
 		// 1. 방향키에 따른 입력 누적
 		XMVECTOR vForwardMove = vForward;
 		XMVECTOR vRightMove = XMVector3Cross(Vector3::Up(), vForward);
 
+
 		if (Input::GetInstance()->GetKey(KEY_W))
+		{
+			m_isMoving = true;
 			vFinalMove = XMVectorAdd(vFinalMove, vForwardMove);
+		}
 
 		if (Input::GetInstance()->GetKey(KEY_S))
+		{
+			m_isMoving = true;
 			vFinalMove = XMVectorAdd(vFinalMove, XMVectorNegate(vForwardMove));
+		}
 
 		if (Input::GetInstance()->GetKey(KEY_A))
+		{
+			m_isMoving = true;
 			vFinalMove = XMVectorAdd(vFinalMove, XMVectorNegate(vRightMove));
+		}
 
 		if (Input::GetInstance()->GetKey(KEY_D))
+		{
+			m_isMoving = true;
 			vFinalMove = XMVectorAdd(vFinalMove, vRightMove);
+		}
+			
 
 		vFinalMove = XMVectorScale(XMVector3Normalize(vFinalMove), speed * dt);
 	}
@@ -304,7 +364,7 @@ void Player::FixedUpdate()
 			sweepResult.end(),
 			[pPlayerRigidbody](const SweepHit& hit)
 			{
-				return hit.m_pHitObject == pPlayerRigidbody;
+				return hit.m_pHitObject == pPlayerRigidbody || hit.m_pHitObject->IsTrigger();
 			}
 		);
 		sweepResult.erase(selfIter, sweepResult.end());
@@ -353,7 +413,7 @@ void Player::FixedUpdate()
 	bool hit = false;
 	for (const auto& item : ret)
 	{
-		if (item.m_pHitObject == pPlayerRigidbody)
+		if (item.m_pHitObject == pPlayerRigidbody || item.m_pHitObject->IsTrigger())
 			continue;
 
 		const float dot = XMVectorGetX(XMVector3Dot(Vector3::Up(), XMVector3Normalize(XMLoadFloat3(&item.m_hitNormalWorld))));

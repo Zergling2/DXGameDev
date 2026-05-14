@@ -82,6 +82,15 @@ const std::vector<bone_index_type>* Armature::GetBoneGroup(const std::string& gr
 		return &iter->second;
 }
 
+bone_index_type Armature::GetBoneIndex(const std::string& boneName) const
+{
+	const auto& iter = m_boneIndexMap.find(boneName);
+	if (iter != m_boneIndexMap.cend())
+		return iter->second;
+	else
+		return (std::numeric_limits<bone_index_type>::max)();
+}
+
 const Animation* Armature::GetAnimation(const std::string& animName) const
 {
 	auto iter = m_anims.find(animName);

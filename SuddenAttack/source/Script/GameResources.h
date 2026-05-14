@@ -16,7 +16,6 @@ public:
 
 	virtual void Awake() override;
 
-
 	bool AddTexture2D(std::wstring key,ze::Texture2D texture);
 	bool AddArmsViewInfo(std::wstring key, std::unique_ptr<ArmsViewInfo> upArmsViewInfo);
 	bool AddCharacterViewInfo(std::wstring key, std::unique_ptr<CharacterViewInfo> upCharacterViewInfo);
@@ -29,6 +28,26 @@ public:
 	const WeaponInfo* GetWeaponInfo(const std::wstring& key) const;
 	std::shared_ptr<ze::CapsuleCollider> GetCharacterCollider() const { return m_spCharacterCollider; }
 	std::shared_ptr<ze::SphereCollider> GetGroundCheckCollider() const { return m_spGroundCheckSweepCollider; }
+	std::shared_ptr<ze::BoxCollider> GetCharacterBodyCollider() const { return m_spCharacterBodyCollider; }
+	const XMFLOAT3& GetCharacterBodyColliderHalfExtents() const;
+	std::shared_ptr<ze::CylinderCollider> GetCharacterNeckCollider() const { return m_spCharacterNeckCollider; }
+	float GetCharacterNeckColliderHeight() const;
+	std::shared_ptr<ze::SphereCollider> GetCharacterHeadCollider() const { return m_spCharacterHeadCollider; }
+	float GetCharacterHeadColliderRadius() const;
+	std::shared_ptr<ze::CapsuleCollider> GetCharacterUpperArmCollider() const { return m_spCharacterUpperArmCollider; }
+	float GetCharacterUpperArmColliderRadius() const;
+	float GetCharacterUpperArmColliderHeight() const;
+	std::shared_ptr<ze::CapsuleCollider> GetCharacterForeArmCollider() const { return m_spCharacterForeArmCollider; }
+	float GetCharacterForeArmColliderRadius() const;
+	float GetCharacterForeArmColliderHeight() const;
+	std::shared_ptr<ze::CapsuleCollider> GetCharacterThighCollider() const { return m_spCharacterThighCollider; }
+	float GetCharacterThighColliderRadius() const;
+	float GetCharacterThighColliderHeight() const;
+	std::shared_ptr<ze::CapsuleCollider> GetCharacterCalfCollider() const { return m_spCharacterCalfCollider; }
+	float GetCharacterCalfColliderRadius() const;
+	float GetCharacterCalfColliderHeight() const;
+	std::shared_ptr<ze::BoxCollider> GetCharacterFootCollider() const { return m_spCharacterFootCollider; }
+	const XMFLOAT3& GetCharacterFootColliderHalfExtents() const;
 	float GetCharacterColliderRadius() const;
 	float GetGroundCheckColliderSubtractFactor() const;
 private:
@@ -41,4 +60,12 @@ private:
 	std::unordered_map<std::wstring, std::unique_ptr<WeaponInfo>> m_weaponInfos;
 	std::shared_ptr<ze::CapsuleCollider> m_spCharacterCollider;
 	std::shared_ptr<ze::SphereCollider> m_spGroundCheckSweepCollider;
+	std::shared_ptr<ze::BoxCollider> m_spCharacterBodyCollider;
+	std::shared_ptr<ze::CylinderCollider> m_spCharacterNeckCollider;
+	std::shared_ptr<ze::SphereCollider> m_spCharacterHeadCollider;
+	std::shared_ptr<ze::CapsuleCollider> m_spCharacterUpperArmCollider;
+	std::shared_ptr<ze::CapsuleCollider> m_spCharacterForeArmCollider;
+	std::shared_ptr<ze::CapsuleCollider> m_spCharacterThighCollider;
+	std::shared_ptr<ze::CapsuleCollider> m_spCharacterCalfCollider;
+	std::shared_ptr<ze::BoxCollider> m_spCharacterFootCollider;
 };

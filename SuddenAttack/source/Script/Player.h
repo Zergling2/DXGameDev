@@ -45,11 +45,16 @@ private:
 	bool m_processingInput;
 	bool m_isStand;
 	bool m_isGround;
+	bool m_isMoving;
 	float m_groundCheckSweepDist;
 	float m_stepHeight;
 	float m_slope;
 	float m_jumpVelocityY;
 	float m_velocityY;
+	float m_sinTimeAccum;
+	float m_bounceFreq;
+	float m_ampX;
+	float m_ampY;
 	IMovementState* m_pMovementState;
 	XMFLOAT4X4A m_colliderLocalTransform;
 	XMFLOAT4X4A m_groundCheckColliderLocalTransform;

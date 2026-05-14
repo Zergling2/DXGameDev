@@ -229,8 +229,11 @@ bool SkinnedMeshRenderer::GetBoneTransform(const std::string& boneName, XMFLOAT3
 	return true;
 }
 
-void SkinnedMeshRenderer::GetBoneTransforms(BoneTransform* pArr, size_t len) const
+bool SkinnedMeshRenderer::GetBoneTransforms(BoneTransform* pArr, size_t len) const
 {
+	if (!m_spArmature)
+		return false;
+
 	XMFLOAT4X4A MlMp[MAX_BONE_COUNT];
 	XMFLOAT4X4A Ma[MAX_BONE_COUNT];
 	// 2패스 구조
@@ -287,6 +290,8 @@ void SkinnedMeshRenderer::GetBoneTransforms(BoneTransform* pArr, size_t len) con
 		XMStoreFloat4(&pArr[i].m_rot, r);
 		XMStoreFloat3(&pArr[i].m_translation, t);
 	}
+
+	return true;
 }
 
 void SkinnedMeshRenderer::ComputeFinalTransform(XMFLOAT4X4A* pOut, size_t len) const

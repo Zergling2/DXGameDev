@@ -14,6 +14,7 @@ public:
 
 	virtual void Awake() override;
 	virtual void Update() override;
+	virtual void FixedUpdate() override;
 
 	void CreateCharacterView(const CharacterViewInfo* pCharacterViewInfo);
 private:
@@ -27,14 +28,32 @@ public:
 	ze::ComponentHandle<ze::SkinnedMeshRenderer> m_hSkinnedMeshRendererCharacter;
 	ze::GameObjectHandle m_hGameObjectTVWeaponBase;
 	ze::GameObjectHandle m_hGameObjectTVWeapons[2];
-	ze::GameObjectHandle m_hGameObjectHitboxBody;
-	ze::GameObjectHandle m_hGameObjectHitboxHead;
-	ze::GameObjectHandle m_hGameObjectHitboxLeftUpperArm;
-	ze::GameObjectHandle m_hGameObjectHitboxRightUpperArm;
-	ze::GameObjectHandle m_hGameObjectHitboxLeftLowerArm;
-	ze::GameObjectHandle m_hGameObjectHitboxRightLowerArm;
-	ze::GameObjectHandle m_hGameObjectHitboxLeftThigh;
-	ze::GameObjectHandle m_hGameObjectHitboxRightThigh;
-	ze::GameObjectHandle m_hGameObjectHitboxLeftCalf;
-	ze::GameObjectHandle m_hGameObjectHitboxRightCalf;
+	ze::GameObjectHandle m_hGameObjectHitboxBody;			// Spine0
+	ze::GameObjectHandle m_hGameObjectHitboxNeck;			// Neck
+	ze::GameObjectHandle m_hGameObjectHitboxHead;			// Head
+	ze::GameObjectHandle m_hGameObjectHitboxLeftUpperArm;	// UpperArm.L
+	ze::GameObjectHandle m_hGameObjectHitboxRightUpperArm;	// UpperArm.R
+	ze::GameObjectHandle m_hGameObjectHitboxLeftForeArm;	// ForeArm.L
+	ze::GameObjectHandle m_hGameObjectHitboxRightForeArm;	// ForeArm.R
+	ze::GameObjectHandle m_hGameObjectHitboxLeftThigh;		// Thigh.L
+	ze::GameObjectHandle m_hGameObjectHitboxRightThigh;		// Thigh.R
+	ze::GameObjectHandle m_hGameObjectHitboxLeftCalf;		// Calf.L
+	ze::GameObjectHandle m_hGameObjectHitboxRightCalf;		// Calf.R
+	ze::GameObjectHandle m_hGameObjectHitboxLeftFoot;		// Foot.L
+	ze::GameObjectHandle m_hGameObjectHitboxRightFoot;		// Foot.R
+	ze::bone_index_type m_biSpine0;
+	ze::bone_index_type m_biNeck;
+	ze::bone_index_type m_biHead;
+	ze::bone_index_type m_biLeftUpperArm;
+	ze::bone_index_type m_biRightUpperArm;
+	ze::bone_index_type m_biLeftForeArm;
+	ze::bone_index_type m_biRightForeArm;
+	ze::bone_index_type m_biLeftThigh;
+	ze::bone_index_type m_biRightThigh;
+	ze::bone_index_type m_biLeftCalf;
+	ze::bone_index_type m_biRightCalf;
+	// ze::bone_index_type m_biLeftFoot;
+	// ze::bone_index_type m_biRightFoot;
+	ze::bone_index_type m_biLeftToe;
+	ze::bone_index_type m_biRightToe;
 };

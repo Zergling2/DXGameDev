@@ -6,7 +6,7 @@
 
 using namespace ze;
 
-constexpr size_t MAX_DEBUG_LINES_PER_FRAME = 4096;
+constexpr size_t MAX_DEBUG_LINES_PER_FRAME = 1 << 14;
 
 PhysicsDebugDrawer::PhysicsDebugDrawer()
 	: m_debugLineVertices()

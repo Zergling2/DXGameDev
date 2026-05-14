@@ -58,6 +58,13 @@ namespace ze
 		*/
 		uint32_t GetAnimationCount() const { return static_cast<uint32_t>(m_anims.size()); }
 
+		/**
+		* @brief 본의 인덱스를 획득합니다.
+		* @param boneName 인덱스를 조회할 본의 이름입니다.
+		* @return 본 인덱스. 반환값이 255일 경우 전달된 본 이름을 가진 본이 없는 경우입니다.
+		*/
+		bone_index_type GetBoneIndex(const std::string& boneName) const;
+
 		const std::unordered_map<std::string, bone_index_type>& GetBoneIndexMap() const { return m_boneIndexMap; }
 		const std::unordered_map<std::string, std::vector<bone_index_type>>& GetBoneGroups() const { return m_boneGroup; }
 		const bone_index_type* GetBoneHierarchy() const { return m_upBoneHierarchy.get(); }
