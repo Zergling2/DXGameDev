@@ -13,13 +13,13 @@ void UIStateNone::Enter(GameUIManager* pGameUIManager)
 
 void UIStateNone::Update(GameUIManager* pGameUIManager)
 {
-	if (Input::GetInstance()->GetKey(KEYCODE::KEY_TAB))
+	if (Input::GetInstance()->GetKey(Keycode::KEY_TAB))
 	{
 		pGameUIManager->SetState(UIStateScoreboard::GetState());
 		return;
 	}
 
-	if (Input::GetInstance()->GetKeyDown(KEYCODE::KEY_ESCAPE))
+	if (Input::GetInstance()->GetKeyDown(Keycode::KEY_ESCAPE))
 	{
 		pGameUIManager->SetState(UIStateGameMenu::GetState());
 		return;
@@ -40,7 +40,7 @@ void UIStateScoreboard::Enter(GameUIManager* pGameUIManager)
 
 void UIStateScoreboard::Update(GameUIManager* pGameUIManager)
 {
-	if (!Input::GetInstance()->GetKey(KEYCODE::KEY_TAB))
+	if (!Input::GetInstance()->GetKey(Keycode::KEY_TAB))
 	{
 		pGameUIManager->SetState(UIStateNone::GetState());
 		return;

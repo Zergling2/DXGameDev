@@ -21,6 +21,14 @@ void IUIObject::DontDestroyOnLoad()
 	this->OnFlag(UIOBJECT_FLAG::DONT_DESTROY_ON_LOAD);
 }
 
+void IUIObject::DontDestroyOnLoadRecursively()
+{
+	this->OnFlag(UIOBJECT_FLAG::DONT_DESTROY_ON_LOAD);
+
+	for (auto pChild : m_transform.m_children)
+		pChild->m_pUIObject->DontDestroyOnLoadRecursively();
+}
+
 void IUIObject::Destroy()
 {
 	// 지연된 오브젝트를 제거하는 경우는 OnLoadScene에서 Destroy를 한다는 의미인데 이것은 허용하지 않는다.

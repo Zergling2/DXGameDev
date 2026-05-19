@@ -12,10 +12,6 @@ ZE_IMPLEMENT_SCENE(Lobby);
 
 static bool g_singleton = false;
 
-const wchar_t* BTN_TEXT_CREATE_ACCOUNT = L"계정 생성";
-const wchar_t* BTN_TEXT_LOGIN = L"로그인";
-const wchar_t* BTN_TEXT_EXIT = L"나가기";
-
 constexpr uint32_t STATIC_TEXT_SIZE_MEDIUM = 16;
 constexpr uint32_t STATIC_TEXT_SIZE_SMALL = 12;
 constexpr uint32_t CHAT_MSG_TEXT_SIZE = 12;
@@ -96,9 +92,9 @@ void Lobby::OnLoadScene()
 	pImageLobbyBgr->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 	pImageLobbyBgr->SetNativeSize(true);
 
-	UIObjectHandle hPanelLoginUIRoot = CreatePanel();
-	pScriptLobbyHandler->m_hPanelLoginUIRoot = hPanelLoginUIRoot;
-	Panel* pPanelLoginWindowRoot = static_cast<Panel*>(hPanelLoginUIRoot.ToPtr());
+	UIObjectHandle hPanelLoginWindowRoot = CreatePanel();
+	pScriptLobbyHandler->m_hPanelLoginWindowRoot = hPanelLoginWindowRoot;
+	Panel* pPanelLoginWindowRoot = static_cast<Panel*>(hPanelLoginWindowRoot.ToPtr());
 	pPanelLoginWindowRoot->m_transform.SetParent(&pImageLobbyBgr->m_transform);
 	pPanelLoginWindowRoot->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 	pPanelLoginWindowRoot->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
@@ -109,8 +105,8 @@ void Lobby::OnLoadScene()
 	pPanelLoginWindowRoot->SetRadius(4.0f, 4.0f);
 
 
-	UIObjectHandle hPanelIDPWFrame = CreatePanel();
-	Panel* pPanelIdPwFrame = static_cast<Panel*>(hPanelIDPWFrame.ToPtr());
+	UIObjectHandle hPanelIdPwFrame = CreatePanel();
+	Panel* pPanelIdPwFrame = static_cast<Panel*>(hPanelIdPwFrame.ToPtr());
 	pPanelIdPwFrame->m_transform.SetParent(&pPanelLoginWindowRoot->m_transform);
 	pPanelIdPwFrame->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 	pPanelIdPwFrame->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
@@ -150,62 +146,63 @@ void Lobby::OnLoadScene()
 	pTextPw->ApplyTextFormat();
 	pTextPw->SetSize(100, 20);
 
-	constexpr XMFLOAT2 IDPW_INPUT_FIELD_SIZE(210, 24);
-	UIObjectHandle hInputFieldId = CreateInputField();
-	pScriptLobbyHandler->m_hInputFieldId = hInputFieldId;
-	InputField* pInputFieldId = static_cast<InputField*>(hInputFieldId.ToPtr());
-	pInputFieldId->m_transform.SetParent(&pPanelIdPwFrame->m_transform);
-	pInputFieldId->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
-	pInputFieldId->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
-	pInputFieldId->m_transform.SetPosition(+55, pTextId->m_transform.GetPositionY());
-	pInputFieldId->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-	pInputFieldId->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pInputFieldId->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
-	pInputFieldId->GetTextFormat().SetSize(CHAT_MSG_TEXT_SIZE);
-	pInputFieldId->ApplyTextFormat();
-	pInputFieldId->SetSize(IDPW_INPUT_FIELD_SIZE);
-	pInputFieldId->SetBkColor(ColorsLinear::DimGray);
-	pInputFieldId->SetTextColor(Colors::Black);
-	pInputFieldId->AllowReturn(false);
-	pInputFieldId->AllowSpace(false);
-	pInputFieldId->SetMaxChar(16);
+	constexpr XMFLOAT2 IDPW_INPUT_FIELD_SIZE(200, 24);
+	UIObjectHandle hInputFieldLoginId = CreateInputField();
+	pScriptLobbyHandler->m_hInputFieldLoginId = hInputFieldLoginId;
+	InputField* pInputFieldLoginId = static_cast<InputField*>(hInputFieldLoginId.ToPtr());
+	pInputFieldLoginId->m_transform.SetParent(&pPanelIdPwFrame->m_transform);
+	pInputFieldLoginId->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pInputFieldLoginId->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pInputFieldLoginId->m_transform.SetPosition(+55, pTextId->m_transform.GetPositionY());
+	pInputFieldLoginId->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pInputFieldLoginId->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pInputFieldLoginId->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pInputFieldLoginId->GetTextFormat().SetSize(CHAT_MSG_TEXT_SIZE);
+	pInputFieldLoginId->ApplyTextFormat();
+	pInputFieldLoginId->SetSize(IDPW_INPUT_FIELD_SIZE);
+	pInputFieldLoginId->SetBkColor(ColorsLinear::Gray);
+	pInputFieldLoginId->SetTextColor(Colors::Black);
+	pInputFieldLoginId->AllowReturn(false);
+	pInputFieldLoginId->AllowSpace(false);
+	pInputFieldLoginId->SetMaxChar(MAX_ID_LEN);
 
-	UIObjectHandle hInputFieldPw = CreateInputField();
-	pScriptLobbyHandler->m_hInputFieldPw = hInputFieldPw;
-	InputField* pInputFieldPw = static_cast<InputField*>(hInputFieldPw.ToPtr());
-	pInputFieldPw->m_transform.SetParent(&pPanelIdPwFrame->m_transform);
-	pInputFieldPw->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
-	pInputFieldPw->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
-	pInputFieldPw->m_transform.SetPosition(+55, pTextPw->m_transform.GetPositionY());
-	pInputFieldPw->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-	pInputFieldPw->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pInputFieldPw->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
-	pInputFieldPw->GetTextFormat().SetSize(CHAT_MSG_TEXT_SIZE);
-	pInputFieldPw->ApplyTextFormat();
-	pInputFieldPw->SetSize(IDPW_INPUT_FIELD_SIZE);
-	pInputFieldPw->SetBkColor(ColorsLinear::DimGray);
-	pInputFieldPw->SetTextColor(Colors::Black);
-	pInputFieldPw->AllowReturn(false);
-	pInputFieldPw->AllowSpace(false);
-	pInputFieldPw->SetPassword(true);
-	pInputFieldPw->SetMaxChar(16);
+	UIObjectHandle hInputFieldLoginPw = CreateInputField();
+	pScriptLobbyHandler->m_hInputFieldLoginPw = hInputFieldLoginPw;
+	InputField* pInputFieldLoginPw = static_cast<InputField*>(hInputFieldLoginPw.ToPtr());
+	pInputFieldLoginPw->m_transform.SetParent(&pPanelIdPwFrame->m_transform);
+	pInputFieldLoginPw->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pInputFieldLoginPw->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pInputFieldLoginPw->m_transform.SetPosition(+55, pTextPw->m_transform.GetPositionY());
+	pInputFieldLoginPw->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pInputFieldLoginPw->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pInputFieldLoginPw->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pInputFieldLoginPw->GetTextFormat().SetSize(CHAT_MSG_TEXT_SIZE);
+	pInputFieldLoginPw->ApplyTextFormat();
+	pInputFieldLoginPw->SetSize(IDPW_INPUT_FIELD_SIZE);
+	pInputFieldLoginPw->SetBkColor(ColorsLinear::Gray);
+	pInputFieldLoginPw->SetTextColor(Colors::Black);
+	pInputFieldLoginPw->AllowReturn(false);
+	pInputFieldLoginPw->AllowSpace(false);
+	pInputFieldLoginPw->SetPassword(true);
+	pInputFieldLoginPw->SetMaxChar(MAX_PW_LEN);
 
-	UIObjectHandle hTextIdPwInputFieldHelpMsg = CreateText();
-	pScriptLobbyHandler->m_hTextIdPwInputFieldHelpMsg = hTextIdPwInputFieldHelpMsg;
-	Text* pTextIdPwInputFieldHelpMsg = static_cast<Text*>(hTextIdPwInputFieldHelpMsg.ToPtr());
-	pTextIdPwInputFieldHelpMsg->SetActive(false);
-	pTextIdPwInputFieldHelpMsg->m_transform.SetParent(&pPanelIdPwFrame->m_transform);
-	pTextIdPwInputFieldHelpMsg->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
-	pTextIdPwInputFieldHelpMsg->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
-	pTextIdPwInputFieldHelpMsg->m_transform.SetPosition(pInputFieldPw->m_transform.GetPositionX() - 24, pInputFieldPw->m_transform.GetPositionY() - 24);
-	pTextIdPwInputFieldHelpMsg->SetText(L"아이디 또는 비밀번호가 올바른 형식이 아닙니다.");
-	pTextIdPwInputFieldHelpMsg->SetColor(Colors::Red);
-	pTextIdPwInputFieldHelpMsg->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-	pTextIdPwInputFieldHelpMsg->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pTextIdPwInputFieldHelpMsg->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
-	pTextIdPwInputFieldHelpMsg->GetTextFormat().SetSize(CHAT_MSG_TEXT_SIZE);
-	pTextIdPwInputFieldHelpMsg->ApplyTextFormat();
-	pTextIdPwInputFieldHelpMsg->SetSize(300, 20);
+	constexpr XMFLOAT2 LOGIN_HELP_MSG_TEXT_SIZE(300, 20);
+	UIObjectHandle hTextLoginHelpMsg = CreateText();
+	pScriptLobbyHandler->m_hTextLoginHelpMsg = hTextLoginHelpMsg;
+	Text* pTextLoginHelpMsg = static_cast<Text*>(hTextLoginHelpMsg.ToPtr());
+	pTextLoginHelpMsg->SetActive(false);
+	pTextLoginHelpMsg->m_transform.SetParent(&pPanelIdPwFrame->m_transform);
+	pTextLoginHelpMsg->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pTextLoginHelpMsg->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pTextLoginHelpMsg->m_transform.SetPosition(pInputFieldLoginPw->m_transform.GetPositionX() - 24, pInputFieldLoginPw->m_transform.GetPositionY() - pInputFieldLoginPw->GetHalfSizeY() - LOGIN_HELP_MSG_TEXT_SIZE.y / 2 - 3);
+	pTextLoginHelpMsg->SetText(L"아이디 또는 비밀번호가 올바른 형식이 아닙니다.");
+	pTextLoginHelpMsg->SetColor(Colors::Red);
+	pTextLoginHelpMsg->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pTextLoginHelpMsg->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pTextLoginHelpMsg->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pTextLoginHelpMsg->GetTextFormat().SetSize(CHAT_MSG_TEXT_SIZE);
+	pTextLoginHelpMsg->ApplyTextFormat();
+	pTextLoginHelpMsg->SetSize(LOGIN_HELP_MSG_TEXT_SIZE);
 
 
 
@@ -217,14 +214,15 @@ void Lobby::OnLoadScene()
 	pButtonCreateAccount->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 	pButtonCreateAccount->m_transform.SetPosition(-120, -56);
 	pButtonCreateAccount->SetSize(LOGIN_BUTTON_SIZE);
-	pButtonCreateAccount->SetButtonColor(ColorsLinear::Orange);
 	pButtonCreateAccount->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pButtonCreateAccount->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pButtonCreateAccount->SetText(BTN_TEXT_CREATE_ACCOUNT);
+	pButtonCreateAccount->SetText(L"계정 생성");
+	pButtonCreateAccount->SetButtonColor(ColorsLinear::Orange);
 	pButtonCreateAccount->SetTextColor(ColorsLinear::Black);
 	pButtonCreateAccount->GetTextFormat().SetSize(STATIC_TEXT_SIZE_SMALL);
 	pButtonCreateAccount->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
 	pButtonCreateAccount->ApplyTextFormat();
+	pButtonCreateAccount->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickCreateAccount));
 
 
 	UIObjectHandle hButtonLogin = CreateButton();
@@ -234,17 +232,17 @@ void Lobby::OnLoadScene()
 	pButtonLogin->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 	pButtonLogin->m_transform.SetPosition(30, -56);
 	pButtonLogin->SetSize(LOGIN_BUTTON_SIZE);
-	// pButtonLogin->SetButtonColor(Colors::Gray);
-	pButtonLogin->SetTextColor(Colors::Gold);
 	pButtonLogin->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pButtonLogin->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pButtonLogin->SetText(BTN_TEXT_LOGIN);
+	pButtonLogin->SetText(L"로그인");
+	pButtonLogin->SetButtonColor(ColorsLinear::DodgerBlue);
+	pButtonLogin->SetTextColor(ColorsLinear::Black);
 	pButtonLogin->GetTextFormat().SetSize(STATIC_TEXT_SIZE_SMALL);
 	pButtonLogin->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
 	pButtonLogin->ApplyTextFormat();
 	pButtonLogin->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickLogin));
 
-
+	
 	UIObjectHandle hButtonExit = CreateButton();
 	Button* pButtonExit = static_cast<Button*>(hButtonExit.ToPtr());
 	pButtonExit->m_transform.SetParent(&pPanelLoginWindowRoot->m_transform);
@@ -252,15 +250,339 @@ void Lobby::OnLoadScene()
 	pButtonExit->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 	pButtonExit->m_transform.SetPosition(120, -56);
 	pButtonExit->SetSize(LOGIN_BUTTON_SIZE);
-	pButtonExit->SetButtonColor(Colors::DodgerBlue);
-	pButtonExit->SetTextColor(Colors::Black);
+	pButtonExit->SetButtonColor(ColorsLinear::Gray);
+	pButtonExit->SetTextColor(ColorsLinear::Black);
 	pButtonExit->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pButtonExit->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pButtonExit->SetText(BTN_TEXT_EXIT);
+	pButtonExit->SetText(L"종료");
 	pButtonExit->GetTextFormat().SetSize(STATIC_TEXT_SIZE_SMALL);
 	pButtonExit->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
 	pButtonExit->ApplyTextFormat();
 	pButtonExit->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickExitGame));
+
+
+
+
+	// ############################
+	// 계정 생성 창
+	constexpr XMFLOAT2 CREATE_ACCOUNT_WINDOW_SIZE(420, 400);
+	UIObjectHandle hPanelCreateAccountWindowRoot = CreatePanel();
+	pScriptLobbyHandler->m_hPanelCreateAccountWindowRoot = hPanelCreateAccountWindowRoot;
+	Panel* pPanelCreateAccountWindowRoot = static_cast<Panel*>(hPanelCreateAccountWindowRoot.ToPtr());
+	pPanelCreateAccountWindowRoot->m_transform.SetParent(&pImageLobbyBgr->m_transform);
+	// pPanelCreateAccountWindowRoot->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	// pPanelCreateAccountWindowRoot->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pPanelCreateAccountWindowRoot->m_transform.SetPosition(0, 0);
+	pPanelCreateAccountWindowRoot->SetSize(CREATE_ACCOUNT_WINDOW_SIZE);
+	pPanelCreateAccountWindowRoot->SetColor(ColorsLinear::DimGray);
+	pPanelCreateAccountWindowRoot->SetShape(PanelShape::RoundedRectangle);
+	pPanelCreateAccountWindowRoot->SetRadius(4.0f, 4.0f);
+
+	constexpr XMFLOAT2 CREATE_ACCOUNT_WINDOW_HEAD_TEXT_SIZE(CREATE_ACCOUNT_WINDOW_SIZE.x - 40, 30);
+	constexpr XMFLOAT2 CREATE_ACCOUNT_WINDOW_HEAD_TEXT_OFFSET(0, +CREATE_ACCOUNT_WINDOW_SIZE.y / 2 - 5 - CREATE_ACCOUNT_WINDOW_HEAD_TEXT_SIZE.y / 2);
+	UIObjectHandle hTextCreateAccountWindowName = CreateText();
+	Text* pTextCreateAccountWindowName = static_cast<Text*>(hTextCreateAccountWindowName.ToPtr());
+	pTextCreateAccountWindowName->m_transform.SetParent(&pPanelCreateAccountWindowRoot->m_transform);
+	pTextCreateAccountWindowName->m_transform.SetPosition(CREATE_ACCOUNT_WINDOW_HEAD_TEXT_OFFSET);
+	pTextCreateAccountWindowName->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pTextCreateAccountWindowName->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pTextCreateAccountWindowName->SetSize(CREATE_ACCOUNT_WINDOW_HEAD_TEXT_SIZE);
+	pTextCreateAccountWindowName->SetText(L"계정생성");
+	pTextCreateAccountWindowName->SetColor(Colors::White);
+	pTextCreateAccountWindowName->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+	pTextCreateAccountWindowName->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pTextCreateAccountWindowName->GetTextFormat().SetWeight(MEDIUM_TEXT_WEIGHT);
+	pTextCreateAccountWindowName->GetTextFormat().SetSize(MEDIUM_TEXT_SIZE);
+	pTextCreateAccountWindowName->ApplyTextFormat();
+
+	constexpr FLOAT TEXT_MARGIN = +10;
+	constexpr XMFLOAT2 CREATE_ACCOUNT_WINDOW_ID_TEXT_SIZE(120, IDPW_INPUT_FIELD_SIZE.y);
+	constexpr XMFLOAT2 CREATE_ACCOUNT_WINDOW_ID_TEXT_OFFSET(-CREATE_ACCOUNT_WINDOW_SIZE.x / 2 + CREATE_ACCOUNT_WINDOW_ID_TEXT_SIZE.x / 2 + TEXT_MARGIN, +120);
+	UIObjectHandle hTextCreateAccountId = CreateText();
+	Text* pTextCreateAccountId = static_cast<Text*>(hTextCreateAccountId.ToPtr());
+	pTextCreateAccountId->m_transform.SetParent(&pPanelCreateAccountWindowRoot->m_transform);
+	pTextCreateAccountId->m_transform.SetPosition(CREATE_ACCOUNT_WINDOW_ID_TEXT_OFFSET);
+	// pTextCreateAccountId->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	// pTextCreateAccountId->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pTextCreateAccountId->SetSize(CREATE_ACCOUNT_WINDOW_ID_TEXT_SIZE);
+	pTextCreateAccountId->SetText(L"ID");
+	pTextCreateAccountId->SetColor(Colors::WhiteSmoke);
+	pTextCreateAccountId->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pTextCreateAccountId->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pTextCreateAccountId->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pTextCreateAccountId->GetTextFormat().SetSize(STATIC_TEXT_SIZE_MEDIUM);
+	pTextCreateAccountId->ApplyTextFormat();
+
+	constexpr XMFLOAT2 CREATE_ACCOUNT_ID_INPUT_FIELD_SIZE(200, CREATE_ACCOUNT_WINDOW_ID_TEXT_SIZE.y);
+	UIObjectHandle hInputFieldCreateAccountId = CreateInputField();
+	pScriptLobbyHandler->m_hInputFieldCreateAccountId = hInputFieldCreateAccountId;
+	InputField* pInputFieldCreateAccountId = static_cast<InputField*>(hInputFieldCreateAccountId.ToPtr());
+	pInputFieldCreateAccountId->m_transform.SetParent(&pPanelCreateAccountWindowRoot->m_transform);
+	pInputFieldCreateAccountId->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pInputFieldCreateAccountId->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pInputFieldCreateAccountId->SetSize(CREATE_ACCOUNT_ID_INPUT_FIELD_SIZE);
+	pInputFieldCreateAccountId->m_transform.SetPosition(
+		pTextCreateAccountId->m_transform.GetPositionX() + pTextCreateAccountId->GetHalfSizeX() + 10 + pInputFieldCreateAccountId->GetHalfSizeX(),
+		pTextCreateAccountId->m_transform.GetPositionY()
+	);
+	pInputFieldCreateAccountId->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pInputFieldCreateAccountId->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pInputFieldCreateAccountId->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pInputFieldCreateAccountId->GetTextFormat().SetSize(CHAT_MSG_TEXT_SIZE);
+	pInputFieldCreateAccountId->ApplyTextFormat();
+	pInputFieldCreateAccountId->SetBkColor(ColorsLinear::Gray);
+	pInputFieldCreateAccountId->SetTextColor(Colors::Black);
+	pInputFieldCreateAccountId->AllowReturn(false);
+	pInputFieldCreateAccountId->AllowSpace(false);
+	pInputFieldCreateAccountId->SetMaxChar(MAX_ID_LEN);
+
+	constexpr XMFLOAT2 ID_DUPLICATE_CHECK_BUTTON_SIZE(60, CREATE_ACCOUNT_ID_INPUT_FIELD_SIZE.y);
+	UIObjectHandle hButtonIdDuplicateCheck = CreateButton();
+	Button* pButtonIdDuplicateCheck = static_cast<Button*>(hButtonIdDuplicateCheck.ToPtr());
+	pButtonIdDuplicateCheck->m_transform.SetParent(&pPanelCreateAccountWindowRoot->m_transform);
+	pButtonIdDuplicateCheck->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pButtonIdDuplicateCheck->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pButtonIdDuplicateCheck->m_transform.SetPosition(
+		pInputFieldCreateAccountId->m_transform.GetPositionX() + pInputFieldCreateAccountId->GetHalfSizeX() + 10 + ID_DUPLICATE_CHECK_BUTTON_SIZE.x / 2,
+		pInputFieldCreateAccountId->m_transform.GetPositionY()
+	);
+	pButtonIdDuplicateCheck->SetSize(ID_DUPLICATE_CHECK_BUTTON_SIZE);
+	pButtonIdDuplicateCheck->SetButtonColor(ColorsLinear::Orange);
+	pButtonIdDuplicateCheck->SetTextColor(ColorsLinear::Black);
+	pButtonIdDuplicateCheck->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pButtonIdDuplicateCheck->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pButtonIdDuplicateCheck->SetText(L"중복확인");
+	pButtonIdDuplicateCheck->GetTextFormat().SetSize(STATIC_TEXT_SIZE_SMALL);
+	pButtonIdDuplicateCheck->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pButtonIdDuplicateCheck->ApplyTextFormat();
+	pButtonIdDuplicateCheck->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickIdDuplicateCheck));
+
+	constexpr XMFLOAT2 CREATE_ACCOUNT_ID_DUPLICATE_CHECK_MSG_SIZE(CREATE_ACCOUNT_WINDOW_SIZE.x - 20, 20);
+	UIObjectHandle hTextCreateAccountIdDuplicateCheckMsg = CreateText();
+	pScriptLobbyHandler->m_hTextCreateAccountIdDuplicateCheckMsg = hTextCreateAccountIdDuplicateCheckMsg;
+	Text* pTextCreateAccountIdDuplicateCheckMsg = static_cast<Text*>(hTextCreateAccountIdDuplicateCheckMsg.ToPtr());
+	pTextCreateAccountIdDuplicateCheckMsg->m_transform.SetParent(&pPanelCreateAccountWindowRoot->m_transform);
+	pTextCreateAccountIdDuplicateCheckMsg->m_transform.SetPosition(0, pInputFieldCreateAccountId->m_transform.GetPositionY() - CREATE_ACCOUNT_ID_INPUT_FIELD_SIZE.y / 2 - CREATE_ACCOUNT_ID_DUPLICATE_CHECK_MSG_SIZE.y / 2 - 3);
+	// pTextCreateAccountIdDuplicateCheckMsg->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	// pTextCreateAccountIdDuplicateCheckMsg->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pTextCreateAccountIdDuplicateCheckMsg->SetSize(CREATE_ACCOUNT_ID_DUPLICATE_CHECK_MSG_SIZE);
+	pTextCreateAccountIdDuplicateCheckMsg->SetColor(Colors::Orange);
+	pTextCreateAccountIdDuplicateCheckMsg->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pTextCreateAccountIdDuplicateCheckMsg->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pTextCreateAccountIdDuplicateCheckMsg->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pTextCreateAccountIdDuplicateCheckMsg->GetTextFormat().SetSize(CHAT_MSG_TEXT_SIZE);
+	pTextCreateAccountIdDuplicateCheckMsg->ApplyTextFormat();
+
+	
+	constexpr XMFLOAT2 CREATE_ACCOUNT_WINDOW_NICKNAME_TEXT_SIZE(120, IDPW_INPUT_FIELD_SIZE.y);
+	constexpr XMFLOAT2 CREATE_ACCOUNT_WINDOW_NICKNAME_TEXT_OFFSET(-CREATE_ACCOUNT_WINDOW_SIZE.x / 2 + CREATE_ACCOUNT_WINDOW_ID_TEXT_SIZE.x / 2 + TEXT_MARGIN, +60);
+	UIObjectHandle hTextCreateAccountNickname = CreateText();
+	Text* pTextCreateAccountNickname = static_cast<Text*>(hTextCreateAccountNickname.ToPtr());
+	pTextCreateAccountNickname->m_transform.SetParent(&pPanelCreateAccountWindowRoot->m_transform);
+	pTextCreateAccountNickname->m_transform.SetPosition(CREATE_ACCOUNT_WINDOW_NICKNAME_TEXT_OFFSET);
+	// pTextCreateAccountNickname->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	// pTextCreateAccountNickname->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pTextCreateAccountNickname->SetSize(CREATE_ACCOUNT_WINDOW_NICKNAME_TEXT_SIZE);
+	pTextCreateAccountNickname->SetText(L"닉네임");
+	pTextCreateAccountNickname->SetColor(Colors::WhiteSmoke);
+	pTextCreateAccountNickname->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pTextCreateAccountNickname->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pTextCreateAccountNickname->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pTextCreateAccountNickname->GetTextFormat().SetSize(STATIC_TEXT_SIZE_MEDIUM);
+	pTextCreateAccountNickname->ApplyTextFormat();
+
+	constexpr XMFLOAT2 CREATE_ACCOUNT_NICKNAME_INPUT_FIELD_SIZE(200, CREATE_ACCOUNT_WINDOW_NICKNAME_TEXT_SIZE.y);
+	UIObjectHandle hInputFieldCreateAccountNickname = CreateInputField();
+	pScriptLobbyHandler->m_hInputFieldCreateAccountNickname = hInputFieldCreateAccountNickname;
+	InputField* pInputFieldCreateAccountNickname = static_cast<InputField*>(hInputFieldCreateAccountNickname.ToPtr());
+	pInputFieldCreateAccountNickname->m_transform.SetParent(&pPanelCreateAccountWindowRoot->m_transform);
+	pInputFieldCreateAccountNickname->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pInputFieldCreateAccountNickname->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pInputFieldCreateAccountNickname->SetSize(CREATE_ACCOUNT_NICKNAME_INPUT_FIELD_SIZE);
+	pInputFieldCreateAccountNickname->m_transform.SetPosition(
+		pTextCreateAccountNickname->m_transform.GetPositionX() + pTextCreateAccountNickname->GetHalfSizeX() + 10 + pInputFieldCreateAccountNickname->GetHalfSizeX(),
+		pTextCreateAccountNickname->m_transform.GetPositionY()
+	);
+	pInputFieldCreateAccountNickname->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pInputFieldCreateAccountNickname->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pInputFieldCreateAccountNickname->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pInputFieldCreateAccountNickname->GetTextFormat().SetSize(CHAT_MSG_TEXT_SIZE);
+	pInputFieldCreateAccountNickname->ApplyTextFormat();
+	pInputFieldCreateAccountNickname->SetBkColor(ColorsLinear::Gray);
+	pInputFieldCreateAccountNickname->SetTextColor(Colors::Black);
+	pInputFieldCreateAccountNickname->AllowReturn(false);
+	pInputFieldCreateAccountNickname->AllowSpace(false);
+	pInputFieldCreateAccountNickname->SetMaxChar(MAX_NICKNAME_LEN);
+
+	constexpr XMFLOAT2 NICKNAME_DUPLICATE_CHECK_BUTTON_SIZE(60, CREATE_ACCOUNT_NICKNAME_INPUT_FIELD_SIZE.y);
+	UIObjectHandle hButtonNicknameDuplicateCheck = CreateButton();
+	Button* pButtonNicknameDuplicateCheck = static_cast<Button*>(hButtonNicknameDuplicateCheck.ToPtr());
+	pButtonNicknameDuplicateCheck->m_transform.SetParent(&pPanelCreateAccountWindowRoot->m_transform);
+	pButtonNicknameDuplicateCheck->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pButtonNicknameDuplicateCheck->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pButtonNicknameDuplicateCheck->m_transform.SetPosition(
+		pInputFieldCreateAccountNickname->m_transform.GetPositionX() + pInputFieldCreateAccountNickname->GetHalfSizeX() + 10 + NICKNAME_DUPLICATE_CHECK_BUTTON_SIZE.x / 2,
+		pInputFieldCreateAccountNickname->m_transform.GetPositionY()
+	);
+	pButtonNicknameDuplicateCheck->SetSize(ID_DUPLICATE_CHECK_BUTTON_SIZE);
+	pButtonNicknameDuplicateCheck->SetButtonColor(ColorsLinear::Orange);
+	pButtonNicknameDuplicateCheck->SetTextColor(ColorsLinear::Black);
+	pButtonNicknameDuplicateCheck->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pButtonNicknameDuplicateCheck->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pButtonNicknameDuplicateCheck->SetText(L"중복확인");
+	pButtonNicknameDuplicateCheck->GetTextFormat().SetSize(STATIC_TEXT_SIZE_SMALL);
+	pButtonNicknameDuplicateCheck->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pButtonNicknameDuplicateCheck->ApplyTextFormat();
+	pButtonNicknameDuplicateCheck->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickNicknameDuplicateCheck));
+
+	constexpr XMFLOAT2 CREATE_ACCOUNT_NICKNAME_DUPLICATE_CHECK_MSG_SIZE(CREATE_ACCOUNT_WINDOW_SIZE.x - 20, 20);
+	UIObjectHandle hTextCreateAccountNicknameDuplicateCheckMsg = CreateText();
+	pScriptLobbyHandler->m_hTextCreateAccountNicknameDuplicateCheckMsg = hTextCreateAccountNicknameDuplicateCheckMsg;
+	Text* pTextCreateAccountNicknameDuplicateCheckMsg = static_cast<Text*>(hTextCreateAccountNicknameDuplicateCheckMsg.ToPtr());
+	pTextCreateAccountNicknameDuplicateCheckMsg->m_transform.SetParent(&pPanelCreateAccountWindowRoot->m_transform);
+	pTextCreateAccountNicknameDuplicateCheckMsg->m_transform.SetPosition(0, pInputFieldCreateAccountNickname->m_transform.GetPositionY() - CREATE_ACCOUNT_NICKNAME_INPUT_FIELD_SIZE.y / 2 - CREATE_ACCOUNT_NICKNAME_DUPLICATE_CHECK_MSG_SIZE.y / 2 - 3);
+	// pTextCreateAccountNicknameDuplicateCheckMsg->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	// pTextCreateAccountNicknameDuplicateCheckMsg->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pTextCreateAccountNicknameDuplicateCheckMsg->SetSize(CREATE_ACCOUNT_ID_DUPLICATE_CHECK_MSG_SIZE);
+	pTextCreateAccountNicknameDuplicateCheckMsg->SetColor(Colors::Green);
+	pTextCreateAccountNicknameDuplicateCheckMsg->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pTextCreateAccountNicknameDuplicateCheckMsg->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pTextCreateAccountNicknameDuplicateCheckMsg->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pTextCreateAccountNicknameDuplicateCheckMsg->GetTextFormat().SetSize(CHAT_MSG_TEXT_SIZE);
+	pTextCreateAccountNicknameDuplicateCheckMsg->ApplyTextFormat();
+
+
+
+	constexpr XMFLOAT2 CREATE_ACCOUNT_WINDOW_PW_TEXT_OFFSET(-CREATE_ACCOUNT_WINDOW_SIZE.x / 2 + CREATE_ACCOUNT_WINDOW_ID_TEXT_SIZE.x / 2 + TEXT_MARGIN, +0);
+	UIObjectHandle hTextCreateAccountPw = CreateText();
+	Text* pTextCreateAccountPw = static_cast<Text*>(hTextCreateAccountPw.ToPtr());
+	pTextCreateAccountPw->m_transform.SetParent(&pPanelCreateAccountWindowRoot->m_transform);
+	pTextCreateAccountPw->m_transform.SetPosition(CREATE_ACCOUNT_WINDOW_PW_TEXT_OFFSET);
+	// pTextCreateAccountPw->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	// pTextCreateAccountPw->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pTextCreateAccountPw->SetSize(CREATE_ACCOUNT_WINDOW_ID_TEXT_SIZE);
+	pTextCreateAccountPw->SetText(L"비밀번호");
+	pTextCreateAccountPw->SetColor(Colors::WhiteSmoke);
+	pTextCreateAccountPw->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pTextCreateAccountPw->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pTextCreateAccountPw->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pTextCreateAccountPw->GetTextFormat().SetSize(STATIC_TEXT_SIZE_MEDIUM);
+	pTextCreateAccountPw->ApplyTextFormat();
+
+	constexpr XMFLOAT2 CREATE_ACCOUNT_WINDOW_PW_DOUBLE_CHECK_TEXT_OFFSET(-CREATE_ACCOUNT_WINDOW_SIZE.x / 2 + CREATE_ACCOUNT_WINDOW_ID_TEXT_SIZE.x / 2 + TEXT_MARGIN, -40);
+	UIObjectHandle hTextCreateAccountPwDoubleCheck = CreateText();
+	Text* pTextCreateAccountPwDoubleCheck = static_cast<Text*>(hTextCreateAccountPwDoubleCheck.ToPtr());
+	pTextCreateAccountPwDoubleCheck->m_transform.SetParent(&pPanelCreateAccountWindowRoot->m_transform);
+	pTextCreateAccountPwDoubleCheck->m_transform.SetPosition(CREATE_ACCOUNT_WINDOW_PW_DOUBLE_CHECK_TEXT_OFFSET);
+	// pTextCreateAccountPwDoubleCheck->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	// pTextCreateAccountPwDoubleCheck->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pTextCreateAccountPwDoubleCheck->SetSize(CREATE_ACCOUNT_WINDOW_ID_TEXT_SIZE);
+	pTextCreateAccountPwDoubleCheck->SetText(L"비밀번호 확인");
+	pTextCreateAccountPwDoubleCheck->SetColor(Colors::WhiteSmoke);
+	pTextCreateAccountPwDoubleCheck->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pTextCreateAccountPwDoubleCheck->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pTextCreateAccountPwDoubleCheck->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pTextCreateAccountPwDoubleCheck->GetTextFormat().SetSize(STATIC_TEXT_SIZE_MEDIUM);
+	pTextCreateAccountPwDoubleCheck->ApplyTextFormat();
+	
+	UIObjectHandle hInputFieldCreateAccountPw = CreateInputField();
+	pScriptLobbyHandler->m_hInputFieldCreateAccountPw = hInputFieldCreateAccountPw;
+	InputField* pInputFieldCreateAccountPw = static_cast<InputField*>(hInputFieldCreateAccountPw.ToPtr());
+	pInputFieldCreateAccountPw->m_transform.SetParent(&pPanelCreateAccountWindowRoot->m_transform);
+	pInputFieldCreateAccountPw->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pInputFieldCreateAccountPw->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pInputFieldCreateAccountPw->SetSize(CREATE_ACCOUNT_ID_INPUT_FIELD_SIZE);
+	pInputFieldCreateAccountPw->m_transform.SetPosition(
+		pTextCreateAccountPw->m_transform.GetPositionX() + pTextCreateAccountPw->GetHalfSizeX() + 10 + pInputFieldCreateAccountPw->GetHalfSizeX(),
+		pTextCreateAccountPw->m_transform.GetPositionY()
+	);
+	pInputFieldCreateAccountPw->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pInputFieldCreateAccountPw->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pInputFieldCreateAccountPw->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pInputFieldCreateAccountPw->GetTextFormat().SetSize(CHAT_MSG_TEXT_SIZE);
+	pInputFieldCreateAccountPw->ApplyTextFormat();
+	pInputFieldCreateAccountPw->SetBkColor(ColorsLinear::Gray);
+	pInputFieldCreateAccountPw->SetTextColor(Colors::Black);
+	pInputFieldCreateAccountPw->AllowReturn(false);
+	pInputFieldCreateAccountPw->AllowSpace(false);
+	pInputFieldCreateAccountPw->SetPassword(true);
+	pInputFieldCreateAccountPw->SetMaxChar(MAX_PW_LEN);
+
+	UIObjectHandle hInputFieldCreateAccountPwDoubleCheck = CreateInputField();
+	pScriptLobbyHandler->m_hInputFieldCreateAccountPwDoubleCheck = hInputFieldCreateAccountPwDoubleCheck;
+	InputField* pInputFieldCreateAccountPwDoubleCheck = static_cast<InputField*>(hInputFieldCreateAccountPwDoubleCheck.ToPtr());
+	pInputFieldCreateAccountPwDoubleCheck->m_transform.SetParent(&pPanelCreateAccountWindowRoot->m_transform);
+	pInputFieldCreateAccountPwDoubleCheck->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pInputFieldCreateAccountPwDoubleCheck->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pInputFieldCreateAccountPwDoubleCheck->SetSize(CREATE_ACCOUNT_ID_INPUT_FIELD_SIZE);
+	pInputFieldCreateAccountPwDoubleCheck->m_transform.SetPosition(
+		pTextCreateAccountPwDoubleCheck->m_transform.GetPositionX() + pTextCreateAccountPwDoubleCheck->GetHalfSizeX() + 10 + pInputFieldCreateAccountPwDoubleCheck->GetHalfSizeX(),
+		pTextCreateAccountPwDoubleCheck->m_transform.GetPositionY()
+	);
+	pInputFieldCreateAccountPwDoubleCheck->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pInputFieldCreateAccountPwDoubleCheck->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pInputFieldCreateAccountPwDoubleCheck->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pInputFieldCreateAccountPwDoubleCheck->GetTextFormat().SetSize(CHAT_MSG_TEXT_SIZE);
+	pInputFieldCreateAccountPwDoubleCheck->ApplyTextFormat();
+	pInputFieldCreateAccountPwDoubleCheck->SetBkColor(ColorsLinear::Gray);
+	pInputFieldCreateAccountPwDoubleCheck->SetTextColor(Colors::Black);
+	pInputFieldCreateAccountPwDoubleCheck->AllowReturn(false);
+	pInputFieldCreateAccountPwDoubleCheck->AllowSpace(false);
+	pInputFieldCreateAccountPwDoubleCheck->SetPassword(true);
+	pInputFieldCreateAccountPwDoubleCheck->SetMaxChar(MAX_PW_LEN);
+
+	constexpr XMFLOAT2 CREATE_ACCOUNT_PW_CHECK_MSG_SIZE(CREATE_ACCOUNT_WINDOW_SIZE.x - 20, 20);
+	UIObjectHandle hTextCreateAccountPwCheckMsg = CreateText();
+	pScriptLobbyHandler->m_hTextCreateAccountPwCheckMsg = hTextCreateAccountPwCheckMsg;
+	Text* pTextCreateAccountPwCheckMsg = static_cast<Text*>(hTextCreateAccountPwCheckMsg.ToPtr());
+	pTextCreateAccountPwCheckMsg->m_transform.SetParent(&pPanelCreateAccountWindowRoot->m_transform);
+	pTextCreateAccountPwCheckMsg->m_transform.SetPosition(0, pInputFieldCreateAccountPwDoubleCheck->m_transform.GetPositionY() - CREATE_ACCOUNT_ID_INPUT_FIELD_SIZE.y / 2 - CREATE_ACCOUNT_PW_CHECK_MSG_SIZE.y / 2 - 5);
+	// pTextCreateAccountPwCheckMsg->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	// pTextCreateAccountPwCheckMsg->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pTextCreateAccountPwCheckMsg->SetSize(CREATE_ACCOUNT_PW_CHECK_MSG_SIZE);
+	pTextCreateAccountPwCheckMsg->SetColor(Colors::OrangeRed);
+	pTextCreateAccountPwCheckMsg->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pTextCreateAccountPwCheckMsg->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pTextCreateAccountPwCheckMsg->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pTextCreateAccountPwCheckMsg->GetTextFormat().SetSize(CHAT_MSG_TEXT_SIZE);
+	pTextCreateAccountPwCheckMsg->ApplyTextFormat();
+
+	constexpr XMFLOAT2 REQUEST_CREATE_ACCOUNT_BUTTON_SIZE(100, 24);
+	UIObjectHandle hButtonRequestCreateAccount = CreateButton();
+	Button* pButtonRequestCreateAccount = static_cast<Button*>(hButtonRequestCreateAccount.ToPtr());
+	pButtonRequestCreateAccount->m_transform.SetParent(&pPanelCreateAccountWindowRoot->m_transform);
+	pButtonRequestCreateAccount->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pButtonRequestCreateAccount->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pButtonRequestCreateAccount->m_transform.SetPosition(-REQUEST_CREATE_ACCOUNT_BUTTON_SIZE.x / 2 - 5, -CREATE_ACCOUNT_WINDOW_SIZE.y / 2 + 10 + REQUEST_CREATE_ACCOUNT_BUTTON_SIZE.y / 2);
+	pButtonRequestCreateAccount->SetSize(REQUEST_CREATE_ACCOUNT_BUTTON_SIZE);
+	pButtonRequestCreateAccount->SetButtonColor(ColorsLinear::Orange);
+	pButtonRequestCreateAccount->SetTextColor(ColorsLinear::Black);
+	pButtonRequestCreateAccount->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pButtonRequestCreateAccount->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pButtonRequestCreateAccount->SetText(L"생성");
+	pButtonRequestCreateAccount->GetTextFormat().SetSize(STATIC_TEXT_SIZE_SMALL);
+	pButtonRequestCreateAccount->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pButtonRequestCreateAccount->ApplyTextFormat();
+	pButtonRequestCreateAccount->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickRequestCreateAccount));
+
+	UIObjectHandle hButtonCancelCreateAccount = CreateButton();
+	Button* pButtonCancelCreateAccount = static_cast<Button*>(hButtonCancelCreateAccount.ToPtr());
+	pButtonCancelCreateAccount->m_transform.SetParent(&pPanelCreateAccountWindowRoot->m_transform);
+	pButtonCancelCreateAccount->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pButtonCancelCreateAccount->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pButtonCancelCreateAccount->m_transform.SetPosition(+REQUEST_CREATE_ACCOUNT_BUTTON_SIZE.x / 2 + 5, -CREATE_ACCOUNT_WINDOW_SIZE.y / 2 + 10 + REQUEST_CREATE_ACCOUNT_BUTTON_SIZE.y / 2);
+	pButtonCancelCreateAccount->SetSize(REQUEST_CREATE_ACCOUNT_BUTTON_SIZE);
+	pButtonCancelCreateAccount->SetButtonColor(ColorsLinear::DimGray);
+	pButtonCancelCreateAccount->SetTextColor(ColorsLinear::Black);
+	pButtonCancelCreateAccount->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pButtonCancelCreateAccount->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pButtonCancelCreateAccount->SetText(L"취소");
+	pButtonCancelCreateAccount->GetTextFormat().SetSize(STATIC_TEXT_SIZE_SMALL);
+	pButtonCancelCreateAccount->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pButtonCancelCreateAccount->ApplyTextFormat();
+	pButtonCancelCreateAccount->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickCancelCreateAccount));
+	// ############################
+
 
 	// ############################
 	// Modal 메시지 박스

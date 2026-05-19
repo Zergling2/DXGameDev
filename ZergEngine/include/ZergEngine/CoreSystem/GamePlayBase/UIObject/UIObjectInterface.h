@@ -36,6 +36,7 @@ namespace ze
 		virtual ~IUIObject() = default;
 	public:
 		void DontDestroyOnLoad();
+		void DontDestroyOnLoadRecursively();
 		void Destroy();
 		void Destroy(float delay);
 		bool IsDontDestroyOnLoad() const { return static_cast<uioft>(m_flag) & static_cast<uioft>(UIOBJECT_FLAG::DONT_DESTROY_ON_LOAD); }

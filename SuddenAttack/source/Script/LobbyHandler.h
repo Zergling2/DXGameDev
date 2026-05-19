@@ -51,6 +51,11 @@ public:
 
 	// UI Event Handlers
 	void OnClickLogin();
+	void OnClickCreateAccount();
+	void OnClickIdDuplicateCheck();
+	void OnClickNicknameDuplicateCheck();
+	void OnClickRequestCreateAccount();
+	void OnClickCancelCreateAccount();
 	void OnClickExitGame();
 	void OnClickExitGameChannel();
 	void OnClickJoinChannel0();
@@ -131,16 +136,26 @@ public:
 	ze::UIObjectHandle m_hImageLobbyBgr;
 
 	// 로그인 UI 관련
-	ze::UIObjectHandle m_hPanelLoginUIRoot;
-	ze::UIObjectHandle m_hInputFieldId;
-	ze::UIObjectHandle m_hInputFieldPw;
-	ze::UIObjectHandle m_hTextIdPwInputFieldHelpMsg;
+	ze::UIObjectHandle m_hPanelLoginWindowRoot;
+	ze::UIObjectHandle m_hInputFieldLoginId;
+	ze::UIObjectHandle m_hInputFieldLoginPw;
+	ze::UIObjectHandle m_hTextLoginHelpMsg;
+
+	// 계정 생성 UI 관련
+	ze::UIObjectHandle m_hPanelCreateAccountWindowRoot;
+	ze::UIObjectHandle m_hInputFieldCreateAccountId;
+	ze::UIObjectHandle m_hTextCreateAccountIdDuplicateCheckMsg;
+	ze::UIObjectHandle m_hInputFieldCreateAccountPw;
+	ze::UIObjectHandle m_hInputFieldCreateAccountPwDoubleCheck;
+	ze::UIObjectHandle m_hTextCreateAccountPwCheckMsg;
+	ze::UIObjectHandle m_hInputFieldCreateAccountNickname;
+	ze::UIObjectHandle m_hTextCreateAccountNicknameDuplicateCheckMsg;
 
 	// 공통 버튼 UI 관련
 	ze::UIObjectHandle m_hButtonOpenShop;
 	ze::UIObjectHandle m_hButtonUserInfo;
 
-	// '확인' 메시지 박스 UI 관련
+	// 'OK' 메시지 박스 UI 관련
 	ze::UIObjectHandle m_hPanelOkMsgBoxRoot;
 	ze::UIObjectHandle m_hTextOkMsgBoxMsg;
 	ze::UIObjectHandle m_hPanelChannelBrowserRoot;

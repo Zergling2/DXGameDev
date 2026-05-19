@@ -16,10 +16,18 @@ LobbyHandler::LobbyHandler(ze::GameObject& owner)
 	, m_hScriptGameResources()
 	, m_hScriptNetwork()
 	, m_hImageLobbyBgr()
-	, m_hPanelLoginUIRoot()
-	, m_hInputFieldId()
-	, m_hInputFieldPw()
-	, m_hTextIdPwInputFieldHelpMsg()
+	, m_hPanelLoginWindowRoot()
+	, m_hInputFieldLoginId()
+	, m_hInputFieldLoginPw()
+	, m_hTextLoginHelpMsg()
+	, m_hPanelCreateAccountWindowRoot()
+	, m_hInputFieldCreateAccountId()
+	, m_hTextCreateAccountIdDuplicateCheckMsg()
+	, m_hInputFieldCreateAccountPw()
+	, m_hInputFieldCreateAccountPwDoubleCheck()
+	, m_hTextCreateAccountPwCheckMsg()
+	, m_hInputFieldCreateAccountNickname()
+	, m_hTextCreateAccountNicknameDuplicateCheckMsg()
 	, m_hButtonOpenShop()
 	, m_hButtonUserInfo()
 	, m_hPanelOkMsgBoxRoot()
@@ -81,11 +89,11 @@ void LobbyHandler::Start()
 
 void LobbyHandler::Update()
 {
-	if (Input::GetInstance()->GetKeyDown(KEYCODE::KEY_Q))
+	if (Input::GetInstance()->GetKeyDown(Keycode::KEY_F5))
+	{
 		SetResolution(1366, 768, DisplayMode::Windowed);
-
-	if (Input::GetInstance()->GetKeyDown(KEYCODE::KEY_E))
 		SetResolution(0, 0, DisplayMode::BorderlessWindowed);
+	}
 
 	if (m_needUIUpdate)
 	{
@@ -123,18 +131,18 @@ void LobbyHandler::Update()
 
 	if (UIObjectManager::GetInstance()->GetFocusedUI() == m_hInputFieldChatMsg.ToPtr())
 	{
-		if (Input::GetInstance()->GetKeyDown(KEYCODE::KEY_RETURN))
+		if (Input::GetInstance()->GetKeyDown(Keycode::KEY_RETURN))
 			this->OnClickSendChatMsg();
 	}
 }
 
 void LobbyHandler::OnClickLogin()
 {
-	InputField* pInputFieldId = static_cast<InputField*>(m_hInputFieldId.ToPtr());
-	InputField* pInputFieldPw = static_cast<InputField*>(m_hInputFieldPw.ToPtr());
+	InputField* pInputFieldId = static_cast<InputField*>(m_hInputFieldLoginId.ToPtr());
+	InputField* pInputFieldPw = static_cast<InputField*>(m_hInputFieldLoginPw.ToPtr());
 
 	// 서버로 로그인 요청 전송
-	Text* pTextIdPwInputFieldHelpMsg = static_cast<Text*>(m_hTextIdPwInputFieldHelpMsg.ToPtr());
+	Text* pTextIdPwInputFieldHelpMsg = static_cast<Text*>(m_hTextLoginHelpMsg.ToPtr());
 	if (pInputFieldId->GetText().length() < MIN_ID_LEN || pInputFieldPw->GetText().length() < MIN_PW_LEN)
 	{
 		pTextIdPwInputFieldHelpMsg->SetActive(true);
@@ -183,6 +191,44 @@ void LobbyHandler::OnClickLogin()
 	outPacket->Write(static_cast<protocol_type>(Protocol::CS_REQ_LOGIN));
 	outPacket->WriteBytes(&req, sizeof(req));
 	pScriptNetwork->GetClient().Send(std::move(outPacket));
+}
+
+void LobbyHandler::OnClickCreateAccount()
+{
+	static_cast<InputField*>(m_hInputFieldLoginId.ToPtr())->GetText().clear();
+	static_cast<InputField*>(m_hInputFieldLoginPw.ToPtr())->GetText().clear();
+	static_cast<Text*>(m_hTextLoginHelpMsg.ToPtr())->GetText().clear();
+
+	m_hPanelLoginWindowRoot.ToPtr()->SetActive(false);
+	m_hPanelCreateAccountWindowRoot.ToPtr()->SetActive(true);
+}
+
+void LobbyHandler::OnClickIdDuplicateCheck()
+{
+	static_cast<Text*>(m_hTextCreateAccountIdDuplicateCheckMsg.ToPtr())->SetText(L"사용 가능한 아이디입니다.");
+}
+
+void LobbyHandler::OnClickNicknameDuplicateCheck()
+{
+	static_cast<Text*>(m_hTextCreateAccountNicknameDuplicateCheckMsg.ToPtr())->SetText(L"사용 가능한 닉네임입니다.");
+}
+
+void LobbyHandler::OnClickRequestCreateAccount()
+{
+	static_cast<Text*>(m_hTextCreateAccountPwCheckMsg.ToPtr())->SetText(L"비밀번호가 일치하지 않습니다.");
+}
+
+void LobbyHandler::OnClickCancelCreateAccount()
+{
+	static_cast<InputField*>(m_hInputFieldCreateAccountId.ToPtr())->GetText().clear();
+	static_cast<InputField*>(m_hInputFieldCreateAccountPw.ToPtr())->GetText().clear();
+	static_cast<InputField*>(m_hInputFieldCreateAccountPwDoubleCheck.ToPtr())->GetText().clear();
+	static_cast<Text*>(m_hTextCreateAccountIdDuplicateCheckMsg.ToPtr())->GetText().clear();
+	static_cast<Text*>(m_hTextCreateAccountNicknameDuplicateCheckMsg.ToPtr())->GetText().clear();
+	static_cast<Text*>(m_hTextCreateAccountPwCheckMsg.ToPtr())->GetText().clear();
+
+	m_hPanelCreateAccountWindowRoot.ToPtr()->SetActive(false);
+	m_hPanelLoginWindowRoot.ToPtr()->SetActive(true);
 }
 
 void LobbyHandler::OnClickExitGame()
@@ -1104,6 +1150,7 @@ void LobbyHandler::UpdateUI()
 	case LobbyState::Login:
 		// #########################################################
 		// 현재 상태에 대응하지 않는 UI 숨기기
+		m_hPanelCreateAccountWindowRoot.ToPtr()->SetActive(false);
 		m_hPanelOkMsgBoxRoot.ToPtr()->SetActive(false);
 		m_hPanelChannelBrowserRoot.ToPtr()->SetActive(false);
 		m_hPanelGameListBrowserRoot.ToPtr()->SetActive(false);
@@ -1120,12 +1167,12 @@ void LobbyHandler::UpdateUI()
 		m_hImageLobbyBgr.ToPtr()->SetActive(true);
 
 		// 로그인 UI 표시
-		m_hPanelLoginUIRoot.ToPtr()->SetActive(true);
+		m_hPanelLoginWindowRoot.ToPtr()->SetActive(true);
 		// #########################################################
 		break;
 	case LobbyState::ChannelListBrowser:
 		m_hPanelOkMsgBoxRoot.ToPtr()->SetActive(false);
-		m_hPanelLoginUIRoot.ToPtr()->SetActive(false);
+		m_hPanelLoginWindowRoot.ToPtr()->SetActive(false);
 		m_hPanelGameListBrowserRoot.ToPtr()->SetActive(false);
 		m_hPanelGameRoomRoot.ToPtr()->SetActive(false);
 		m_hPanelChatRoot.ToPtr()->SetActive(false);
@@ -1145,7 +1192,7 @@ void LobbyHandler::UpdateUI()
 		// #########################################################
 		// 현재 상태에 대응하지 않는 UI 숨기기
 		m_hPanelOkMsgBoxRoot.ToPtr()->SetActive(false);
-		m_hPanelLoginUIRoot.ToPtr()->SetActive(false);
+		m_hPanelLoginWindowRoot.ToPtr()->SetActive(false);
 		m_hPanelChannelBrowserRoot.ToPtr()->SetActive(false);
 		m_hPanelGameRoomRoot.ToPtr()->SetActive(false);
 		m_hPanelCreateGameRoomRoot.ToPtr()->SetActive(false);
@@ -1172,7 +1219,7 @@ void LobbyHandler::UpdateUI()
 		ClearChatMsgs();
 
 		m_hPanelOkMsgBoxRoot.ToPtr()->SetActive(false);
-		m_hPanelLoginUIRoot.ToPtr()->SetActive(false);
+		m_hPanelLoginWindowRoot.ToPtr()->SetActive(false);
 		m_hPanelChannelBrowserRoot.ToPtr()->SetActive(false);
 		m_hPanelGameListBrowserRoot.ToPtr()->SetActive(false);
 		m_hPanelCreateGameRoomRoot.ToPtr()->SetActive(false);

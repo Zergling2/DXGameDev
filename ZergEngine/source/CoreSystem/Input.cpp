@@ -134,19 +134,19 @@ void Input::Update()
 	}
 }
 
-bool Input::GetKey(KEYCODE code) const
+bool Input::GetKey(Keycode code) const
 {
 	assert(static_cast<size_t>(code) < 256);
 	return m_currKeyState[static_cast<size_t>(code)] & 0x80;
 }
 
-bool Input::GetKeyDown(KEYCODE code) const
+bool Input::GetKeyDown(Keycode code) const
 {
 	assert(static_cast<size_t>(code) < 256);
 	return (m_currKeyState[static_cast<size_t>(code)] & 0x80) && !(m_prevKeyState[static_cast<size_t>(code)] & 0x80);
 }
 
-bool Input::GetKeyUp(KEYCODE code) const
+bool Input::GetKeyUp(Keycode code) const
 {
 	assert(static_cast<size_t>(code) < 256);
 	return !(m_currKeyState[static_cast<size_t>(code)] & 0x80) && (m_prevKeyState[static_cast<size_t>(code)] & 0x80);

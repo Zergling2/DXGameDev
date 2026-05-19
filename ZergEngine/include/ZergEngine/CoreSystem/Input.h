@@ -5,14 +5,14 @@
 namespace ze
 {
 	/****************************************************************************
-	 *
+	*
 	*      DirectInput keyboard scan codes
 	*
 	****************************************************************************/
 	//
 	//    Copyright (C) Microsoft.  All rights reserved.
 	//
-	enum KEYCODE : uint8_t
+	enum Keycode : uint8_t
 	{
 		KEY_ESCAPE			= 0x01,		
 		KEY_1				= 0x02,		
@@ -188,9 +188,9 @@ namespace ze
 
 		void Update();
 	public:
-		bool GetKey(KEYCODE code) const;
-		bool GetKeyDown(KEYCODE code) const;
-		bool GetKeyUp(KEYCODE code) const;
+		bool GetKey(Keycode code) const;
+		bool GetKeyDown(Keycode code) const;
+		bool GetKeyUp(Keycode code) const;
 
 		bool GetMouseButton(MouseButton button) const;
 		bool GetMouseButtonDown(MouseButton button) const;

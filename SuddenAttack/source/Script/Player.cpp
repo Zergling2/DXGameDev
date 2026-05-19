@@ -178,7 +178,7 @@ void Player::Update()
 
 	// 팔과 무기 흔들림 업데이트
 	constexpr float BOUNCE_FREQ_WEIGHT_RUNNING = 9.0f;
-	bool isRunning = m_isMoving && Input::GetInstance()->GetKey(KEYCODE::KEY_LSHIFT) == false;
+	bool isRunning = m_isMoving && Input::GetInstance()->GetKey(Keycode::KEY_LSHIFT) == false;
 	float targetBounceFreq = isRunning ? BOUNCE_FREQ_WEIGHT_RUNNING : BOUNCE_FREQ_WEIGHT_RUNNING * 0.5f;
 	float targetAmpX = m_isMoving ? 0.01f : 0.0f;
 	float targetAmpY = m_isMoving ? 0.02f : 0.0f;
@@ -203,7 +203,7 @@ void Player::Update()
 	if (m_processingInput)
 	{
 		// 무기 드로잉 처리
-		if (Input::GetInstance()->GetKeyDown(KEYCODE::KEY_1))
+		if (Input::GetInstance()->GetKeyDown(Keycode::KEY_1))
 		{
 			if (m_currWeaponSlot != WeaponSlot::Primary && m_weapons[static_cast<size_t>(WeaponSlot::Primary)])
 			{
@@ -213,7 +213,7 @@ void Player::Update()
 				m_weapons[static_cast<size_t>(WeaponSlot::Primary)]->StartDraw();
 			}
 		}
-		if (Input::GetInstance()->GetKeyDown(KEYCODE::KEY_2))
+		if (Input::GetInstance()->GetKeyDown(Keycode::KEY_2))
 		{
 			if (m_currWeaponSlot != WeaponSlot::Secondary && m_weapons[static_cast<size_t>(WeaponSlot::Secondary)])
 			{
@@ -225,7 +225,7 @@ void Player::Update()
 		}
 
 		// 장전 처리
-		if (Input::GetInstance()->GetKeyDown(KEYCODE::KEY_R))
+		if (Input::GetInstance()->GetKeyDown(Keycode::KEY_R))
 		{
 			m_weapons[static_cast<size_t>(m_currWeaponSlot)]->StartReload();
 		}
@@ -328,7 +328,7 @@ void Player::FixedUpdate()
 	{
 		m_velocityY = 0.0f;
 		if (m_processingInput)
-			if (Input::GetInstance()->GetKey(KEYCODE::KEY_SPACE))
+			if (Input::GetInstance()->GetKey(Keycode::KEY_SPACE))
 				m_velocityY = m_jumpVelocityY;
 	}
 	else
@@ -496,7 +496,7 @@ void Player::FixedUpdate()
 	if (m_isGround)
 	{
 		m_velocityY = 0.0f;
-		if (Input::GetInstance()->GetKey(KEYCODE::KEY_SPACE))
+		if (Input::GetInstance()->GetKey(Keycode::KEY_SPACE))
 		{
 			m_velocityY = m_jumpVelocityY;
 		}
