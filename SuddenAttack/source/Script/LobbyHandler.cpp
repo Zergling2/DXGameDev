@@ -7,6 +7,9 @@
 
 using namespace ze;
 
+static const wchar_t* SERVER_CONNECTION_FAIL_MESSAGE = L"서버에 연결하지 못했습니다.";
+static const wchar_t* WRONG_TYPE_PASSWORD_MESSAGE = L"비밀번호가 올바른 형식이 아닙니다.";
+
 LobbyHandler::LobbyHandler(ze::GameObject& owner)
 	: MonoBehaviour(owner)
 	, m_needUIUpdate(false)
@@ -143,50 +146,58 @@ void LobbyHandler::OnClickLogin()
 
 	// 서버로 로그인 요청 전송
 	Text* pTextIdPwInputFieldHelpMsg = static_cast<Text*>(m_hTextLoginHelpMsg.ToPtr());
-	if (pInputFieldId->GetText().length() < MIN_ID_LEN || pInputFieldPw->GetText().length() < MIN_PW_LEN)
+	const size_t idLen = pInputFieldId->GetText().length();
+	const size_t pwLen = pInputFieldPw->GetText().length();
+	if (idLen < MIN_ID_LEN || pwLen < MIN_PW_LEN)
 	{
-		pTextIdPwInputFieldHelpMsg->SetActive(true);
+		pTextIdPwInputFieldHelpMsg->SetColor(Colors::Orange);
+		pTextIdPwInputFieldHelpMsg->SetText(L"아이디 또는 비밀번호가 올바른 형식이 아닙니다.");
 		return;
 	}
-	else
-	{
-		pTextIdPwInputFieldHelpMsg->SetActive(false);
-	}
 
-	assert(pInputFieldId->GetText().length() <= MAX_ID_LEN);
-	assert(pInputFieldPw->GetText().length() <= MAX_PW_LEN);
+	assert(idLen <= MAX_ID_LEN);
+	assert(pwLen <= MAX_PW_LEN);
 
-	char buf[(MAX_PW_LEN + 1) * 4];		// UTF-8 변환 결과 버퍼
-	int len = WideCharToMultiByte(
+	// sha256 해싱
+	char u8PwBuf[(MAX_PW_LEN + 1) * 4];		// UTF-8 변환 결과 버퍼
+	int u8PwLen = WideCharToMultiByte(
 		CP_UTF8,
 		0,
 		pInputFieldPw->GetText().c_str(),
 		-1,		// NULL 종료까지 변환
-		buf,
-		sizeof(buf),
+		u8PwBuf,
+		sizeof(u8PwBuf),
 		nullptr,
 		nullptr
 	);
 
-	if (len == 0)
+	assert(u8PwLen >= 0);
+	if (u8PwLen == 0)
 	{
-		pTextIdPwInputFieldHelpMsg->SetActive(true);
+		pTextIdPwInputFieldHelpMsg->SetColor(Colors::Orange);
+		pTextIdPwInputFieldHelpMsg->SetText(WRONG_TYPE_PASSWORD_MESSAGE);
 		return;
 	}
 
 	unsigned char hpw[SHA256_DIGEST_LENGTH];
 	ZeroMemory(hpw, sizeof(hpw));
-
-	SHA256(reinterpret_cast<unsigned char*>(buf), len - 1, hpw);	// NULL 문자 제외하고 해싱
+	SHA256(reinterpret_cast<unsigned char*>(u8PwBuf), u8PwLen - 1, hpw);	// NULL 문자 제외하고 해싱
 
 	Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
 	if (pScriptNetwork->GetClient().GetState() != winppy::ClientState::Connected)
+	{
+		pTextIdPwInputFieldHelpMsg->SetColor(Colors::Red);
+		pTextIdPwInputFieldHelpMsg->SetText(SERVER_CONNECTION_FAIL_MESSAGE);
 		return;
+	}
+
+	pTextIdPwInputFieldHelpMsg->SetColor(Colors::Green);
+	pTextIdPwInputFieldHelpMsg->SetText(L"로그인 대기중...");
 
 	winppy::Packet outPacket;
 	CSReqLogin req;
-	req.m_idLen = static_cast<uint16_t>(pInputFieldId->GetText().length());
-	wmemcpy_s(req.m_id, _countof(req.m_id), pInputFieldId->GetText().c_str(), pInputFieldId->GetText().length());
+	req.m_idLen = static_cast<uint16_t>(idLen);
+	wmemcpy_s(req.m_id, _countof(req.m_id), pInputFieldId->GetText().c_str(), req.m_idLen);
 	memcpy(req.m_hpw, hpw, sizeof(req.m_hpw));
 	outPacket->Write(static_cast<protocol_type>(Protocol::CS_REQ_LOGIN));
 	outPacket->WriteBytes(&req, sizeof(req));
@@ -205,22 +216,177 @@ void LobbyHandler::OnClickCreateAccount()
 
 void LobbyHandler::OnClickIdDuplicateCheck()
 {
-	static_cast<Text*>(m_hTextCreateAccountIdDuplicateCheckMsg.ToPtr())->SetText(L"사용 가능한 아이디입니다.");
+	InputField* pInputFieldCreateAccountId = static_cast<InputField*>(m_hInputFieldCreateAccountId.ToPtr());
+
+	// 서버로 ID 중복 검사 요청
+	Text* pTextCreateAccountIdDuplicateCheckMsg = static_cast<Text*>(m_hTextCreateAccountIdDuplicateCheckMsg.ToPtr());
+	if (pInputFieldCreateAccountId->GetText().length() < MIN_ID_LEN)
+	{
+		wchar_t msgBuf[40];
+		StringCchPrintfW(msgBuf, _countof(msgBuf), L"아이디는 최소 %u글자 이상이어야 합니다.", static_cast<uint32_t>(MIN_ID_LEN));
+		pTextCreateAccountIdDuplicateCheckMsg->SetColor(Colors::Orange);
+		pTextCreateAccountIdDuplicateCheckMsg->SetText(msgBuf);
+		return;
+	}
+
+	Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
+	if (pScriptNetwork->GetClient().GetState() != winppy::ClientState::Connected)
+	{
+		pTextCreateAccountIdDuplicateCheckMsg->SetColor(Colors::Red);
+		pTextCreateAccountIdDuplicateCheckMsg->SetText(SERVER_CONNECTION_FAIL_MESSAGE);
+		return;
+	}
+
+	pTextCreateAccountIdDuplicateCheckMsg->SetColor(Colors::Green);
+	pTextCreateAccountIdDuplicateCheckMsg->SetText(L"중복 검사 요청중...");
+
+	winppy::Packet outPacket;
+	CSReqIdDuplicateCheck req;
+	req.m_idLen = static_cast<uint16_t>(pInputFieldCreateAccountId->GetText().length());
+	wmemcpy_s(req.m_id, _countof(req.m_id), pInputFieldCreateAccountId->GetText().c_str(), req.m_idLen);
+	outPacket->Write(static_cast<protocol_type>(Protocol::CS_REQ_ID_DUPLICATE_CHECK));
+	outPacket->WriteBytes(&req, sizeof(req));
+	pScriptNetwork->GetClient().Send(std::move(outPacket));
 }
 
 void LobbyHandler::OnClickNicknameDuplicateCheck()
 {
-	static_cast<Text*>(m_hTextCreateAccountNicknameDuplicateCheckMsg.ToPtr())->SetText(L"사용 가능한 닉네임입니다.");
+	InputField* pInputFieldCreateAccountNickname = static_cast<InputField*>(m_hInputFieldCreateAccountNickname.ToPtr());
+
+	// 서버로 ID 중복 검사 요청
+	Text* pTextCreateAccountNicknameDuplicateCheckMsg = static_cast<Text*>(m_hTextCreateAccountNicknameDuplicateCheckMsg.ToPtr());
+	if (pInputFieldCreateAccountNickname->GetText().length() < MIN_NICKNAME_LEN)
+	{
+		wchar_t msgBuf[40];
+		StringCchPrintfW(msgBuf, _countof(msgBuf), L"닉네임은 최소 %u글자 이상이어야 합니다.", static_cast<uint32_t>(MIN_NICKNAME_LEN));
+		pTextCreateAccountNicknameDuplicateCheckMsg->SetColor(Colors::Orange);
+		pTextCreateAccountNicknameDuplicateCheckMsg->SetText(msgBuf);
+		return;
+	}
+
+	Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
+	if (pScriptNetwork->GetClient().GetState() != winppy::ClientState::Connected)
+	{
+		pTextCreateAccountNicknameDuplicateCheckMsg->SetColor(Colors::Red);
+		pTextCreateAccountNicknameDuplicateCheckMsg->SetText(SERVER_CONNECTION_FAIL_MESSAGE);
+		return;
+	}
+
+	pTextCreateAccountNicknameDuplicateCheckMsg->SetColor(Colors::Green);
+	pTextCreateAccountNicknameDuplicateCheckMsg->SetText(L"중복 검사 요청중...");
+
+	winppy::Packet outPacket;
+	CSReqNicknameDuplicateCheck req;
+	req.m_nicknameLen = static_cast<uint16_t>(pInputFieldCreateAccountNickname->GetText().length());
+	wmemcpy_s(req.m_nickname, _countof(req.m_nickname), pInputFieldCreateAccountNickname->GetText().c_str(), req.m_nicknameLen);
+	outPacket->Write(static_cast<protocol_type>(Protocol::CS_REQ_NICKNAME_DUPLICATE_CHECK));
+	outPacket->WriteBytes(&req, sizeof(req));
+	pScriptNetwork->GetClient().Send(std::move(outPacket));
 }
 
 void LobbyHandler::OnClickRequestCreateAccount()
 {
-	static_cast<Text*>(m_hTextCreateAccountPwCheckMsg.ToPtr())->SetText(L"비밀번호가 일치하지 않습니다.");
+	InputField* pInputFieldCreateAccountId = static_cast<InputField*>(m_hInputFieldCreateAccountId.ToPtr());
+	InputField* pInputFieldCreateAccountNickname = static_cast<InputField*>(m_hInputFieldCreateAccountNickname.ToPtr());
+	InputField* pInputFieldCreateAccountPw = static_cast<InputField*>(m_hInputFieldCreateAccountPw.ToPtr());
+	InputField* pInputFieldCreateAccountPwDoubleCheck = static_cast<InputField*>(m_hInputFieldCreateAccountPwDoubleCheck.ToPtr());
+
+	Text* pTextCreateAccountIdDuplicateCheckMsg = static_cast<Text*>(m_hTextCreateAccountIdDuplicateCheckMsg.ToPtr());
+	Text* pTextCreateAccountNicknameDuplicateCheckMsg = static_cast<Text*>(m_hTextCreateAccountNicknameDuplicateCheckMsg.ToPtr());
+	Text* pTextCreateAccountPwCheckMsg = static_cast<Text*>(m_hTextCreateAccountPwCheckMsg.ToPtr());
+	
+	const size_t idLen = pInputFieldCreateAccountId->GetText().length();
+	if (idLen < MIN_ID_LEN || idLen > MAX_ID_LEN)
+	{
+		wchar_t msgBuf[40];
+		StringCchPrintfW(msgBuf, _countof(msgBuf), L"아이디는 %u자에서 %u자 사이이어야 합니다.", static_cast<uint32_t>(MIN_ID_LEN), static_cast<uint32_t>(MAX_ID_LEN));
+		pTextCreateAccountIdDuplicateCheckMsg->SetColor(Colors::Orange);
+		pTextCreateAccountIdDuplicateCheckMsg->SetText(msgBuf);
+		return;
+	}
+
+	const size_t nicknameLen = pInputFieldCreateAccountNickname->GetText().length();
+	if (nicknameLen < MIN_NICKNAME_LEN || nicknameLen > MAX_NICKNAME_LEN)
+	{
+		wchar_t msgBuf[40];
+		StringCchPrintfW(msgBuf, _countof(msgBuf), L"닉네임은 %u자에서 %u자 사이이어야 합니다.", static_cast<uint32_t>(MIN_NICKNAME_LEN), static_cast<uint32_t>(MAX_NICKNAME_LEN));
+		pTextCreateAccountNicknameDuplicateCheckMsg->SetColor(Colors::Orange);
+		pTextCreateAccountNicknameDuplicateCheckMsg->SetText(msgBuf);
+		return;
+	}
+
+	const size_t pwLen = pInputFieldCreateAccountPw->GetText().length();
+	const size_t pwDoubleCheckLen = pInputFieldCreateAccountPwDoubleCheck->GetText().length();
+	if (pwLen < MIN_PW_LEN || pwLen > MAX_PW_LEN)
+	{
+		wchar_t msgBuf[40];
+		StringCchPrintfW(msgBuf, _countof(msgBuf), L"비밀번호는 %u자에서 %u자 사이이어야 합니다.", static_cast<uint32_t>(MIN_PW_LEN), static_cast<uint32_t>(MAX_PW_LEN));
+		pTextCreateAccountPwCheckMsg->SetColor(Colors::Orange);
+		pTextCreateAccountPwCheckMsg->SetText(msgBuf);
+		return;
+	}
+
+	if (pwLen != pwDoubleCheckLen)
+	{
+		pTextCreateAccountPwCheckMsg->SetColor(Colors::Orange);
+		pTextCreateAccountPwCheckMsg->SetText(L"비밀번호가 일치하지 않습니다.");
+		return;
+	}
+
+
+	// sha256 해싱
+	char u8PwBuf[(MAX_PW_LEN + 1) * 4];		// UTF-8 변환 결과 버퍼
+	int u8PwLen = WideCharToMultiByte(
+		CP_UTF8,
+		0,
+		pInputFieldCreateAccountPw->GetText().c_str(),
+		-1,		// NULL 종료까지 변환
+		u8PwBuf,
+		sizeof(u8PwBuf),
+		nullptr,
+		nullptr
+	);
+
+	assert(u8PwLen >= 0);
+	if (u8PwLen == 0)
+	{
+		pTextCreateAccountPwCheckMsg->SetColor(Colors::Orange);
+		pTextCreateAccountPwCheckMsg->SetText(WRONG_TYPE_PASSWORD_MESSAGE);
+		return;
+	}
+
+	unsigned char hpw[SHA256_DIGEST_LENGTH];
+	ZeroMemory(hpw, sizeof(hpw));
+	SHA256(reinterpret_cast<unsigned char*>(u8PwBuf), u8PwLen - 1, hpw);	// NULL 문자 제외하고 해싱
+
+	Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
+	if (pScriptNetwork->GetClient().GetState() != winppy::ClientState::Connected)
+	{
+		pTextCreateAccountIdDuplicateCheckMsg->SetColor(Colors::Red);
+		pTextCreateAccountIdDuplicateCheckMsg->SetText(SERVER_CONNECTION_FAIL_MESSAGE);
+		pTextCreateAccountNicknameDuplicateCheckMsg->SetColor(Colors::Red);
+		pTextCreateAccountNicknameDuplicateCheckMsg->SetText(SERVER_CONNECTION_FAIL_MESSAGE);
+		pTextCreateAccountPwCheckMsg->SetColor(Colors::Red);
+		pTextCreateAccountPwCheckMsg->SetText(SERVER_CONNECTION_FAIL_MESSAGE);
+		return;
+	}
+
+	winppy::Packet outPacket;
+	CSReqCreateAccount req;
+	req.m_idLen = static_cast<uint16_t>(idLen);
+	wmemcpy_s(req.m_id, _countof(req.m_id), pInputFieldCreateAccountId->GetText().c_str(), req.m_idLen);
+	req.m_nicknameLen = static_cast<uint16_t>(nicknameLen);
+	wmemcpy_s(req.m_nickname, _countof(req.m_nickname), pInputFieldCreateAccountNickname->GetText().c_str(), req.m_nicknameLen);
+	memcpy(req.m_hpw, hpw, sizeof(req.m_hpw));
+	outPacket->Write(static_cast<protocol_type>(Protocol::CS_REQ_CREATE_ACCOUNT));
+	outPacket->WriteBytes(&req, sizeof(req));
+	pScriptNetwork->GetClient().Send(std::move(outPacket));
 }
 
 void LobbyHandler::OnClickCancelCreateAccount()
 {
 	static_cast<InputField*>(m_hInputFieldCreateAccountId.ToPtr())->GetText().clear();
+	static_cast<InputField*>(m_hInputFieldCreateAccountNickname.ToPtr())->GetText().clear();
 	static_cast<InputField*>(m_hInputFieldCreateAccountPw.ToPtr())->GetText().clear();
 	static_cast<InputField*>(m_hInputFieldCreateAccountPwDoubleCheck.ToPtr())->GetText().clear();
 	static_cast<Text*>(m_hTextCreateAccountIdDuplicateCheckMsg.ToPtr())->GetText().clear();
@@ -615,7 +781,7 @@ void LobbyHandler::OnClickMoveToRedTeam()
 
 void LobbyHandler::OnClickOkMsgBoxOk()
 {
-	IUIObject* pPanelOkMsgBoxRoot = m_hPanelOkMsgBoxRoot.ToPtr();
+	Panel* pPanelOkMsgBoxRoot = static_cast<Panel*>(m_hPanelOkMsgBoxRoot.ToPtr());
 	pPanelOkMsgBoxRoot->SetActive(false);
 	pPanelOkMsgBoxRoot->m_transform.SetParent(&m_hImageLobbyBgr.ToPtr()->m_transform);
 }

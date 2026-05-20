@@ -9,6 +9,9 @@ using protocol_type = uint32_t;
 enum class Protocol : protocol_type
 {
 	CS_REQ_LOGIN,
+	CS_REQ_ID_DUPLICATE_CHECK,
+	CS_REQ_NICKNAME_DUPLICATE_CHECK,
+	CS_REQ_CREATE_ACCOUNT,
 	CS_REQ_CHANNEL_INFO,
 	CS_REQ_JOIN_CHANNEL,
 	CS_REQ_SEND_CHAT_MSG,
@@ -22,6 +25,9 @@ enum class Protocol : protocol_type
 	CS_REQ_EXIT_GAME_CHANNEL,
 
 	SC_RES_LOGIN,
+	SC_RES_ID_DUPLICATE_CHECK,
+	SC_RES_NICKNAME_DUPLICATE_CHECK,
+	SC_RES_CREATE_ACCOUNT,
 	SC_RES_CHANNEL_INFO,
 	SC_RES_JOIN_CHANNEL,
 	SC_RES_SEND_CHAT_MSG,
@@ -42,10 +48,55 @@ enum class Protocol : protocol_type
 	SC_NOTIFY_PLAYER_GAME_UNREADY
 };
 
+enum class FailReason : uint8_t
+{
+	InvalidGame,
+	Full,
+
+	NotReady,
+
+	Success
+};
+
+enum class IdDuplicateCheckResult : uint8_t
+{
+	Valid,
+	AlreadyExist,
+	Invalid
+};
+
+enum class NicknameDuplicateCheckResult : uint8_t
+{
+	Valid,
+	AlreadyExist,
+	Invalid
+};
+
 struct CSReqLogin
 {
 	uint16_t m_idLen;
 	wchar_t m_id[MAX_ID_LEN];	// (NOT a null termination string)
+	unsigned char m_hpw[32];
+};
+
+struct CSReqIdDuplicateCheck
+{
+	uint16_t m_idLen;
+	wchar_t m_id[MAX_ID_LEN];
+};
+
+struct CSReqNicknameDuplicateCheck
+{
+	uint16_t m_nicknameLen;
+	wchar_t m_nickname[MAX_NICKNAME_LEN];
+};
+
+struct CSReqCreateAccount
+{
+	uint16_t m_idLen;
+	wchar_t m_id[MAX_ID_LEN];	// (NOT a null termination string)
+	uint16_t m_nicknameLen;
+	wchar_t m_nickname[MAX_ID_LEN];	// (NOT a null termination string)
 	unsigned char m_hpw[32];
 };
 
@@ -99,6 +150,16 @@ struct SCResLogin
 	uint32_t m_point;	// 포인트 소유량
 };
 
+struct SCResIdDuplicateCheck
+{
+	IdDuplicateCheckResult m_result;
+};
+
+struct SCResNicknameDuplicateCheck
+{
+	NicknameDuplicateCheckResult m_result;
+};
+
 struct SCResChannelInfo
 {
 	uint16_t m_serverId;	// 서버군 식별자
@@ -150,16 +211,6 @@ struct SCResCreateGameRoom
 	GameTeam m_joinedTeam;
 	uint16_t m_gameRoomNameLen;
 	// m_gameName... (가변길이 데이터)
-};
-
-enum class FailReason : uint8_t
-{
-	InvalidGame,
-	Full,
-
-	NotReady,
-
-	Success
 };
 
 struct SCResJoinGameRoom

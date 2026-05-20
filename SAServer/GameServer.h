@@ -20,6 +20,9 @@ public:
 	virtual void OnDisconnect(uint64_t id) override;
 
 	bool PktProcCSReqLogin(uint64_t id, winppy::Packet packet);
+	bool PktProcCSReqIdDuplicateCheck(uint64_t id, winppy::Packet packet);
+	bool PktProcCSReqNicknameDuplicateCheck(uint64_t id, winppy::Packet packet);
+	bool PktProcCSReqCreateAccount(uint64_t id, winppy::Packet packet);
 	bool PktProcCSReqChannelInfo(uint64_t id, winppy::Packet packet);
 	bool PktProcCSReqJoinChannel(winppy::Packet packet, std::shared_ptr<GameSession> spSession);
 	bool PktProcCSReqSendChatMsg(winppy::Packet packet, std::shared_ptr<GameSession> spSession);

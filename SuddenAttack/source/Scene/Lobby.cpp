@@ -190,12 +190,10 @@ void Lobby::OnLoadScene()
 	UIObjectHandle hTextLoginHelpMsg = CreateText();
 	pScriptLobbyHandler->m_hTextLoginHelpMsg = hTextLoginHelpMsg;
 	Text* pTextLoginHelpMsg = static_cast<Text*>(hTextLoginHelpMsg.ToPtr());
-	pTextLoginHelpMsg->SetActive(false);
 	pTextLoginHelpMsg->m_transform.SetParent(&pPanelIdPwFrame->m_transform);
 	pTextLoginHelpMsg->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 	pTextLoginHelpMsg->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 	pTextLoginHelpMsg->m_transform.SetPosition(pInputFieldLoginPw->m_transform.GetPositionX() - 24, pInputFieldLoginPw->m_transform.GetPositionY() - pInputFieldLoginPw->GetHalfSizeY() - LOGIN_HELP_MSG_TEXT_SIZE.y / 2 - 3);
-	pTextLoginHelpMsg->SetText(L"아이디 또는 비밀번호가 올바른 형식이 아닙니다.");
 	pTextLoginHelpMsg->SetColor(Colors::Red);
 	pTextLoginHelpMsg->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pTextLoginHelpMsg->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
@@ -235,7 +233,7 @@ void Lobby::OnLoadScene()
 	pButtonLogin->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pButtonLogin->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 	pButtonLogin->SetText(L"로그인");
-	pButtonLogin->SetButtonColor(ColorsLinear::DodgerBlue);
+	pButtonLogin->SetButtonColor(ColorsLinear::DarkOliveGreen);
 	pButtonLogin->SetTextColor(ColorsLinear::Black);
 	pButtonLogin->GetTextFormat().SetSize(STATIC_TEXT_SIZE_SMALL);
 	pButtonLogin->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
@@ -295,12 +293,24 @@ void Lobby::OnLoadScene()
 	pTextCreateAccountWindowName->GetTextFormat().SetSize(MEDIUM_TEXT_SIZE);
 	pTextCreateAccountWindowName->ApplyTextFormat();
 
+	constexpr XMFLOAT2 CREATE_ACCOUNT_CONTENT_FRAME_SIZE(CREATE_ACCOUNT_WINDOW_SIZE.x - 12, CREATE_ACCOUNT_WINDOW_SIZE.y - 44);
+	UIObjectHandle hPanelCreateAccountContentFrame = CreatePanel();
+	Panel* pPanelCreateAccountContentFrame = static_cast<Panel*>(hPanelCreateAccountContentFrame.ToPtr());
+	pPanelCreateAccountContentFrame->m_transform.SetParent(&pPanelCreateAccountWindowRoot->m_transform);
+	pPanelCreateAccountContentFrame->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pPanelCreateAccountContentFrame->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pPanelCreateAccountContentFrame->m_transform.SetPosition(0, -CREATE_ACCOUNT_WINDOW_SIZE.y / 2 + CREATE_ACCOUNT_CONTENT_FRAME_SIZE.y / 2 + 6);
+	pPanelCreateAccountContentFrame->SetSize(CREATE_ACCOUNT_CONTENT_FRAME_SIZE);
+	pPanelCreateAccountContentFrame->SetColor(0.25f, 0.25f, 0.25f, 1.0f);
+	pPanelCreateAccountContentFrame->SetShape(PanelShape::RoundedRectangle);
+	pPanelCreateAccountContentFrame->SetRadius(4.0f, 4.0f);
+
 	constexpr FLOAT TEXT_MARGIN = +10;
 	constexpr XMFLOAT2 CREATE_ACCOUNT_WINDOW_ID_TEXT_SIZE(120, IDPW_INPUT_FIELD_SIZE.y);
 	constexpr XMFLOAT2 CREATE_ACCOUNT_WINDOW_ID_TEXT_OFFSET(-CREATE_ACCOUNT_WINDOW_SIZE.x / 2 + CREATE_ACCOUNT_WINDOW_ID_TEXT_SIZE.x / 2 + TEXT_MARGIN, +120);
 	UIObjectHandle hTextCreateAccountId = CreateText();
 	Text* pTextCreateAccountId = static_cast<Text*>(hTextCreateAccountId.ToPtr());
-	pTextCreateAccountId->m_transform.SetParent(&pPanelCreateAccountWindowRoot->m_transform);
+	pTextCreateAccountId->m_transform.SetParent(&pPanelCreateAccountContentFrame->m_transform);
 	pTextCreateAccountId->m_transform.SetPosition(CREATE_ACCOUNT_WINDOW_ID_TEXT_OFFSET);
 	// pTextCreateAccountId->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 	// pTextCreateAccountId->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
@@ -317,7 +327,7 @@ void Lobby::OnLoadScene()
 	UIObjectHandle hInputFieldCreateAccountId = CreateInputField();
 	pScriptLobbyHandler->m_hInputFieldCreateAccountId = hInputFieldCreateAccountId;
 	InputField* pInputFieldCreateAccountId = static_cast<InputField*>(hInputFieldCreateAccountId.ToPtr());
-	pInputFieldCreateAccountId->m_transform.SetParent(&pPanelCreateAccountWindowRoot->m_transform);
+	pInputFieldCreateAccountId->m_transform.SetParent(&pPanelCreateAccountContentFrame->m_transform);
 	pInputFieldCreateAccountId->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 	pInputFieldCreateAccountId->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 	pInputFieldCreateAccountId->SetSize(CREATE_ACCOUNT_ID_INPUT_FIELD_SIZE);
@@ -339,7 +349,7 @@ void Lobby::OnLoadScene()
 	constexpr XMFLOAT2 ID_DUPLICATE_CHECK_BUTTON_SIZE(60, CREATE_ACCOUNT_ID_INPUT_FIELD_SIZE.y);
 	UIObjectHandle hButtonIdDuplicateCheck = CreateButton();
 	Button* pButtonIdDuplicateCheck = static_cast<Button*>(hButtonIdDuplicateCheck.ToPtr());
-	pButtonIdDuplicateCheck->m_transform.SetParent(&pPanelCreateAccountWindowRoot->m_transform);
+	pButtonIdDuplicateCheck->m_transform.SetParent(&pPanelCreateAccountContentFrame->m_transform);
 	pButtonIdDuplicateCheck->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 	pButtonIdDuplicateCheck->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 	pButtonIdDuplicateCheck->m_transform.SetPosition(
@@ -361,7 +371,7 @@ void Lobby::OnLoadScene()
 	UIObjectHandle hTextCreateAccountIdDuplicateCheckMsg = CreateText();
 	pScriptLobbyHandler->m_hTextCreateAccountIdDuplicateCheckMsg = hTextCreateAccountIdDuplicateCheckMsg;
 	Text* pTextCreateAccountIdDuplicateCheckMsg = static_cast<Text*>(hTextCreateAccountIdDuplicateCheckMsg.ToPtr());
-	pTextCreateAccountIdDuplicateCheckMsg->m_transform.SetParent(&pPanelCreateAccountWindowRoot->m_transform);
+	pTextCreateAccountIdDuplicateCheckMsg->m_transform.SetParent(&pPanelCreateAccountContentFrame->m_transform);
 	pTextCreateAccountIdDuplicateCheckMsg->m_transform.SetPosition(0, pInputFieldCreateAccountId->m_transform.GetPositionY() - CREATE_ACCOUNT_ID_INPUT_FIELD_SIZE.y / 2 - CREATE_ACCOUNT_ID_DUPLICATE_CHECK_MSG_SIZE.y / 2 - 3);
 	// pTextCreateAccountIdDuplicateCheckMsg->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 	// pTextCreateAccountIdDuplicateCheckMsg->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
@@ -378,7 +388,7 @@ void Lobby::OnLoadScene()
 	constexpr XMFLOAT2 CREATE_ACCOUNT_WINDOW_NICKNAME_TEXT_OFFSET(-CREATE_ACCOUNT_WINDOW_SIZE.x / 2 + CREATE_ACCOUNT_WINDOW_ID_TEXT_SIZE.x / 2 + TEXT_MARGIN, +60);
 	UIObjectHandle hTextCreateAccountNickname = CreateText();
 	Text* pTextCreateAccountNickname = static_cast<Text*>(hTextCreateAccountNickname.ToPtr());
-	pTextCreateAccountNickname->m_transform.SetParent(&pPanelCreateAccountWindowRoot->m_transform);
+	pTextCreateAccountNickname->m_transform.SetParent(&pPanelCreateAccountContentFrame->m_transform);
 	pTextCreateAccountNickname->m_transform.SetPosition(CREATE_ACCOUNT_WINDOW_NICKNAME_TEXT_OFFSET);
 	// pTextCreateAccountNickname->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 	// pTextCreateAccountNickname->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
@@ -395,7 +405,7 @@ void Lobby::OnLoadScene()
 	UIObjectHandle hInputFieldCreateAccountNickname = CreateInputField();
 	pScriptLobbyHandler->m_hInputFieldCreateAccountNickname = hInputFieldCreateAccountNickname;
 	InputField* pInputFieldCreateAccountNickname = static_cast<InputField*>(hInputFieldCreateAccountNickname.ToPtr());
-	pInputFieldCreateAccountNickname->m_transform.SetParent(&pPanelCreateAccountWindowRoot->m_transform);
+	pInputFieldCreateAccountNickname->m_transform.SetParent(&pPanelCreateAccountContentFrame->m_transform);
 	pInputFieldCreateAccountNickname->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 	pInputFieldCreateAccountNickname->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 	pInputFieldCreateAccountNickname->SetSize(CREATE_ACCOUNT_NICKNAME_INPUT_FIELD_SIZE);
@@ -417,7 +427,7 @@ void Lobby::OnLoadScene()
 	constexpr XMFLOAT2 NICKNAME_DUPLICATE_CHECK_BUTTON_SIZE(60, CREATE_ACCOUNT_NICKNAME_INPUT_FIELD_SIZE.y);
 	UIObjectHandle hButtonNicknameDuplicateCheck = CreateButton();
 	Button* pButtonNicknameDuplicateCheck = static_cast<Button*>(hButtonNicknameDuplicateCheck.ToPtr());
-	pButtonNicknameDuplicateCheck->m_transform.SetParent(&pPanelCreateAccountWindowRoot->m_transform);
+	pButtonNicknameDuplicateCheck->m_transform.SetParent(&pPanelCreateAccountContentFrame->m_transform);
 	pButtonNicknameDuplicateCheck->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 	pButtonNicknameDuplicateCheck->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 	pButtonNicknameDuplicateCheck->m_transform.SetPosition(
@@ -439,7 +449,7 @@ void Lobby::OnLoadScene()
 	UIObjectHandle hTextCreateAccountNicknameDuplicateCheckMsg = CreateText();
 	pScriptLobbyHandler->m_hTextCreateAccountNicknameDuplicateCheckMsg = hTextCreateAccountNicknameDuplicateCheckMsg;
 	Text* pTextCreateAccountNicknameDuplicateCheckMsg = static_cast<Text*>(hTextCreateAccountNicknameDuplicateCheckMsg.ToPtr());
-	pTextCreateAccountNicknameDuplicateCheckMsg->m_transform.SetParent(&pPanelCreateAccountWindowRoot->m_transform);
+	pTextCreateAccountNicknameDuplicateCheckMsg->m_transform.SetParent(&pPanelCreateAccountContentFrame->m_transform);
 	pTextCreateAccountNicknameDuplicateCheckMsg->m_transform.SetPosition(0, pInputFieldCreateAccountNickname->m_transform.GetPositionY() - CREATE_ACCOUNT_NICKNAME_INPUT_FIELD_SIZE.y / 2 - CREATE_ACCOUNT_NICKNAME_DUPLICATE_CHECK_MSG_SIZE.y / 2 - 3);
 	// pTextCreateAccountNicknameDuplicateCheckMsg->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 	// pTextCreateAccountNicknameDuplicateCheckMsg->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
@@ -456,7 +466,7 @@ void Lobby::OnLoadScene()
 	constexpr XMFLOAT2 CREATE_ACCOUNT_WINDOW_PW_TEXT_OFFSET(-CREATE_ACCOUNT_WINDOW_SIZE.x / 2 + CREATE_ACCOUNT_WINDOW_ID_TEXT_SIZE.x / 2 + TEXT_MARGIN, +0);
 	UIObjectHandle hTextCreateAccountPw = CreateText();
 	Text* pTextCreateAccountPw = static_cast<Text*>(hTextCreateAccountPw.ToPtr());
-	pTextCreateAccountPw->m_transform.SetParent(&pPanelCreateAccountWindowRoot->m_transform);
+	pTextCreateAccountPw->m_transform.SetParent(&pPanelCreateAccountContentFrame->m_transform);
 	pTextCreateAccountPw->m_transform.SetPosition(CREATE_ACCOUNT_WINDOW_PW_TEXT_OFFSET);
 	// pTextCreateAccountPw->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 	// pTextCreateAccountPw->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
@@ -472,7 +482,7 @@ void Lobby::OnLoadScene()
 	constexpr XMFLOAT2 CREATE_ACCOUNT_WINDOW_PW_DOUBLE_CHECK_TEXT_OFFSET(-CREATE_ACCOUNT_WINDOW_SIZE.x / 2 + CREATE_ACCOUNT_WINDOW_ID_TEXT_SIZE.x / 2 + TEXT_MARGIN, -40);
 	UIObjectHandle hTextCreateAccountPwDoubleCheck = CreateText();
 	Text* pTextCreateAccountPwDoubleCheck = static_cast<Text*>(hTextCreateAccountPwDoubleCheck.ToPtr());
-	pTextCreateAccountPwDoubleCheck->m_transform.SetParent(&pPanelCreateAccountWindowRoot->m_transform);
+	pTextCreateAccountPwDoubleCheck->m_transform.SetParent(&pPanelCreateAccountContentFrame->m_transform);
 	pTextCreateAccountPwDoubleCheck->m_transform.SetPosition(CREATE_ACCOUNT_WINDOW_PW_DOUBLE_CHECK_TEXT_OFFSET);
 	// pTextCreateAccountPwDoubleCheck->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 	// pTextCreateAccountPwDoubleCheck->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
@@ -488,7 +498,7 @@ void Lobby::OnLoadScene()
 	UIObjectHandle hInputFieldCreateAccountPw = CreateInputField();
 	pScriptLobbyHandler->m_hInputFieldCreateAccountPw = hInputFieldCreateAccountPw;
 	InputField* pInputFieldCreateAccountPw = static_cast<InputField*>(hInputFieldCreateAccountPw.ToPtr());
-	pInputFieldCreateAccountPw->m_transform.SetParent(&pPanelCreateAccountWindowRoot->m_transform);
+	pInputFieldCreateAccountPw->m_transform.SetParent(&pPanelCreateAccountContentFrame->m_transform);
 	pInputFieldCreateAccountPw->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 	pInputFieldCreateAccountPw->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 	pInputFieldCreateAccountPw->SetSize(CREATE_ACCOUNT_ID_INPUT_FIELD_SIZE);
@@ -511,7 +521,7 @@ void Lobby::OnLoadScene()
 	UIObjectHandle hInputFieldCreateAccountPwDoubleCheck = CreateInputField();
 	pScriptLobbyHandler->m_hInputFieldCreateAccountPwDoubleCheck = hInputFieldCreateAccountPwDoubleCheck;
 	InputField* pInputFieldCreateAccountPwDoubleCheck = static_cast<InputField*>(hInputFieldCreateAccountPwDoubleCheck.ToPtr());
-	pInputFieldCreateAccountPwDoubleCheck->m_transform.SetParent(&pPanelCreateAccountWindowRoot->m_transform);
+	pInputFieldCreateAccountPwDoubleCheck->m_transform.SetParent(&pPanelCreateAccountContentFrame->m_transform);
 	pInputFieldCreateAccountPwDoubleCheck->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 	pInputFieldCreateAccountPwDoubleCheck->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 	pInputFieldCreateAccountPwDoubleCheck->SetSize(CREATE_ACCOUNT_ID_INPUT_FIELD_SIZE);
@@ -535,7 +545,7 @@ void Lobby::OnLoadScene()
 	UIObjectHandle hTextCreateAccountPwCheckMsg = CreateText();
 	pScriptLobbyHandler->m_hTextCreateAccountPwCheckMsg = hTextCreateAccountPwCheckMsg;
 	Text* pTextCreateAccountPwCheckMsg = static_cast<Text*>(hTextCreateAccountPwCheckMsg.ToPtr());
-	pTextCreateAccountPwCheckMsg->m_transform.SetParent(&pPanelCreateAccountWindowRoot->m_transform);
+	pTextCreateAccountPwCheckMsg->m_transform.SetParent(&pPanelCreateAccountContentFrame->m_transform);
 	pTextCreateAccountPwCheckMsg->m_transform.SetPosition(0, pInputFieldCreateAccountPwDoubleCheck->m_transform.GetPositionY() - CREATE_ACCOUNT_ID_INPUT_FIELD_SIZE.y / 2 - CREATE_ACCOUNT_PW_CHECK_MSG_SIZE.y / 2 - 5);
 	// pTextCreateAccountPwCheckMsg->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 	// pTextCreateAccountPwCheckMsg->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
@@ -550,10 +560,10 @@ void Lobby::OnLoadScene()
 	constexpr XMFLOAT2 REQUEST_CREATE_ACCOUNT_BUTTON_SIZE(100, 24);
 	UIObjectHandle hButtonRequestCreateAccount = CreateButton();
 	Button* pButtonRequestCreateAccount = static_cast<Button*>(hButtonRequestCreateAccount.ToPtr());
-	pButtonRequestCreateAccount->m_transform.SetParent(&pPanelCreateAccountWindowRoot->m_transform);
+	pButtonRequestCreateAccount->m_transform.SetParent(&pPanelCreateAccountContentFrame->m_transform);
 	pButtonRequestCreateAccount->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 	pButtonRequestCreateAccount->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
-	pButtonRequestCreateAccount->m_transform.SetPosition(-REQUEST_CREATE_ACCOUNT_BUTTON_SIZE.x / 2 - 5, -CREATE_ACCOUNT_WINDOW_SIZE.y / 2 + 10 + REQUEST_CREATE_ACCOUNT_BUTTON_SIZE.y / 2);
+	pButtonRequestCreateAccount->m_transform.SetPosition(-REQUEST_CREATE_ACCOUNT_BUTTON_SIZE.x / 2 - 5, -CREATE_ACCOUNT_WINDOW_SIZE.y / 2 + 16 + REQUEST_CREATE_ACCOUNT_BUTTON_SIZE.y / 2);
 	pButtonRequestCreateAccount->SetSize(REQUEST_CREATE_ACCOUNT_BUTTON_SIZE);
 	pButtonRequestCreateAccount->SetButtonColor(ColorsLinear::Orange);
 	pButtonRequestCreateAccount->SetTextColor(ColorsLinear::Black);
@@ -567,10 +577,10 @@ void Lobby::OnLoadScene()
 
 	UIObjectHandle hButtonCancelCreateAccount = CreateButton();
 	Button* pButtonCancelCreateAccount = static_cast<Button*>(hButtonCancelCreateAccount.ToPtr());
-	pButtonCancelCreateAccount->m_transform.SetParent(&pPanelCreateAccountWindowRoot->m_transform);
+	pButtonCancelCreateAccount->m_transform.SetParent(&pPanelCreateAccountContentFrame->m_transform);
 	pButtonCancelCreateAccount->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 	pButtonCancelCreateAccount->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
-	pButtonCancelCreateAccount->m_transform.SetPosition(+REQUEST_CREATE_ACCOUNT_BUTTON_SIZE.x / 2 + 5, -CREATE_ACCOUNT_WINDOW_SIZE.y / 2 + 10 + REQUEST_CREATE_ACCOUNT_BUTTON_SIZE.y / 2);
+	pButtonCancelCreateAccount->m_transform.SetPosition(+REQUEST_CREATE_ACCOUNT_BUTTON_SIZE.x / 2 + 5, -CREATE_ACCOUNT_WINDOW_SIZE.y / 2 + 16 + REQUEST_CREATE_ACCOUNT_BUTTON_SIZE.y / 2);
 	pButtonCancelCreateAccount->SetSize(REQUEST_CREATE_ACCOUNT_BUTTON_SIZE);
 	pButtonCancelCreateAccount->SetButtonColor(ColorsLinear::DimGray);
 	pButtonCancelCreateAccount->SetTextColor(ColorsLinear::Black);

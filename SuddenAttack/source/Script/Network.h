@@ -58,6 +58,9 @@ public:
 	uint64_t GetNetId() const { return m_netId; }
 private:
 	void PktProcSCResLogin(winppy::Packet packet);
+	void PktProcSCResIdDuplicateCheck(winppy::Packet packet);
+	void PktProcSCResNicknameDuplicateCheck(winppy::Packet packet);
+	void PktProcSCResCreateAccount(winppy::Packet packet);
 	void PktProcSCResChannelInfo(winppy::Packet packet);
 	void PktProcSCResJoinChannel(winppy::Packet packet);
 	void PktProcSCResSendChatMsg(winppy::Packet packet);
@@ -73,7 +76,7 @@ private:
 	void PktProcSCNotifyPlayerExitGameRoom(winppy::Packet packet);
 	void PktProcSCNotifyGameRoomPlayer(winppy::Packet packet);
 	void PktProcSCNotifyHostChanged(winppy::Packet packet);
-	//void PktProcSCNotifyHostGameStart(winppy::Packet packet);
+	// void PktProcSCNotifyHostGameStart(winppy::Packet packet);
 	void PktProcSCNotifyPlayerGameReady(winppy::Packet packet);
 	void PktProcSCNotifyPlayerGameUnready(winppy::Packet packet);
 private:

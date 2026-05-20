@@ -12,6 +12,7 @@ constexpr size_t MAX_ID_LEN = 16;
 constexpr size_t MIN_ID_LEN = 6;
 constexpr size_t MAX_PW_LEN = 16;
 constexpr size_t MIN_PW_LEN = 8;
+constexpr size_t MIN_NICKNAME_LEN = 2;
 constexpr size_t MAX_NICKNAME_LEN = 12;
 
 constexpr uint32_t HEADER_CODE = 0xbeef9999;

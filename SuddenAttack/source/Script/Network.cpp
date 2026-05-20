@@ -73,6 +73,15 @@ void Network::Update()
 		case Protocol::SC_RES_LOGIN:
 			PktProcSCResLogin(std::move(packet));
 			break;
+		case Protocol::SC_RES_ID_DUPLICATE_CHECK:
+			PktProcSCResIdDuplicateCheck(std::move(packet));
+			break;
+		case Protocol::SC_RES_NICKNAME_DUPLICATE_CHECK:
+			PktProcSCResNicknameDuplicateCheck(std::move(packet));
+			break;
+		case Protocol::SC_RES_CREATE_ACCOUNT:
+			PktProcSCResCreateAccount(std::move(packet));
+			break;
 		case Protocol::SC_RES_CHANNEL_INFO:
 			PktProcSCResChannelInfo(std::move(packet));
 			break;
@@ -179,6 +188,61 @@ void Network::PktProcSCResLogin(winppy::Packet packet)
 	pScriptAccount->SetNickname(res.m_nickname, res.m_nicknameLen);
 
 	pScriptLobbyHandler->SetLobbyState(LobbyState::ChannelListBrowser);
+	return;
+}
+
+void Network::PktProcSCResIdDuplicateCheck(winppy::Packet packet)
+{
+	SCResIdDuplicateCheck res;
+	if (!packet->ReadBytes(&res, sizeof(res)))
+		return;
+
+	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
+	Text* pTextCreateAccountIdDuplicateCheckMsg = static_cast<Text*>(pScriptLobbyHandler->m_hTextCreateAccountIdDuplicateCheckMsg.ToPtr());
+
+	switch (res.m_result)
+	{
+	case IdDuplicateCheckResult::Valid:
+		pTextCreateAccountIdDuplicateCheckMsg->SetText(L"사용 가능한 아이디입니다.");
+		break;
+	case IdDuplicateCheckResult::AlreadyExist:
+		pTextCreateAccountIdDuplicateCheckMsg->SetText(L"이미 존재하는 아이디입니다.");
+		break;
+	case IdDuplicateCheckResult::Invalid:
+		pTextCreateAccountIdDuplicateCheckMsg->SetText(L"사용 불가능한 아이디입니다.");
+		break;
+	default:
+		break;
+	}
+}
+
+void Network::PktProcSCResNicknameDuplicateCheck(winppy::Packet packet)
+{
+	SCResNicknameDuplicateCheck res;
+	if (!packet->ReadBytes(&res, sizeof(res)))
+		return;
+
+	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
+	Text* pTextCreateAccountNicknameDuplicateCheckMsg = static_cast<Text*>(pScriptLobbyHandler->m_hTextCreateAccountNicknameDuplicateCheckMsg.ToPtr());
+
+	switch (res.m_result)
+	{
+	case NicknameDuplicateCheckResult::Valid:
+		pTextCreateAccountNicknameDuplicateCheckMsg->SetText(L"사용 가능한 닉네임입니다.");
+		break;
+	case NicknameDuplicateCheckResult::AlreadyExist:
+		pTextCreateAccountNicknameDuplicateCheckMsg->SetText(L"이미 존재하는 닉네임입니다.");
+		break;
+	case NicknameDuplicateCheckResult::Invalid:
+		pTextCreateAccountNicknameDuplicateCheckMsg->SetText(L"사용 불가능한 단어가 포함되어 있습니다.");
+		break;
+	default:
+		break;
+	}
+}
+
+void Network::PktProcSCResCreateAccount(winppy::Packet packet)
+{
 	return;
 }
 

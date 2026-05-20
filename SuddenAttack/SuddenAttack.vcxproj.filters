@@ -14,9 +14,6 @@
     <Filter Include="source\Resource">
       <UniqueIdentifier>{28db0856-fca3-49af-9a2d-e5b9de824a5a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="source\Common">
-      <UniqueIdentifier>{b367fd51-d418-4fe8-bcf1-03e7acc57253}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\main.cpp">
