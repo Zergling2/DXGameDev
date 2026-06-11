@@ -17,5 +17,6 @@ constexpr size_t MAX_NICKNAME_LEN = 12;
 
 constexpr uint32_t HEADER_CODE = 0xbeef9999;
 constexpr uint16_t SASERVER_PORT = 37015;
+constexpr size_t DB_THREAD_COUNT = 4;
 constexpr size_t CHANNEL_COUNT = 6;
-constexpr size_t MAX_SESSIONS_PER_CHANNEL = 500;
+constexpr size_t MAX_PLAYERS_PER_CHANNEL = 500;

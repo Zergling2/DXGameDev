@@ -33,7 +33,6 @@ Network::Network(ze::GameObject& owner)
 	, m_packetQueue()
 	, m_connected(false)
 	, m_disconnectJobDone(false)
-	, m_netId(0)
 {
 	InitializeSRWLock(&m_lock);
 }
@@ -88,10 +87,7 @@ void Network::Update()
 		case Protocol::SC_RES_JOIN_CHANNEL:
 			PktProcSCResJoinChannel(std::move(packet));
 			break;
-		case Protocol::SC_RES_SEND_CHAT_MSG:
-			PktProcSCResSendChatMsg(std::move(packet));
-			break;
-		case Protocol::SC_RES_GAME_LIST:
+		case Protocol::SC_RES_GAME_ROOM_LIST:
 			PktProcSCResGameList(std::move(packet));
 			break;
 		case Protocol::SC_RES_CREATE_GAME_ROOM:
@@ -99,9 +95,6 @@ void Network::Update()
 			break;
 		case Protocol::SC_RES_JOIN_GAME_ROOM:
 			PktProcSCResJoinGameRoom(std::move(packet));
-			break;
-		case Protocol::SC_RES_CHANGE_TEAM:
-			PktProcSCResChangeTeam(std::move(packet));
 			break;
 		case Protocol::SC_RES_HOST_GAME_START:
 			PktProcSCResHostGameStart(std::move(packet));
@@ -111,6 +104,9 @@ void Network::Update()
 			break;
 		case Protocol::SC_RES_EXIT_GAME_CHANNEL:
 			PktProcSCResExitGameChannel(std::move(packet));
+			break;
+		case Protocol::SC_NOTIFY_LOBBY_CHAT:
+			PktProcSCNotifyLobbyChat(std::move(packet));
 			break;
 		case Protocol::SC_NOTIFY_PLAYER_TEAM_CHANGED:
 			PktProcSCNotifyPlayerTeamChanged(std::move(packet));
@@ -180,7 +176,6 @@ void Network::PktProcSCResLogin(winppy::Packet packet)
 	Account* pScriptAccount = m_hScriptAccount.ToPtr();
 
 	// 로그인 성공
-	m_netId = res.m_netId;
 	pScriptAccount->SetAccountId(res.m_accountId);
 	pScriptAccount->SetLevel(res.m_level);
 	pScriptAccount->SetExp(res.m_exp);
@@ -243,23 +238,53 @@ void Network::PktProcSCResNicknameDuplicateCheck(winppy::Packet packet)
 
 void Network::PktProcSCResCreateAccount(winppy::Packet packet)
 {
-	return;
+	SCResCreateAccount res;
+	if (!packet->ReadBytes(&res, sizeof(res)))
+		return;
+
+	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
+	Text* pTextOkMsgBoxMsg = static_cast<Text*>(pScriptLobbyHandler->m_hTextOkMsgBoxMsg.ToPtr());
+	IUIObject* pPanelOkMsgBoxRoot = pScriptLobbyHandler->m_hPanelOkMsgBoxRoot.ToPtr();
+
+	switch (res.m_result)
+	{
+	case CreateAccountResult::Success:
+		pTextOkMsgBoxMsg->SetText(L"계정 생성에 성공하였습니다. 새로운 계정으로 로그인해 주세요.");
+		pScriptLobbyHandler->m_hPanelCreateAccountWindowRoot.ToPtr()->SetActive(false);
+		pPanelOkMsgBoxRoot->m_transform.SetParent(&pScriptLobbyHandler->m_hPanelLoginWindowRoot.ToPtr()->m_transform);
+		pPanelOkMsgBoxRoot->SetActive(true);
+		break;
+	case CreateAccountResult::FailedInvalidId:
+		pTextOkMsgBoxMsg->SetText(L"계정 생성에 실패하였습니다. 아이디가 이미 존재하거나 사용할 수 없는 아이디입니다.");
+		pPanelOkMsgBoxRoot->m_transform.SetParent(&pScriptLobbyHandler->m_hPanelCreateAccountWindowRoot.ToPtr()->m_transform);
+		pPanelOkMsgBoxRoot->SetActive(true);
+		break;
+	case CreateAccountResult::FailedInvalidNickname:
+		pTextOkMsgBoxMsg->SetText(L"계정 생성에 실패하였습니다. 닉네임이 이미 존재하거나 사용할 수 없는 닉네임입니다.");
+		pPanelOkMsgBoxRoot->m_transform.SetParent(&pScriptLobbyHandler->m_hPanelCreateAccountWindowRoot.ToPtr()->m_transform);
+		pPanelOkMsgBoxRoot->SetActive(true);
+		break;
+	case CreateAccountResult::FailedInvalidPw:
+		pTextOkMsgBoxMsg->SetText(L"계정 생성에 실패하였습니다. 비밀번호 형식이 올바르지 않습니다.");
+		pPanelOkMsgBoxRoot->m_transform.SetParent(&pScriptLobbyHandler->m_hPanelCreateAccountWindowRoot.ToPtr()->m_transform);
+		pPanelOkMsgBoxRoot->SetActive(true);
+		break;
+	case CreateAccountResult::FailedUnknown:
+		pTextOkMsgBoxMsg->SetText(L"계정 생성에 실패하였습니다. 잠시 후 다시 시도해 주세요.");
+		pPanelOkMsgBoxRoot->m_transform.SetParent(&pScriptLobbyHandler->m_hPanelCreateAccountWindowRoot.ToPtr()->m_transform);
+		pPanelOkMsgBoxRoot->SetActive(true);
+		break;
+	}
 }
 
 void Network::PktProcSCResChannelInfo(winppy::Packet packet)
 {
 	SCResChannelInfo res;
 	if (!packet->ReadBytes(&res, sizeof(res)))
-		return;
-
-	if (res.m_channelId >= CHANNEL_COUNT)
-		return;
+		*reinterpret_cast<int*>(0) = 0;
 
 	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
-
-	wchar_t buf[32];
-	StringCchPrintfW(buf, _countof(buf), L"%u / %u", static_cast<uint32_t>(res.m_sessionCount), static_cast<uint32_t>(res.m_maxSession));
-	static_cast<Text*>(pScriptLobbyHandler->m_hTextChannelHeadcount[res.m_channelId].ToPtr())->SetText(buf);
+	pScriptLobbyHandler->OnReceiveChannelInfo(res.m_channelInfo, _countof(res.m_channelInfo));
 }
 
 void Network::PktProcSCResJoinChannel(winppy::Packet packet)
@@ -285,31 +310,29 @@ void Network::PktProcSCResJoinChannel(winppy::Packet packet)
 	}
 }
 
-void Network::PktProcSCResSendChatMsg(winppy::Packet packet)
+void Network::PktProcSCNotifyLobbyChat(winppy::Packet packet)
 {
-	uint16_t nicknameLen;
-	if (!packet->Read(&nicknameLen))
-		return;
-	if (nicknameLen > MAX_NICKNAME_LEN)
-		return;
+	SCNotifyLobbyChat notify;
+	if (!packet->ReadBytes(&notify, sizeof(notify)))
+		*reinterpret_cast<int*>(0) = 0;
 
-	uint16_t chatMsgLen;
-	if (!packet->Read(&chatMsgLen))
-		return;
-	if (chatMsgLen > MAX_CHAT_MSG_LEN)
-		return;
+	if (notify.m_nicknameLen > MAX_NICKNAME_LEN)
+		*reinterpret_cast<int*>(0) = 0;
+
+	if (notify.m_msgLen > MAX_CHAT_MSG_LEN)
+		*reinterpret_cast<int*>(0) = 0;
 
 	wchar_t finalString[MAX_CHAT_MSG_LEN + MAX_NICKNAME_LEN + 4];
-	if (!packet->ReadBytes(finalString, sizeof(wchar_t) * nicknameLen))
+	if (!packet->ReadBytes(finalString, sizeof(wchar_t) * notify.m_nicknameLen))
 		return;
 
-	finalString[nicknameLen] = L':';
-	finalString[nicknameLen + 1] = L' ';
-	finalString[nicknameLen + 2] = L'\0';
+	finalString[notify.m_nicknameLen] = L':';
+	finalString[notify.m_nicknameLen + 1] = L' ';
+	finalString[notify.m_nicknameLen + 2] = L'\0';
 
-	if (!packet->ReadBytes(finalString + nicknameLen + 2, sizeof(wchar_t) * chatMsgLen))
+	if (!packet->ReadBytes(finalString + notify.m_nicknameLen + 2, sizeof(wchar_t) * notify.m_msgLen))
 		return;
-	finalString[nicknameLen + 2 + chatMsgLen] = L'\0';
+	finalString[notify.m_nicknameLen + 2 + notify.m_msgLen] = L'\0';
 
 	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
 	pScriptLobbyHandler->AddChatMsg(finalString);
@@ -317,69 +340,54 @@ void Network::PktProcSCResSendChatMsg(winppy::Packet packet)
 
 void Network::PktProcSCResGameList(winppy::Packet packet)
 {
-	SCResGameList res;
+	SCResGameRoomList res;
 	if (!packet->ReadBytes(&res, sizeof(res)))
 		return;
 
-	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
-
-	if (pScriptLobbyHandler->m_currGameListContextNo != res.m_reqContextNo)	// 이전 방 목록 컨텍스트인 경우 무시
-		return;
-
-	auto& gameRoomList = pScriptLobbyHandler->m_gameRoomList;
-
-	SCResGameListItem resItem;
+	std::vector<GameRoomItem> list;
+	
+	SCResGameRoomListItem resItem;
 	while (packet->ReadBytes(&resItem, sizeof(resItem)))
 	{
-		gameRoomList.emplace_back();
-		GameRoomItem& item = gameRoomList.back();
+		list.emplace_back();
+		GameRoomItem& item = list.back();
 
-		item.m_gameRoomId = resItem.m_gameRoomId;
-		item.m_gameRoomNo = resItem.m_gameRoomNo;
-		item.m_maxPlayer = resItem.m_maxPlayer;
-		item.m_currPlayer = resItem.m_currPlayer;
-		item.m_gameMap = resItem.m_gameMap;
-		item.m_gameMode = resItem.m_gameMode;
-		item.m_gameRoomState = resItem.m_gameRoomState;
-		if (resItem.m_gameRoomNameLen > MAX_GAME_ROOM_NAME_LEN)
-			resItem.m_gameRoomNameLen = MAX_GAME_ROOM_NAME_LEN;
-		wmemcpy_s(item.m_gameName, _countof(item.m_gameName), resItem.m_gameName, resItem.m_gameRoomNameLen);
-		item.m_gameName[resItem.m_gameRoomNameLen] = L'\0';
+		item.m_id = resItem.m_id;
+		item.m_no = resItem.m_no;
+		item.m_tf = resItem.m_tf;
+		item.m_numOfPlayers = resItem.m_numOfPlayers;
+		item.m_map = resItem.m_map;
+		item.m_state = resItem.m_state;
+		if (resItem.m_nameLen > MAX_GAME_ROOM_NAME_LEN)
+			resItem.m_nameLen = MAX_GAME_ROOM_NAME_LEN;
+		wmemcpy_s(item.m_name, _countof(item.m_name), resItem.m_name, resItem.m_nameLen);
+		item.m_name[resItem.m_nameLen] = L'\0';
 	}
 
-	pScriptLobbyHandler->UpdateGameListBrowserUI();
+	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
+	pScriptLobbyHandler->OnReceiveGameList(res.m_reqContextNo, list);
 }
 
 void Network::PktProcSCResCreateGameRoom(winppy::Packet packet)
 {
 	SCResCreateGameRoom res;
+	
 	if (!packet->ReadBytes(&res, sizeof(res)))
 		return;
-
-	if (res.m_gameRoomNameLen > MAX_GAME_ROOM_NAME_LEN)
-		return;
-
-	wchar_t gameRoomName[MAX_GAME_ROOM_NAME_LEN + 1];
-	if (!packet->ReadBytes(gameRoomName, sizeof(wchar_t) * res.m_gameRoomNameLen))
-		return;
-	gameRoomName[res.m_gameRoomNameLen] = L'\0';
 
 	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
 	Account* pScriptAccount = m_hScriptAccount.ToPtr();
 
 	if (res.m_result)
 	{
-		pScriptLobbyHandler->m_gameRoomId = res.m_gameRoomId;
+		if (res.m_gameRoomNameLen > MAX_GAME_ROOM_NAME_LEN)
+			res.m_gameRoomNameLen = MAX_GAME_ROOM_NAME_LEN;
 
-		wchar_t gameRoomHeadText[_countof(gameRoomName) + 12];
-		StringCchPrintfW(gameRoomHeadText, _countof(gameRoomHeadText), L"[%u] %s", static_cast<uint32_t>(res.m_gameRoomNo), gameRoomName);
-		
-		pScriptLobbyHandler->ClearGameRoomInfo();
+		wchar_t gameRoomName[MAX_GAME_ROOM_NAME_LEN + 1];
+		wmemcpy_s(gameRoomName, _countof(gameRoomName), res.m_gameRoomName, res.m_gameRoomNameLen);
+		gameRoomName[res.m_gameRoomNameLen] = L'\0';
 
-		pScriptLobbyHandler->SetGameRoomInfo(res.m_gameRoomId, res.m_gameRoomHostNetId, res.m_maxPlayer, res.m_gameMap, res.m_gameMode, gameRoomHeadText, res.m_joinedTeam);
-		pScriptLobbyHandler->AddGameRoomPlayerInfo(res.m_joinedTeam, m_netId, pScriptAccount->GetLevel(), pScriptAccount->GetNickname(), false);
-
-		pScriptLobbyHandler->SetLobbyState(LobbyState::GameRoom);
+		pScriptLobbyHandler->OnJoinGameRoom(res.m_gameRoomHostAccountId, res.m_gameRoomNo, res.m_gameRoomTeamFormat, res.m_gameMap, res.m_joinedTeam, gameRoomName);
 	}
 	else
 	{
@@ -400,15 +408,15 @@ void Network::PktProcSCResJoinGameRoom(winppy::Packet packet)
 
 	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
 
-	if (!res.m_result)
+	if (res.m_result != JoinGameRoomResult::Success)
 	{
 		Text* pTextOkMsgBoxMsg = static_cast<Text*>(pScriptLobbyHandler->m_hTextOkMsgBoxMsg.ToPtr());
-		switch (res.m_reason)
+		switch (res.m_result)
 		{
-		case FailReason::InvalidGame:
+		case JoinGameRoomResult::InvalidGame:
 			pTextOkMsgBoxMsg->SetText(L"유효하지 않은 방입니다. 방 목록을 새로고침 후 다시 시도해주세요.");
 			break;
-		case FailReason::Full:
+		case JoinGameRoomResult::Full:
 			pTextOkMsgBoxMsg->SetText(L"방 인원이 가득 차서 입장할 수 없습니다.");
 			break;
 		default:
@@ -423,38 +431,14 @@ void Network::PktProcSCResJoinGameRoom(winppy::Packet packet)
 	else
 	{
 		if (res.m_gameRoomNameLen > MAX_GAME_ROOM_NAME_LEN)
-			return;
-
-		Account* pScriptAccount = m_hScriptAccount.ToPtr();
+			res.m_gameRoomNameLen = MAX_GAME_ROOM_NAME_LEN;
 
 		wchar_t gameRoomName[MAX_GAME_ROOM_NAME_LEN + 1];
 		wmemcpy_s(gameRoomName, _countof(gameRoomName), res.m_gameRoomName, res.m_gameRoomNameLen);
 		gameRoomName[res.m_gameRoomNameLen] = L'\0';
 
-		wchar_t gameRoomHeadText[_countof(gameRoomName) + 12];
-		StringCchPrintfW(gameRoomHeadText, _countof(gameRoomHeadText), L"[%u] %s", static_cast<uint32_t>(res.m_gameRoomNo), gameRoomName);
-
-		pScriptLobbyHandler->ClearGameRoomInfo();
-		pScriptLobbyHandler->SetGameRoomInfo(res.m_gameRoomId, res.m_gameRoomHostNetId, res.m_maxPlayer, res.m_gameMap, res.m_gameMode, gameRoomHeadText, res.m_joinedTeam);
-		pScriptLobbyHandler->AddGameRoomPlayerInfo(res.m_joinedTeam, m_netId, pScriptAccount->GetLevel(), pScriptAccount->GetNickname(), false);
-
-		pScriptLobbyHandler->SetLobbyState(LobbyState::GameRoom);
+		pScriptLobbyHandler->OnJoinGameRoom(res.m_gameRoomHostAccountId, res.m_gameRoomNo, res.m_gameRoomTeamFormat, res.m_gameMap, res.m_joinedTeam, gameRoomName);
 	}
-}
-
-void Network::PktProcSCResChangeTeam(winppy::Packet packet)
-{
-	SCResChangeTeam res;
-	if (!packet->ReadBytes(&res, sizeof(res)))
-		*reinterpret_cast<int*>(0) = 0;
-
-	if (!res.m_result)
-		return;
-
-	Account* pScriptAccount = m_hScriptAccount.ToPtr();
-	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
-	pScriptLobbyHandler->m_gameRoomMyTeam = res.m_newTeam;
-	pScriptLobbyHandler->MoveGameRoomPlayerInfo(m_netId, res.m_newTeam);
 }
 
 void Network::PktProcSCResHostGameStart(winppy::Packet packet)
@@ -465,36 +449,25 @@ void Network::PktProcSCResHostGameStart(winppy::Packet packet)
 
 	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
 
-	if (!res.m_result)
+	if (res.m_result == HostGameStartResult::Success)
+	{
+		// m_listenServer.Run();
+	}
+	else if (res.m_result == HostGameStartResult::NotReady)
 	{
 		Text* pTextOkMsgBoxMsg = static_cast<Text*>(pScriptLobbyHandler->m_hTextOkMsgBoxMsg.ToPtr());
-		switch (res.m_reason)
-		{
-		case FailReason::NotReady:
-			pTextOkMsgBoxMsg->SetText(L"상대팀 플레이어중 적어도 한 명 이상이 준비 완료 상태이어야 합니다.");
-			break;
-		default:
-			*reinterpret_cast<int*>(0) = 0;
-			break;
-		}
+		pTextOkMsgBoxMsg->SetText(L"상대팀 플레이어중 적어도 한 명 이상이 준비 완료 상태이어야 합니다.");
 
 		IUIObject* pPanelOkMsgBoxRoot = pScriptLobbyHandler->m_hPanelOkMsgBoxRoot.ToPtr();
 		pPanelOkMsgBoxRoot->m_transform.SetParent(&pScriptLobbyHandler->m_hPanelGameRoomRoot.ToPtr()->m_transform);
 		pPanelOkMsgBoxRoot->SetActive(true);
-	}
-	else
-	{
-		// m_listenServer.Run();
 	}
 }
 
 void Network::PktProcSCResExitGameRoom(winppy::Packet packet)
 {
 	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
-	pScriptLobbyHandler->ClearGameRoomInfo();
-
-	pScriptLobbyHandler->SetLobbyState(LobbyState::GameListBrowser);
-	pScriptLobbyHandler->ShowSelectedGameRoomIndicator(true);
+	pScriptLobbyHandler->OnExitGameRoom();
 }
 
 void Network::PktProcSCResExitGameChannel(winppy::Packet packet)
@@ -509,51 +482,37 @@ void Network::PktProcSCNotifyPlayerTeamChanged(winppy::Packet packet)
 {
 	SCNotifyPlayerTeamChanged notify;
 	if (!packet->ReadBytes(&notify, sizeof(notify)))
-		return;
+		*reinterpret_cast<int*>(0) = 0;
 
 	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
-	if (pScriptLobbyHandler->m_gameRoomId != notify.m_gameRoomId)
-		return;
-
-	pScriptLobbyHandler->MoveGameRoomPlayerInfo(notify.m_netId, notify.m_newTeam);
+	pScriptLobbyHandler->OnPlayerTeamChanged(notify.m_accountId, notify.m_newTeam);
 }
 
 void Network::PktProcSCNotifyPlayerJoinedGameRoom(winppy::Packet packet)
 {
 	SCNotifyPlayerJoined notify;
 	if (!packet->ReadBytes(&notify, sizeof(notify)))
-		return;
+		*reinterpret_cast<int*>(0) = 0;
 
 	if (notify.m_nicknameLen > MAX_NICKNAME_LEN)
-		return;
-
-	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
-	if (pScriptLobbyHandler->m_gameRoomId != notify.m_gameRoomId)
-		return;
+		*reinterpret_cast<int*>(0) = 0;
 
 	wchar_t nickname[MAX_NICKNAME_LEN + 1];
 	wmemcpy_s(nickname, _countof(nickname), notify.m_nickname, notify.m_nicknameLen);
 	nickname[notify.m_nicknameLen] = L'\0';
 
-	pScriptLobbyHandler->AddGameRoomPlayerInfo(notify.m_joinedTeam, notify.m_netId, notify.m_level, nickname, false);
+	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
+	pScriptLobbyHandler->OnPlayerJoinGameRoom(notify.m_accountId, notify.m_level, nickname, notify.m_state, notify.m_team);
 }
 
 void Network::PktProcSCNotifyPlayerExitGameRoom(winppy::Packet packet)
 {
+	SCNotifyPlayerExitGameRoom notify;
+	if (!packet->ReadBytes(&notify, sizeof(notify)))
+		*reinterpret_cast<int*>(0) = 0;
+
 	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
-
-	uint64_t gameRoomId;
-	uint64_t exitPlayerNetId;
-	if (!packet->Read(&gameRoomId))
-		return;
-
-	if (!packet->Read(&exitPlayerNetId))
-		return;
-
-	if (pScriptLobbyHandler->m_gameRoomId != gameRoomId)
-		return;
-
-	pScriptLobbyHandler->RemoveGameRoomPlayerInfo(exitPlayerNetId);
+	pScriptLobbyHandler->OnPlayerExitGameRoom(notify.m_accountId);
 }
 
 void Network::PktProcSCNotifyGameRoomPlayer(winppy::Packet packet)
@@ -563,70 +522,44 @@ void Network::PktProcSCNotifyGameRoomPlayer(winppy::Packet packet)
 		*reinterpret_cast<int*>(0) = 0;
 
 	if (notify.m_nicknameLen > MAX_NICKNAME_LEN)
-		*reinterpret_cast<int*>(0) = 0;
-
-	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
-	if (pScriptLobbyHandler->m_gameRoomId != notify.m_gameRoomId)
-		return;
+		notify.m_nicknameLen = MAX_NICKNAME_LEN;
 
 	wchar_t nickname[MAX_NICKNAME_LEN + 1];
 	wmemcpy_s(nickname, _countof(nickname), notify.m_nickname, notify.m_nicknameLen);
 	nickname[notify.m_nicknameLen] = L'\0';
 
-	pScriptLobbyHandler->AddGameRoomPlayerInfo(notify.m_team, notify.m_netId, notify.m_level, nickname, notify.m_ready);
+	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
+	pScriptLobbyHandler->OnPlayerJoinGameRoom(notify.m_accountId, notify.m_level, nickname, notify.m_state, notify.m_team);
 }
 
 void Network::PktProcSCNotifyHostChanged(winppy::Packet packet)
 {
-	uint64_t gameRoomId;
-	uint64_t newHostNetId;
-	if (!packet->Read(&gameRoomId))
-		*reinterpret_cast<int*>(0) = 0;
-
-	if (!packet->Read(&newHostNetId))
+	SCNotifyHostChanged notify;
+	if (!packet->ReadBytes(&notify, sizeof(notify)))
 		*reinterpret_cast<int*>(0) = 0;
 
 	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
-	if (pScriptLobbyHandler->m_gameRoomId != gameRoomId)
-		return;
-
-	pScriptLobbyHandler->OnGameRoomHostChanged(newHostNetId);
+	pScriptLobbyHandler->OnGameRoomHostChanged(notify.m_newHostAccountId);
 }
 
 void Network::PktProcSCNotifyPlayerGameReady(winppy::Packet packet)
 {
-	uint64_t gameRoomId;
-	uint64_t netId;
+	SCNotifyPlayerGameReady notify;
 
-	if (!packet->Read(&gameRoomId))
-		*reinterpret_cast<int*>(0) = 0;
-
-	if (!packet->Read(&netId))
+	if (!packet->ReadBytes(&notify, sizeof(notify)))
 		*reinterpret_cast<int*>(0) = 0;
 
 	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
-
-	if (pScriptLobbyHandler->m_gameRoomId != gameRoomId)
-		return;
-	
-	pScriptLobbyHandler->OnPlayerGameReady(netId);
+	pScriptLobbyHandler->OnGameRoomPlayerStateChanged(notify.m_accountId, PlayerState::Ready);
 }
 
 void Network::PktProcSCNotifyPlayerGameUnready(winppy::Packet packet)
 {
-	uint64_t gameRoomId;
-	uint64_t netId;
+	SCNotifyPlayerGameUnready notify;
 
-	if (!packet->Read(&gameRoomId))
-		*reinterpret_cast<int*>(0) = 0;
-
-	if (!packet->Read(&netId))
+	if (!packet->ReadBytes(&notify, sizeof(notify)))
 		*reinterpret_cast<int*>(0) = 0;
 
 	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
-
-	if (pScriptLobbyHandler->m_gameRoomId != gameRoomId)
-		return;
-
-	pScriptLobbyHandler->OnPlayerGameUnready(netId);
+	pScriptLobbyHandler->OnGameRoomPlayerStateChanged(notify.m_accountId, PlayerState::None);
 }

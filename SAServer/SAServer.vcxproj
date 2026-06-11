@@ -128,7 +128,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)SuddenAttack\bin;$(ProjectDir)lib64\vs14;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Winppy_x64_dbg.lib;%(AdditionalDependencies);mysqlcppconn8.lib</AdditionalDependencies>
+      <AdditionalDependencies>Winppy_x64_dbg.lib;mysqlcppconn.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -145,51 +145,34 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)SuddenAttack\bin;$(ProjectDir)lib64\vs14;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Winppy_x64.lib;%(AdditionalDependencies);mysqlcppconn8.lib</AdditionalDependencies>
+      <AdditionalDependencies>Winppy_x64.lib;mysqlcppconn.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ChannelJob.cpp" />
-    <ClCompile Include="ChJobReqChangeReadyState.cpp" />
-    <ClCompile Include="ChJobReqChangeTeam.cpp" />
-    <ClCompile Include="ChJobReqCreateGameRoom.cpp" />
-    <ClCompile Include="ChJobReqExitGameChannel.cpp" />
-    <ClCompile Include="ChJobReqExitGameRoom.cpp" />
-    <ClCompile Include="ChJobReqGameRoomList.cpp" />
-    <ClCompile Include="ChJobReqHostGameStart.cpp" />
-    <ClCompile Include="ChJobReqJoinChannel.cpp" />
-    <ClCompile Include="ChJobReqChannelInfo.cpp" />
-    <ClCompile Include="ChJobReqJoinGameRoom.cpp" />
-    <ClCompile Include="ChJobReqSendChatMsg.cpp" />
-    <ClCompile Include="ChJobSessionLogout.cpp" />
-    <ClCompile Include="GameChannel.cpp" />
+    <ClCompile Include="DB.cpp" />
+    <ClCompile Include="DBThread.cpp" />
+    <ClCompile Include="Channel.cpp" />
     <ClCompile Include="GameRoom.cpp" />
     <ClCompile Include="GameServer.cpp" />
-    <ClCompile Include="GameSession.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Player.cpp" />
+    <ClCompile Include="LogicThread.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ChannelJob.h" />
-    <ClInclude Include="ChJobReqChangeReadyState.h" />
-    <ClInclude Include="ChJobReqChangeTeam.h" />
-    <ClInclude Include="ChJobReqCreateGameRoom.h" />
-    <ClInclude Include="ChJobReqExitGameChannel.h" />
-    <ClInclude Include="ChJobReqExitGameRoom.h" />
-    <ClInclude Include="ChJobReqGameRoomList.h" />
-    <ClInclude Include="ChJobReqHostGameStart.h" />
-    <ClInclude Include="ChJobReqJoinChannel.h" />
-    <ClInclude Include="ChJobReqChannelInfo.h" />
-    <ClInclude Include="ChJobReqJoinGameRoom.h" />
-    <ClInclude Include="ChJobReqSendChatMsg.h" />
-    <ClInclude Include="ChJobSessionLogout.h" />
-    <ClInclude Include="GameChannel.h" />
+    <ClInclude Include="DB.h" />
+    <ClInclude Include="DBThread.h" />
+    <ClInclude Include="Channel.h" />
     <ClInclude Include="Constants.h" />
     <ClInclude Include="Contents.h" />
     <ClInclude Include="GameServer.h" />
+    <ClInclude Include="JobThread.h" />
+    <ClInclude Include="JobThreadBase.h" />
+    <ClInclude Include="Player.h" />
     <ClInclude Include="Protocol.h" />
     <ClInclude Include="GameRoom.h" />
-    <ClInclude Include="GameSession.h" />
+    <ClInclude Include="Session.h" />
     <ClInclude Include="SlimRWLock.h" />
+    <ClInclude Include="LogicThread.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

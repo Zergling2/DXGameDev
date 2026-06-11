@@ -18,60 +18,30 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GameSession.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GameChannel.cpp">
+    <ClCompile Include="Channel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GameRoom.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ChannelJob.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ChJobReqJoinChannel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ChJobReqChannelInfo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GameServer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ChJobSessionLogout.cpp">
+    <ClCompile Include="DB.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ChJobReqExitGameChannel.cpp">
+    <ClCompile Include="DBThread.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ChJobReqGameRoomList.cpp">
+    <ClCompile Include="Player.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ChJobReqCreateGameRoom.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ChJobReqExitGameRoom.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ChJobReqSendChatMsg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ChJobReqChangeTeam.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ChJobReqJoinGameRoom.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ChJobReqChangeReadyState.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ChJobReqHostGameStart.cpp">
+    <ClCompile Include="LogicThread.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GameSession.h">
+    <ClInclude Include="Session.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Protocol.h">
@@ -80,7 +50,7 @@
     <ClInclude Include="Constants.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GameChannel.h">
+    <ClInclude Include="Channel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GameRoom.h">
@@ -92,46 +62,25 @@
     <ClInclude Include="Contents.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ChannelJob.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ChJobReqJoinChannel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ChJobReqChannelInfo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="GameServer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ChJobSessionLogout.h">
+    <ClInclude Include="DB.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ChJobReqExitGameChannel.h">
+    <ClInclude Include="DBThread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ChJobReqGameRoomList.h">
+    <ClInclude Include="JobThread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ChJobReqCreateGameRoom.h">
+    <ClInclude Include="JobThreadBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ChJobReqExitGameRoom.h">
+    <ClInclude Include="Player.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ChJobReqSendChatMsg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ChJobReqChangeTeam.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ChJobReqJoinGameRoom.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ChJobReqChangeReadyState.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ChJobReqHostGameStart.h">
+    <ClInclude Include="LogicThread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,22 +1,32 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 
-enum class GameMode : uint8_t
+enum class PlayerState : uint8_t
 {
-	TeamDeathmatch,
-	Demolition,
-	Domination,
+	None,
+	Ready,
+	Maintenance,
 
 	Unknown
 };
 
-enum class GameMap : uint8_t
+enum class GameMap : uint16_t
 {
-	Warehouse,
-	ASupplyBase,
+	TeamDeathmatchMapBegin = 0,
+	tdm_warehouse = TeamDeathmatchMapBegin,
+	TeamDeathmatchMapEnd = 4999,
 
-	Unknown
+	DemolitionMapBegin = 5000,
+	de_a_supply_base = DemolitionMapBegin,
+	DemolitionMapEnd = 9999,
+
+	DominationMapBegin = 10000,
+	dom_stormveil = DominationMapBegin,
+	DominationMapEnd = 14999,
+
+	Unknown = 65535
 };
 
 enum class GameRoomState : uint8_t
@@ -25,19 +35,25 @@ enum class GameRoomState : uint8_t
 	InPlay
 };
 
-enum class GameRoomMaxPlayer : uint8_t
+enum class GameRoomTeamFormat : uint8_t
 {
-	Game1vs1,
-	Game2vs2,
-	Game3vs3,
-	Game4vs4,
-	Game5vs5,
-	Game6vs6,
-	Game7vs7,
-	Game8vs8,
+	Team1vs1 = 0,
+	Team2vs2,
+	Team3vs3,
+	Team4vs4,
+	Team5vs5,
+	Team6vs6,
+	Team7vs7,
+	Team8vs8,
 
+	Count,
 	Unknown
 };
+
+inline size_t GameRoomTeamFormatToMaxPlayerCount(GameRoomTeamFormat tf)
+{
+	return (static_cast<size_t>(tf) + 1) * 2;
+}
 
 enum class GameTeam : uint8_t
 {

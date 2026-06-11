@@ -6,6 +6,7 @@
 
 class GameResources;
 class Network;
+class Account;
 
 enum class LobbyState
 {
@@ -18,24 +19,25 @@ enum class LobbyState
 	None
 };
 
+struct ChannelInfo;
+
 struct GameRoomItem
 {
-	uint64_t m_gameRoomId;
-	uint16_t m_gameRoomNo;
-	GameRoomMaxPlayer m_maxPlayer;
-	uint8_t m_currPlayer;
-	GameMap m_gameMap;
-	GameMode m_gameMode;
-	GameRoomState m_gameRoomState;
-	wchar_t m_gameName[MAX_GAME_ROOM_NAME_LEN + 1];
+	uint64_t m_id;
+	uint16_t m_no;
+	GameRoomTeamFormat m_tf;
+	uint8_t m_numOfPlayers;
+	GameMap m_map;
+	GameRoomState m_state;
+	wchar_t m_name[MAX_GAME_ROOM_NAME_LEN + 1];
 };
 
 struct GameRoomPlayer
 {
-	uint64_t m_netId;
-	uint16_t m_level;	// 레벨
-	wchar_t m_nickname[MAX_NICKNAME_LEN + 1];	// null termination 상태로 저장
-	bool m_ready;
+	uint32_t m_accountId;
+	uint16_t m_level;
+	std::wstring m_nickname;
+	PlayerState m_state;
 };
 
 class LobbyHandler : public ze::MonoBehaviour
@@ -102,16 +104,20 @@ public:
 	void OnClickOkMsgBoxOk();
 
 	// Logic
+	bool FindGameRoomPlayer(uint32_t accountId, GameTeam& team, size_t& index) const;
+	const GameRoomPlayer* FindMyGameRoomPlayer() const;
 	void SetLobbyState(LobbyState state);
 	void ClearChatMsgs();
-	void ClearGameRoomInfo();
-	void SetGameRoomInfo(uint64_t gameRoomId, uint64_t hostNetId, GameRoomMaxPlayer maxPlayer, GameMap gameMap, GameMode gameMode, const wchar_t* gameRoomHeadText, GameTeam myTeam);
-	void AddGameRoomPlayerInfo(GameTeam team, uint64_t netId, uint16_t level, const wchar_t* nickname, bool ready);
-	void MoveGameRoomPlayerInfo(uint64_t netId, GameTeam newTeam);
-	void RemoveGameRoomPlayerInfo(uint64_t netId);
-	void OnGameRoomHostChanged(uint64_t newHostNetId);
-	void OnPlayerGameReady(uint64_t netId);
-	void OnPlayerGameUnready(uint64_t netId);
+	void UpdateGameRoomUI();
+	void OnReceiveChannelInfo(const ChannelInfo* pInfos, size_t count);
+	void OnReceiveGameList(uint32_t listContextNo, const std::vector<GameRoomItem>& list);
+	void OnJoinGameRoom(uint32_t hostAccountId, uint16_t roomNo, GameRoomTeamFormat tf, GameMap map, GameTeam team, const wchar_t* gameRoomName);	// 방에 입장했을 때
+	void OnPlayerJoinGameRoom(uint32_t accountId, uint16_t level, wchar_t* nickname, PlayerState state, GameTeam team);	// 다른 플레이어가 방에 들어왔을 때
+	void OnPlayerTeamChanged(uint32_t accountId, GameTeam newTeam);
+	void OnExitGameRoom();
+	void OnPlayerExitGameRoom(uint32_t accountId);
+	void OnGameRoomHostChanged(uint32_t newHostAccountId);
+	void OnGameRoomPlayerStateChanged(uint32_t accountId, PlayerState state);
 	void AddChatMsg(const wchar_t* msg);
 	void UpdateGameListBrowserUI();
 	void ShowSelectedGameRoomIndicator(bool b) { m_showSelectedGameRoomIndicator = b; }
@@ -120,7 +126,7 @@ private:
 	uint32_t GetGameListPageCount() const;
 	void ClearAllGameListItem();
 
-	void SendJoinChannelPacket(uint16_t channelId);
+	void SendJoinChannelPacket(uint8_t channelId);
 	void OnClickJoinGameRoomImpl(size_t index);
 private:
 	bool m_needUIUpdate;
@@ -131,6 +137,7 @@ public:
 	// 스크립트 관련
 	ze::ComponentHandle<GameResources> m_hScriptGameResources;
 	ze::ComponentHandle<Network> m_hScriptNetwork;
+	ze::ComponentHandle<Account> m_hScriptAccount;
 
 	// 바탕화면 UI 관련
 	ze::UIObjectHandle m_hImageLobbyBgr;
@@ -181,20 +188,19 @@ public:
 	// 게임 방 생성 UI 관련
 	ze::UIObjectHandle m_hPanelCreateGameRoomRoot;
 	ze::UIObjectHandle m_hInputFieldCreateGameRoomName;
-	ze::UIObjectHandle m_hRadioButtonGameRoomMaxPlayer[MAX_PLAYERS_PER_TEAM];
-	GameRoomMaxPlayer m_createGameRoomMaxPlayerSelected;
+	ze::UIObjectHandle m_hRadioButtonGameRoomTeamFormat[static_cast<size_t>(GameRoomTeamFormat::Count)];
+	GameRoomTeamFormat m_createGameRoomTeamFormatSelected;
 
 	// 게임 방 관련
-	uint64_t m_gameRoomId;	// 현재 입장해있는 게임 방 식별자
-	uint64_t m_gameRoomHostNetId;
-	GameRoomMaxPlayer m_gameRoomMaxPlayer;
+	uint32_t m_gameRoomHostAccountId;
+	uint16_t m_gameRoomNo;
+	std::wstring m_gameRoomName;
+	GameRoomTeamFormat m_gameRoomTeamFormat;
 	GameMap m_gameRoomGameMap;
-	GameMode m_gameRoomGameMode;
 	GameTeam m_gameRoomMyTeam;
-	GameRoomPlayer m_gameRoomRedTeamPlayers[MAX_PLAYERS_PER_TEAM];
-	GameRoomPlayer m_gameRoomBlueTeamPlayers[MAX_PLAYERS_PER_TEAM];
-	uint8_t m_gameRoomRedTeamPlayersCount;
-	uint8_t m_gameRoomBlueTeamPlayersCount;
+	std::vector<GameRoomPlayer> m_gameRoomRedTeamPlayers;
+	std::vector<GameRoomPlayer> m_gameRoomBlueTeamPlayers;
+	// 게임 방 UI
 	ze::UIObjectHandle m_hPanelGameRoomRoot;
 	ze::UIObjectHandle m_hImageGameRoomMapPreview;
 	ze::UIObjectHandle m_hTextGameRoomInfo;

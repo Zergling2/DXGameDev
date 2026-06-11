@@ -7,7 +7,7 @@ Account::Account(ze::GameObject& owner)
 	, m_exp(0)
 	, m_point(0)
 	, m_nicknameLen(0)
-	, m_nickname{ L'\0' }
+	, m_nickname{}
 {
 }
 

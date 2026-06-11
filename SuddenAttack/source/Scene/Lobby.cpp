@@ -43,6 +43,7 @@ void Lobby::OnLoadScene()
 		GameObject* pGameObjectAccount = hGameObjectAccount.ToPtr();
 		pGameObjectAccount->DontDestroyOnLoad();	// DontDestroyOnLoad
 		ComponentHandle<Account> hScriptAccount = pGameObjectAccount->AddComponent<Account>();
+		pScriptLobbyHandler->m_hScriptAccount = hScriptAccount;
 
 		// 4. 네트워크 게임오브젝트 생성
 		GameObjectHandle hGameObjectNetwork = CreateGameObject(GO_NETWORK_NAME);
@@ -1355,51 +1356,51 @@ void Lobby::OnLoadScene()
 	pTextCreateGameRoomMaxPlayerDesc->ApplyTextFormat();
 
 	{
-		RadioButton* pTempPtrRadioButtonGameRoomMaxPlayer[MAX_PLAYERS_PER_TEAM] = { nullptr };
+		RadioButton* pTempPtrRadioButtonGameRoomTeamFormat[MAX_PLAYERS_PER_TEAM] = { nullptr };
 
-		UIObjectHandle hRadioButtonGameRoomMaxPlayer1vs1 = CreateRadioButton();
-		pScriptLobbyHandler->m_hRadioButtonGameRoomMaxPlayer[0] = hRadioButtonGameRoomMaxPlayer1vs1;
-		RadioButton* pRadioButtonGameRoomMaxPlayer1vs1 = static_cast<RadioButton*>(hRadioButtonGameRoomMaxPlayer1vs1.ToPtr());
-		pTempPtrRadioButtonGameRoomMaxPlayer[0] = pRadioButtonGameRoomMaxPlayer1vs1;
-		pRadioButtonGameRoomMaxPlayer1vs1->m_transform.SetParent(&pPanelCreateGameRoomRoot->m_transform);
-		pRadioButtonGameRoomMaxPlayer1vs1->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
-		pRadioButtonGameRoomMaxPlayer1vs1->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
-		pRadioButtonGameRoomMaxPlayer1vs1->m_transform.SetPosition(CREATE_GAME_ROOM_MAX_PLAYER_DESC_TEXT_OFFSET.x + 40, CREATE_GAME_ROOM_MAX_PLAYER_DESC_TEXT_OFFSET.y);
-		pRadioButtonGameRoomMaxPlayer1vs1->SetText(L"1 vs 1");
-		pRadioButtonGameRoomMaxPlayer1vs1->SetButtonColorRGB(ColorsLinear::SteelBlue);
-		pRadioButtonGameRoomMaxPlayer1vs1->GetTextFormat().SetSize(STATIC_TEXT_SIZE_SMALL);
-		pRadioButtonGameRoomMaxPlayer1vs1->ApplyTextFormat();
+		UIObjectHandle hRadioButtonGameRoomTeamFormat1vs1 = CreateRadioButton();
+		pScriptLobbyHandler->m_hRadioButtonGameRoomTeamFormat[0] = hRadioButtonGameRoomTeamFormat1vs1;
+		RadioButton* pRadioButtonGameRoomTeamFormat1vs1 = static_cast<RadioButton*>(hRadioButtonGameRoomTeamFormat1vs1.ToPtr());
+		pTempPtrRadioButtonGameRoomTeamFormat[0] = pRadioButtonGameRoomTeamFormat1vs1;
+		pRadioButtonGameRoomTeamFormat1vs1->m_transform.SetParent(&pPanelCreateGameRoomRoot->m_transform);
+		pRadioButtonGameRoomTeamFormat1vs1->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+		pRadioButtonGameRoomTeamFormat1vs1->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+		pRadioButtonGameRoomTeamFormat1vs1->m_transform.SetPosition(CREATE_GAME_ROOM_MAX_PLAYER_DESC_TEXT_OFFSET.x + 40, CREATE_GAME_ROOM_MAX_PLAYER_DESC_TEXT_OFFSET.y);
+		pRadioButtonGameRoomTeamFormat1vs1->SetText(L"1 vs 1");
+		pRadioButtonGameRoomTeamFormat1vs1->SetButtonColorRGB(ColorsLinear::SteelBlue);
+		pRadioButtonGameRoomTeamFormat1vs1->GetTextFormat().SetSize(STATIC_TEXT_SIZE_SMALL);
+		pRadioButtonGameRoomTeamFormat1vs1->ApplyTextFormat();
 
 		for (int i = 1; i < MAX_PLAYERS_PER_TEAM; ++i)
 		{
 			wchar_t buf[16];
 			StringCchPrintfW(buf, _countof(buf), L"%d vs %d", i + 1, i + 1);
 
-			UIObjectHandle hRadioButtonGameRoomMaxPlayer = CreateRadioButton();
-			pScriptLobbyHandler->m_hRadioButtonGameRoomMaxPlayer[i] = hRadioButtonGameRoomMaxPlayer;
-			RadioButton* pRadioButtonGameRoomMaxPlayer = static_cast<RadioButton*>(hRadioButtonGameRoomMaxPlayer.ToPtr());
-			pTempPtrRadioButtonGameRoomMaxPlayer[i] = pRadioButtonGameRoomMaxPlayer;
-			pRadioButtonGameRoomMaxPlayer->m_transform.SetParent(&pPanelCreateGameRoomRoot->m_transform);
-			pRadioButtonGameRoomMaxPlayer->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
-			pRadioButtonGameRoomMaxPlayer->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
-			pRadioButtonGameRoomMaxPlayer->m_transform.SetPosition(CREATE_GAME_ROOM_MAX_PLAYER_DESC_TEXT_OFFSET.x + 40 + i * 60, CREATE_GAME_ROOM_MAX_PLAYER_DESC_TEXT_OFFSET.y);
-			pRadioButtonGameRoomMaxPlayer->SetText(buf);
-			pRadioButtonGameRoomMaxPlayer->SetButtonColorRGB(ColorsLinear::SteelBlue);
-			pRadioButtonGameRoomMaxPlayer->GetTextFormat().SetSize(STATIC_TEXT_SIZE_SMALL);
-			pRadioButtonGameRoomMaxPlayer->ApplyTextFormat();
+			UIObjectHandle hRadioButtonGameRoomTeamFormat = CreateRadioButton();
+			pScriptLobbyHandler->m_hRadioButtonGameRoomTeamFormat[i] = hRadioButtonGameRoomTeamFormat;
+			RadioButton* pRadioButtonGameRoomTeamFormat = static_cast<RadioButton*>(hRadioButtonGameRoomTeamFormat.ToPtr());
+			pTempPtrRadioButtonGameRoomTeamFormat[i] = pRadioButtonGameRoomTeamFormat;
+			pRadioButtonGameRoomTeamFormat->m_transform.SetParent(&pPanelCreateGameRoomRoot->m_transform);
+			pRadioButtonGameRoomTeamFormat->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+			pRadioButtonGameRoomTeamFormat->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+			pRadioButtonGameRoomTeamFormat->m_transform.SetPosition(CREATE_GAME_ROOM_MAX_PLAYER_DESC_TEXT_OFFSET.x + 40 + i * 60, CREATE_GAME_ROOM_MAX_PLAYER_DESC_TEXT_OFFSET.y);
+			pRadioButtonGameRoomTeamFormat->SetText(buf);
+			pRadioButtonGameRoomTeamFormat->SetButtonColorRGB(ColorsLinear::SteelBlue);
+			pRadioButtonGameRoomTeamFormat->GetTextFormat().SetSize(STATIC_TEXT_SIZE_SMALL);
+			pRadioButtonGameRoomTeamFormat->ApplyTextFormat();
 
 			// 라디오버튼 그룹화
-			pRadioButtonGameRoomMaxPlayer1vs1->Join(pRadioButtonGameRoomMaxPlayer);
+			pRadioButtonGameRoomTeamFormat1vs1->Join(pRadioButtonGameRoomTeamFormat);
 		}
 
-		pTempPtrRadioButtonGameRoomMaxPlayer[0]->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickRadioButtonGameRoom1vs1));
-		pTempPtrRadioButtonGameRoomMaxPlayer[1]->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickRadioButtonGameRoom2vs2));
-		pTempPtrRadioButtonGameRoomMaxPlayer[2]->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickRadioButtonGameRoom3vs3));
-		pTempPtrRadioButtonGameRoomMaxPlayer[3]->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickRadioButtonGameRoom4vs4));
-		pTempPtrRadioButtonGameRoomMaxPlayer[4]->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickRadioButtonGameRoom5vs5));
-		pTempPtrRadioButtonGameRoomMaxPlayer[5]->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickRadioButtonGameRoom6vs6));
-		pTempPtrRadioButtonGameRoomMaxPlayer[6]->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickRadioButtonGameRoom7vs7));
-		pTempPtrRadioButtonGameRoomMaxPlayer[7]->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickRadioButtonGameRoom8vs8));
+		pTempPtrRadioButtonGameRoomTeamFormat[0]->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickRadioButtonGameRoom1vs1));
+		pTempPtrRadioButtonGameRoomTeamFormat[1]->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickRadioButtonGameRoom2vs2));
+		pTempPtrRadioButtonGameRoomTeamFormat[2]->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickRadioButtonGameRoom3vs3));
+		pTempPtrRadioButtonGameRoomTeamFormat[3]->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickRadioButtonGameRoom4vs4));
+		pTempPtrRadioButtonGameRoomTeamFormat[4]->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickRadioButtonGameRoom5vs5));
+		pTempPtrRadioButtonGameRoomTeamFormat[5]->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickRadioButtonGameRoom6vs6));
+		pTempPtrRadioButtonGameRoomTeamFormat[6]->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickRadioButtonGameRoom7vs7));
+		pTempPtrRadioButtonGameRoomTeamFormat[7]->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickRadioButtonGameRoom8vs8));
 	}
 
 
@@ -1684,7 +1685,6 @@ void Lobby::OnLoadScene()
 		pTextGameRoomRedTeamPlayer->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 		pTextGameRoomRedTeamPlayer->m_transform.SetPosition(FIRST_GAME_ROOM_RED_TEAM_PLAYER_NAME_TEXT_OFFSET.x, FIRST_GAME_ROOM_RED_TEAM_PLAYER_NAME_TEXT_OFFSET.y - i * (GAME_ROOM_PLAYER_NAME_TEXT_SIZE.y + 20));
 		pTextGameRoomRedTeamPlayer->SetColor(Colors::WhiteSmoke);
-		pTextGameRoomRedTeamPlayer->SetText(L"Hello06");
 		pTextGameRoomRedTeamPlayer->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 		pTextGameRoomRedTeamPlayer->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 		pTextGameRoomRedTeamPlayer->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
@@ -1700,7 +1700,6 @@ void Lobby::OnLoadScene()
 		pTextGameRoomBlueTeamPlayer->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 		pTextGameRoomBlueTeamPlayer->m_transform.SetPosition(FIRST_GAME_ROOM_BLUE_TEAM_PLAYER_NAME_TEXT_OFFSET.x, FIRST_GAME_ROOM_BLUE_TEAM_PLAYER_NAME_TEXT_OFFSET.y - i * (GAME_ROOM_PLAYER_NAME_TEXT_SIZE.y + 20));
 		pTextGameRoomBlueTeamPlayer->SetColor(Colors::WhiteSmoke);
-		pTextGameRoomBlueTeamPlayer->SetText(L"Hello06");
 		pTextGameRoomBlueTeamPlayer->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 		pTextGameRoomBlueTeamPlayer->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 		pTextGameRoomBlueTeamPlayer->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);

@@ -94,8 +94,8 @@ bool SkinnedMeshRenderer::PlayAnimation(const std::string& animName, bool loop, 
 	const auto& boneGroups = m_spArmature->GetBoneGroups();
 
 	PlayingAnimation pa(pAnim, loop, playbackSpeed, timeCursor);
-	for (const auto& iter : boneGroups)
-		m_currAnims[iter.first] = pa;
+	for (const auto& node : boneGroups)
+		m_currAnims[node.first] = pa;
 	     
 	return true;
 }

@@ -1,11 +1,11 @@
 #pragma once
 
 #include <ZergEngine\ZergEngine.h>
+#include <queue>
 #include "winppy/Network/TCPServer.h"
 #include "winppy/Network/TCPClientEngine.h"
 #include "winppy/Network/TCPClient.h"
 #include "winppy/Network/Packet.h"
-#include <queue>
 
 class Network;
 class LobbyHandler;
@@ -54,8 +54,6 @@ public:
 	virtual void Start() override;
 	virtual void Update() override;
 	virtual void OnDestroy() override;
-
-	uint64_t GetNetId() const { return m_netId; }
 private:
 	void PktProcSCResLogin(winppy::Packet packet);
 	void PktProcSCResIdDuplicateCheck(winppy::Packet packet);
@@ -63,14 +61,13 @@ private:
 	void PktProcSCResCreateAccount(winppy::Packet packet);
 	void PktProcSCResChannelInfo(winppy::Packet packet);
 	void PktProcSCResJoinChannel(winppy::Packet packet);
-	void PktProcSCResSendChatMsg(winppy::Packet packet);
 	void PktProcSCResGameList(winppy::Packet packet);
 	void PktProcSCResCreateGameRoom(winppy::Packet packet);
 	void PktProcSCResJoinGameRoom(winppy::Packet packet);
-	void PktProcSCResChangeTeam(winppy::Packet packet);
 	void PktProcSCResHostGameStart(winppy::Packet packet);
 	void PktProcSCResExitGameRoom(winppy::Packet packet);
 	void PktProcSCResExitGameChannel(winppy::Packet packet);
+	void PktProcSCNotifyLobbyChat(winppy::Packet packet);
 	void PktProcSCNotifyPlayerTeamChanged(winppy::Packet packet);
 	void PktProcSCNotifyPlayerJoinedGameRoom(winppy::Packet packet);
 	void PktProcSCNotifyPlayerExitGameRoom(winppy::Packet packet);
@@ -87,7 +84,6 @@ private:
 	std::queue<winppy::Packet> m_packetQueue;
 	bool m_connected;
 	bool m_disconnectJobDone;
-	uint64_t m_netId;
 public:
 	ze::ComponentHandle<Account> m_hScriptAccount;
 	ze::ComponentHandle<LobbyHandler> m_hScriptLobbyHandler;

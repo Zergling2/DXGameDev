@@ -14,14 +14,15 @@ enum class Protocol : protocol_type
 	CS_REQ_CREATE_ACCOUNT,
 	CS_REQ_CHANNEL_INFO,
 	CS_REQ_JOIN_CHANNEL,
-	CS_REQ_SEND_CHAT_MSG,
-	CS_REQ_GAME_LIST,
+	CS_REQ_LOBBY_CHAT,
+	CS_REQ_GAME_ROOM_LIST,
 	CS_REQ_CREATE_GAME_ROOM,
 	CS_REQ_JOIN_GAME_ROOM,
 	CS_REQ_CHANGE_TEAM,
 	CS_REQ_EXIT_GAME_ROOM,
 	CS_REQ_HOST_GAME_START,
-	CS_REQ_CHANGE_READY_STATE,
+	CS_REQ_GAME_READY,
+	CS_REQ_GAME_UNREADY,
 	CS_REQ_EXIT_GAME_CHANNEL,
 
 	SC_RES_LOGIN,
@@ -30,14 +31,13 @@ enum class Protocol : protocol_type
 	SC_RES_CREATE_ACCOUNT,
 	SC_RES_CHANNEL_INFO,
 	SC_RES_JOIN_CHANNEL,
-	SC_RES_SEND_CHAT_MSG,
-	SC_RES_GAME_LIST,
+	SC_RES_GAME_ROOM_LIST,
 	SC_RES_CREATE_GAME_ROOM,
 	SC_RES_JOIN_GAME_ROOM,
-	SC_RES_CHANGE_TEAM,
 	SC_RES_HOST_GAME_START,
 	SC_RES_EXIT_GAME_ROOM,
 	SC_RES_EXIT_GAME_CHANNEL,
+	SC_NOTIFY_LOBBY_CHAT,
 	SC_NOTIFY_PLAYER_TEAM_CHANGED,
 	SC_NOTIFY_PLAYER_JOINED_GAME_ROOM,
 	SC_NOTIFY_GAME_ROOM_PLAYER,
@@ -48,14 +48,11 @@ enum class Protocol : protocol_type
 	SC_NOTIFY_PLAYER_GAME_UNREADY
 };
 
-enum class FailReason : uint8_t
+enum class JoinGameRoomResult : uint8_t
 {
+	Success,
 	InvalidGame,
 	Full,
-
-	NotReady,
-
-	Success
 };
 
 enum class IdDuplicateCheckResult : uint8_t
@@ -72,23 +69,39 @@ enum class NicknameDuplicateCheckResult : uint8_t
 	Invalid
 };
 
+enum class CreateAccountResult : uint8_t
+{
+	Success,
+	FailedInvalidId,
+	FailedInvalidNickname,
+	FailedInvalidPw,
+	FailedUnknown
+};
+
+struct ChannelInfo
+{
+	uint16_t m_numOfPlayers;
+	uint16_t m_maxPlayerCount;
+};
+
 struct CSReqLogin
 {
 	uint16_t m_idLen;
 	wchar_t m_id[MAX_ID_LEN];	// (NOT a null termination string)
-	unsigned char m_hpw[32];
+	uint16_t m_pwLen;
+	wchar_t m_pw[MAX_PW_LEN];	// (NOT a null termination string)
 };
 
 struct CSReqIdDuplicateCheck
 {
 	uint16_t m_idLen;
-	wchar_t m_id[MAX_ID_LEN];
+	wchar_t m_id[MAX_ID_LEN];	// (NOT a null termination string)
 };
 
 struct CSReqNicknameDuplicateCheck
 {
 	uint16_t m_nicknameLen;
-	wchar_t m_nickname[MAX_NICKNAME_LEN];
+	wchar_t m_nickname[MAX_NICKNAME_LEN];	// (NOT a null termination string)
 };
 
 struct CSReqCreateAccount
@@ -97,23 +110,24 @@ struct CSReqCreateAccount
 	wchar_t m_id[MAX_ID_LEN];	// (NOT a null termination string)
 	uint16_t m_nicknameLen;
 	wchar_t m_nickname[MAX_ID_LEN];	// (NOT a null termination string)
-	unsigned char m_hpw[32];
+	uint16_t m_pwLen;
+	wchar_t m_pw[MAX_PW_LEN];	// (NOT a null termination string)
 };
 
 struct CSReqChannelInfo
 {
-	uint16_t m_serverId;	// 서버군 식별자
+	uint16_t m_worldId;	// 서버군 식별자
 };
 
 struct CSReqJoinChannel
 {
-	uint16_t m_channelId;
+	uint8_t m_channelId;	// game channel id
 };
 
-struct CSReqSendChatMsg
+struct CSReqLobbyChat
 {
-	uint16_t m_chatMsgLen;
-	// chatMsg... (가변길이 데이터)
+	uint16_t m_msgLen;
+	// msg... (가변길이 데이터)
 };
 
 struct CSReqGameRoomList
@@ -123,7 +137,7 @@ struct CSReqGameRoomList
 
 struct CSReqCreateGameRoom
 {
-	GameRoomMaxPlayer m_maxPlayer;
+	GameRoomTeamFormat m_gameRoomTeamFormat;
 	uint16_t m_gameRoomNameLen;
 	// m_gameRoomName... (가변길이 데이터)
 };
@@ -141,8 +155,7 @@ struct CSReqChangeTeam
 struct SCResLogin
 {
 	bool m_result;	// 결과
-	uint64_t m_netId;
-	uint64_t m_accountId;
+	uint32_t m_accountId;
 	uint16_t m_nicknameLen;
 	wchar_t m_nickname[MAX_NICKNAME_LEN];	// (NOT a null termination string)
 	uint16_t m_level;	// 레벨
@@ -160,12 +173,15 @@ struct SCResNicknameDuplicateCheck
 	NicknameDuplicateCheckResult m_result;
 };
 
+struct SCResCreateAccount
+{
+	CreateAccountResult m_result;
+};
+
 struct SCResChannelInfo
 {
-	uint16_t m_serverId;	// 서버군 식별자
-	uint16_t m_channelId;	// 채널 식별자
-	uint16_t m_sessionCount;
-	uint16_t m_maxSession;
+	uint16_t m_worldId;	// 서버군 식별자
+	ChannelInfo m_channelInfo[CHANNEL_COUNT];
 };
 
 struct SCResJoinChannel
@@ -173,30 +189,30 @@ struct SCResJoinChannel
 	bool m_result;
 };
 
-struct SCResSendChatMsg
+struct SCNotifyLobbyChat
 {
+	uint32_t m_accountId;
 	uint16_t m_nicknameLen;
-	uint16_t m_chatMsgLen;
+	uint16_t m_msgLen;
 	// nickname... (가변길이 데이터)
-	// chatMsg... (가변길이 데이터)
+	// msg... (가변길이 데이터)
 };
 
-struct SCResGameList
+struct SCResGameRoomList
 {
 	uint32_t m_reqContextNo;		// 여러 패킷으로 전송될 수 있으므로 컨텍스트 번호를 전송.
 };
 
-struct SCResGameListItem
+struct SCResGameRoomListItem
 {
-	uint64_t m_gameRoomId;
-	uint16_t m_gameRoomNo;
-	GameRoomMaxPlayer m_maxPlayer;
-	uint8_t m_currPlayer;
-	GameMap m_gameMap;
-	GameMode m_gameMode;
-	GameRoomState m_gameRoomState;
-	uint16_t m_gameRoomNameLen;
-	wchar_t m_gameName[MAX_GAME_ROOM_NAME_LEN];	// (NOT a null termination string)
+	uint64_t m_id;
+	uint16_t m_no;
+	GameRoomTeamFormat m_tf;
+	uint8_t m_numOfPlayers;
+	GameMap m_map;
+	GameRoomState m_state;
+	uint16_t m_nameLen;
+	wchar_t m_name[MAX_GAME_ROOM_NAME_LEN];	// (NOT a null termination string)
 };
 
 struct SCResCreateGameRoom
@@ -204,40 +220,36 @@ struct SCResCreateGameRoom
 	bool m_result;
 	uint64_t m_gameRoomId;
 	uint16_t m_gameRoomNo;
-	uint64_t m_gameRoomHostNetId;
-	GameRoomMaxPlayer m_maxPlayer;
+	uint32_t m_gameRoomHostAccountId;
+	GameRoomTeamFormat m_gameRoomTeamFormat;
 	GameMap m_gameMap;
-	GameMode m_gameMode;
-	GameTeam m_joinedTeam;
-	uint16_t m_gameRoomNameLen;
-	// m_gameName... (가변길이 데이터)
-};
-
-struct SCResJoinGameRoom
-{
-	bool m_result;
-	FailReason m_reason;
-	uint64_t m_gameRoomId;
-	uint16_t m_gameRoomNo;
-	uint64_t m_gameRoomHostNetId;
-	GameRoomMaxPlayer m_maxPlayer;
-	GameMap m_gameMap;
-	GameMode m_gameMode;
 	GameTeam m_joinedTeam;
 	uint16_t m_gameRoomNameLen;
 	wchar_t m_gameRoomName[MAX_GAME_ROOM_NAME_LEN];
 };
 
-struct SCResChangeTeam
+struct SCResJoinGameRoom
 {
-	bool m_result;
-	GameTeam m_newTeam;
+	JoinGameRoomResult m_result;
+	uint64_t m_gameRoomId;
+	uint16_t m_gameRoomNo;
+	uint32_t m_gameRoomHostAccountId;
+	GameRoomTeamFormat m_gameRoomTeamFormat;
+	GameMap m_gameMap;
+	GameTeam m_joinedTeam;
+	uint16_t m_gameRoomNameLen;
+	wchar_t m_gameRoomName[MAX_GAME_ROOM_NAME_LEN];
+};
+
+enum class HostGameStartResult : uint8_t
+{
+	Success,
+	NotReady	// ex) 상대팀 플레이어가 한 명 이상 준비하지 않은 경우
 };
 
 struct SCResHostGameStart
 {
-	bool m_result;
-	FailReason m_reason;
+	HostGameStartResult m_result;
 };
 
 struct SCResExitGameRoom
@@ -252,34 +264,54 @@ struct SCResExitGameChannel
 
 struct SCNotifyPlayerTeamChanged
 {
-	uint64_t m_netId;
-	uint64_t m_gameRoomId;
+	uint32_t m_accountId;
 	GameTeam m_newTeam;
 };
 
 struct SCNotifyPlayerJoined
 {
-	uint64_t m_gameRoomId;
-	uint64_t m_netId;
-	GameTeam m_joinedTeam;
+	uint32_t m_accountId;
+	GameTeam m_team;
 	uint16_t m_level;
+	PlayerState m_state;
 	uint16_t m_nicknameLen;
 	wchar_t m_nickname[MAX_NICKNAME_LEN];
 };
 
+struct SCNotifyHostChanged
+{
+	uint32_t m_newHostAccountId;
+};
+
+struct SCNotifyPlayerGameReady
+{
+	uint32_t m_accountId;
+};
+
+struct SCNotifyPlayerGameUnready
+{
+	uint32_t m_accountId;
+};
+
+// 방에 먼저 입장해있던 플레이어들의 정보를 알려주는 패킷
 struct SCNotifyGameRoomPlayer
 {
-	uint64_t m_gameRoomId;
-	uint64_t m_netId;
+	uint32_t m_accountId;
 	GameTeam m_team;
-	bool m_ready;
 	uint16_t m_level;	// 레벨
+	PlayerState m_state;
 	uint16_t m_nicknameLen;
 	wchar_t m_nickname[MAX_NICKNAME_LEN];
 };
 
+struct SCNotifyPlayerExitGameRoom
+{
+	uint32_t m_accountId;
+};
 
 // 압축 프로토콜들
 #pragma pack(push, 1)
-
+// ...
+// ...
+// ...
 #pragma pack(pop)

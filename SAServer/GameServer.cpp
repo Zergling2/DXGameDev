@@ -1,27 +1,21 @@
 #include "GameServer.h"
 #include "Protocol.h"
-#include "GameSession.h"
-#include "ChJobReqChannelInfo.h"
-#include "ChJobReqJoinChannel.h"
-#include "ChJobReqSendChatMsg.h"
-#include "ChJobReqGameRoomList.h"
-#include "ChJobReqCreateGameRoom.h"
-#include "ChJobReqJoinGameRoom.h"
-#include "ChJobReqExitGameRoom.h"
-#include "ChJobReqExitGameChannel.h"
-#include "ChJobReqChangeTeam.h"
-#include "ChJobReqHostGameStart.h"
-#include "ChJobReqChangeReadyState.h"
 
 GameServer::GameServer()
+	: m_logic(*this)
 {
-	for (size_t i = 0; i < _countof(m_channel); ++i)
-		m_channel[i].Init(static_cast<uint16_t>(i));
+	for (size_t i = 0; i < _countof(m_dbThread); ++i)
+		m_dbThread[i].Start();
+
+	m_logic.Start();
 }
 
 bool GameServer::OnConnect(const wchar_t* ip, uint16_t port, uint64_t id)
 {
-	wprintf(L"Remote address: %s:%u connected.\n", ip, static_cast<uint32_t>(port));
+	wprintf(L"[Connected] %s:%u. Session %llu.\n", ip, static_cast<uint32_t>(port), id);
+
+	std::unique_ptr<JobCreateNewSession> upJob = std::make_unique<JobCreateNewSession>(id);
+	m_logic.DispatchJob(std::move(upJob));
 
 	return true;
 }
@@ -37,261 +31,309 @@ void GameServer::OnReceive(uint64_t id, winppy::Packet packet)
 
 	packet->Read(reinterpret_cast<protocol_type*>(&protocol));
 
-	bool keepConn = false;
-	if (protocol == Protocol::CS_REQ_LOGIN)
+	switch (protocol)
 	{
-		keepConn = PktProcCSReqLogin(id, std::move(packet));
-	}
-	else
-	{
-		std::shared_ptr<GameSession> spSession = FindSession(id);
-
-		if (spSession != nullptr)
-		{
-			switch (protocol)
-			{
-			case Protocol::CS_REQ_CHANNEL_INFO:
-				keepConn = PktProcCSReqChannelInfo(id, std::move(packet));
-				break;
-			case Protocol::CS_REQ_JOIN_CHANNEL:
-				keepConn = PktProcCSReqJoinChannel(std::move(packet), std::move(spSession));
-				break;
-			case Protocol::CS_REQ_SEND_CHAT_MSG:
-				keepConn = PktProcCSReqSendChatMsg(std::move(packet), std::move(spSession));
-				break;
-			case Protocol::CS_REQ_GAME_LIST:
-				keepConn = PktProcCSReqGameList(id, std::move(packet), std::move(spSession));
-				break;
-			case Protocol::CS_REQ_CREATE_GAME_ROOM:
-				keepConn = PktProcCSReqCreateGameRoom(std::move(packet), std::move(spSession));
-				break;
-			case Protocol::CS_REQ_JOIN_GAME_ROOM:
-				keepConn = PktProcCSReqJoinGameRoom(std::move(packet), std::move(spSession));
-				break;
-			case Protocol::CS_REQ_CHANGE_TEAM:
-				keepConn = PktProcCSReqChangeTeam(std::move(packet), std::move(spSession));
-				break;
-			case Protocol::CS_REQ_EXIT_GAME_ROOM:
-				keepConn = PktProcCSReqExitGameRoom(std::move(spSession));
-				break;
-			case Protocol::CS_REQ_HOST_GAME_START:
-				keepConn = PktProcCSReqHostGameStart(std::move(spSession));
-				break;
-			case Protocol::CS_REQ_CHANGE_READY_STATE:
-				keepConn = PktProcCSReqChangeReadyState(std::move(packet), std::move(spSession));
-				break;
-			case Protocol::CS_REQ_EXIT_GAME_CHANNEL:
-				keepConn = PktProcCSReqExitGameChannel(std::move(spSession));
-				break;
-			default:
-				keepConn = false;
-				break;
-			}
-		}
-		else
-		{
-			keepConn = false;
-		}
-	}
-
-	if (!keepConn)
+	case Protocol::CS_REQ_LOGIN:
+		OnCSReqLogin(id, std::move(packet));
+		break;
+	case Protocol::CS_REQ_ID_DUPLICATE_CHECK:
+		OnCSReqIdDuplicateCheck(id, std::move(packet));
+		break;
+	case Protocol::CS_REQ_NICKNAME_DUPLICATE_CHECK:
+		OnCSReqNicknameDuplicateCheck(id, std::move(packet));
+		break;
+	case Protocol::CS_REQ_CREATE_ACCOUNT:
+		OnCSReqCreateAccount(id, std::move(packet));
+		break;
+	case Protocol::CS_REQ_CHANNEL_INFO:
+		OnCSReqChannelInfo(id, std::move(packet));
+		break;
+	case Protocol::CS_REQ_JOIN_CHANNEL:
+		OnCSReqJoinChannel(id, std::move(packet));
+		break;
+	case Protocol::CS_REQ_LOBBY_CHAT:
+		OnCSReqLobbyChat(id, std::move(packet));
+		break;
+	case Protocol::CS_REQ_GAME_ROOM_LIST:
+		OnCSReqGameRoomList(id, std::move(packet));
+		break;
+	case Protocol::CS_REQ_CREATE_GAME_ROOM:
+		OnCSReqCreateGameRoom(id, std::move(packet));
+		break;
+	case Protocol::CS_REQ_JOIN_GAME_ROOM:
+		OnCSReqJoinGameRoom(id, std::move(packet));
+		break;
+	case Protocol::CS_REQ_CHANGE_TEAM:
+		OnCSReqChangeTeam(id, std::move(packet));
+		break;
+	case Protocol::CS_REQ_EXIT_GAME_ROOM:
+		OnCSReqExitGameRoom(id, std::move(packet));
+		break;
+	case Protocol::CS_REQ_HOST_GAME_START:
+		OnCSReqHostGameStart(id, std::move(packet));
+		break;
+	case Protocol::CS_REQ_GAME_READY:
+		OnCSReqGameReady(id, std::move(packet));
+		break;
+	case Protocol::CS_REQ_GAME_UNREADY:
+		OnCSReqGameUnready(id, std::move(packet));
+		break;
+	case Protocol::CS_REQ_EXIT_GAME_CHANNEL:
+		OnCSReqExitGameChannel(id, std::move(packet));
+		break;
+	default:
 		Disconnect(id);
+		break;
+	}
 }
 
 void GameServer::OnDisconnect(uint64_t id)
 {
-	wprintf(L"Session %llu Disconnected.\n", id);
+	wprintf(L"[Disconnected] Session %llu.\n", id);
 
-	std::shared_ptr<GameSession> spSession = FindSession(id);
-	if (!spSession)
-		return;
-
-	spSession->SetDisconnectedFlag();
-
-	GameChannel* pChannel = spSession->GetJoiningGameChannel();
-	if (pChannel)
-	{
-		// pChannel->DispatchJob();	// 채널에서 세션 아웃 작업 진행.
-	}
+	std::unique_ptr<JobSessionDisconnected> upJob = std::make_unique<JobSessionDisconnected>(id);
+	m_logic.DispatchJob(std::move(upJob));
 }
 
-bool GameServer::PktProcCSReqLogin(uint64_t id, winppy::Packet packet)
+void GameServer::OnCSReqLogin(uint64_t netId, winppy::Packet packet)
 {
 	CSReqLogin req;
-
 	if (!packet->ReadBytes(&req, sizeof(req)))
-		return false;
+	{
+		Disconnect(netId);
+		return;
+	}
+
+	if (req.m_idLen > MAX_ID_LEN || req.m_pwLen > MAX_PW_LEN)
+	{
+		Disconnect(netId);
+		return;
+	}
+
+	wchar_t id[MAX_ID_LEN + 1];
+	wmemcpy(id, req.m_id, req.m_idLen);
+	id[req.m_idLen] = L'\0';
+
+	wchar_t pw[MAX_PW_LEN + 1];
+	wmemcpy(pw, req.m_pw, req.m_pwLen);
+	pw[req.m_pwLen] = L'\0';
+
+	std::unique_ptr<JobReqLogin> upJob = std::make_unique<JobReqLogin>(netId, id, pw);
+	m_logic.DispatchJob(std::move(upJob));
+}
+
+void GameServer::OnCSReqIdDuplicateCheck(uint64_t netId, winppy::Packet packet)
+{
+	CSReqIdDuplicateCheck req;
+	if (!packet->ReadBytes(&req, sizeof(req)))
+	{
+		Disconnect(netId);
+		return;
+	}
 
 	if (req.m_idLen > MAX_ID_LEN)
-		return false;
-
-	wchar_t idStr[MAX_ID_LEN + 1];
-	wmemcpy(idStr, req.m_id, req.m_idLen);
-	idStr[req.m_idLen] = L'\0';
-
-	wprintf(L"id: %s, hpw: ", idStr);
-	for (size_t i = 0; i < 32; ++i)
 	{
-		wprintf(L"%02x", req.m_hpw[i]);
-	}
-	wprintf(L"\n");
-
-	constexpr uint64_t TEST_ACCOUNT_ID = 0xffffffff00000000;
-	std::shared_ptr<GameSession> spSession = std::make_shared<GameSession>(id, TEST_ACCOUNT_ID);
-	spSession->SetNickname(L"감자튀김", static_cast<uint16_t>(wcslen(L"감자튀김")));
-	spSession->SetLevel(1);
-	spSession->SetExp(500);
-	spSession->SetPoint(5000);
-
-
-	SCResLogin res;
-	res.m_result = true;
-	res.m_netId = id;
-	res.m_accountId = TEST_ACCOUNT_ID;
-	res.m_nicknameLen = spSession->GetNicknameLen();
-	wmemcpy_s(res.m_nickname, _countof(res.m_nickname), spSession->GetNickname(), spSession->GetNicknameLen());
-	res.m_level = spSession->GetLevel();
-	res.m_exp = spSession->GetExp();
-	res.m_point = spSession->GetPoint();
-
-
-	{
-		// 세션 정보 모두 세팅 후 세션 맵에 추가.
-		AutoAcquireSlimRWLockExclusive lock(m_sessionMapLock);
-		m_sessions.insert(std::make_pair(id, spSession));
+		Disconnect(netId);
+		return;
 	}
 
-	winppy::Packet outPacket;
-	outPacket->Write(static_cast<protocol_type>(Protocol::SC_RES_LOGIN));
-	outPacket->WriteBytes(&res, sizeof(res));
-	this->Send(id, std::move(outPacket));
+	wchar_t id[MAX_ID_LEN + 1];
+	wmemcpy(id, req.m_id, req.m_idLen);
+	id[req.m_idLen] = L'\0';
 
-	return true;
+	std::unique_ptr<JobReqIdDuplicateCheck> upJob = std::make_unique<JobReqIdDuplicateCheck>(netId, id);
+	m_logic.DispatchJob(std::move(upJob));
 }
 
-bool GameServer::PktProcCSReqChannelInfo(uint64_t id, winppy::Packet packet)
+void GameServer::OnCSReqNicknameDuplicateCheck(uint64_t netId, winppy::Packet packet)
 {
-	for (size_t i = 0; i < _countof(m_channel) - 1; ++i)
-		m_channel[i].DispatchJob(std::make_unique<ChJobReqChannelInfo>(*this, id, packet));
+	CSReqNicknameDuplicateCheck req;
+	if (!packet->ReadBytes(&req, sizeof(req)))
+	{
+		Disconnect(netId);
+		return;
+	}
 
-	m_channel[_countof(m_channel) - 1].DispatchJob(std::make_unique<ChJobReqChannelInfo>(*this, id, std::move(packet)));	// 마지막 채널에 대해서는 패킷 move
+	if (req.m_nicknameLen > MAX_NICKNAME_LEN)
+	{
+		Disconnect(netId);
+		return;
+	}
 
-	return true;
+	wchar_t nickname[MAX_NICKNAME_LEN + 1];
+	wmemcpy(nickname, req.m_nickname, req.m_nicknameLen);
+	nickname[req.m_nicknameLen] = L'\0';
+
+	std::unique_ptr<JobReqNicknameDuplicateCheck> upJob = std::make_unique<JobReqNicknameDuplicateCheck>(netId, nickname);
+	m_logic.DispatchJob(std::move(upJob));
 }
 
-bool GameServer::PktProcCSReqJoinChannel(winppy::Packet packet, std::shared_ptr<GameSession> spSession)
+void GameServer::OnCSReqCreateAccount(uint64_t netId, winppy::Packet packet)
+{
+	// 
+}
+
+void GameServer::OnCSReqChannelInfo(uint64_t netId, winppy::Packet packet)
+{
+	CSReqChannelInfo req;
+	if (!packet->ReadBytes(&req, sizeof(req)))
+	{
+		Disconnect(netId);
+		return;
+	}
+
+	std::unique_ptr<JobReqChannelInfo> upJob = std::make_unique<JobReqChannelInfo>(netId);
+	m_logic.DispatchJob(std::move(upJob));
+}
+
+void GameServer::OnCSReqJoinChannel(uint64_t netId, winppy::Packet packet)
 {
 	CSReqJoinChannel req;
 	if (!packet->ReadBytes(&req, sizeof(req)))
-		return false;
+	{
+		Disconnect(netId);
+		return;
+	}
 
 	if (req.m_channelId >= CHANNEL_COUNT)
-		return false;
+	{
+		Disconnect(netId);
+		return;
+	}
 
-	m_channel[req.m_channelId].DispatchJob(std::make_unique<ChJobReqJoinChannel>(*this, std::move(spSession)));
-
-	return true;
+	std::unique_ptr<JobReqJoinChannel> upJob = std::make_unique<JobReqJoinChannel>(netId, req.m_channelId);
+	m_logic.DispatchJob(std::move(upJob));
 }
 
-bool GameServer::PktProcCSReqSendChatMsg(winppy::Packet packet, std::shared_ptr<GameSession> spSession)
+void GameServer::OnCSReqLobbyChat(uint64_t netId, winppy::Packet packet)
 {
-	GameChannel* pJoiningGameChannel = spSession->GetJoiningGameChannel();
-	if (!pJoiningGameChannel)
-		return false;
+	CSReqLobbyChat req;
+	if (!packet->ReadBytes(&req, sizeof(req)))
+	{
+		Disconnect(netId);
+		return;
+	}
 
-	pJoiningGameChannel->DispatchJob(std::make_unique<ChJobReqSendChatMsg>(*this, std::move(packet), std::move(spSession)));
-	return true;
+	if (req.m_msgLen > MAX_CHAT_MSG_LEN)
+	{
+		Disconnect(netId);
+		return;
+	}
+
+	wchar_t chatMsg[MAX_CHAT_MSG_LEN + 1];
+	if (!packet->ReadBytes(chatMsg, sizeof(wchar_t) * req.m_msgLen))
+	{
+		Disconnect(netId);
+		return;
+	}
+	chatMsg[req.m_msgLen] = L'\0';
+
+	std::unique_ptr<JobReqLobbyChat> upJob = std::make_unique<JobReqLobbyChat>(netId, req.m_msgLen, chatMsg);
+	m_logic.DispatchJob(std::move(upJob));
 }
 
-bool GameServer::PktProcCSReqGameList(uint64_t id, winppy::Packet packet, std::shared_ptr<GameSession> spSession)
+void GameServer::OnCSReqGameRoomList(uint64_t netId, winppy::Packet packet)
 {
-	GameChannel* pJoiningGameChannel = spSession->GetJoiningGameChannel();
-	if (!pJoiningGameChannel)
-		return false;
+	CSReqGameRoomList req;
+	if (!packet->ReadBytes(&req, sizeof(req)))
+	{
+		Disconnect(netId);
+		return;
+	}
 
-	pJoiningGameChannel->DispatchJob(std::make_unique<ChJobReqGameRoomList>(*this, id, std::move(packet)));
-	return true;
+	std::unique_ptr<JobReqGameRoomList> upJob = std::make_unique<JobReqGameRoomList>(netId, req.m_reqContextNo);
+	m_logic.DispatchJob(std::move(upJob));
 }
 
-bool GameServer::PktProcCSReqCreateGameRoom(winppy::Packet packet, std::shared_ptr<GameSession> spSession)
+void GameServer::OnCSReqCreateGameRoom(uint64_t netId, winppy::Packet packet)
 {
-	GameChannel* pJoiningGameChannel = spSession->GetJoiningGameChannel();
-	if (!pJoiningGameChannel)
-		return false;
+	CSReqCreateGameRoom req;
+	if (!packet->ReadBytes(&req, sizeof(req)))
+	{
+		Disconnect(netId);
+		return;
+	}
 
-	pJoiningGameChannel->DispatchJob(std::make_unique<ChJobReqCreateGameRoom>(*this, std::move(packet), std::move(spSession)));
-	return true;
+	const uint8_t tf = static_cast<uint8_t>(req.m_gameRoomTeamFormat);
+	if (!(static_cast<uint8_t>(GameRoomTeamFormat::Team1vs1) <= tf && tf <= static_cast<uint8_t>(GameRoomTeamFormat::Team8vs8)))
+	{
+		Disconnect(netId);
+		return;
+	}
+
+	if (req.m_gameRoomNameLen > MAX_GAME_ROOM_NAME_LEN)
+	{
+		Disconnect(netId);
+		return;
+	}
+
+	wchar_t gameRoomName[MAX_GAME_ROOM_NAME_LEN + 1];
+	if (!packet->ReadBytes(gameRoomName, sizeof(wchar_t) * req.m_gameRoomNameLen))
+	{
+		Disconnect(netId);
+		return;
+	}
+	gameRoomName[req.m_gameRoomNameLen] = L'\0';
+
+	std::unique_ptr<JobReqCreateGameRoom> upJob = std::make_unique<JobReqCreateGameRoom>(netId, req.m_gameRoomTeamFormat, req.m_gameRoomNameLen, gameRoomName);
+	m_logic.DispatchJob(std::move(upJob));
 }
 
-bool GameServer::PktProcCSReqJoinGameRoom(winppy::Packet packet, std::shared_ptr<GameSession> spSession)
+void GameServer::OnCSReqJoinGameRoom(uint64_t netId, winppy::Packet packet)
 {
-	GameChannel* pJoiningGameChannel = spSession->GetJoiningGameChannel();
-	if (!pJoiningGameChannel)
-		return false;
+	CSReqJoinGameRoom req;
+	if (!packet->ReadBytes(&req, sizeof(req)))
+	{
+		Disconnect(netId);
+		return;
+	}
 
-	pJoiningGameChannel->DispatchJob(std::make_unique<ChJobReqJoinGameRoom>(*this, std::move(packet), std::move(spSession)));
-	return true;
+	std::unique_ptr<JobReqJoinGameRoom> upJob = std::make_unique<JobReqJoinGameRoom>(netId, req.m_gameRoomId);
+	m_logic.DispatchJob(std::move(upJob));
 }
 
-bool GameServer::PktProcCSReqExitGameRoom(std::shared_ptr<GameSession> spSession)
+void GameServer::OnCSReqChangeTeam(uint64_t netId, winppy::Packet packet)
 {
-	GameChannel* pJoiningGameChannel = spSession->GetJoiningGameChannel();
-	if (!pJoiningGameChannel)
-		return false;
+	CSReqChangeTeam req;
+	if (!packet->ReadBytes(&req, sizeof(req)))
+	{
+		Disconnect(netId);
+		return;
+	}
 
-	pJoiningGameChannel->DispatchJob(std::make_unique<ChJobReqExitGameRoom>(*this, std::move(spSession)));
-	return true;
+	std::unique_ptr<JobReqChangeTeam> upJob = std::make_unique<JobReqChangeTeam>(netId, req.m_newTeam);
+	m_logic.DispatchJob(std::move(upJob));
 }
 
-bool GameServer::PktProcCSReqExitGameChannel(std::shared_ptr<GameSession> spSession)
+void GameServer::OnCSReqExitGameRoom(uint64_t netId, winppy::Packet packet)
 {
-	GameChannel* pJoiningGameChannel = spSession->GetJoiningGameChannel();
-	if (!pJoiningGameChannel)
-		return false;
-
-	pJoiningGameChannel->DispatchJob(std::make_unique<ChJobReqExitGameChannel>(*this, std::move(spSession)));
-	return true;
+	std::unique_ptr<JobReqExitGameRoom> upJob = std::make_unique<JobReqExitGameRoom>(netId);
+	m_logic.DispatchJob(std::move(upJob));
 }
 
-bool GameServer::PktProcCSReqChangeTeam(winppy::Packet packet, std::shared_ptr<GameSession> spSession)
+void GameServer::OnCSReqExitGameChannel(uint64_t netId, winppy::Packet packet)
 {
-	GameChannel* pJoiningGameChannel = spSession->GetJoiningGameChannel();
-	if (!pJoiningGameChannel)
-		return false;
-
-	pJoiningGameChannel->DispatchJob(std::make_unique<ChJobReqChangeTeam>(*this, std::move(packet), std::move(spSession)));
-	return true;
+	std::unique_ptr<JobReqExitChannel> upJob = std::make_unique<JobReqExitChannel>(netId);
+	m_logic.DispatchJob(std::move(upJob));
 }
 
-bool GameServer::PktProcCSReqHostGameStart(std::shared_ptr<GameSession> spSession)
+void GameServer::OnCSReqHostGameStart(uint64_t netId, winppy::Packet packet)
 {
-	GameChannel* pJoiningGameChannel = spSession->GetJoiningGameChannel();
-	if (!pJoiningGameChannel)
-		return false;
-
-	pJoiningGameChannel->DispatchJob(std::make_unique<ChJobReqHostGameStart>(*this, std::move(spSession)));
-	return true;
+	// 
 }
 
-bool GameServer::PktProcCSReqChangeReadyState(winppy::Packet packet, std::shared_ptr<GameSession> spSession)
+void GameServer::OnCSReqGameReady(uint64_t netId, winppy::Packet packet)
 {
-	GameChannel* pJoiningGameChannel = spSession->GetJoiningGameChannel();
-	if (!pJoiningGameChannel)
-		return false;
+	std::unique_ptr<JobReqChangeGameReadyState> upJob =
+		std::make_unique<JobReqChangeGameReadyState>(netId, true);
 
-	pJoiningGameChannel->DispatchJob(std::make_unique<ChJobReqChangeReadyState>(*this, std::move(packet), std::move(spSession)));
-	return true;
+	m_logic.DispatchJob(std::move(upJob));
 }
 
-std::shared_ptr<GameSession> GameServer::FindSession(uint64_t netId) const
+void GameServer::OnCSReqGameUnready(uint64_t netId, winppy::Packet packet)
 {
-	std::shared_ptr<GameSession> spSession;
+	std::unique_ptr<JobReqChangeGameReadyState> upJob =
+		std::make_unique<JobReqChangeGameReadyState>(netId, false);
 
-	AutoAcquireSlimRWLockShared lock(m_sessionMapLock);
-
-	const auto pair = m_sessions.find(netId);
-	if (pair != m_sessions.cend())
-		spSession = pair->second;
-
-	return spSession;
+	m_logic.DispatchJob(std::move(upJob));
 }

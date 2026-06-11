@@ -5,13 +5,8 @@
 class GameMapInfo
 {
 public:
-	static const wchar_t* GetGameMapString(GameMap type);
-};
-
-class GameModeInfo
-{
-public:
-	static const wchar_t* GetGameModeString(GameMode type);
+	static const wchar_t* GetMapNameString(GameMap map);
+	static const wchar_t* GetModeNameString(GameMap map);
 };
 
 class GameRoomStateInfo
