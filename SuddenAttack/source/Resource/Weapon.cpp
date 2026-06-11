@@ -57,7 +57,6 @@ void FirearmBase::OnReloadComplete()
 	const int32_t newAmmoInMag = GetAmmoInMag() + toLoad;
 	const int32_t newReservedAmmo = GetReservedAmmo() - toLoad;
 	assert(0 < newAmmoInMag && newAmmoInMag <= m_pWeaponInfo->GetMagCapacity());
-	assert(0 < newReservedAmmo);
 
 	this->SetAmmoState(newAmmoInMag, newReservedAmmo);
 }
