@@ -1074,6 +1074,7 @@ void LobbyHandler::OnPlayerExitGameRoom(uint32_t accountId)
 void LobbyHandler::OnGameRoomHostChanged(uint32_t newHostAccountId)
 {
 	const uint32_t oldHostAccountId = m_gameRoomHostAccountId;
+	m_gameRoomHostAccountId = newHostAccountId;
 
 	const Account* pScriptAccount = m_hScriptAccount.ToPtr();
 	if (oldHostAccountId == pScriptAccount->GetAccountId() && newHostAccountId != pScriptAccount->GetAccountId())
@@ -1123,8 +1124,6 @@ void LobbyHandler::OnGameRoomHostChanged(uint32_t newHostAccountId)
 	default:
 		break;
 	}
-
-	m_gameRoomHostAccountId = newHostAccountId;
 
 	UpdateGameRoomUI();
 }

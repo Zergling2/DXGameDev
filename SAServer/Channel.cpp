@@ -41,9 +41,17 @@ void Channel::RemovePlayer(Player* pPlayer)
 void Channel::BroadcastPacket(winppy::TCPServer& server, winppy::Packet packet) const
 {
 	for (const auto& pPlayer : m_players)
+		server.Send(pPlayer->GetSession()->GetNetId(), packet);
+}
+
+void Channel::BroadcastPacketToPlayersNotInRoom(winppy::TCPServer& server, winppy::Packet packet) const
+{
+	for (const auto& pPlayer : m_players)
 	{
-		uint64_t netId = pPlayer->GetSession()->GetNetId();
-		server.Send(netId, packet);
+		if (pPlayer->IsInRoom())
+			continue;
+
+		server.Send(pPlayer->GetSession()->GetNetId(), packet);
 	}
 }
 

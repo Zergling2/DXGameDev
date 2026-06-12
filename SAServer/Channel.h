@@ -29,6 +29,7 @@ public:
 	bool AddPlayer(Player* pPlayer);
 	void RemovePlayer(Player* pPlayer);
 	void BroadcastPacket(winppy::TCPServer& server, winppy::Packet packet) const;
+	void BroadcastPacketToPlayersNotInRoom(winppy::TCPServer& server, winppy::Packet packet) const;
 	GameRoom* CreateGameRoom(GameRoomTeamFormat tf, const wchar_t* roomName);
 	void RemoveGameRoom(uint64_t roomId);
 	GameRoom* FindRoom(uint64_t roomId) const;

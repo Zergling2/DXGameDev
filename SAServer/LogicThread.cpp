@@ -17,7 +17,7 @@ void PlayerExitRoom(LogicThread& thread, Player* pPlayer)
 		GameRoom* pGameRoom = joinedChannel.FindRoom(joinedRoomId);
 		assert(pGameRoom != nullptr);
 
-		auto removeResult = pGameRoom->RemovePlayer(pPlayer);
+		RemovePlayerResult removeResult = pGameRoom->RemovePlayer(pPlayer);
 
 		// ######################################################
 		// 나간 플레이어에게 전달되는 패킷
@@ -336,7 +336,7 @@ void JobReqLobbyChat::Execute(LogicThread& thread)
 		const uint8_t joinedChannelId = pPlayer->GetChannelId();
 		assert(joinedChannelId < CHANNEL_COUNT);
 
-		thread.m_channel[joinedChannelId].BroadcastPacket(thread.m_server, std::move(pktNotifyLobbyChat));
+		thread.m_channel[joinedChannelId].BroadcastPacketToPlayersNotInRoom(thread.m_server, std::move(pktNotifyLobbyChat));
 	}
 }
 
@@ -512,7 +512,7 @@ void JobReqJoinGameRoom::Execute(LogicThread& thread)
 
 	assert(joinedTeam != GameTeam::Unknown);
 
-	// 먼저 들어가있던 사람들에게 전송할 패킷l
+	// 먼저 들어가있던 사람들에게 전송할 패킷
 	winppy::Packet pktNotifyNewPlayer = pGameRoom->CreateGameRoomPlayerJoinedPacket(pPlayer);
 	pGameRoom->BroadcastPacketExceptPlayer(thread.m_server, std::move(pktNotifyNewPlayer), pPlayer);
 
