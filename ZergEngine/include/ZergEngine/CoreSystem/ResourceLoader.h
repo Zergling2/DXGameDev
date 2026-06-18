@@ -28,6 +28,7 @@ namespace ze
 	class Armature;
 	class SkinnedMesh;
 	class Material;
+	class AudioClip;
 	class RawVector;
 
 	class IndexSet
@@ -172,17 +173,18 @@ namespace ze
 		ModelData LoadModel(PCWSTR path);
 
 		// Wavefront OBJ 포맷은 단일 obj 파일에 여러 개의 메시를 포함할 수 있습니다.
-		Texture2D LoadTexture2D(PCWSTR path, bool generateMipMaps = true);	// 리소스에 밉 맵이 포함된 경우(dds 파일 등)에는 generateMipMaps가 무시됩니다.
+		Texture2D LoadTexture2D(PCWSTR path, bool generateMipMaps = true) const;	// 리소스에 밉 맵이 포함된 경우(dds 파일 등)에는 generateMipMaps가 무시됩니다.
 		Texture2D GetErrorTexture2D() const { return m_errTex; }
-		std::shared_ptr<Material> CreateMaterial();
-		bool CreateHeightMapFromRawData(Texture2D& heightMap, const uint16_t* pData, SIZE resolution);
+		std::shared_ptr<Material> CreateMaterial() const;
+		std::shared_ptr<AudioClip> LoadWaveFile(PCWSTR path) const;
+		bool CreateHeightMapFromRawData(Texture2D& heightMap, const uint16_t* pData, SIZE resolution) const;
 		// std::vector<std::shared_ptr<StaticMesh>> LoadWavefrontOBJ(PCWSTR path);	// Deprecated
 	private:
 		void DFSAiNodeLoadModel(TempModelData& tmd, const aiScene* pAiScene, const aiNode* pAiNode);
 		void AiLoadStaticMeshNode(TempModelData& tmd, const aiScene* pAiScene, const aiNode* pAiNode);
 		void AiLoadAnimation(const TempModelData& tmd, const aiScene* pAiScene);
 		void AiLoadSkinnedMeshNode(TempModelData& tmd, const aiScene* pAiScene, const aiNode* pAiNode);
-		HRESULT GenerateMipMapsForBCFormat(const ScratchImage& src, ScratchImage& result);
+		HRESULT GenerateMipMapsForBCFormat(const ScratchImage& src, ScratchImage& result) const;
 
 		/*
 		bool ParseWavefrontOBJObject(FILE* pOBJFile, long* pofpos, VertexPack& vp, StaticMesh* pMesh);

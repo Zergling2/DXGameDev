@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 
-constexpr size_t MAX_GAME_PER_LIST_PAGE = 12;
+constexpr size_t MAX_GAMES_PER_LIST_PAGE = 12;
 constexpr size_t MAX_PLAYERS_PER_TEAM = 8;
 constexpr size_t CHAT_MSG_ITEM_ROW_COUNT = 7;
 constexpr size_t MAX_CHAT_MSG_LEN = 56;

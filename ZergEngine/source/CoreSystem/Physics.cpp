@@ -25,11 +25,13 @@ public:
 
 		h.m_pHitObject = static_cast<Rigidbody*>(result.m_hitCollisionObject->getUserPointer());
 
-		h.m_hitNormalWorld = BtToDX::ConvertVector(normalInWorldSpace ?
-			result.m_hitNormalLocal : result.m_hitCollisionObject->getWorldTransform().getBasis() * result.m_hitNormalLocal
-		);
+		const btVector3 hitNormalWorld = normalInWorldSpace ?
+			result.m_hitNormalLocal : result.m_hitCollisionObject->getWorldTransform().getBasis() * result.m_hitNormalLocal;
+		h.m_hitNormalWorld = BtToDX::ConvertVector(hitNormalWorld);
 
-		h.m_hitPointWorld = BtToDX::ConvertVector(result.m_hitPointLocal);
+		const btVector3 hitPointWorld = result.m_hitCollisionObject->getWorldTransform() * result.m_hitPointLocal;
+		h.m_hitPointWorld = BtToDX::ConvertVector(hitPointWorld);
+
 		h.m_hitFraction = result.m_hitFraction;
 
 		m_hits.push_back(h);
@@ -217,6 +219,8 @@ bool Physics::Init()
 
 void Physics::Shutdown()
 {
+	m_upDynamicsWorld->setDebugDrawer(nullptr);
+
 	m_upDebugDrawer->Release();
 	m_upDebugDrawer.reset();
 

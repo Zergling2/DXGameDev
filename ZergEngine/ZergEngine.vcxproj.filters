@@ -411,6 +411,18 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\StaticPlaneCollider.h">
       <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
     </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\AudioSystem.h">
+      <Filter>Files\ZergEngine\CoreSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\AudioListenerManager.h">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\AudioListener.h">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\AudioClip.h">
+      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\CoreSystem\Time.cpp">
@@ -720,6 +732,18 @@
       <Filter>Files\ZergEngine\CoreSystem</Filter>
     </ClCompile>
     <ClCompile Include="source\CoreSystem\Resource\StaticPlaneCollider.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\AudioSystem.cpp">
+      <Filter>Files\ZergEngine\CoreSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\AudioListenerManager.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\GamePlayBase\Component\AudioListener.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Resource\AudioClip.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
     </ClCompile>
   </ItemGroup>

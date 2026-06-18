@@ -2,14 +2,17 @@
 #include <ZergEngine\CoreSystem\Debug.h>
 #include <ZergEngine\CoreSystem\FileSystem.h>
 #include <ZergEngine\CoreSystem\GraphicDevice.h>
+#include <ZergEngine\CoreSystem\AudioSystem.h>
 #include <ZergEngine\CoreSystem\DataStructure\RawVector.h>
 #include <ZergEngine\CoreSystem\Resource\Armature.h>
 #include <ZergEngine\CoreSystem\Resource\Animation.h>
 #include <ZergEngine\CoreSystem\Resource\StaticMesh.h>
 #include <ZergEngine\CoreSystem\Resource\SkinnedMesh.h>
 #include <ZergEngine\CoreSystem\Resource\Material.h>
+#include <ZergEngine\CoreSystem\Resource\AudioClip.h>
 #include <ZergEngine\CoreSystem\Helper.h>
 #include <DirectXTex\DirectXTex.h>
+#include <DirectXTK\Audio.h>
 #include <assimp\Importer.hpp>
 #include <assimp\scene.h>
 #include <assimp\postprocess.h>
@@ -763,7 +766,7 @@ ModelData ResourceLoader::LoadModel(PCWSTR path)
 	return md;
 }
 
-Texture2D ResourceLoader::LoadTexture2D(PCWSTR path, bool generateMipMaps)
+Texture2D ResourceLoader::LoadTexture2D(PCWSTR path, bool generateMipMaps) const
 {
 	HRESULT hr;
 
@@ -852,12 +855,22 @@ Texture2D ResourceLoader::LoadTexture2D(PCWSTR path, bool generateMipMaps)
 	return Texture2D(cpTex2D, cpSRV);
 }
 
-std::shared_ptr<Material> ResourceLoader::CreateMaterial()
+std::shared_ptr<Material> ResourceLoader::CreateMaterial() const
 {
 	return std::make_shared<Material>();
 }
 
-bool ResourceLoader::CreateHeightMapFromRawData(Texture2D& heightMap, const uint16_t* pData, SIZE resolution)
+std::shared_ptr<AudioClip> ResourceLoader::LoadWaveFile(PCWSTR path) const
+{
+	std::shared_ptr<AudioClip> spAudioClip = AudioSystem::GetInstance()->GetAudioClip(path);
+
+	if (!spAudioClip)
+		spAudioClip = AudioSystem::GetInstance()->CreateAudioClip(path);
+
+	return spAudioClip;
+}
+
+bool ResourceLoader::CreateHeightMapFromRawData(Texture2D& heightMap, const uint16_t* pData, SIZE resolution) const
 {
 	if (!pData)
 		return false;
@@ -958,7 +971,7 @@ std::vector<std::shared_ptr<StaticMesh>> ResourceLoader::LoadWavefrontOBJ(PCWSTR
 }
 */
 
-HRESULT ResourceLoader::GenerateMipMapsForBCFormat(const ScratchImage& src, ScratchImage& result)
+HRESULT ResourceLoader::GenerateMipMapsForBCFormat(const ScratchImage& src, ScratchImage& result) const
 {
 	// Block compressed (BC) 포맷일 경우 Decompress 후 밉맵 생성 및 다시 Compress 필요
 	// https://github.com/microsoft/DirectXTex/wiki/GenerateMipMaps

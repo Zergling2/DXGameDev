@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\ZergEngine\CoreSystem\AudioSystem.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\BulletDXMath.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\DataStructure\MeshSubset.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\BasicEffectPNTTSkinned.h" />
@@ -28,6 +29,7 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\DrawScreenRatioQuadWithTextureEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\ShadedEdgeCircleEffect.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Effect\ShadedEdgeQuadEffect.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\AudioListener.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\Billboard.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\Rigidbody.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\SkinnedMeshRenderer.h" />
@@ -39,6 +41,7 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\SliderControl.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\Text.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\UIObject\UIEventHandler.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\AudioListenerManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\BillboardManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\RigidbodyManager.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\SkinnedMeshRendererManager.h" />
@@ -108,6 +111,7 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\RenderState.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Animation.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Armature.h" />
+    <ClInclude Include="include\ZergEngine\CoreSystem\Resource\AudioClip.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\BoxCollider.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\CapsuleCollider.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\ColliderInterface.h" />
@@ -139,6 +143,7 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\Texture.h" />
     <ClInclude Include="include\ZergEngine\CoreSystem\Time.h" />
     <ClInclude Include="include\ZergEngine\ZergEngine.h" />
+    <ClCompile Include="source\CoreSystem\AudioSystem.cpp" />
     <ClCompile Include="source\CoreSystem\Cursor.cpp" />
     <ClCompile Include="source\CoreSystem\DataStructure\Ray.cpp" />
     <ClCompile Include="source\CoreSystem\DataStructure\Triangle.cpp" />
@@ -149,6 +154,7 @@
     <ClCompile Include="source\CoreSystem\Effect\DrawScreenRatioQuadWithTextureEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\ShadedEdgeCircleEffect.cpp" />
     <ClCompile Include="source\CoreSystem\Effect\ShadedEdgeQuadEffect.cpp" />
+    <ClCompile Include="source\CoreSystem\GamePlayBase\Component\AudioListener.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\Billboard.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\Rigidbody.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\Component\SkinnedMeshRenderer.cpp" />
@@ -157,6 +163,7 @@
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\RadioButton.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\SliderControl.cpp" />
     <ClCompile Include="source\CoreSystem\GamePlayBase\UIObject\Text.cpp" />
+    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\AudioListenerManager.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\BillboardManager.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\RigidbodyManager.cpp" />
     <ClCompile Include="source\CoreSystem\Manager\ComponentManager\SkinnedMeshRendererManager.cpp" />
@@ -205,6 +212,7 @@
     <ClCompile Include="source\CoreSystem\RenderState.cpp" />
     <ClCompile Include="source\CoreSystem\Resource\Animation.cpp" />
     <ClCompile Include="source\CoreSystem\Resource\Armature.cpp" />
+    <ClCompile Include="source\CoreSystem\Resource\AudioClip.cpp" />
     <ClCompile Include="source\CoreSystem\Resource\BoxCollider.cpp" />
     <ClCompile Include="source\CoreSystem\Resource\CapsuleCollider.cpp" />
     <ClCompile Include="source\CoreSystem\Resource\ConeCollider.cpp" />
@@ -783,8 +791,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;d2d1.lib;dwrite.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex_$(Platform)_$(Configuration).lib;BulletDynamics_vs2010_x64_debug.lib;BulletInverseDynamics_vs2010_x64_debug.lib;BulletCollision_vs2010_x64_debug.lib;LinearMath_vs2010_x64_debug.lib;assimp-vc143-mtd.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\bullet3\;$(ProjectDir)extlib\lib\DirectXTex\;$(ProjectDir)extlib\lib\assimp\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;d2d1.lib;dwrite.lib;dxgi.lib;dinput8.lib;dxguid.lib;BulletDynamics_vs2010_x64_debug.lib;BulletInverseDynamics_vs2010_x64_debug.lib;BulletCollision_vs2010_x64_debug.lib;LinearMath_vs2010_x64_debug.lib;DirectXTex_x64_Debug.lib;DirectXTK_x64_Debug.lib;assimp-vc143-mtd.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\bullet3\;$(ProjectDir)extlib\lib\DirectXTex\;$(ProjectDir)extlib\lib\DirectXTK\;$(ProjectDir)extlib\lib\assimp\</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -809,8 +817,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;d2d1.lib;dwrite.lib;dxgi.lib;dinput8.lib;dxguid.lib;DirectXTex_$(Platform).lib;BulletDynamics_vs2010_x64_release.lib;BulletInverseDynamics_vs2010_x64_release.lib;BulletCollision_vs2010_x64_release.lib;LinearMath_vs2010_x64_release.lib;assimp-vc143-mt.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\bullet3\;$(ProjectDir)extlib\lib\DirectXTex\;$(ProjectDir)extlib\lib\assimp\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;d2d1.lib;dwrite.lib;dxgi.lib;dinput8.lib;dxguid.lib;BulletDynamics_vs2010_x64_release.lib;BulletInverseDynamics_vs2010_x64_release.lib;BulletCollision_vs2010_x64_release.lib;LinearMath_vs2010_x64_release.lib;DirectXTex_x64.lib;DirectXTK_x64.lib;assimp-vc143-mt.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)extlib\lib\bullet3\;$(ProjectDir)extlib\lib\DirectXTex\;$(ProjectDir)extlib\lib\DirectXTK\;$(ProjectDir)extlib\lib\assimp\</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

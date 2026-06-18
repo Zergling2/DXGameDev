@@ -3,6 +3,27 @@
 #include <cassert>
 #include <strsafe.h>
 
+static bool IsAlphaNumericOnly(const wchar_t* str)
+{
+	if (str == nullptr)
+		return false;
+
+	while (*str != L'\0')
+	{
+		const wchar_t ch = *str;
+
+		bool isAlpha = (L'A' <= ch && ch <= L'Z') || (L'a' <= ch && ch <= L'z');
+		bool isDigit = L'0' <= ch && ch <= L'9';
+
+		if (!isAlpha && !isDigit)
+			return false;
+		
+		++str;
+	}
+
+	return true;
+}
+
 void PlayerExitRoom(LogicThread& thread, Player* pPlayer)
 {
 	assert(pPlayer->IsInRoom());
@@ -131,7 +152,6 @@ JobReqLogin::JobReqLogin(uint64_t netId, const wchar_t* id, const wchar_t* pw)
 void JobReqLogin::Execute(LogicThread& thread)
 {
 	wprintf(L"Login Request - id: %s, pw: %s\n", m_id, m_pw);
-
 
 	// 테스트 코드
 	// 원래는 DB 스레드에 조회 작업 넘기고 DB스레드에서 다시 LogicThread에게 로그인인증결과처리작업을 디스패칭해야함.

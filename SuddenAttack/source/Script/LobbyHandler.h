@@ -123,7 +123,7 @@ public:
 	void ShowSelectedGameRoomIndicator(bool b) { m_showSelectedGameRoomIndicator = b; }
 private:
 	void UpdateUI();
-	uint32_t GetGameListPageCount() const;
+	size_t GetNumOfGameListPages() const;
 	void ClearAllGameListItem();
 
 	void SendJoinChannelPacket(uint8_t channelId);
@@ -176,13 +176,13 @@ public:
 	// 게임 브라우저 UI 관련
 	ze::UIObjectHandle m_hPanelGameListBrowserRoot;
 	ze::UIObjectHandle m_hPanelGameSelectedIndicator;
-	ze::UIObjectHandle m_hTextGameNo[MAX_GAME_PER_LIST_PAGE];
-	ze::UIObjectHandle m_hTextGameName[MAX_GAME_PER_LIST_PAGE];
-	ze::UIObjectHandle m_hTextGameMap[MAX_GAME_PER_LIST_PAGE];
-	ze::UIObjectHandle m_hTextGameHeadcount[MAX_GAME_PER_LIST_PAGE];
-	ze::UIObjectHandle m_hTextGameMode[MAX_GAME_PER_LIST_PAGE];
-	ze::UIObjectHandle m_hTextGameState[MAX_GAME_PER_LIST_PAGE];
-	ze::UIObjectHandle m_hButtonJoinGameRoom[MAX_GAME_PER_LIST_PAGE];
+	ze::UIObjectHandle m_hTextGameNo[MAX_GAMES_PER_LIST_PAGE];
+	ze::UIObjectHandle m_hTextGameName[MAX_GAMES_PER_LIST_PAGE];
+	ze::UIObjectHandle m_hTextGameMap[MAX_GAMES_PER_LIST_PAGE];
+	ze::UIObjectHandle m_hTextGameHeadcount[MAX_GAMES_PER_LIST_PAGE];
+	ze::UIObjectHandle m_hTextGameMode[MAX_GAMES_PER_LIST_PAGE];
+	ze::UIObjectHandle m_hTextGameState[MAX_GAMES_PER_LIST_PAGE];
+	ze::UIObjectHandle m_hButtonJoinGameRoom[MAX_GAMES_PER_LIST_PAGE];
 	ze::UIObjectHandle m_hTextGameListPage;
 
 	// 게임 방 생성 UI 관련

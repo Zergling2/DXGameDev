@@ -1,4 +1,5 @@
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\AudioSourceManager.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\AudioSource.h>
 #include <cassert>
 
 using namespace ze;
@@ -18,4 +19,13 @@ void AudioSourceManager::DestroyInstance()
 
 	delete s_pInstance;
 	s_pInstance = nullptr;
+}
+
+void AudioSourceManager::RecreateSoundEffectInstances()
+{
+	for (IComponent* pComponent : m_directAccessGroup)
+	{
+		AudioSource* pAudioSource = static_cast<AudioSource*>(pComponent);
+		pAudioSource->RecreateSoundEffectInstance();
+	}
 }

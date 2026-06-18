@@ -11,6 +11,27 @@ using namespace ze;
 static const wchar_t* SERVER_CONNECTION_FAIL_MESSAGE = L"서버에 연결하지 못했습니다.";
 static const wchar_t* WRONG_TYPE_PASSWORD_MESSAGE = L"비밀번호가 올바른 형식이 아닙니다.";
 
+static bool IsAlphaNumericOnly(const wchar_t* str)
+{
+	if (str == nullptr)
+		return false;
+
+	while (*str != L'\0')
+	{
+		const wchar_t ch = *str;
+
+		bool isAlpha = (L'A' <= ch && ch <= L'Z') || (L'a' <= ch && ch <= L'z');
+		bool isDigit = L'0' <= ch && ch <= L'9';
+
+		if (!isAlpha && !isDigit)
+			return false;
+
+		++str;
+	}
+
+	return true;
+}
+
 LobbyHandler::LobbyHandler(ze::GameObject& owner)
 	: MonoBehaviour(owner)
 	, m_needUIUpdate(false)
@@ -71,7 +92,7 @@ LobbyHandler::LobbyHandler(ze::GameObject& owner)
 	, m_gameRoomList()
 	, m_currGameListContextNo(0)
 	, m_gameListReqContextNo(0)
-	, m_currGameListPage(1)
+	, m_currGameListPage(0)
 {
 	m_gameRoomList.reserve(256);
 }
@@ -105,7 +126,7 @@ void LobbyHandler::Update()
 	if (m_lobbyState == LobbyState::GameListBrowser && m_showSelectedGameRoomIndicator)	// 방 목록 탐색중인 경우 선택 게임 행 강조 표시
 	{
 		bool selected = false;
-		for (size_t i = 0; i < MAX_GAME_PER_LIST_PAGE; ++i)
+		for (size_t i = 0; i < MAX_GAMES_PER_LIST_PAGE; ++i)
 		{
 			const POINT mp = Input::GetInstance()->GetMousePosition();
 			const IUIObject* pUIObject = m_hButtonJoinGameRoom[i].ToPtr();
@@ -146,7 +167,7 @@ void LobbyHandler::OnClickLogin()
 	Text* pTextIdPwInputFieldHelpMsg = static_cast<Text*>(m_hTextLoginHelpMsg.ToPtr());
 	const size_t idLen = pInputFieldId->GetText().length();
 	const size_t pwLen = pInputFieldPw->GetText().length();
-	if (idLen < MIN_ID_LEN || pwLen < MIN_PW_LEN)
+	if (idLen < MIN_ID_LEN || pwLen < MIN_PW_LEN || !IsAlphaNumericOnly(pInputFieldId->GetText().c_str()) || !IsAlphaNumericOnly(pInputFieldPw->GetText().c_str()))
 	{
 		pTextIdPwInputFieldHelpMsg->SetColor(Colors::Orange);
 		pTextIdPwInputFieldHelpMsg->SetText(L"아이디 또는 비밀번호가 올바른 형식이 아닙니다.");
@@ -200,6 +221,13 @@ void LobbyHandler::OnClickIdDuplicateCheck()
 		StringCchPrintfW(msgBuf, _countof(msgBuf), L"아이디는 최소 %u글자 이상이어야 합니다.", static_cast<uint32_t>(MIN_ID_LEN));
 		pTextCreateAccountIdDuplicateCheckMsg->SetColor(Colors::Orange);
 		pTextCreateAccountIdDuplicateCheckMsg->SetText(msgBuf);
+		return;
+	}
+
+	if (!IsAlphaNumericOnly(pInputFieldCreateAccountId->GetText().c_str()))
+	{
+		pTextCreateAccountIdDuplicateCheckMsg->SetColor(Colors::Orange);
+		pTextCreateAccountIdDuplicateCheckMsg->SetText(L"아이디는 영문 및 숫자만 사용 가능합니다.");
 		return;
 	}
 
@@ -276,6 +304,13 @@ void LobbyHandler::OnClickRequestCreateAccount()
 		StringCchPrintfW(msgBuf, _countof(msgBuf), L"아이디는 %u자에서 %u자 사이이어야 합니다.", static_cast<uint32_t>(MIN_ID_LEN), static_cast<uint32_t>(MAX_ID_LEN));
 		pTextCreateAccountIdDuplicateCheckMsg->SetColor(Colors::Orange);
 		pTextCreateAccountIdDuplicateCheckMsg->SetText(msgBuf);
+		return;
+	}
+
+	if (!IsAlphaNumericOnly(pInputFieldCreateAccountId->GetText().c_str()))
+	{
+		pTextCreateAccountIdDuplicateCheckMsg->SetColor(Colors::Orange);
+		pTextCreateAccountIdDuplicateCheckMsg->SetText(L"아이디는 영문 및 숫자만 사용 가능합니다.");
 		return;
 	}
 
@@ -387,17 +422,14 @@ void LobbyHandler::OnClickJoinGameRoomImpl(size_t index)
 
 	if (m_gameRoomList.size() > 0)
 	{
-		uint32_t firstItemIndex = (m_currGameListPage - 1) * MAX_GAME_PER_LIST_PAGE;
-		uint32_t lastItemIndex = firstItemIndex + (MAX_GAME_PER_LIST_PAGE - 1);
-		if (lastItemIndex > m_gameRoomList.size() - 1)
-			lastItemIndex = static_cast<uint32_t>(m_gameRoomList.size() - 1);
+		size_t firstItemIndex = m_currGameListPage * MAX_GAMES_PER_LIST_PAGE;
+		size_t lastItemIndex = (std::min)(firstItemIndex + MAX_GAMES_PER_LIST_PAGE - 1, m_gameRoomList.size() - 1);
 
-		uint32_t currPageItemCount = lastItemIndex - firstItemIndex + 1;
-		assert(currPageItemCount <= MAX_GAME_PER_LIST_PAGE);
+		size_t currPageItemCount = lastItemIndex - firstItemIndex + 1;
+		assert(currPageItemCount <= MAX_GAMES_PER_LIST_PAGE);
 
 		if (index >= currPageItemCount)
 			return;
-
 
 		CSReqJoinGameRoom req;
 		req.m_gameRoomId = m_gameRoomList[firstItemIndex + index].m_id;
@@ -479,7 +511,7 @@ void LobbyHandler::OnClickRefreshGameList()
 	ClearAllGameListItem();
 
 	m_gameRoomList.clear();
-	m_currGameListPage = 1;
+	m_currGameListPage = 0;
 
 	CSReqGameRoomList req;
 	m_currGameListContextNo = m_gameListReqContextNo;
@@ -496,7 +528,7 @@ void LobbyHandler::OnClickRefreshGameList()
 
 void LobbyHandler::OnClickGameListPrev()
 {
-	if (m_currGameListPage <= 1)
+	if (m_currGameListPage == 0)
 		return;
 
 	m_currGameListPage -= 1;
@@ -505,8 +537,7 @@ void LobbyHandler::OnClickGameListPrev()
 
 void LobbyHandler::OnClickGameListNext()
 {
-	uint32_t gameListPageCount = GetGameListPageCount();
-	if (m_currGameListPage >= gameListPageCount)
+	if (m_currGameListPage + 1 >= GetNumOfGameListPages())
 		return;
 
 	m_currGameListPage += 1;
@@ -1194,25 +1225,21 @@ void LobbyHandler::AddChatMsg(const wchar_t* msg)
 
 void LobbyHandler::UpdateGameListBrowserUI()
 {
-	assert(m_currGameListPage > 0);
-
-	const uint32_t pageCount = GetGameListPageCount();
+	const size_t pageCount = GetNumOfGameListPages();
 
 	wchar_t buf[16];
-	StringCchPrintfW(buf, _countof(buf), L"%u / %u", static_cast<uint32_t>(m_currGameListPage), pageCount);
+	StringCchPrintfW(buf, _countof(buf), L"%u / %u", static_cast<uint32_t>(m_currGameListPage + 1), static_cast<uint32_t>(pageCount));
 	static_cast<Text*>(m_hTextGameListPage.ToPtr())->SetText(buf);
 
 	ClearAllGameListItem();
 
 	if (m_gameRoomList.size() > 0)
 	{
-		uint32_t firstItemIndex = (m_currGameListPage - 1) * MAX_GAME_PER_LIST_PAGE;
-		uint32_t lastItemIndex = firstItemIndex + (MAX_GAME_PER_LIST_PAGE - 1);
-		if (lastItemIndex > m_gameRoomList.size() - 1)
-			lastItemIndex = static_cast<uint32_t>(m_gameRoomList.size() - 1);
+		size_t firstItemIndex = m_currGameListPage * MAX_GAMES_PER_LIST_PAGE;
+		size_t lastItemIndex = (std::min)(firstItemIndex + MAX_GAMES_PER_LIST_PAGE - 1, m_gameRoomList.size() - 1);
 
-		uint32_t currPageItemCount = lastItemIndex - firstItemIndex + 1;
-		assert(currPageItemCount <= MAX_GAME_PER_LIST_PAGE);
+		size_t currPageItemCount = lastItemIndex - firstItemIndex + 1;
+		assert(currPageItemCount <= MAX_GAMES_PER_LIST_PAGE);
 
 		for (size_t i = 0; i < currPageItemCount; ++i)
 		{
@@ -1345,19 +1372,19 @@ void LobbyHandler::UpdateUI()
 	}
 }
 
-uint32_t LobbyHandler::GetGameListPageCount() const
+size_t LobbyHandler::GetNumOfGameListPages() const
 {
-	const uint32_t itemCount = static_cast<uint32_t>(m_gameRoomList.size());
+	const size_t itemCount = m_gameRoomList.size();
 
-	if (itemCount == 0)
-		return 1;
+	if (itemCount > 0)
+		return (itemCount - 1) / MAX_GAMES_PER_LIST_PAGE + 1;
 	else
-		return ((itemCount - 1) / MAX_GAME_PER_LIST_PAGE) + 1;
+		return 1;
 }
 
 void LobbyHandler::ClearAllGameListItem()
 {
-	for (size_t i = 0; i < MAX_GAME_PER_LIST_PAGE; ++i)
+	for (size_t i = 0; i < MAX_GAMES_PER_LIST_PAGE; ++i)
 	{
 		static_cast<Text*>(m_hTextGameNo[i].ToPtr())->GetText().clear();
 		static_cast<Text*>(m_hTextGameName[i].ToPtr())->GetText().clear();

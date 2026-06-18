@@ -5,6 +5,7 @@
 #include <ZergEngine\CoreSystem\Time.h>
 #include <ZergEngine\CoreSystem\Input.h>
 #include <ZergEngine\CoreSystem\Cursor.h>
+#include <ZergEngine\CoreSystem\AudioSystem.h>
 #include <ZergEngine\CoreSystem\GraphicDevice.h>
 #include <ZergEngine\CoreSystem\Physics.h>
 #include <ZergEngine\CoreSystem\ResourceLoader.h>
@@ -15,6 +16,7 @@
 #include <ZergEngine\CoreSystem\Manager\UIObjectManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\RigidbodyManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\AudioSourceManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\AudioListenerManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\CameraManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\DirectionalLightManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\PointLightManager.h>
@@ -90,6 +92,7 @@ void Runtime::Init(HINSTANCE hInstance, int nCmdShow, uint32_t width, uint32_t h
     FileSystem::CreateInstance();
     Time::CreateInstance();
     Input::CreateInstance();
+    AudioSystem::CreateInstance();
     GraphicDevice::CreateInstance();
     Physics::CreateInstance();
     ResourceLoader::CreateInstance();
@@ -99,6 +102,7 @@ void Runtime::Init(HINSTANCE hInstance, int nCmdShow, uint32_t width, uint32_t h
     UIObjectManager::CreateInstance();
     RigidbodyManager::CreateInstance();
     AudioSourceManager::CreateInstance();
+    AudioListenerManager::CreateInstance();
     CameraManager::CreateInstance();
     DirectionalLightManager::CreateInstance();
     PointLightManager::CreateInstance();
@@ -119,6 +123,7 @@ void Runtime::Init(HINSTANCE hInstance, int nCmdShow, uint32_t width, uint32_t h
     FileSystem::GetInstance()->Init();
     Time::GetInstance()->Init();
     Input::GetInstance()->Init(hInstance, m_hGameWnd);
+    AudioSystem::GetInstance()->Init();
     GraphicDevice::GetInstance()->Init(m_hGameWnd, width, height, false);
     Physics::GetInstance()->Init();
     ResourceLoader::GetInstance()->Init();
@@ -128,6 +133,7 @@ void Runtime::Init(HINSTANCE hInstance, int nCmdShow, uint32_t width, uint32_t h
     UIObjectManager::GetInstance()->Init();
     RigidbodyManager::GetInstance()->Init();
     AudioSourceManager::GetInstance()->Init();
+    AudioListenerManager::GetInstance()->Init();
     CameraManager::GetInstance()->Init();
     DirectionalLightManager::GetInstance()->Init();
     PointLightManager::GetInstance()->Init();
@@ -156,6 +162,7 @@ void Runtime::InitEditor(HINSTANCE hInstance, HWND hMainFrameWnd, HWND hViewWnd,
     FileSystem::CreateInstance();
     Time::CreateInstance();
     Input::CreateInstance();
+    AudioSystem::CreateInstance();
     GraphicDevice::CreateInstance();
     Physics::CreateInstance();
     ResourceLoader::CreateInstance();
@@ -165,6 +172,7 @@ void Runtime::InitEditor(HINSTANCE hInstance, HWND hMainFrameWnd, HWND hViewWnd,
     UIObjectManager::CreateInstance();
     RigidbodyManager::CreateInstance();
     AudioSourceManager::CreateInstance();
+    AudioListenerManager::CreateInstance();
     CameraManager::CreateInstance();
     DirectionalLightManager::CreateInstance();
     PointLightManager::CreateInstance();
@@ -183,6 +191,7 @@ void Runtime::InitEditor(HINSTANCE hInstance, HWND hMainFrameWnd, HWND hViewWnd,
     FileSystem::GetInstance()->Init();
     Time::GetInstance()->Init();
     Input::GetInstance()->Init(hInstance, hMainFrameWnd);
+    AudioSystem::GetInstance()->Init();
     GraphicDevice::GetInstance()->Init(m_hGameWnd, width, height, false);
     Physics::GetInstance()->Init();
     ResourceLoader::GetInstance()->Init();
@@ -192,6 +201,7 @@ void Runtime::InitEditor(HINSTANCE hInstance, HWND hMainFrameWnd, HWND hViewWnd,
     UIObjectManager::GetInstance()->Init();
     RigidbodyManager::GetInstance()->Init();
     AudioSourceManager::GetInstance()->Init();
+    AudioListenerManager::GetInstance()->Init();
     CameraManager::GetInstance()->Init();
     DirectionalLightManager::GetInstance()->Init();
     PointLightManager::GetInstance()->Init();
@@ -217,6 +227,7 @@ void Runtime::Release()
     PointLightManager::GetInstance()->Shutdown();
     DirectionalLightManager::GetInstance()->Shutdown();
     CameraManager::GetInstance()->Shutdown();
+    AudioListenerManager::GetInstance()->Shutdown();
     AudioSourceManager::GetInstance()->Shutdown();
     RigidbodyManager::GetInstance()->Shutdown();
     UIObjectManager::GetInstance()->Shutdown();
@@ -226,6 +237,7 @@ void Runtime::Release()
     ResourceLoader::GetInstance()->Shutdown();
     Physics::GetInstance()->Shutdown();
     GraphicDevice::GetInstance()->Shutdown();
+    AudioSystem::GetInstance()->Shutdown();
     Input::GetInstance()->Shutdown();
     Time::GetInstance()->Shutdown();
     FileSystem::GetInstance()->Shutdown();
@@ -243,6 +255,7 @@ void Runtime::Release()
     PointLightManager::DestroyInstance();
     DirectionalLightManager::DestroyInstance();
     CameraManager::DestroyInstance();
+    AudioListenerManager::DestroyInstance();
     AudioSourceManager::DestroyInstance();
     RigidbodyManager::DestroyInstance();
     UIObjectManager::DestroyInstance();
@@ -252,6 +265,7 @@ void Runtime::Release()
     ResourceLoader::DestroyInstance();
     Physics::DestroyInstance();
     GraphicDevice::DestroyInstance();
+    AudioSystem::DestroyInstance();
     Input::DestroyInstance();
     Time::DestroyInstance();
     FileSystem::DestroyInstance();
@@ -297,6 +311,7 @@ void Runtime::OnIdle()
 {
     // Update timer.
     Time::GetInstance()->Update();
+    AudioSystem::GetInstance()->Update();
     Input::GetInstance()->Update();
 
     IScene* pNextScene = SceneManager::GetInstance()->PopNextScene();
@@ -599,6 +614,7 @@ void Runtime::RemoveDestroyedComponentsAndObjects()
     PointLightManager::GetInstance()->RemoveDestroyedComponents();
     SpotLightManager::GetInstance()->RemoveDestroyedComponents();
     CameraManager::GetInstance()->RemoveDestroyedComponents();
+    AudioListenerManager::GetInstance()->RemoveDestroyedComponents();
     AudioSourceManager::GetInstance()->RemoveDestroyedComponents();
 
     UIObjectManager::GetInstance()->RemoveDestroyedUIObjects();

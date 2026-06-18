@@ -306,7 +306,7 @@ void ThirdPersonCharacter::Awake()
 	// stand_idle
 
 	pSkinnedMeshRendererCharacter->PlayGroupAnimation("idle_pistol", "upper_body", true);
-	pSkinnedMeshRendererCharacter->PlayGroupAnimation("run", "lower_body", true, 0.1f);
+	pSkinnedMeshRendererCharacter->PlayGroupAnimation("run", "lower_body", true);
 
 	const Armature* pCharacterArmature = pSkinnedMeshRendererCharacter->GetArmaturePtr();
 	m_biSpine0 = pCharacterArmature->GetBoneIndex("Spine0");

@@ -15,6 +15,7 @@ namespace ze
 		MonoBehaviour,
 		Rigidbody,
 		Terrain,
+		AudioListener,
 		AudioSource,
 
 		UNKNOWN

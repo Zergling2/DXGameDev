@@ -38,6 +38,11 @@ void Lobby::OnLoadScene()
 		LobbyHandler* pScriptLobbyHandler = hScriptLobbyHandler.ToPtr();
 		pScriptLobbyHandler->m_hScriptGameResources = hScriptGameResources;	// 핸들 저장
 
+		auto wav = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\m16a1\\bolt.wav");
+		auto hAudioSourceComponent = pGameObjectLobbyHandler->AddComponent<AudioSource>();
+		hAudioSourceComponent.ToPtr()->SetAudioClip(wav);
+		hAudioSourceComponent.ToPtr()->Play();
+
 		// 3. 계정 정보 게임오브젝트 생성
 		GameObjectHandle hGameObjectAccount = CreateGameObject(GO_ACCOUNT_NAME);
 		GameObject* pGameObjectAccount = hGameObjectAccount.ToPtr();
@@ -1065,8 +1070,8 @@ void Lobby::OnLoadScene()
 	pTextGameStateTab->ApplyTextFormat();
 	pTextGameStateTab->SetSize(GAME_STATE_TAB_SIZE);
 	
-	Button* pTempPtrButtonJoinGameRoom[MAX_GAME_PER_LIST_PAGE] = { nullptr };
-	for (size_t i = 0; i < MAX_GAME_PER_LIST_PAGE; ++i)
+	Button* pTempPtrButtonJoinGameRoom[MAX_GAMES_PER_LIST_PAGE] = { nullptr };
+	for (size_t i = 0; i < MAX_GAMES_PER_LIST_PAGE; ++i)
 	{
 		UIObjectHandle hTextGameNo = CreateText();
 		pScriptLobbyHandler->m_hTextGameNo[i] = hTextGameNo;

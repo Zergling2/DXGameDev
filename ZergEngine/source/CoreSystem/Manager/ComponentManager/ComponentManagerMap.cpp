@@ -9,6 +9,7 @@
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\MonoBehaviourManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\RigidbodyManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\TerrainManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\AudioListenerManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\AudioSourceManager.h>
 
 using namespace ze;
@@ -49,6 +50,9 @@ IComponentManager* ComponentManagerMap::GetManager(ComponentType type)
 		break;
 	case ComponentType::Terrain:
 		pComponentManager = TerrainManager::GetInstance();
+		break;
+	case ComponentType::AudioListener:
+		pComponentManager = AudioListenerManager::GetInstance();
 		break;
 	case ComponentType::AudioSource:
 		pComponentManager = AudioSourceManager::GetInstance();

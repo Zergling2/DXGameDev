@@ -7,6 +7,8 @@ namespace ze
 	class AudioSourceManager : public IComponentManager
 	{
 		friend class Runtime;
+		friend class AudioSystem;
+		friend class AudioSource;
 	public:
 		static AudioSourceManager* GetInstance() { return s_pInstance; }
 	private:
@@ -15,6 +17,8 @@ namespace ze
 		
 		static void CreateInstance();
 		static void DestroyInstance();
+
+		void RecreateSoundEffectInstances();
 	private:
 		static AudioSourceManager* s_pInstance;
 	};
