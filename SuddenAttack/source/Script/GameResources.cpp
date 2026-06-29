@@ -107,10 +107,10 @@ void GameResources::Awake()
 	m16a1_animNames[WeaponAction::Idle] = std::make_pair("m16a1_idle", "arms_idle_m16a1");
 
 	std::unordered_map<WeaponEvent, std::shared_ptr<ze::AudioClip>> m16a1_sounds;
-	m16a1_sounds[WeaponEvent::Bolt] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\m16a1\\bolt.wav");
-	m16a1_sounds[WeaponEvent::MagOut] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\m16a1\\magout.wav");
-	m16a1_sounds[WeaponEvent::MagIn] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\m16a1\\magin.wav");
-	m16a1_sounds[WeaponEvent::Fire] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\m16a1\\shot.wav");
+	m16a1_sounds[WeaponEvent::Bolt] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\m4a1_boltpull.wav");
+	m16a1_sounds[WeaponEvent::MagOut] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\m4a1_clipout.wav");
+	m16a1_sounds[WeaponEvent::MagIn] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\m4a1_clipin.wav");
+	m16a1_sounds[WeaponEvent::Fire] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\m4a1_unsil-1.wav");
 
 	// 3.
 	std::unordered_map<WeaponAction, std::shared_ptr<WeaponEventTable>> m16a1_event_tables;
@@ -121,8 +121,7 @@ void GameResources::Awake()
 
 		std::shared_ptr<WeaponEventTable> m16a1_reload_event_table = std::make_shared<WeaponEventTable>();
 		m16a1_reload_event_table->AddEvent(0.35f, WeaponEvent::MagOut);
-		m16a1_reload_event_table->AddEvent(1.4f, WeaponEvent::MagOut);
-		m16a1_reload_event_table->AddEvent(1.7f, WeaponEvent::MagIn);
+		m16a1_reload_event_table->AddEvent(1.5f, WeaponEvent::MagIn);
 		m16a1_reload_event_table->AddEvent(2.5f, WeaponEvent::Bolt);
 		m16a1_event_tables[WeaponAction::Reload] = std::move(m16a1_reload_event_table);
 
@@ -275,22 +274,23 @@ void GameResources::Awake()
 	usp_animNames[WeaponAction::Idle] = std::make_pair("usp_idle", "arms_idle_usp");
 
 	std::unordered_map<WeaponEvent, std::shared_ptr<ze::AudioClip>> usp_sounds;
-	// usp_sounds[WeaponEvent::Bolt] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\usp\\bolt.wav");
-	// usp_sounds[WeaponEvent::MagOut] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\usp\\magout.wav");
-	// usp_sounds[WeaponEvent::MagIn] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\usp\\magin.wav");
-	// usp_sounds[WeaponEvent::Fire] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\usp\\shot.wav");
+	usp_sounds[WeaponEvent::SlideBack] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\usp_slideback.wav");
+	usp_sounds[WeaponEvent::SlideRelease] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\usp_sliderelease.wav");
+	usp_sounds[WeaponEvent::MagOut] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\usp_clipout.wav");
+	usp_sounds[WeaponEvent::MagIn] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\usp_clipin.wav");
+	usp_sounds[WeaponEvent::Fire] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\usp_unsil-1.wav");
 
 	// 3.
 	std::unordered_map<WeaponAction, std::shared_ptr<WeaponEventTable>> usp_event_tables;
 	{
 		std::shared_ptr<WeaponEventTable> usp_draw_event_table = std::make_shared<WeaponEventTable>();
-		usp_draw_event_table->AddEvent(0.25f, WeaponEvent::Bolt);
+		usp_draw_event_table->AddEvent(0.15f, WeaponEvent::SlideBack);
 		usp_event_tables[WeaponAction::Draw] = std::move(usp_draw_event_table);
 
 		std::shared_ptr<WeaponEventTable> usp_reload_event_table = std::make_shared<WeaponEventTable>();
-		usp_reload_event_table->AddEvent(0.35f, WeaponEvent::MagOut);
+		usp_reload_event_table->AddEvent(0.15f, WeaponEvent::MagOut);
 		usp_reload_event_table->AddEvent(1.2f, WeaponEvent::MagIn);
-		usp_reload_event_table->AddEvent(1.8f, WeaponEvent::Bolt);
+		usp_reload_event_table->AddEvent(1.8f, WeaponEvent::SlideRelease);
 		usp_event_tables[WeaponAction::Reload] = std::move(usp_reload_event_table);
 
 		std::shared_ptr<WeaponEventTable> usp_fire_event_table = std::make_shared<WeaponEventTable>();
@@ -335,7 +335,8 @@ void GameResources::Awake()
 	usp_wd->m_actionAnims.insert(std::make_pair(WeaponAction::Reload, usp_animNames[WeaponAction::Reload]));
 	usp_wd->m_actionAnims.insert(std::make_pair(WeaponAction::Fire, usp_animNames[WeaponAction::Fire]));
 	usp_wd->m_actionAnims.insert(std::make_pair(WeaponAction::Idle, usp_animNames[WeaponAction::Idle]));
-	usp_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::Bolt, usp_sounds[WeaponEvent::Bolt]));
+	usp_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::SlideBack, usp_sounds[WeaponEvent::SlideBack]));
+	usp_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::SlideRelease, usp_sounds[WeaponEvent::SlideRelease]));
 	usp_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::MagOut, usp_sounds[WeaponEvent::MagOut]));
 	usp_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::MagIn, usp_sounds[WeaponEvent::MagIn]));
 	usp_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::Fire, usp_sounds[WeaponEvent::Fire]));
@@ -348,6 +349,15 @@ void GameResources::Awake()
 	std::shared_ptr<SkinnedMesh> mdl_b92fsb_pv = mdB92fsb.m_skinnedMeshes[0];
 	std::shared_ptr<Armature> arma_b92fsb = arma_usp;		// 뼈대 공유
 	std::shared_ptr<StaticMesh> mdl_b92fsb_tv = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\b92fsb\\b92fsb_tv.obj").m_staticMeshes[0];
+
+
+	std::unordered_map<WeaponEvent, std::shared_ptr<ze::AudioClip>> b92fsb_sounds;
+	b92fsb_sounds[WeaponEvent::SlideBack] = usp_sounds[WeaponEvent::SlideBack];
+	b92fsb_sounds[WeaponEvent::SlideRelease] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\elite_sliderelease.wav");
+	b92fsb_sounds[WeaponEvent::MagOut] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\elite_clipout.wav");
+	b92fsb_sounds[WeaponEvent::MagIn] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\elite_rightclipin.wav");
+	b92fsb_sounds[WeaponEvent::Fire] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\elite_fire.wav");
+
 
 	std::vector<std::shared_ptr<Material>> b92fsb_mtls;
 
@@ -384,6 +394,8 @@ void GameResources::Awake()
 		usp_recoil_time
 	);
 
+
+
 	// 무기 이벤트 테이블
 	b92fsb_wd->m_eventTables.insert(std::make_pair(WeaponAction::Draw, usp_event_tables[WeaponAction::Draw]));
 	b92fsb_wd->m_eventTables.insert(std::make_pair(WeaponAction::Reload, usp_event_tables[WeaponAction::Reload]));
@@ -397,10 +409,11 @@ void GameResources::Awake()
 	b92fsb_wd->m_actionAnims.insert(std::make_pair(WeaponAction::Reload, usp_animNames[WeaponAction::Reload]));
 	b92fsb_wd->m_actionAnims.insert(std::make_pair(WeaponAction::Fire, usp_animNames[WeaponAction::Fire]));
 	b92fsb_wd->m_actionAnims.insert(std::make_pair(WeaponAction::Idle, usp_animNames[WeaponAction::Idle]));
-	b92fsb_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::Bolt, usp_sounds[WeaponEvent::Bolt]));
-	b92fsb_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::MagOut, usp_sounds[WeaponEvent::MagOut]));
-	b92fsb_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::MagIn, usp_sounds[WeaponEvent::MagIn]));
-	b92fsb_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::Fire, usp_sounds[WeaponEvent::Fire]));
+	b92fsb_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::SlideBack, b92fsb_sounds[WeaponEvent::SlideBack]));
+	b92fsb_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::SlideRelease, b92fsb_sounds[WeaponEvent::SlideRelease]));
+	b92fsb_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::MagOut, b92fsb_sounds[WeaponEvent::MagOut]));
+	b92fsb_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::MagIn, b92fsb_sounds[WeaponEvent::MagIn]));
+	b92fsb_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::Fire, b92fsb_sounds[WeaponEvent::Fire]));
 
 	this->AddWeaponDefinition(b92fsb_wd->GetCode(), b92fsb_wd);
 
