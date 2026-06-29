@@ -117,6 +117,13 @@ void AudioSource::RecreateSoundEffectInstance()
     m_upSoundEffectInstance = m_spAudioClip->CreateSoundEffectInstance();
 }
 
+void AudioSource::OnDisableSysJob()
+{
+    this->Stop();
+
+    IComponent::OnDisableSysJob();
+}
+
 IComponentManager* AudioSource::GetComponentManager() const
 {
     return AudioSourceManager::GetInstance();

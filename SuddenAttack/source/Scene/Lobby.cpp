@@ -38,11 +38,6 @@ void Lobby::OnLoadScene()
 		LobbyHandler* pScriptLobbyHandler = hScriptLobbyHandler.ToPtr();
 		pScriptLobbyHandler->m_hScriptGameResources = hScriptGameResources;	// 핸들 저장
 
-		auto wav = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\m16a1\\bolt.wav");
-		auto hAudioSourceComponent = pGameObjectLobbyHandler->AddComponent<AudioSource>();
-		hAudioSourceComponent.ToPtr()->SetAudioClip(wav);
-		hAudioSourceComponent.ToPtr()->Play();
-
 		// 3. 계정 정보 게임오브젝트 생성
 		GameObjectHandle hGameObjectAccount = CreateGameObject(GO_ACCOUNT_NAME);
 		GameObject* pGameObjectAccount = hGameObjectAccount.ToPtr();

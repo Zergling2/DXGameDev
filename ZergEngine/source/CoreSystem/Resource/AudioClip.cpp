@@ -3,7 +3,15 @@
 
 using namespace ze;
 
-std::unique_ptr<DirectX::SoundEffectInstance> ze::AudioClip::CreateSoundEffectInstance()
+void AudioClip::Play(float volume, float pitch, float pan)
+{
+	if (!m_upSoundEffect)
+		return;
+
+	m_upSoundEffect->Play(volume, pitch, pan);
+}
+
+std::unique_ptr<DirectX::SoundEffectInstance> AudioClip::CreateSoundEffectInstance()
 {
 	if (!m_upSoundEffect)
 		return nullptr;

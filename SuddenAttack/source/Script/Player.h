@@ -1,30 +1,22 @@
 #pragma once
 
 #include <ZergEngine\ZergEngine.h>
+#include "..\Resource\WeaponDefinition.h"
 
 class GameResources;
 class GameUIManager;
 class ArmsViewInfo;
-class IWeapon;
-class WeaponViewInfo;
+class Weapon;
 
 enum class WeaponSlot
 {
 	Primary,
 	Secondary,
+	Melee,
+	Utility,
 
-	ElementCount
-};
-
-class IMovementState
-{
-public:
-	IMovementState() = default;
-	virtual ~IMovementState() = default;
-
-	virtual void Enter() {}
-	virtual void Update(float dt) {}
-	virtual void Exit() {}
+	Count,
+	Unknown = Count
 };
 
 class Player : public ze::MonoBehaviour
@@ -40,7 +32,10 @@ public:
 
 	void SetProcessingInput(bool b) { m_processingInput = b; }
 	void CreateArmsView(const ArmsViewInfo* pArmsViewInfo);
-	void CreateWeaponView(WeaponSlot slot, const WeaponViewInfo* pWeaponViewInfo);
+
+	// 해야할 일
+	// 1. m_hWeaponSkinnedMeshRenderers[slot]에 SkinnedMesh 및 재질 설정
+	void EquipWeapon(WeaponSlot slot, std::shared_ptr<WeaponDefinition> spWeaponDef);
 private:
 	bool m_processingInput;
 	bool m_isStand;
@@ -55,7 +50,6 @@ private:
 	float m_bounceFreq;
 	float m_ampX;
 	float m_ampY;
-	IMovementState* m_pMovementState;
 	XMFLOAT4X4A m_colliderLocalTransform;
 	XMFLOAT4X4A m_groundCheckColliderLocalTransform;
 public:
@@ -69,8 +63,8 @@ public:
 	ze::ComponentHandle<ze::SkinnedMeshRenderer> m_hArmsSkinnedMeshRenderer;
 	const ArmsViewInfo* m_pArmsViewInfo;
 
-	ze::GameObjectHandle m_hGameObjectWeapons[static_cast<size_t>(WeaponSlot::ElementCount)];
-	ze::ComponentHandle<ze::SkinnedMeshRenderer> m_hWeaponSkinnedMeshRenderers[static_cast<size_t>(WeaponSlot::ElementCount)];
-	std::shared_ptr<IWeapon> m_weapons[static_cast<size_t>(WeaponSlot::ElementCount)];
+	ze::GameObjectHandle m_hGameObjectWeapons[static_cast<size_t>(WeaponSlot::Count)];
+	ze::ComponentHandle<ze::SkinnedMeshRenderer> m_hWeaponSkinnedMeshRenderers[static_cast<size_t>(WeaponSlot::Count)];
+	ze::ComponentHandle<Weapon> m_hScriptWeapon[static_cast<size_t>(WeaponSlot::Count)];
 	WeaponSlot m_currWeaponSlot;
 };

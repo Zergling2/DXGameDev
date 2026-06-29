@@ -1,4 +1,5 @@
 #include <ZergEngine\CoreSystem\AudioSystem.h>
+#include <ZergEngine\CoreSystem\Debug.h>
 #include <ZergEngine\CoreSystem\Resource\AudioClip.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\AudioSourceManager.h>
 #include <cassert>
@@ -63,12 +64,22 @@ std::shared_ptr<AudioClip> AudioSystem::GetAudioClip(PCWSTR path)
 
 std::shared_ptr<AudioClip> AudioSystem::CreateAudioClip(PCWSTR path)
 {
-	std::shared_ptr<AudioClip> spAudioClip = std::make_shared<AudioClip>();
-	spAudioClip->CreateSoundEffect(m_upAudioEngine.get(), path);
+	try
+	{
+		std::shared_ptr<AudioClip> spAudioClip = std::make_shared<AudioClip>();
+		spAudioClip->CreateSoundEffect(m_upAudioEngine.get(), path);
 
-	m_audioClips.insert(std::make_pair(std::wstring(path), spAudioClip));
+		m_audioClips.emplace(path, spAudioClip);
 
-	return spAudioClip;
+		return spAudioClip;
+	}
+	catch (const std::exception& e)
+	{
+		// 로그 출력
+		Debug::ForceCrashWithMessageBox("Error", e.what());
+
+		return nullptr;
+	}
 }
 
 void AudioSystem::RecreateAudioEngine()

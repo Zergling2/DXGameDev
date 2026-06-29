@@ -1,8 +1,7 @@
 #include "Player.h"
 #include "..\Resource/GlobalGameObjects.h"
 #include "..\Resource\Arms.h"
-#include "..\Resource\WeaponInfo.h"
-#include "..\Resource\Weapon.h"
+#include "Weapon.h"
 #include "GameResources.h"
 #include "GameUIManager.h"
 #include <algorithm>
@@ -34,8 +33,7 @@ Player::Player(ze::GameObject& owner)
 	, m_bounceFreq(0.0f)
 	, m_ampX(0.0f)
 	, m_ampY(0.0f)
-	, m_weapons()
-	, m_currWeaponSlot(WeaponSlot::Secondary)
+	, m_currWeaponSlot(WeaponSlot::Unknown)
 {
 	// 점프 초기속도 계산
 	// 등가속도 공식 3번째
@@ -52,43 +50,6 @@ Player::Player(ze::GameObject& owner)
 
 void Player::Awake()
 {
-	std::function<void(WeaponEvent, const WeaponViewInfo*)> weaponEventHandler =
-		[this](WeaponEvent we, const WeaponViewInfo* pWeaponViewInfo)
-		{
-			// 시각 효과만 처리. 논리 로직은 무기 및 무기 상태에서 전담!!
-
-			bool result;
-
-			switch (we)
-			{
-			case WeaponEvent::DrawingStarted:
-				m_hArmsSkinnedMeshRenderer.ToPtr()->PlayAnimation(pWeaponViewInfo->GetArmsDrawAnimName(), false);
-				m_hWeaponSkinnedMeshRenderers[static_cast<size_t>(m_currWeaponSlot)].ToPtr()->PlayAnimation(pWeaponViewInfo->GetDrawAnimName(), false);
-				break;
-			case WeaponEvent::ReloadingStarted:
-				wprintf(L"reloading started!\n");
-				result = m_hArmsSkinnedMeshRenderer.ToPtr()->PlayAnimation(pWeaponViewInfo->GetArmsReloadAnimName(), false);
-				assert(result);
-				result = m_hWeaponSkinnedMeshRenderers[static_cast<size_t>(m_currWeaponSlot)].ToPtr()->PlayAnimation(pWeaponViewInfo->GetReloadAnimName(), false);
-				assert(result);
-				break;
-			case WeaponEvent::ReloadComplete:
-				break;
-			case WeaponEvent::FiringStarted:
-				m_hArmsSkinnedMeshRenderer.ToPtr()->PlayAnimation(pWeaponViewInfo->GetArmsFireAnimName(), false);
-				m_hWeaponSkinnedMeshRenderers[static_cast<size_t>(m_currWeaponSlot)].ToPtr()->PlayAnimation(pWeaponViewInfo->GetFireAnimName(), false);
-				break;
-			case WeaponEvent::IdlingStarted:
-				m_hArmsSkinnedMeshRenderer.ToPtr()->PlayAnimation(pWeaponViewInfo->GetArmsIdleAnimName(), true);
-				m_hWeaponSkinnedMeshRenderers[static_cast<size_t>(m_currWeaponSlot)].ToPtr()->PlayAnimation(pWeaponViewInfo->GetIdleAnimName(), true);
-				break;
-			case WeaponEvent::EmptyFiringStarted:
-				break;
-			default:
-				break;
-			}
-		};
-
 	// GameResources 오브젝트 검색 및 스크립트 저장
 	GameObjectHandle hGameObjectGameResources = GameObject::Find(GO_GAME_RESOURCES_NAME);
 	assert(hGameObjectGameResources.IsValid());
@@ -136,45 +97,39 @@ void Player::Awake()
 	m_hArmsSkinnedMeshRenderer = hArmsSkinnedMeshRenderer;
 
 	m_pArmsViewInfo = pScriptGameResources->GetArmsViewinfo(L"steven");
+	CreateArmsView(m_pArmsViewInfo);
+
 
 	// 무기 오브젝트 생성
-	m_hGameObjectWeapons[0] = Runtime::GetInstance()->CreateGameObject();
-	GameObject* pGameObjectPrimaryWeapon = m_hGameObjectWeapons[0].ToPtr();
-	pGameObjectPrimaryWeapon->m_transform.SetParent(&pGameObjectCamera->m_transform);
-	pGameObjectPrimaryWeapon->m_transform.SetPosition(PRIMARY_WEAPON_PV_OFFSET);
-	m_hWeaponSkinnedMeshRenderers[0] = pGameObjectPrimaryWeapon->AddComponent<SkinnedMeshRenderer>();
-	auto pPrimaryWeaponSkinnedMeshRenderer = m_hWeaponSkinnedMeshRenderers[0].ToPtr();
-	pGameObjectPrimaryWeapon->SetActive(false);
+	for (size_t i = 0; i < _countof(m_hGameObjectWeapons); ++i)
+	{
+		m_hGameObjectWeapons[i] = Runtime::GetInstance()->CreateGameObject();
+		GameObject* pGameObjectWeapon = m_hGameObjectWeapons[i].ToPtr();
+		pGameObjectWeapon->m_transform.SetParent(&pGameObjectCamera->m_transform);
+		pGameObjectWeapon->m_transform.SetPosition(PRIMARY_WEAPON_PV_OFFSET);
+		m_hWeaponSkinnedMeshRenderers[i] = pGameObjectWeapon->AddComponent<SkinnedMeshRenderer>();
+		auto pWeaponSkinnedMeshRenderer = m_hWeaponSkinnedMeshRenderers[i].ToPtr();
 
-	m_hGameObjectWeapons[1] = Runtime::GetInstance()->CreateGameObject();
-	GameObject* pGameObjectSecondaryWeapon = m_hGameObjectWeapons[1].ToPtr();
-	pGameObjectSecondaryWeapon->m_transform.SetParent(&pGameObjectCamera->m_transform);
-	pGameObjectSecondaryWeapon->m_transform.SetPosition(SECONDARY_WEAPON_PV_OFFSET);
-	m_hWeaponSkinnedMeshRenderers[1] = pGameObjectSecondaryWeapon->AddComponent<SkinnedMeshRenderer>();
-	auto pSecondaryWeaponSkinnedMeshRenderer = m_hWeaponSkinnedMeshRenderers[1].ToPtr();
-	
-	m_weapons[0] = std::make_shared<AutoRifle>(pScriptGameResources->GetWeaponViewInfo(L"m16a1"), pScriptGameResources->GetWeaponInfo(L"m16a1"));
-	m_weapons[0]->SetWeaponEventHandler(weaponEventHandler);
-	m_weapons[1] = std::make_shared<SemiAutoPistol>(pScriptGameResources->GetWeaponViewInfo(L"usp"), pScriptGameResources->GetWeaponInfo(L"usp"));
-	m_weapons[1]->SetWeaponEventHandler(weaponEventHandler);
+		assert(m_hWeaponSkinnedMeshRenderers[i].IsValid() && m_hArmsSkinnedMeshRenderer.IsValid() && m_hScriptGameUIManager.IsValid());
+		m_hScriptWeapon[i] = pGameObjectWeapon->AddComponent<Weapon>();
+		auto pScriptWeapon = m_hScriptWeapon[i].ToPtr();
+		pScriptWeapon->m_hWeaponMeshRenderer = m_hWeaponSkinnedMeshRenderers[i];
+		pScriptWeapon->m_hArmsMeshRenderer = m_hArmsSkinnedMeshRenderer;
+		pScriptWeapon->m_hScriptGameUIManager = m_hScriptGameUIManager;
 
+		pScriptWeapon->Undraw();
+	}
 
-
-	CreateArmsView(m_pArmsViewInfo);
-	CreateWeaponView(WeaponSlot::Primary, m_weapons[static_cast<size_t>(WeaponSlot::Primary)]->GetWeaponViewInfo());
-	CreateWeaponView(WeaponSlot::Secondary, m_weapons[static_cast<size_t>(WeaponSlot::Secondary)]->GetWeaponViewInfo());
+	m_hScriptWeapon[static_cast<size_t>(WeaponSlot::Primary)].ToPtr()->Init(pScriptGameResources->GetWeaponDefinition(WeaponCode::M4A1), 24, 115);
+	m_hScriptWeapon[static_cast<size_t>(WeaponSlot::Secondary)].ToPtr()->Init(pScriptGameResources->GetWeaponDefinition(WeaponCode::B92FSBlack), 12, 24);
 
 	m_currWeaponSlot = WeaponSlot::Secondary;
-	m_weapons[static_cast<size_t>(m_currWeaponSlot)]->StartDraw();
+	m_hScriptWeapon[static_cast<size_t>(m_currWeaponSlot)].ToPtr()->Draw();
 }
 
 void Player::Update()
 {
 	const float dt = Time::GetInstance()->GetDeltaTime();
-
-	// 현재 무기 업데이트
-	m_weapons[static_cast<size_t>(m_currWeaponSlot)]->Update(dt);
-
 
 	// 팔과 무기 흔들림 업데이트
 	constexpr float BOUNCE_FREQ_WEIGHT_RUNNING = 9.0f;
@@ -190,52 +145,78 @@ void Player::Update()
 
 	m_sinTimeAccum = Math::WrapFloat(m_sinTimeAccum + dt * m_bounceFreq, Math::C_2PI());
 
-	// z bounce weight, y bounce weight
-	float zw = m_ampX * std::sin(m_sinTimeAccum);
+	// x bounce weight, y bounce weight
+	float xw = m_ampX * std::sin(m_sinTimeAccum);
 	float yw = m_ampY * std::abs(std::cos(m_sinTimeAccum));
 
-	// 적용
-	m_hGameObjectArms.ToPtr()->m_transform.SetPosition(FPSARM_POS.x + zw, FPSARM_POS.y + yw, FPSARM_POS.z);
-	m_hGameObjectWeapons[0].ToPtr()->m_transform.SetPosition(PRIMARY_WEAPON_PV_OFFSET.x + zw, PRIMARY_WEAPON_PV_OFFSET.y + yw, PRIMARY_WEAPON_PV_OFFSET.z);
-	m_hGameObjectWeapons[1].ToPtr()->m_transform.SetPosition(SECONDARY_WEAPON_PV_OFFSET.x + zw, SECONDARY_WEAPON_PV_OFFSET.y + yw, SECONDARY_WEAPON_PV_OFFSET.z);
-
+	m_hGameObjectArms.ToPtr()->m_transform.SetPosition(FPSARM_POS.x + xw, FPSARM_POS.y + yw, FPSARM_POS.z);
+	switch (m_currWeaponSlot)
+	{
+	case WeaponSlot::Primary:
+		m_hGameObjectWeapons[static_cast<size_t>(WeaponSlot::Primary)].ToPtr()->m_transform.SetPosition(PRIMARY_WEAPON_PV_OFFSET.x + xw, PRIMARY_WEAPON_PV_OFFSET.y + yw, PRIMARY_WEAPON_PV_OFFSET.z);
+		break;
+	case WeaponSlot::Secondary:
+		m_hGameObjectWeapons[static_cast<size_t>(WeaponSlot::Secondary)].ToPtr()->m_transform.SetPosition(SECONDARY_WEAPON_PV_OFFSET.x + xw, SECONDARY_WEAPON_PV_OFFSET.y + yw, SECONDARY_WEAPON_PV_OFFSET.z);
+		break;
+	case WeaponSlot::Melee:
+		// ...
+		break;
+	case WeaponSlot::Utility:
+		// ...
+		break;
+	default:
+		break;
+	}
 
 	if (m_processingInput)
 	{
 		// 무기 드로잉 처리
 		if (Input::GetInstance()->GetKeyDown(Keycode::KEY_1))
 		{
-			if (m_currWeaponSlot != WeaponSlot::Primary && m_weapons[static_cast<size_t>(WeaponSlot::Primary)])
+			// 사망 시 리스폰 직전까지 m_currWeaponSlot를 WeaponSlot::Unknown으로 설정해야 함!
+			
+			if (m_currWeaponSlot != WeaponSlot::Primary)
 			{
-				m_hGameObjectWeapons[static_cast<size_t>(WeaponSlot::Primary)].ToPtr()->SetActive(true);
-				m_hGameObjectWeapons[static_cast<size_t>(WeaponSlot::Secondary)].ToPtr()->SetActive(false);
+				const WeaponSlot oldWeaponSlot = m_currWeaponSlot;
 				m_currWeaponSlot = WeaponSlot::Primary;
-				m_weapons[static_cast<size_t>(WeaponSlot::Primary)]->StartDraw();
+
+				if (oldWeaponSlot != WeaponSlot::Unknown)
+				{
+					Weapon* pOldScriptWeapon = m_hScriptWeapon[static_cast<size_t>(oldWeaponSlot)].ToPtr();
+					pOldScriptWeapon->Undraw();
+				}
+
+				Weapon* pCurrScriptWeapon = m_hScriptWeapon[static_cast<size_t>(m_currWeaponSlot)].ToPtr();
+				pCurrScriptWeapon->Draw();
 			}
 		}
+
 		if (Input::GetInstance()->GetKeyDown(Keycode::KEY_2))
 		{
-			if (m_currWeaponSlot != WeaponSlot::Secondary && m_weapons[static_cast<size_t>(WeaponSlot::Secondary)])
+			if (m_currWeaponSlot != WeaponSlot::Secondary)
 			{
-				m_hGameObjectWeapons[static_cast<size_t>(WeaponSlot::Primary)].ToPtr()->SetActive(false);
-				m_hGameObjectWeapons[static_cast<size_t>(WeaponSlot::Secondary)].ToPtr()->SetActive(true);
+				const WeaponSlot oldWeaponSlot = m_currWeaponSlot;
 				m_currWeaponSlot = WeaponSlot::Secondary;
-				m_weapons[static_cast<size_t>(WeaponSlot::Secondary)]->StartDraw();
+
+				if (oldWeaponSlot != WeaponSlot::Unknown)
+				{
+					Weapon* pOldScriptWeapon = m_hScriptWeapon[static_cast<size_t>(oldWeaponSlot)].ToPtr();
+					pOldScriptWeapon->Undraw();
+				}
+
+				Weapon* pCurrScriptWeapon = m_hScriptWeapon[static_cast<size_t>(m_currWeaponSlot)].ToPtr();
+				pCurrScriptWeapon->Draw();
 			}
 		}
 
 		// 장전 처리
 		if (Input::GetInstance()->GetKeyDown(Keycode::KEY_R))
-		{
-			m_weapons[static_cast<size_t>(m_currWeaponSlot)]->StartReload();
-		}
+			m_hScriptWeapon[static_cast<size_t>(m_currWeaponSlot)].ToPtr()->Reload();
 
 
 		// 사격 처리
 		if (Input::GetInstance()->GetMouseButton(MouseButton::Left))
-		{
-			m_weapons[static_cast<size_t>(m_currWeaponSlot)]->StartFire();
-		}
+			m_hScriptWeapon[static_cast<size_t>(m_currWeaponSlot)].ToPtr()->Fire();
 
 
 		const int32_t mx = Input::GetInstance()->GetMouseAxisHorizontal();
@@ -270,9 +251,6 @@ void Player::Update()
 			pGameObjectCamera->m_transform.SetRotationEuler(rotationEuler);
 		}
 	}
-
-	m_hScriptGameUIManager.ToPtr()->SetTextWeaponName(m_weapons[static_cast<size_t>(m_currWeaponSlot)]->GetName());
-	m_hScriptGameUIManager.ToPtr()->SetTextAmmoState(m_weapons[static_cast<size_t>(m_currWeaponSlot)]->GetAmmoStateText());
 }
 
 void Player::FixedUpdate()
@@ -437,7 +415,7 @@ void Player::CreateArmsView(const ArmsViewInfo* pArmsViewInfo)
 	for (size_t i = 0; i < pArmsViewInfo->GetMaterials().size(); ++i)
 		pArmsSkinnedMeshRenderer->SetMaterial(i, pArmsViewInfo->GetMaterials()[i]);
 
-	// 재생할 FPS 팔 애니메이션
+	// FPS 팔 애니메이션
 	// pArmsSkinnedMeshRenderer->PlayAnimation("arms_idle_m16a1", true);
 	// pArmsSkinnedMeshRenderer->PlayAnimation("arms_draw_m16a1", true);
 	// pArmsSkinnedMeshRenderer->PlayAnimation("arms_idle_usp", true);
@@ -449,18 +427,3 @@ void Player::CreateArmsView(const ArmsViewInfo* pArmsViewInfo)
 	// pArmsSkinnedMeshRenderer->PlayAnimation("arms_run_m16a1", true);
 	// pArmsSkinnedMeshRenderer->PlayAnimation("arms_run_usp", true);
 }
-
-void Player::CreateWeaponView(WeaponSlot slot, const WeaponViewInfo* pWeaponViewInfo)
-{
-	if (slot == WeaponSlot::ElementCount)
-		return;
-
-	SkinnedMeshRenderer* pSkinnedMeshRendererWeapon = m_hWeaponSkinnedMeshRenderers[static_cast<size_t>(slot)].ToPtr();
-
-	pSkinnedMeshRendererWeapon->SetMesh(pWeaponViewInfo->GetPVMesh());
-	pSkinnedMeshRendererWeapon->SetArmature(pWeaponViewInfo->GetPVMeshArmature());
-
-	for (size_t i = 0; i < pWeaponViewInfo->GetMaterials().size(); ++i)
-		pSkinnedMeshRendererWeapon->SetMaterial(i, pWeaponViewInfo->GetMaterials()[i]);
-}
-

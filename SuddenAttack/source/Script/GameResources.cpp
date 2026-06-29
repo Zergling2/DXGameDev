@@ -1,7 +1,7 @@
 #include "GameResources.h"
-#include "..\Resource\WeaponInfo.h"
 #include "..\Resource\Character.h"
 #include "..\Resource\Arms.h"
+#include "..\Resource\WeaponDefinition.h"
 
 using namespace ze;
 
@@ -26,10 +26,20 @@ GameResources::GameResources(ze::GameObject& owner)
 	: MonoBehaviour(owner)
 	, m_errTex()
 	, m_errMaterial()
-	, m_weaponViewInfos()
-	, m_weaponInfos()
+	, m_texture2ds()
+	, m_armsViewInfos()
+	, m_characterViewInfos()
+	, m_weaponDefs()
 	, m_spCharacterCollider()
 	, m_spGroundCheckSweepCollider()
+	, m_spCharacterBodyCollider()
+	, m_spCharacterNeckCollider()
+	, m_spCharacterHeadCollider()
+	, m_spCharacterUpperArmCollider()
+	, m_spCharacterForeArmCollider()
+	, m_spCharacterThighCollider()
+	, m_spCharacterCalfCollider()
+	, m_spCharacterFootCollider()
 {
 }
 
@@ -38,7 +48,6 @@ void GameResources::Awake()
 	m_errTex = ResourceLoader::GetInstance()->GetErrorTexture2D();
 	m_spCharacterCollider = std::make_shared<CapsuleCollider>(CHARACTER_COLLIDER_RADIUS, 1.7f - 2 * CHARACTER_COLLIDER_RADIUS);
 	m_spGroundCheckSweepCollider = std::make_shared<SphereCollider>(CHARACTER_COLLIDER_RADIUS - GROUND_CHECK_COLLIDER_RADIUS_SUBTRACT_FACTOR);
-
 
 
 	m_spCharacterBodyCollider = std::make_shared<BoxCollider>(CHARACTER_BODY_COLLIDER_HALF_EXTENTS);
@@ -69,10 +78,15 @@ void GameResources::Awake()
 	XMStoreFloat4A(&spSTANAG30rdsMagMtl->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.05f), 1.0f));
 	XMStoreFloat4A(&spSTANAG30rdsMagMtl->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 2.0f));
 
-
+	// ###############################
 	// M16
+	// ###############################
 	// ## SHARED_DATA
 	// 1. md_m16a1_armature
+	// 2. sounds & anims (M16, M4A1, ...)
+	// 3. event tables (M16, M4A1, ...)
+
+	// 1.
 	ModelData md_m16a1 = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\m16a1\\m16a1_pv.glb");
 
 	std::shared_ptr<SkinnedMesh> mdl_m16a1_pv = md_m16a1.m_skinnedMeshes[0];
@@ -80,6 +94,44 @@ void GameResources::Awake()
 	grouping = arma_m16a1->CreateBoneGroupByRootBoneName("default", "bone_m16a1_body");
 	assert(grouping);
 	std::shared_ptr<StaticMesh> mdl_m16a1_tv = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\m16a1\\m16a1_tv.obj").m_staticMeshes[0];
+
+	const float m16a1_draw_time = arma_m16a1->GetAnimation("m16a1_draw")->GetDuration() - ANIMATION_DEAD_FRAME_TIME;
+	const float m16a1_reload_time = arma_m16a1->GetAnimation("m16a1_reload")->GetDuration() - ANIMATION_DEAD_FRAME_TIME;
+	const float m16a1_recoil_time = arma_m16a1->GetAnimation("m16a1_fire")->GetDuration() - ANIMATION_DEAD_FRAME_TIME;
+
+	// 2.
+	std::unordered_map<WeaponAction, std::pair<std::string, std::string>> m16a1_animNames;	// <Weapon Anim, Arms Anim>
+	m16a1_animNames[WeaponAction::Draw] = std::make_pair("m16a1_draw", "arms_draw_m16a1");
+	m16a1_animNames[WeaponAction::Reload] = std::make_pair("m16a1_reload", "arms_reload_m16a1");
+	m16a1_animNames[WeaponAction::Fire] = std::make_pair("m16a1_fire", "arms_fire_m16a1");
+	m16a1_animNames[WeaponAction::Idle] = std::make_pair("m16a1_idle", "arms_idle_m16a1");
+
+	std::unordered_map<WeaponEvent, std::shared_ptr<ze::AudioClip>> m16a1_sounds;
+	m16a1_sounds[WeaponEvent::Bolt] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\m16a1\\bolt.wav");
+	m16a1_sounds[WeaponEvent::MagOut] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\m16a1\\magout.wav");
+	m16a1_sounds[WeaponEvent::MagIn] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\m16a1\\magin.wav");
+	m16a1_sounds[WeaponEvent::Fire] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\m16a1\\shot.wav");
+
+	// 3.
+	std::unordered_map<WeaponAction, std::shared_ptr<WeaponEventTable>> m16a1_event_tables;
+	{
+		std::shared_ptr<WeaponEventTable> m16a1_draw_event_table = std::make_shared<WeaponEventTable>();
+		m16a1_draw_event_table->AddEvent(0.4f, WeaponEvent::Bolt);
+		m16a1_event_tables[WeaponAction::Draw] = std::move(m16a1_draw_event_table);
+
+		std::shared_ptr<WeaponEventTable> m16a1_reload_event_table = std::make_shared<WeaponEventTable>();
+		m16a1_reload_event_table->AddEvent(0.35f, WeaponEvent::MagOut);
+		m16a1_reload_event_table->AddEvent(1.4f, WeaponEvent::MagOut);
+		m16a1_reload_event_table->AddEvent(1.7f, WeaponEvent::MagIn);
+		m16a1_reload_event_table->AddEvent(2.5f, WeaponEvent::Bolt);
+		m16a1_event_tables[WeaponAction::Reload] = std::move(m16a1_reload_event_table);
+
+		std::shared_ptr<WeaponEventTable> m16a1_fire_event_table = std::make_shared<WeaponEventTable>();
+		m16a1_fire_event_table->AddEvent(0.0f, WeaponEvent::Fire);
+		m16a1_event_tables[WeaponAction::Fire] = std::move(m16a1_fire_event_table);
+	}
+	
+
 
 	std::vector<std::shared_ptr<Material>> m16a1_mtls;
 	auto spM16A1Mtl0 = ResourceLoader::GetInstance()->CreateMaterial();
@@ -96,21 +148,43 @@ void GameResources::Awake()
 	m16a1_mtls.push_back(spM16A1Mtl0);
 	m16a1_mtls.push_back(spM16A1Mtl1);
 	m16a1_mtls.push_back(spSTANAG30rdsMagMtl);
-	auto tex2d_m16a1_previewImage = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\weapons\\m16a1.png");
-	
-	std::unique_ptr<WeaponViewInfo> wvi_m16a1 = std::make_unique<WeaponViewInfo>(
-		"m16a1_draw", "arms_draw_m16a1", arma_m16a1->GetAnimation("m16a1_draw")->GetDuration() - ANIMATION_DEAD_FRAME_TIME,
-		"m16a1_reload", "arms_reload_m16a1", arma_m16a1->GetAnimation("m16a1_reload")->GetDuration() - ANIMATION_DEAD_FRAME_TIME,
-		"m16a1_fire", "arms_fire_m16a1", arma_m16a1->GetAnimation("m16a1_fire")->GetDuration() - ANIMATION_DEAD_FRAME_TIME,
-		"m16a1_run", "arms_run_m16a1", arma_m16a1->GetAnimation("m16a1_run")->GetDuration() - ANIMATION_DEAD_FRAME_TIME,
-		"m16a1_idle", "arms_idle_m16a1", arma_m16a1->GetAnimation("m16a1_idle")->GetDuration() - ANIMATION_DEAD_FRAME_TIME,
-		mdl_m16a1_pv, arma_m16a1, mdl_m16a1_tv, std::move(m16a1_mtls), std::move(tex2d_m16a1_previewImage));
-	this->AddWeaponViewInfo(L"m16a1", std::move(wvi_m16a1));
-	std::unique_ptr<WeaponInfo> ei_m16a1 = std::make_unique<WeaponInfo>(L"M16",	30, 90, 650.0f);
-	this->AddWeaponInfo(L"m16a1", std::move(ei_m16a1));
 
-	
+	ze::Texture2D m16a1_previewImage = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\weapons\\m16a1.png");
+	std::shared_ptr<WeaponDefinition> m16a1_wd = std::make_shared<WeaponDefinition>(
+		WeaponCode::M16,
+		L"M16",
+		30,	// 탄창 용량
+		90,	// 예비 탄약
+		24,	// 데미지
+		600.0f,	// RPM
+		m16a1_draw_time,
+		m16a1_reload_time,
+		m16a1_recoil_time
+	);
+
+	// 무기 이벤트 테이블
+	m16a1_wd->m_eventTables.insert(std::make_pair(WeaponAction::Draw, m16a1_event_tables[WeaponAction::Draw]));
+	m16a1_wd->m_eventTables.insert(std::make_pair(WeaponAction::Reload, m16a1_event_tables[WeaponAction::Reload]));
+	m16a1_wd->m_eventTables.insert(std::make_pair(WeaponAction::Fire, m16a1_event_tables[WeaponAction::Fire]));
+	m16a1_wd->m_spPVMesh = mdl_m16a1_pv;
+	m16a1_wd->m_spPVArmature = arma_m16a1;
+	m16a1_wd->m_spTVMesh = mdl_m16a1_tv;
+	m16a1_wd->m_materials = std::move(m16a1_mtls);
+	m16a1_wd->m_previewImage = m16a1_previewImage;
+	m16a1_wd->m_actionAnims.insert(std::make_pair(WeaponAction::Draw, m16a1_animNames[WeaponAction::Draw]));
+	m16a1_wd->m_actionAnims.insert(std::make_pair(WeaponAction::Reload, m16a1_animNames[WeaponAction::Reload]));
+	m16a1_wd->m_actionAnims.insert(std::make_pair(WeaponAction::Fire, m16a1_animNames[WeaponAction::Fire]));
+	m16a1_wd->m_actionAnims.insert(std::make_pair(WeaponAction::Idle, m16a1_animNames[WeaponAction::Idle]));
+	m16a1_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::Bolt, m16a1_sounds[WeaponEvent::Bolt]));
+	m16a1_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::MagOut, m16a1_sounds[WeaponEvent::MagOut]));
+	m16a1_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::MagIn, m16a1_sounds[WeaponEvent::MagIn]));
+	m16a1_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::Fire, m16a1_sounds[WeaponEvent::Fire]));
+
+	this->AddWeaponDefinition(m16a1_wd->GetCode(), m16a1_wd);
+
+	// ###############################
 	// M4A1 Carbine
+	// ###############################
 	ModelData md_m4a1 = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\m4a1\\m4a1_pv.glb");
 	std::shared_ptr<SkinnedMesh> mdl_m4a1_pv = md_m4a1.m_skinnedMeshes[0];
 	std::shared_ptr<Armature> arma_m4a1 = arma_m16a1;		// 뼈대 공유
@@ -138,29 +212,92 @@ void GameResources::Awake()
 	m4a1_mtls.push_back(spM4A1Mtl2);
 	m4a1_mtls.push_back(spSTANAG30rdsMagMtl);
 
-	auto tex2d_m4a1_previewImage = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\weapons\\m4a1.png");
+	ze::Texture2D m4a1_previewImage = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\weapons\\m4a1.png");
 
-	std::unique_ptr<WeaponViewInfo> wvi_m4a1 = std::make_unique<WeaponViewInfo>(
-		"m16a1_draw", "arms_draw_m16a1", arma_m16a1->GetAnimation("m16a1_draw")->GetDuration() - ANIMATION_DEAD_FRAME_TIME,
-		"m16a1_reload", "arms_reload_m16a1", arma_m16a1->GetAnimation("m16a1_reload")->GetDuration() - ANIMATION_DEAD_FRAME_TIME,
-		"m16a1_fire", "arms_fire_m16a1", arma_m16a1->GetAnimation("m16a1_fire")->GetDuration() - ANIMATION_DEAD_FRAME_TIME,
-		"m16a1_run", "arms_run_m16a1", arma_m16a1->GetAnimation("m16a1_run")->GetDuration() - ANIMATION_DEAD_FRAME_TIME,
-		"m16a1_idle", "arms_idle_m16a1", arma_m16a1->GetAnimation("m16a1_idle")->GetDuration() - ANIMATION_DEAD_FRAME_TIME,
-		mdl_m4a1_pv, arma_m4a1, mdl_m4a1_tv, std::move(m4a1_mtls), std::move(tex2d_m4a1_previewImage));
-	this->AddWeaponViewInfo(L"m4a1", std::move(wvi_m4a1));
-	std::unique_ptr<WeaponInfo> ei_m4a1 = std::make_unique<WeaponInfo>(L"M4A1 Carbine", 30, 90, 680.0f);
-	this->AddWeaponInfo(L"m4a1", std::move(ei_m4a1));
+	
+	std::shared_ptr<WeaponDefinition> m4a1_wd = std::make_shared<WeaponDefinition>(
+		WeaponCode::M4A1,
+		L"M4A1 Carbine",
+		30,	// 탄창 용량
+		90,	// 예비 탄약
+		24,	// 데미지
+		700.0f,	// RPM
+		m16a1_draw_time,
+		m16a1_reload_time,
+		m16a1_recoil_time
+	);
+
+	// 무기 이벤트 테이블
+	m4a1_wd->m_eventTables.insert(std::make_pair(WeaponAction::Draw, m16a1_event_tables[WeaponAction::Draw]));
+	m4a1_wd->m_eventTables.insert(std::make_pair(WeaponAction::Reload, m16a1_event_tables[WeaponAction::Reload]));
+	m4a1_wd->m_eventTables.insert(std::make_pair(WeaponAction::Fire, m16a1_event_tables[WeaponAction::Fire]));
+	m4a1_wd->m_spPVMesh = mdl_m4a1_pv;
+	m4a1_wd->m_spPVArmature = arma_m4a1;
+	m4a1_wd->m_spTVMesh = mdl_m4a1_tv;
+	m4a1_wd->m_materials = std::move(m4a1_mtls);
+	m4a1_wd->m_previewImage = m4a1_previewImage;
+	m4a1_wd->m_actionAnims.insert(std::make_pair(WeaponAction::Draw, m16a1_animNames[WeaponAction::Draw]));
+	m4a1_wd->m_actionAnims.insert(std::make_pair(WeaponAction::Reload, m16a1_animNames[WeaponAction::Reload]));
+	m4a1_wd->m_actionAnims.insert(std::make_pair(WeaponAction::Fire, m16a1_animNames[WeaponAction::Fire]));
+	m4a1_wd->m_actionAnims.insert(std::make_pair(WeaponAction::Idle, m16a1_animNames[WeaponAction::Idle]));
+	m4a1_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::Bolt, m16a1_sounds[WeaponEvent::Bolt]));
+	m4a1_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::MagOut, m16a1_sounds[WeaponEvent::MagOut]));
+	m4a1_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::MagIn, m16a1_sounds[WeaponEvent::MagIn]));
+	m4a1_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::Fire, m16a1_sounds[WeaponEvent::Fire]));
+
+	this->AddWeaponDefinition(m4a1_wd->GetCode(), m4a1_wd);
 
 
+	// ###############################
 	// C.USP
+	// ###############################
 	// ## SHARED_DATA
 	// 1. md_usp_armature
+	// 2. sounds & anims (C.USP, B.92Fs Black, ...)
+	// 3. event tables (C.USP, B.92Fs Black, ...)
 	ModelData md_usp = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\usp\\usp_pv.glb");
 	std::shared_ptr<SkinnedMesh> mdl_usp_pv = md_usp.m_skinnedMeshes[0];
 	std::shared_ptr<Armature> arma_usp = md_usp.m_armatures[0];
 	grouping = arma_usp->CreateBoneGroupByRootBoneName("default", "bone_usp_body");
 	assert(grouping);
 	std::shared_ptr<StaticMesh> mdl_usp_tv = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\usp\\usp_tv.obj").m_staticMeshes[0];
+	
+
+	const float usp_draw_time = arma_usp->GetAnimation("usp_draw")->GetDuration() - ANIMATION_DEAD_FRAME_TIME;
+	const float usp_reload_time = arma_usp->GetAnimation("usp_reload")->GetDuration() - ANIMATION_DEAD_FRAME_TIME;
+	const float usp_recoil_time = arma_usp->GetAnimation("usp_fire")->GetDuration() - ANIMATION_DEAD_FRAME_TIME;
+
+	// 2.
+	std::unordered_map<WeaponAction, std::pair<std::string, std::string>> usp_animNames;	// <Weapon Anim, Arms Anim>
+	usp_animNames[WeaponAction::Draw] = std::make_pair("usp_draw", "arms_draw_usp");
+	usp_animNames[WeaponAction::Reload] = std::make_pair("usp_reload", "arms_reload_usp");
+	usp_animNames[WeaponAction::Fire] = std::make_pair("usp_fire", "arms_fire_usp");
+	usp_animNames[WeaponAction::Idle] = std::make_pair("usp_idle", "arms_idle_usp");
+
+	std::unordered_map<WeaponEvent, std::shared_ptr<ze::AudioClip>> usp_sounds;
+	// usp_sounds[WeaponEvent::Bolt] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\usp\\bolt.wav");
+	// usp_sounds[WeaponEvent::MagOut] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\usp\\magout.wav");
+	// usp_sounds[WeaponEvent::MagIn] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\usp\\magin.wav");
+	// usp_sounds[WeaponEvent::Fire] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\usp\\shot.wav");
+
+	// 3.
+	std::unordered_map<WeaponAction, std::shared_ptr<WeaponEventTable>> usp_event_tables;
+	{
+		std::shared_ptr<WeaponEventTable> usp_draw_event_table = std::make_shared<WeaponEventTable>();
+		usp_draw_event_table->AddEvent(0.25f, WeaponEvent::Bolt);
+		usp_event_tables[WeaponAction::Draw] = std::move(usp_draw_event_table);
+
+		std::shared_ptr<WeaponEventTable> usp_reload_event_table = std::make_shared<WeaponEventTable>();
+		usp_reload_event_table->AddEvent(0.35f, WeaponEvent::MagOut);
+		usp_reload_event_table->AddEvent(1.2f, WeaponEvent::MagIn);
+		usp_reload_event_table->AddEvent(1.8f, WeaponEvent::Bolt);
+		usp_event_tables[WeaponAction::Reload] = std::move(usp_reload_event_table);
+
+		std::shared_ptr<WeaponEventTable> usp_fire_event_table = std::make_shared<WeaponEventTable>();
+		usp_fire_event_table->AddEvent(0.0f, WeaponEvent::Fire);
+		usp_event_tables[WeaponAction::Fire] = std::move(usp_fire_event_table);
+	}
+
 
 	std::vector<std::shared_ptr<Material>> usp_mtls;
 	std::shared_ptr<Material> spUSPMtl0 = ResourceLoader::GetInstance()->CreateMaterial();
@@ -171,18 +308,39 @@ void GameResources::Awake()
 
 	usp_mtls.push_back(spUSPMtl0);
 
-	auto tex2d_usp_previewImage = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\weapons\\usp.png");
+	ze::Texture2D usp_previewImage = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\weapons\\usp.png");
 
-	std::unique_ptr<WeaponViewInfo> wvi_usp = std::make_unique<WeaponViewInfo>(
-		"usp_draw", "arms_draw_usp", arma_usp->GetAnimation("usp_draw")->GetDuration() - ANIMATION_DEAD_FRAME_TIME,
-		"usp_reload", "arms_reload_usp", arma_usp->GetAnimation("usp_reload")->GetDuration() - ANIMATION_DEAD_FRAME_TIME,
-		"usp_fire", "arms_fire_usp", arma_usp->GetAnimation("usp_fire")->GetDuration() - ANIMATION_DEAD_FRAME_TIME,
-		"usp_run", "arms_run_usp", arma_usp->GetAnimation("usp_run")->GetDuration() - ANIMATION_DEAD_FRAME_TIME,
-		"usp_idle", "arms_idle_usp", arma_usp->GetAnimation("usp_idle")->GetDuration() - ANIMATION_DEAD_FRAME_TIME,
-		mdl_usp_pv, arma_usp, mdl_usp_tv, std::move(usp_mtls), std::move(tex2d_usp_previewImage));
-	this->AddWeaponViewInfo(L"usp", std::move(wvi_usp));
-	std::unique_ptr<WeaponInfo> ei_usp = std::make_unique<WeaponInfo>(L"C.USP", 12, 24, 310.0f);
-	this->AddWeaponInfo(L"usp", std::move(ei_usp));
+	std::shared_ptr<WeaponDefinition> usp_wd = std::make_shared<WeaponDefinition>(
+		WeaponCode::USP,
+		L"C.USP",
+		12,	// 탄창 용량
+		24,	// 예비 탄약
+		20,	// 데미지
+		300.0f,	// RPM
+		usp_draw_time,
+		usp_reload_time,
+		usp_recoil_time
+	);
+
+	// 무기 이벤트 테이블
+	usp_wd->m_eventTables.insert(std::make_pair(WeaponAction::Draw, usp_event_tables[WeaponAction::Draw]));
+	usp_wd->m_eventTables.insert(std::make_pair(WeaponAction::Reload, usp_event_tables[WeaponAction::Reload]));
+	usp_wd->m_eventTables.insert(std::make_pair(WeaponAction::Fire, usp_event_tables[WeaponAction::Fire]));
+	usp_wd->m_spPVMesh = mdl_usp_pv;
+	usp_wd->m_spPVArmature = arma_usp;
+	usp_wd->m_spTVMesh = mdl_usp_tv;
+	usp_wd->m_materials = std::move(usp_mtls);
+	usp_wd->m_previewImage = usp_previewImage;
+	usp_wd->m_actionAnims.insert(std::make_pair(WeaponAction::Draw, usp_animNames[WeaponAction::Draw]));
+	usp_wd->m_actionAnims.insert(std::make_pair(WeaponAction::Reload, usp_animNames[WeaponAction::Reload]));
+	usp_wd->m_actionAnims.insert(std::make_pair(WeaponAction::Fire, usp_animNames[WeaponAction::Fire]));
+	usp_wd->m_actionAnims.insert(std::make_pair(WeaponAction::Idle, usp_animNames[WeaponAction::Idle]));
+	usp_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::Bolt, usp_sounds[WeaponEvent::Bolt]));
+	usp_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::MagOut, usp_sounds[WeaponEvent::MagOut]));
+	usp_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::MagIn, usp_sounds[WeaponEvent::MagIn]));
+	usp_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::Fire, usp_sounds[WeaponEvent::Fire]));
+
+	this->AddWeaponDefinition(usp_wd->GetCode(), usp_wd);
 
 
 	// B.92fs Black
@@ -212,18 +370,39 @@ void GameResources::Awake()
 	b92fsb_mtls.push_back(spB92fsbMtl1);
 	b92fsb_mtls.push_back(spB92fsbMtl2);
 
-	auto tex2d_b92fsb_previewImage = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\weapons\\b92fsb.png");
+	ze::Texture2D b92fsb_previewImage = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\weapons\\b92fsb.png");
 
-	std::unique_ptr<WeaponViewInfo> wvi_b92fsb = std::make_unique<WeaponViewInfo>(
-		"usp_draw", "arms_draw_usp", arma_usp->GetAnimation("usp_draw")->GetDuration() - ANIMATION_DEAD_FRAME_TIME,
-		"usp_reload", "arms_reload_usp", arma_usp->GetAnimation("usp_reload")->GetDuration() - ANIMATION_DEAD_FRAME_TIME,
-		"usp_fire", "arms_fire_usp", arma_usp->GetAnimation("usp_fire")->GetDuration() - ANIMATION_DEAD_FRAME_TIME,
-		"usp_run", "arms_run_usp", arma_usp->GetAnimation("usp_run")->GetDuration() - ANIMATION_DEAD_FRAME_TIME,
-		"usp_idle", "arms_idle_usp", arma_usp->GetAnimation("usp_idle")->GetDuration() - ANIMATION_DEAD_FRAME_TIME,
-		mdl_b92fsb_pv, arma_b92fsb, mdl_b92fsb_tv, std::move(b92fsb_mtls), std::move(tex2d_b92fsb_previewImage));
-	this->AddWeaponViewInfo(L"b92fsb", std::move(wvi_b92fsb));
-	std::unique_ptr<WeaponInfo> ei_b92fsb = std::make_unique<WeaponInfo>(L"B.92Fs Black", 15, 30, 330.0f);
-	this->AddWeaponInfo(L"b92fsb", std::move(ei_b92fsb));
+	std::shared_ptr<WeaponDefinition> b92fsb_wd = std::make_shared<WeaponDefinition>(
+		WeaponCode::B92FSBlack,
+		L"B.92Fs Black",
+		15,	// 탄창 용량
+		30,	// 예비 탄약
+		20,	// 데미지
+		300.0f,	// RPM
+		usp_draw_time,
+		usp_reload_time,
+		usp_recoil_time
+	);
+
+	// 무기 이벤트 테이블
+	b92fsb_wd->m_eventTables.insert(std::make_pair(WeaponAction::Draw, usp_event_tables[WeaponAction::Draw]));
+	b92fsb_wd->m_eventTables.insert(std::make_pair(WeaponAction::Reload, usp_event_tables[WeaponAction::Reload]));
+	b92fsb_wd->m_eventTables.insert(std::make_pair(WeaponAction::Fire, usp_event_tables[WeaponAction::Fire]));
+	b92fsb_wd->m_spPVMesh = mdl_b92fsb_pv;
+	b92fsb_wd->m_spPVArmature = arma_b92fsb;
+	b92fsb_wd->m_spTVMesh = mdl_b92fsb_tv;
+	b92fsb_wd->m_materials = std::move(b92fsb_mtls);
+	b92fsb_wd->m_previewImage = b92fsb_previewImage;
+	b92fsb_wd->m_actionAnims.insert(std::make_pair(WeaponAction::Draw, usp_animNames[WeaponAction::Draw]));
+	b92fsb_wd->m_actionAnims.insert(std::make_pair(WeaponAction::Reload, usp_animNames[WeaponAction::Reload]));
+	b92fsb_wd->m_actionAnims.insert(std::make_pair(WeaponAction::Fire, usp_animNames[WeaponAction::Fire]));
+	b92fsb_wd->m_actionAnims.insert(std::make_pair(WeaponAction::Idle, usp_animNames[WeaponAction::Idle]));
+	b92fsb_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::Bolt, usp_sounds[WeaponEvent::Bolt]));
+	b92fsb_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::MagOut, usp_sounds[WeaponEvent::MagOut]));
+	b92fsb_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::MagIn, usp_sounds[WeaponEvent::MagIn]));
+	b92fsb_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::Fire, usp_sounds[WeaponEvent::Fire]));
+
+	this->AddWeaponDefinition(b92fsb_wd->GetCode(), b92fsb_wd);
 
 	// ## SHARED_DATA
 	// 1. arma_steven
@@ -301,15 +480,9 @@ bool GameResources::AddCharacterViewInfo(std::wstring key, std::unique_ptr<Chara
 	return ret.second;
 }
 
-bool GameResources::AddWeaponViewInfo(std::wstring key, std::unique_ptr<WeaponViewInfo> upWeaponViewInfo)
+bool GameResources::AddWeaponDefinition(WeaponCode key, std::shared_ptr<WeaponDefinition> spWeaponInfo)
 {
-	auto ret = m_weaponViewInfos.insert(std::make_pair(std::move(key), std::move(upWeaponViewInfo)));
-	return ret.second;
-}
-
-bool GameResources::AddWeaponInfo(std::wstring key, std::unique_ptr<WeaponInfo> upWeaponInfo)
-{
-	auto ret = m_weaponInfos.insert(std::make_pair(std::move(key), std::move(upWeaponInfo)));
+	auto ret = m_weaponDefs.insert(std::make_pair(key, std::move(spWeaponInfo)));
 	return ret.second;
 }
 
@@ -343,24 +516,14 @@ const CharacterViewInfo* GameResources::GetCharacterViewInfo(const std::wstring&
 		return iter->second.get();
 }
 
-const WeaponViewInfo* GameResources::GetWeaponViewInfo(const std::wstring& key) const
+std::shared_ptr<WeaponDefinition> GameResources::GetWeaponDefinition(WeaponCode key) const
 {
-	auto iter = m_weaponViewInfos.find(key);
+	auto iter = m_weaponDefs.find(key);
 
-	if (iter == m_weaponViewInfos.cend())
+	if (iter == m_weaponDefs.cend())
 		return nullptr;
 	else
-		return iter->second.get();
-}
-
-const WeaponInfo* GameResources::GetWeaponInfo(const std::wstring& key) const
-{
-	auto iter = m_weaponInfos.find(key);
-
-	if (iter == m_weaponInfos.cend())
-		return nullptr;
-	else
-		return iter->second.get();
+		return iter->second;
 }
 
 const XMFLOAT3& GameResources::GetCharacterBodyColliderHalfExtents() const

@@ -18,6 +18,8 @@ namespace ze
 		AudioClip() = default;
 		~AudioClip() = default;
 
+		void Play(float volume = 1.0f, float pitch = 0.0f, float pan = 0.0f);
+
 		std::unique_ptr<DirectX::SoundEffectInstance> CreateSoundEffectInstance();
 	private:
 		void CreateSoundEffect(DirectX::AudioEngine* pAudioEngine, const wchar_t* path);

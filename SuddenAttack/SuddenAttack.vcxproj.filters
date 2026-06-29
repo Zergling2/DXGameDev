@@ -61,20 +61,17 @@
     <ClCompile Include="source\Script\AnimControl.cpp">
       <Filter>source\Script</Filter>
     </ClCompile>
-    <ClCompile Include="source\Resource\WeaponInfo.cpp">
-      <Filter>source\Resource</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Resource\Weapon.cpp">
-      <Filter>source\Resource</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Resource\WeaponState.cpp">
-      <Filter>source\Resource</Filter>
-    </ClCompile>
     <ClCompile Include="source\Resource\Arms.cpp">
       <Filter>source\Resource</Filter>
     </ClCompile>
     <ClCompile Include="source\Resource\Character.cpp">
       <Filter>source\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Resource\WeaponDefinition.cpp">
+      <Filter>source\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Script\Weapon.cpp">
+      <Filter>source\Script</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -120,19 +117,25 @@
     <ClInclude Include="source\Script\AnimControl.h">
       <Filter>source\Script</Filter>
     </ClInclude>
-    <ClInclude Include="source\Resource\WeaponInfo.h">
-      <Filter>source\Resource</Filter>
-    </ClInclude>
-    <ClInclude Include="source\Resource\Weapon.h">
-      <Filter>source\Resource</Filter>
-    </ClInclude>
-    <ClInclude Include="source\Resource\WeaponState.h">
-      <Filter>source\Resource</Filter>
-    </ClInclude>
     <ClInclude Include="source\Resource\Arms.h">
       <Filter>source\Resource</Filter>
     </ClInclude>
     <ClInclude Include="source\Resource\Character.h">
+      <Filter>source\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Resource\WeaponDefinition.h">
+      <Filter>source\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Script\Weapon.h">
+      <Filter>source\Script</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Resource\WeaponEvent.h">
+      <Filter>source\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Resource\WeaponAction.h">
+      <Filter>source\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Resource\WeaponCode.h">
       <Filter>source\Resource</Filter>
     </ClInclude>
   </ItemGroup>

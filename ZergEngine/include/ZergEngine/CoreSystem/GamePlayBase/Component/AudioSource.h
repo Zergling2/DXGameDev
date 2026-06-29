@@ -47,6 +47,9 @@ namespace ze
 		std::shared_ptr<AudioClip> GetAudioClip() const { return m_spAudioClip; }
 		void SetAudioClip(std::shared_ptr<AudioClip> spAudioClip);
 		void RecreateSoundEffectInstance();
+	protected:
+		// virtual void OnEnableSysJob() override;
+		virtual void OnDisableSysJob() override;
 	private:
 		virtual IComponentManager* GetComponentManager() const override;
 	private:
