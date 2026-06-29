@@ -220,7 +220,7 @@ void GameResources::Awake()
 		30,	// 탄창 용량
 		90,	// 예비 탄약
 		24,	// 데미지
-		700.0f,	// RPM
+		660.0f,	// RPM
 		m16a1_draw_time,
 		m16a1_reload_time,
 		m16a1_recoil_time
@@ -388,7 +388,7 @@ void GameResources::Awake()
 		15,	// 탄창 용량
 		30,	// 예비 탄약
 		20,	// 데미지
-		300.0f,	// RPM
+		360.0f,	// RPM
 		usp_draw_time,
 		usp_reload_time,
 		usp_recoil_time

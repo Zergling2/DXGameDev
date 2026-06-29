@@ -1,7 +1,7 @@
 #pragma once
 
 #include <ZergEngine\ZergEngine.h>
-#include "..\Resource\WeaponDefinition.h"
+#include "..\Resource\WeaponCode.h"
 
 class GameResources;
 class GameUIManager;
@@ -33,9 +33,7 @@ public:
 	void SetProcessingInput(bool b) { m_processingInput = b; }
 	void CreateArmsView(const ArmsViewInfo* pArmsViewInfo);
 
-	// 해야할 일
-	// 1. m_hWeaponSkinnedMeshRenderers[slot]에 SkinnedMesh 및 재질 설정
-	void EquipWeapon(WeaponSlot slot, std::shared_ptr<WeaponDefinition> spWeaponDef);
+	void EquipWeapon(WeaponSlot slot, WeaponCode wc);
 private:
 	bool m_processingInput;
 	bool m_isStand;

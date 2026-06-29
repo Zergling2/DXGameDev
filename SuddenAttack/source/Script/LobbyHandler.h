@@ -103,6 +103,9 @@ public:
 
 	void OnClickOkMsgBoxOk();
 
+	void PlayBGM();
+	void StopBGM();
+
 	// Logic
 	bool FindGameRoomPlayer(uint32_t accountId, GameTeam& team, size_t& index) const;
 	const GameRoomPlayer* FindMyGameRoomPlayer() const;
@@ -135,6 +138,7 @@ private:
 	size_t m_textLobbyChatMsgCount;
 public:
 	// 스크립트 관련
+	ze::ComponentHandle<ze::AudioClip> m_hAudioBGM;
 	ze::ComponentHandle<GameResources> m_hScriptGameResources;
 	ze::ComponentHandle<Network> m_hScriptNetwork;
 	ze::ComponentHandle<Account> m_hScriptAccount;

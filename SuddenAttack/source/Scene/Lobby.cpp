@@ -20,71 +20,44 @@ constexpr DWRITE_FONT_WEIGHT MEDIUM_TEXT_WEIGHT = DWRITE_FONT_WEIGHT_BOLD;
 
 void Lobby::OnLoadScene()
 {
-	ComponentHandle<LobbyHandler> hScriptLobbyHandler;
+	if (g_singleton)
+		return;
 
-	if (!g_singleton)
-	{
-		// 1. 게임 리소스 매니저 게임오브젝트 생성
-		GameObjectHandle hGameObjectGameResources = CreateGameObject(GO_GAME_RESOURCES_NAME);
-		GameObject* pGameObjectGameResources = hGameObjectGameResources.ToPtr();
-		pGameObjectGameResources->DontDestroyOnLoad();	// DontDestroyOnLoad
-		ComponentHandle<GameResources> hScriptGameResources = pGameObjectGameResources->AddComponent<GameResources>();
+	// ############################
+	// 싱글톤 객체들 생성
+	// ############################
 
-		// 2. 로비 핸들러 게임오브젝트 생성
-		GameObjectHandle hGameObjectLobbyHandler = CreateGameObject(GO_LOBBY_HANDLER_NAME);
-		GameObject* pGameObjectLobbyHandler = hGameObjectLobbyHandler.ToPtr();
-		pGameObjectLobbyHandler->DontDestroyOnLoad();	// DontDestroyOnLoad
-		hScriptLobbyHandler = pGameObjectLobbyHandler->AddComponent<LobbyHandler>();
-		LobbyHandler* pScriptLobbyHandler = hScriptLobbyHandler.ToPtr();
-		pScriptLobbyHandler->m_hScriptGameResources = hScriptGameResources;	// 핸들 저장
+	// 1. 게임 리소스 매니저 게임오브젝트 생성
+	GameObjectHandle hGameObjectGameResources = CreateGameObject(GO_GAME_RESOURCES_NAME);
+	GameObject* pGameObjectGameResources = hGameObjectGameResources.ToPtr();
+	ComponentHandle<GameResources> hScriptGameResources = pGameObjectGameResources->AddComponent<GameResources>();
 
-		// 3. 계정 정보 게임오브젝트 생성
-		GameObjectHandle hGameObjectAccount = CreateGameObject(GO_ACCOUNT_NAME);
-		GameObject* pGameObjectAccount = hGameObjectAccount.ToPtr();
-		pGameObjectAccount->DontDestroyOnLoad();	// DontDestroyOnLoad
-		ComponentHandle<Account> hScriptAccount = pGameObjectAccount->AddComponent<Account>();
-		pScriptLobbyHandler->m_hScriptAccount = hScriptAccount;
-
-		// 4. 네트워크 게임오브젝트 생성
-		GameObjectHandle hGameObjectNetwork = CreateGameObject(GO_NETWORK_NAME);
-		GameObject* pGameObjectNetwork = hGameObjectNetwork.ToPtr();
-		pGameObjectNetwork->DontDestroyOnLoad();	// DontDestroyOnLoad
-		ComponentHandle<Network> hScriptNetwork = pGameObjectNetwork->AddComponent<Network>();
-		pScriptLobbyHandler->m_hScriptNetwork = hScriptNetwork;	// 핸들 저장
-		Network* pScriptNetwork = hScriptNetwork.ToPtr();
-		pScriptNetwork->m_hScriptAccount = hScriptAccount;
-		pScriptNetwork->m_hScriptLobbyHandler = hScriptLobbyHandler;
-
-		g_singleton = true;
-	}
-	else
-	{
-		// 1. 게임 리소스 스크립트 핸들 획득
-		// GameObjectHandle hGameObjectGameResources = GameObject::Find(GO_GAME_RESOURCES_NAME);
-		// GameObject* pGameObjectGameResources = hGameObjectGameResources.ToPtr();
-		// assert(pGameObjectGameResources);
-		// hScriptGameResources = pGameObjectGameResources->GetComponent<GameResources>();
-
-		// 2. 로비 핸들러 스크립트 핸들 획득
-		GameObjectHandle hGameObjectLobbyHandler = GameObject::Find(GO_LOBBY_HANDLER_NAME);
-		GameObject* pGameObjectLobbyHandler = hGameObjectLobbyHandler.ToPtr();
-		assert(pGameObjectLobbyHandler);
-		hScriptLobbyHandler = pGameObjectLobbyHandler->GetComponent<LobbyHandler>();
-
-		// 3. 계정 정보 스크립트 핸들 획득
-		// GameObjectHandle hGameObjectAccount = GameObject::Find(GO_ACCOUNT_NAME);
-		// GameObject* pGameObjectAccount = hGameObjectAccount.ToPtr();
-		// assert(pGameObjectAccount);
-		// hScriptAccount = pGameObjectAccount->GetComponent<Account>();
-
-		// 4. 네트워크 스크립트 핸들 획득
-		// GameObjectHandle hGameObjectNetwork = GameObject::Find(GO_NETWORK_NAME);
-		// GameObject* pGameObjectNetwork = hGameObjectNetwork.ToPtr();
-		// assert(pGameObjectNetwork);
-		// hScriptNetwork = pGameObjectNetwork->GetComponent<Network>();
-	}
-
+	// 2. 로비 핸들러 게임오브젝트 생성
+	GameObjectHandle hGameObjectLobbyHandler = CreateGameObject(GO_LOBBY_HANDLER_NAME);
+	GameObject* pGameObjectLobbyHandler = hGameObjectLobbyHandler.ToPtr();
+	ComponentHandle<LobbyHandler> hScriptLobbyHandler = pGameObjectLobbyHandler->AddComponent<LobbyHandler>();
 	LobbyHandler* pScriptLobbyHandler = hScriptLobbyHandler.ToPtr();
+	pScriptLobbyHandler->m_hScriptGameResources = hScriptGameResources;	// 핸들 저장
+
+	// 3. 계정 정보 게임오브젝트 생성
+	GameObjectHandle hGameObjectAccount = CreateGameObject(GO_ACCOUNT_NAME);
+	GameObject* pGameObjectAccount = hGameObjectAccount.ToPtr();
+	ComponentHandle<Account> hScriptAccount = pGameObjectAccount->AddComponent<Account>();
+	pScriptLobbyHandler->m_hScriptAccount = hScriptAccount;
+
+	// 4. 네트워크 게임오브젝트 생성
+	GameObjectHandle hGameObjectNetwork = CreateGameObject(GO_NETWORK_NAME);
+	GameObject* pGameObjectNetwork = hGameObjectNetwork.ToPtr();
+	ComponentHandle<Network> hScriptNetwork = pGameObjectNetwork->AddComponent<Network>();
+	pScriptLobbyHandler->m_hScriptNetwork = hScriptNetwork;	// 핸들 저장
+	Network* pScriptNetwork = hScriptNetwork.ToPtr();
+	pScriptNetwork->m_hScriptAccount = hScriptAccount;
+	pScriptNetwork->m_hScriptLobbyHandler = hScriptLobbyHandler;
+
+
+	// ############################
+	// 최초에 생성 필요한 객체들 생성
+	// ############################
 
 	UIObjectHandle hImageLobbyBgr = CreateImage();
 	pScriptLobbyHandler->m_hImageLobbyBgr = hImageLobbyBgr;
@@ -1786,4 +1759,17 @@ void Lobby::OnLoadScene()
 	pButtonExitGameRoom->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
 	pButtonExitGameRoom->ApplyTextFormat();
 	pButtonExitGameRoom->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickExitGameRoom));
+
+
+
+
+
+
+
+	pGameObjectGameResources->DontDestroyOnLoadRecursively();	// DontDestroyOnLoad
+	pGameObjectLobbyHandler->DontDestroyOnLoadRecursively();	// DontDestroyOnLoad
+	pGameObjectAccount->DontDestroyOnLoadRecursively();			// DontDestroyOnLoad
+	pGameObjectNetwork->DontDestroyOnLoadRecursively();			// DontDestroyOnLoad
+
+	g_singleton = true;
 }
