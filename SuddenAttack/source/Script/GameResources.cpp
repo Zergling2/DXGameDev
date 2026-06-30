@@ -116,13 +116,13 @@ void GameResources::Awake()
 	std::unordered_map<WeaponAction, std::shared_ptr<WeaponEventTable>> m16a1_event_tables;
 	{
 		std::shared_ptr<WeaponEventTable> m16a1_draw_event_table = std::make_shared<WeaponEventTable>();
-		m16a1_draw_event_table->AddEvent(0.4f, WeaponEvent::Bolt);
+		m16a1_draw_event_table->AddEvent(0.45f, WeaponEvent::Bolt);
 		m16a1_event_tables[WeaponAction::Draw] = std::move(m16a1_draw_event_table);
 
 		std::shared_ptr<WeaponEventTable> m16a1_reload_event_table = std::make_shared<WeaponEventTable>();
 		m16a1_reload_event_table->AddEvent(0.35f, WeaponEvent::MagOut);
 		m16a1_reload_event_table->AddEvent(1.5f, WeaponEvent::MagIn);
-		m16a1_reload_event_table->AddEvent(2.5f, WeaponEvent::Bolt);
+		m16a1_reload_event_table->AddEvent(2.55f, WeaponEvent::Bolt);
 		m16a1_event_tables[WeaponAction::Reload] = std::move(m16a1_reload_event_table);
 
 		std::shared_ptr<WeaponEventTable> m16a1_fire_event_table = std::make_shared<WeaponEventTable>();
@@ -289,8 +289,8 @@ void GameResources::Awake()
 
 		std::shared_ptr<WeaponEventTable> usp_reload_event_table = std::make_shared<WeaponEventTable>();
 		usp_reload_event_table->AddEvent(0.15f, WeaponEvent::MagOut);
-		usp_reload_event_table->AddEvent(1.2f, WeaponEvent::MagIn);
-		usp_reload_event_table->AddEvent(1.8f, WeaponEvent::SlideRelease);
+		usp_reload_event_table->AddEvent(1.35f, WeaponEvent::MagIn);
+		usp_reload_event_table->AddEvent(2.1f, WeaponEvent::SlideRelease);
 		usp_event_tables[WeaponAction::Reload] = std::move(usp_reload_event_table);
 
 		std::shared_ptr<WeaponEventTable> usp_fire_event_table = std::make_shared<WeaponEventTable>();
