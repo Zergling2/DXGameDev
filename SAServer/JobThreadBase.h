@@ -68,7 +68,8 @@ void JobThreadBase<JobType>::Shutdown()
 
     AcquireSRWLockExclusive(&m_jobQueueLock);
     m_shutdown = true;
-    // MemoryBarrier();
+    MemoryBarrier();
+
     WakeAllConditionVariable(&m_jobConditionVar);
 
     ReleaseSRWLockExclusive(&m_jobQueueLock);

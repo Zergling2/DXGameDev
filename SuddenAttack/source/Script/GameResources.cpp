@@ -189,6 +189,13 @@ void GameResources::Awake()
 	std::shared_ptr<Armature> arma_m4a1 = arma_m16a1;		// »À´ë °øÀ¯
 	std::shared_ptr<StaticMesh> mdl_m4a1_tv = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\m4a1\\m4a1_tv.obj").m_staticMeshes[0];
 
+	std::unordered_map<WeaponEvent, std::shared_ptr<ze::AudioClip>> m4a1_sounds;
+	m4a1_sounds[WeaponEvent::Bolt] = m16a1_sounds[WeaponEvent::Bolt];
+	m4a1_sounds[WeaponEvent::MagOut] = m16a1_sounds[WeaponEvent::MagOut];
+	m4a1_sounds[WeaponEvent::MagIn] = m16a1_sounds[WeaponEvent::MagIn];
+	m4a1_sounds[WeaponEvent::Fire] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\galil-1.wav");
+
+
 	std::vector<std::shared_ptr<Material>> m4a1_mtls;
 	auto spM4A1Mtl0 = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&spM4A1Mtl0->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.15f), 1.0f));
@@ -239,10 +246,10 @@ void GameResources::Awake()
 	m4a1_wd->m_actionAnims.insert(std::make_pair(WeaponAction::Reload, m16a1_animNames[WeaponAction::Reload]));
 	m4a1_wd->m_actionAnims.insert(std::make_pair(WeaponAction::Fire, m16a1_animNames[WeaponAction::Fire]));
 	m4a1_wd->m_actionAnims.insert(std::make_pair(WeaponAction::Idle, m16a1_animNames[WeaponAction::Idle]));
-	m4a1_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::Bolt, m16a1_sounds[WeaponEvent::Bolt]));
-	m4a1_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::MagOut, m16a1_sounds[WeaponEvent::MagOut]));
-	m4a1_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::MagIn, m16a1_sounds[WeaponEvent::MagIn]));
-	m4a1_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::Fire, m16a1_sounds[WeaponEvent::Fire]));
+	m4a1_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::Bolt, m4a1_sounds[WeaponEvent::Bolt]));
+	m4a1_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::MagOut, m4a1_sounds[WeaponEvent::MagOut]));
+	m4a1_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::MagIn, m4a1_sounds[WeaponEvent::MagIn]));
+	m4a1_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::Fire, m4a1_sounds[WeaponEvent::Fire]));
 
 	this->AddWeaponDefinition(m4a1_wd->GetCode(), m4a1_wd);
 

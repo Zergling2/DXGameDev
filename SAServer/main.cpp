@@ -1,7 +1,7 @@
-#include <WinSock2.h>
 #define WIN32_LEAN_AND_MEAN
+#include <WinSock2.h>
 #include <Windows.h>
-#include "GameServer.h"
+#include "SAServer.h"
 
 int main(void)
 {
@@ -9,13 +9,13 @@ int main(void)
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
 		return -1;
 
-	GameServer server;
+	SAServer server;
 
 	winppy::TCPServerConfig config;
 	config.m_bindAddr = nullptr;
 	config.m_bindPort = SASERVER_PORT;
-	config.m_numOfWorkerThreads = 6;
-	config.m_numOfConcurrentThreads = 4;
+	config.m_numOfWorkerThreads = 4;
+	config.m_numOfConcurrentThreads = 3;
 	config.m_tcpNoDelay = true;
 	config.m_headerCode = HEADER_CODE;
 	config.m_maxSessionCount = 5000;

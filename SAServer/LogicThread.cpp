@@ -1,5 +1,6 @@
 #include "LogicThread.h"
 #include "Protocol.h"
+#include "SAServer.h"
 #include <cassert>
 #include <strsafe.h>
 
@@ -153,11 +154,9 @@ void JobReqLogin::Execute(LogicThread& thread)
 {
 	wprintf(L"Login Request - id: %s, pw: %s\n", m_id, m_pw);
 
-	// 테스트 코드
-	// 원래는 DB 스레드에 조회 작업 넘기고 DB스레드에서 다시 LogicThread에게 로그인인증결과처리작업을 디스패칭해야함.
+	constexpr uint32_t TEST_ACCOUNT_ID = 5;
+	const wchar_t* TEST_NICKNAME = L"감자튀김";
 
-	const uint32_t TEST_ACCOUNT_ID = ((rand() << 16) & 0x11110000) | rand();
-	const wchar_t* TEST_NICKNAME = L"치즈피자";
 	SCResLogin res;
 	res.m_result = true;
 	res.m_accountId = TEST_ACCOUNT_ID;
@@ -255,7 +254,7 @@ void JobReqJoinChannel::Execute(LogicThread& thread)
 	thread.m_server.Send(m_netId, std::move(pktResJoinChannel));
 }
 
-LogicThread::LogicThread(winppy::TCPServer& server)
+LogicThread::LogicThread(SAServer& server)
 	: m_server(server)
 	, m_sessions()
 	, m_players()

@@ -8,7 +8,7 @@ using namespace ze;
 
 void Client::OnConnect()
 {
-	printf("Connected to the GameServer.\n");
+	printf("Connected to the SAServer.\n");
 	m_network.m_connected = true;
 }
 
@@ -21,7 +21,7 @@ void Client::OnReceive(winppy::Packet packet)
 
 void Client::OnDisconnect()
 {
-	printf("Disconnected from the GameServer.\n");
+	printf("Disconnected from the SAServer.\n");
 	m_network.m_disconnectJobDone = true;
 }
 

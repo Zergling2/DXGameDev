@@ -24,7 +24,7 @@
     <ClCompile Include="GameRoom.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GameServer.cpp">
+    <ClCompile Include="SAServer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DB.cpp">
@@ -62,7 +62,7 @@
     <ClInclude Include="Contents.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GameServer.h">
+    <ClInclude Include="SAServer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DB.h">

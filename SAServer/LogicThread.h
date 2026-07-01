@@ -10,6 +10,7 @@
 
 class Session;
 class LogicThread;
+class SAServer;
 
 class IJob
 {
@@ -250,12 +251,12 @@ private:
 class LogicThread : public JobThreadBase<IJob>
 {
 public:
-	LogicThread(winppy::TCPServer& server);
+	LogicThread(SAServer& server);
 	virtual ~LogicThread() = default;
 protected:
 	virtual void ProcessJob(std::unique_ptr<IJob> upJob) override { upJob->Execute(*this); }
 public:
-	winppy::TCPServer& m_server;
+	SAServer& m_server;
 	std::unordered_map<uint64_t, std::unique_ptr<Session>> m_sessions;
 	std::unordered_map<uint32_t, std::unique_ptr<Player>> m_players;
 	std::vector<Channel> m_channel;

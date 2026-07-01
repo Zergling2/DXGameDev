@@ -153,7 +153,7 @@
     <ClCompile Include="DBThread.cpp" />
     <ClCompile Include="Channel.cpp" />
     <ClCompile Include="GameRoom.cpp" />
-    <ClCompile Include="GameServer.cpp" />
+    <ClCompile Include="SAServer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="LogicThread.cpp" />
@@ -164,7 +164,7 @@
     <ClInclude Include="Channel.h" />
     <ClInclude Include="Constants.h" />
     <ClInclude Include="Contents.h" />
-    <ClInclude Include="GameServer.h" />
+    <ClInclude Include="SAServer.h" />
     <ClInclude Include="JobThread.h" />
     <ClInclude Include="JobThreadBase.h" />
     <ClInclude Include="Player.h" />

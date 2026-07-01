@@ -6,11 +6,11 @@
 #include "DBThread.h"
 #include "LogicThread.h"
 
-class GameServer : public winppy::TCPServer
+class SAServer : public winppy::TCPServer
 {
 public:
-	GameServer();
-	virtual ~GameServer() = default;
+	SAServer();
+	virtual ~SAServer() = default;
 	virtual bool OnConnect(const wchar_t* ip, uint16_t port, uint64_t id) override;
 	virtual void OnReceive(uint64_t id, winppy::Packet packet) override;
 	virtual void OnDisconnect(uint64_t id) override;

@@ -1,65 +1,73 @@
 #include "DB.h"
 
-std::unique_ptr<DBConnection> CreateDBConnection(sql::mysql::MySQL_Driver* pDriver)
+class SQLQuery
 {
-    sql::Connection* pConnection = pDriver->connect("tcp://192.168.55.162:3306", "sa_server", ")5T_YvXk5D1@");    // test (추후에는 파일 입력으로 대체)
+public:
+    static constexpr const char* INSERT_USER =
+        "INSERT INTO users (`login_id`, `nickname`, `login_hash_pw`) VALUES (?, ?, ?);";
 
-    std::unique_ptr<sql::Connection> upConnection(pConnection);
-    upConnection->setSchema("sa_db");
+    static constexpr const char* ID_DUPLICATE_CHECK =
+        "SELECT 1 FROM `users` WHERE `account_id`=? LIMIT 1";
 
-    std::unique_ptr<DBConnection> upDBConn = std::make_unique<DBConnection>(std::move(upConnection));
+    static constexpr const char* NICKNAME_DUPLICATE_CHECK =
+        "SELECT 1 FROM `users` WHERE `nickname`=? LIMIT 1";
+};
 
-    return upDBConn;
+static void PrintSQLExceptionLog(const sql::SQLException& e)
+{
+    // 로그
+    printf("Message: %s\nError Code: %d\nSQL State: %s\n", e.what(), e.getErrorCode(), e.getSQLState().c_str());
 }
 
-DBConnection::DBConnection(std::unique_ptr<sql::Connection> upConnection)
-    : m_upConnection(std::move(upConnection))
+DBConnection::DBConnection(sql::mysql::MySQL_Driver* pDriver)
+    : m_pDriver(pDriver)
+    , m_upConnection()
+    , m_pstmts(static_cast<size_t>(PreparedStatementId::Count))
+{
+}
+
+bool DBConnection::Connect(const char* hostName, const char* userName, const char* password, const char* schema)
+{
+    try
+    {
+        std::unique_ptr<sql::Connection> upConnection(m_pDriver->connect(hostName, userName, password));
+
+        upConnection->setSchema(schema);
+
+        m_upConnection = std::move(upConnection);
+    }
+    catch (const sql::SQLException& e)
+    {
+        printf("Exception while calling sql::mysql::MySQL_Driver::connect()\n");
+        PrintSQLExceptionLog(e);
+        return false;
+    }
+
+    return true;
+}
+
+void DBConnection::Release()
+{
+    // PreparesStatements 해제
+    m_pstmts.clear();
+
+    // 커넥션 해제
+    m_upConnection.reset();
+}
+
+void DBConnection::CreatePreparedStatements()
 {
     // Prepared Statement 생성
-    
+
     // INSERT USER
-    m_stmts[static_cast<size_t>(PreparedStatementId::InsertUser)] =
-        std::unique_ptr<sql::PreparedStatement>(m_upConnection->prepareStatement(UserSQL::INSERT_USER));
+    m_pstmts[static_cast<size_t>(PreparedStatementId::InsertUser)] = 
+        std::unique_ptr<sql::PreparedStatement>(m_upConnection->prepareStatement(SQLQuery::INSERT_USER));
 
     // ID DUPLICATE CHECK
-    m_stmts[static_cast<size_t>(PreparedStatementId::IdDuplicateCheck)] =
-        std::unique_ptr<sql::PreparedStatement>(m_upConnection->prepareStatement(UserSQL::ID_DUPLICATE_CHECK));
+    m_pstmts[static_cast<size_t>(PreparedStatementId::IdDuplicateCheck)] =
+        std::unique_ptr<sql::PreparedStatement>(m_upConnection->prepareStatement(SQLQuery::ID_DUPLICATE_CHECK));
 
     // NICKNAME DUPLICATE CHECK
-    m_stmts[static_cast<size_t>(PreparedStatementId::NicknameDuplicateCheck)] =
-        std::unique_ptr<sql::PreparedStatement>(m_upConnection->prepareStatement(UserSQL::NICKNAME_DUPLICATE_CHECK));
-}
-
-DBConnectionPool::DBConnectionPool()
-    : m_pDriver(sql::mysql::get_mysql_driver_instance())
-{
-    InitializeSRWLock(&m_lock);
-}
-
-std::unique_ptr<DBConnection> DBConnectionPool::GetConnection()
-{
-    AcquireSRWLockExclusive(&m_lock);
-
-    if (m_connections.empty())
-    {
-        ReleaseSRWLockExclusive(&m_lock);
-
-        return CreateDBConnection(m_pDriver);
-    }
-    else
-    {
-        std::unique_ptr<DBConnection> upDBConn = std::move(m_connections.top());
-        m_connections.pop();
-
-        ReleaseSRWLockExclusive(&m_lock);
-
-        return upDBConn;
-    }
-}
-
-void DBConnectionPool::ReturnConnection(std::unique_ptr<DBConnection> upDBConn)
-{
-    AcquireSRWLockExclusive(&m_lock);
-    m_connections.push(std::move(upDBConn));
-    ReleaseSRWLockExclusive(&m_lock);
+    m_pstmts[static_cast<size_t>(PreparedStatementId::NicknameDuplicateCheck)] =
+        std::unique_ptr<sql::PreparedStatement>(m_upConnection->prepareStatement(SQLQuery::NICKNAME_DUPLICATE_CHECK));
 }

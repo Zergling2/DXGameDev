@@ -1,8 +1,9 @@
-#include "GameServer.h"
+#include "SAServer.h"
 #include "Protocol.h"
 
-GameServer::GameServer()
-	: m_logic(*this)
+SAServer::SAServer()
+	: m_dbThread{}
+	, m_logic(*this)
 {
 	for (size_t i = 0; i < _countof(m_dbThread); ++i)
 		m_dbThread[i].Start();
@@ -10,7 +11,7 @@ GameServer::GameServer()
 	m_logic.Start();
 }
 
-bool GameServer::OnConnect(const wchar_t* ip, uint16_t port, uint64_t id)
+bool SAServer::OnConnect(const wchar_t* ip, uint16_t port, uint64_t id)
 {
 	wprintf(L"[Connected] %s:%u. Session %llu.\n", ip, static_cast<uint32_t>(port), id);
 
@@ -20,7 +21,7 @@ bool GameServer::OnConnect(const wchar_t* ip, uint16_t port, uint64_t id)
 	return true;
 }
 
-void GameServer::OnReceive(uint64_t id, winppy::Packet packet)
+void SAServer::OnReceive(uint64_t id, winppy::Packet packet)
 {
 	Protocol protocol;
 	if (packet->ReadableSize() < sizeof(protocol))
@@ -87,7 +88,7 @@ void GameServer::OnReceive(uint64_t id, winppy::Packet packet)
 	}
 }
 
-void GameServer::OnDisconnect(uint64_t id)
+void SAServer::OnDisconnect(uint64_t id)
 {
 	wprintf(L"[Disconnected] Session %llu.\n", id);
 
@@ -95,7 +96,7 @@ void GameServer::OnDisconnect(uint64_t id)
 	m_logic.DispatchJob(std::move(upJob));
 }
 
-void GameServer::OnCSReqLogin(uint64_t netId, winppy::Packet packet)
+void SAServer::OnCSReqLogin(uint64_t netId, winppy::Packet packet)
 {
 	CSReqLogin req;
 	if (!packet->ReadBytes(&req, sizeof(req)))
@@ -122,7 +123,7 @@ void GameServer::OnCSReqLogin(uint64_t netId, winppy::Packet packet)
 	m_logic.DispatchJob(std::move(upJob));
 }
 
-void GameServer::OnCSReqIdDuplicateCheck(uint64_t netId, winppy::Packet packet)
+void SAServer::OnCSReqIdDuplicateCheck(uint64_t netId, winppy::Packet packet)
 {
 	CSReqIdDuplicateCheck req;
 	if (!packet->ReadBytes(&req, sizeof(req)))
@@ -145,7 +146,7 @@ void GameServer::OnCSReqIdDuplicateCheck(uint64_t netId, winppy::Packet packet)
 	m_logic.DispatchJob(std::move(upJob));
 }
 
-void GameServer::OnCSReqNicknameDuplicateCheck(uint64_t netId, winppy::Packet packet)
+void SAServer::OnCSReqNicknameDuplicateCheck(uint64_t netId, winppy::Packet packet)
 {
 	CSReqNicknameDuplicateCheck req;
 	if (!packet->ReadBytes(&req, sizeof(req)))
@@ -168,12 +169,12 @@ void GameServer::OnCSReqNicknameDuplicateCheck(uint64_t netId, winppy::Packet pa
 	m_logic.DispatchJob(std::move(upJob));
 }
 
-void GameServer::OnCSReqCreateAccount(uint64_t netId, winppy::Packet packet)
+void SAServer::OnCSReqCreateAccount(uint64_t netId, winppy::Packet packet)
 {
 	// 
 }
 
-void GameServer::OnCSReqChannelInfo(uint64_t netId, winppy::Packet packet)
+void SAServer::OnCSReqChannelInfo(uint64_t netId, winppy::Packet packet)
 {
 	CSReqChannelInfo req;
 	if (!packet->ReadBytes(&req, sizeof(req)))
@@ -186,7 +187,7 @@ void GameServer::OnCSReqChannelInfo(uint64_t netId, winppy::Packet packet)
 	m_logic.DispatchJob(std::move(upJob));
 }
 
-void GameServer::OnCSReqJoinChannel(uint64_t netId, winppy::Packet packet)
+void SAServer::OnCSReqJoinChannel(uint64_t netId, winppy::Packet packet)
 {
 	CSReqJoinChannel req;
 	if (!packet->ReadBytes(&req, sizeof(req)))
@@ -205,7 +206,7 @@ void GameServer::OnCSReqJoinChannel(uint64_t netId, winppy::Packet packet)
 	m_logic.DispatchJob(std::move(upJob));
 }
 
-void GameServer::OnCSReqLobbyChat(uint64_t netId, winppy::Packet packet)
+void SAServer::OnCSReqLobbyChat(uint64_t netId, winppy::Packet packet)
 {
 	CSReqLobbyChat req;
 	if (!packet->ReadBytes(&req, sizeof(req)))
@@ -232,7 +233,7 @@ void GameServer::OnCSReqLobbyChat(uint64_t netId, winppy::Packet packet)
 	m_logic.DispatchJob(std::move(upJob));
 }
 
-void GameServer::OnCSReqGameRoomList(uint64_t netId, winppy::Packet packet)
+void SAServer::OnCSReqGameRoomList(uint64_t netId, winppy::Packet packet)
 {
 	CSReqGameRoomList req;
 	if (!packet->ReadBytes(&req, sizeof(req)))
@@ -245,7 +246,7 @@ void GameServer::OnCSReqGameRoomList(uint64_t netId, winppy::Packet packet)
 	m_logic.DispatchJob(std::move(upJob));
 }
 
-void GameServer::OnCSReqCreateGameRoom(uint64_t netId, winppy::Packet packet)
+void SAServer::OnCSReqCreateGameRoom(uint64_t netId, winppy::Packet packet)
 {
 	CSReqCreateGameRoom req;
 	if (!packet->ReadBytes(&req, sizeof(req)))
@@ -279,7 +280,7 @@ void GameServer::OnCSReqCreateGameRoom(uint64_t netId, winppy::Packet packet)
 	m_logic.DispatchJob(std::move(upJob));
 }
 
-void GameServer::OnCSReqJoinGameRoom(uint64_t netId, winppy::Packet packet)
+void SAServer::OnCSReqJoinGameRoom(uint64_t netId, winppy::Packet packet)
 {
 	CSReqJoinGameRoom req;
 	if (!packet->ReadBytes(&req, sizeof(req)))
@@ -292,7 +293,7 @@ void GameServer::OnCSReqJoinGameRoom(uint64_t netId, winppy::Packet packet)
 	m_logic.DispatchJob(std::move(upJob));
 }
 
-void GameServer::OnCSReqChangeTeam(uint64_t netId, winppy::Packet packet)
+void SAServer::OnCSReqChangeTeam(uint64_t netId, winppy::Packet packet)
 {
 	CSReqChangeTeam req;
 	if (!packet->ReadBytes(&req, sizeof(req)))
@@ -305,24 +306,24 @@ void GameServer::OnCSReqChangeTeam(uint64_t netId, winppy::Packet packet)
 	m_logic.DispatchJob(std::move(upJob));
 }
 
-void GameServer::OnCSReqExitGameRoom(uint64_t netId, winppy::Packet packet)
+void SAServer::OnCSReqExitGameRoom(uint64_t netId, winppy::Packet packet)
 {
 	std::unique_ptr<JobReqExitGameRoom> upJob = std::make_unique<JobReqExitGameRoom>(netId);
 	m_logic.DispatchJob(std::move(upJob));
 }
 
-void GameServer::OnCSReqExitGameChannel(uint64_t netId, winppy::Packet packet)
+void SAServer::OnCSReqExitGameChannel(uint64_t netId, winppy::Packet packet)
 {
 	std::unique_ptr<JobReqExitChannel> upJob = std::make_unique<JobReqExitChannel>(netId);
 	m_logic.DispatchJob(std::move(upJob));
 }
 
-void GameServer::OnCSReqHostGameStart(uint64_t netId, winppy::Packet packet)
+void SAServer::OnCSReqHostGameStart(uint64_t netId, winppy::Packet packet)
 {
 	// 
 }
 
-void GameServer::OnCSReqGameReady(uint64_t netId, winppy::Packet packet)
+void SAServer::OnCSReqGameReady(uint64_t netId, winppy::Packet packet)
 {
 	std::unique_ptr<JobReqChangeGameReadyState> upJob =
 		std::make_unique<JobReqChangeGameReadyState>(netId, true);
@@ -330,7 +331,7 @@ void GameServer::OnCSReqGameReady(uint64_t netId, winppy::Packet packet)
 	m_logic.DispatchJob(std::move(upJob));
 }
 
-void GameServer::OnCSReqGameUnready(uint64_t netId, winppy::Packet packet)
+void SAServer::OnCSReqGameUnready(uint64_t netId, winppy::Packet packet)
 {
 	std::unique_ptr<JobReqChangeGameReadyState> upJob =
 		std::make_unique<JobReqChangeGameReadyState>(netId, false);

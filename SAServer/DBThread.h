@@ -2,6 +2,7 @@
 
 #include "JobThreadBase.h"
 #include <cstdint>
+#include "DB.h"
 #include "Constants.h"
 
 class DBThread;
@@ -12,6 +13,7 @@ public:
 	IDBJob() = default;
 	virtual ~IDBJob() = default;
 
+	virtual bool IsValid() const = 0;
 	virtual void Execute(DBThread& thread) = 0;
 };
 
@@ -21,8 +23,10 @@ public:
 	DBJobIdDuplicateCheck(uint64_t netId, const char* id);
 	virtual ~DBJobIdDuplicateCheck() = default;
 
+	virtual bool IsValid() const override { return m_isValid; }
 	virtual void Execute(DBThread& thread) override;
 private:
+	bool m_isValid;
 	uint64_t m_netId;
 	char m_id[MAX_ID_LEN + 1];
 };
@@ -30,10 +34,12 @@ private:
 class DBThread : public JobThreadBase<IDBJob>
 {
 public:
-	DBThread() = default;
+	DBThread();
 	virtual ~DBThread() = default;
 protected:
 	virtual void OnThreadStart() override;
 	virtual void OnThreadExit() override;
 	virtual void ProcessJob(std::unique_ptr<IDBJob> upJob) override;
+private:
+	DBConnection m_dbConn;
 };

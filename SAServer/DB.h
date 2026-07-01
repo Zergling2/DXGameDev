@@ -6,22 +6,7 @@
 #include <jdbc/cppconn/prepared_statement.h>
 #include <memory>
 #include <stack>
-#include <array>
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-
-class UserSQL
-{
-public:
-	static constexpr const char* INSERT_USER =
-		"INSERT INTO users (`login_id`, `nickname`, `login_hash_pw`) VALUES (?, ?, ?);";
-
-	static constexpr const char* ID_DUPLICATE_CHECK =
-		"SELECT 1 FROM `users` WHERE `account_id`=? LIMIT 1";
-
-	static constexpr const char* NICKNAME_DUPLICATE_CHECK =
-		"SELECT 1 FROM `users` WHERE `nickname`=? LIMIT 1";
-};
+#include <vector>
 
 enum class PreparedStatementId
 {
@@ -35,79 +20,35 @@ enum class PreparedStatementId
 class DBConnection
 {
 public:
-	DBConnection(std::unique_ptr<sql::Connection> upConnection);
+	DBConnection(sql::mysql::MySQL_Driver* pDriver);
 
-	sql::Connection* Get() const { return m_upConnection.get(); }
-	sql::PreparedStatement* GetStatement(PreparedStatementId stmtId) const { return m_stmts[static_cast<size_t>(stmtId)].get(); }
+	bool Connect(const char* hostName, const char* userName, const char* password, const char* schema);
+	void Release();
+
+	sql::Connection* GetConnection() const { return m_upConnection.get(); }
+	sql::PreparedStatement* GetPreparedStatement(PreparedStatementId stmtId) const { return m_pstmts[static_cast<size_t>(stmtId)].get(); }
 private:
-	std::unique_ptr<sql::Connection> m_upConnection;
-	std::array<std::unique_ptr<sql::PreparedStatement>, static_cast<size_t>(PreparedStatementId::Count)> m_stmts;
-};
-
-class DBConnectionPool
-{
-public:
-	DBConnectionPool();
-	~DBConnectionPool() = default;
-
-	std::unique_ptr<DBConnection> GetConnection();
-	void ReturnConnection(std::unique_ptr<DBConnection> upDBConn);
+	void CreatePreparedStatements();
 private:
 	sql::mysql::MySQL_Driver* m_pDriver;
-	std::stack<std::unique_ptr<DBConnection>> m_connections;
-	SRWLOCK m_lock;
-};
-
-// DB Connection RAII °´Ã¼
-class DBConnectionHandle
-{
-public:
-	DBConnectionHandle(DBConnectionPool* pConnectionPool, std::unique_ptr<DBConnection> upDBConn)
-		: m_pConnectionPool(pConnectionPool)
-		, m_upDBConn(std::move(upDBConn))
-	{
-	}
-	~DBConnectionHandle()
-	{
-		if (m_upDBConn)
-			m_pConnectionPool->ReturnConnection(std::move(m_upDBConn));
-	}
-	DBConnection* operator->() const { return m_upDBConn.get(); }
-	DBConnection& operator*() const { return *m_upDBConn; }
-	DBConnection* Get() const { return m_upDBConn.get(); }
-private:
-	DBConnectionPool* m_pConnectionPool;
-	std::unique_ptr<DBConnection> m_upDBConn;
-};
-
-class UserRepository
-{
-public:
-	UserRepository(DBConnection& dbConn)
-		: m_dbConn(dbConn)
-	{
-	}
-	~UserRepository() = default;
-
-	bool IsDuplicateId(const std::string& id);
-	bool IsDuplicateNickname(const std::string& nickname);
-	void InsertUser(const std::string& id, const std::string& nickname, const std::string& pw);
-private:
-	DBConnection& m_dbConn;
+	std::unique_ptr<sql::Connection> m_upConnection;
+	std::vector<std::unique_ptr<sql::PreparedStatement>> m_pstmts;
 };
 
 class UserDBService
 {
 public:
-	UserDBService(DBConnectionPool* pConnPool)
-		: m_pConnPool(pConnPool)
-	{
-	}
-	bool RegisterUser(const std::string& id, const std::string& nickname, const std::string& pw);
-	bool Login(const std::string& id, const std::string& pw);
-	bool AddPoint(uint32_t userId, int32_t point);
-	bool ConsumePoint(uint32_t userId, int32_t point);
-	bool LevelUp(uint32_t userId);
-private:
-	DBConnectionPool* m_pConnPool;
+	static bool RegisterUser(sql::Connection* pConn, const std::string& id, const std::string& nickname, const std::string& pw);
+	static bool Login(sql::Connection* pConn, const std::string& id, const std::string& pw);
+	static bool AddPoint(sql::Connection* pConn, uint32_t userId, int32_t point);
+	static bool ConsumePoint(sql::Connection* pConn, uint32_t userId, int32_t point);
+	static bool LevelUp(sql::Connection* pConn, uint32_t userId);
+};
+
+class UserRepository
+{
+public:
+	static bool IsDuplicateId(sql::Connection* pConn, const std::string& id);
+	static bool IsDuplicateNickname(sql::Connection* pConn, const std::string& nickname);
+	static void InsertUser(sql::Connection* pConn, const std::string& id, const std::string& nickname, const std::string& pw);
 };
