@@ -107,7 +107,7 @@ void GameResources::Awake()
 	m16a1_animNames[WeaponAction::Idle] = std::make_pair("m16a1_idle", "arms_idle_m16a1");
 
 	std::unordered_map<WeaponEvent, std::shared_ptr<ze::AudioClip>> m16a1_sounds;
-	m16a1_sounds[WeaponEvent::Bolt] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\m4a1_boltpull.wav");
+	m16a1_sounds[WeaponEvent::Bolt] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\m16a1_boltpull.wav");
 	m16a1_sounds[WeaponEvent::MagOut] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\m4a1_clipout.wav");
 	m16a1_sounds[WeaponEvent::MagIn] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\m4a1_clipin.wav");
 	m16a1_sounds[WeaponEvent::Fire] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\m4a1_unsil-1.wav");
@@ -120,7 +120,7 @@ void GameResources::Awake()
 		m16a1_event_tables[WeaponAction::Draw] = std::move(m16a1_draw_event_table);
 
 		std::shared_ptr<WeaponEventTable> m16a1_reload_event_table = std::make_shared<WeaponEventTable>();
-		m16a1_reload_event_table->AddEvent(0.35f, WeaponEvent::MagOut);
+		m16a1_reload_event_table->AddEvent(0.4f, WeaponEvent::MagOut);
 		m16a1_reload_event_table->AddEvent(1.5f, WeaponEvent::MagIn);
 		m16a1_reload_event_table->AddEvent(2.55f, WeaponEvent::Bolt);
 		m16a1_event_tables[WeaponAction::Reload] = std::move(m16a1_reload_event_table);
@@ -190,10 +190,10 @@ void GameResources::Awake()
 	std::shared_ptr<StaticMesh> mdl_m4a1_tv = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\weapons\\m4a1\\m4a1_tv.obj").m_staticMeshes[0];
 
 	std::unordered_map<WeaponEvent, std::shared_ptr<ze::AudioClip>> m4a1_sounds;
-	m4a1_sounds[WeaponEvent::Bolt] = m16a1_sounds[WeaponEvent::Bolt];
+	m4a1_sounds[WeaponEvent::Bolt] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\m4a1_boltpull.wav");
 	m4a1_sounds[WeaponEvent::MagOut] = m16a1_sounds[WeaponEvent::MagOut];
 	m4a1_sounds[WeaponEvent::MagIn] = m16a1_sounds[WeaponEvent::MagIn];
-	m4a1_sounds[WeaponEvent::Fire] = ResourceLoader::GetInstance()->LoadWaveFile(L"resources\\sounds\\weapons\\galil-1.wav");
+	m4a1_sounds[WeaponEvent::Fire] = m16a1_sounds[WeaponEvent::Fire];
 
 
 	std::vector<std::shared_ptr<Material>> m4a1_mtls;
