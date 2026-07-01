@@ -1,22 +1,33 @@
 #include "SAServer.h"
 #include "Protocol.h"
+#include "DBThread.h"
+#include "LogicThread.h"
 
 SAServer::SAServer()
-	: m_dbThread{}
-	, m_logic(*this)
+	: m_dbThreads()
+	, m_logicThread()
 {
-	for (size_t i = 0; i < _countof(m_dbThread); ++i)
-		m_dbThread[i].Start();
+	m_dbThreads.reserve(DB_THREAD_COUNT);
 
-	m_logic.Start();
+	for (size_t i = 0; i < DB_THREAD_COUNT; ++i)
+		m_dbThreads.push_back(std::make_unique<DBThread>(*this));
+
+	for (auto& item : m_dbThreads)
+		item->Start();
+
+	m_logicThread = std::make_unique<LogicThread>(*this);
+
+	m_logicThread->Start();
 }
+
+SAServer::~SAServer() = default;
 
 bool SAServer::OnConnect(const wchar_t* ip, uint16_t port, uint64_t id)
 {
 	wprintf(L"[Connected] %s:%u. Session %llu.\n", ip, static_cast<uint32_t>(port), id);
 
 	std::unique_ptr<JobCreateNewSession> upJob = std::make_unique<JobCreateNewSession>(id);
-	m_logic.DispatchJob(std::move(upJob));
+	m_logicThread->DispatchJob(std::move(upJob));
 
 	return true;
 }
@@ -93,7 +104,7 @@ void SAServer::OnDisconnect(uint64_t id)
 	wprintf(L"[Disconnected] Session %llu.\n", id);
 
 	std::unique_ptr<JobSessionDisconnected> upJob = std::make_unique<JobSessionDisconnected>(id);
-	m_logic.DispatchJob(std::move(upJob));
+	m_logicThread->DispatchJob(std::move(upJob));
 }
 
 void SAServer::OnCSReqLogin(uint64_t netId, winppy::Packet packet)
@@ -120,7 +131,7 @@ void SAServer::OnCSReqLogin(uint64_t netId, winppy::Packet packet)
 	pw[req.m_pwLen] = L'\0';
 
 	std::unique_ptr<JobReqLogin> upJob = std::make_unique<JobReqLogin>(netId, id, pw);
-	m_logic.DispatchJob(std::move(upJob));
+	m_logicThread->DispatchJob(std::move(upJob));
 }
 
 void SAServer::OnCSReqIdDuplicateCheck(uint64_t netId, winppy::Packet packet)
@@ -143,7 +154,7 @@ void SAServer::OnCSReqIdDuplicateCheck(uint64_t netId, winppy::Packet packet)
 	id[req.m_idLen] = L'\0';
 
 	std::unique_ptr<JobReqIdDuplicateCheck> upJob = std::make_unique<JobReqIdDuplicateCheck>(netId, id);
-	m_logic.DispatchJob(std::move(upJob));
+	m_logicThread->DispatchJob(std::move(upJob));
 }
 
 void SAServer::OnCSReqNicknameDuplicateCheck(uint64_t netId, winppy::Packet packet)
@@ -166,7 +177,7 @@ void SAServer::OnCSReqNicknameDuplicateCheck(uint64_t netId, winppy::Packet pack
 	nickname[req.m_nicknameLen] = L'\0';
 
 	std::unique_ptr<JobReqNicknameDuplicateCheck> upJob = std::make_unique<JobReqNicknameDuplicateCheck>(netId, nickname);
-	m_logic.DispatchJob(std::move(upJob));
+	m_logicThread->DispatchJob(std::move(upJob));
 }
 
 void SAServer::OnCSReqCreateAccount(uint64_t netId, winppy::Packet packet)
@@ -184,7 +195,7 @@ void SAServer::OnCSReqChannelInfo(uint64_t netId, winppy::Packet packet)
 	}
 
 	std::unique_ptr<JobReqChannelInfo> upJob = std::make_unique<JobReqChannelInfo>(netId);
-	m_logic.DispatchJob(std::move(upJob));
+	m_logicThread->DispatchJob(std::move(upJob));
 }
 
 void SAServer::OnCSReqJoinChannel(uint64_t netId, winppy::Packet packet)
@@ -203,7 +214,7 @@ void SAServer::OnCSReqJoinChannel(uint64_t netId, winppy::Packet packet)
 	}
 
 	std::unique_ptr<JobReqJoinChannel> upJob = std::make_unique<JobReqJoinChannel>(netId, req.m_channelId);
-	m_logic.DispatchJob(std::move(upJob));
+	m_logicThread->DispatchJob(std::move(upJob));
 }
 
 void SAServer::OnCSReqLobbyChat(uint64_t netId, winppy::Packet packet)
@@ -230,7 +241,7 @@ void SAServer::OnCSReqLobbyChat(uint64_t netId, winppy::Packet packet)
 	chatMsg[req.m_msgLen] = L'\0';
 
 	std::unique_ptr<JobReqLobbyChat> upJob = std::make_unique<JobReqLobbyChat>(netId, req.m_msgLen, chatMsg);
-	m_logic.DispatchJob(std::move(upJob));
+	m_logicThread->DispatchJob(std::move(upJob));
 }
 
 void SAServer::OnCSReqGameRoomList(uint64_t netId, winppy::Packet packet)
@@ -243,7 +254,7 @@ void SAServer::OnCSReqGameRoomList(uint64_t netId, winppy::Packet packet)
 	}
 
 	std::unique_ptr<JobReqGameRoomList> upJob = std::make_unique<JobReqGameRoomList>(netId, req.m_reqContextNo);
-	m_logic.DispatchJob(std::move(upJob));
+	m_logicThread->DispatchJob(std::move(upJob));
 }
 
 void SAServer::OnCSReqCreateGameRoom(uint64_t netId, winppy::Packet packet)
@@ -277,7 +288,7 @@ void SAServer::OnCSReqCreateGameRoom(uint64_t netId, winppy::Packet packet)
 	gameRoomName[req.m_gameRoomNameLen] = L'\0';
 
 	std::unique_ptr<JobReqCreateGameRoom> upJob = std::make_unique<JobReqCreateGameRoom>(netId, req.m_gameRoomTeamFormat, req.m_gameRoomNameLen, gameRoomName);
-	m_logic.DispatchJob(std::move(upJob));
+	m_logicThread->DispatchJob(std::move(upJob));
 }
 
 void SAServer::OnCSReqJoinGameRoom(uint64_t netId, winppy::Packet packet)
@@ -290,7 +301,7 @@ void SAServer::OnCSReqJoinGameRoom(uint64_t netId, winppy::Packet packet)
 	}
 
 	std::unique_ptr<JobReqJoinGameRoom> upJob = std::make_unique<JobReqJoinGameRoom>(netId, req.m_gameRoomId);
-	m_logic.DispatchJob(std::move(upJob));
+	m_logicThread->DispatchJob(std::move(upJob));
 }
 
 void SAServer::OnCSReqChangeTeam(uint64_t netId, winppy::Packet packet)
@@ -303,19 +314,19 @@ void SAServer::OnCSReqChangeTeam(uint64_t netId, winppy::Packet packet)
 	}
 
 	std::unique_ptr<JobReqChangeTeam> upJob = std::make_unique<JobReqChangeTeam>(netId, req.m_newTeam);
-	m_logic.DispatchJob(std::move(upJob));
+	m_logicThread->DispatchJob(std::move(upJob));
 }
 
 void SAServer::OnCSReqExitGameRoom(uint64_t netId, winppy::Packet packet)
 {
 	std::unique_ptr<JobReqExitGameRoom> upJob = std::make_unique<JobReqExitGameRoom>(netId);
-	m_logic.DispatchJob(std::move(upJob));
+	m_logicThread->DispatchJob(std::move(upJob));
 }
 
 void SAServer::OnCSReqExitGameChannel(uint64_t netId, winppy::Packet packet)
 {
 	std::unique_ptr<JobReqExitChannel> upJob = std::make_unique<JobReqExitChannel>(netId);
-	m_logic.DispatchJob(std::move(upJob));
+	m_logicThread->DispatchJob(std::move(upJob));
 }
 
 void SAServer::OnCSReqHostGameStart(uint64_t netId, winppy::Packet packet)
@@ -328,7 +339,7 @@ void SAServer::OnCSReqGameReady(uint64_t netId, winppy::Packet packet)
 	std::unique_ptr<JobReqChangeGameReadyState> upJob =
 		std::make_unique<JobReqChangeGameReadyState>(netId, true);
 
-	m_logic.DispatchJob(std::move(upJob));
+	m_logicThread->DispatchJob(std::move(upJob));
 }
 
 void SAServer::OnCSReqGameUnready(uint64_t netId, winppy::Packet packet)
@@ -336,5 +347,5 @@ void SAServer::OnCSReqGameUnready(uint64_t netId, winppy::Packet packet)
 	std::unique_ptr<JobReqChangeGameReadyState> upJob =
 		std::make_unique<JobReqChangeGameReadyState>(netId, false);
 
-	m_logic.DispatchJob(std::move(upJob));
+	m_logicThread->DispatchJob(std::move(upJob));
 }

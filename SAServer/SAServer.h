@@ -2,18 +2,22 @@
 
 #include <winppy/Network/TCPServer.h>
 #include <winppy/Network/Packet.h>
+#include <memory>
 #include "Constants.h"
-#include "DBThread.h"
-#include "LogicThread.h"
+
+class DBThread;
+class LogicThread;
 
 class SAServer : public winppy::TCPServer
 {
 public:
 	SAServer();
-	virtual ~SAServer() = default;
+	virtual ~SAServer();
 	virtual bool OnConnect(const wchar_t* ip, uint16_t port, uint64_t id) override;
 	virtual void OnReceive(uint64_t id, winppy::Packet packet) override;
 	virtual void OnDisconnect(uint64_t id) override;
+
+	DBThread& GetDBThread(size_t index) { return *m_dbThreads[index].get(); }
 	
 	void OnCSReqLogin(uint64_t netId, winppy::Packet packet);
 	void OnCSReqIdDuplicateCheck(uint64_t netId, winppy::Packet packet);
@@ -32,6 +36,6 @@ public:
 	void OnCSReqGameReady(uint64_t netId, winppy::Packet packet);
 	void OnCSReqGameUnready(uint64_t netId, winppy::Packet packet);
 private:
-	DBThread m_dbThread[DB_THREAD_COUNT];
-	LogicThread m_logic;
+	std::vector<std::unique_ptr<DBThread>> m_dbThreads;
+	std::unique_ptr<LogicThread> m_logicThread;
 };

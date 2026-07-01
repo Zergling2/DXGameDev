@@ -1,6 +1,7 @@
 #include "LogicThread.h"
 #include "Protocol.h"
 #include "SAServer.h"
+#include "Channel.h"
 #include <cassert>
 #include <strsafe.h>
 
@@ -35,7 +36,7 @@ void PlayerExitRoom(LogicThread& thread, Player* pPlayer)
 		const uint8_t joinedChannelId = pPlayer->GetChannelId();
 		const uint64_t joinedRoomId = pPlayer->GetRoomId();
 
-		Channel& joinedChannel = thread.m_channel[joinedChannelId];
+		Channel& joinedChannel = *thread.m_channel[joinedChannelId];
 		GameRoom* pGameRoom = joinedChannel.FindRoom(joinedRoomId);
 		assert(pGameRoom != nullptr);
 
@@ -91,7 +92,7 @@ void PlayerExitChannel(LogicThread& thread, Player* pPlayer)
 	assert(pPlayer->IsInChannel());
 
 	const uint8_t joinedChannelId = pPlayer->GetChannelId();
-	Channel& channel = thread.m_channel[joinedChannelId];
+	Channel& channel = *thread.m_channel[joinedChannelId];
 	channel.RemovePlayer(pPlayer);
 
 	// 패킷 전송
@@ -157,6 +158,8 @@ void JobReqLogin::Execute(LogicThread& thread)
 	constexpr uint32_t TEST_ACCOUNT_ID = 5;
 	const wchar_t* TEST_NICKNAME = L"감자튀김";
 
+	
+
 	SCResLogin res;
 	res.m_result = true;
 	res.m_accountId = TEST_ACCOUNT_ID;
@@ -212,7 +215,7 @@ void JobReqChannelInfo::Execute(LogicThread& thread)
 	res.m_worldId = 0;
 	for (size_t channelId = 0; channelId < thread.m_channel.size(); ++channelId)
 	{
-		res.m_channelInfo[channelId].m_numOfPlayers = static_cast<uint16_t>(thread.m_channel[channelId].GetNumOfPlayers());
+		res.m_channelInfo[channelId].m_numOfPlayers = static_cast<uint16_t>(thread.m_channel[channelId]->GetNumOfPlayers());
 		res.m_channelInfo[channelId].m_maxPlayerCount = MAX_PLAYERS_PER_CHANNEL;
 	}
 
@@ -240,7 +243,7 @@ void JobReqJoinChannel::Execute(LogicThread& thread)
 		return;
 	}
 
-	Channel& channel = thread.m_channel[m_channelId];
+	Channel& channel = *thread.m_channel[m_channelId];
 	const bool result = channel.AddPlayer(pPlayer);
 
 	// 패킷 전송
@@ -263,7 +266,7 @@ LogicThread::LogicThread(SAServer& server)
 	m_channel.reserve(CHANNEL_COUNT);
 
 	for (uint8_t channelId = 0; channelId < CHANNEL_COUNT; ++channelId)
-		m_channel.emplace_back(channelId, MAX_PLAYERS_PER_CHANNEL);
+		m_channel.push_back(std::make_unique<Channel>(channelId, MAX_PLAYERS_PER_CHANNEL));
 }
 
 void JobReqExitChannel::Execute(LogicThread& thread)
@@ -343,7 +346,7 @@ void JobReqLobbyChat::Execute(LogicThread& thread)
 	{
 		const uint8_t joinedChannelId = pPlayer->GetChannelId();
 		const uint64_t joinedRoomId = pPlayer->GetRoomId();
-		const Channel& joinedChannel = thread.m_channel[joinedChannelId];
+		const Channel& joinedChannel = *thread.m_channel[joinedChannelId];
 
 		const GameRoom* pGameRoom = joinedChannel.FindRoom(joinedRoomId);
 		assert(pGameRoom != nullptr);
@@ -355,7 +358,7 @@ void JobReqLobbyChat::Execute(LogicThread& thread)
 		const uint8_t joinedChannelId = pPlayer->GetChannelId();
 		assert(joinedChannelId < CHANNEL_COUNT);
 
-		thread.m_channel[joinedChannelId].BroadcastPacketToPlayersNotInRoom(thread.m_server, std::move(pktNotifyLobbyChat));
+		thread.m_channel[joinedChannelId]->BroadcastPacketToPlayersNotInRoom(thread.m_server, std::move(pktNotifyLobbyChat));
 	}
 }
 
@@ -399,7 +402,7 @@ void JobReqCreateGameRoom::Execute(LogicThread& thread)
 	}
 
 	const uint8_t joinedChannelId = pPlayer->GetChannelId();
-	Channel& joinedChannel = thread.m_channel[joinedChannelId];
+	Channel& joinedChannel = *thread.m_channel[joinedChannelId];
 	GameRoom* pNewGameRoom = joinedChannel.CreateGameRoom(m_roomTeamFormat, m_roomName);
 
 	SCResCreateGameRoom res;
@@ -456,7 +459,7 @@ void JobReqGameRoomList::Execute(LogicThread& thread)
 	}
 
 	const uint8_t joinedChannelId = pPlayer->GetChannelId();
-	const Channel& joinedChannel = thread.m_channel[joinedChannelId];
+	const Channel& joinedChannel = *thread.m_channel[joinedChannelId];
 	auto pkts = joinedChannel.CreateGameRoomListPackets(m_reqContextNo);
 
 	for (size_t i = 0; i < pkts.size(); ++i)
@@ -484,7 +487,7 @@ void JobReqJoinGameRoom::Execute(LogicThread& thread)
 	}
 
 	const uint8_t joinedChannelId = pPlayer->GetChannelId();
-	Channel& joinedChannel = thread.m_channel[joinedChannelId];
+	Channel& joinedChannel = *thread.m_channel[joinedChannelId];
 
 	GameRoom* pGameRoom = joinedChannel.FindRoom(m_gameRoomId);
 
@@ -586,7 +589,7 @@ void JobReqChangeGameReadyState::Execute(LogicThread& thread)
 
 	const uint64_t joinedRoomId = pPlayer->GetRoomId();
 	const uint8_t joinedChannelId = pPlayer->GetChannelId();
-	Channel& joinedChannel = thread.m_channel[joinedChannelId];
+	Channel& joinedChannel = *thread.m_channel[joinedChannelId];
 
 	GameRoom* pGameRoom = joinedChannel.FindRoom(joinedRoomId);
 
@@ -637,7 +640,7 @@ void JobReqChangeTeam::Execute(LogicThread& thread)
 
 	const uint64_t joinedRoomId = pPlayer->GetRoomId();
 	const uint8_t joinedChannelId = pPlayer->GetChannelId();
-	Channel& joinedChannel = thread.m_channel[joinedChannelId];
+	Channel& joinedChannel = *thread.m_channel[joinedChannelId];
 
 	GameRoom* pGameRoom = joinedChannel.FindRoom(joinedRoomId);
 	if (pGameRoom->ChangePlayerTeam(pPlayer->GetAccountId(), m_newTeam))

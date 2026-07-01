@@ -19,10 +19,6 @@ class Channel
 {
 public:
 	Channel(uint8_t id, size_t maxPlayer);
-	Channel(const Channel&) = delete;
-	Channel& operator=(const Channel&) = delete;
-	Channel(Channel&&) noexcept = default;
-	Channel& operator=(Channel&&) noexcept = default;
 
 	size_t GetMaxPlayer() const { return m_maxPlayer; }
 	size_t GetNumOfPlayers() const { return m_players.size(); }

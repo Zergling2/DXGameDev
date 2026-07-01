@@ -4,10 +4,10 @@
 #include "JobThreadBase.h"
 #include "Constants.h"
 #include "GameRoom.h"
-#include "Channel.h"
 #include "Session.h"
 #include "Player.h"
 
+class Channel;
 class Session;
 class LogicThread;
 class SAServer;
@@ -259,5 +259,5 @@ public:
 	SAServer& m_server;
 	std::unordered_map<uint64_t, std::unique_ptr<Session>> m_sessions;
 	std::unordered_map<uint32_t, std::unique_ptr<Player>> m_players;
-	std::vector<Channel> m_channel;
+	std::vector<std::unique_ptr<Channel>> m_channel;
 };

@@ -5,6 +5,7 @@
 #include "DB.h"
 #include "Constants.h"
 
+class SAServer;
 class DBThread;
 
 class IDBJob
@@ -34,12 +35,13 @@ private:
 class DBThread : public JobThreadBase<IDBJob>
 {
 public:
-	DBThread();
+	DBThread(SAServer& server);
 	virtual ~DBThread() = default;
 protected:
 	virtual void OnThreadStart() override;
 	virtual void OnThreadExit() override;
 	virtual void ProcessJob(std::unique_ptr<IDBJob> upJob) override;
 private:
+	SAServer& m_server;
 	DBConnection m_dbConn;
 };
