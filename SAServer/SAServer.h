@@ -17,7 +17,8 @@ public:
 	virtual void OnReceive(uint64_t id, winppy::Packet packet) override;
 	virtual void OnDisconnect(uint64_t id) override;
 
-	DBThread& GetDBThread(size_t index) { return *m_dbThreads[index].get(); }
+	DBThread& GetDBThread(size_t index) const { return *m_dbThreads[index].get(); }
+	LogicThread& GetLogicThread() const { return *m_logicThread.get(); }
 	
 	void OnCSReqLogin(uint64_t netId, winppy::Packet packet);
 	void OnCSReqIdDuplicateCheck(uint64_t netId, winppy::Packet packet);

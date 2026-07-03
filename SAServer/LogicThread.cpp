@@ -2,10 +2,45 @@
 #include "Protocol.h"
 #include "SAServer.h"
 #include "Channel.h"
+#include "DBThread.h"
 #include <cassert>
 #include <strsafe.h>
 
-static bool IsAlphaNumericOnly(const wchar_t* str)
+static bool IsAlpha(wchar_t ch)
+{
+	return (L'A' <= ch && ch <= L'Z') || (L'a' <= ch && ch <= L'z');
+}
+
+static bool IsNum(wchar_t ch)
+{
+	return L'0' <= ch && ch <= '9';
+}
+
+static bool IsSpecialChar(wchar_t ch)
+{
+	switch (ch)
+	{
+	case L'!':
+	case L'@':
+	case L'#':
+	case L'$':
+	case L'%':
+	case L'^':
+	case L'&':
+	case L'*':
+	case L'(':
+	case L')':
+	case L'-':
+	case L'_':
+	case L'=':
+	case L'+':
+		return true;
+	default:
+		return false;
+	}
+}
+
+static bool IsAlphaNumOnly(const wchar_t* str)
 {
 	if (str == nullptr)
 		return false;
@@ -14,12 +49,27 @@ static bool IsAlphaNumericOnly(const wchar_t* str)
 	{
 		const wchar_t ch = *str;
 
-		bool isAlpha = (L'A' <= ch && ch <= L'Z') || (L'a' <= ch && ch <= L'z');
-		bool isDigit = L'0' <= ch && ch <= L'9';
-
-		if (!isAlpha && !isDigit)
+		if (!IsAlpha(ch) && !IsNum(ch))
 			return false;
-		
+
+		++str;
+	}
+
+	return true;
+}
+
+static bool IsAlphaNumSpecialOnly(const wchar_t* str)
+{
+	if (str == nullptr)
+		return false;
+
+	while (*str != L'\0')
+	{
+		const wchar_t ch = *str;
+
+		if (!IsAlpha(ch) && !IsNum(ch) && !IsSpecialChar(ch))
+			return false;
+
 		++str;
 	}
 
@@ -123,7 +173,7 @@ void JobSessionDisconnected::Execute(LogicThread& thread)
 	Session* pSession = iter->second.get();
 	Player* pPlayer = pSession->GetPlayer();
 
-	// 로
+	// 
 	if (pPlayer)
 	{
 		// 1. 만약 플레이어가 방에 입장해있는 상태인 경우
@@ -153,21 +203,13 @@ JobReqLogin::JobReqLogin(uint64_t netId, const wchar_t* id, const wchar_t* pw)
 
 void JobReqLogin::Execute(LogicThread& thread)
 {
-	wprintf(L"Login Request - id: %s, pw: %s\n", m_id, m_pw);
+	wprintf(L"Login request - id: %s, pw: %s\n", m_id, m_pw);
 
-	constexpr uint32_t TEST_ACCOUNT_ID = 5;
-	const wchar_t* TEST_NICKNAME = L"감자튀김";
-
-	
-
-	SCResLogin res;
-	res.m_result = true;
-	res.m_accountId = TEST_ACCOUNT_ID;
-	res.m_nicknameLen = wcslen(TEST_NICKNAME);
-	wmemcpy_s(res.m_nickname, _countof(res.m_nickname), TEST_NICKNAME, res.m_nicknameLen);
-	res.m_level = 8;
-	res.m_exp = 2200;
-	res.m_point = 5000;
+	if (!IsAlphaNumOnly(m_id) || !IsAlphaNumSpecialOnly(m_pw))	// 아이디 또는 비밀번호에 유효하지 않은 문자가 있는 경우 (클라이언트에서는 막아놓음)
+	{
+		thread.m_server.Disconnect(m_netId);
+		return;
+	}
 
 	const auto sessionIter = thread.m_sessions.find(m_netId);
 	if (sessionIter == thread.m_sessions.end())
@@ -175,37 +217,60 @@ void JobReqLogin::Execute(LogicThread& thread)
 
 	Session* pSession = sessionIter->second.get();
 
-	std::unique_ptr<Player> upPlayer = std::make_unique<Player>(TEST_ACCOUNT_ID, res.m_level, res.m_point, TEST_NICKNAME);
-	upPlayer->BindSession(pSession);
-	pSession->BindPlayer(upPlayer.get());
-	thread.m_players.insert(std::make_pair(upPlayer->GetAccountId(), std::move(upPlayer)));
-
-	winppy::Packet pktResLogin;
-	pktResLogin->Write(static_cast<protocol_type>(Protocol::SC_RES_LOGIN));
-	pktResLogin->WriteBytes(&res, sizeof(res));
-	thread.m_server.Send(m_netId, std::move(pktResLogin));
+	// DB 스레드에 작업 위임
+	std::unique_ptr<DBJobLogin> upDBJob = std::make_unique<DBJobLogin>(m_netId, m_id, m_pw);
+	assert(pSession->GetDBThreadIndex() < DB_THREAD_COUNT);
+	thread.m_server.GetDBThread(pSession->GetDBThreadIndex()).DispatchJob(std::move(upDBJob));
 }
 
 JobReqIdDuplicateCheck::JobReqIdDuplicateCheck(uint64_t netId, const wchar_t* id)
 	: m_netId(netId)
 {
-	wcscpy_s(m_id, id);
+	StringCchCopyW(m_id, _countof(m_id), id);
 }
 
 void JobReqIdDuplicateCheck::Execute(LogicThread& thread)
 {
-	// 
+	wprintf(L"ID duplicate check request - id: %s, \n", m_id);
+
+	if (!IsAlphaNumOnly(m_id))		// 아이디에 유효하지 않은 문자가 있는 경우 (클라이언트에서는 막아놓음)
+	{
+		thread.m_server.Disconnect(m_netId);
+		return;
+	}
+
+	const auto sessionIter = thread.m_sessions.find(m_netId);
+	if (sessionIter == thread.m_sessions.end())
+		*reinterpret_cast<int*>(0) = 0;
+
+	Session* pSession = sessionIter->second.get();
+
+	// DB 스레드에 작업 위임
+	std::unique_ptr<DBJobIdDuplicateCheck> upDBJob = std::make_unique<DBJobIdDuplicateCheck>(m_netId, m_id);
+	assert(pSession->GetDBThreadIndex() < DB_THREAD_COUNT);
+	thread.m_server.GetDBThread(pSession->GetDBThreadIndex()).DispatchJob(std::move(upDBJob));
 }
 
 JobReqNicknameDuplicateCheck::JobReqNicknameDuplicateCheck(uint64_t netId, const wchar_t* nickname)
 	: m_netId(netId)
 {
-	wcscpy_s(m_nickname, nickname);
+	StringCchCopyW(m_nickname, _countof(m_nickname), nickname);
 }
 
 void JobReqNicknameDuplicateCheck::Execute(LogicThread& thread)
 {
-	// 
+	wprintf(L"Nickname duplicate check request - nickname: %s, \n", m_nickname);
+
+	const auto sessionIter = thread.m_sessions.find(m_netId);
+	if (sessionIter == thread.m_sessions.end())
+		*reinterpret_cast<int*>(0) = 0;
+
+	Session* pSession = sessionIter->second.get();
+
+	// DB 스레드에 작업 위임
+	std::unique_ptr<DBJobNicknameDuplicateCheck> upDBJob = std::make_unique<DBJobNicknameDuplicateCheck>(m_netId, m_nickname);
+	assert(pSession->GetDBThreadIndex() < DB_THREAD_COUNT);
+	thread.m_server.GetDBThread(pSession->GetDBThreadIndex()).DispatchJob(std::move(upDBJob));
 }
 
 void JobReqChannelInfo::Execute(LogicThread& thread)
@@ -296,20 +361,6 @@ void JobReqExitChannel::Execute(LogicThread& thread)
 		return;
 	}
 	PlayerExitChannel(thread, pPlayer);
-}
-
-void JobAuthSession::Execute(LogicThread& thread)
-{
-	// 인증은 DB스레드에 의해서 비동기로 진행되기 때문에 현재 시점에서는 세션이 다시 나갔을 수 있다.
-	// 이외에 하나 더 주의해야 할 점은 netId가 재사용된 경우, 실제로는 다른 사람이 해당 계정 정보를 가지고 플레이를 이어나갈 수도 있다.
-	// 물론 세션 아이디의 재사용 주기는 상당히 길고 (재사용 32비트, 슬롯 인덱스 32비트)이므로 가능성이 0은 아니다.
-
-	/*
-	if (thread.m_sessions.find(m_netId))
-	{
-
-	}
-	*/
 }
 
 void JobReqLobbyChat::Execute(LogicThread& thread)
@@ -659,4 +710,122 @@ void JobReqChangeTeam::Execute(LogicThread& thread)
 	{
 		// 패킷 전송 X
 	}
+}
+
+JobReqCreateAccount::JobReqCreateAccount(uint64_t netId, const wchar_t* id, const wchar_t* nickname, const wchar_t* pw)
+	: m_netId(netId)
+{
+	StringCchCopyW(m_id, _countof(m_id), id);
+	StringCchCopyW(m_nickname, _countof(m_nickname), nickname);
+	StringCchCopyW(m_pw, _countof(m_pw), pw);
+}
+
+void JobReqCreateAccount::Execute(LogicThread& thread)
+{
+	wprintf(L"Create account request - id: %s, nickname: %s, pw: %s\n", m_id, m_nickname, m_pw);
+
+	if (!IsAlphaNumOnly(m_id) || !IsAlphaNumSpecialOnly(m_pw))	// 아이디 또는 비밀번호에 유효하지 않은 문자가 있는 경우 (클라이언트에서는 막아놓음)
+	{
+		thread.m_server.Disconnect(m_netId);
+		return;
+	}
+
+	const auto sessionIter = thread.m_sessions.find(m_netId);
+	if (sessionIter == thread.m_sessions.end())
+		*reinterpret_cast<int*>(0) = 0;
+
+	Session* pSession = sessionIter->second.get();
+
+	// DB 스레드에 작업 위임
+	std::unique_ptr<DBJobCreateAccount> upDBJob = std::make_unique<DBJobCreateAccount>(m_netId, m_id, m_nickname, m_pw);
+	assert(pSession->GetDBThreadIndex() < DB_THREAD_COUNT);
+	thread.m_server.GetDBThread(pSession->GetDBThreadIndex()).DispatchJob(std::move(upDBJob));
+}
+
+void JobDBJobReqLoginResult::Execute(LogicThread& thread)
+{
+	// 인증은 DB스레드에 의해서 비동기로 진행되기 때문에 현재 시점에서는 세션이 다시 나갔을 수 있다.
+	// 이외에 하나 더 주의해야 할 점은 netId가 재사용된 경우, 실제로는 다른 사람이 해당 계정 정보를 가지고 플레이를 이어나갈 수도 있다.
+	// 물론 세션 아이디의 재사용 주기는 상당히 길고 (재사용 32비트, 슬롯 인덱스 32비트)이므로 가능성이 0은 아니다.
+
+	auto sessionIter = thread.m_sessions.find(m_netId);
+	if (sessionIter == thread.m_sessions.end())				// 이미 세션이 나간 후인 경우 (DB 조회 작업은 비동기이므로 일어날 수 있는 일)
+		return;
+
+	Session* pSession = sessionIter->second.get();
+
+	SCResLogin res;
+	res.m_querySuccess = m_querySuccess;
+	res.m_result = m_result;
+	if (m_result)
+	{
+		res.m_accountId = m_accountId;
+		res.m_nicknameLen = m_nicknameLen;
+		wmemcpy_s(res.m_nickname, _countof(res.m_nickname), m_nickname, res.m_nicknameLen);
+		res.m_level = m_level;
+		res.m_exp = m_exp;
+		res.m_point = m_point;
+
+		std::unique_ptr<Player> upPlayer = std::make_unique<Player>(m_accountId, res.m_level, res.m_point, m_nickname);
+		upPlayer->BindSession(pSession);
+		pSession->BindPlayer(upPlayer.get());
+		thread.m_players.insert(std::make_pair(upPlayer->GetAccountId(), std::move(upPlayer)));
+	}
+
+	winppy::Packet pktResLogin;
+	pktResLogin->Write(static_cast<protocol_type>(Protocol::SC_RES_LOGIN));
+	pktResLogin->WriteBytes(&res, sizeof(res));
+	thread.m_server.Send(m_netId, std::move(pktResLogin));
+}
+
+void JobDBJobCreateAccountResult::Execute(LogicThread& thread)
+{
+	auto sessionIter = thread.m_sessions.find(m_netId);
+	if (sessionIter == thread.m_sessions.end())				// 이미 세션이 나간 후인 경우
+		return;
+
+	Session* pSession = sessionIter->second.get();
+	SCResCreateAccount res;
+	res.m_result = m_result;
+
+	winppy::Packet pktResCreateAccount;
+	pktResCreateAccount->Write(static_cast<protocol_type>(Protocol::SC_RES_CREATE_ACCOUNT));
+	pktResCreateAccount->WriteBytes(&res, sizeof(res));
+	thread.m_server.Send(m_netId, std::move(pktResCreateAccount));
+}
+
+void JobDBJobIdDuplicateCheckResult::Execute(LogicThread& thread)
+{
+	auto sessionIter = thread.m_sessions.find(m_netId);
+	if (sessionIter == thread.m_sessions.end())				// 이미 세션이 나간 후인 경우
+		return;
+
+	Session* pSession = sessionIter->second.get();
+
+	SCResIdDuplicateCheck res;
+	res.m_querySuccess = m_querySuccess;
+	res.m_duplicated = m_duplicated;
+
+	winppy::Packet pktResIdDuplicateCheck;
+	pktResIdDuplicateCheck->Write(static_cast<protocol_type>(Protocol::SC_RES_ID_DUPLICATE_CHECK));
+	pktResIdDuplicateCheck->WriteBytes(&res, sizeof(res));
+	thread.m_server.Send(m_netId, std::move(pktResIdDuplicateCheck));
+}
+
+void JobDBJobNicknameDuplicateCheckResult::Execute(LogicThread& thread)
+{
+	auto sessionIter = thread.m_sessions.find(m_netId);
+	if (sessionIter == thread.m_sessions.end())				// 이미 세션이 나간 후인 경우
+		return;
+
+	Session* pSession = sessionIter->second.get();
+
+	SCResNicknameDuplicateCheck res;
+	res.m_querySuccess = m_querySuccess;
+	res.m_duplicated = m_duplicated;
+
+	winppy::Packet pktResNicknameDuplicateCheck;
+	pktResNicknameDuplicateCheck->Write(static_cast<protocol_type>(Protocol::SC_RES_NICKNAME_DUPLICATE_CHECK));
+	pktResNicknameDuplicateCheck->WriteBytes(&res, sizeof(res));
+	thread.m_server.Send(m_netId, std::move(pktResNicknameDuplicateCheck));
 }

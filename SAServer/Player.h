@@ -9,7 +9,7 @@ class Session;
 class Player
 {
 public:
-    explicit Player(uint32_t accountId, uint16_t level, uint32_t point, const wchar_t* nickname);
+    Player(uint32_t accountId, uint16_t level, uint32_t point, const wchar_t* nickname);
 
     void BindSession(Session* pSession) { m_pSession = pSession; }
     void UnbindSession() { m_pSession = nullptr; }

@@ -163,15 +163,35 @@ void Network::PktProcSCResLogin(winppy::Packet packet)
 
 	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
 
+	Text* pTextLoginHelpMsg = static_cast<Text*>(pScriptLobbyHandler->m_hTextLoginHelpMsg.ToPtr());
+	pTextLoginHelpMsg->GetText().clear();
+
+	if (!res.m_querySuccess)
+	{
+		// 로그인 실패 메세지박스 띄우기
+		IUIObject* pPanelOkMsgBoxRoot = pScriptLobbyHandler->m_hPanelOkMsgBoxRoot.ToPtr();
+		pPanelOkMsgBoxRoot->m_transform.SetParent(&pScriptLobbyHandler->m_hPanelLoginWindowRoot.ToPtr()->m_transform);
+		static_cast<Text*>(pScriptLobbyHandler->m_hTextOkMsgBoxMsg.ToPtr())->SetText(L"DB 조회 실패.");
+		pPanelOkMsgBoxRoot->SetActive(true);
+
+		return;
+	}
+
 	if (!res.m_result)
 	{
-		// 로그인 실패
-		// pScriptLobbyHandler->m_hPanelLoginFailedRoot.ToPtr()->SetActive(true);
+		// 로그인 실패 메세지박스 띄우기
+		IUIObject* pPanelOkMsgBoxRoot = pScriptLobbyHandler->m_hPanelOkMsgBoxRoot.ToPtr();
+		pPanelOkMsgBoxRoot->m_transform.SetParent(&pScriptLobbyHandler->m_hPanelLoginWindowRoot.ToPtr()->m_transform);
+		static_cast<Text*>(pScriptLobbyHandler->m_hTextOkMsgBoxMsg.ToPtr())->SetText(
+			L"로그인에 실패하였습니다.\n아이디 또는 비밀번호를 확인한 후 다시 시도해주세요."
+		);
+		pPanelOkMsgBoxRoot->SetActive(true);
+
 		return;
 	}
 
 	if (res.m_nicknameLen > MAX_NICKNAME_LEN)
-		return;
+		*reinterpret_cast<int*>(0) = 0;
 
 	Account* pScriptAccount = m_hScriptAccount.ToPtr();
 
@@ -195,20 +215,16 @@ void Network::PktProcSCResIdDuplicateCheck(winppy::Packet packet)
 	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
 	Text* pTextCreateAccountIdDuplicateCheckMsg = static_cast<Text*>(pScriptLobbyHandler->m_hTextCreateAccountIdDuplicateCheckMsg.ToPtr());
 
-	switch (res.m_result)
+	if (!res.m_querySuccess)
 	{
-	case IdDuplicateCheckResult::Valid:
-		pTextCreateAccountIdDuplicateCheckMsg->SetText(L"사용 가능한 아이디입니다.");
-		break;
-	case IdDuplicateCheckResult::AlreadyExist:
-		pTextCreateAccountIdDuplicateCheckMsg->SetText(L"이미 존재하는 아이디입니다.");
-		break;
-	case IdDuplicateCheckResult::Invalid:
-		pTextCreateAccountIdDuplicateCheckMsg->SetText(L"사용 불가능한 아이디입니다.");
-		break;
-	default:
-		break;
+		pTextCreateAccountIdDuplicateCheckMsg->SetText(L"DB 조회 실패.");
+		return;
 	}
+
+	if (res.m_duplicated)
+		pTextCreateAccountIdDuplicateCheckMsg->SetText(L"이미 존재하는 아이디입니다.");
+	else
+		pTextCreateAccountIdDuplicateCheckMsg->SetText(L"사용 가능한 아이디입니다.");
 }
 
 void Network::PktProcSCResNicknameDuplicateCheck(winppy::Packet packet)
@@ -220,20 +236,16 @@ void Network::PktProcSCResNicknameDuplicateCheck(winppy::Packet packet)
 	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
 	Text* pTextCreateAccountNicknameDuplicateCheckMsg = static_cast<Text*>(pScriptLobbyHandler->m_hTextCreateAccountNicknameDuplicateCheckMsg.ToPtr());
 
-	switch (res.m_result)
+	if (!res.m_querySuccess)
 	{
-	case NicknameDuplicateCheckResult::Valid:
-		pTextCreateAccountNicknameDuplicateCheckMsg->SetText(L"사용 가능한 닉네임입니다.");
-		break;
-	case NicknameDuplicateCheckResult::AlreadyExist:
-		pTextCreateAccountNicknameDuplicateCheckMsg->SetText(L"이미 존재하는 닉네임입니다.");
-		break;
-	case NicknameDuplicateCheckResult::Invalid:
-		pTextCreateAccountNicknameDuplicateCheckMsg->SetText(L"사용 불가능한 단어가 포함되어 있습니다.");
-		break;
-	default:
-		break;
+		pTextCreateAccountNicknameDuplicateCheckMsg->SetText(L"DB 조회 실패.");
+		return;
 	}
+
+	if (res.m_duplicated)
+		pTextCreateAccountNicknameDuplicateCheckMsg->SetText(L"이미 존재하는 닉네임입니다.");
+	else
+		pTextCreateAccountNicknameDuplicateCheckMsg->SetText(L"사용 가능한 닉네임입니다.");
 }
 
 void Network::PktProcSCResCreateAccount(winppy::Packet packet)
@@ -246,34 +258,20 @@ void Network::PktProcSCResCreateAccount(winppy::Packet packet)
 	Text* pTextOkMsgBoxMsg = static_cast<Text*>(pScriptLobbyHandler->m_hTextOkMsgBoxMsg.ToPtr());
 	IUIObject* pPanelOkMsgBoxRoot = pScriptLobbyHandler->m_hPanelOkMsgBoxRoot.ToPtr();
 
-	switch (res.m_result)
+	if (res.m_result)
 	{
-	case CreateAccountResult::Success:
-		pTextOkMsgBoxMsg->SetText(L"계정 생성에 성공하였습니다. 새로운 계정으로 로그인해 주세요.");
 		pScriptLobbyHandler->m_hPanelCreateAccountWindowRoot.ToPtr()->SetActive(false);
+		pScriptLobbyHandler->m_hPanelLoginWindowRoot.ToPtr()->SetActive(true);
+		pTextOkMsgBoxMsg->SetText(L"계정 생성에 성공하였습니다. 새로운 계정으로 로그인해 주세요.");
 		pPanelOkMsgBoxRoot->m_transform.SetParent(&pScriptLobbyHandler->m_hPanelLoginWindowRoot.ToPtr()->m_transform);
 		pPanelOkMsgBoxRoot->SetActive(true);
-		break;
-	case CreateAccountResult::FailedInvalidId:
-		pTextOkMsgBoxMsg->SetText(L"계정 생성에 실패하였습니다. 아이디가 이미 존재하거나 사용할 수 없는 아이디입니다.");
+
+	}
+	else
+	{
+		pTextOkMsgBoxMsg->SetText(L"계정 생성에 실패하였습니다.\n사용할 수 없는 아이디 또는 닉네임, 유효하지 않은 형식의 비밀번호를 입력하였는지 확인해주세요.");
 		pPanelOkMsgBoxRoot->m_transform.SetParent(&pScriptLobbyHandler->m_hPanelCreateAccountWindowRoot.ToPtr()->m_transform);
 		pPanelOkMsgBoxRoot->SetActive(true);
-		break;
-	case CreateAccountResult::FailedInvalidNickname:
-		pTextOkMsgBoxMsg->SetText(L"계정 생성에 실패하였습니다. 닉네임이 이미 존재하거나 사용할 수 없는 닉네임입니다.");
-		pPanelOkMsgBoxRoot->m_transform.SetParent(&pScriptLobbyHandler->m_hPanelCreateAccountWindowRoot.ToPtr()->m_transform);
-		pPanelOkMsgBoxRoot->SetActive(true);
-		break;
-	case CreateAccountResult::FailedInvalidPw:
-		pTextOkMsgBoxMsg->SetText(L"계정 생성에 실패하였습니다. 비밀번호 형식이 올바르지 않습니다.");
-		pPanelOkMsgBoxRoot->m_transform.SetParent(&pScriptLobbyHandler->m_hPanelCreateAccountWindowRoot.ToPtr()->m_transform);
-		pPanelOkMsgBoxRoot->SetActive(true);
-		break;
-	case CreateAccountResult::FailedUnknown:
-		pTextOkMsgBoxMsg->SetText(L"계정 생성에 실패하였습니다. 잠시 후 다시 시도해 주세요.");
-		pPanelOkMsgBoxRoot->m_transform.SetParent(&pScriptLobbyHandler->m_hPanelCreateAccountWindowRoot.ToPtr()->m_transform);
-		pPanelOkMsgBoxRoot->SetActive(true);
-		break;
 	}
 }
 

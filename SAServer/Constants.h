@@ -15,6 +15,10 @@ constexpr size_t MIN_PW_LEN = 8;
 constexpr size_t MIN_NICKNAME_LEN = 2;
 constexpr size_t MAX_NICKNAME_LEN = 12;
 
+constexpr size_t UTF8_MAX_ID_SIZE = MAX_ID_LEN;		// 숫자/영문만 허용
+constexpr size_t UTF8_MAX_NICKNAME_SIZE = MAX_NICKNAME_LEN * 3;	// 이모지 문자 제외 시
+constexpr size_t UTF8_MAX_PW_SIZE = MAX_PW_LEN;		// 숫자/영문/특수문자만 허용
+
 constexpr uint32_t HEADER_CODE = 0xbeef9999;
 constexpr uint16_t SASERVER_PORT = 37015;
 constexpr size_t DB_THREAD_COUNT = 4;

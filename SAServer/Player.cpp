@@ -1,4 +1,5 @@
 #include "Player.h"
+#include "Session.h"
 #include <cstdlib>
 #include <cassert>
 #include <strsafe.h>

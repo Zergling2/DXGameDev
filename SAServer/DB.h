@@ -11,11 +11,16 @@
 enum class PreparedStatementId
 {
 	InsertUser,
-	IdDuplicateCheck,
-	NicknameDuplicateCheck,
+
+	SelectUserByLogin,
+
+	ExistLoginId,
+	ExistNickname,
 
 	Count
 };
+
+void PrintSQLExceptionLog(const sql::SQLException& e);
 
 class DBConnection
 {
@@ -33,22 +38,4 @@ private:
 	sql::mysql::MySQL_Driver* m_pDriver;
 	std::unique_ptr<sql::Connection> m_upConnection;
 	std::vector<std::unique_ptr<sql::PreparedStatement>> m_pstmts;
-};
-
-class UserDBService
-{
-public:
-	static bool RegisterUser(sql::Connection* pConn, const std::string& id, const std::string& nickname, const std::string& pw);
-	static bool Login(sql::Connection* pConn, const std::string& id, const std::string& pw);
-	static bool AddPoint(sql::Connection* pConn, uint32_t userId, int32_t point);
-	static bool ConsumePoint(sql::Connection* pConn, uint32_t userId, int32_t point);
-	static bool LevelUp(sql::Connection* pConn, uint32_t userId);
-};
-
-class UserRepository
-{
-public:
-	static bool IsDuplicateId(sql::Connection* pConn, const std::string& id);
-	static bool IsDuplicateNickname(sql::Connection* pConn, const std::string& nickname);
-	static void InsertUser(sql::Connection* pConn, const std::string& id, const std::string& nickname, const std::string& pw);
 };

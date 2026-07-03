@@ -55,29 +55,6 @@ enum class JoinGameRoomResult : uint8_t
 	Full,
 };
 
-enum class IdDuplicateCheckResult : uint8_t
-{
-	Valid,
-	AlreadyExist,
-	Invalid
-};
-
-enum class NicknameDuplicateCheckResult : uint8_t
-{
-	Valid,
-	AlreadyExist,
-	Invalid
-};
-
-enum class CreateAccountResult : uint8_t
-{
-	Success,
-	FailedInvalidId,
-	FailedInvalidNickname,
-	FailedInvalidPw,
-	FailedUnknown
-};
-
 struct ChannelInfo
 {
 	uint16_t m_numOfPlayers;
@@ -154,6 +131,7 @@ struct CSReqChangeTeam
 
 struct SCResLogin
 {
+	bool m_querySuccess;
 	bool m_result;	// 결과
 	uint32_t m_accountId;
 	uint16_t m_nicknameLen;
@@ -165,17 +143,19 @@ struct SCResLogin
 
 struct SCResIdDuplicateCheck
 {
-	IdDuplicateCheckResult m_result;
+	bool m_querySuccess;	// 서버에서 조회에 성공하였는지 나타냄. false이면 m_duplicated가 유효하지 않음.
+	bool m_duplicated;
 };
 
 struct SCResNicknameDuplicateCheck
 {
-	NicknameDuplicateCheckResult m_result;
+	bool m_querySuccess;	// 서버에서 조회에 성공하였는지 나타냄. false이면 m_duplicated가 유효하지 않음.
+	bool m_duplicated;
 };
 
 struct SCResCreateAccount
 {
-	CreateAccountResult m_result;
+	bool m_result;
 };
 
 struct SCResChannelInfo

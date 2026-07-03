@@ -4,14 +4,47 @@
 #include "Network.h"
 #include "Account.h"
 #include "../Resource/GameInfo.h"
-#include <openssl/sha.h>
 
 using namespace ze;
 
 static const wchar_t* SERVER_CONNECTION_FAIL_MESSAGE = L"서버에 연결하지 못했습니다.";
 static const wchar_t* WRONG_TYPE_PASSWORD_MESSAGE = L"비밀번호가 올바른 형식이 아닙니다.";
 
-static bool IsAlphaNumericOnly(const wchar_t* str)
+static bool IsAlpha(wchar_t ch)
+{
+	return (L'A' <= ch && ch <= L'Z') || (L'a' <= ch && ch <= L'z');
+}
+
+static bool IsNum(wchar_t ch)
+{
+	return L'0' <= ch && ch <= '9';
+}
+
+static bool IsSpecialChar(wchar_t ch)
+{
+	switch (ch)
+	{
+	case L'!':
+	case L'@':
+	case L'#':
+	case L'$':
+	case L'%':
+	case L'^':
+	case L'&':
+	case L'*':
+	case L'(':
+	case L')':
+	case L'-':
+	case L'_':
+	case L'=':
+	case L'+':
+		return true;
+	default:
+		return false;
+	}
+}
+
+static bool IsAlphaNumOnly(const wchar_t* str)
 {
 	if (str == nullptr)
 		return false;
@@ -20,10 +53,25 @@ static bool IsAlphaNumericOnly(const wchar_t* str)
 	{
 		const wchar_t ch = *str;
 
-		bool isAlpha = (L'A' <= ch && ch <= L'Z') || (L'a' <= ch && ch <= L'z');
-		bool isDigit = L'0' <= ch && ch <= L'9';
+		if (!IsAlpha(ch) && !IsNum(ch))
+			return false;
 
-		if (!isAlpha && !isDigit)
+		++str;
+	}
+
+	return true;
+}
+
+static bool IsAlphaNumSpecialOnly(const wchar_t* str)
+{
+	if (str == nullptr)
+		return false;
+
+	while (*str != L'\0')
+	{
+		const wchar_t ch = *str;
+
+		if (!IsAlpha(ch) && !IsNum(ch) && !IsSpecialChar(ch))
 			return false;
 
 		++str;
@@ -165,13 +213,20 @@ void LobbyHandler::OnClickLogin()
 	InputField* pInputFieldPw = static_cast<InputField*>(m_hInputFieldLoginPw.ToPtr());
 
 	// 서버로 로그인 요청 전송
-	Text* pTextIdPwInputFieldHelpMsg = static_cast<Text*>(m_hTextLoginHelpMsg.ToPtr());
+	Text* pTextLoginHelpMsg = static_cast<Text*>(m_hTextLoginHelpMsg.ToPtr());
 	const size_t idLen = pInputFieldId->GetText().length();
 	const size_t pwLen = pInputFieldPw->GetText().length();
-	if (idLen < MIN_ID_LEN || pwLen < MIN_PW_LEN || !IsAlphaNumericOnly(pInputFieldId->GetText().c_str()) || !IsAlphaNumericOnly(pInputFieldPw->GetText().c_str()))
+	if (idLen < MIN_ID_LEN || pwLen < MIN_PW_LEN)
 	{
-		pTextIdPwInputFieldHelpMsg->SetColor(Colors::Orange);
-		pTextIdPwInputFieldHelpMsg->SetText(L"아이디 또는 비밀번호가 올바른 형식이 아닙니다.");
+		pTextLoginHelpMsg->SetColor(Colors::Orange);
+		pTextLoginHelpMsg->SetText(L"아이디 또는 비밀번호가 올바른 형식이 아닙니다.");
+		return;
+	}
+
+	if (!IsAlphaNumOnly(pInputFieldId->GetText().c_str()) || !IsAlphaNumSpecialOnly(pInputFieldPw->GetText().c_str()))
+	{
+		pTextLoginHelpMsg->SetColor(Colors::Orange);
+		pTextLoginHelpMsg->SetText(L"아이디 또는 비밀번호에 유효하지 않은 문자가 포함되어 있습니다.");
 		return;
 	}
 
@@ -181,13 +236,13 @@ void LobbyHandler::OnClickLogin()
 	Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
 	if (pScriptNetwork->GetClient().GetState() != winppy::ClientState::Connected)
 	{
-		pTextIdPwInputFieldHelpMsg->SetColor(Colors::Red);
-		pTextIdPwInputFieldHelpMsg->SetText(SERVER_CONNECTION_FAIL_MESSAGE);
+		pTextLoginHelpMsg->SetColor(Colors::Red);
+		pTextLoginHelpMsg->SetText(SERVER_CONNECTION_FAIL_MESSAGE);
 		return;
 	}
 
-	pTextIdPwInputFieldHelpMsg->SetColor(Colors::Green);
-	pTextIdPwInputFieldHelpMsg->SetText(L"로그인 대기중...");
+	pTextLoginHelpMsg->SetColor(Colors::Green);
+	pTextLoginHelpMsg->SetText(L"로그인 대기중...");
 
 	winppy::Packet outPacket;
 	CSReqLogin req;
@@ -225,10 +280,10 @@ void LobbyHandler::OnClickIdDuplicateCheck()
 		return;
 	}
 
-	if (!IsAlphaNumericOnly(pInputFieldCreateAccountId->GetText().c_str()))
+	if (!IsAlphaNumOnly(pInputFieldCreateAccountId->GetText().c_str()))
 	{
 		pTextCreateAccountIdDuplicateCheckMsg->SetColor(Colors::Orange);
-		pTextCreateAccountIdDuplicateCheckMsg->SetText(L"아이디는 영문 및 숫자만 사용 가능합니다.");
+		pTextCreateAccountIdDuplicateCheckMsg->SetText(L"아이디에는 영문 및 숫자만 사용할 수 있습니다.");
 		return;
 	}
 
@@ -308,10 +363,10 @@ void LobbyHandler::OnClickRequestCreateAccount()
 		return;
 	}
 
-	if (!IsAlphaNumericOnly(pInputFieldCreateAccountId->GetText().c_str()))
+	if (!IsAlphaNumOnly(pInputFieldCreateAccountId->GetText().c_str()))
 	{
 		pTextCreateAccountIdDuplicateCheckMsg->SetColor(Colors::Orange);
-		pTextCreateAccountIdDuplicateCheckMsg->SetText(L"아이디는 영문 및 숫자만 사용 가능합니다.");
+		pTextCreateAccountIdDuplicateCheckMsg->SetText(L"아이디에는 영문 및 숫자만 사용할 수 있습니다.");
 		return;
 	}
 
@@ -326,7 +381,6 @@ void LobbyHandler::OnClickRequestCreateAccount()
 	}
 
 	const size_t pwLen = pInputFieldCreateAccountPw->GetText().length();
-	const size_t pwDoubleCheckLen = pInputFieldCreateAccountPwDoubleCheck->GetText().length();
 	if (pwLen < MIN_PW_LEN || pwLen > MAX_PW_LEN)
 	{
 		wchar_t msgBuf[40];
@@ -336,7 +390,14 @@ void LobbyHandler::OnClickRequestCreateAccount()
 		return;
 	}
 
-	if (pwLen != pwDoubleCheckLen)
+	if (!IsAlphaNumSpecialOnly(pInputFieldCreateAccountPw->GetText().c_str()))
+	{
+		pTextCreateAccountPwCheckMsg->SetColor(Colors::Orange);
+		pTextCreateAccountPwCheckMsg->SetText(L"비밀번호에는 영문, 숫자, 특수문자만 사용 가능합니다.");
+		return;
+	}
+
+	if (pInputFieldCreateAccountPw->GetText() != pInputFieldCreateAccountPwDoubleCheck->GetText())
 	{
 		pTextCreateAccountPwCheckMsg->SetColor(Colors::Orange);
 		pTextCreateAccountPwCheckMsg->SetText(L"비밀번호가 일치하지 않습니다.");
@@ -355,7 +416,7 @@ void LobbyHandler::OnClickRequestCreateAccount()
 		return;
 	}
 
-	winppy::Packet outPacket;
+	
 	CSReqCreateAccount req;
 	req.m_idLen = static_cast<uint16_t>(idLen);
 	wmemcpy_s(req.m_id, _countof(req.m_id), pInputFieldCreateAccountId->GetText().c_str(), req.m_idLen);
@@ -363,6 +424,8 @@ void LobbyHandler::OnClickRequestCreateAccount()
 	wmemcpy_s(req.m_nickname, _countof(req.m_nickname), pInputFieldCreateAccountNickname->GetText().c_str(), req.m_nicknameLen);
 	req.m_pwLen = static_cast<uint16_t>(pwLen);
 	wmemcpy_s(req.m_pw, _countof(req.m_pw), pInputFieldCreateAccountPw->GetText().c_str(), req.m_pwLen);
+
+	winppy::Packet outPacket;
 	outPacket->Write(static_cast<protocol_type>(Protocol::CS_REQ_CREATE_ACCOUNT));
 	outPacket->WriteBytes(&req, sizeof(req));
 	pScriptNetwork->GetClient().Send(std::move(outPacket));

@@ -7,6 +7,7 @@ SAServer::SAServer()
 	: m_dbThreads()
 	, m_logicThread()
 {
+	// DB 스레드 생성 및 실행
 	m_dbThreads.reserve(DB_THREAD_COUNT);
 
 	for (size_t i = 0; i < DB_THREAD_COUNT; ++i)
@@ -15,8 +16,9 @@ SAServer::SAServer()
 	for (auto& item : m_dbThreads)
 		item->Start();
 
-	m_logicThread = std::make_unique<LogicThread>(*this);
 
+	// 로직 스레드 생성 및 실행
+	m_logicThread = std::make_unique<LogicThread>(*this);
 	m_logicThread->Start();
 }
 
@@ -182,7 +184,33 @@ void SAServer::OnCSReqNicknameDuplicateCheck(uint64_t netId, winppy::Packet pack
 
 void SAServer::OnCSReqCreateAccount(uint64_t netId, winppy::Packet packet)
 {
-	// 
+	CSReqCreateAccount req;
+	if (!packet->ReadBytes(&req, sizeof(req)))
+	{
+		Disconnect(netId);
+		return;
+	}
+
+	if (req.m_idLen > MAX_ID_LEN || req.m_nicknameLen > MAX_NICKNAME_LEN || req.m_pwLen > MAX_PW_LEN)
+	{
+		Disconnect(netId);
+		return;
+	}
+
+	wchar_t id[MAX_ID_LEN + 1];
+	wmemcpy(id, req.m_id, req.m_idLen);
+	id[req.m_idLen] = L'\0';
+
+	wchar_t nickname[MAX_NICKNAME_LEN + 1];
+	wmemcpy(nickname, req.m_nickname, req.m_nicknameLen);
+	nickname[req.m_nicknameLen] = L'\0';
+
+	wchar_t pw[MAX_PW_LEN + 1];
+	wmemcpy(pw, req.m_pw, req.m_pwLen);
+	pw[req.m_pwLen] = L'\0';
+
+	std::unique_ptr<JobReqCreateAccount> upJob = std::make_unique<JobReqCreateAccount>(netId, id, nickname, pw);
+	m_logicThread->DispatchJob(std::move(upJob));
 }
 
 void SAServer::OnCSReqChannelInfo(uint64_t netId, winppy::Packet packet)

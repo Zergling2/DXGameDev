@@ -3,17 +3,30 @@
 class SQLQuery
 {
 public:
+
+    // =========================
+    // INSERT
+    // =========================
     static constexpr const char* INSERT_USER =
         "INSERT INTO users (`login_id`, `nickname`, `login_hash_pw`) VALUES (?, ?, ?);";
 
-    static constexpr const char* ID_DUPLICATE_CHECK =
-        "SELECT 1 FROM `users` WHERE `account_id`=? LIMIT 1";
+    // =========================
+    // LOGIN / AUTH
+    // =========================
+    static constexpr const char* SELECT_USER_BY_LOGIN =
+        "SELECT `account_id`, `nickname`, `level`, `exp`, `point` FROM `users` WHERE `login_id` = ? AND `login_hash_pw` = ? LIMIT 1;";
 
-    static constexpr const char* NICKNAME_DUPLICATE_CHECK =
-        "SELECT 1 FROM `users` WHERE `nickname`=? LIMIT 1";
+    // =========================
+    // EXISTS CHECK
+    // =========================
+    static constexpr const char* EXIST_LOGIN_ID =
+        "SELECT 1 FROM `users` WHERE `login_id` = ? LIMIT 1";
+
+    static constexpr const char* EXIST_NICKNAME =
+        "SELECT 1 FROM `users` WHERE `nickname` = ? LIMIT 1";
 };
 
-static void PrintSQLExceptionLog(const sql::SQLException& e)
+void PrintSQLExceptionLog(const sql::SQLException& e)
 {
     // 로그
     printf("Message: %s\nError Code: %d\nSQL State: %s\n", e.what(), e.getErrorCode(), e.getSQLState().c_str());
@@ -35,6 +48,8 @@ bool DBConnection::Connect(const char* hostName, const char* userName, const cha
         upConnection->setSchema(schema);
 
         m_upConnection = std::move(upConnection);
+
+        this->CreatePreparedStatements();
     }
     catch (const sql::SQLException& e)
     {
@@ -59,15 +74,19 @@ void DBConnection::CreatePreparedStatements()
 {
     // Prepared Statement 생성
 
-    // INSERT USER
+    // INSERT_USER
     m_pstmts[static_cast<size_t>(PreparedStatementId::InsertUser)] = 
         std::unique_ptr<sql::PreparedStatement>(m_upConnection->prepareStatement(SQLQuery::INSERT_USER));
 
-    // ID DUPLICATE CHECK
-    m_pstmts[static_cast<size_t>(PreparedStatementId::IdDuplicateCheck)] =
-        std::unique_ptr<sql::PreparedStatement>(m_upConnection->prepareStatement(SQLQuery::ID_DUPLICATE_CHECK));
+    // LOGIN_ID
+    m_pstmts[static_cast<size_t>(PreparedStatementId::SelectUserByLogin)] =
+        std::unique_ptr<sql::PreparedStatement>(m_upConnection->prepareStatement(SQLQuery::SELECT_USER_BY_LOGIN));
 
-    // NICKNAME DUPLICATE CHECK
-    m_pstmts[static_cast<size_t>(PreparedStatementId::NicknameDuplicateCheck)] =
-        std::unique_ptr<sql::PreparedStatement>(m_upConnection->prepareStatement(SQLQuery::NICKNAME_DUPLICATE_CHECK));
+    // EXISTS_LOGIN_ID
+    m_pstmts[static_cast<size_t>(PreparedStatementId::ExistLoginId)] =
+        std::unique_ptr<sql::PreparedStatement>(m_upConnection->prepareStatement(SQLQuery::EXIST_LOGIN_ID));
+
+    // EXISTS_NICKNAME
+    m_pstmts[static_cast<size_t>(PreparedStatementId::ExistNickname)] =
+        std::unique_ptr<sql::PreparedStatement>(m_upConnection->prepareStatement(SQLQuery::EXIST_NICKNAME));
 }
