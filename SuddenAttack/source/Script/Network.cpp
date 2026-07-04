@@ -27,7 +27,6 @@ void Client::OnDisconnect()
 
 Network::Network(ze::GameObject& owner)
 	: MonoBehaviour(owner)
-	, m_listenServer(*this)
 	, m_ce()
 	, m_client(*this)
 	, m_packetQueue()
@@ -142,8 +141,6 @@ void Network::Update()
 
 void Network::OnDestroy()
 {
-	m_listenServer.Shutdown();
-
 	m_client.Disconnect();
 
 	while (m_connected && !m_disconnectJobDone)
@@ -449,7 +446,6 @@ void Network::PktProcSCResHostGameStart(winppy::Packet packet)
 
 	if (res.m_result == HostGameStartResult::Success)
 	{
-		// m_listenServer.Run();
 	}
 	else if (res.m_result == HostGameStartResult::NotReady)
 	{
@@ -537,7 +533,7 @@ void Network::PktProcSCNotifyHostChanged(winppy::Packet packet)
 		*reinterpret_cast<int*>(0) = 0;
 
 	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
-	pScriptLobbyHandler->OnGameRoomHostChanged(notify.m_newHostAccountId);
+	pScriptLobbyHandler->OnGameRoomHostChanged(notify.m_oldHostAccountId, notify.m_oldHostNewState, notify.m_newHostAccountId, notify.m_newHostNewState);
 }
 
 void Network::PktProcSCNotifyPlayerGameReady(winppy::Packet packet)

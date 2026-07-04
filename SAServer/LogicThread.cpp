@@ -90,7 +90,7 @@ void PlayerExitRoom(LogicThread& thread, Player* pPlayer)
 		GameRoom* pGameRoom = joinedChannel.FindRoom(joinedRoomId);
 		assert(pGameRoom != nullptr);
 
-		RemovePlayerResult removeResult = pGameRoom->RemovePlayer(pPlayer);
+		const RemovePlayerResult removeResult = pGameRoom->RemovePlayer(pPlayer);
 
 		// ######################################################
 		// 나간 플레이어에게 전달되는 패킷
@@ -107,31 +107,40 @@ void PlayerExitRoom(LogicThread& thread, Player* pPlayer)
 		// 나간 플레이어를 제외한 나머지 플레이어들에게 전달되는 패킷
 		SCNotifyPlayerExitGameRoom notifyPlayerExitRoom;
 		notifyPlayerExitRoom.m_accountId = pPlayer->GetAccountId();
+
 		winppy::Packet pktNotifyPlayerExitRoom;
 		pktNotifyPlayerExitRoom->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_PLAYER_EXIT_GAME_ROOM));
 		pktNotifyPlayerExitRoom->WriteBytes(&notifyPlayerExitRoom, sizeof(notifyPlayerExitRoom));
+		pGameRoom->BroadcastPacket(thread.m_server, pktNotifyPlayerExitRoom);
 
-		switch (removeResult)
+
+		// ******************
+		// 방장이 바뀌는 경우, 새 방장의 PlayerState와 기존 방장의 PlayerState는 둘 다 None으로 해야함. (근데 정비 상태였던 경우는 예외처리 해야할듯)
+
+		if (removeResult == RemovePlayerResult::Normal)
 		{
-		case RemovePlayerResult::Normal:
-			pGameRoom->BroadcastPacket(thread.m_server, pktNotifyPlayerExitRoom);
-			break;
-		case RemovePlayerResult::HostChanged:
-			pGameRoom->BroadcastPacket(thread.m_server, pktNotifyPlayerExitRoom);
-			{
-				SCNotifyHostChanged notifyHostChanged;
-				notifyHostChanged.m_newHostAccountId = pGameRoom->GetHost()->GetAccountId();
-				winppy::Packet pktNotifyHostChanged;
-				pktNotifyHostChanged->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_HOST_CHANGED));
-				pktNotifyHostChanged->WriteBytes(&notifyHostChanged, sizeof(notifyHostChanged));
-				pGameRoom->BroadcastPacket(thread.m_server, pktNotifyHostChanged);
-			}
-			break;
-		case RemovePlayerResult::LastPlayerRemoved:
-			joinedChannel.RemoveGameRoom(joinedRoomId);	// 이 이후로 roomIter & pGameRoom은 유효하지 않음.
-			break;
-		default:
-			break;
+			// 필요한 작업 없음.
+		}
+		else if (removeResult == RemovePlayerResult::HostChanged)
+		{
+			SCNotifyHostChanged notifyHostChanged;
+			notifyHostChanged.m_oldHostAccountId = pPlayer->GetAccountId();
+			notifyHostChanged.m_oldHostNewState = pGameRoom->GetPlayerState(pGameRoom->GetHost()->GetAccountId());// 방장 위임 등으로 바뀐게 아닌 방장이 방을 나가버린 경우 Unknown 처리됨.
+			notifyHostChanged.m_newHostAccountId = pGameRoom->GetHost()->GetAccountId();
+			notifyHostChanged.m_newHostNewState = pGameRoom->GetPlayerState(pGameRoom->GetHost()->GetAccountId());
+
+			winppy::Packet pktNotifyHostChanged;
+			pktNotifyHostChanged->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_HOST_CHANGED));
+			pktNotifyHostChanged->WriteBytes(&notifyHostChanged, sizeof(notifyHostChanged));
+			pGameRoom->BroadcastPacket(thread.m_server, pktNotifyHostChanged);
+		}
+		else if (removeResult == RemovePlayerResult::LastPlayerRemoved)
+		{
+			joinedChannel.RemoveGameRoom(joinedRoomId);				// 이 이후로 roomIter & pGameRoom은 유효하지 않음
+		}
+		else
+		{
+			// ...
 		}
 		// ######################################################
 	}

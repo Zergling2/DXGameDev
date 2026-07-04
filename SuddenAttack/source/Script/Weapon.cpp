@@ -60,11 +60,7 @@ void Weapon::Update()
 				if (item.first <= m_actionElapsed)
 				{
 					// 公扁 捞亥飘 贸府
-					if (item.second == WeaponEvent::Fire)
-					{
-						printf("Fire\n");
-					}
-
+					// 
 					// 1. 荤款靛 贸府
 					const auto iter = m_spWeaponDef->m_weaponSounds.find(item.second);
 					if (iter != m_spWeaponDef->m_weaponSounds.end())

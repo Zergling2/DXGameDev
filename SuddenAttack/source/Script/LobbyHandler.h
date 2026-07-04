@@ -119,11 +119,14 @@ public:
 	void OnPlayerTeamChanged(uint32_t accountId, GameTeam newTeam);
 	void OnExitGameRoom();
 	void OnPlayerExitGameRoom(uint32_t accountId);
-	void OnGameRoomHostChanged(uint32_t newHostAccountId);
+	void OnGameRoomHostChanged(uint32_t oldHostAccountId, PlayerState oldHostNewState, uint32_t newHostAccountId, PlayerState newHostNewState);
 	void OnGameRoomPlayerStateChanged(uint32_t accountId, PlayerState state);
 	void AddChatMsg(const wchar_t* msg);
 	void UpdateGameListBrowserUI();
 	void ShowSelectedGameRoomIndicator(bool b) { m_showSelectedGameRoomIndicator = b; }
+
+	void HideLobbyUI();
+	void ShowLobbyUI();
 private:
 	void UpdateUI();
 	size_t GetNumOfGameListPages() const;

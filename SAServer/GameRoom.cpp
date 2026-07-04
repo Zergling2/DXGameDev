@@ -318,6 +318,22 @@ bool GameRoom::ChangePlayerState(uint32_t accountId, PlayerState newState)
 	return true;
 }
 
+PlayerState GameRoom::GetPlayerState(uint32_t accountId) const
+{
+	GameTeam team;
+	size_t index;
+	PlayerState state;
+
+	if (FindPlayer(accountId, team, index, state))
+	{
+		return state;
+	}
+	else
+	{
+		return PlayerState::Unknown;
+	}
+}
+
 bool GameRoom::ChangePlayerTeam(uint32_t accountId, GameTeam newTeam)
 {
 	GameTeam oldTeam;

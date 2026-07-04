@@ -573,7 +573,8 @@ void Lobby::OnLoadScene()
 	UIObjectHandle hPanelOkMsgBoxRoot = CreatePanel();
 	pScriptLobbyHandler->m_hPanelOkMsgBoxRoot = hPanelOkMsgBoxRoot;
 	Panel* pPanelOkMsgBoxRoot = static_cast<Panel*>(hPanelOkMsgBoxRoot.ToPtr());
-	// pPanelOkMsgBoxRoot->m_transform.SetParent(&pImageLobbyBgr->m_transform);
+	pPanelOkMsgBoxRoot->SetActive(false);
+	pPanelOkMsgBoxRoot->m_transform.SetParent(&pImageLobbyBgr->m_transform);
 	pPanelOkMsgBoxRoot->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 	pPanelOkMsgBoxRoot->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 	pPanelOkMsgBoxRoot->m_transform.SetPosition(0, 0);
@@ -1770,6 +1771,7 @@ void Lobby::OnLoadScene()
 	pGameObjectLobbyHandler->DontDestroyOnLoadRecursively();	// DontDestroyOnLoad
 	pGameObjectAccount->DontDestroyOnLoadRecursively();			// DontDestroyOnLoad
 	pGameObjectNetwork->DontDestroyOnLoadRecursively();			// DontDestroyOnLoad
+	pImageLobbyBgr->DontDestroyOnLoadRecursively();				// DontDestroyOnLoad
 
 	g_singleton = true;
 }

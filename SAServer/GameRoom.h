@@ -66,6 +66,7 @@ public:
     winppy::Packet CreateGameRoomPlayerJoinedPacket(const Player* pPlayer) const;
     std::vector<winppy::Packet> CreateGameRoomPlayerPacketsExcept(const Player* pPlayer) const;
     bool ChangePlayerState(uint32_t accountId, PlayerState newState);
+    PlayerState GetPlayerState(uint32_t accountId) const;
     bool ChangePlayerTeam(uint32_t accountId, GameTeam newTeam);
 private:
     bool IsFull() const;

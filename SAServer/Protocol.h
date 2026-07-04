@@ -260,7 +260,10 @@ struct SCNotifyPlayerJoined
 
 struct SCNotifyHostChanged
 {
+	uint32_t m_oldHostAccountId;
+	PlayerState m_oldHostNewState;
 	uint32_t m_newHostAccountId;
+	PlayerState m_newHostNewState;
 };
 
 struct SCNotifyPlayerGameReady

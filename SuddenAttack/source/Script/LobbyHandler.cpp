@@ -638,9 +638,8 @@ void LobbyHandler::OnClickCreateGameRoomReq()
 
 void LobbyHandler::OnClickHostGameStart()
 {
+	this->HideLobbyUI();
 	SceneManager::GetInstance()->LoadScene(L"Warehouse");
-
-
 
 	// Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
 	// 
@@ -896,12 +895,13 @@ void LobbyHandler::UpdateGameRoomUI()
 	// 게임 방 타이틀 바 텍스트 ( [방 번호] 방 제목 )
 	StringCchPrintfW(textBuf, _countof(textBuf), L"[%u] %s", static_cast<uint32_t>(m_gameRoomNo), m_gameRoomName.c_str());
 	static_cast<Text*>(m_hTextGameRoomNamePanel.ToPtr())->SetText(textBuf);
-
-	auto UpdatePlayerText = [this](const GameRoomPlayer& player, Text* pTextGameRoomPlayer)
+	
+	auto UpdatePlayerText =
+		[this](const GameRoomPlayer& player, Text* pTextGameRoomPlayer)
 		{
 			wchar_t textBuf[64];
 
-			const wchar_t* prefixStr = m_gameRoomHostAccountId == player.m_accountId ? L"[방장]" : L"";
+			const wchar_t* prefixStr = m_gameRoomHostAccountId == player.m_accountId ? L"[방장] " : L"";
 			const wchar_t* suffixStr = L"";
 			switch (player.m_state)
 			{
@@ -911,18 +911,18 @@ void LobbyHandler::UpdateGameRoomUI()
 				break;
 			case PlayerState::Ready:
 				pTextGameRoomPlayer->SetColor(ColorsLinear::Green);
-				suffixStr = L"[준비완료]";
+				suffixStr = L" [준비완료]";
 				break;
 			case PlayerState::Maintenance:
 				pTextGameRoomPlayer->SetColor(ColorsLinear::Orange);
-				suffixStr = L"[정비중]";
+				suffixStr = L" [정비중]";
 				break;
 			default:
 				pTextGameRoomPlayer->SetColor(ColorsLinear::Black);
 				suffixStr = L"";
 				break;
 			}
-			StringCchPrintfW(textBuf, _countof(textBuf), L"%s %s %s", prefixStr, player.m_nickname.c_str(), suffixStr);
+			StringCchPrintfW(textBuf, _countof(textBuf), L"%s%s%s", prefixStr, player.m_nickname.c_str(), suffixStr);
 			pTextGameRoomPlayer->SetText(textBuf);
 		};
 
@@ -1166,9 +1166,9 @@ void LobbyHandler::OnPlayerExitGameRoom(uint32_t accountId)
 	UpdateGameRoomUI();
 }
 
-void LobbyHandler::OnGameRoomHostChanged(uint32_t newHostAccountId)
+void LobbyHandler::OnGameRoomHostChanged(uint32_t oldHostAccountId, PlayerState oldHostNewState, uint32_t newHostAccountId, PlayerState newHostNewState)
 {
-	const uint32_t oldHostAccountId = m_gameRoomHostAccountId;
+	assert(oldHostAccountId == m_gameRoomHostAccountId);
 	m_gameRoomHostAccountId = newHostAccountId;
 
 	const Account* pScriptAccount = m_hScriptAccount.ToPtr();
@@ -1188,36 +1188,36 @@ void LobbyHandler::OnGameRoomHostChanged(uint32_t newHostAccountId)
 
 	GameTeam oldHostTeam;
 	size_t oldHostIndex;
-	if (!FindGameRoomPlayer(oldHostAccountId, oldHostTeam, oldHostIndex))
-		return;
-
-	switch (oldHostTeam)
+	if (FindGameRoomPlayer(oldHostAccountId, oldHostTeam, oldHostIndex))
 	{
-	case GameTeam::RedTeam:
-		m_gameRoomRedTeamPlayers[oldHostIndex].m_state = PlayerState::None;
-		break;
-	case GameTeam::BlueTeam:
-		m_gameRoomBlueTeamPlayers[oldHostIndex].m_state = PlayerState::None;
-		break;
-	default:
-		break;
+		switch (oldHostTeam)
+		{
+		case GameTeam::RedTeam:
+			m_gameRoomRedTeamPlayers[oldHostIndex].m_state = oldHostNewState;
+			break;
+		case GameTeam::BlueTeam:
+			m_gameRoomBlueTeamPlayers[oldHostIndex].m_state = oldHostNewState;
+			break;
+		default:
+			break;
+		}
 	}
 
 	GameTeam newHostTeam;
 	size_t newHostIndex;
-	if (!FindGameRoomPlayer(newHostAccountId, newHostTeam, newHostIndex))
-		return;
-
-	switch (newHostTeam)
+	if (FindGameRoomPlayer(newHostAccountId, newHostTeam, newHostIndex))
 	{
-	case GameTeam::RedTeam:
-		m_gameRoomRedTeamPlayers[newHostIndex].m_state = PlayerState::None;
-		break;
-	case GameTeam::BlueTeam:
-		m_gameRoomBlueTeamPlayers[newHostIndex].m_state = PlayerState::None;
-		break;
-	default:
-		break;
+		switch (newHostTeam)
+		{
+		case GameTeam::RedTeam:
+			m_gameRoomRedTeamPlayers[newHostIndex].m_state = newHostNewState;
+			break;
+		case GameTeam::BlueTeam:
+			m_gameRoomBlueTeamPlayers[newHostIndex].m_state = newHostNewState;
+			break;
+		default:
+			break;
+		}
 	}
 
 	UpdateGameRoomUI();
@@ -1340,6 +1340,16 @@ void LobbyHandler::UpdateGameListBrowserUI()
 			static_cast<Button*>(m_hButtonJoinGameRoom[i].ToPtr())->SetActive(true);
 		}
 	}
+}
+
+void LobbyHandler::HideLobbyUI()
+{
+	m_hImageLobbyBgr.ToPtr()->SetActive(false);
+}
+
+void LobbyHandler::ShowLobbyUI()
+{
+	m_hImageLobbyBgr.ToPtr()->SetActive(true);
 }
 
 void LobbyHandler::UpdateUI()

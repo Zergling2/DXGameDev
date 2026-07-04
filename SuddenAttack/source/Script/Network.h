@@ -77,7 +77,6 @@ private:
 	void PktProcSCNotifyPlayerGameReady(winppy::Packet packet);
 	void PktProcSCNotifyPlayerGameUnready(winppy::Packet packet);
 private:
-	ListenServer m_listenServer;
 	winppy::TCPClientEngine m_ce;
 	Client m_client;
 	SRWLOCK m_lock;	// m_packetQueue¿ë ¶ô
