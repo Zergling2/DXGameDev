@@ -186,7 +186,20 @@ RemovePlayerResult GameRoom::RemovePlayer(Player* pPlayer)
 		if (m_pHost == nullptr)
 			return RemovePlayerResult::LastPlayerRemoved;
 		else
+		{
+			// 새로운 방장은 대기실 상태를 준비 해제 상태(PlayerState::None)으로 설정.
+			// 만약 정비중이었던 경우에는 예외적으로 상태를 변경하지 않는다.
+			
+			GameTeam hostTeam = GameTeam::Unknown;
+			size_t hostIndex = 0;
+			PlayerState hostState = PlayerState::Unknown;
+			assert(FindPlayer(m_pHost->GetAccountId(), hostTeam, hostIndex, hostState));
+
+			if (hostState == PlayerState::Ready)	// 준비중이었다면 준비 해제 상태(방장은 준비 상태 X), 정비중이거나 준비 해제 상태였으면 그대로.
+				ChangePlayerState(m_pHost->GetAccountId(), PlayerState::None);
+
 			return RemovePlayerResult::HostChanged;
+		}
 	}
 
 	if (m_redTeam.size() + m_blueTeam.size() == 0)

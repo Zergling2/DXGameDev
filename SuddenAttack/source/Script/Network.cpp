@@ -446,6 +446,7 @@ void Network::PktProcSCResHostGameStart(winppy::Packet packet)
 
 	if (res.m_result == HostGameStartResult::Success)
 	{
+		// ...
 	}
 	else if (res.m_result == HostGameStartResult::NotReady)
 	{
