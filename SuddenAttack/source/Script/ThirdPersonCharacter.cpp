@@ -43,6 +43,8 @@ ThirdPersonCharacter::ThirdPersonCharacter(ze::GameObject& owner)
 	// , m_biRightFoot(0)
 	, m_biLeftToe(0)
 	, m_biRightToe(0)
+	, m_biLeftHand(0)
+	, m_biRightHand(0)
 {
 }
 
@@ -86,6 +88,8 @@ void ThirdPersonCharacter::Awake()
 	const CharacterViewInfo* pCharacterViewInfo = pScriptGameResources->GetCharacterViewInfo(L"steven");
 	this->CreateCharacterView(pCharacterViewInfo);
 
+
+	// 캐릭터 히트박스 생성
 	m_hGameObjectHitboxBody = Runtime::GetInstance()->CreateGameObject();
 	GameObject* pGameObjectHitboxBody = m_hGameObjectHitboxBody.ToPtr();
 	pGameObjectHitboxBody->m_transform.SetParent(&m_pGameObject->m_transform);
@@ -94,7 +98,7 @@ void ThirdPersonCharacter::Awake()
 			pScriptGameResources->GetCharacterBodyCollider(),
 			XMFLOAT3(
 				0.0f,
-				pScriptGameResources->GetCharacterBodyColliderHalfExtents().y - 0.1f,
+				pScriptGameResources->GetCharacterBodyColliderHalfExtents().y - 1.0f,
 				0.03f
 			)
 		);
@@ -324,9 +328,30 @@ void ThirdPersonCharacter::Awake()
 	// m_biRightFoot = pCharacterArmature->GetBoneIndex("Foot.R");
 	m_biLeftToe = pCharacterArmature->GetBoneIndex("Toe.L");
 	m_biRightToe = pCharacterArmature->GetBoneIndex("Toe.R");
+	m_biLeftHand = pCharacterArmature->GetBoneIndex("Hand.L");
+	m_biRightHand = pCharacterArmature->GetBoneIndex("Hand.R");
 }
 
 void ThirdPersonCharacter::Update()
+{
+	this->UpdateWeaponBaseAndHitboxTransforms();
+}
+
+void ThirdPersonCharacter::FixedUpdate()
+{
+}
+
+void ThirdPersonCharacter::CreateCharacterView(const CharacterViewInfo* pCharacterViewInfo)
+{
+	SkinnedMeshRenderer* pSkinnedMeshRendererCharacter = m_hSkinnedMeshRendererCharacter.ToPtr();
+	pSkinnedMeshRendererCharacter->SetMesh(pCharacterViewInfo->GetMesh());
+	pSkinnedMeshRendererCharacter->SetArmature(pCharacterViewInfo->GetArmature());
+	
+	for (size_t i = 0; i < pCharacterViewInfo->GetMaterials().size(); ++i)
+		pSkinnedMeshRendererCharacter->SetMaterial(i, pCharacterViewInfo->GetMaterials()[i]);
+}
+
+void ThirdPersonCharacter::UpdateWeaponBaseTransform()
 {
 	const SkinnedMeshRenderer* pSkinnedMeshRendererCharacter = m_hSkinnedMeshRendererCharacter.ToPtr();
 	assert(pSkinnedMeshRendererCharacter);
@@ -345,37 +370,45 @@ void ThirdPersonCharacter::Update()
 	pGameObjectTVWeaponBase->m_transform.SetPosition(t);
 }
 
-void ThirdPersonCharacter::FixedUpdate()
+void ThirdPersonCharacter::UpdateWeaponBaseAndHitboxTransforms()
 {
 	const SkinnedMeshRenderer* pCharacterSkinnedMeshRenderer = m_hSkinnedMeshRendererCharacter.ToPtr();
 
 	BoneTransform bt[MAX_BONE_COUNT];
 	pCharacterSkinnedMeshRenderer->GetBoneTransforms(bt, _countof(bt));
 
+
+	// 1. 무기 베이스 오브젝트 위치 업데이트
+	GameObject* pGameObjectTVWeaponBase = m_hGameObjectTVWeaponBase.ToPtr();
+	pGameObjectTVWeaponBase->m_transform.SetRotationQuaternion(bt[m_biRightHand].m_rot);
+	pGameObjectTVWeaponBase->m_transform.SetPosition(bt[m_biRightHand].m_translation);
+
+
+	// 2. 히트박스 업데이트
 	GameObject* pGameObjectHitboxBody = m_hGameObjectHitboxBody.ToPtr();
 	pGameObjectHitboxBody->m_transform.SetRotationQuaternion(bt[m_biSpine0].m_rot);
 	pGameObjectHitboxBody->m_transform.SetPosition(bt[m_biSpine0].m_translation);
-	
+
 	GameObject* pGameObjectHitboxNeck = m_hGameObjectHitboxNeck.ToPtr();
 	pGameObjectHitboxNeck->m_transform.SetRotationQuaternion(bt[m_biNeck].m_rot);
 	pGameObjectHitboxNeck->m_transform.SetPosition(bt[m_biNeck].m_translation);
-	
+
 	GameObject* pGameObjectHitboxHead = m_hGameObjectHitboxHead.ToPtr();
 	pGameObjectHitboxHead->m_transform.SetRotationQuaternion(bt[m_biHead].m_rot);
 	pGameObjectHitboxHead->m_transform.SetPosition(bt[m_biHead].m_translation);
-	
+
 	GameObject* pGameObjectHitboxLeftUpperArm = m_hGameObjectHitboxLeftUpperArm.ToPtr();
 	pGameObjectHitboxLeftUpperArm->m_transform.SetRotationQuaternion(bt[m_biLeftUpperArm].m_rot);
 	pGameObjectHitboxLeftUpperArm->m_transform.SetPosition(bt[m_biLeftUpperArm].m_translation);
-	
+
 	GameObject* pGameObjectHitboxRightUpperArm = m_hGameObjectHitboxRightUpperArm.ToPtr();
 	pGameObjectHitboxRightUpperArm->m_transform.SetRotationQuaternion(bt[m_biRightUpperArm].m_rot);
 	pGameObjectHitboxRightUpperArm->m_transform.SetPosition(bt[m_biRightUpperArm].m_translation);
-	
+
 	GameObject* pGameObjectHitboxLeftForeArm = m_hGameObjectHitboxLeftForeArm.ToPtr();
 	pGameObjectHitboxLeftForeArm->m_transform.SetRotationQuaternion(bt[m_biLeftForeArm].m_rot);
 	pGameObjectHitboxLeftForeArm->m_transform.SetPosition(bt[m_biLeftForeArm].m_translation);
-	
+
 	GameObject* pGameObjectHitboxRightForeArm = m_hGameObjectHitboxRightForeArm.ToPtr();
 	pGameObjectHitboxRightForeArm->m_transform.SetRotationQuaternion(bt[m_biRightForeArm].m_rot);
 	pGameObjectHitboxRightForeArm->m_transform.SetPosition(bt[m_biRightForeArm].m_translation);
@@ -403,14 +436,4 @@ void ThirdPersonCharacter::FixedUpdate()
 	GameObject* pGameObjectHitboxRightFoot = m_hGameObjectHitboxRightFoot.ToPtr();
 	pGameObjectHitboxRightFoot->m_transform.SetRotationQuaternion(bt[m_biRightToe].m_rot);
 	pGameObjectHitboxRightFoot->m_transform.SetPosition(bt[m_biRightToe].m_translation);
-}
-
-void ThirdPersonCharacter::CreateCharacterView(const CharacterViewInfo* pCharacterViewInfo)
-{
-	SkinnedMeshRenderer* pSkinnedMeshRendererCharacter = m_hSkinnedMeshRendererCharacter.ToPtr();
-	pSkinnedMeshRendererCharacter->SetMesh(pCharacterViewInfo->GetMesh());
-	pSkinnedMeshRendererCharacter->SetArmature(pCharacterViewInfo->GetArmature());
-	
-	for (size_t i = 0; i < pCharacterViewInfo->GetMaterials().size(); ++i)
-		pSkinnedMeshRendererCharacter->SetMaterial(i, pCharacterViewInfo->GetMaterials()[i]);
 }

@@ -2,35 +2,26 @@
 
 #include <ZergEngine\ZergEngine.h>
 #include <queue>
-#include "winppy/Network/TCPServer.h"
-#include "winppy/Network/TCPClientEngine.h"
-#include "winppy/Network/TCPClient.h"
-#include "winppy/Network/Packet.h"
+#include <winppy\Network\TCPClientEngine.h>
+#include <winppy\Network\TCPClient.h>
+#include <winppy\Network\Packet.h>
+#include <enet\enet.h>
 
 class Network;
-class LobbyHandler;
 class Account;
+class LobbyHandler;
 
-class ListenServer : public winppy::TCPServer
+enum class ENetHostType
 {
-public:
-	ListenServer(Network& network)
-		: m_network(network)
-	{
-	}
-	virtual ~ListenServer() = default;
-
-	virtual bool OnConnect(const wchar_t* ip, uint16_t port, uint64_t id) override { return true; }
-	virtual void OnReceive(uint64_t id, winppy::Packet packet) override {}
-	virtual void OnDisconnect(uint64_t id) override {}
-private:
-	Network& m_network;
+	None,
+	Server,
+	Client
 };
 
-class Client : public winppy::TCPClient
+class SAClient : public winppy::TCPClient
 {
 public:
-	Client(Network& network)
+	SAClient(Network& network)
 		: m_network(network)
 	{
 	}
@@ -44,17 +35,19 @@ private:
 class Network : public ze::MonoBehaviour
 {
 	DECLARE_MONOBEHAVIOUR_TYPE
-	friend class Client;
+	friend class SAClient;
 public:
 	Network(ze::GameObject& owner);
 	virtual ~Network() = default;
 
-	Client& GetClient() { return m_client; }
+	SAClient& GetClient() { return m_client; }
 
-	virtual void Start() override;
+	virtual void Awake() override;
 	virtual void Update() override;
 	virtual void OnDestroy() override;
 private:
+	void PktProcFromSAServer();
+
 	void PktProcSCResLogin(winppy::Packet packet);
 	void PktProcSCResIdDuplicateCheck(winppy::Packet packet);
 	void PktProcSCResNicknameDuplicateCheck(winppy::Packet packet);
@@ -64,7 +57,7 @@ private:
 	void PktProcSCResGameList(winppy::Packet packet);
 	void PktProcSCResCreateGameRoom(winppy::Packet packet);
 	void PktProcSCResJoinGameRoom(winppy::Packet packet);
-	void PktProcSCResHostGameStart(winppy::Packet packet);
+	void PktProcSCResHostGameStartableState(winppy::Packet packet);
 	void PktProcSCResExitGameRoom(winppy::Packet packet);
 	void PktProcSCResExitGameChannel(winppy::Packet packet);
 	void PktProcSCNotifyLobbyChat(winppy::Packet packet);
@@ -73,16 +66,17 @@ private:
 	void PktProcSCNotifyPlayerExitGameRoom(winppy::Packet packet);
 	void PktProcSCNotifyGameRoomPlayer(winppy::Packet packet);
 	void PktProcSCNotifyHostChanged(winppy::Packet packet);
-	// void PktProcSCNotifyHostGameStart(winppy::Packet packet);
-	void PktProcSCNotifyPlayerGameReady(winppy::Packet packet);
-	void PktProcSCNotifyPlayerGameUnready(winppy::Packet packet);
+	void PktProcSCNotifyHostGameStarted(winppy::Packet packet);
+	void PktProcSCNotifyPlayerStateChanged(winppy::Packet packet);
 private:
 	winppy::TCPClientEngine m_ce;
-	Client m_client;
+	SAClient m_client;
 	SRWLOCK m_lock;	// m_packetQueue¿ë ¶ô
 	std::queue<winppy::Packet> m_packetQueue;
 	bool m_connected;
 	bool m_disconnectJobDone;
+	ENetHostType m_hostType;
+	ENetHost* m_pHost;
 public:
 	ze::ComponentHandle<Account> m_hScriptAccount;
 	ze::ComponentHandle<LobbyHandler> m_hScriptLobbyHandler;

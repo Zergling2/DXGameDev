@@ -62,9 +62,9 @@ void MonoBehaviour::OnDeploySysJob()
 
 void MonoBehaviour::OnEnableSysJob()
 {
-	assert(this->IsEnabled() && m_pGameObject->IsActiveInHierarchy());
-
 	IComponent::OnEnableSysJob();
+
+	assert(this->IsEnabled() && m_pGameObject->IsActiveInHierarchy());
 
 	// 사용자 스크립트
     this->OnEnable();
@@ -76,7 +76,7 @@ void MonoBehaviour::OnEnableSysJob()
 
 void MonoBehaviour::OnDisableSysJob()
 {
-	IComponent::OnDisableSysJob();
-
 	this->OnDisable();
+
+	IComponent::OnDisableSysJob();
 }

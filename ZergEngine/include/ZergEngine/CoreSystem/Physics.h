@@ -13,17 +13,23 @@ class btCollisionDispatcher;
 class btBroadphaseInterface;
 class btOverlappingPairCallback;
 class btSequentialImpulseConstraintSolver;
+class btGhostPairCallback;
 class btDiscreteDynamicsWorld;
 class btCollisionObject;
-class btConvexShape;
 
 namespace ze
 {
 	class PhysicsDebugDrawer;
-	class BoxCollider;
-	class SphereCollider;
-	class CapsuleCollider;
+	class ICollider;
 	class Rigidbody;
+
+	struct SweepHit
+	{
+		const Rigidbody* m_pHitObject;
+		XMFLOAT3 m_hitNormalWorld;
+		XMFLOAT3 m_hitPointWorld;
+		float m_hitFraction;
+	};
 
 	struct CollisionPairHash
 	{
@@ -52,14 +58,6 @@ namespace ze
 		}
 	};
 
-	struct SweepHit
-	{
-		const Rigidbody* m_pHitObject;
-		XMFLOAT3 m_hitNormalWorld;
-		XMFLOAT3 m_hitPointWorld;
-		FLOAT m_hitFraction;
-	};
-
 	struct RayHit
 	{
 		bool HasHit() const { return m_pHitObject != nullptr; }
@@ -75,6 +73,8 @@ namespace ze
 		friend class Renderer;
 		friend class Rigidbody;
 		friend class RigidbodyManager;
+		friend class CharacterController;
+		friend class CharacterControllerManager;
 	public:
 		static Physics* GetInstance() { return s_pInstance; }
 
@@ -83,10 +83,11 @@ namespace ze
 		void SetGravity(const XMFLOAT3& gravity);
 		const XMFLOAT3& GetGravity() const { return m_gravity; }
 
-		std::vector<SweepHit> XM_CALLCONV BoxSweepTest(FXMMATRIX transform, const XMFLOAT3& move, const BoxCollider* pCollider);
-		std::vector<SweepHit> XM_CALLCONV SphereSweepTest(FXMMATRIX transform, const XMFLOAT3& move, const SphereCollider* pCollider);
-		std::vector<SweepHit> XM_CALLCONV CapsuleSweepTest(FXMMATRIX transform, const XMFLOAT3& move, const CapsuleCollider* pCollider);
-		std::vector<SweepHit> XM_CALLCONV ConvexSweepTestImpl(FXMMATRIX transform, const XMFLOAT3& move, const btConvexShape* pBtConvexShape);
+		size_t XM_CALLCONV ConvexSweepTestAllNotInclude(std::vector<SweepHit>& results, FXMMATRIX transform, const XMFLOAT3& move, const ICollider* pCollider, const Rigidbody* pExcept);
+		size_t XM_CALLCONV ConvexSweepTestAllNotIncludeExceptTrigger(std::vector<SweepHit>& results, FXMMATRIX transform, const XMFLOAT3& move, const ICollider* pCollider, const Rigidbody* pExcept);
+		bool XM_CALLCONV ConvexSweepTestClosestNotInclude(SweepHit& result, FXMMATRIX transform, const XMFLOAT3& move, const ICollider* pCollider, const Rigidbody* pExcept);
+		bool XM_CALLCONV ConvexSweepTestClosestNotIncludeExceptTrigger(SweepHit& result, FXMMATRIX transform, const XMFLOAT3& move, const ICollider* pCollider, const Rigidbody* pExcept);
+
 		RayHit ClosestRaycastTest(const XMFLOAT3& fromWorld, const XMFLOAT3& toWorld);
 		std::vector<RayHit> RaycastTest(const XMFLOAT3& fromWorld, const XMFLOAT3& toWorld);
 	private:
@@ -105,12 +106,12 @@ namespace ze
 
 		btDiscreteDynamicsWorld* GetDynamicsWorld() const { return m_upDynamicsWorld.get(); }
 		void StepSimulation(float timeStep, int maxSubSteps = 1, float fixedTimeStep = FIXED_DELTA_TIME);
-		void DispatchTriggerEnter(const std::pair<const btCollisionObject*, const btCollisionObject*>& pair) const;
-		void DispatchTriggerStay(const std::pair<const btCollisionObject*, const btCollisionObject*>& pair) const;
-		void DispatchTriggerExit(const std::pair<const btCollisionObject*, const btCollisionObject*>& pair) const;
-		void DispatchCollisionEnter(const std::pair<const btCollisionObject*, const btCollisionObject*>& pair) const;
-		void DispatchCollisionStay(const std::pair<const btCollisionObject*, const btCollisionObject*>& pair) const;
-		void DispatchCollisionExit(const std::pair<const btCollisionObject*, const btCollisionObject*>& pair) const;
+		static void DispatchTriggerEnter(const std::pair<const btCollisionObject*, const btCollisionObject*>& pair);
+		static void DispatchTriggerStay(const std::pair<const btCollisionObject*, const btCollisionObject*>& pair);
+		static void DispatchTriggerExit(const std::pair<const btCollisionObject*, const btCollisionObject*>& pair);
+		static void DispatchCollisionEnter(const std::pair<const btCollisionObject*, const btCollisionObject*>& pair);
+		static void DispatchCollisionStay(const std::pair<const btCollisionObject*, const btCollisionObject*>& pair);
+		static void DispatchCollisionExit(const std::pair<const btCollisionObject*, const btCollisionObject*>& pair);
 		void DispatchCollisionEvents();
 		void DebugDrawWorld() const;
 	private:
@@ -120,8 +121,9 @@ namespace ze
 		std::unique_ptr<PhysicsDebugDrawer> m_upDebugDrawer;
 		std::unique_ptr<btDefaultCollisionConfiguration> m_upCollisionConfiguration;
 		std::unique_ptr<btCollisionDispatcher> m_upDispatcher;
-		std::unique_ptr<btBroadphaseInterface> m_upOverlappingPairCache;
+		std::unique_ptr<btBroadphaseInterface> m_upBroadphase;
 		std::unique_ptr<btSequentialImpulseConstraintSolver> m_upSolver;
+		std::unique_ptr<btGhostPairCallback> m_upGhostPairCallback;
 		std::unique_ptr<btDiscreteDynamicsWorld> m_upDynamicsWorld;
 
 		std::unordered_set<std::pair<const btCollisionObject*, const btCollisionObject*>, CollisionPairHash, CollisionPairEqual> m_prevCollisionPairs;

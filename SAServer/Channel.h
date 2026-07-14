@@ -22,14 +22,14 @@ public:
 
 	size_t GetMaxPlayer() const { return m_maxPlayer; }
 	size_t GetNumOfPlayers() const { return m_players.size(); }
-	bool AddPlayer(Player* pPlayer);
-	void RemovePlayer(Player* pPlayer);
-	void BroadcastPacket(winppy::TCPServer& server, winppy::Packet packet) const;
-	void BroadcastPacketToPlayersNotInRoom(winppy::TCPServer& server, winppy::Packet packet) const;
-	GameRoom* CreateGameRoom(GameRoomTeamFormat tf, const wchar_t* roomName);
+	void AddPlayer(winppy::TCPServer& server, Player* pPlayer);
+	void RemovePlayer(winppy::TCPServer& server, Player* pPlayer);
+	bool CreateGameRoom(winppy::TCPServer& server, GameRoomTeamFormat tf, const wchar_t* roomName, Player* pHost);
 	void RemoveGameRoom(uint64_t roomId);
 	GameRoom* FindRoom(uint64_t roomId) const;
-	std::vector<winppy::Packet> CreateGameRoomListPackets(uint32_t reqContextNo) const;
+	void SendGameRoomLists(winppy::TCPServer& server, const Player* pReceiver, uint32_t reqContextNo) const;
+	void BroadcastPacket(winppy::TCPServer& server, winppy::Packet packet) const;
+	void BroadcastPacketExceptInRoomPlayers(winppy::TCPServer& server, winppy::Packet packet) const;
 private:
 	uint64_t CreateGameRoomId() { return m_nextGameRoomId++; }
 private:

@@ -20,7 +20,7 @@ enum class Protocol : protocol_type
 	CS_REQ_JOIN_GAME_ROOM,
 	CS_REQ_CHANGE_TEAM,
 	CS_REQ_EXIT_GAME_ROOM,
-	CS_REQ_HOST_GAME_START,
+	CS_REQ_HOST_GAME_STARTABLE_STATE,
 	CS_REQ_GAME_READY,
 	CS_REQ_GAME_UNREADY,
 	CS_REQ_EXIT_GAME_CHANNEL,
@@ -34,7 +34,7 @@ enum class Protocol : protocol_type
 	SC_RES_GAME_ROOM_LIST,
 	SC_RES_CREATE_GAME_ROOM,
 	SC_RES_JOIN_GAME_ROOM,
-	SC_RES_HOST_GAME_START,
+	SC_RES_HOST_GAME_STARTABLE_STATE,
 	SC_RES_EXIT_GAME_ROOM,
 	SC_RES_EXIT_GAME_CHANNEL,
 	SC_NOTIFY_LOBBY_CHAT,
@@ -43,9 +43,8 @@ enum class Protocol : protocol_type
 	SC_NOTIFY_GAME_ROOM_PLAYER,
 	SC_NOTIFY_PLAYER_EXIT_GAME_ROOM,
 	SC_NOTIFY_HOST_CHANGED,
-	SC_NOTIFY_HOST_GAME_START,
-	SC_NOTIFY_PLAYER_GAME_READY,
-	SC_NOTIFY_PLAYER_GAME_UNREADY
+	SC_NOTIFY_HOST_GAME_STARTED,
+	SC_NOTIFY_PLAYER_STATE_CHANGED
 };
 
 enum class JoinGameRoomResult : uint8_t
@@ -221,15 +220,17 @@ struct SCResJoinGameRoom
 	wchar_t m_gameRoomName[MAX_GAME_ROOM_NAME_LEN];
 };
 
-enum class HostGameStartResult : uint8_t
+enum class HostGameStartableState : uint8_t
 {
-	Success,
-	NotReady	// ex) 상대팀 플레이어가 한 명 이상 준비하지 않은 경우
+	Startable,
+	NotReady	// ex) 상대팀이 한 명 이상 준비하지 않은 경우
 };
 
-struct SCResHostGameStart
+struct SCResHostGameStartableState
 {
-	HostGameStartResult m_result;
+	HostGameStartableState m_result;
+	GameTeam m_joinedTeam;
+	GameMap	m_map;
 };
 
 struct SCResExitGameRoom
@@ -266,14 +267,10 @@ struct SCNotifyHostChanged
 	PlayerState m_newHostNewState;
 };
 
-struct SCNotifyPlayerGameReady
+struct SCNotifyPlayerStateChanged
 {
 	uint32_t m_accountId;
-};
-
-struct SCNotifyPlayerGameUnready
-{
-	uint32_t m_accountId;
+	PlayerState m_newState;
 };
 
 // 방에 먼저 입장해있던 플레이어들의 정보를 알려주는 패킷
@@ -290,6 +287,12 @@ struct SCNotifyGameRoomPlayer
 struct SCNotifyPlayerExitGameRoom
 {
 	uint32_t m_accountId;
+};
+
+struct SCNotifyHostGameStarted
+{
+	uint32_t m_hostGameAddr;
+	uint16_t m_hostGamePort;
 };
 
 // 압축 프로토콜들

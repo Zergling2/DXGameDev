@@ -1,5 +1,6 @@
 #include <ZergEngine\CoreSystem\Physics.h>
 #include <ZergEngine\CoreSystem\PhysicsDebugDrawer.h>
+#include <ZergEngine\CoreSystem\Math.h>
 #include <ZergEngine\CoreSystem\GraphicDevice.h>
 #include <ZergEngine\CoreSystem\BulletDXMath.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Rigidbody.h>
@@ -10,15 +11,35 @@
 #include <ZergEngine\CoreSystem\Resource\CapsuleCollider.h>
 #include <bullet3\btBulletCollisionCommon.h>
 #include <bullet3\btBulletDynamicsCommon.h>
+#include <bullet3\BulletCollision\CollisionDispatch\btGhostObject.h>
 #include <cassert>
 
 using namespace ze;
 
 Physics* Physics::s_pInstance = nullptr;
 
-struct AllHitsConvexResultCallback : public btCollisionWorld::ConvexResultCallback
+struct AllConvexResultCallbackNotInclude : public btCollisionWorld::ConvexResultCallback
 {
 public:
+	AllConvexResultCallbackNotInclude(std::vector<SweepHit>& results, const btCollisionObject* pExcept)
+		: m_results(results)
+		, m_pExcept(pExcept)
+	{
+	}
+
+	virtual bool needsCollision(btBroadphaseProxy* proxy0) const
+	{
+		if (!btCollisionWorld::ConvexResultCallback::needsCollision(proxy0))
+			return false;
+
+		const btCollisionObject* pObj = static_cast<const btCollisionObject*>(proxy0->m_clientObject);
+
+		if (pObj == m_pExcept)
+			return false;
+
+		return true;
+	}
+
 	virtual btScalar addSingleResult(btCollisionWorld::LocalConvexResult& result, bool normalInWorldSpace) override
 	{
 		SweepHit h;
@@ -29,17 +50,85 @@ public:
 			result.m_hitNormalLocal : result.m_hitCollisionObject->getWorldTransform().getBasis() * result.m_hitNormalLocal;
 		h.m_hitNormalWorld = BtToDX::ConvertVector(hitNormalWorld);
 
-		const btVector3 hitPointWorld = result.m_hitCollisionObject->getWorldTransform() * result.m_hitPointLocal;
-		h.m_hitPointWorld = BtToDX::ConvertVector(hitPointWorld);
+		h.m_hitPointWorld = BtToDX::ConvertVector(result.m_hitPointLocal);
 
 		h.m_hitFraction = result.m_hitFraction;
 
-		m_hits.push_back(h);
+		m_results.push_back(h);
 
 		return result.m_hitFraction;
 	}
 public:
-	std::vector<SweepHit> m_hits;
+	std::vector<SweepHit>& m_results;
+private:
+	const btCollisionObject* m_pExcept;
+};
+
+struct AllConvexResultCallbackNotIncludeExceptTrigger : public AllConvexResultCallbackNotInclude
+{
+	AllConvexResultCallbackNotIncludeExceptTrigger(std::vector<SweepHit>& results, const btCollisionObject* pExcept)
+		: AllConvexResultCallbackNotInclude(results, pExcept)
+	{
+	}
+
+	virtual bool needsCollision(btBroadphaseProxy* proxy0) const
+	{
+		if (!AllConvexResultCallbackNotInclude::needsCollision(proxy0))
+			return false;
+
+		const btCollisionObject* pObj = static_cast<const btCollisionObject*>(proxy0->m_clientObject);
+		const Rigidbody* pRigidbody = static_cast<const Rigidbody*>(pObj->getUserPointer());
+		if (pRigidbody->IsTrigger())
+			return false;
+
+		return true;
+	}
+};
+
+struct ClosestConvexResultCallbackNotInclude : public btCollisionWorld::ClosestConvexResultCallback
+{
+public:
+	ClosestConvexResultCallbackNotInclude(const btVector3& convexFromWorld, const btVector3& convexToWorld, const btCollisionObject* pExcept)
+		: btCollisionWorld::ClosestConvexResultCallback(convexFromWorld, convexToWorld)
+		, m_pExcept(pExcept)
+	{
+	}
+
+	virtual bool needsCollision(btBroadphaseProxy* proxy0) const override
+	{
+		if (!btCollisionWorld::ClosestConvexResultCallback::needsCollision(proxy0))
+			return false;
+
+		const btCollisionObject* pObj = static_cast<const btCollisionObject*>(proxy0->m_clientObject);
+
+		if (pObj == m_pExcept)
+			return false;
+
+		return true;
+	}
+private:
+	const btCollisionObject* m_pExcept;
+};
+
+struct ClosestConvexResultCallbackNotIncludeExceptTrigger : public ClosestConvexResultCallbackNotInclude
+{
+	ClosestConvexResultCallbackNotIncludeExceptTrigger(const btVector3& convexFromWorld, const btVector3& convexToWorld, const btCollisionObject* pExcept)
+		: ClosestConvexResultCallbackNotInclude(convexFromWorld, convexToWorld, pExcept)
+	{
+	}
+
+	virtual bool needsCollision(btBroadphaseProxy* proxy0) const override
+	{
+		if (!ClosestConvexResultCallbackNotInclude::needsCollision(proxy0))
+			return false;
+
+		const btCollisionObject* pObj = static_cast<const btCollisionObject*>(proxy0->m_clientObject);
+		const Rigidbody* pRigidbody = static_cast<const Rigidbody*>(pObj->getUserPointer());
+		if (pRigidbody->IsTrigger())
+			return false;
+
+		return true;
+	}
 };
 
 void Physics::DrawDebugInfo(bool b)
@@ -57,32 +146,104 @@ void Physics::SetGravity(const XMFLOAT3& gravity)
 	m_upDynamicsWorld->setGravity(DXToBt::ConvertVector(gravity));
 }
 
-std::vector<SweepHit>XM_CALLCONV Physics::BoxSweepTest(FXMMATRIX transform, const XMFLOAT3& move, const BoxCollider* pCollider)
+size_t XM_CALLCONV Physics::ConvexSweepTestAllNotInclude(std::vector<SweepHit>& results, FXMMATRIX transform, const XMFLOAT3& move, const ICollider* pCollider, const Rigidbody* pExcept)
 {
-	return ConvexSweepTestImpl(transform, move, static_cast<const btConvexShape*>(pCollider->GetCollisionShape()));
+	results.clear();
+
+	do
+	{
+		if (!pCollider->GetCollisionShape()->isConvex())
+			break;
+
+		btTransform from = DXToBt::ConvertMatrix(transform);
+		btTransform to = from;
+
+		to.setOrigin(from.getOrigin() + DXToBt::ConvertVector(move));
+
+		const btConvexShape* pBtConvexShape = static_cast<const btConvexShape*>(pCollider->GetCollisionShape());
+
+		AllConvexResultCallbackNotInclude cb(results, pExcept->m_upBtRigidBody.get());
+		m_upDynamicsWorld->convexSweepTest(pBtConvexShape, from, to, cb);
+	} while (false);
+
+	return results.size();
 }
 
-std::vector<SweepHit>XM_CALLCONV Physics::SphereSweepTest(FXMMATRIX transform, const XMFLOAT3& move, const SphereCollider* pCollider)
+size_t XM_CALLCONV Physics::ConvexSweepTestAllNotIncludeExceptTrigger(std::vector<SweepHit>& results, FXMMATRIX transform, const XMFLOAT3& move, const ICollider* pCollider, const Rigidbody* pExcept)
 {
-	return ConvexSweepTestImpl(transform, move, static_cast<const btConvexShape*>(pCollider->GetCollisionShape()));
+	results.clear();
+
+	do
+	{
+		if (!pCollider->GetCollisionShape()->isConvex())
+			break;
+
+		btTransform from = DXToBt::ConvertMatrix(transform);
+		btTransform to = from;
+
+		to.setOrigin(from.getOrigin() + DXToBt::ConvertVector(move));
+
+		const btConvexShape* pBtConvexShape = static_cast<const btConvexShape*>(pCollider->GetCollisionShape());
+
+		AllConvexResultCallbackNotIncludeExceptTrigger cb(results, pExcept->m_upBtRigidBody.get());
+		m_upDynamicsWorld->convexSweepTest(pBtConvexShape, from, to, cb);
+	} while (false);
+
+	return results.size();
 }
 
-std::vector<SweepHit> XM_CALLCONV Physics::CapsuleSweepTest(FXMMATRIX transform, const XMFLOAT3& move, const CapsuleCollider* pCollider)
-{
-	return ConvexSweepTestImpl(transform, move, static_cast<const btConvexShape*>(pCollider->GetCollisionShape()));
-}
-
-std::vector<SweepHit>XM_CALLCONV Physics::ConvexSweepTestImpl(FXMMATRIX transform, const XMFLOAT3& move, const btConvexShape* pBtConvexShape)
+bool XM_CALLCONV Physics::ConvexSweepTestClosestNotInclude(SweepHit& result, FXMMATRIX transform, const XMFLOAT3& move, const ICollider* pCollider, const Rigidbody* pExcept)
 {
 	btTransform from = DXToBt::ConvertMatrix(transform);
 	btTransform to = from;
 
 	to.setOrigin(from.getOrigin() + DXToBt::ConvertVector(move));
 
-	AllHitsConvexResultCallback cb;
+	const btConvexShape* pBtConvexShape = static_cast<const btConvexShape*>(pCollider->GetCollisionShape());
+	
+	ClosestConvexResultCallbackNotInclude cb(from.getOrigin(), to.getOrigin(), pExcept->m_upBtRigidBody.get());
+
 	m_upDynamicsWorld->convexSweepTest(pBtConvexShape, from, to, cb);
 
-	return cb.m_hits;
+	if (cb.hasHit())
+	{
+		result.m_pHitObject = static_cast<Rigidbody*>(cb.m_hitCollisionObject->getUserPointer());
+		result.m_hitNormalWorld = BtToDX::ConvertVector(cb.m_hitNormalWorld);
+		result.m_hitPointWorld = BtToDX::ConvertVector(cb.m_hitPointWorld);
+		result.m_hitFraction = cb.m_closestHitFraction;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool XM_CALLCONV Physics::ConvexSweepTestClosestNotIncludeExceptTrigger(SweepHit& result, FXMMATRIX transform, const XMFLOAT3& move, const ICollider* pCollider, const Rigidbody* pExcept)
+{
+	btTransform from = DXToBt::ConvertMatrix(transform);
+	btTransform to = from;
+
+	to.setOrigin(from.getOrigin() + DXToBt::ConvertVector(move));
+
+	const btConvexShape* pBtConvexShape = static_cast<const btConvexShape*>(pCollider->GetCollisionShape());
+
+	ClosestConvexResultCallbackNotIncludeExceptTrigger cb(from.getOrigin(), to.getOrigin(), pExcept->m_upBtRigidBody.get());
+
+	m_upDynamicsWorld->convexSweepTest(pBtConvexShape, from, to, cb);
+
+	if (cb.hasHit())
+	{
+		result.m_pHitObject = static_cast<Rigidbody*>(cb.m_hitCollisionObject->getUserPointer());
+		result.m_hitNormalWorld = BtToDX::ConvertVector(cb.m_hitNormalWorld);
+		result.m_hitPointWorld = BtToDX::ConvertVector(cb.m_hitPointWorld);
+		result.m_hitFraction = cb.m_closestHitFraction;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 RayHit Physics::ClosestRaycastTest(const XMFLOAT3& fromWorld, const XMFLOAT3& toWorld)
@@ -138,13 +299,14 @@ std::vector<RayHit> Physics::RaycastTest(const XMFLOAT3& fromWorld, const XMFLOA
 
 Physics::Physics()
 	: m_drawDebugInfo(true)
-	, m_gravity(0.0f, -9.81f, 0.0f)
-	, m_upDebugDrawer(nullptr)
-	, m_upCollisionConfiguration(nullptr)
-	, m_upDispatcher(nullptr)
-	, m_upOverlappingPairCache(nullptr)
-	, m_upSolver(nullptr)
-	, m_upDynamicsWorld(nullptr)
+	, m_gravity(0.0f, 0.0f, 0.0f)
+	, m_upDebugDrawer()
+	, m_upCollisionConfiguration()
+	, m_upDispatcher()
+	, m_upBroadphase()
+	, m_upSolver()
+	, m_upGhostPairCallback()
+	, m_upDynamicsWorld()
 	, m_prevCollisionPairs()
 	, m_currCollisionPairs()
 {
@@ -184,18 +346,21 @@ bool Physics::Init()
 	m_upDispatcher = std::make_unique<btCollisionDispatcher>(m_upCollisionConfiguration.get());
 	
 	// btDbvtBroadphase is a good general purpose broadphase. You can also try out btAxis3Sweep.
-	m_upOverlappingPairCache = std::make_unique<btDbvtBroadphase>();
-
+	m_upBroadphase = std::make_unique<btDbvtBroadphase>();
+	m_upGhostPairCallback = std::make_unique<btGhostPairCallback>();
+	m_upBroadphase->getOverlappingPairCache()->setInternalGhostPairCallback(m_upGhostPairCallback.get());
 
 	// the default constraint solver. For parallel processing you can use a different solver (see Extras/BulletMultiThreaded)
 	m_upSolver = std::make_unique<btSequentialImpulseConstraintSolver>();
 
 	m_upDynamicsWorld = std::make_unique<btDiscreteDynamicsWorld>(
 		m_upDispatcher.get(),
-		m_upOverlappingPairCache.get(),
+		m_upBroadphase.get(),
 		m_upSolver.get(),
 		m_upCollisionConfiguration.get()
 	);
+
+	// GhostPairCallback 등록
 
 	// 디버그 렌더러 초기화 및 등록
 	bool init = m_upDebugDrawer->Init(GraphicDevice::GetInstance()->GetDevice());
@@ -212,7 +377,9 @@ bool Physics::Init()
 	m_upDynamicsWorld->setDebugDrawer(m_upDebugDrawer.get());
 
 	// 중력 설정
-	m_upDynamicsWorld->setGravity(btVector3(m_gravity.x, m_gravity.y, m_gravity.z));
+	m_upDynamicsWorld->setGravity(DXToBt::ConvertVector(m_gravity));
+	
+	
 
 	return true;
 }
@@ -228,7 +395,8 @@ void Physics::Shutdown()
 
 	m_upSolver.reset();
 
-	m_upOverlappingPairCache.reset();
+	m_upBroadphase.reset();
+	m_upGhostPairCallback.reset();
 
 	m_upDispatcher.reset();
 
@@ -250,7 +418,7 @@ void Physics::StepSimulation(float timeStep, int maxSubSteps, float fixedTimeSte
 	m_upDynamicsWorld->stepSimulation(timeStep, maxSubSteps, fixedTimeStep);
 }
 
-void Physics::DispatchTriggerEnter(const std::pair<const btCollisionObject*, const btCollisionObject*>& pair) const
+void Physics::DispatchTriggerEnter(const std::pair<const btCollisionObject*, const btCollisionObject*>& pair)
 {
 	Rigidbody* pRbA = static_cast<Rigidbody*>(pair.first->getUserPointer());
 	Rigidbody* pRbB = static_cast<Rigidbody*>(pair.second->getUserPointer());
@@ -270,7 +438,7 @@ void Physics::DispatchTriggerEnter(const std::pair<const btCollisionObject*, con
 	}
 }
 
-void Physics::DispatchTriggerStay(const std::pair<const btCollisionObject*, const btCollisionObject*>& pair) const
+void Physics::DispatchTriggerStay(const std::pair<const btCollisionObject*, const btCollisionObject*>& pair)
 {
 	Rigidbody* pRbA = static_cast<Rigidbody*>(pair.first->getUserPointer());
 	Rigidbody* pRbB = static_cast<Rigidbody*>(pair.second->getUserPointer());
@@ -290,7 +458,7 @@ void Physics::DispatchTriggerStay(const std::pair<const btCollisionObject*, cons
 	}
 }
 
-void Physics::DispatchTriggerExit(const std::pair<const btCollisionObject*, const btCollisionObject*>& pair) const
+void Physics::DispatchTriggerExit(const std::pair<const btCollisionObject*, const btCollisionObject*>& pair)
 {
 	Rigidbody* pRbA = static_cast<Rigidbody*>(pair.first->getUserPointer());
 	Rigidbody* pRbB = static_cast<Rigidbody*>(pair.second->getUserPointer());
@@ -310,7 +478,7 @@ void Physics::DispatchTriggerExit(const std::pair<const btCollisionObject*, cons
 	}
 }
 
-void Physics::DispatchCollisionEnter(const std::pair<const btCollisionObject*, const btCollisionObject*>& pair) const
+void Physics::DispatchCollisionEnter(const std::pair<const btCollisionObject*, const btCollisionObject*>& pair)
 {
 	Rigidbody* pRbA = static_cast<Rigidbody*>(pair.first->getUserPointer());
 	Rigidbody* pRbB = static_cast<Rigidbody*>(pair.second->getUserPointer());
@@ -330,7 +498,7 @@ void Physics::DispatchCollisionEnter(const std::pair<const btCollisionObject*, c
 	}
 }
 
-void Physics::DispatchCollisionStay(const std::pair<const btCollisionObject*, const btCollisionObject*>& pair) const
+void Physics::DispatchCollisionStay(const std::pair<const btCollisionObject*, const btCollisionObject*>& pair)
 {
 	Rigidbody* pRbA = static_cast<Rigidbody*>(pair.first->getUserPointer());
 	Rigidbody* pRbB = static_cast<Rigidbody*>(pair.second->getUserPointer());
@@ -350,7 +518,7 @@ void Physics::DispatchCollisionStay(const std::pair<const btCollisionObject*, co
 	}
 }
 
-void Physics::DispatchCollisionExit(const std::pair<const btCollisionObject*, const btCollisionObject*>& pair) const
+void Physics::DispatchCollisionExit(const std::pair<const btCollisionObject*, const btCollisionObject*>& pair)
 {
 	Rigidbody* pRbA = static_cast<Rigidbody*>(pair.first->getUserPointer());
 	Rigidbody* pRbB = static_cast<Rigidbody*>(pair.second->getUserPointer());
@@ -375,18 +543,25 @@ void Physics::DispatchCollisionEvents()
 	// 1. 충돌쌍 찾기
 	m_currCollisionPairs.clear();
 
-	int numManifolds = m_upDynamicsWorld->getDispatcher()->getNumManifolds();
+	const int numManifolds = m_upDynamicsWorld->getDispatcher()->getNumManifolds();
 
 	for (int i = 0; i < numManifolds; ++i)
 	{
-		btPersistentManifold* manifold =
+		btPersistentManifold* pManifold =
 			m_upDynamicsWorld->getDispatcher()->getManifoldByIndexInternal(i);
 
-		if (manifold->getNumContacts() == 0)
+		if (pManifold->getNumContacts() == 0)
 			continue;
 
-		const btCollisionObject* pA = manifold->getBody0();
-		const btCollisionObject* pB = manifold->getBody1();
+		const btCollisionObject* pA = pManifold->getBody0();
+		const btCollisionObject* pB = pManifold->getBody1();
+
+		constexpr uintptr_t MSB = std::uintptr_t(1) << (sizeof(std::uintptr_t) * 8 - 1);
+
+		// 캐릭터 컨트롤러의 CollisionObject는 무시!
+		// (안그러면 잘못된 캐스팅을 하게됨. 모든 btCollisionObject의 UserPointer는 ze::Rigidbody 컴포넌트로 캐스팅하므로)
+		if (HasPtrMSBTag(pA->getUserPointer()) || HasPtrMSBTag(pB->getUserPointer()))
+			continue;
 
 		if (pA > pB)
 			std::swap(pA, pB);

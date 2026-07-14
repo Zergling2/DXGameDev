@@ -2,6 +2,7 @@
 
 #include <ZergEngine\CoreSystem\Platform.h>
 #include <cmath>
+#include <cstdint>
 
 /*
 	XMVECTOR, XMMATRIX 전달 규칙
@@ -35,6 +36,30 @@ namespace ze
 	using Obb = DirectX::BoundingOrientedBox;
 	class Ray;
 	class Triangle;
+
+	constexpr std::uintptr_t PTR_MSB = std::uintptr_t(1) << (sizeof(std::uintptr_t) * 8 - 1);
+
+	template<typename T>
+	inline T* SetPtrMSBTag(T* ptr)
+	{
+		auto value = reinterpret_cast<std::uintptr_t>(ptr);
+		value |= PTR_MSB;
+		return reinterpret_cast<T*>(value);
+	}
+
+	template<typename T>
+	inline T* ClearPtrMSBTag(T* ptr)
+	{
+		auto value = reinterpret_cast<std::uintptr_t>(ptr);
+		value &= ~PTR_MSB;
+		return reinterpret_cast<T*>(value);
+	}
+
+	inline bool HasPtrMSBTag(void* ptr)
+	{
+		auto value = reinterpret_cast<std::uintptr_t>(ptr);
+		return (value & PTR_MSB) != 0;
+	}
 
 	struct SphericalCoord
 	{

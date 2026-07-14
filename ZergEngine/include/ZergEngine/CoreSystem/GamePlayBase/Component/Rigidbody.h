@@ -41,14 +41,10 @@ namespace ze
 
 		virtual ComponentType GetType() const override { return ComponentType::Rigidbody; }
 
-
-		void ListenCollisionEvent();
-
 		/**
-		* @brief 스크립트에서 충돌 이벤트 함수를 받을지 결정합니다.
-		*
-		* Kinematic Rigidbody는 충돌 이벤트 콜백 호출에 관여되지 않습니다.
+		* @brief MonoBehaviour 스크립트에서 충돌 콜백을 수신할지 여부를 결정합니다.
 		*/
+		void ListenCollisionEvent();
 		bool IsListeningCollisionEvent() const { return m_listenCollisionEvent; }
 
 		void SetTrigger(bool b);
@@ -96,7 +92,11 @@ namespace ze
 		virtual void OnDeploySysJob() override;
 		virtual void OnEnableSysJob() override;
 		virtual void OnDisableSysJob() override;
+
+		void AddToPhysicsWorld();
+		void RemoveFromPhysicsWorld();
 	private:
+		bool m_inPhysicsWorld;
 		bool m_listenCollisionEvent;
 		bool m_isTrigger;
 		bool m_useGravity;

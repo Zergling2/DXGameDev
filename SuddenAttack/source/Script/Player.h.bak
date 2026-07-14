@@ -30,9 +30,6 @@ public:
 	virtual void Update() override;
 	virtual void FixedUpdate() override;
 
-	bool IsGround() const { return m_isGround; }
-	bool CanJump() const { return m_isGround && m_jumpCoolTime <= 0.0f; }
-
 	void SetProcessingInput(bool b) { m_processingInput = b; }
 	void CreateArmsView(const ArmsViewInfo* pArmsViewInfo);
 
@@ -40,28 +37,26 @@ public:
 private:
 	bool m_processingInput;
 	bool m_isStand;
-	bool m_isMoving;
 	bool m_isGround;
-	float m_jumpCoolTime;
-	float m_jumpSpeed;
+	bool m_isMoving;
+	float m_groundCheckSweepDist;
+	float m_stepHeight;
+	float m_slope;
+	float m_jumpVelocityY;
 	float m_velocityY;
 	float m_sinTimeAccum;
 	float m_bounceFreq;
 	float m_ampX;
 	float m_ampY;
-	float m_maxSlope;	// 지면으로 인정되는 최대 각도(라디안)
-	float m_groundCheckSweepDistY;
-	XMFLOAT4X4A m_playerColliderLocalTransform;
+	XMFLOAT4X4A m_colliderLocalTransform;
 	XMFLOAT4X4A m_groundCheckColliderLocalTransform;
-	std::vector<ze::SweepHit> m_sweepResults;
 public:
 	ze::GameObjectHandle m_hGameObjectCamera;
 	ze::ComponentHandle<GameResources> m_hScriptGameResources;
 	ze::ComponentHandle<GameUIManager> m_hScriptGameUIManager;
+	ze::ComponentHandle<ze::Rigidbody> m_hRigidbodyPlayer;
+	std::shared_ptr<ze::SphereCollider> m_spGroundCheckSweepCollider;
 
-	ze::ComponentHandle<ze::CharacterController> m_hCharacterController;
-	ze::ComponentHandle<ze::Rigidbody> m_hPlayerRigidbody;
-	std::shared_ptr<ze::CylinderCollider> m_spGroundCheckCollider;
 	ze::GameObjectHandle m_hGameObjectArms;
 	ze::ComponentHandle<ze::SkinnedMeshRenderer> m_hArmsSkinnedMeshRenderer;
 	const ArmsViewInfo* m_pArmsViewInfo;

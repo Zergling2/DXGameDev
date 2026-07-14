@@ -14,7 +14,6 @@
 #include <ZergEngine\CoreSystem\RenderSettings.h>
 #include <ZergEngine\CoreSystem\Manager\GameObjectManager.h>
 #include <ZergEngine\CoreSystem\Manager\UIObjectManager.h>
-#include <ZergEngine\CoreSystem\Manager\ComponentManager\RigidbodyManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\AudioSourceManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\AudioListenerManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\CameraManager.h>
@@ -26,6 +25,8 @@
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\BillboardManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\TerrainManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\MonoBehaviourManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\RigidbodyManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\CharacterControllerManager.h>
 #include <ZergEngine\CoreSystem\Manager\SceneManager.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\UIObject\UIObjectInterface.h>
@@ -101,6 +102,7 @@ void Runtime::Init(HINSTANCE hInstance, int nCmdShow, uint32_t width, uint32_t h
     GameObjectManager::CreateInstance();
     UIObjectManager::CreateInstance();
     RigidbodyManager::CreateInstance();
+    CharacterControllerManager::CreateInstance();
     AudioSourceManager::CreateInstance();
     AudioListenerManager::CreateInstance();
     CameraManager::CreateInstance();
@@ -132,6 +134,7 @@ void Runtime::Init(HINSTANCE hInstance, int nCmdShow, uint32_t width, uint32_t h
     GameObjectManager::GetInstance()->Init();
     UIObjectManager::GetInstance()->Init();
     RigidbodyManager::GetInstance()->Init();
+    CharacterControllerManager::GetInstance()->Init();
     AudioSourceManager::GetInstance()->Init();
     AudioListenerManager::GetInstance()->Init();
     CameraManager::GetInstance()->Init();
@@ -171,6 +174,7 @@ void Runtime::InitEditor(HINSTANCE hInstance, HWND hMainFrameWnd, HWND hViewWnd,
     GameObjectManager::CreateInstance();
     UIObjectManager::CreateInstance();
     RigidbodyManager::CreateInstance();
+    CharacterControllerManager::CreateInstance();
     AudioSourceManager::CreateInstance();
     AudioListenerManager::CreateInstance();
     CameraManager::CreateInstance();
@@ -200,6 +204,7 @@ void Runtime::InitEditor(HINSTANCE hInstance, HWND hMainFrameWnd, HWND hViewWnd,
     GameObjectManager::GetInstance()->Init();
     UIObjectManager::GetInstance()->Init();
     RigidbodyManager::GetInstance()->Init();
+    CharacterControllerManager::GetInstance()->Init();
     AudioSourceManager::GetInstance()->Init();
     AudioListenerManager::GetInstance()->Init();
     CameraManager::GetInstance()->Init();
@@ -229,6 +234,7 @@ void Runtime::Release()
     CameraManager::GetInstance()->Shutdown();
     AudioListenerManager::GetInstance()->Shutdown();
     AudioSourceManager::GetInstance()->Shutdown();
+    CharacterControllerManager::GetInstance()->Shutdown();
     RigidbodyManager::GetInstance()->Shutdown();
     UIObjectManager::GetInstance()->Shutdown();
     GameObjectManager::GetInstance()->Shutdown();
@@ -257,6 +263,7 @@ void Runtime::Release()
     CameraManager::DestroyInstance();
     AudioListenerManager::DestroyInstance();
     AudioSourceManager::DestroyInstance();
+    CharacterControllerManager::DestroyInstance();
     RigidbodyManager::DestroyInstance();
     UIObjectManager::DestroyInstance();
     GameObjectManager::DestroyInstance();
@@ -328,7 +335,7 @@ void Runtime::OnIdle()
 
     // FixedUpdate
     m_accumDeltaTime += Time::GetInstance()->GetDeltaTime();
-    Time::GetInstance()->ChangeToFixedDeltaTimeMode();  // FixedUpdate 스크립트의 DeltaTime, FixedDeltaTime 일치화
+    Time::GetInstance()->ChangeToFixedDeltaTimeMode();  // FixedUpdate 스크립트의 DeltaTime, FixedDeltaTime 일관화
     while (Time::GetInstance()->GetFixedDeltaTime() <= m_accumDeltaTime)
     {
         // FixedUpdate 우선
@@ -336,7 +343,7 @@ void Runtime::OnIdle()
 
         // 물리 시뮬레이션 스텝
         Physics::GetInstance()->StepSimulation(FIXED_DELTA_TIME);
-
+        CharacterControllerManager::GetInstance()->SyncTransformFromPhysicsEngine();     // CharacterController -> GameObject로 Transform 동기화
         Physics::GetInstance()->DispatchCollisionEvents();
 
         m_accumDeltaTime -= Time::GetInstance()->GetFixedDeltaTime();
@@ -606,6 +613,7 @@ void Runtime::RemoveDestroyedComponentsAndObjects()
     // 컴포넌트 제거 작업
     MonoBehaviourManager::GetInstance()->RemoveDestroyedComponents();   // 가장 먼저 수행하여 오브젝트 및 컴포넌트에 대해 최대한의 접근도 보장
     RigidbodyManager::GetInstance()->RemoveDestroyedComponents();
+    CharacterControllerManager::GetInstance()->RemoveDestroyedComponents();
     TerrainManager::GetInstance()->RemoveDestroyedComponents();
     MeshRendererManager::GetInstance()->RemoveDestroyedComponents();
     SkinnedMeshRendererManager::GetInstance()->RemoveDestroyedComponents();

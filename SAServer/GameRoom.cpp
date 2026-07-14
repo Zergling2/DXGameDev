@@ -7,9 +7,9 @@
 GameRoom::GameRoom(uint64_t id, uint16_t no, GameRoomTeamFormat tf, GameMap map, const wchar_t* name)
 	: m_id(id)
 	, m_no(no)
+	, m_state(GameRoomState::InWaiting)
 	, m_tf(tf)
 	, m_map(map)
-	, m_state(GameRoomState::InWaiting)
 	, m_name(name)
 	, m_redTeam()
 	, m_blueTeam()
@@ -17,153 +17,195 @@ GameRoom::GameRoom(uint64_t id, uint16_t no, GameRoomTeamFormat tf, GameMap map,
 {
 }
 
-bool GameRoom::AddPlayerAsHost(Player* pPlayer, GameTeam& team)
+void GameRoom::AddPlayerAsHost(winppy::TCPServer& server, Player* pPlayer)
 {
-	if (!pPlayer)
-		return false;
-
-	if (this->IsFull())
-		return false;
+	assert(pPlayer != nullptr);
+	assert(this->IsFull() == false);
 
 	// 오토 팀밸런스
 	const size_t maxPlayersForEachTeam = GameRoomTeamFormatToMaxPlayerCount(m_tf) / 2;
-	if (m_redTeam.size() < maxPlayersForEachTeam && m_blueTeam.size() < maxPlayersForEachTeam)
-	{
-		if (m_redTeam.size() <= m_blueTeam.size())
-		{
-			m_redTeam.push_back(GameRoomPlayer(pPlayer, PlayerState::None));
-			team = GameTeam::RedTeam;
-		}
-		else
-		{
-			m_blueTeam.push_back(GameRoomPlayer(pPlayer, PlayerState::None));
-			team = GameTeam::BlueTeam;
-		}
-	}
-	else
-	{
-		if (m_redTeam.size() < maxPlayersForEachTeam)
-		{
-			m_redTeam.push_back(GameRoomPlayer(pPlayer, PlayerState::None));
-			team = GameTeam::RedTeam;
-		}
-		else
-		{
-			m_blueTeam.push_back(GameRoomPlayer(pPlayer, PlayerState::None));
-			team = GameTeam::BlueTeam;
-		}
-	}
+	GameTeam joinedTeam = GameTeam::Unknown;
 
-	pPlayer->MarkEnterRoom(this->m_id);
-
-	m_pHost = pPlayer;
-
-	return true;
-}
-
-bool GameRoom::AddPlayer(Player* pPlayer, GameTeam& team)
-{
-	if (!pPlayer)
-		return false;
-
-	if (this->IsFull())
-		return false;
-
-	const size_t maxPlayersForEachTeam = GameRoomTeamFormatToMaxPlayerCount(m_tf) / 2;
-	if (m_redTeam.size() < maxPlayersForEachTeam && m_blueTeam.size() < maxPlayersForEachTeam)
-	{
-		if (m_redTeam.size() <= m_blueTeam.size())
-		{
-			m_redTeam.push_back(GameRoomPlayer(pPlayer, PlayerState::None));
-			team = GameTeam::RedTeam;
-		}
-		else
-		{
-			m_blueTeam.push_back(GameRoomPlayer(pPlayer, PlayerState::None));
-			team = GameTeam::BlueTeam;
-		}
-	}
-	else
-	{
-		if (m_redTeam.size() < maxPlayersForEachTeam)
-		{
-			m_redTeam.push_back(GameRoomPlayer(pPlayer, PlayerState::None));
-			team = GameTeam::RedTeam;
-		}
-		else
-		{
-			m_blueTeam.push_back(GameRoomPlayer(pPlayer, PlayerState::None));
-			team = GameTeam::BlueTeam;
-		}
-	}
-
-	pPlayer->MarkEnterRoom(this->m_id);
-
-	return true;
-}
-
-bool GameRoom::MoveTeam(const Player* pPlayer, GameTeam newTeam)
-{
-	assert(newTeam == GameTeam::RedTeam || newTeam == GameTeam::BlueTeam);
-
-	GameTeam team;
-	size_t index;
-	PlayerState state;
-
-	if (!FindPlayer(pPlayer->GetAccountId(), team, index, state))
-		return false;
-
-	if (team == newTeam)
-		return false;
-
-	const size_t maxPlayerPerTeam = GameRoomTeamFormatToMaxPlayerCount(m_tf) / 2;
-	if (newTeam == GameTeam::RedTeam)
-	{
-		if (m_redTeam.size() >= maxPlayerPerTeam)
-			return false;
-	}
-	else if (newTeam == GameTeam::BlueTeam)
-	{
-		if (m_blueTeam.size() >= maxPlayerPerTeam)
-			return false;
-	}
-	else
-	{
-		return false;
-	}
-
-	if (team == GameTeam::RedTeam)
-	{
-		m_redTeam.erase(m_redTeam.begin() + index);
-	}
-	else if (team == GameTeam::BlueTeam)
-	{
-		m_blueTeam.erase(m_blueTeam.begin() + index);
-	}
-
-	if (newTeam == GameTeam::RedTeam)
+	if (m_redTeam.size() < maxPlayersForEachTeam)
 	{
 		m_redTeam.push_back(GameRoomPlayer(pPlayer, PlayerState::None));
+		joinedTeam = GameTeam::RedTeam;
 	}
-	else if (newTeam == GameTeam::BlueTeam)
+	else if (m_blueTeam.size() < maxPlayersForEachTeam)
 	{
 		m_blueTeam.push_back(GameRoomPlayer(pPlayer, PlayerState::None));
+		joinedTeam = GameTeam::BlueTeam;
+	}
+	else
+	{
+		*reinterpret_cast<int*>(0) = 0;
 	}
 
+	assert(joinedTeam != GameTeam::Unknown);
+
+	m_pHost = pPlayer;
+	pPlayer->MarkEnterRoom(this->GetId());
+
+
+	// 방 생성 및 방장으로 입장 성공 패킷 전송
+	SCResCreateGameRoom res;
+	res.m_result = true;
+	res.m_gameRoomId = this->GetId();
+	res.m_gameRoomNo = this->GetNo();
+	res.m_gameRoomHostAccountId = this->GetHost()->GetAccountId();
+	res.m_gameRoomTeamFormat = this->GetTeamFormat();
+	res.m_gameMap = this->GetMap();
+	res.m_joinedTeam = joinedTeam;
+	res.m_gameRoomNameLen = static_cast<uint16_t>(this->GetName().length());
+	wmemcpy_s(res.m_gameRoomName, _countof(res.m_gameRoomName), this->GetName().c_str(), this->GetName().length());
+
+	winppy::Packet pkt;
+	pkt->Write(static_cast<protocol_type>(Protocol::SC_RES_CREATE_GAME_ROOM));
+	pkt->WriteBytes(&res, sizeof(res));
+
+	server.Send(pPlayer->GetSession()->GetNetId(), std::move(pkt));
+}
+
+bool GameRoom::AddPlayer(winppy::TCPServer& server, Player* pPlayer)
+{
+	assert(m_pHost != nullptr);
+	assert(pPlayer != nullptr);
+	assert(!this->IsFull());
+
+	const size_t maxPlayersForEachTeam = GameRoomTeamFormatToMaxPlayerCount(m_tf) / 2;
+
+
+	GameTeam joinedTeam = GameTeam::Unknown;
+	PlayerState joinedState = PlayerState::None;
+
+	if (m_redTeam.size() < maxPlayersForEachTeam && m_blueTeam.size() < maxPlayersForEachTeam)
+	{
+		if (m_redTeam.size() <= m_blueTeam.size())
+		{
+			m_redTeam.push_back(GameRoomPlayer(pPlayer, joinedState));
+			joinedTeam = GameTeam::RedTeam;
+		}
+		else
+		{
+			m_blueTeam.push_back(GameRoomPlayer(pPlayer, joinedState));
+			joinedTeam = GameTeam::BlueTeam;
+		}
+	}
+	else
+	{
+		if (m_redTeam.size() < maxPlayersForEachTeam)
+		{
+			m_redTeam.push_back(GameRoomPlayer(pPlayer, joinedState));
+			joinedTeam = GameTeam::RedTeam;
+		}
+		else
+		{
+			m_blueTeam.push_back(GameRoomPlayer(pPlayer, joinedState));
+			joinedTeam = GameTeam::BlueTeam;
+		}
+	}
+
+	assert(joinedTeam != GameTeam::Unknown);
+
+	pPlayer->MarkEnterRoom(this->m_id);
+
+	{
+		// 방에 입장한 플레이어에게 성공 패킷을 전송. (방의 기본정보 & 입장 정보들도 함께 전송)
+		SCResJoinGameRoom res;
+		res.m_result = JoinGameRoomResult::Success;
+		res.m_gameRoomId = this->GetId();
+		res.m_gameRoomNo = this->GetNo();
+		res.m_gameRoomHostAccountId = this->GetHost()->GetAccountId();
+		res.m_gameRoomTeamFormat = this->GetTeamFormat();
+		res.m_gameMap = this->GetMap();
+		res.m_joinedTeam = joinedTeam;
+		res.m_gameRoomNameLen = static_cast<uint16_t>(this->GetName().length());
+		wmemcpy_s(res.m_gameRoomName, _countof(res.m_gameRoomName), this->GetName().c_str(), res.m_gameRoomNameLen);
+
+		winppy::Packet pktResJoinGameRoom;
+		pktResJoinGameRoom->Write(static_cast<protocol_type>(Protocol::SC_RES_JOIN_GAME_ROOM));
+		pktResJoinGameRoom->WriteBytes(&res, sizeof(res));
+		server.Send(pPlayer->GetSession()->GetNetId(), std::move(pktResJoinGameRoom));
+	}
+
+
+	{
+		// 지금 들어간 플레이어에게 방에 존재하던 플레이어들 정보 전송
+		const uint64_t joinedSessionNetId = pPlayer->GetSession()->GetNetId();
+
+		for (size_t i = 0; i < m_redTeam.size(); ++i)
+		{
+			const GameRoomPlayer& gameRoomPlayer = m_redTeam[i];
+			if (gameRoomPlayer.m_pPlayer == pPlayer)		// 새로 입장한 플레이어에게 자기 자신 정보를 보내지 않기 위함.
+				continue;
+
+			SCNotifyGameRoomPlayer noti;
+			noti.m_accountId = gameRoomPlayer.m_pPlayer->GetAccountId();
+			noti.m_team = GameTeam::RedTeam;
+			noti.m_level = gameRoomPlayer.m_pPlayer->GetLevel();
+			noti.m_state = gameRoomPlayer.m_state;
+			noti.m_nicknameLen = gameRoomPlayer.m_pPlayer->GetNicknameLen();
+			wmemcpy_s(noti.m_nickname, _countof(noti.m_nickname), gameRoomPlayer.m_pPlayer->GetNickname(), noti.m_nicknameLen);
+
+			winppy::Packet pkt;
+			pkt->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_GAME_ROOM_PLAYER));
+			pkt->WriteBytes(&noti, sizeof(noti));
+
+			server.Send(joinedSessionNetId, std::move(pkt));
+		}
+
+		for (size_t i = 0; i < m_blueTeam.size(); ++i)
+		{
+			const GameRoomPlayer& gameRoomPlayer = m_blueTeam[i];
+			if (gameRoomPlayer.m_pPlayer == pPlayer)		// 새로 입장한 플레이어에게 자기 자신 정보를 보내지 않기 위함.
+				continue;
+
+			SCNotifyGameRoomPlayer noti;
+			noti.m_accountId = gameRoomPlayer.m_pPlayer->GetAccountId();
+			noti.m_team = GameTeam::BlueTeam;
+			noti.m_level = gameRoomPlayer.m_pPlayer->GetLevel();
+			noti.m_state = gameRoomPlayer.m_state;
+			noti.m_nicknameLen = gameRoomPlayer.m_pPlayer->GetNicknameLen();
+			wmemcpy_s(noti.m_nickname, _countof(noti.m_nickname), gameRoomPlayer.m_pPlayer->GetNickname(), noti.m_nicknameLen);
+
+			winppy::Packet pkt;
+			pkt->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_GAME_ROOM_PLAYER));
+			pkt->WriteBytes(&noti, sizeof(noti));
+
+			server.Send(joinedSessionNetId, std::move(pkt));
+		}
+	}
+
+	
+	
+
+	// 먼저 들어가있던 사람들에게 새로 입장한 플레이어의 정보 전송
+	{
+		SCNotifyPlayerJoined notifyNewPlayer;
+		notifyNewPlayer.m_accountId = pPlayer->GetAccountId();
+		notifyNewPlayer.m_team = joinedTeam;
+		notifyNewPlayer.m_level = pPlayer->GetLevel();
+		notifyNewPlayer.m_state = joinedState;
+		notifyNewPlayer.m_nicknameLen = pPlayer->GetNicknameLen();
+		wmemcpy_s(notifyNewPlayer.m_nickname, _countof(notifyNewPlayer.m_nickname), pPlayer->GetNickname(), notifyNewPlayer.m_nicknameLen);
+
+		winppy::Packet pkt;
+		pkt->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_PLAYER_JOINED_GAME_ROOM));
+		pkt->WriteBytes(&notifyNewPlayer, sizeof(notifyNewPlayer));
+
+		this->BroadcastPacketExcept(server, std::move(pkt), pPlayer->GetAccountId());
+	}
 
 	return true;
 }
 
-RemovePlayerResult GameRoom::RemovePlayer(Player* pPlayer)
+size_t GameRoom::RemovePlayer(winppy::TCPServer& server, Player* pPlayer)
 {
-	if (!pPlayer)
-		return RemovePlayerResult::Normal;
-
 	GameTeam team;
 	size_t index;
 	PlayerState state;
 	if (!FindPlayer(pPlayer->GetAccountId(), team, index, state))
-		return RemovePlayerResult::Normal;
+		*reinterpret_cast<int*>(0) = 0;
 
 	switch (team)
 	{
@@ -177,144 +219,162 @@ RemovePlayerResult GameRoom::RemovePlayer(Player* pPlayer)
 		break;
 	}
 
-	pPlayer->MarkExitRoom();
+	pPlayer->MarkExitRoom();	// 팀에서 제거 및 방 입장 플래그 제거
 
-	if (m_pHost == pPlayer)
 	{
-		m_pHost = FindNewHost();
+		// ######################################################
+		// 나간 플레이어에게 전달되는 패킷
+		SCResExitGameRoom res;
+		res.m_result = true;
+		winppy::Packet pkt;
+		pkt->Write(static_cast<protocol_type>(Protocol::SC_RES_EXIT_GAME_ROOM));
+		pkt->WriteBytes(&res, sizeof(res));
+		server.Send(pPlayer->GetSession()->GetNetId(), pkt);
+		// ######################################################
+	}
 
-		if (m_pHost == nullptr)
-			return RemovePlayerResult::LastPlayerRemoved;
-		else
+	{
+		// ######################################################
+		// 나간 플레이어를 제외한 나머지 플레이어들에게 전달되는 패킷
+		SCNotifyPlayerExitGameRoom notifyPlayerExitRoom;
+		notifyPlayerExitRoom.m_accountId = pPlayer->GetAccountId();
+
+		winppy::Packet pkt;
+		pkt->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_PLAYER_EXIT_GAME_ROOM));
+		pkt->WriteBytes(&notifyPlayerExitRoom, sizeof(notifyPlayerExitRoom));
+		this->BroadcastPacket(server, pkt);
+		// ######################################################
+	}
+
+
+
+	do
+	{
+		// 만약 나가는 플레이어가 방장이었던 경우
+		if (m_pHost == pPlayer)
 		{
+			m_pHost = SelectRandomPlayer();		// 새로운 방장 결정
+			if (m_pHost == nullptr)
+				break;
+
+
+
 			// 새로운 방장은 대기실 상태를 준비 해제 상태(PlayerState::None)으로 설정.
 			// 만약 정비중이었던 경우에는 예외적으로 상태를 변경하지 않는다.
-			
-			GameTeam hostTeam = GameTeam::Unknown;
-			size_t hostIndex = 0;
-			PlayerState hostState = PlayerState::Unknown;
-			assert(FindPlayer(m_pHost->GetAccountId(), hostTeam, hostIndex, hostState));
+			GameTeam newHostTeam = GameTeam::Unknown;
+			size_t newHostIndex = 0;
+			PlayerState newHostState = PlayerState::Unknown;
+			assert(FindPlayer(this->GetHost()->GetAccountId(), newHostTeam, newHostIndex, newHostState));
 
-			if (hostState == PlayerState::Ready)	// 준비중이었다면 준비 해제 상태(방장은 준비 상태 X), 정비중이거나 준비 해제 상태였으면 그대로.
-				ChangePlayerState(m_pHost->GetAccountId(), PlayerState::None);
+			if (newHostState == PlayerState::Ready)	// 준비중이었다면 준비 해제 상태(방장은 준비 상태 X), 정비중이거나 준비 해제 상태였으면 그대로.
+				ChangePlayerState(server, this->GetHost()->GetAccountId(), PlayerState::None);
 
-			return RemovePlayerResult::HostChanged;
+
+			// 방장 위임 등의 상황에도 이 패킷으로 대응하기 위해 이전 방장의 변경된 정보까지 전달
+			SCNotifyHostChanged notifyHostChanged;
+			notifyHostChanged.m_oldHostAccountId = pPlayer->GetAccountId();
+			notifyHostChanged.m_oldHostNewState = PlayerState::Unknown;	// 방장 위임 등으로 바뀐게 아닌 방장이 방을 나가버린 경우 Unknown 처리됨.
+			notifyHostChanged.m_newHostAccountId = this->GetHost()->GetAccountId();
+			notifyHostChanged.m_newHostNewState = this->GetPlayerState(this->GetHost()->GetAccountId());
+
+			winppy::Packet pkt;
+			pkt->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_HOST_CHANGED));
+			pkt->WriteBytes(&notifyHostChanged, sizeof(notifyHostChanged));
+			this->BroadcastPacket(server, pkt);
+		}
+	} while (false);
+
+	return this->GetNumOfPlayers();
+}
+
+HostGameStartableResult GameRoom::IsGameStartable() const
+{
+	HostGameStartableResult result = HostGameStartableResult::Unknown;
+
+	switch (this->GetState())
+	{
+	case GameRoomState::InWaiting:
+	{
+		GameTeam hostTeam;
+		size_t hostIndex;
+		PlayerState hostState;
+		this->FindPlayer(m_pHost->GetAccountId(), hostTeam, hostIndex, hostState);
+
+		const auto& opposingTeam = hostTeam == GameTeam::RedTeam ? m_blueTeam : m_redTeam;
+		bool opposingReadyExist = false;
+		for (auto& item : opposingTeam)
+		{
+			if (item.m_state == PlayerState::Ready)
+			{
+				opposingReadyExist = true;
+				break;
+			}
+		}
+
+		if (opposingReadyExist)
+			result = HostGameStartableResult::Startable;
+		else
+			result = HostGameStartableResult::NotReady;
+	}
+		break;
+	case GameRoomState::InPlay:
+		result = HostGameStartableResult::AlreadyStarted;
+		break;
+	default:
+		result = HostGameStartableResult::NotReady;
+		break;
+	}
+
+	return result;
+}
+
+void GameRoom::ChangeReadyPlayersAndHostStateToPlaying(winppy::TCPServer& server)
+{
+	for (auto& item : m_redTeam)
+	{
+		if (item.m_pPlayer == m_pHost || item.m_state == PlayerState::Ready)
+		{
+			item.m_state = PlayerState::Playing;
+
+			SCNotifyPlayerStateChanged psc;
+			psc.m_accountId = item.m_pPlayer->GetAccountId();
+			psc.m_newState = item.m_state;
+
+			winppy::Packet pkt;
+			pkt->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_PLAYER_STATE_CHANGED));
+			pkt->WriteBytes(&psc, sizeof(psc));
+
+			BroadcastPacket(server, std::move(pkt));
 		}
 	}
 
-	if (m_redTeam.size() + m_blueTeam.size() == 0)
-		return RemovePlayerResult::LastPlayerRemoved;
-
-	return RemovePlayerResult::Normal;
-}
-
-void GameRoom::BroadcastPacket(winppy::TCPServer& server, winppy::Packet packet) const
-{
-	for (size_t i = 0; i < m_redTeam.size(); ++i)
-		server.Send(m_redTeam[i].m_pPlayer->GetSession()->GetNetId(), packet);
-
-	for (size_t i = 0; i < m_blueTeam.size(); ++i)
-		server.Send(m_blueTeam[i].m_pPlayer->GetSession()->GetNetId(), packet);
-}
-
-void GameRoom::BroadcastPacketExceptPlayer(winppy::TCPServer& server, winppy::Packet packet, const Player* pPlayer) const
-{
-	for (size_t i = 0; i < m_redTeam.size(); ++i)
+	for (auto& item : m_blueTeam)
 	{
-		if (m_redTeam[i].m_pPlayer == pPlayer)
-			continue;
+		if (item.m_pPlayer == m_pHost || item.m_state == PlayerState::Ready)
+		{
+			item.m_state = PlayerState::Playing;
 
-		server.Send(m_redTeam[i].m_pPlayer->GetSession()->GetNetId(), packet);
-	}
+			SCNotifyPlayerStateChanged psc;
+			psc.m_accountId = item.m_pPlayer->GetAccountId();
+			psc.m_newState = item.m_state;
 
-	for (size_t i = 0; i < m_blueTeam.size(); ++i)
-	{
-		if (m_blueTeam[i].m_pPlayer == pPlayer)
-			continue;
+			winppy::Packet pkt;
+			pkt->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_PLAYER_STATE_CHANGED));
+			pkt->WriteBytes(&psc, sizeof(psc));
 
-		server.Send(m_blueTeam[i].m_pPlayer->GetSession()->GetNetId(), packet);
+			BroadcastPacket(server, std::move(pkt));
+		}
 	}
 }
 
-winppy::Packet GameRoom::CreateGameRoomPlayerJoinedPacket(const Player* pPlayer) const
-{
-	GameTeam joinedTeam;
-	size_t index;
-	PlayerState state;
-
-	if (!FindPlayer(pPlayer->GetAccountId(), joinedTeam, index, state))
-		*reinterpret_cast<int*>(0) = 0;
-
-	SCNotifyPlayerJoined notifyNewPlayer;
-	notifyNewPlayer.m_accountId = pPlayer->GetAccountId();
-	notifyNewPlayer.m_team = joinedTeam;
-	notifyNewPlayer.m_level = pPlayer->GetLevel();
-	notifyNewPlayer.m_state = state;
-	notifyNewPlayer.m_nicknameLen = pPlayer->GetNicknameLen();
-	wmemcpy_s(notifyNewPlayer.m_nickname, _countof(notifyNewPlayer.m_nickname), pPlayer->GetNickname(), notifyNewPlayer.m_nicknameLen);
-
-	winppy::Packet pktNotifyNewPlayer;
-	pktNotifyNewPlayer->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_PLAYER_JOINED_GAME_ROOM));
-	pktNotifyNewPlayer->WriteBytes(&notifyNewPlayer, sizeof(notifyNewPlayer));
-
-	return pktNotifyNewPlayer;
-}
-
-std::vector<winppy::Packet> GameRoom::CreateGameRoomPlayerPacketsExcept(const Player* pPlayer) const
-{
-	std::vector<winppy::Packet> pkts;
-
-	for (size_t i = 0; i < m_redTeam.size(); ++i)
-	{
-		const GameRoomPlayer& gameRoomPlayer = m_redTeam[i];
-		if (gameRoomPlayer.m_pPlayer == pPlayer)
-			continue;
-
-		SCNotifyGameRoomPlayer notifyExistPlayer;
-		notifyExistPlayer.m_accountId = gameRoomPlayer.m_pPlayer->GetAccountId();
-		notifyExistPlayer.m_team = GameTeam::RedTeam;
-		notifyExistPlayer.m_level = gameRoomPlayer.m_pPlayer->GetLevel();
-		notifyExistPlayer.m_state = gameRoomPlayer.m_state;
-		notifyExistPlayer.m_nicknameLen = gameRoomPlayer.m_pPlayer->GetNicknameLen();
-		wmemcpy_s(notifyExistPlayer.m_nickname, _countof(notifyExistPlayer.m_nickname), gameRoomPlayer.m_pPlayer->GetNickname(), notifyExistPlayer.m_nicknameLen);
-
-		winppy::Packet pkt;
-		pkt->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_GAME_ROOM_PLAYER));
-		pkt->WriteBytes(&notifyExistPlayer, sizeof(notifyExistPlayer));
-		pkts.push_back(std::move(pkt));
-	}
-
-	for (size_t i = 0; i < m_blueTeam.size(); ++i)
-	{
-		const GameRoomPlayer& gameRoomPlayer = m_blueTeam[i];
-		if (gameRoomPlayer.m_pPlayer == pPlayer)
-			continue;
-
-		SCNotifyGameRoomPlayer notifyExistPlayer;
-		notifyExistPlayer.m_accountId = gameRoomPlayer.m_pPlayer->GetAccountId();
-		notifyExistPlayer.m_team = GameTeam::BlueTeam;
-		notifyExistPlayer.m_level = gameRoomPlayer.m_pPlayer->GetLevel();
-		notifyExistPlayer.m_state = gameRoomPlayer.m_state;
-		notifyExistPlayer.m_nicknameLen = gameRoomPlayer.m_pPlayer->GetNicknameLen();
-		wmemcpy_s(notifyExistPlayer.m_nickname, _countof(notifyExistPlayer.m_nickname), gameRoomPlayer.m_pPlayer->GetNickname(), notifyExistPlayer.m_nicknameLen);
-
-		winppy::Packet pkt;
-		pkt->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_GAME_ROOM_PLAYER));
-		pkt->WriteBytes(&notifyExistPlayer, sizeof(notifyExistPlayer));
-		pkts.push_back(std::move(pkt));
-	}
-
-	return pkts;
-}
-
-bool GameRoom::ChangePlayerState(uint32_t accountId, PlayerState newState)
+void GameRoom::ChangePlayerState(winppy::TCPServer& server, uint32_t accountId, PlayerState newState)
 {
 	GameTeam team;
 	size_t index;
-	PlayerState state;
+	PlayerState oldState;
 
-	if (!FindPlayer(accountId, team, index, state))
-		return false;
+	if (!FindPlayer(accountId, team, index, oldState))
+		*reinterpret_cast<int*>(0) = 0;
 
 	switch (team)
 	{
@@ -325,10 +385,20 @@ bool GameRoom::ChangePlayerState(uint32_t accountId, PlayerState newState)
 		m_blueTeam[index].m_state = newState;
 		break;
 	default:
-		return false;
+		*reinterpret_cast<int*>(0) = 0;
+		break;
 	}
 
-	return true;
+	// 방에 있는 플레이어들에게 팀 변경된 플레이어 통지
+	SCNotifyPlayerStateChanged noti;
+	noti.m_accountId = accountId;
+	noti.m_newState = newState;
+
+	winppy::Packet pkt;
+	pkt->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_PLAYER_STATE_CHANGED));
+	pkt->WriteBytes(&noti, sizeof(noti));
+
+	this->BroadcastPacket(server, std::move(pkt));
 }
 
 PlayerState GameRoom::GetPlayerState(uint32_t accountId) const
@@ -347,7 +417,7 @@ PlayerState GameRoom::GetPlayerState(uint32_t accountId) const
 	}
 }
 
-bool GameRoom::ChangePlayerTeam(uint32_t accountId, GameTeam newTeam)
+bool GameRoom::ChangePlayerTeam(winppy::TCPServer& server, uint32_t accountId, GameTeam newTeam)
 {
 	GameTeam oldTeam;
 	size_t index;
@@ -377,11 +447,11 @@ bool GameRoom::ChangePlayerTeam(uint32_t accountId, GameTeam newTeam)
 	switch (oldTeam)
 	{
 	case GameTeam::RedTeam:
-		player = m_redTeam[index];
+		player = m_redTeam[index];		// PlayerState 포함 정보 복사 (중요!)
 		m_redTeam.erase(m_redTeam.begin() + index);
 		break;
 	case GameTeam::BlueTeam:
-		player = m_blueTeam[index];
+		player = m_blueTeam[index];		// PlayerState 포함 정보 복사 (중요!)
 		m_blueTeam.erase(m_blueTeam.begin() + index);
 		break;
 	default:
@@ -400,6 +470,16 @@ bool GameRoom::ChangePlayerTeam(uint32_t accountId, GameTeam newTeam)
 		break;
 	}
 
+	SCNotifyPlayerTeamChanged noti;
+	noti.m_accountId = accountId;
+	noti.m_newTeam = newTeam;
+
+	winppy::Packet pkt;
+	pkt->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_PLAYER_TEAM_CHANGED));
+	pkt->WriteBytes(&noti, sizeof(noti));
+
+	this->BroadcastPacket(server, std::move(pkt));
+
 	return true;
 }
 
@@ -409,6 +489,34 @@ bool GameRoom::IsFull() const
 		return true;
 	else
 		return false;
+}
+
+void GameRoom::BroadcastPacket(winppy::TCPServer& server, winppy::Packet packet) const
+{
+	for (const auto& item : m_redTeam)
+		server.Send(item.m_pPlayer->GetSession()->GetNetId(), packet);
+
+	for (const auto& item : m_blueTeam)
+		server.Send(item.m_pPlayer->GetSession()->GetNetId(), packet);
+}
+
+void GameRoom::BroadcastPacketExcept(winppy::TCPServer& server, winppy::Packet packet, uint32_t exceptorAccountId) const
+{
+	for (const auto& item : m_redTeam)
+	{
+		if (item.m_pPlayer->GetAccountId() == exceptorAccountId)
+			continue;
+
+		server.Send(item.m_pPlayer->GetSession()->GetNetId(), packet);
+	}
+
+	for (const auto& item : m_blueTeam)
+	{
+		if (item.m_pPlayer->GetAccountId() == exceptorAccountId)
+			continue;
+
+		server.Send(item.m_pPlayer->GetSession()->GetNetId(), packet);
+	}
 }
 
 bool GameRoom::FindPlayer(uint32_t accountId, GameTeam& team, size_t& index, PlayerState& state) const
@@ -444,7 +552,7 @@ bool GameRoom::FindPlayer(uint32_t accountId, GameTeam& team, size_t& index, Pla
 	return result;
 }
 
-const Player* GameRoom::FindNewHost() const
+const Player* GameRoom::SelectRandomPlayer() const
 {
 	if (!m_redTeam.empty())
 		return m_redTeam.front().m_pPlayer;

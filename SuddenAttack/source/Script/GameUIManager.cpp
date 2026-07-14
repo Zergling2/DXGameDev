@@ -327,5 +327,5 @@ void GameUIManager::OnClickCloseGameMenu()
 {
 	assert(GetState() == UIStateGameMenu::GetState());
 
-	SetState(UIStateNone::GetState());
+	this->SetState(UIStateNone::GetState());
 }

@@ -100,6 +100,7 @@ void IComponentManager::RemoveDestroyedComponents()
 
 	for (IComponent* pComponent : m_destroyed)
 	{
+		assert(pComponent->m_pGameObject->IsPending() == false);
 		assert(pComponent->IsOnTheDestroyQueue());
 
 		GameObject* pGameObject = pComponent->m_pGameObject;

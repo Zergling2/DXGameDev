@@ -318,14 +318,14 @@ private:
 	bool m_ready;
 };
 
-class JobReqGameStart : public IJob
+class JobReqGameStartableState : public IJob
 {
 public:
-	JobReqGameStart(uint64_t netId)
+	JobReqGameStartableState(uint64_t netId)
 		: m_netId(netId)
 	{
 	}
-	virtual ~JobReqGameStart() = default;
+	virtual ~JobReqGameStartableState() = default;
 
 	virtual void Execute(LogicThread& thread) override;
 private:

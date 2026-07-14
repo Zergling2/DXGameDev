@@ -423,6 +423,15 @@
     <ClInclude Include="include\ZergEngine\CoreSystem\Resource\AudioClip.h">
       <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
     </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\GamePlayBase\Component\CharacterController.h">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Manager\ComponentManager\CharacterControllerManager.h">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZergEngine\CoreSystem\Vector.h">
+      <Filter>Files\ZergEngine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\CoreSystem\Time.cpp">
@@ -745,6 +754,12 @@
     </ClCompile>
     <ClCompile Include="source\CoreSystem\Resource\AudioClip.cpp">
       <Filter>Files\ZergEngine\CoreSystem\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\GamePlayBase\Component\CharacterController.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\GamePlayBase\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CoreSystem\Manager\ComponentManager\CharacterControllerManager.cpp">
+      <Filter>Files\ZergEngine\CoreSystem\Manager\ComponentManager</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

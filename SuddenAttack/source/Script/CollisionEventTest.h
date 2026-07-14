@@ -18,5 +18,6 @@ public:
 	virtual void OnCollisionStay() override;
 	virtual void OnCollisionExit() override;
 public:
+	std::string m_str;
 	ze::ComponentHandle<ze::Rigidbody> m_hRigidbodyCollider;
 };

@@ -8,6 +8,7 @@
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\SpotLightManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\MonoBehaviourManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\RigidbodyManager.h>
+#include <ZergEngine\CoreSystem\Manager\ComponentManager\CharacterControllerManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\TerrainManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\AudioListenerManager.h>
 #include <ZergEngine\CoreSystem\Manager\ComponentManager\AudioSourceManager.h>
@@ -47,6 +48,9 @@ IComponentManager* ComponentManagerMap::GetManager(ComponentType type)
 		break;
 	case ComponentType::Rigidbody:
 		pComponentManager = RigidbodyManager::GetInstance();
+		break;
+	case ComponentType::CharacterController:
+		pComponentManager = CharacterControllerManager::GetInstance();
 		break;
 	case ComponentType::Terrain:
 		pComponentManager = TerrainManager::GetInstance();

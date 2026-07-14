@@ -24,7 +24,9 @@ void RigidbodyManager::DestroyInstance()
 
 void RigidbodyManager::RemoveDestroyedComponents()
 {
-	auto& collisionPairs = Physics::GetInstance()->m_prevCollisionPairs;
+	auto& prevCollisionPairs = Physics::GetInstance()->m_prevCollisionPairs;
+	auto& currCollisionPairs = Physics::GetInstance()->m_currCollisionPairs;
+	assert(currCollisionPairs.size() == 0);
 
 	// 1. 물리 월드에서 제거
 	for (IComponent* pComponent : m_destroyed)
@@ -34,18 +36,32 @@ void RigidbodyManager::RemoveDestroyedComponents()
 		btRigidBody* const pBtRigidBody = pRigidbody->m_upBtRigidBody.get();
 
 		// 충돌쌍 목록에서 제거 (댕글링 포인터 방지)
-		auto iter = collisionPairs.begin();
-		while (iter != collisionPairs.end())
+		// 추후 더 빠르게 개선할 수 있는 방법 -> 충돌쌍에 포함되어 있는지 플래그를 저장해두고 플래그가 켜져있을때만 충돌쌍을 탐색해서 제거한다.
 		{
-			if (iter->first == pBtRigidBody || iter->second == pBtRigidBody)
-				iter = collisionPairs.erase(iter);
-			else
-				++iter;
+			auto iter = prevCollisionPairs.begin();
+			while (iter != prevCollisionPairs.end())
+			{
+				if (iter->first == pBtRigidBody || iter->second == pBtRigidBody)
+					iter = prevCollisionPairs.erase(iter);
+				else
+					++iter;
+			}
+		}
+
+		{
+			auto iter = currCollisionPairs.begin();
+			while (iter != currCollisionPairs.end())
+			{
+				if (iter->first == pBtRigidBody || iter->second == pBtRigidBody)
+					iter = currCollisionPairs.erase(iter);
+				else
+					++iter;
+			}
 		}
 
 		// 물리 월드에서 제거
 		if (pRigidbody->IsEnabled())	// 활성화된 경우에만 물리 월드에 존재하므로
-			Physics::GetInstance()->GetDynamicsWorld()->removeRigidBody(pBtRigidBody);
+			pRigidbody->RemoveFromPhysicsWorld();
 	}
 
 	// 2. 부모 기능 호출

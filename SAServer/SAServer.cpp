@@ -83,8 +83,8 @@ void SAServer::OnReceive(uint64_t id, winppy::Packet packet)
 	case Protocol::CS_REQ_EXIT_GAME_ROOM:
 		OnCSReqExitGameRoom(id, std::move(packet));
 		break;
-	case Protocol::CS_REQ_HOST_GAME_START:
-		OnCSReqHostGameStart(id, std::move(packet));
+	case Protocol::CS_REQ_HOST_GAME_STARTABLE_STATE:
+		OnCSReqHostGameStartableState(id, std::move(packet));
 		break;
 	case Protocol::CS_REQ_GAME_READY:
 		OnCSReqGameReady(id, std::move(packet));
@@ -315,7 +315,8 @@ void SAServer::OnCSReqCreateGameRoom(uint64_t netId, winppy::Packet packet)
 	}
 	gameRoomName[req.m_gameRoomNameLen] = L'\0';
 
-	std::unique_ptr<JobReqCreateGameRoom> upJob = std::make_unique<JobReqCreateGameRoom>(netId, req.m_gameRoomTeamFormat, req.m_gameRoomNameLen, gameRoomName);
+	std::unique_ptr<JobReqCreateGameRoom> upJob =
+		std::make_unique<JobReqCreateGameRoom>(netId, req.m_gameRoomTeamFormat, req.m_gameRoomNameLen, gameRoomName);
 	m_logicThread->DispatchJob(std::move(upJob));
 }
 
@@ -357,23 +358,20 @@ void SAServer::OnCSReqExitGameChannel(uint64_t netId, winppy::Packet packet)
 	m_logicThread->DispatchJob(std::move(upJob));
 }
 
-void SAServer::OnCSReqHostGameStart(uint64_t netId, winppy::Packet packet)
+void SAServer::OnCSReqHostGameStartableState(uint64_t netId, winppy::Packet packet)
 {
-	// 
+	std::unique_ptr<JobReqGameStartableState> upJob = std::make_unique<JobReqGameStartableState>(netId);
+	m_logicThread->DispatchJob(std::move(upJob));
 }
 
 void SAServer::OnCSReqGameReady(uint64_t netId, winppy::Packet packet)
 {
-	std::unique_ptr<JobReqChangeGameReadyState> upJob =
-		std::make_unique<JobReqChangeGameReadyState>(netId, true);
-
+	std::unique_ptr<JobReqChangeGameReadyState> upJob = std::make_unique<JobReqChangeGameReadyState>(netId, true);
 	m_logicThread->DispatchJob(std::move(upJob));
 }
 
 void SAServer::OnCSReqGameUnready(uint64_t netId, winppy::Packet packet)
 {
-	std::unique_ptr<JobReqChangeGameReadyState> upJob =
-		std::make_unique<JobReqChangeGameReadyState>(netId, false);
-
+	std::unique_ptr<JobReqChangeGameReadyState> upJob = std::make_unique<JobReqChangeGameReadyState>(netId, false);
 	m_logicThread->DispatchJob(std::move(upJob));
 }

@@ -16,7 +16,7 @@ constexpr uint32_t STATIC_TEXT_SIZE_MEDIUM = 16;
 constexpr uint32_t STATIC_TEXT_SIZE_SMALL = 12;
 constexpr uint32_t CHAT_MSG_TEXT_SIZE = 12;
 constexpr uint32_t MEDIUM_TEXT_SIZE = 18;
-constexpr DWRITE_FONT_WEIGHT MEDIUM_TEXT_WEIGHT = DWRITE_FONT_WEIGHT_BOLD;
+constexpr DWRITE_FONT_WEIGHT BOLD_TEXT_WEIGHT = DWRITE_FONT_WEIGHT_BOLD;
 
 void Lobby::OnLoadScene()
 {
@@ -263,7 +263,7 @@ void Lobby::OnLoadScene()
 	pTextCreateAccountWindowName->SetColor(Colors::White);
 	pTextCreateAccountWindowName->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 	pTextCreateAccountWindowName->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pTextCreateAccountWindowName->GetTextFormat().SetWeight(MEDIUM_TEXT_WEIGHT);
+	pTextCreateAccountWindowName->GetTextFormat().SetWeight(BOLD_TEXT_WEIGHT);
 	pTextCreateAccountWindowName->GetTextFormat().SetSize(MEDIUM_TEXT_SIZE);
 	pTextCreateAccountWindowName->ApplyTextFormat();
 
@@ -608,7 +608,7 @@ void Lobby::OnLoadScene()
 	pTextOkMsgBoxHead->SetColor(Colors::WhiteSmoke);
 	pTextOkMsgBoxHead->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 	pTextOkMsgBoxHead->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pTextOkMsgBoxHead->GetTextFormat().SetWeight(MEDIUM_TEXT_WEIGHT);
+	pTextOkMsgBoxHead->GetTextFormat().SetWeight(BOLD_TEXT_WEIGHT);
 	pTextOkMsgBoxHead->GetTextFormat().SetSize(MEDIUM_TEXT_SIZE);
 	pTextOkMsgBoxHead->ApplyTextFormat();
 
@@ -714,7 +714,7 @@ void Lobby::OnLoadScene()
 	pTextChannelBrowserHead->SetColor(Colors::Goldenrod);
 	pTextChannelBrowserHead->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pTextChannelBrowserHead->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pTextChannelBrowserHead->GetTextFormat().SetWeight(MEDIUM_TEXT_WEIGHT);
+	pTextChannelBrowserHead->GetTextFormat().SetWeight(BOLD_TEXT_WEIGHT);
 	pTextChannelBrowserHead->GetTextFormat().SetSize(MEDIUM_TEXT_SIZE);
 	pTextChannelBrowserHead->ApplyTextFormat();
 
@@ -742,7 +742,7 @@ void Lobby::OnLoadScene()
 	pTextChannelNameTab->SetColor(Colors::Goldenrod);
 	pTextChannelNameTab->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pTextChannelNameTab->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pTextChannelNameTab->GetTextFormat().SetWeight(MEDIUM_TEXT_WEIGHT);
+	pTextChannelNameTab->GetTextFormat().SetWeight(BOLD_TEXT_WEIGHT);
 	pTextChannelNameTab->GetTextFormat().SetSize(MEDIUM_TEXT_SIZE);
 	pTextChannelNameTab->ApplyTextFormat();
 	pTextChannelNameTab->SetSize(CHANNEL_NAME_TAB_SIZE);
@@ -759,7 +759,7 @@ void Lobby::OnLoadScene()
 	pTextChannelHeadcountTab->SetColor(Colors::Goldenrod);
 	pTextChannelHeadcountTab->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pTextChannelHeadcountTab->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pTextChannelHeadcountTab->GetTextFormat().SetWeight(MEDIUM_TEXT_WEIGHT);
+	pTextChannelHeadcountTab->GetTextFormat().SetWeight(BOLD_TEXT_WEIGHT);
 	pTextChannelHeadcountTab->GetTextFormat().SetSize(MEDIUM_TEXT_SIZE);
 	pTextChannelHeadcountTab->ApplyTextFormat();
 	pTextChannelHeadcountTab->SetSize(CHANNEL_HEADCOUNT_TAB_SIZE);
@@ -781,7 +781,7 @@ void Lobby::OnLoadScene()
 		pTextChannelName->SetColor(Colors::WhiteSmoke);
 		pTextChannelName->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 		pTextChannelName->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-		pTextChannelName->GetTextFormat().SetWeight(MEDIUM_TEXT_WEIGHT);
+		pTextChannelName->GetTextFormat().SetWeight(BOLD_TEXT_WEIGHT);
 		pTextChannelName->GetTextFormat().SetSize(MEDIUM_TEXT_SIZE);
 		pTextChannelName->ApplyTextFormat();
 		pTextChannelName->SetSize(CHANNEL_NAME_TAB_SIZE);
@@ -797,7 +797,7 @@ void Lobby::OnLoadScene()
 		pTextChannelHeadcount->SetColor(Colors::WhiteSmoke);
 		pTextChannelHeadcount->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 		pTextChannelHeadcount->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-		pTextChannelHeadcount->GetTextFormat().SetWeight(MEDIUM_TEXT_WEIGHT);
+		pTextChannelHeadcount->GetTextFormat().SetWeight(BOLD_TEXT_WEIGHT);
 		pTextChannelHeadcount->GetTextFormat().SetSize(MEDIUM_TEXT_SIZE);
 		pTextChannelHeadcount->ApplyTextFormat();
 		pTextChannelHeadcount->SetSize(CHANNEL_HEADCOUNT_TAB_SIZE);
@@ -813,7 +813,7 @@ void Lobby::OnLoadScene()
 		pButtonJoinChannel->SetSize(100, 26);
 		pButtonJoinChannel->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 		pButtonJoinChannel->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-		pButtonJoinChannel->GetTextFormat().SetWeight(MEDIUM_TEXT_WEIGHT);
+		pButtonJoinChannel->GetTextFormat().SetWeight(BOLD_TEXT_WEIGHT);
 		pButtonJoinChannel->GetTextFormat().SetSize(MEDIUM_TEXT_SIZE);
 		pButtonJoinChannel->ApplyTextFormat();
 	}
@@ -909,7 +909,7 @@ void Lobby::OnLoadScene()
 	pTextGameBrowserHead->SetColor(Colors::Goldenrod);
 	pTextGameBrowserHead->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pTextGameBrowserHead->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pTextGameBrowserHead->GetTextFormat().SetWeight(MEDIUM_TEXT_WEIGHT);
+	pTextGameBrowserHead->GetTextFormat().SetWeight(BOLD_TEXT_WEIGHT);
 	pTextGameBrowserHead->GetTextFormat().SetSize(MEDIUM_TEXT_SIZE);
 	pTextGameBrowserHead->ApplyTextFormat();
 	pTextGameBrowserHead->SetSize(100, 30);
@@ -949,7 +949,7 @@ void Lobby::OnLoadScene()
 	pTextGameNoTab->SetColor(Colors::Goldenrod);
 	pTextGameNoTab->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pTextGameNoTab->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pTextGameNoTab->GetTextFormat().SetWeight(MEDIUM_TEXT_WEIGHT);
+	pTextGameNoTab->GetTextFormat().SetWeight(BOLD_TEXT_WEIGHT);
 	pTextGameNoTab->GetTextFormat().SetSize(MEDIUM_TEXT_SIZE);
 	pTextGameNoTab->ApplyTextFormat();
 	pTextGameNoTab->SetSize(GAME_NO_TAB_SIZE);
@@ -966,7 +966,7 @@ void Lobby::OnLoadScene()
 	pTextGameNameTab->SetColor(Colors::Goldenrod);
 	pTextGameNameTab->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pTextGameNameTab->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pTextGameNameTab->GetTextFormat().SetWeight(MEDIUM_TEXT_WEIGHT);
+	pTextGameNameTab->GetTextFormat().SetWeight(BOLD_TEXT_WEIGHT);
 	pTextGameNameTab->GetTextFormat().SetSize(MEDIUM_TEXT_SIZE);
 	pTextGameNameTab->ApplyTextFormat();
 	pTextGameNameTab->SetSize(GAME_NAME_TAB_SIZE);
@@ -983,7 +983,7 @@ void Lobby::OnLoadScene()
 	pTextGameMapTab->SetColor(Colors::Goldenrod);
 	pTextGameMapTab->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pTextGameMapTab->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pTextGameMapTab->GetTextFormat().SetWeight(MEDIUM_TEXT_WEIGHT);
+	pTextGameMapTab->GetTextFormat().SetWeight(BOLD_TEXT_WEIGHT);
 	pTextGameMapTab->GetTextFormat().SetSize(MEDIUM_TEXT_SIZE);
 	pTextGameMapTab->ApplyTextFormat();
 	pTextGameMapTab->SetSize(GAME_MAP_TAB_SIZE);
@@ -1000,7 +1000,7 @@ void Lobby::OnLoadScene()
 	pTextGameHeadcountTab->SetColor(Colors::Goldenrod);
 	pTextGameHeadcountTab->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pTextGameHeadcountTab->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pTextGameHeadcountTab->GetTextFormat().SetWeight(MEDIUM_TEXT_WEIGHT);
+	pTextGameHeadcountTab->GetTextFormat().SetWeight(BOLD_TEXT_WEIGHT);
 	pTextGameHeadcountTab->GetTextFormat().SetSize(MEDIUM_TEXT_SIZE);
 	pTextGameHeadcountTab->ApplyTextFormat();
 	pTextGameHeadcountTab->SetSize(GAME_HEADCOUNT_TAB_SIZE);
@@ -1017,7 +1017,7 @@ void Lobby::OnLoadScene()
 	pTextGameModeTab->SetColor(Colors::Goldenrod);
 	pTextGameModeTab->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pTextGameModeTab->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pTextGameModeTab->GetTextFormat().SetWeight(MEDIUM_TEXT_WEIGHT);
+	pTextGameModeTab->GetTextFormat().SetWeight(BOLD_TEXT_WEIGHT);
 	pTextGameModeTab->GetTextFormat().SetSize(MEDIUM_TEXT_SIZE);
 	pTextGameModeTab->ApplyTextFormat();
 	pTextGameModeTab->SetSize(GAME_MODE_TAB_SIZE);
@@ -1034,7 +1034,7 @@ void Lobby::OnLoadScene()
 	pTextGameStateTab->SetColor(Colors::Goldenrod);
 	pTextGameStateTab->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pTextGameStateTab->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pTextGameStateTab->GetTextFormat().SetWeight(MEDIUM_TEXT_WEIGHT);
+	pTextGameStateTab->GetTextFormat().SetWeight(BOLD_TEXT_WEIGHT);
 	pTextGameStateTab->GetTextFormat().SetSize(MEDIUM_TEXT_SIZE);
 	pTextGameStateTab->ApplyTextFormat();
 	pTextGameStateTab->SetSize(GAME_STATE_TAB_SIZE);
@@ -1052,7 +1052,7 @@ void Lobby::OnLoadScene()
 		pTextGameNo->SetColor(Colors::WhiteSmoke);
 		pTextGameNo->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 		pTextGameNo->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-		pTextGameNo->GetTextFormat().SetWeight(MEDIUM_TEXT_WEIGHT);
+		pTextGameNo->GetTextFormat().SetWeight(BOLD_TEXT_WEIGHT);
 		pTextGameNo->GetTextFormat().SetSize(MEDIUM_TEXT_SIZE);
 		pTextGameNo->ApplyTextFormat();
 		pTextGameNo->SetSize(GAME_NO_TAB_SIZE);
@@ -1067,7 +1067,7 @@ void Lobby::OnLoadScene()
 		pTextGameName->SetColor(Colors::WhiteSmoke);
 		pTextGameName->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 		pTextGameName->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-		pTextGameName->GetTextFormat().SetWeight(MEDIUM_TEXT_WEIGHT);
+		pTextGameName->GetTextFormat().SetWeight(BOLD_TEXT_WEIGHT);
 		pTextGameName->GetTextFormat().SetSize(MEDIUM_TEXT_SIZE);
 		pTextGameName->ApplyTextFormat();
 		pTextGameName->SetSize(GAME_NAME_TAB_SIZE);
@@ -1082,7 +1082,7 @@ void Lobby::OnLoadScene()
 		pTextGameMap->SetColor(Colors::WhiteSmoke);
 		pTextGameMap->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 		pTextGameMap->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-		pTextGameMap->GetTextFormat().SetWeight(MEDIUM_TEXT_WEIGHT);
+		pTextGameMap->GetTextFormat().SetWeight(BOLD_TEXT_WEIGHT);
 		pTextGameMap->GetTextFormat().SetSize(MEDIUM_TEXT_SIZE);
 		pTextGameMap->ApplyTextFormat();
 		pTextGameMap->SetSize(GAME_MAP_TAB_SIZE);
@@ -1097,7 +1097,7 @@ void Lobby::OnLoadScene()
 		pTextGameHeadcount->SetColor(Colors::WhiteSmoke);
 		pTextGameHeadcount->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 		pTextGameHeadcount->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-		pTextGameHeadcount->GetTextFormat().SetWeight(MEDIUM_TEXT_WEIGHT);
+		pTextGameHeadcount->GetTextFormat().SetWeight(BOLD_TEXT_WEIGHT);
 		pTextGameHeadcount->GetTextFormat().SetSize(MEDIUM_TEXT_SIZE);
 		pTextGameHeadcount->ApplyTextFormat();
 		pTextGameHeadcount->SetSize(GAME_HEADCOUNT_TAB_SIZE);
@@ -1112,7 +1112,7 @@ void Lobby::OnLoadScene()
 		pTextGameMode->SetColor(Colors::WhiteSmoke);
 		pTextGameMode->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 		pTextGameMode->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-		pTextGameMode->GetTextFormat().SetWeight(MEDIUM_TEXT_WEIGHT);
+		pTextGameMode->GetTextFormat().SetWeight(BOLD_TEXT_WEIGHT);
 		pTextGameMode->GetTextFormat().SetSize(MEDIUM_TEXT_SIZE);
 		pTextGameMode->ApplyTextFormat();
 		pTextGameMode->SetSize(GAME_MODE_TAB_SIZE);
@@ -1127,7 +1127,7 @@ void Lobby::OnLoadScene()
 		pTextGameState->SetColor(Colors::GreenYellow);
 		pTextGameState->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 		pTextGameState->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-		pTextGameState->GetTextFormat().SetWeight(MEDIUM_TEXT_WEIGHT);
+		pTextGameState->GetTextFormat().SetWeight(BOLD_TEXT_WEIGHT);
 		pTextGameState->GetTextFormat().SetSize(MEDIUM_TEXT_SIZE);
 		pTextGameState->ApplyTextFormat();
 		pTextGameState->SetSize(GAME_STATE_TAB_SIZE);
@@ -1144,7 +1144,7 @@ void Lobby::OnLoadScene()
 		pButtonJoinGameRoom->SetButtonColorA(0.0f);
 		pButtonJoinGameRoom->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 		pButtonJoinGameRoom->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-		pButtonJoinGameRoom->GetTextFormat().SetWeight(MEDIUM_TEXT_WEIGHT);
+		pButtonJoinGameRoom->GetTextFormat().SetWeight(BOLD_TEXT_WEIGHT);
 		pButtonJoinGameRoom->GetTextFormat().SetSize(MEDIUM_TEXT_SIZE);
 		pButtonJoinGameRoom->ApplyTextFormat();
 	}
@@ -1550,7 +1550,7 @@ void Lobby::OnLoadScene()
 	pTextGameRoomInfo->SetColor(Colors::WhiteSmoke);
 	pTextGameRoomInfo->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 	pTextGameRoomInfo->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
-	pTextGameRoomInfo->GetTextFormat().SetWeight(MEDIUM_TEXT_WEIGHT);
+	pTextGameRoomInfo->GetTextFormat().SetWeight(BOLD_TEXT_WEIGHT);
 	pTextGameRoomInfo->GetTextFormat().SetSize(MEDIUM_TEXT_SIZE);
 	pTextGameRoomInfo->ApplyTextFormat();
 	pTextGameRoomInfo->SetSize(GAME_ROOM_INFO_TEXT_SIZE);
@@ -1580,7 +1580,7 @@ void Lobby::OnLoadScene()
 	pTextGameRoomNamePanel->SetColor(Colors::WhiteSmoke);
 	pTextGameRoomNamePanel->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 	pTextGameRoomNamePanel->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pTextGameRoomNamePanel->GetTextFormat().SetWeight(MEDIUM_TEXT_WEIGHT);
+	pTextGameRoomNamePanel->GetTextFormat().SetWeight(BOLD_TEXT_WEIGHT);
 	pTextGameRoomNamePanel->GetTextFormat().SetSize(MEDIUM_TEXT_SIZE);
 	pTextGameRoomNamePanel->ApplyTextFormat();
 	pTextGameRoomNamePanel->SetSize(GAME_ROOM_NAME_PANEL_TEXT_SIZE);
@@ -1601,7 +1601,7 @@ void Lobby::OnLoadScene()
 	pButtonMoveToRedTeam->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 	pButtonMoveToRedTeam->SetText(L"RED TEAM");
 	pButtonMoveToRedTeam->GetTextFormat().SetSize(40);
-	pButtonMoveToRedTeam->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
+	pButtonMoveToRedTeam->GetTextFormat().SetWeight(BOLD_TEXT_WEIGHT);
 	pButtonMoveToRedTeam->ApplyTextFormat();
 	pButtonMoveToRedTeam->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickMoveToRedTeam));
 
@@ -1619,7 +1619,7 @@ void Lobby::OnLoadScene()
 	pButtonMoveToBlueTeam->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 	pButtonMoveToBlueTeam->SetText(L"BLUE TEAM");
 	pButtonMoveToBlueTeam->GetTextFormat().SetSize(40);
-	pButtonMoveToBlueTeam->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
+	pButtonMoveToBlueTeam->GetTextFormat().SetWeight(BOLD_TEXT_WEIGHT);
 	pButtonMoveToBlueTeam->ApplyTextFormat();
 	pButtonMoveToBlueTeam->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickMoveToBlueTeam));
 
@@ -1658,10 +1658,10 @@ void Lobby::OnLoadScene()
 		pTextGameRoomRedTeamPlayer->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 		pTextGameRoomRedTeamPlayer->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 		pTextGameRoomRedTeamPlayer->m_transform.SetPosition(FIRST_GAME_ROOM_RED_TEAM_PLAYER_NAME_TEXT_OFFSET.x, FIRST_GAME_ROOM_RED_TEAM_PLAYER_NAME_TEXT_OFFSET.y - i * (GAME_ROOM_PLAYER_NAME_TEXT_SIZE.y + 20));
-		pTextGameRoomRedTeamPlayer->SetColor(Colors::WhiteSmoke);
+		pTextGameRoomRedTeamPlayer->SetColor(Colors::White);
 		pTextGameRoomRedTeamPlayer->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 		pTextGameRoomRedTeamPlayer->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-		pTextGameRoomRedTeamPlayer->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
+		pTextGameRoomRedTeamPlayer->GetTextFormat().SetWeight(BOLD_TEXT_WEIGHT);
 		pTextGameRoomRedTeamPlayer->GetTextFormat().SetSize(MEDIUM_TEXT_SIZE);
 		pTextGameRoomRedTeamPlayer->ApplyTextFormat();
 		pTextGameRoomRedTeamPlayer->SetSize(GAME_ROOM_PLAYER_NAME_TEXT_SIZE);
@@ -1673,10 +1673,10 @@ void Lobby::OnLoadScene()
 		pTextGameRoomBlueTeamPlayer->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 		pTextGameRoomBlueTeamPlayer->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 		pTextGameRoomBlueTeamPlayer->m_transform.SetPosition(FIRST_GAME_ROOM_BLUE_TEAM_PLAYER_NAME_TEXT_OFFSET.x, FIRST_GAME_ROOM_BLUE_TEAM_PLAYER_NAME_TEXT_OFFSET.y - i * (GAME_ROOM_PLAYER_NAME_TEXT_SIZE.y + 20));
-		pTextGameRoomBlueTeamPlayer->SetColor(Colors::WhiteSmoke);
+		pTextGameRoomBlueTeamPlayer->SetColor(Colors::White);
 		pTextGameRoomBlueTeamPlayer->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 		pTextGameRoomBlueTeamPlayer->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-		pTextGameRoomBlueTeamPlayer->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
+		pTextGameRoomBlueTeamPlayer->GetTextFormat().SetWeight(BOLD_TEXT_WEIGHT);
 		pTextGameRoomBlueTeamPlayer->GetTextFormat().SetSize(MEDIUM_TEXT_SIZE);
 		pTextGameRoomBlueTeamPlayer->ApplyTextFormat();
 		pTextGameRoomBlueTeamPlayer->SetSize(GAME_ROOM_PLAYER_NAME_TEXT_SIZE);

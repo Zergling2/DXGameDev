@@ -14,26 +14,17 @@ Transform::Transform(GameObject* pGameObject)
 	XMStoreFloat3A(&m_position, XMVectorZero());
 }
 
-XMMATRIX Transform::GetParentWorldTransformMatrix() const
-{
-    if (m_pParent)
-        return m_pParent->GetWorldTransformMatrix();
-    else
-        return XMMatrixIdentity();
-}
-
 XMMATRIX Transform::GetWorldTransformMatrix() const
 {
-    XMVECTOR s;
-    XMVECTOR r;
-    XMVECTOR t;
+    // SRT
+    XMMATRIX localMatrix = XMMatrixScalingFromVector(XMLoadFloat3A(&m_scale)) * XMMatrixRotationQuaternion(XMLoadFloat4A(&m_rotation));
+    localMatrix.r[3] = XMVectorSetW(XMLoadFloat3A(&m_position), 1.0f);
 
-    this->GetWorldTransform(&s, &r, &t);
 
-    XMMATRIX m = XMMatrixMultiply(XMMatrixScalingFromVector(s), XMMatrixRotationQuaternion(r));
-    m.r[3] = XMVectorSetW(t, 1.0f);
-
-    return m;
+    if (m_pParent == nullptr)
+        return localMatrix;     // 부모가 없으면 local == world
+    else
+        return localMatrix * m_pParent->GetWorldTransformMatrix();
 }
 
 void Transform::GetWorldTransform(XMFLOAT3* pScale, XMFLOAT4* pRotation, XMFLOAT3* pPosition) const
@@ -52,22 +43,15 @@ void Transform::GetWorldTransform(XMFLOAT3* pScale, XMFLOAT4* pRotation, XMFLOAT
     XMStoreFloat3(pPosition, translation);
 }
 
-void Transform::GetWorldTransform(XMFLOAT3A* pScale, XMFLOAT4A* pRotation, XMFLOAT3A* pPosition) const
+void Transform::GetWorldTransform(XMVECTOR* pScale, XMVECTOR* pRotation, XMVECTOR* pPosition) const
 {
-    assert(pScale != nullptr);
-    assert(pRotation != nullptr);
-    assert(pPosition != nullptr);
-
-    XMVECTOR scale;
-    XMVECTOR rotation;	// Quaternion
-    XMVECTOR translation;
-    this->GetWorldTransform(&scale, &rotation, &translation);
-
-    XMStoreFloat3A(pScale, scale);
-    XMStoreFloat4A(pRotation, rotation);
-    XMStoreFloat3A(pPosition, translation);
+    XMMatrixDecompose(pScale, pRotation, pPosition, GetWorldTransformMatrix());
 }
 
+/*
+###############DEPRECATED##############
+###############DEPRECATED##############
+###############DEPRECATED##############
 void Transform::GetWorldTransform(XMVECTOR* pScale, XMVECTOR* pRotation, XMVECTOR* pPosition) const
 {
     assert(pScale != nullptr);
@@ -105,21 +89,27 @@ void Transform::GetWorldTransform(XMVECTOR* pScale, XMVECTOR* pRotation, XMVECTO
         // -> 로컬 좌표계는 부모의 공간 기준으로 정의된 좌표계이다.
         // 이 로컬 좌표계는 부모의 월드 Transform 의해 변형된다.
         // 즉,
-        // 1. World Scale = Sl       // 일단 자기 자신의 공간에서의 스케일 값
-        // 2. World Scale = World Scale * Sp  // 그것이 부모의 월드 변환에 의해 변환됨.
-
-        // 1. World Rotation = Ql        // 회전은 자기 자신의 공간에서의 회전
-        // 2. World Rotation = World Rotation * Qp   // 그것이 부모의 월드 회전에 의해 변환됨.
-
-        // 1. World Pos = Pl
-        // 2. World Pos = World Pos * Qp
-        // 3. World Pos = World Pos + Pp
-
+        // 1. S(local)                                      // 자기 자신의 공간에서의 스케일 값
+        // 2. World Scale = S(local) * S(parent world)      // 자식의 로컬 스케일이 부모의 월드 스케일에 의해 변환됨.
+        //                                                      (자식의 스케일에 영향을 미치는건 부모의 스케일뿐)
         XMVECTOR scaleW = XMVectorMultiply(scaleL, parentScaleW);
 
+
+        // 1. Q(local)                                      // 자기 자신의 공간에서의 회전 값
+        // 2. World Rotation = Q(local) * Q(parent world)   // 자식의 로컬 회전이 부모의 월드 회전에 의해 변환됨.
+        //                                                      (자식의 회전에 영향을 미치는건 부모의 회전뿐)
         // v' = q * v * inv(q)
         // rotationW = parentRotationW(rotationL(v))
         XMVECTOR rotationW = XMQuaternionMultiply(rotationL, parentRotationW);  // rotationL 회전 먼저, parentRotationW 회전이 그 다음
+
+
+        // 1. T(local)                                      // 자기 자신의 공간에서의 이동 값
+        // 2. T(local) * S(parent world)                    // 자식의 로컬 이동이 부모의 스케일에 의해 변환됨.
+        // 3. T(local) * S(parent world) * Q(parent world)  // 자식의 로컬 이동이 부모의 회전에 의해 변환됨.
+        //                                                      (자식의 이동은 부모의 회전에 의해 변형됨)
+        // 4. T(local) * S(parent world) * Q(parent world) + P(parent world)    // 마지막으로 부모의 월드 이동을 더해준다.
+
+
 
         // 1. 자식의 이동 성분은 부모의 스케일에 영향을 받는다.
         XMVECTOR scaledTranslationL = XMVectorMultiply(translationL, parentScaleW);
@@ -133,6 +123,7 @@ void Transform::GetWorldTransform(XMVECTOR* pScale, XMVECTOR* pRotation, XMVECTO
         *pPosition = translationW;
     }
 }
+*/
 
 XMVECTOR Transform::GetWorldScale() const
 {
@@ -179,6 +170,29 @@ void XM_CALLCONV Transform::RotateQuaternion(FXMVECTOR quaternion)
 void XM_CALLCONV Transform::RotateEuler(FXMVECTOR euler)
 {
     return XMStoreFloat4A(&m_rotation, XMQuaternionNormalize(XMQuaternionMultiply(XMLoadFloat4A(&m_rotation), XMQuaternionRotationRollPitchYawFromVector(euler))));
+}
+
+void Transform::SetWorldPosition(FLOAT x, FLOAT y, FLOAT z)
+{
+    // 1. Local transform matrix * Parent world transform matrix = World transform matrix
+    // 
+    // 2. Local transform matrix * Parent world transform matrix * Parent world transform matrix(Inv) = World transform matrix * Parent world transform matrix(Inv)
+    // 
+    // 3. 결합법칙에 따라 Local transform matrix = World transform matrix * Parent world transform matrix(Inv)
+
+    if (m_pParent == nullptr)
+    {
+        m_position.x = x;
+        m_position.y = y;
+        m_position.z = z;
+    }
+    else
+    {
+        XMMATRIX invParentWorldMatrix = XMMatrixInverse(nullptr, m_pParent->GetWorldTransformMatrix());
+        XMVECTOR localPosition = XMVector3TransformCoord(XMVectorSet(x, y, z, 1.0f), invParentWorldMatrix);
+
+        XMStoreFloat3A(&m_position, localPosition);
+    }
 }
 
 bool Transform::SetParent(Transform* pTransform)

@@ -19,25 +19,25 @@ namespace ze
 		~Transform() = default;
 		Transform& operator=(const Transform&) = delete;
 
-		// 부모의 월드 변환 행렬을 반환합니다.
-		// 부모가 없는 루트 오브젝트인 경우 Identity 행렬이 반환됩니다.
-		XMMATRIX GetParentWorldTransformMatrix() const;
-
+		// 월드 변환 행렬을 계산합니다.
 		XMMATRIX GetWorldTransformMatrix() const;
 
-		// pScale: 월드 스케일이 반환됩니다.
-		// pRotation: 월드 회전이 쿼터니언으로 반환됩니다.
-		// pPosition: 월드 위치가 반환됩니다.
+		/**
+		* @brief 월드 변환을 계산합니다.
+		* 
+		* @param pScale 월드 스케일을 획득할 버퍼.
+		* @param pRotation 월드 회전(쿼터니언)을 획득할 버퍼.
+		* @param pPosition 월드 위치를 획득할 버퍼.
+		*/
 		void GetWorldTransform(XMFLOAT3* pScale, XMFLOAT4* pRotation, XMFLOAT3* pPosition) const;
 
-		// pScale: 월드 스케일이 반환됩니다.
-		// pRotation: 월드 회전이 쿼터니언으로 반환됩니다.
-		// pPosition: 월드 위치가 반환됩니다.
-		void GetWorldTransform(XMFLOAT3A* pScale, XMFLOAT4A* pRotation, XMFLOAT3A* pPosition) const;
-
-		// pScale: 월드 스케일이 반환됩니다.
-		// pRotation: 월드 회전이 쿼터니언으로 반환됩니다.
-		// pPosition: 월드 위치가 반환됩니다.
+		/**
+		* @brief 월드 변환을 계산합니다.
+		*
+		* @param pScale 월드 스케일을 획득할 버퍼.
+		* @param pRotation 월드 회전(쿼터니언)을 획득할 버퍼.
+		* @param pPosition 월드 위치를 획득할 버퍼.
+		*/
 		void GetWorldTransform(XMVECTOR* pScale, XMVECTOR* pRotation, XMVECTOR* pPosition) const;
 
 		// 현재 로컬 스케일을 반환합니다.
@@ -127,6 +127,8 @@ namespace ze
 		void SetPosition(const XMFLOAT3A& position) { m_position = position; }
 		void SetPosition(const XMFLOAT3& position) { m_position.x = position.x;	m_position.y = position.y; m_position.z = position.z; }
 		void SetPosition(FLOAT x, FLOAT y, FLOAT z) { m_position.x = x;	m_position.y = y; m_position.z = z;	}
+		void SetWorldPosition(const XMFLOAT3& position) { SetWorldPosition(position.x, position.y, position.z); }
+		void SetWorldPosition(FLOAT x, FLOAT y, FLOAT z);
 		FLOAT GetPositionX() const { return m_position.x; }
 		FLOAT GetPositionY() const { return m_position.y; }
 		FLOAT GetPositionZ() const { return m_position.z; }

@@ -17,58 +17,73 @@ Channel::Channel(uint8_t id, size_t maxPlayer)
 		m_gameRoomNoStk.push(i);
 }
 
-bool Channel::AddPlayer(Player* pPlayer)
+void Channel::AddPlayer(winppy::TCPServer& server, Player* pPlayer)
 {
+	bool result;
+
 	if (m_players.size() == m_maxPlayer)
-		return false;
+	{
+		result = false;
+	}
+	else
+	{
+		m_players.insert(pPlayer);
+		pPlayer->MarkEnterChannel(m_id);
 
-	m_players.insert(pPlayer);
-	pPlayer->MarkEnterChannel(m_id);
+		result = true;
+	}
 
-	return true;
+	// 패킷 전송
+	SCResJoinChannel res;
+	res.m_result = result;
+
+	winppy::Packet pktResJoinChannel;
+	pktResJoinChannel->Write(static_cast<protocol_type>(Protocol::SC_RES_JOIN_CHANNEL));
+	pktResJoinChannel->WriteBytes(&res, sizeof(res));
+
+	server.Send(pPlayer->GetSession()->GetNetId(), std::move(pktResJoinChannel));
 }
 
-void Channel::RemovePlayer(Player* pPlayer)
+void Channel::RemovePlayer(winppy::TCPServer& server, Player* pPlayer)
 {
 	auto iter = m_players.find(pPlayer);
-	if (iter != m_players.end())
-	{
-		(*iter)->MarkExitChannel();
-		m_players.erase(iter);
-	}
+	if (iter == m_players.end())
+		return;
+
+
+	(*iter)->MarkExitChannel();
+	m_players.erase(iter);
+
+
+	// 패킷 전송
+	SCResExitGameChannel res;
+	res.m_result = true;
+
+	winppy::Packet pkt;
+	pkt->Write(static_cast<protocol_type>(Protocol::SC_RES_EXIT_GAME_CHANNEL));
+	pkt->WriteBytes(&res, sizeof(res));
+
+	server.Send(pPlayer->GetSession()->GetNetId(), std::move(pkt));
 }
 
-void Channel::BroadcastPacket(winppy::TCPServer& server, winppy::Packet packet) const
-{
-	for (const auto& pPlayer : m_players)
-		server.Send(pPlayer->GetSession()->GetNetId(), packet);
-}
-
-void Channel::BroadcastPacketToPlayersNotInRoom(winppy::TCPServer& server, winppy::Packet packet) const
-{
-	for (const auto& pPlayer : m_players)
-	{
-		if (pPlayer->IsInRoom())
-			continue;
-
-		server.Send(pPlayer->GetSession()->GetNetId(), packet);
-	}
-}
-
-GameRoom* Channel::CreateGameRoom(GameRoomTeamFormat tf, const wchar_t* roomName)
+bool Channel::CreateGameRoom(winppy::TCPServer& server, GameRoomTeamFormat tf, const wchar_t* roomName, Player* pHost)
 {
 	if (m_gameRoomNoStk.empty())
-		return nullptr;
+		return false;
 
+	// 게임 방 번호 발급
 	const uint16_t roomNo = m_gameRoomNoStk.top();
 	m_gameRoomNoStk.pop();
 
+
+
+
 	constexpr GameMap DEFAULT_GAME_MAP = GameMap::tdm_warehouse;
 	std::unique_ptr<GameRoom> upNewGameRoom = std::make_unique<GameRoom>(this->CreateGameRoomId(), roomNo, tf, DEFAULT_GAME_MAP, roomName);
-	GameRoom* pGameRoom = upNewGameRoom.get();
+	upNewGameRoom->AddPlayerAsHost(server, pHost);
 
 	m_gameRooms.insert(std::make_pair(upNewGameRoom->GetId(), std::move(upNewGameRoom)));
-	return pGameRoom;
+	return true;
 }
 
 void Channel::RemoveGameRoom(uint64_t roomId)
@@ -96,9 +111,9 @@ GameRoom* Channel::FindRoom(uint64_t roomId) const
 		return iter->second.get();
 }
 
-std::vector<winppy::Packet> Channel::CreateGameRoomListPackets(uint32_t reqContextNo) const
+void Channel::SendGameRoomLists(winppy::TCPServer& server, const Player* pReceiver, uint32_t reqContextNo) const
 {
-	std::vector<winppy::Packet> pkts;
+	const uint64_t receiverNetId = pReceiver->GetSession()->GetNetId();
 
 	SCResGameRoomList res;
 	res.m_reqContextNo = reqContextNo;
@@ -106,9 +121,9 @@ std::vector<winppy::Packet> Channel::CreateGameRoomListPackets(uint32_t reqConte
 	auto iter = m_gameRooms.cbegin();
 	do
 	{
-		winppy::Packet outPkt;
-		outPkt->Write(static_cast<protocol_type>(Protocol::SC_RES_GAME_ROOM_LIST));
-		outPkt->WriteBytes(&res, sizeof(res));
+		winppy::Packet pkt;
+		pkt->Write(static_cast<protocol_type>(Protocol::SC_RES_GAME_ROOM_LIST));
+		pkt->WriteBytes(&res, sizeof(res));
 
 		while (iter != m_gameRooms.cend())
 		{
@@ -116,7 +131,7 @@ std::vector<winppy::Packet> Channel::CreateGameRoomListPackets(uint32_t reqConte
 
 			SCResGameRoomListItem resItem;
 
-			if (outPkt->WriteableSize() < sizeof(resItem))
+			if (pkt->WriteableSize() < sizeof(resItem))
 				break;
 
 			const GameRoom* pGameRoom = iter->second.get();
@@ -131,14 +146,28 @@ std::vector<winppy::Packet> Channel::CreateGameRoomListPackets(uint32_t reqConte
 			assert(resItem.m_nameLen <= MAX_GAME_ROOM_NAME_LEN);
 			wmemcpy(resItem.m_name, pGameRoom->GetName().c_str(), resItem.m_nameLen);
 
-			if (!outPkt->WriteBytes(&resItem, sizeof(resItem)))
-				break;
+			assert(pkt->WriteBytes(&resItem, sizeof(resItem)));
 
 			++iter;
 		}
 
-		pkts.push_back(std::move(outPkt));
+		server.Send(receiverNetId, std::move(pkt));
 	} while (iter != m_gameRooms.cend());
+}
 
-	return pkts;
+void Channel::BroadcastPacket(winppy::TCPServer& server, winppy::Packet packet) const
+{
+	for (const auto& pPlayer : m_players)
+		server.Send(pPlayer->GetSession()->GetNetId(), packet);
+}
+
+void Channel::BroadcastPacketExceptInRoomPlayers(winppy::TCPServer& server, winppy::Packet packet) const
+{
+	for (const auto& pPlayer : m_players)
+	{
+		if (pPlayer->IsInRoom())
+			continue;
+
+		server.Send(pPlayer->GetSession()->GetNetId(), packet);
+	}
 }

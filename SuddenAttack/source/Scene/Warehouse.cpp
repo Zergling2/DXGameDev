@@ -478,6 +478,18 @@ void Warehouse::CreateBarrelImpl(size_t matIndex, const XMFLOAT3& pos, const XMF
 
 void Warehouse::OnLoadScene()
 {
+	{
+		GameObjectHandle hGameObjectTest = CreateGameObject();
+		GameObject* pGameObjectTest = hGameObjectTest.ToPtr();
+
+		pGameObjectTest->m_transform.SetPosition(0, 3, 0);
+
+		pGameObjectTest->AddComponent<Rigidbody>(std::make_shared<CapsuleCollider>(0.2f, 1.0f));
+	}
+	
+
+
+
 	// ## Lights
 	{
 		GameObjectHandle hSun = CreateGameObject(L"house light1");
@@ -504,10 +516,9 @@ void Warehouse::OnLoadScene()
 	{
 		GameObjectHandle hGameObjectPlayer = CreateGameObject(L"Player");
 		GameObject* pGameObjectPlayer = hGameObjectPlayer.ToPtr();
-
-		hScriptPlayer = pGameObjectPlayer->AddComponent<Player>();		// 1인칭 카메라 조작
-
 		pGameObjectPlayer->m_transform.SetPosition(-7.0f, 4.0f, -5.0f);
+
+		hScriptPlayer = pGameObjectPlayer->AddComponent<Player>();		// 플레이어 스크립트
 	}
 	Player* pScriptPlayer = hScriptPlayer.ToPtr();
 

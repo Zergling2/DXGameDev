@@ -3,23 +3,24 @@
 #include "Protocol.h"
 #include "LobbyHandler.h"
 #include "Account.h"
+#include "..\Resource\GameInfo.h"
 
 using namespace ze;
 
-void Client::OnConnect()
+void SAClient::OnConnect()
 {
 	printf("Connected to the SAServer.\n");
 	m_network.m_connected = true;
 }
 
-void Client::OnReceive(winppy::Packet packet)
+void SAClient::OnReceive(winppy::Packet packet)
 {
 	AcquireSRWLockExclusive(&m_network.m_lock);
 	m_network.m_packetQueue.push(std::move(packet));
 	ReleaseSRWLockExclusive(&m_network.m_lock);
 }
 
-void Client::OnDisconnect()
+void SAClient::OnDisconnect()
 {
 	printf("Disconnected from the SAServer.\n");
 	m_network.m_disconnectJobDone = true;
@@ -32,11 +33,13 @@ Network::Network(ze::GameObject& owner)
 	, m_packetQueue()
 	, m_connected(false)
 	, m_disconnectJobDone(false)
+	, m_hostType(ENetHostType::None)
+	, m_pHost(nullptr)
 {
 	InitializeSRWLock(&m_lock);
 }
 
-void Network::Start()
+void Network::Awake()
 {
 	winppy::TCPClientEngineConfig config;
 	config.m_headerCode = HEADER_CODE;
@@ -50,9 +53,76 @@ void Network::Start()
 	m_client.Init(desc);
 
 	m_client.Connect(L"127.0.0.1", SASERVER_PORT);
+
+	// ENet 초기화
+	if (enet_initialize() != 0)
+	{
+		ze::Runtime::GetInstance()->GetSyncFileLogger().Write(L"enet 초기화 실패!\n");
+	}
+	else
+	{
+		atexit(enet_deinitialize);
+	}
 }
 
 void Network::Update()
+{
+	PktProcFromSAServer();
+
+	//ENetEvent event;
+	//while (enet_host_service(client, &event, 0) > 0)
+	//{
+	//	switch (event.type)
+	//	{
+	//	case ENET_EVENT_TYPE_CONNECT:
+	//		printf("A new client connected from %x:%u.\n",
+	//			event.peer->address.host,
+	//			event.peer->address.port);
+	//
+	//		/* Store any relevant client information here. */
+	//		event.peer->data = "Client information";
+	//		break;
+	//	case ENET_EVENT_TYPE_RECEIVE:
+	//		printf("A packet of length %u containing %s was received from %s on channel %u.\n",
+	//			event.packet->dataLength,
+	//			event.packet->data,
+	//			event.peer->data,
+	//			event.channelID);
+	//
+	//		/* Clean up the packet now that we're done using it. */
+	//		enet_packet_destroy(event.packet);
+	//		break;
+	//	case ENET_EVENT_TYPE_DISCONNECT:
+	//		printf("%s disconnected.\n", event.peer->data);
+	//
+	//		/* Reset the peer's client information. */
+	//
+	//		event.peer->data = NULL;
+	//		break;
+	//	}
+	//}
+}
+
+void Network::OnDestroy()
+{
+	if (m_pHost)
+	{
+		enet_host_destroy(m_pHost);
+		m_pHost = nullptr;
+	}
+
+	m_client.Disconnect();
+
+	while (m_connected && !m_disconnectJobDone)
+	{
+		printf("Waiting disconnect job done!\n");
+		Sleep(5);
+	}
+
+	m_ce.Release();
+}
+
+void Network::PktProcFromSAServer()
 {
 	AcquireSRWLockExclusive(&m_lock);
 	while (!m_packetQueue.empty())
@@ -95,8 +165,8 @@ void Network::Update()
 		case Protocol::SC_RES_JOIN_GAME_ROOM:
 			PktProcSCResJoinGameRoom(std::move(packet));
 			break;
-		case Protocol::SC_RES_HOST_GAME_START:
-			PktProcSCResHostGameStart(std::move(packet));
+		case Protocol::SC_RES_HOST_GAME_STARTABLE_STATE:
+			PktProcSCResHostGameStartableState(std::move(packet));
 			break;
 		case Protocol::SC_RES_EXIT_GAME_ROOM:
 			PktProcSCResExitGameRoom(std::move(packet));
@@ -122,34 +192,17 @@ void Network::Update()
 		case Protocol::SC_NOTIFY_HOST_CHANGED:
 			PktProcSCNotifyHostChanged(std::move(packet));
 			break;
-		case Protocol::SC_NOTIFY_HOST_GAME_START:
-			//PktProcSCNotifyHostGameStart(std::move(packet));
+		case Protocol::SC_NOTIFY_HOST_GAME_STARTED:
+			PktProcSCNotifyHostGameStarted(std::move(packet));
 			break;
-		case Protocol::SC_NOTIFY_PLAYER_GAME_READY:
-			PktProcSCNotifyPlayerGameReady(std::move(packet));
-			break;
-		case Protocol::SC_NOTIFY_PLAYER_GAME_UNREADY:
-			PktProcSCNotifyPlayerGameUnready(std::move(packet));
+		case Protocol::SC_NOTIFY_PLAYER_STATE_CHANGED:
+			PktProcSCNotifyPlayerStateChanged(std::move(packet));
 			break;
 		default:
 			break;
 		}
 	}
-
 	ReleaseSRWLockExclusive(&m_lock);
-}
-
-void Network::OnDestroy()
-{
-	m_client.Disconnect();
-
-	while (m_connected && !m_disconnectJobDone)
-	{
-		printf("Waiting disconnect job done!\n");
-		Sleep(5);
-	}
-
-	m_ce.Release();
 }
 
 void Network::PktProcSCResLogin(winppy::Packet packet)
@@ -436,19 +489,55 @@ void Network::PktProcSCResJoinGameRoom(winppy::Packet packet)
 	}
 }
 
-void Network::PktProcSCResHostGameStart(winppy::Packet packet)
+void Network::PktProcSCResHostGameStartableState(winppy::Packet packet)
 {
-	SCResHostGameStart res;
+	SCResHostGameStartableState res;
 	if (!packet->ReadBytes(&res, sizeof(res)))
 		*reinterpret_cast<int*>(0) = 0;
 
 	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
 
-	if (res.m_result == HostGameStartResult::Success)
+	switch (res.m_result)
 	{
-		// ...
+	case HostGameStartableState::Startable:
+	{
+		const GameMap mapToLoad = res.m_map;
+
+		// 0. 로비 UI 숨기기
+		pScriptLobbyHandler->HideLobbyUI();
+
+		// 1. enet 호스트 생성
+		if (m_pHost)
+		{
+			enet_host_destroy(m_pHost);
+			m_pHost = nullptr;
+		}
+
+		ENetAddress addr;
+		addr.host = ENET_HOST_ANY;
+		addr.port = ENET_HOST_PORT;
+		constexpr size_t NUM_OF_MAX_PEER = 32;
+		constexpr size_t NUM_OF_CHANNELS = 2;
+
+		// 0 채널은 Reliable, 1 채널은 Fastest
+		m_pHost = enet_host_create(
+			&addr,	/* the address to bind the server host to */
+			32,		/* allow up to 32 clients and/or outgoing connections */
+			2,		/* allow up to 2 channels to be used, 0 and 1 */
+			0,		/* assume any amount of incoming bandwidth */
+			0		/* assume any amount of outgoing bandwidth */
+		);
+
+		// 2. enet 호스트 생성이 완료되면 서버로 호스트 정보 전달
+		// (서버에서 방에 입장해있는 플레이어들에게 enet 호스트 엔드포인트 정보를 브로드캐스트)
+
+		additional code...
+		
+		// 3. 서버에서 지정한 맵 씬 로드 및 다른 플레이어 입장 대기
+		SceneManager::GetInstance()->LoadScene(GameMapInfo::GetMapNameString(mapToLoad));
 	}
-	else if (res.m_result == HostGameStartResult::NotReady)
+		break;
+	case HostGameStartableState::NotReady:
 	{
 		Text* pTextOkMsgBoxMsg = static_cast<Text*>(pScriptLobbyHandler->m_hTextOkMsgBoxMsg.ToPtr());
 		pTextOkMsgBoxMsg->SetText(L"상대팀 플레이어중 적어도 한 명 이상이 준비 완료 상태이어야 합니다.");
@@ -456,6 +545,10 @@ void Network::PktProcSCResHostGameStart(winppy::Packet packet)
 		IUIObject* pPanelOkMsgBoxRoot = pScriptLobbyHandler->m_hPanelOkMsgBoxRoot.ToPtr();
 		pPanelOkMsgBoxRoot->m_transform.SetParent(&pScriptLobbyHandler->m_hPanelGameRoomRoot.ToPtr()->m_transform);
 		pPanelOkMsgBoxRoot->SetActive(true);
+	}
+		break;
+	default:
+		break;
 	}
 }
 
@@ -537,24 +630,13 @@ void Network::PktProcSCNotifyHostChanged(winppy::Packet packet)
 	pScriptLobbyHandler->OnGameRoomHostChanged(notify.m_oldHostAccountId, notify.m_oldHostNewState, notify.m_newHostAccountId, notify.m_newHostNewState);
 }
 
-void Network::PktProcSCNotifyPlayerGameReady(winppy::Packet packet)
+void Network::PktProcSCNotifyPlayerStateChanged(winppy::Packet packet)
 {
-	SCNotifyPlayerGameReady notify;
-
+	SCNotifyPlayerStateChanged notify;
 	if (!packet->ReadBytes(&notify, sizeof(notify)))
 		*reinterpret_cast<int*>(0) = 0;
 
 	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
-	pScriptLobbyHandler->OnGameRoomPlayerStateChanged(notify.m_accountId, PlayerState::Ready);
+	pScriptLobbyHandler->OnGameRoomPlayerStateChanged(notify.m_accountId, notify.m_newState);
 }
 
-void Network::PktProcSCNotifyPlayerGameUnready(winppy::Packet packet)
-{
-	SCNotifyPlayerGameUnready notify;
-
-	if (!packet->ReadBytes(&notify, sizeof(notify)))
-		*reinterpret_cast<int*>(0) = 0;
-
-	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
-	pScriptLobbyHandler->OnGameRoomPlayerStateChanged(notify.m_accountId, PlayerState::None);
-}

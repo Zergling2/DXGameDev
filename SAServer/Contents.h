@@ -3,15 +3,6 @@
 #include <cstddef>
 #include <cstdint>
 
-enum class PlayerState : uint8_t
-{
-	None,
-	Ready,
-	Maintenance,
-
-	Unknown
-};
-
 enum class GameMap : uint16_t
 {
 	TeamDeathmatchMapBegin = 0,
@@ -33,6 +24,16 @@ enum class GameRoomState : uint8_t
 {
 	InWaiting,
 	InPlay
+};
+
+enum class PlayerState : uint8_t
+{
+	None,
+	Ready,
+	Maintenance,
+	Playing,
+
+	Unknown
 };
 
 enum class GameRoomTeamFormat : uint8_t

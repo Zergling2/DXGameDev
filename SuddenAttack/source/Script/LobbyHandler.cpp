@@ -638,18 +638,12 @@ void LobbyHandler::OnClickCreateGameRoomReq()
 
 void LobbyHandler::OnClickHostGameStart()
 {
-	this->HideLobbyUI();
-	SceneManager::GetInstance()->LoadScene(L"Warehouse");
-
-	// Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
-	// 
-	// if (pScriptNetwork->GetNetId() != m_gameRoomHostNetId)
-	// 	return;
-	// 
-	// winppy::Packet outPacket;
-	// outPacket->Write(static_cast<protocol_type>(Protocol::CS_REQ_HOST_GAME_START));
-	// 
-	// pScriptNetwork->GetClient().Send(std::move(outPacket));
+	Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
+	
+	winppy::Packet outPacket;
+	outPacket->Write(static_cast<protocol_type>(Protocol::CS_REQ_HOST_GAME_STARTABLE_STATE));
+	
+	pScriptNetwork->GetClient().Send(std::move(outPacket));
 }
 
 void LobbyHandler::OnClickGameReady()
@@ -902,20 +896,24 @@ void LobbyHandler::UpdateGameRoomUI()
 			wchar_t textBuf[64];
 
 			const wchar_t* prefixStr = m_gameRoomHostAccountId == player.m_accountId ? L"[방장] " : L"";
-			const wchar_t* suffixStr = L"";
+			const wchar_t* suffixStr;
 			switch (player.m_state)
 			{
 			case PlayerState::None:
-				pTextGameRoomPlayer->SetColor(ColorsLinear::LightGray);
+				pTextGameRoomPlayer->SetColor(ColorsLinear::White);
 				suffixStr = L"";
 				break;
 			case PlayerState::Ready:
-				pTextGameRoomPlayer->SetColor(ColorsLinear::Green);
+				pTextGameRoomPlayer->SetColor(ColorsLinear::LightGreen);
 				suffixStr = L" [준비완료]";
 				break;
 			case PlayerState::Maintenance:
 				pTextGameRoomPlayer->SetColor(ColorsLinear::Orange);
 				suffixStr = L" [정비중]";
+				break;
+			case PlayerState::Playing:
+				pTextGameRoomPlayer->SetColor(ColorsLinear::Red);
+				suffixStr = L" [게임중]";
 				break;
 			default:
 				pTextGameRoomPlayer->SetColor(ColorsLinear::Black);

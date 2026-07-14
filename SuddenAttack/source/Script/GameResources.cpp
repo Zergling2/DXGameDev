@@ -5,8 +5,8 @@
 
 using namespace ze;
 
-constexpr float CHARACTER_COLLIDER_RADIUS = 0.35f;
-constexpr float GROUND_CHECK_COLLIDER_RADIUS_SUBTRACT_FACTOR = 0.0125f;
+constexpr float CHARACTER_COLLIDER_RADIUS = 0.25f;
+constexpr float GROUND_CHECK_COLLIDER_HEIGHT = 0.1f;
 constexpr float ANIMATION_DEAD_FRAME_TIME = 0.01f;
 constexpr XMFLOAT3 CHARACTER_BODY_COLLIDER_HALF_EXTENTS(0.17f, 0.28f, 0.095f);
 constexpr float CHARACTER_NECK_COLLIDER_RADIUS = 0.06f;
@@ -45,9 +45,22 @@ GameResources::GameResources(ze::GameObject& owner)
 
 void GameResources::Awake()
 {
+	// 점프 초기속도 계산
+	// 등가속도 공식 3번째
+	// 2as = v^2 - v0^2
+	// v^2 = v0^2 + 2as
+	// 최고점에서는 속도가 0이므로, 0 = v0^2 + 2as
+	// 여기서 a = -g, s = h(점프 높이)
+	// v0^2 = 2gh, 따라서 v0(초기속도) = sqrt(2gh)로 정리된다.
+	constexpr float JUMP_HEIGHT = 1.0f;
+	float g = std::abs(Physics::GetInstance()->GetGravity().y * 2);
+	m_jumpSpeed = std::sqrt(2.0f * g * JUMP_HEIGHT);
+
+
 	m_errTex = ResourceLoader::GetInstance()->GetErrorTexture2D();
 	m_spCharacterCollider = std::make_shared<CapsuleCollider>(CHARACTER_COLLIDER_RADIUS, 1.7f - 2 * CHARACTER_COLLIDER_RADIUS);
-	m_spGroundCheckSweepCollider = std::make_shared<SphereCollider>(CHARACTER_COLLIDER_RADIUS - GROUND_CHECK_COLLIDER_RADIUS_SUBTRACT_FACTOR);
+	m_spGroundCheckSweepCollider = std::make_shared<CylinderCollider>(CHARACTER_COLLIDER_RADIUS, GROUND_CHECK_COLLIDER_HEIGHT);
+
 
 
 	m_spCharacterBodyCollider = std::make_shared<BoxCollider>(CHARACTER_BODY_COLLIDER_HALF_EXTENTS);
@@ -611,7 +624,7 @@ float GameResources::GetCharacterColliderRadius() const
 	return CHARACTER_COLLIDER_RADIUS;
 }
 
-float GameResources::GetGroundCheckColliderSubtractFactor() const
+float GameResources::GetGroundCheckColliderHeight() const
 {
-	return GROUND_CHECK_COLLIDER_RADIUS_SUBTRACT_FACTOR;
+	return GROUND_CHECK_COLLIDER_HEIGHT;
 }

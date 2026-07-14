@@ -80,70 +80,18 @@ void PlayerExitRoom(LogicThread& thread, Player* pPlayer)
 {
 	assert(pPlayer->IsInRoom());
 	assert(pPlayer->IsInChannel());
+	assert(pPlayer->IsInChannel());
 
-	if (pPlayer->IsInRoom())
-	{
-		const uint8_t joinedChannelId = pPlayer->GetChannelId();
-		const uint64_t joinedRoomId = pPlayer->GetRoomId();
+	const uint8_t joinedChannelId = pPlayer->GetChannelId();
+	const uint64_t joinedRoomId = pPlayer->GetRoomId();
 
-		Channel& joinedChannel = *thread.m_channel[joinedChannelId];
-		GameRoom* pGameRoom = joinedChannel.FindRoom(joinedRoomId);
-		assert(pGameRoom != nullptr);
+	Channel& joinedChannel = *thread.m_channel[joinedChannelId];
+	GameRoom* pGameRoom = joinedChannel.FindRoom(joinedRoomId);
+	assert(pGameRoom != nullptr);
 
-		const RemovePlayerResult removeResult = pGameRoom->RemovePlayer(pPlayer);
-
-		// ######################################################
-		// 나간 플레이어에게 전달되는 패킷
-		SCResExitGameRoom res;
-		res.m_result = true;
-		winppy::Packet pktResExitGameRoom;
-		pktResExitGameRoom->Write(static_cast<protocol_type>(Protocol::SC_RES_EXIT_GAME_ROOM));
-		pktResExitGameRoom->WriteBytes(&res, sizeof(res));
-		thread.m_server.Send(pPlayer->GetSession()->GetNetId(), pktResExitGameRoom);
-		// ######################################################
-
-
-		// ######################################################
-		// 나간 플레이어를 제외한 나머지 플레이어들에게 전달되는 패킷
-		SCNotifyPlayerExitGameRoom notifyPlayerExitRoom;
-		notifyPlayerExitRoom.m_accountId = pPlayer->GetAccountId();
-
-		winppy::Packet pktNotifyPlayerExitRoom;
-		pktNotifyPlayerExitRoom->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_PLAYER_EXIT_GAME_ROOM));
-		pktNotifyPlayerExitRoom->WriteBytes(&notifyPlayerExitRoom, sizeof(notifyPlayerExitRoom));
-		pGameRoom->BroadcastPacket(thread.m_server, pktNotifyPlayerExitRoom);
-
-
-		// ******************
-		// 방장이 바뀌는 경우, 새 방장의 PlayerState와 기존 방장의 PlayerState는 둘 다 None으로 해야함. (근데 정비 상태였던 경우는 예외처리 해야할듯)
-
-		if (removeResult == RemovePlayerResult::Normal)
-		{
-			// 필요한 작업 없음.
-		}
-		else if (removeResult == RemovePlayerResult::HostChanged)
-		{
-			SCNotifyHostChanged notifyHostChanged;
-			notifyHostChanged.m_oldHostAccountId = pPlayer->GetAccountId();
-			notifyHostChanged.m_oldHostNewState = pGameRoom->GetPlayerState(pGameRoom->GetHost()->GetAccountId());// 방장 위임 등으로 바뀐게 아닌 방장이 방을 나가버린 경우 Unknown 처리됨.
-			notifyHostChanged.m_newHostAccountId = pGameRoom->GetHost()->GetAccountId();
-			notifyHostChanged.m_newHostNewState = pGameRoom->GetPlayerState(pGameRoom->GetHost()->GetAccountId());
-
-			winppy::Packet pktNotifyHostChanged;
-			pktNotifyHostChanged->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_HOST_CHANGED));
-			pktNotifyHostChanged->WriteBytes(&notifyHostChanged, sizeof(notifyHostChanged));
-			pGameRoom->BroadcastPacket(thread.m_server, pktNotifyHostChanged);
-		}
-		else if (removeResult == RemovePlayerResult::LastPlayerRemoved)
-		{
-			joinedChannel.RemoveGameRoom(joinedRoomId);				// 이 이후로 roomIter & pGameRoom은 유효하지 않음
-		}
-		else
-		{
-			// ...
-		}
-		// ######################################################
-	}
+	const size_t numOfRemainingPlayers = pGameRoom->RemovePlayer(thread.m_server, pPlayer);
+	if (numOfRemainingPlayers == 0)
+		joinedChannel.RemoveGameRoom(joinedRoomId);				// 이 이후로 roomIter & pGameRoom은 유효하지 않음
 }
 
 void PlayerExitChannel(LogicThread& thread, Player* pPlayer)
@@ -152,17 +100,7 @@ void PlayerExitChannel(LogicThread& thread, Player* pPlayer)
 
 	const uint8_t joinedChannelId = pPlayer->GetChannelId();
 	Channel& channel = *thread.m_channel[joinedChannelId];
-	channel.RemovePlayer(pPlayer);
-
-	// 패킷 전송
-	SCResExitGameChannel res;
-	res.m_result = true;
-
-	winppy::Packet pktResJoinChannel;
-	pktResJoinChannel->Write(static_cast<protocol_type>(Protocol::SC_RES_EXIT_GAME_CHANNEL));
-	pktResJoinChannel->WriteBytes(&res, sizeof(res));
-
-	thread.m_server.Send(pPlayer->GetSession()->GetNetId(), std::move(pktResJoinChannel));
+	channel.RemovePlayer(thread.m_server, pPlayer);
 }
 
 void JobCreateNewSession::Execute(LogicThread& thread)
@@ -318,17 +256,7 @@ void JobReqJoinChannel::Execute(LogicThread& thread)
 	}
 
 	Channel& channel = *thread.m_channel[m_channelId];
-	const bool result = channel.AddPlayer(pPlayer);
-
-	// 패킷 전송
-	SCResJoinChannel res;
-	res.m_result = result;
-
-	winppy::Packet pktResJoinChannel;
-	pktResJoinChannel->Write(static_cast<protocol_type>(Protocol::SC_RES_JOIN_CHANNEL));
-	pktResJoinChannel->WriteBytes(&res, sizeof(res));
-
-	thread.m_server.Send(m_netId, std::move(pktResJoinChannel));
+	channel.AddPlayer(thread.m_server, pPlayer);
 }
 
 LogicThread::LogicThread(SAServer& server)
@@ -396,11 +324,11 @@ void JobReqLobbyChat::Execute(LogicThread& thread)
 	notifyLobbyChat.m_accountId = pPlayer->GetAccountId();
 	notifyLobbyChat.m_nicknameLen = pPlayer->GetNicknameLen();
 	notifyLobbyChat.m_msgLen = m_msgLen;
-	winppy::Packet pktNotifyLobbyChat;
-	pktNotifyLobbyChat->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_LOBBY_CHAT));
-	pktNotifyLobbyChat->WriteBytes(&notifyLobbyChat, sizeof(notifyLobbyChat));
-	pktNotifyLobbyChat->WriteBytes(pPlayer->GetNickname(), sizeof(wchar_t) * notifyLobbyChat.m_nicknameLen);
-	pktNotifyLobbyChat->WriteBytes(m_msg, sizeof(wchar_t) * m_msgLen);
+	winppy::Packet pkt;
+	pkt->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_LOBBY_CHAT));
+	pkt->WriteBytes(&notifyLobbyChat, sizeof(notifyLobbyChat));
+	pkt->WriteBytes(pPlayer->GetNickname(), sizeof(wchar_t) * notifyLobbyChat.m_nicknameLen);
+	pkt->WriteBytes(m_msg, sizeof(wchar_t) * m_msgLen);
 
 	if (pPlayer->IsInRoom())
 	{
@@ -411,14 +339,14 @@ void JobReqLobbyChat::Execute(LogicThread& thread)
 		const GameRoom* pGameRoom = joinedChannel.FindRoom(joinedRoomId);
 		assert(pGameRoom != nullptr);
 
-		pGameRoom->BroadcastPacket(thread.m_server, std::move(pktNotifyLobbyChat));
+		pGameRoom->BroadcastPacket(thread.m_server, std::move(pkt));
 	}
 	else
 	{
 		const uint8_t joinedChannelId = pPlayer->GetChannelId();
 		assert(joinedChannelId < CHANNEL_COUNT);
 
-		thread.m_channel[joinedChannelId]->BroadcastPacketToPlayersNotInRoom(thread.m_server, std::move(pktNotifyLobbyChat));
+		thread.m_channel[joinedChannelId]->BroadcastPacketExceptInRoomPlayers(thread.m_server, std::move(pkt));
 	}
 }
 
@@ -463,39 +391,17 @@ void JobReqCreateGameRoom::Execute(LogicThread& thread)
 
 	const uint8_t joinedChannelId = pPlayer->GetChannelId();
 	Channel& joinedChannel = *thread.m_channel[joinedChannelId];
-	GameRoom* pNewGameRoom = joinedChannel.CreateGameRoom(m_roomTeamFormat, m_roomName);
-
-	SCResCreateGameRoom res;
-	if (!pNewGameRoom)
+	if (!joinedChannel.CreateGameRoom(thread.m_server, m_roomTeamFormat, m_roomName, pPlayer))
 	{
+		SCResCreateGameRoom res;
 		res.m_result = false;
-	}
-	else
-	{
-		GameTeam joinedTeam;
-		bool b = pNewGameRoom->AddPlayerAsHost(pPlayer, joinedTeam);
-		if (!b)
-			*reinterpret_cast<int*>(0) = 0;
 
-		const GameRoomTeamFormat gameRoomTeamFormat = pNewGameRoom->GetTeamFormat();
-		const GameMap gameRoomMap = pNewGameRoom->GetMap();
+		winppy::Packet pkt;
+		pkt->Write(static_cast<protocol_type>(Protocol::SC_RES_CREATE_GAME_ROOM));
+		pkt->WriteBytes(&res, sizeof(res));
 
-		res.m_result = true;
-		res.m_gameRoomId = pNewGameRoom->GetId();
-		res.m_gameRoomNo = pNewGameRoom->GetNo();
-		res.m_gameRoomHostAccountId = pNewGameRoom->GetHost()->GetAccountId();
-		res.m_gameRoomTeamFormat = pNewGameRoom->GetTeamFormat();
-		res.m_gameMap = pNewGameRoom->GetMap();
-		res.m_joinedTeam = joinedTeam;
-		res.m_gameRoomNameLen = static_cast<uint16_t>(pNewGameRoom->GetName().length());
-		wmemcpy_s(res.m_gameRoomName, _countof(res.m_gameRoomName), pNewGameRoom->GetName().c_str(), pNewGameRoom->GetName().length());
+		thread.m_server.Send(m_netId, std::move(pkt));
 	}
-	
-	winppy::Packet pktResCreateGameRoom;
-	pktResCreateGameRoom->Write(static_cast<protocol_type>(Protocol::SC_RES_CREATE_GAME_ROOM));
-	pktResCreateGameRoom->WriteBytes(&res, sizeof(res));
-	
-	thread.m_server.Send(m_netId, std::move(pktResCreateGameRoom));
 }
 
 void JobReqGameRoomList::Execute(LogicThread& thread)
@@ -520,10 +426,7 @@ void JobReqGameRoomList::Execute(LogicThread& thread)
 
 	const uint8_t joinedChannelId = pPlayer->GetChannelId();
 	const Channel& joinedChannel = *thread.m_channel[joinedChannelId];
-	auto pkts = joinedChannel.CreateGameRoomListPackets(m_reqContextNo);
-
-	for (size_t i = 0; i < pkts.size(); ++i)
-		thread.m_server.Send(m_netId, std::move(pkts[i]));
+	joinedChannel.SendGameRoomLists(thread.m_server, pPlayer, m_reqContextNo);
 }
 
 void JobReqJoinGameRoom::Execute(LogicThread& thread)
@@ -548,60 +451,35 @@ void JobReqJoinGameRoom::Execute(LogicThread& thread)
 
 	const uint8_t joinedChannelId = pPlayer->GetChannelId();
 	Channel& joinedChannel = *thread.m_channel[joinedChannelId];
-
 	GameRoom* pGameRoom = joinedChannel.FindRoom(m_gameRoomId);
-
-	bool joinedRoom = false;
-
-	GameTeam joinedTeam = GameTeam::Unknown;
-	SCResJoinGameRoom res;
-	do
-	{
-		if (!pGameRoom)
-		{
-			res.m_result = JoinGameRoomResult::InvalidGame;
-			break;
-		}
-
-		
-		if (!pGameRoom->AddPlayer(pPlayer, joinedTeam))
-		{
-			res.m_result = JoinGameRoomResult::Full;
-			break;
-		}
-
-		joinedRoom = true;
-
-		res.m_result = JoinGameRoomResult::Success;
-		res.m_gameRoomId = pGameRoom->GetId();
-		res.m_gameRoomNo = pGameRoom->GetNo();
-		res.m_gameRoomHostAccountId = pGameRoom->GetHost()->GetAccountId();
-		res.m_gameRoomTeamFormat = pGameRoom->GetTeamFormat();
-		res.m_gameMap = pGameRoom->GetMap();
-		res.m_joinedTeam = joinedTeam;
-		res.m_gameRoomNameLen = static_cast<uint16_t>(pGameRoom->GetName().length());
-		wmemcpy_s(res.m_gameRoomName, _countof(res.m_gameRoomName), pGameRoom->GetName().c_str(), res.m_gameRoomNameLen);
-	} while (false);
-
-	winppy::Packet pktResJoinGameRoom;
-	pktResJoinGameRoom->Write(static_cast<protocol_type>(Protocol::SC_RES_JOIN_GAME_ROOM));
-	pktResJoinGameRoom->WriteBytes(&res, sizeof(res));
-	thread.m_server.Send(m_netId, std::move(pktResJoinGameRoom));
 	
-	if (!joinedRoom)
+
+	if (!pGameRoom)		// 이미 존재하지 않는 방인 경우
+	{
+		SCResJoinGameRoom res;
+		res.m_result = JoinGameRoomResult::InvalidGame;
+
+		winppy::Packet pkt;
+		pkt->Write(static_cast<protocol_type>(Protocol::SC_RES_JOIN_GAME_ROOM));
+		pkt->WriteBytes(&res, sizeof(res));
+		thread.m_server.Send(pPlayer->GetSession()->GetNetId(), std::move(pkt));
 		return;
+	}
 
+	if (pGameRoom->IsFull())		// 방이 다 찬 경우
+	{
+		SCResJoinGameRoom res;
+		res.m_result = JoinGameRoomResult::Full;
 
-	assert(joinedTeam != GameTeam::Unknown);
+		winppy::Packet pkt;
+		pkt->Write(static_cast<protocol_type>(Protocol::SC_RES_JOIN_GAME_ROOM));
+		pkt->WriteBytes(&res, sizeof(res));
+		thread.m_server.Send(pPlayer->GetSession()->GetNetId(), std::move(pkt));
 
-	// 먼저 들어가있던 사람들에게 전송할 패킷
-	winppy::Packet pktNotifyNewPlayer = pGameRoom->CreateGameRoomPlayerJoinedPacket(pPlayer);
-	pGameRoom->BroadcastPacketExceptPlayer(thread.m_server, std::move(pktNotifyNewPlayer), pPlayer);
+		return;
+	}
 
-	// 지금 들어간 플레이어에게 방에 존재하던 플레이어들 정보 전송
-	auto pktsGameRoomPlayers = pGameRoom->CreateGameRoomPlayerPacketsExcept(pPlayer);
-	for (size_t i = 0; i < pktsGameRoomPlayers.size(); ++i)
-		thread.m_server.Send(m_netId, std::move(pktsGameRoomPlayers[i]));
+	pGameRoom->AddPlayer(thread.m_server, pPlayer);
 }
 
 void JobReqExitGameRoom::Execute(LogicThread& thread)
@@ -623,6 +501,14 @@ void JobReqExitGameRoom::Execute(LogicThread& thread)
 		thread.m_server.Disconnect(m_netId);
 		return;
 	}
+
+	// Playing 상태(게임에 진입중인 상태 & 진입 완료한 상태 등)이면 나가기 불허.
+	const uint64_t joinedRoomId = pPlayer->GetRoomId();
+	const uint8_t joinedChannelId = pPlayer->GetChannelId();
+	Channel& joinedChannel = *thread.m_channel[joinedChannelId];
+	GameRoom* pGameRoom = joinedChannel.FindRoom(joinedRoomId);
+	if (pGameRoom->GetPlayerState(pPlayer->GetAccountId()) == PlayerState::Playing)
+		return;
 
 	PlayerExitRoom(thread, pPlayer);
 }
@@ -650,32 +536,80 @@ void JobReqChangeGameReadyState::Execute(LogicThread& thread)
 	const uint64_t joinedRoomId = pPlayer->GetRoomId();
 	const uint8_t joinedChannelId = pPlayer->GetChannelId();
 	Channel& joinedChannel = *thread.m_channel[joinedChannelId];
-
 	GameRoom* pGameRoom = joinedChannel.FindRoom(joinedRoomId);
 
-	bool ret = pGameRoom->ChangePlayerState(pPlayer->GetAccountId(), m_ready ? PlayerState::Ready : PlayerState::None);
-	if (!ret)
+	pGameRoom->ChangePlayerState(thread.m_server, pPlayer->GetAccountId(), m_ready ? PlayerState::Ready : PlayerState::None);
+}
+
+void JobReqGameStartableState::Execute(LogicThread& thread)
+{
+	const auto sessionIter = thread.m_sessions.find(m_netId);
+	if (sessionIter == thread.m_sessions.end())
 		*reinterpret_cast<int*>(0) = 0;
 
-	winppy::Packet pktNotifyReadyStateChanged;
-	if (m_ready)
+	const Session* pSession = sessionIter->second.get();
+	Player* pPlayer = pSession->GetPlayer();
+	if (!pPlayer)
 	{
-		SCNotifyPlayerGameReady notify;
-		notify.m_accountId = pPlayer->GetAccountId();
-
-		pktNotifyReadyStateChanged->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_PLAYER_GAME_READY));
-		pktNotifyReadyStateChanged->WriteBytes(&notify, sizeof(notify));
-	}
-	else
-	{
-		SCNotifyPlayerGameUnready notify;
-		notify.m_accountId = pPlayer->GetAccountId();
-
-		pktNotifyReadyStateChanged->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_PLAYER_GAME_UNREADY));
-		pktNotifyReadyStateChanged->WriteBytes(&notify, sizeof(notify));
+		thread.m_server.Disconnect(m_netId);
+		return;
 	}
 
-	pGameRoom->BroadcastPacket(thread.m_server, std::move(pktNotifyReadyStateChanged));
+	if (!pPlayer->IsInChannel() || !pPlayer->IsInRoom())
+	{
+		thread.m_server.Disconnect(m_netId);
+		return;
+	}
+
+	const uint64_t joinedRoomId = pPlayer->GetRoomId();
+	const uint8_t joinedChannelId = pPlayer->GetChannelId();
+	Channel& joinedChannel = *thread.m_channel[joinedChannelId];
+	
+	GameRoom* pGameRoom = joinedChannel.FindRoom(joinedRoomId);
+	if (pGameRoom->GetHost() != pPlayer)		// 방장(게임시작 권한자)이 맞는지 확인
+	{
+		thread.m_server.Disconnect(m_netId);
+		return;
+	}
+
+	HostGameStartableResult ret = pGameRoom->IsGameStartable();	// 방장의 상대팀에 한 명 이상의 플레이어가 레디 상태인지 검사하는 함수 호출
+	assert(ret != HostGameStartableResult::Unknown);
+	switch (ret)
+	{
+	case HostGameStartableResult::AlreadyStarted:
+		// 무시 (아무 작업도 하지 않음) (게임시작 버튼 빠르게 여러번 클릭 시 가능한 상황)
+		break;
+	case HostGameStartableResult::Startable:
+	{
+		pGameRoom->ChangeReadyPlayersAndHostStateToPlaying(thread.m_server);	// 준비 상태 플레이어 & 방장의 퇴장 불허
+		pGameRoom->SetState(GameRoomState::InPlay);				// 게임 상태 '진행중'으로 변경
+
+		// 1. 방장에게는 SC_RES_HOST_GAME_START 패킷 전송
+		SCResHostGameStartableState res;
+		res.m_result = HostGameStartableState::Startable;
+		
+		additional code...
+
+		// 이후 방장으로부터 CS_NOTIFY_HOST_CREATED 패킷이 도착하면
+		// 레디 상태에 있는 모든 플레이어들에게 방장의 enet 호스트 정보로 연결 시도하도록 패킷 브로드캐스트
+	}
+		break;
+	case HostGameStartableResult::NotReady:
+	{
+		// 실패 패킷 전송
+		SCResHostGameStartableState res;
+		res.m_result = HostGameStartableState::NotReady;
+
+		winppy::Packet pktResHostGameStart;
+		pktResHostGameStart->Write(static_cast<protocol_type>(Protocol::SC_RES_HOST_GAME_STARTABLE_STATE));
+		pktResHostGameStart->WriteBytes(&res, sizeof(res));
+
+		thread.m_server.Send(pSession->GetNetId(), std::move(pktResHostGameStart));
+	}
+		break;
+	default:
+		break;
+	}
 }
 
 void JobReqChangeTeam::Execute(LogicThread& thread)
@@ -703,22 +637,7 @@ void JobReqChangeTeam::Execute(LogicThread& thread)
 	Channel& joinedChannel = *thread.m_channel[joinedChannelId];
 
 	GameRoom* pGameRoom = joinedChannel.FindRoom(joinedRoomId);
-	if (pGameRoom->ChangePlayerTeam(pPlayer->GetAccountId(), m_newTeam))
-	{
-		SCNotifyPlayerTeamChanged noti;
-		noti.m_accountId = pPlayer->GetAccountId();
-		noti.m_newTeam = m_newTeam;
-
-		winppy::Packet pktNotifyPlayerTeamChanged;
-		pktNotifyPlayerTeamChanged->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_PLAYER_TEAM_CHANGED));
-		pktNotifyPlayerTeamChanged->WriteBytes(&noti, sizeof(noti));
-
-		pGameRoom->BroadcastPacket(thread.m_server, std::move(pktNotifyPlayerTeamChanged));
-	}
-	else
-	{
-		// 패킷 전송 X
-	}
+	pGameRoom->ChangePlayerTeam(thread.m_server, pPlayer->GetAccountId(), m_newTeam);
 }
 
 JobReqCreateAccount::JobReqCreateAccount(uint64_t netId, const wchar_t* id, const wchar_t* nickname, const wchar_t* pw)
@@ -838,3 +757,4 @@ void JobDBJobNicknameDuplicateCheckResult::Execute(LogicThread& thread)
 	pktResNicknameDuplicateCheck->WriteBytes(&res, sizeof(res));
 	thread.m_server.Send(m_netId, std::move(pktResNicknameDuplicateCheck));
 }
+

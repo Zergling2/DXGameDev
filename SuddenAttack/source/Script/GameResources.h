@@ -16,6 +16,7 @@ public:
 
 	virtual void Awake() override;
 
+	float GetJumpSpeed() const { return m_jumpSpeed; }
 	bool AddTexture2D(std::wstring key,ze::Texture2D texture);
 	bool AddArmsViewInfo(std::wstring key, std::unique_ptr<ArmsViewInfo> upArmsViewInfo);
 	bool AddCharacterViewInfo(std::wstring key, std::unique_ptr<CharacterViewInfo> upCharacterViewInfo);
@@ -25,7 +26,7 @@ public:
 	const CharacterViewInfo* GetCharacterViewInfo(const std::wstring& key) const;
 	std::shared_ptr<WeaponDefinition> GetWeaponDefinition(WeaponCode key) const;
 	std::shared_ptr<ze::CapsuleCollider> GetCharacterCollider() const { return m_spCharacterCollider; }
-	std::shared_ptr<ze::SphereCollider> GetGroundCheckCollider() const { return m_spGroundCheckSweepCollider; }
+	std::shared_ptr<ze::CylinderCollider> GetGroundCheckCollider() const { return m_spGroundCheckSweepCollider; }
 	std::shared_ptr<ze::BoxCollider> GetCharacterBodyCollider() const { return m_spCharacterBodyCollider; }
 	const XMFLOAT3& GetCharacterBodyColliderHalfExtents() const;
 	std::shared_ptr<ze::CylinderCollider> GetCharacterNeckCollider() const { return m_spCharacterNeckCollider; }
@@ -47,8 +48,9 @@ public:
 	std::shared_ptr<ze::BoxCollider> GetCharacterFootCollider() const { return m_spCharacterFootCollider; }
 	const XMFLOAT3& GetCharacterFootColliderHalfExtents() const;
 	float GetCharacterColliderRadius() const;
-	float GetGroundCheckColliderSubtractFactor() const;
+	float GetGroundCheckColliderHeight() const;
 private:
+	float m_jumpSpeed;
 	ze::Texture2D m_errTex;
 	std::shared_ptr<ze::Material> m_errMaterial;
 	std::unordered_map<std::string, ze::StaticMesh> m_staticMeshes;
@@ -59,7 +61,7 @@ private:
 	std::unordered_map<std::wstring, std::unique_ptr<CharacterViewInfo>> m_characterViewInfos;
 	std::unordered_map<WeaponCode, std::shared_ptr<WeaponDefinition>> m_weaponDefs;
 	std::shared_ptr<ze::CapsuleCollider> m_spCharacterCollider;
-	std::shared_ptr<ze::SphereCollider> m_spGroundCheckSweepCollider;
+	std::shared_ptr<ze::CylinderCollider> m_spGroundCheckSweepCollider;
 	std::shared_ptr<ze::BoxCollider> m_spCharacterBodyCollider;
 	std::shared_ptr<ze::CylinderCollider> m_spCharacterNeckCollider;
 	std::shared_ptr<ze::SphereCollider> m_spCharacterHeadCollider;

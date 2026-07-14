@@ -17,6 +17,9 @@ public:
 	virtual void FixedUpdate() override;
 
 	void CreateCharacterView(const CharacterViewInfo* pCharacterViewInfo);
+
+	void UpdateWeaponBaseTransform();
+	void UpdateWeaponBaseAndHitboxTransforms();
 private:
 	ze::ComponentHandle<GameResources> m_hScriptGameResources;
 
@@ -56,4 +59,6 @@ public:
 	// ze::bone_index_type m_biRightFoot;
 	ze::bone_index_type m_biLeftToe;
 	ze::bone_index_type m_biRightToe;
+	ze::bone_index_type m_biLeftHand;
+	ze::bone_index_type m_biRightHand;
 };

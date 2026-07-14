@@ -16,7 +16,7 @@ static const XMFLOAT3 SECONDARY_WEAPON_PV_OFFSET_IN_FPSARM_SPACE(0.04f, -0.01f, 
 static const XMFLOAT3 SECONDARY_WEAPON_PV_OFFSET(FPSARM_POS.x + SECONDARY_WEAPON_PV_OFFSET_IN_FPSARM_SPACE.x, FPSARM_POS.y + SECONDARY_WEAPON_PV_OFFSET_IN_FPSARM_SPACE.y, FPSARM_POS.z + SECONDARY_WEAPON_PV_OFFSET_IN_FPSARM_SPACE.z);
 
 constexpr float SENSITIVITY = 0.1f;
-constexpr float SPEED = 5.0f;
+constexpr float SPEED = 4.2f;
 constexpr float WALK_SPEED = SPEED * 0.5f;
 constexpr float HEAD_CLAMP_ANGLE = 89.0f;
 
@@ -24,20 +24,29 @@ Player::Player(ze::GameObject& owner)
 	: ze::MonoBehaviour(owner)
 	, m_processingInput(true)
 	, m_isStand(true)
-	, m_isMoving(false)
 	, m_isGround(false)
-	, m_jumpCoolTime(0.0f)
-	, m_jumpSpeed(0.0f)
+	, m_isMoving(false)
+	, m_groundCheckSweepDist(0.0f)
+	, m_stepHeight(0.2f)
+	, m_slope(0.707106f)	// 약 45도
 	, m_velocityY(0.0f)
 	, m_sinTimeAccum(0.0f)
 	, m_bounceFreq(0.0f)
 	, m_ampX(0.0f)
 	, m_ampY(0.0f)
-	, m_maxSlope(0.0f)
-	, m_groundCheckSweepDistY(0.0f)
-	, m_pArmsViewInfo(nullptr)
 	, m_currWeaponSlot(WeaponSlot::Unknown)
 {
+	// 점프 초기속도 계산
+	// 등가속도 공식 3번째
+	// 2as = v^2 - v0^2
+	// v^2 = v0^2 + 2as
+	// 최고점에서는 속도가 0이므로, 0 = v0^2 + 2as
+	// 여기서 a = -g, s = h(점프 높이)
+	// v0^2 = 2gh, 따라서 v0(초기속도) = sqrt(2gh)로 정리된다.
+
+	float jumpHeight = 0.8f;
+	float g = abs(Physics::GetInstance()->GetGravity().y * 2);
+	m_jumpVelocityY = std::sqrt(2.0f * g * jumpHeight);
 }
 
 void Player::Awake()
@@ -50,26 +59,25 @@ void Player::Awake()
 	assert(m_hScriptGameResources.IsValid());
 
 	GameResources* pScriptGameResources = m_hScriptGameResources.ToPtr();
-	m_jumpSpeed = pScriptGameResources->GetJumpSpeed();
-	m_spGroundCheckCollider = pScriptGameResources->GetGroundCheckCollider();
-
-	m_maxSlope = 0.7071067f;	// cos(45도)
+	m_spGroundCheckSweepCollider = pScriptGameResources->GetGroundCheckCollider();
 
 	// Rigidbody 컴포넌트 추가
 	auto spCharacterCollider = pScriptGameResources->GetCharacterCollider();
-	m_groundCheckSweepDistY = spCharacterCollider->GetTotalHeight() / 2.0f + 0.02f;
+	m_groundCheckSweepDist = spCharacterCollider->GetHeight() / 2.0f + pScriptGameResources->GetGroundCheckColliderSubtractFactor();
 
-	ComponentHandle<Rigidbody> hPlayerRigidbody = m_pGameObject->AddComponent<Rigidbody>(
-		spCharacterCollider, XMFLOAT3(0.0f, spCharacterCollider->GetTotalHeight() / 2.0f, 0.0f)		// GameObject에 캡슐 콜라이더 밑면이 오게한다.
-	);
-	m_hPlayerRigidbody = hPlayerRigidbody;
-	Rigidbody* pPlayerRigidbody = hPlayerRigidbody.ToPtr();
+	ComponentHandle<Rigidbody> hRigidbodyPlayer = m_pGameObject->AddComponent<Rigidbody>(spCharacterCollider, XMFLOAT3(0.0f, spCharacterCollider->GetTotalHeight() / 2.0f, 0.0f));
+	m_hRigidbodyPlayer = hRigidbodyPlayer;
+	Rigidbody* pPlayerRigidbody = hRigidbodyPlayer.ToPtr();
 	pPlayerRigidbody->SetBodyType(RigidbodyType::Kinematic);
 
-	XMMATRIX playerColliderLocalTransform;
-	playerColliderLocalTransform = XMMatrixRotationQuaternion(XMLoadFloat4(&pPlayerRigidbody->GetColliderLocalRot()));
-	playerColliderLocalTransform.r[3] = XMVectorSetW(XMLoadFloat3(&pPlayerRigidbody->GetColliderLocalPos()), 1.0f);
-	XMStoreFloat4x4A(&m_playerColliderLocalTransform, playerColliderLocalTransform);
+	// pPlayerRigidbody->ListenCollisionEvent();
+	// auto hScriptCollisionEventTest = m_pGameObject->AddComponent<CollisionEventTest>();
+	// hScriptCollisionEventTest.ToPtr()->m_str = "Player";
+
+	XMMATRIX colliderLocalTransform;
+	colliderLocalTransform = XMMatrixRotationQuaternion(XMLoadFloat4(&pPlayerRigidbody->GetColliderLocalRot()));
+	colliderLocalTransform.r[3] = XMVectorSetW(XMLoadFloat3(&pPlayerRigidbody->GetColliderLocalPos()), 1.0f);
+	XMStoreFloat4x4A(&m_colliderLocalTransform, colliderLocalTransform);
 
 
 	// 자식 오브젝트로 카메라 추가
@@ -83,8 +91,6 @@ void Player::Awake()
 	pCamera->SetDepth(0);
 	pCamera->SetFieldOfView(82);
 	pCamera->SetClippingPlanes(0.1f, 300.0f);
-
-
 
 	// FPS 팔 생성
 	GameObjectHandle hGameObjectArms = Runtime::GetInstance()->CreateGameObject(L"fpsarms");
@@ -129,9 +135,6 @@ void Player::Awake()
 void Player::Update()
 {
 	const float dt = Time::GetInstance()->GetDeltaTime();
-
-	if (m_jumpCoolTime > 0.0f)
-		m_jumpCoolTime = (std::max)(m_jumpCoolTime - dt, 0.0f);
 
 	// 팔과 무기 흔들림 업데이트
 	constexpr float BOUNCE_FREQ_WEIGHT_RUNNING = 9.0f;
@@ -298,79 +301,81 @@ void Player::FixedUpdate()
 			m_isMoving = true;
 			vFinalMove = XMVectorAdd(vFinalMove, vRightMove);
 		}
+			
 
-		const float finalMoveLen = XMVectorGetX(XMVector3Length(vFinalMove));
-		if (finalMoveLen > 0.0f)
-			vFinalMove = XMVectorScale(vFinalMove, 1.0f / finalMoveLen);
-
-		vFinalMove = XMVectorScale(vFinalMove, speed * dt);
+		vFinalMove = XMVectorScale(XMVector3Normalize(vFinalMove), speed * dt);
 	}
 
 	// 2. 중력에 의한 이동량 누적
 	if (m_isGround)
-		m_velocityY = 0.0f;
-	else
-		m_velocityY += Physics::GetInstance()->GetGravity().y * 2 * dt;
-
-	if (m_processingInput && Input::GetInstance()->GetKey(Keycode::KEY_SPACE))
 	{
-		if (this->CanJump())
-		{
-			constexpr float JUMP_DELAY = 0.6f;
-			m_jumpCoolTime = JUMP_DELAY;
-			m_velocityY = m_jumpSpeed;
-		}
+		m_velocityY = 0.0f;
+		if (m_processingInput)
+			if (Input::GetInstance()->GetKey(Keycode::KEY_SPACE))
+				m_velocityY = m_jumpVelocityY;
+	}
+	else
+	{
+		m_velocityY += Physics::GetInstance()->GetGravity().y * 2 * dt;
 	}
 
 	XMVECTOR vGravityMove = XMVectorSet(0.0f, m_velocityY * dt, 0.0f, 0.0f);
 	vFinalMove = XMVectorAdd(vFinalMove, vGravityMove);
 
+
 	// Sweep 기반 이동
-	Rigidbody* pPlayerRigidbody = m_hPlayerRigidbody.ToPtr();
-	XMMATRIX playerColliderLocalTransform = XMLoadFloat4x4A(&m_playerColliderLocalTransform);
+	Rigidbody* pPlayerRigidbody = m_hRigidbodyPlayer.ToPtr();
+	XMMATRIX colliderLocalTransform = XMLoadFloat4x4A(&m_colliderLocalTransform);
+
 	XMVECTOR vRemainingMove = vFinalMove;
-	constexpr float SKIN_WIDTH = 0.002f;
+
 	constexpr size_t MAX_ITER = 4;
+	constexpr float MOVE_EPSILON = 0.001f;
 	for (size_t i = 0; i < MAX_ITER; ++i)
 	{
-		float remainingMoveLen = XMVectorGetX(XMVector3Length(vRemainingMove));
-		if (remainingMoveLen < SKIN_WIDTH)
+		if (XMVectorGetX(XMVector3Length(vRemainingMove)) < MOVE_EPSILON)
 			break;
 
-		XMMATRIX playerColliderWorldTransform = XMMatrixMultiply(playerColliderLocalTransform, m_pGameObject->m_transform.GetWorldTransformMatrix());
+		XMMATRIX colliderWorldTransform = XMMatrixMultiply(colliderLocalTransform, m_pGameObject->m_transform.GetWorldTransformMatrix());
 
 		XMFLOAT3A remainingMove;
 		XMStoreFloat3A(&remainingMove, vRemainingMove);
+		auto sweepResult = Physics::GetInstance()->CapsuleSweepTest(colliderWorldTransform, remainingMove, static_cast<CapsuleCollider*>(m_hRigidbodyPlayer.ToPtr()->GetCollider().get()));
 
-		size_t collisionCount = Physics::GetInstance()->ConvexSweepTestAllNotIncludeExceptTrigger(
-			m_sweepResults,
-			playerColliderWorldTransform,
-			remainingMove,
-			pPlayerRigidbody->GetCollider().get(),
-			pPlayerRigidbody
+		auto selfIter = std::remove_if(
+			sweepResult.begin(),
+			sweepResult.end(),
+			[pPlayerRigidbody](const SweepHit& hit)
+			{
+				return hit.m_pHitObject == pPlayerRigidbody || hit.m_pHitObject->IsTrigger();
+			}
 		);
+		sweepResult.erase(selfIter, sweepResult.end());
 
-		if (m_sweepResults.size() == 0)
+		if (sweepResult.size() == 0)
 		{
-			m_pGameObject->m_transform.Translate(remainingMove);
+			m_pGameObject->m_transform.Translate(vRemainingMove);
 			break;
 		}
 
-		std::sort(m_sweepResults.begin(), m_sweepResults.end(),
+		std::sort(
+			sweepResult.begin(),
+			sweepResult.end(),
 			[](const SweepHit& a, const SweepHit& b)
 			{
 				return a.m_hitFraction < b.m_hitFraction;
 			}
 		);
 
-		const float closestHitFraction = m_sweepResults[0].m_hitFraction;
-		XMVECTOR vMovePart = XMVectorScale(vRemainingMove, closestHitFraction);
-		XMVECTOR vSkinPush = XMVectorScale(XMVectorScale(vRemainingMove, 1.0f / remainingMoveLen), -SKIN_WIDTH);
-		m_pGameObject->m_transform.Translate(vMovePart + vSkinPush);
+		XMVECTOR vMovePart = vRemainingMove;
+		const float closestHitFraction = sweepResult[0].m_hitFraction;
+
+		vMovePart = XMVectorScale(vMovePart, closestHitFraction);
+		m_pGameObject->m_transform.Translate(vMovePart);
 
 		vRemainingMove = XMVectorScale(vRemainingMove, 1.0f - closestHitFraction);
 
-		for (const auto& hitItem : m_sweepResults)
+		for (const auto& hitItem : sweepResult)
 		{
 			// if (hitItem.m_hitFraction > closestHitFraction + 0.01f)
 			// 	break;
@@ -385,15 +390,17 @@ void Player::FixedUpdate()
 	}
 
 	// 마지막으로 아래방향 sweep으로 m_isGround 업데이트
-	XMMATRIX groundCheckColliderWorldTransform = XMMatrixMultiply(playerColliderLocalTransform, m_pGameObject->m_transform.GetWorldTransformMatrix());
-	const XMFLOAT3 groundCheckSweepVector(0.0f, -m_groundCheckSweepDistY, 0.0f);
-
-	Physics::GetInstance()->ConvexSweepTestAllNotIncludeExceptTrigger(m_sweepResults, groundCheckColliderWorldTransform, groundCheckSweepVector, m_spGroundCheckCollider.get(), pPlayerRigidbody);
+	XMMATRIX colliderWorldTransform = XMMatrixMultiply(colliderLocalTransform, m_pGameObject->m_transform.GetWorldTransformMatrix());
+	const XMFLOAT3 groundCheckSweepVector(0.0f, -m_groundCheckSweepDist - 0.05f, 0.0f);
+	auto ret = Physics::GetInstance()->SphereSweepTest(colliderWorldTransform, groundCheckSweepVector, m_spGroundCheckSweepCollider.get());
 	bool hit = false;
-	for (const auto& item : m_sweepResults)
+	for (const auto& item : ret)
 	{
+		if (item.m_pHitObject == pPlayerRigidbody || item.m_pHitObject->IsTrigger())
+			continue;
+
 		const float dot = XMVectorGetX(XMVector3Dot(Vector3::Up(), XMVector3Normalize(XMLoadFloat3(&item.m_hitNormalWorld))));
-		if (dot > m_maxSlope)
+		if (dot > m_slope)
 		{
 			hit = true;
 			break;

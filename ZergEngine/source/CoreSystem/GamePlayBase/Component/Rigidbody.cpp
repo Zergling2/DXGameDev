@@ -11,6 +11,7 @@ using namespace ze;
 
 Rigidbody::Rigidbody(GameObject& owner, std::shared_ptr<ICollider> collider, const XMFLOAT3& localPos, const XMFLOAT4& localRot)
 	: IComponent(owner, RigidbodyManager::GetInstance()->AssignUniqueId())
+	, m_inPhysicsWorld(false)
 	, m_listenCollisionEvent(false)
 	, m_isTrigger(false)
 	, m_useGravity(true)
@@ -30,8 +31,10 @@ Rigidbody::Rigidbody(GameObject& owner, std::shared_ptr<ICollider> collider, con
 	m_upBtRigidBody = std::make_unique<btRigidBody>(rbci);
 	m_upBtRigidBody->setUserPointer(static_cast<Rigidbody*>(this));
 
-	if (!owner.IsPending())
-		Physics::GetInstance()->GetDynamicsWorld()->addRigidBody(m_upBtRigidBody.get());
+	m_upBtRigidBody->setSleepingThresholds(0.02f, 0.02f);
+	
+	if (!m_pGameObject->IsPending())
+		this->AddToPhysicsWorld();
 }
 
 void Rigidbody::ListenCollisionEvent()
@@ -149,11 +152,10 @@ void Rigidbody::SetBodyType(RigidbodyType bodyType)
 
 	// 1. 물리 월드에서 제거
 	if (!m_pGameObject->IsPending())
-		Physics::GetInstance()->GetDynamicsWorld()->removeRigidBody(m_upBtRigidBody.get());
+		this->RemoveFromPhysicsWorld();
 
 
 	// 2. 상태 업데이트
-
 	// 월드 트랜스폼 재계산용 (MotionState 계산 로직 이용)
 	MotionState ms(m_pGameObject->m_transform, this->GetColliderLocalPos(), this->GetColliderLocalRot());
 	btTransform worldTrans;
@@ -227,7 +229,7 @@ void Rigidbody::SetBodyType(RigidbodyType bodyType)
 	// 3. 물리 월드에 다시 추가
 	// 씬에 배치되어 있는 상태인 경우에만 수행.
 	if (!m_pGameObject->IsPending())
-		Physics::GetInstance()->GetDynamicsWorld()->addRigidBody(m_upBtRigidBody.get());
+		this->AddToPhysicsWorld();
 }
 
 void Rigidbody::GetFreezePosition(bool& freezeX, bool& freezeY, bool& freezeZ)
@@ -335,19 +337,24 @@ void Rigidbody::OnDeploySysJob()
 
 	// 물리 월드에 등록
 	if (this->IsEnabled())
-		Physics::GetInstance()->GetDynamicsWorld()->addRigidBody(m_upBtRigidBody.get());
+		this->AddToPhysicsWorld();
 }
 
 void Rigidbody::OnEnableSysJob()
 {
-	Physics::GetInstance()->GetDynamicsWorld()->addRigidBody(m_upBtRigidBody.get());
+	IComponent::OnEnableSysJob();
+
+	if (!m_inPhysicsWorld)
+		this->AddToPhysicsWorld();
 }
 
 void Rigidbody::OnDisableSysJob()
 {
-	Physics::GetInstance()->GetDynamicsWorld()->removeRigidBody(m_upBtRigidBody.get());
-}
+	if (m_inPhysicsWorld)
+		this->RemoveFromPhysicsWorld();
 
+	IComponent::OnDisableSysJob();
+}
 
 const XMFLOAT3& Rigidbody::GetColliderLocalPos() const
 {
@@ -357,4 +364,22 @@ const XMFLOAT3& Rigidbody::GetColliderLocalPos() const
 const XMFLOAT4& Rigidbody::GetColliderLocalRot() const
 {
 	return m_upMotionState->GetLocalRot();
+}
+
+void Rigidbody::AddToPhysicsWorld()
+{
+	assert(!m_inPhysicsWorld);
+
+	Physics::GetInstance()->GetDynamicsWorld()->addRigidBody(m_upBtRigidBody.get());
+
+	m_inPhysicsWorld = true;
+}
+
+void Rigidbody::RemoveFromPhysicsWorld()
+{
+	assert(m_inPhysicsWorld);
+
+	Physics::GetInstance()->GetDynamicsWorld()->removeRigidBody(m_upBtRigidBody.get());
+
+	m_inPhysicsWorld = false;
 }

@@ -6,14 +6,16 @@
 #include "Constants.h"
 #include "Contents.h"
 
-class Player;
-
-enum class RemovePlayerResult
+enum class HostGameStartableResult
 {
-    Normal,
-    HostChanged,
-    LastPlayerRemoved
+    AlreadyStarted,
+    Startable,
+    NotReady,
+
+    Unknown
 };
+
+class Player;
 
 struct GameRoomPlayer
 {
@@ -40,8 +42,6 @@ public:
     uint64_t GetId() const { return m_id; }
     uint16_t GetNo() const { return m_no; }
 
-    bool ChangeMap(const Player* pRequester, GameMap map);
-
     GameRoomTeamFormat GetTeamFormat() const { return m_tf; }
     void SetTeamFormat(GameRoomTeamFormat tf) { m_tf = tf; }
 
@@ -54,35 +54,33 @@ public:
     const std::wstring& GetName() const { return m_name; }
     void SetName(const wchar_t* name) { m_name = name; }
 
-    bool AddPlayerAsHost(Player* pPlayer, GameTeam& team);
-    bool AddPlayer(Player* pPlayer, GameTeam& team);
-    bool MoveTeam(const Player* pPlayer, GameTeam newTeam);
-    RemovePlayerResult RemovePlayer(Player* pPlayer);
+    void AddPlayerAsHost(winppy::TCPServer& server, Player* pPlayer);
+    bool AddPlayer(winppy::TCPServer& server, Player* pPlayer);
+    size_t RemovePlayer(winppy::TCPServer& server, Player* pPlayer);
     const Player* GetHost() const { return m_pHost; }
 
-    void BroadcastPacket(winppy::TCPServer& server, winppy::Packet packet) const;
-    void BroadcastPacketExceptPlayer(winppy::TCPServer& server, winppy::Packet packet, const Player* pPlayer) const;
+    HostGameStartableResult IsGameStartable() const;
+    void ChangeReadyPlayersAndHostStateToPlaying(winppy::TCPServer& server);
     size_t GetNumOfPlayers() const { return m_redTeam.size() + m_blueTeam.size(); }
-    winppy::Packet CreateGameRoomPlayerJoinedPacket(const Player* pPlayer) const;
-    std::vector<winppy::Packet> CreateGameRoomPlayerPacketsExcept(const Player* pPlayer) const;
-    bool ChangePlayerState(uint32_t accountId, PlayerState newState);
+    void ChangePlayerState(winppy::TCPServer& server, uint32_t accountId, PlayerState newState);
     PlayerState GetPlayerState(uint32_t accountId) const;
-    bool ChangePlayerTeam(uint32_t accountId, GameTeam newTeam);
-private:
+    bool ChangePlayerTeam(winppy::TCPServer& server, uint32_t accountId, GameTeam newTeam);
+
     bool IsFull() const;
+
+    void BroadcastPacket(winppy::TCPServer& server, winppy::Packet packet) const;
+    void BroadcastPacketExcept(winppy::TCPServer& server, winppy::Packet packet, uint32_t exceptorAccountId) const;
+private:
     bool IsHost(const Player* pPlayer) const { return m_pHost == pPlayer; }
     bool FindPlayer(uint32_t accountId, GameTeam& team, size_t& index, PlayerState& state) const;
-    const Player* FindNewHost() const;
+    const Player* SelectRandomPlayer() const;
 private:
     uint64_t m_id;
     uint16_t m_no;
-
+    GameRoomState m_state;
     GameRoomTeamFormat m_tf;
     GameMap m_map;
-    GameRoomState m_state;
-
     std::wstring m_name;
-private:
     std::vector<GameRoomPlayer> m_redTeam;
     std::vector<GameRoomPlayer> m_blueTeam;
     const Player* m_pHost;

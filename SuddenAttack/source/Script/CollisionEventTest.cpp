@@ -15,30 +15,30 @@ void CollisionEventTest::Awake()
 
 void CollisionEventTest::OnTriggerEnter()
 {
-	printf("OnTriggerEnter\n");
+	printf("%s OnTriggerEnter\n", m_str.c_str());
 }
 
 void CollisionEventTest::OnTriggerStay()
 {
-	printf("OnTriggerStay\n");
+	printf("%s OnTriggerStay\n", m_str.c_str());
 }
 
 void CollisionEventTest::OnTriggerExit()
 {
-	printf("OnTriggerExit\n");
+	printf("%s OnTriggerExit\n", m_str.c_str());
 }
 
 void CollisionEventTest::OnCollisionEnter()
 {
-	printf("OnCollisionEnter\n");
+	printf("%s OnCollisionEnter\n", m_str.c_str());
 }
 
 void CollisionEventTest::OnCollisionStay()
 {
-	printf("OnCollisionStay\n");
+	printf("%s OnCollisionStay\n", m_str.c_str());
 }
 
 void CollisionEventTest::OnCollisionExit()
 {
-	printf("OnCollisionExit\n");
+	printf("%s OnCollisionExit\n", m_str.c_str());
 }

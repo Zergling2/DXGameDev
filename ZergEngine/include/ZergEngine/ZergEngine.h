@@ -31,8 +31,9 @@
 #include <ZergEngine\CoreSystem\GamePlayBase\GameObject.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\AudioListener.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\AudioSource.h>
-#include <ZergEngine\CoreSystem\GamePlayBase\Component\Rigidbody.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\MonoBehaviour.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\Rigidbody.h>
+#include <ZergEngine\CoreSystem\GamePlayBase\Component\CharacterController.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Camera.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\Light.h>
 #include <ZergEngine\CoreSystem\GamePlayBase\Component\MeshRenderer.h>
