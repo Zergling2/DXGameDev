@@ -66,7 +66,6 @@ private:
 	void PktProcSCNotifyPlayerExitGameRoom(winppy::Packet packet);
 	void PktProcSCNotifyGameRoomPlayer(winppy::Packet packet);
 	void PktProcSCNotifyHostChanged(winppy::Packet packet);
-	void PktProcSCNotifyHostGameStarted(winppy::Packet packet);
 	void PktProcSCNotifyPlayerStateChanged(winppy::Packet packet);
 private:
 	winppy::TCPClientEngine m_ce;

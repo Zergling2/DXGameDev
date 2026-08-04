@@ -229,9 +229,9 @@ private:
 class JobReqGameRoomList : public IJob
 {
 public:
-	JobReqGameRoomList(uint64_t netId, uint32_t reqContextNo)
+	JobReqGameRoomList(uint64_t netId, uint32_t queryContextNo)
 		: m_netId(netId)
-		, m_reqContextNo(reqContextNo)
+		, m_queryContextNo(queryContextNo)
 	{
 	}
 	virtual ~JobReqGameRoomList() = default;
@@ -239,7 +239,7 @@ public:
 	virtual void Execute(LogicThread& thread) override;
 private:
 	uint64_t m_netId;
-	uint32_t m_reqContextNo;
+	uint32_t m_queryContextNo;
 };
 
 class JobReqCreateGameRoom : public IJob

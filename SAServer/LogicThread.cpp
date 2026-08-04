@@ -91,7 +91,7 @@ void PlayerExitRoom(LogicThread& thread, Player* pPlayer)
 
 	const size_t numOfRemainingPlayers = pGameRoom->RemovePlayer(thread.m_server, pPlayer);
 	if (numOfRemainingPlayers == 0)
-		joinedChannel.RemoveGameRoom(joinedRoomId);				// 이 이후로 roomIter & pGameRoom은 유효하지 않음
+		joinedChannel.RemoveGameRoom(joinedRoomId);			// 이 이후로 roomIter & pGameRoom은 유효하지 않음
 }
 
 void PlayerExitChannel(LogicThread& thread, Player* pPlayer)
@@ -297,6 +297,7 @@ void JobReqExitChannel::Execute(LogicThread& thread)
 		thread.m_server.Disconnect(m_netId);
 		return;
 	}
+
 	PlayerExitChannel(thread, pPlayer);
 }
 
@@ -391,17 +392,7 @@ void JobReqCreateGameRoom::Execute(LogicThread& thread)
 
 	const uint8_t joinedChannelId = pPlayer->GetChannelId();
 	Channel& joinedChannel = *thread.m_channel[joinedChannelId];
-	if (!joinedChannel.CreateGameRoom(thread.m_server, m_roomTeamFormat, m_roomName, pPlayer))
-	{
-		SCResCreateGameRoom res;
-		res.m_result = false;
-
-		winppy::Packet pkt;
-		pkt->Write(static_cast<protocol_type>(Protocol::SC_RES_CREATE_GAME_ROOM));
-		pkt->WriteBytes(&res, sizeof(res));
-
-		thread.m_server.Send(m_netId, std::move(pkt));
-	}
+	joinedChannel.CreateGameRoomAsHost(thread.m_server, m_roomTeamFormat, m_roomName, pPlayer);
 }
 
 void JobReqGameRoomList::Execute(LogicThread& thread)
@@ -426,7 +417,7 @@ void JobReqGameRoomList::Execute(LogicThread& thread)
 
 	const uint8_t joinedChannelId = pPlayer->GetChannelId();
 	const Channel& joinedChannel = *thread.m_channel[joinedChannelId];
-	joinedChannel.SendGameRoomLists(thread.m_server, pPlayer, m_reqContextNo);
+	joinedChannel.SendGameRoomList(thread.m_server, pPlayer, m_queryContextNo);
 }
 
 void JobReqJoinGameRoom::Execute(LogicThread& thread)
@@ -587,8 +578,10 @@ void JobReqGameStartableState::Execute(LogicThread& thread)
 		// 1. 방장에게는 SC_RES_HOST_GAME_START 패킷 전송
 		SCResHostGameStartableState res;
 		res.m_result = HostGameStartableState::Startable;
+		// res.m_team = ;
+		// res.m_map = ;
 		
-		additional code...
+		// additional code...;
 
 		// 이후 방장으로부터 CS_NOTIFY_HOST_CREATED 패킷이 도착하면
 		// 레디 상태에 있는 모든 플레이어들에게 방장의 enet 호스트 정보로 연결 시도하도록 패킷 브로드캐스트

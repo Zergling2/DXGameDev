@@ -281,7 +281,7 @@ void SAServer::OnCSReqGameRoomList(uint64_t netId, winppy::Packet packet)
 		return;
 	}
 
-	std::unique_ptr<JobReqGameRoomList> upJob = std::make_unique<JobReqGameRoomList>(netId, req.m_reqContextNo);
+	std::unique_ptr<JobReqGameRoomList> upJob = std::make_unique<JobReqGameRoomList>(netId, req.m_queryContextNo);
 	m_logicThread->DispatchJob(std::move(upJob));
 }
 

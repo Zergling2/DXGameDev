@@ -139,8 +139,7 @@ LobbyHandler::LobbyHandler(ze::GameObject& owner)
 	, m_hButtonGameReady()
 	, m_hButtonGameUnready()
 	, m_gameRoomList()
-	, m_currGameListContextNo(0)
-	, m_gameListReqContextNo(0)
+	, m_gameListQueryContextNo(0)
 	, m_currGameListPage(0)
 {
 	m_gameRoomList.reserve(256);
@@ -578,9 +577,7 @@ void LobbyHandler::OnClickRefreshGameList()
 	m_currGameListPage = 0;
 
 	CSReqGameRoomList req;
-	m_currGameListContextNo = m_gameListReqContextNo;
-	req.m_reqContextNo = m_currGameListContextNo;
-	++m_gameListReqContextNo;
+	req.m_queryContextNo = ++m_gameListQueryContextNo;
 
 	winppy::Packet outPacket;
 	outPacket->Write(static_cast<protocol_type>(Protocol::CS_REQ_GAME_ROOM_LIST));
@@ -1010,8 +1007,10 @@ void LobbyHandler::OnReceiveChannelInfo(const ChannelInfo* pInfos, size_t count)
 
 void LobbyHandler::OnReceiveGameList(uint32_t listContextNo, const std::vector<GameRoomItem>& list)
 {
-	if (m_currGameListContextNo != listContextNo)	// 이전 방 목록 컨텍스트인 경우 무시
+	if (m_gameListQueryContextNo != listContextNo)	// 이전 방 목록 컨텍스트인 경우 무시
 		return;
+
+	// m_gameRoomList.clear();		// 컨텍스트 나뉘어서 오므로 호출하면 안됨. 요청 전에 한번만 clear.
 
 	for (size_t i = 0; i < list.size(); ++i)
 		m_gameRoomList.push_back(list[i]);

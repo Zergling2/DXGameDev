@@ -43,7 +43,6 @@ enum class Protocol : protocol_type
 	SC_NOTIFY_GAME_ROOM_PLAYER,
 	SC_NOTIFY_PLAYER_EXIT_GAME_ROOM,
 	SC_NOTIFY_HOST_CHANGED,
-	SC_NOTIFY_HOST_GAME_STARTED,
 	SC_NOTIFY_PLAYER_STATE_CHANGED
 };
 
@@ -108,7 +107,7 @@ struct CSReqLobbyChat
 
 struct CSReqGameRoomList
 {
-	uint32_t m_reqContextNo;	// 여러 패킷으로 전송될 수 있으므로 컨텍스트 번호를 전송.
+	uint32_t m_queryContextNo;	// 여러 패킷으로 전송될 수 있으므로 컨텍스트 번호를 전송.
 };
 
 struct CSReqCreateGameRoom
@@ -179,7 +178,7 @@ struct SCNotifyLobbyChat
 
 struct SCResGameRoomList
 {
-	uint32_t m_reqContextNo;		// 여러 패킷으로 전송될 수 있으므로 컨텍스트 번호를 전송.
+	uint32_t m_contextNo;		// 여러 패킷으로 전송될 수 있으므로 컨텍스트 번호를 전송.
 };
 
 struct SCResGameRoomListItem
@@ -229,7 +228,7 @@ enum class HostGameStartableState : uint8_t
 struct SCResHostGameStartableState
 {
 	HostGameStartableState m_result;
-	GameTeam m_joinedTeam;
+	GameTeam m_team;
 	GameMap	m_map;
 };
 

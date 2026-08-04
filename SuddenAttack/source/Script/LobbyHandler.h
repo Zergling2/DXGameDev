@@ -221,7 +221,6 @@ public:
 
 	// 게임 리스트 컨텍스트 관련
 	std::vector<GameRoomItem> m_gameRoomList;
-	uint32_t m_currGameListContextNo;	// 방목록 새로고침 컨텍스트 (네트워크 라이브러리의 패킷 송신 크기 제한으로 인해 필요)
-	uint32_t m_gameListReqContextNo;
+	uint32_t m_gameListQueryContextNo;
 	uint32_t m_currGameListPage;
 };

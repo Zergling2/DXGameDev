@@ -192,9 +192,6 @@ void Network::PktProcFromSAServer()
 		case Protocol::SC_NOTIFY_HOST_CHANGED:
 			PktProcSCNotifyHostChanged(std::move(packet));
 			break;
-		case Protocol::SC_NOTIFY_HOST_GAME_STARTED:
-			PktProcSCNotifyHostGameStarted(std::move(packet));
-			break;
 		case Protocol::SC_NOTIFY_PLAYER_STATE_CHANGED:
 			PktProcSCNotifyPlayerStateChanged(std::move(packet));
 			break;
@@ -268,13 +265,20 @@ void Network::PktProcSCResIdDuplicateCheck(winppy::Packet packet)
 	if (!res.m_querySuccess)
 	{
 		pTextCreateAccountIdDuplicateCheckMsg->SetText(L"DB 조회 실패.");
+		pTextCreateAccountIdDuplicateCheckMsg->SetColor(Colors::Red);
 		return;
 	}
 
 	if (res.m_duplicated)
+	{
 		pTextCreateAccountIdDuplicateCheckMsg->SetText(L"이미 존재하는 아이디입니다.");
+		pTextCreateAccountIdDuplicateCheckMsg->SetColor(Colors::OrangeRed);
+	}
 	else
+	{
 		pTextCreateAccountIdDuplicateCheckMsg->SetText(L"사용 가능한 아이디입니다.");
+		pTextCreateAccountIdDuplicateCheckMsg->SetColor(Colors::Green);
+	}
 }
 
 void Network::PktProcSCResNicknameDuplicateCheck(winppy::Packet packet)
@@ -289,13 +293,20 @@ void Network::PktProcSCResNicknameDuplicateCheck(winppy::Packet packet)
 	if (!res.m_querySuccess)
 	{
 		pTextCreateAccountNicknameDuplicateCheckMsg->SetText(L"DB 조회 실패.");
+		pTextCreateAccountNicknameDuplicateCheckMsg->SetColor(Colors::Red);
 		return;
 	}
 
 	if (res.m_duplicated)
+	{
 		pTextCreateAccountNicknameDuplicateCheckMsg->SetText(L"이미 존재하는 닉네임입니다.");
+		pTextCreateAccountNicknameDuplicateCheckMsg->SetColor(Colors::OrangeRed);
+	}
 	else
+	{
 		pTextCreateAccountNicknameDuplicateCheckMsg->SetText(L"사용 가능한 닉네임입니다.");
+		pTextCreateAccountNicknameDuplicateCheckMsg->SetColor(Colors::Green);
+	}
 }
 
 void Network::PktProcSCResCreateAccount(winppy::Packet packet)
@@ -370,7 +381,7 @@ void Network::PktProcSCNotifyLobbyChat(winppy::Packet packet)
 	if (notify.m_msgLen > MAX_CHAT_MSG_LEN)
 		*reinterpret_cast<int*>(0) = 0;
 
-	wchar_t finalString[MAX_CHAT_MSG_LEN + MAX_NICKNAME_LEN + 4];
+	wchar_t finalString[MAX_NICKNAME_LEN + MAX_CHAT_MSG_LEN + 8];
 	if (!packet->ReadBytes(finalString, sizeof(wchar_t) * notify.m_nicknameLen))
 		return;
 
@@ -413,7 +424,7 @@ void Network::PktProcSCResGameList(winppy::Packet packet)
 	}
 
 	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
-	pScriptLobbyHandler->OnReceiveGameList(res.m_reqContextNo, list);
+	pScriptLobbyHandler->OnReceiveGameList(res.m_contextNo, list);
 }
 
 void Network::PktProcSCResCreateGameRoom(winppy::Packet packet)
@@ -501,8 +512,6 @@ void Network::PktProcSCResHostGameStartableState(winppy::Packet packet)
 	{
 	case HostGameStartableState::Startable:
 	{
-		const GameMap mapToLoad = res.m_map;
-
 		// 0. 로비 UI 숨기기
 		pScriptLobbyHandler->HideLobbyUI();
 
@@ -522,8 +531,8 @@ void Network::PktProcSCResHostGameStartableState(winppy::Packet packet)
 		// 0 채널은 Reliable, 1 채널은 Fastest
 		m_pHost = enet_host_create(
 			&addr,	/* the address to bind the server host to */
-			32,		/* allow up to 32 clients and/or outgoing connections */
-			2,		/* allow up to 2 channels to be used, 0 and 1 */
+			NUM_OF_MAX_PEER,		/* allow up to 32 clients and/or outgoing connections */
+			NUM_OF_CHANNELS,		/* allow up to 2 channels to be used, 0 and 1 */
 			0,		/* assume any amount of incoming bandwidth */
 			0		/* assume any amount of outgoing bandwidth */
 		);
@@ -531,10 +540,10 @@ void Network::PktProcSCResHostGameStartableState(winppy::Packet packet)
 		// 2. enet 호스트 생성이 완료되면 서버로 호스트 정보 전달
 		// (서버에서 방에 입장해있는 플레이어들에게 enet 호스트 엔드포인트 정보를 브로드캐스트)
 
-		additional code...
+		// additional code...;
 		
 		// 3. 서버에서 지정한 맵 씬 로드 및 다른 플레이어 입장 대기
-		SceneManager::GetInstance()->LoadScene(GameMapInfo::GetMapNameString(mapToLoad));
+		SceneManager::GetInstance()->LoadScene(GameMapInfo::GetMapNameString(res.m_map));
 	}
 		break;
 	case HostGameStartableState::NotReady:
