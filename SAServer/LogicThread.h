@@ -199,20 +199,6 @@ private:
 	uint8_t m_channelId;
 };
 
-class JobReqExitChannel : public IJob
-{
-public:
-	JobReqExitChannel(uint64_t netId)
-		: m_netId(netId)
-	{
-	}
-	virtual ~JobReqExitChannel() = default;
-
-	virtual void Execute(LogicThread& thread) override;
-private:
-	uint64_t m_netId;
-};
-
 class JobReqLobbyChat : public IJob
 {
 public:
@@ -318,14 +304,56 @@ private:
 	bool m_ready;
 };
 
-class JobReqGameStartableState : public IJob
+class JobReqGameEnter : public IJob
 {
 public:
-	JobReqGameStartableState(uint64_t netId)
+	JobReqGameEnter(uint64_t netId)
 		: m_netId(netId)
 	{
 	}
-	virtual ~JobReqGameStartableState() = default;
+	virtual ~JobReqGameEnter() = default;
+
+	virtual void Execute(LogicThread& thread) override;
+private:
+	uint64_t m_netId;
+};
+
+class JobReqHostGameStart : public IJob
+{
+public:
+	JobReqHostGameStart(uint64_t netId)
+		: m_netId(netId)
+	{
+	}
+	virtual ~JobReqHostGameStart() = default;
+
+	virtual void Execute(LogicThread& thread) override;
+private:
+	uint64_t m_netId;
+};
+
+class JobReqExitGameChannel : public IJob
+{
+public:
+	JobReqExitGameChannel(uint64_t netId)
+		: m_netId(netId)
+	{
+	}
+	virtual ~JobReqExitGameChannel() = default;
+
+	virtual void Execute(LogicThread& thread) override;
+private:
+	uint64_t m_netId;
+};
+
+class JobNotifyListenServerStart : public IJob
+{
+public:
+	JobNotifyListenServerStart(uint64_t netId)
+		: m_netId(netId)
+	{
+	}
+	virtual ~JobNotifyListenServerStart() = default;
 
 	virtual void Execute(LogicThread& thread) override;
 private:

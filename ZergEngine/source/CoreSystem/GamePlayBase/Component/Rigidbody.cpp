@@ -140,7 +140,10 @@ void Rigidbody::UseGravity(bool b)
 	if (m_useGravity)
 		m_upBtRigidBody->setFlags(m_upBtRigidBody->getFlags() & ~btRigidBodyFlags::BT_DISABLE_WORLD_GRAVITY);
 	else
+	{
 		m_upBtRigidBody->setFlags(m_upBtRigidBody->getFlags() | btRigidBodyFlags::BT_DISABLE_WORLD_GRAVITY);
+		m_upBtRigidBody->clearGravity();
+	}
 }
 
 void Rigidbody::SetBodyType(RigidbodyType bodyType)

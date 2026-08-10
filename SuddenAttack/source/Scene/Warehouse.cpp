@@ -1,14 +1,10 @@
 #include "Warehouse.h"
 #include "..\Script\Player.h"
-#include "..\Script\GameUIManager.h"
-#include "..\Script\ThirdPersonCharacter.h"
-#include "..\Script\CollisionEventTest.h"
+#include "..\Script\ListenServerStarter.h"
 
 using namespace ze;
 
 ZE_IMPLEMENT_SCENE(Warehouse);
-
-static const wchar_t* PLAYER_UI_TEXT_FONT = L"Agency FB";
 
 void Warehouse::CreateShortContainer(const XMFLOAT3& pos, const XMFLOAT3& rot)
 {
@@ -478,21 +474,9 @@ void Warehouse::CreateBarrelImpl(size_t matIndex, const XMFLOAT3& pos, const XMF
 
 void Warehouse::OnLoadScene()
 {
-	{
-		GameObjectHandle hGameObjectTest = CreateGameObject();
-		GameObject* pGameObjectTest = hGameObjectTest.ToPtr();
-
-		pGameObjectTest->m_transform.SetPosition(0, 3, 0);
-
-		pGameObjectTest->AddComponent<Rigidbody>(std::make_shared<CapsuleCollider>(0.2f, 1.0f));
-	}
-	
-
-
-
 	// ## Lights
 	{
-		GameObjectHandle hSun = CreateGameObject(L"house light1");
+		GameObjectHandle hSun = CreateGameObject(L"global light1");
 		GameObject* pSun = hSun.ToPtr();
 		pSun->m_transform.SetRotationEuler(XMConvertToRadians(50), XMConvertToRadians(45), 0.0f);
 		ComponentHandle<DirectionalLight> hLight = pSun->AddComponent<DirectionalLight>();
@@ -502,7 +486,7 @@ void Warehouse::OnLoadScene()
 	}
 
 	{
-		GameObjectHandle hSun = CreateGameObject(L"house light2");
+		GameObjectHandle hSun = CreateGameObject(L"global light2");
 		GameObject* pSun = hSun.ToPtr();
 		pSun->m_transform.SetRotationEuler(XMConvertToRadians(50), XMConvertToRadians(-135), 0.0f);
 		ComponentHandle<DirectionalLight> hLight = pSun->AddComponent<DirectionalLight>();
@@ -512,224 +496,17 @@ void Warehouse::OnLoadScene()
 	}
 
 	// ## Player
-	ComponentHandle<Player> hScriptPlayer;
 	{
 		GameObjectHandle hGameObjectPlayer = CreateGameObject(L"Player");
 		GameObject* pGameObjectPlayer = hGameObjectPlayer.ToPtr();
 		pGameObjectPlayer->m_transform.SetPosition(-7.0f, 4.0f, -5.0f);
-
-		hScriptPlayer = pGameObjectPlayer->AddComponent<Player>();		// 플레이어 스크립트
-	}
-	Player* pScriptPlayer = hScriptPlayer.ToPtr();
-
-
-
-	GameObjectHandle hGameObjectThirdPersonCharacter = CreateGameObject(L"TPC");
-	GameObject* pGameObjectThirdPersonCharacter = hGameObjectThirdPersonCharacter.ToPtr();
-	pGameObjectThirdPersonCharacter->m_transform.SetPosition(1, 0, 1);
-	pGameObjectThirdPersonCharacter->AddComponent<ThirdPersonCharacter>();
-
-
-	
-	// Adapter Info UI
-	{
-		UIObjectHandle hText = CreateText();
-		Text* pText = static_cast<Text*>(hText.ToPtr());
-		pText->SetSize(XMFLOAT2(256, 16));
-		std::wstring text = GraphicDevice::GetInstance()->GetAdapterDescription();
-		pText->SetText(std::move(text));
-		pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-		pText->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
-		pText->m_transform.SetPosition(128 + 2, -(8));
-		pText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-		pText->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-		pText->SetColor(ColorsLinear::Orange);
-		pText->GetTextFormat().SetSize(12);
-		pText->GetTextFormat().SetFontFamilyName(L"Consolas");
-		pText->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
-		pText->ApplyTextFormat();
+		ComponentHandle<Player> hScriptPlayer = pGameObjectPlayer->AddComponent<Player>();		// 플레이어 스크립트
 	}
 
-	{
-		UIObjectHandle hText = CreateText();
-		Text* pText = static_cast<Text*>(hText.ToPtr());
-		pText->SetSize(XMFLOAT2(256, 16));
-		std::wstring text = L"DedicatedVideoMemory: ";
-		size_t val = GraphicDevice::GetInstance()->GetAdapterDedicatedVideoMemory();
-		text += std::to_wstring(val / (1024 * 1024));
-		text += L"MB";
-		pText->SetText(std::move(text));
-		pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-		pText->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
-		pText->m_transform.SetPosition(128 + 2, -(8 + 16 * 1));
-		pText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-		pText->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-		pText->SetColor(ColorsLinear::Orange);
-		pText->GetTextFormat().SetSize(12);
-		pText->GetTextFormat().SetFontFamilyName(L"Consolas");
-		pText->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
-		pText->ApplyTextFormat();
-	}
-
-	{
-		UIObjectHandle hText = CreateText();
-		Text* pText = static_cast<Text*>(hText.ToPtr());
-		pText->SetSize(XMFLOAT2(256, 16));
-		std::wstring text = L"DedicatedSystemMemory: ";
-		size_t val = GraphicDevice::GetInstance()->GetAdapterDedicatedSystemMemory();
-		text += std::to_wstring(val / (1024 * 1024));
-		text += L"MB";
-		pText->SetText(std::move(text));
-		pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-		pText->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
-		pText->m_transform.SetPosition(128 + 2, -(8 + 16 * 2));
-		pText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-		pText->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-		pText->SetColor(ColorsLinear::Orange);
-		pText->GetTextFormat().SetSize(12);
-		pText->GetTextFormat().SetFontFamilyName(L"Consolas");
-		pText->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
-		pText->ApplyTextFormat();
-	}
-
-	{
-		UIObjectHandle hText = CreateText();
-		Text* pText = static_cast<Text*>(hText.ToPtr());
-		pText->SetSize(XMFLOAT2(256, 16));
-		std::wstring text = L"SharedSystemMemory: ";
-		size_t val = GraphicDevice::GetInstance()->GetAdapterSharedSystemMemory();
-		text += std::to_wstring(val / (1024 * 1024));
-		text += L"MB";
-		pText->SetText(std::move(text));
-		pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-		pText->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
-		pText->m_transform.SetPosition(128 + 2, -(8 + 16 * 3));
-		pText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-		pText->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-		pText->SetColor(ColorsLinear::Orange);
-		pText->GetTextFormat().SetSize(12);
-		pText->GetTextFormat().SetFontFamilyName(L"Consolas");
-		pText->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
-		pText->ApplyTextFormat();
-	}
-
-	GameObjectHandle hGameObjectGameUIManager = CreateGameObject();
-	GameObject* pGameObjectGameUIManager = hGameObjectGameUIManager.ToPtr();
-	ComponentHandle<GameUIManager> hScriptGameUIManager = pGameObjectGameUIManager->AddComponent<GameUIManager>();
-	pScriptPlayer->m_hScriptGameUIManager = hScriptGameUIManager;
-	GameUIManager* pScriptGameUIManager = hScriptGameUIManager.ToPtr();
-	pScriptGameUIManager->m_hScriptPlayer = hScriptPlayer;
-
-	// ## UI
-	{
-		UIObjectHandle hImageCrosshair = CreateImage();
-		pScriptGameUIManager->m_hImageCrosshair = hImageCrosshair;
-		Image* pImageCrosshair = static_cast<Image*>(hImageCrosshair.ToPtr());
-		pImageCrosshair->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\crosshair.dds"));
-		pImageCrosshair->SetNativeSize(true);
-		pImageCrosshair->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
-		pImageCrosshair->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
-
-		UIObjectHandle hImageHealthBackground = CreateImage();
-		pScriptGameUIManager->m_hImageHealthBackground = hImageHealthBackground;
-		Image* pImageHealthBackground = static_cast<Image*>(hImageHealthBackground.ToPtr());
-		pImageHealthBackground->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\health.png"));
-		pImageHealthBackground->SetNativeSize(true);
-		pImageHealthBackground->m_transform.SetPosition(pImageHealthBackground->GetHalfSizeX() + 4, pImageHealthBackground->GetHalfSizeY() + 4);
-		pImageHealthBackground->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-		pImageHealthBackground->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
-
-		UIObjectHandle hImageRBUIBackground = CreateImage();
-		pScriptGameUIManager->m_hImageRBUIBackground = hImageRBUIBackground;
-		Image* pImageRBUIBackground = static_cast<Image*>(hImageRBUIBackground.ToPtr());
-		pImageRBUIBackground->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\weapon_indicator.png"));
-		pImageRBUIBackground->SetNativeSize(true);
-		pImageRBUIBackground->m_transform.SetPosition(-pImageRBUIBackground->GetHalfSizeX() - 4, pImageRBUIBackground->GetHalfSizeY() + 4);
-		pImageRBUIBackground->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
-		pImageRBUIBackground->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
-
-		UIObjectHandle hTextHP = CreateText();
-		pScriptGameUIManager->m_hTextHP = hTextHP;
-		Text* pTextHP = static_cast<Text*>(hTextHP.ToPtr());
-		pTextHP->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-		pTextHP->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
-		pTextHP->m_transform.SetPosition(pImageHealthBackground->m_transform.GetPosition());
-		pTextHP->m_transform.TranslateX(-56);
-		pTextHP->SetSize(128, 48);
-		pTextHP->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-		pTextHP->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-		pTextHP->SetColor(ColorsLinear::White);
-		pTextHP->GetTextFormat().SetSize(28);
-		pTextHP->GetTextFormat().SetFontFamilyName(L"Impact");
-		pTextHP->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
-		pTextHP->ApplyTextFormat();
-
-		UIObjectHandle hTextAP = CreateText();
-		pScriptGameUIManager->m_hTextAP = hTextAP;
-		Text* pTextAP = static_cast<Text*>(hTextAP.ToPtr());
-		pTextAP->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-		pTextAP->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
-		pTextAP->m_transform.SetPosition(pImageHealthBackground->m_transform.GetPosition());
-		pTextAP->m_transform.TranslateX(120);
-		pTextAP->SetSize(128, 48);
-		pTextAP->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-		pTextAP->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-		pTextAP->SetColor(ColorsLinear::White);
-		pTextAP->GetTextFormat().SetSize(28);
-		pTextAP->GetTextFormat().SetFontFamilyName(L"Impact");
-		pTextAP->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
-		pTextAP->ApplyTextFormat();
-
-		UIObjectHandle hTextPoint = CreateText();
-		pScriptGameUIManager->m_hTextPoint = hTextPoint;
-		Text* pTextPoint = static_cast<Text*>(hTextPoint.ToPtr());
-		pTextPoint->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
-		pTextPoint->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
-		pTextPoint->m_transform.SetPosition(pImageRBUIBackground->m_transform.GetPosition());
-		pTextPoint->m_transform.Translate(-45, 34);
-		pTextPoint->SetSize(128, 32);
-		pTextPoint->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-		pTextPoint->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-		pTextPoint->SetColor(ColorsLinear::White);
-		pTextPoint->GetTextFormat().SetSize(22);
-		pTextPoint->GetTextFormat().SetFontFamilyName(PLAYER_UI_TEXT_FONT);
-		pTextPoint->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_ULTRA_BOLD);
-		pTextPoint->GetTextFormat().SetStyle(DWRITE_FONT_STYLE_ITALIC);
-		pTextPoint->ApplyTextFormat();
-
-		UIObjectHandle hTextWeaponName = CreateText();
-		pScriptGameUIManager->m_hTextWeaponName = hTextWeaponName;
-		Text* pTextWeaponName = static_cast<Text*>(hTextWeaponName.ToPtr());
-		pTextWeaponName->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
-		pTextWeaponName->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
-		pTextWeaponName->m_transform.SetPosition(pImageRBUIBackground->m_transform.GetPosition());
-		pTextWeaponName->m_transform.TranslateY(6);
-		pTextWeaponName->SetSize(XMFLOAT2(200, 32));
-		pTextWeaponName->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-		pTextWeaponName->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-		pTextWeaponName->SetColor(ColorsLinear::White);
-		pTextWeaponName->GetTextFormat().SetSize(22);
-		pTextWeaponName->GetTextFormat().SetFontFamilyName(PLAYER_UI_TEXT_FONT);
-		pTextWeaponName->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_ULTRA_BOLD);
-		pTextWeaponName->ApplyTextFormat();
-
-		UIObjectHandle hTextAmmoState = CreateText();
-		pScriptGameUIManager->m_hTextAmmoState = hTextAmmoState;
-		Text* pTextAmmoState = static_cast<Text*>(hTextAmmoState.ToPtr());
-		pTextAmmoState->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
-		pTextAmmoState->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
-		pTextAmmoState->m_transform.SetPosition(pImageRBUIBackground->m_transform.GetPosition());
-		pTextAmmoState->m_transform.Translate(16, -28);
-		pTextAmmoState->SetSize(XMFLOAT2(128, 40));
-		pTextAmmoState->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-		pTextAmmoState->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-		pTextAmmoState->SetColor(ColorsLinear::White);
-		pTextAmmoState->GetTextFormat().SetSize(34);
-		pTextAmmoState->GetTextFormat().SetFontFamilyName(PLAYER_UI_TEXT_FONT);
-		pTextAmmoState->GetTextFormat().SetStyle(DWRITE_FONT_STYLE_ITALIC);
-		pTextAmmoState->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_ULTRA_BOLD);
-		pTextAmmoState->ApplyTextFormat();
-	}
+	// GameObjectHandle hGameObjectThirdPersonCharacter = CreateGameObject(L"TPC");
+	// GameObject* pGameObjectThirdPersonCharacter = hGameObjectThirdPersonCharacter.ToPtr();
+	// pGameObjectThirdPersonCharacter->m_transform.SetPosition(1, 0, 1);
+	// pGameObjectThirdPersonCharacter->AddComponent<ThirdPersonCharacter>();
 
 	// ## MATERIALS
 	// std::shared_ptr<Material> matAsphault = ResourceLoader::GetInstance()->CreateMaterial();
@@ -1254,4 +1031,9 @@ void Warehouse::OnLoadScene()
 		RenderSettings::GetInstance()->SetAmbientLightColor(ColorsLinear::White);
 		RenderSettings::GetInstance()->SetAmbientLightIntensity(0.025f);
 	}
+
+
+	// 씬이 로드 완료되고 시작되는 첫 프레임에 리슨 서버에게 시작 명령을 내린다.
+	GameObjectHandle hGameObjListenServerStarter = CreateGameObject();
+	hGameObjListenServerStarter.ToPtr()->AddComponent<ListenServerStarter>();
 }

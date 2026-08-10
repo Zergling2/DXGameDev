@@ -63,8 +63,10 @@ void MonoBehaviourManager::AwakeDeployedComponents()
 
 void MonoBehaviourManager::CallStart()
 {
-    for (MonoBehaviour* pScript : m_startQueue)
+    for (size_t i = 0; i < m_startQueue.size(); ++i)
     {
+        MonoBehaviour* pScript = m_startQueue[i];
+
         assert(pScript->IsOnTheStartingQueue());
         assert(!pScript->IsStartCalled());
 

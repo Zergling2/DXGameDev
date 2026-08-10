@@ -47,6 +47,7 @@ public:
 	float GetCharacterCalfColliderHeight() const;
 	std::shared_ptr<ze::BoxCollider> GetCharacterFootCollider() const { return m_spCharacterFootCollider; }
 	const XMFLOAT3& GetCharacterFootColliderHalfExtents() const;
+	float GetCharacterColliderTotalHeight() const;
 	float GetCharacterColliderRadius() const;
 	float GetGroundCheckColliderHeight() const;
 private:

@@ -132,8 +132,8 @@ void Weapon::Draw()
 	wchar_t buf[32];
 	this->CreateAmmoUIText(buf, _countof(buf));
 	GameUIManager* pGameUIManager = m_hScriptGameUIManager.ToPtr();
-	static_cast<ze::Text*>(pGameUIManager->m_hTextAmmoState.ToPtr())->SetText(buf);
-	static_cast<ze::Text*>(pGameUIManager->m_hTextWeaponName.ToPtr())->SetText(m_spWeaponDef->GetName());
+	pGameUIManager->SetTextAmmoState(buf);
+	pGameUIManager->SetTextWeaponName(m_spWeaponDef->GetName().c_str());
 }
 
 void Weapon::Reload()
@@ -178,7 +178,7 @@ void Weapon::Fire()
 	wchar_t buf[32];
 	this->CreateAmmoUIText(buf, _countof(buf));
 	GameUIManager* pGameUIManager = m_hScriptGameUIManager.ToPtr();
-	static_cast<ze::Text*>(pGameUIManager->m_hTextAmmoState.ToPtr())->SetText(buf);
+	pGameUIManager->SetTextAmmoState(buf);
 
 	this->PlayAnim(WeaponAction::Fire, false);
 }
@@ -200,8 +200,8 @@ void Weapon::Undraw()
 
 	// 탄약 UI 업데이트
 	GameUIManager* pGameUIManager = m_hScriptGameUIManager.ToPtr();
-	static_cast<ze::Text*>(pGameUIManager->m_hTextAmmoState.ToPtr())->GetText().clear();
-	static_cast<ze::Text*>(pGameUIManager->m_hTextWeaponName.ToPtr())->GetText().clear();
+	pGameUIManager->ClearTextAmmoState();
+	pGameUIManager->ClearTextWeaponName();
 }
 
 void Weapon::OnReloadFinished()
@@ -222,7 +222,7 @@ void Weapon::OnReloadFinished()
 	wchar_t buf[32];
 	this->CreateAmmoUIText(buf, _countof(buf));
 	GameUIManager* pGameUIManager = m_hScriptGameUIManager.ToPtr();
-	static_cast<ze::Text*>(pGameUIManager->m_hTextAmmoState.ToPtr())->SetText(buf);
+	pGameUIManager->SetTextAmmoState(buf);
 }
 
 void Weapon::OnIdle(float exceed)

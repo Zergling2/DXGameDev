@@ -65,22 +65,21 @@ ComponentHandleBase IComponentManager::RegisterToHandleTable(IComponent* pCompon
 		// 핸들 테이블의 빈 자리를 검색
 		if (m_emptyHandleTableIndex.empty())	// 핸들 테이블에 빈 공간이 없는 경우
 		{
-			const size_t newHandleTableBeginIndex = m_handleTable.size();
-			m_handleTable.push_back(nullptr);	// 핸들 테이블에 빈 공간 추가
-			const size_t newHandleTableEndIndex = m_handleTable.size() - 1;
-
-			for (size_t i = newHandleTableBeginIndex; i <= newHandleTableEndIndex; ++i)
-				m_emptyHandleTableIndex.push_back(static_cast<uint32_t>(i));
+			assert(m_handleTable.size() < (std::numeric_limits<uint32_t>::max)());
+			
+			m_handleTable.push_back(nullptr);
+			const uint32_t newIndex = static_cast<uint32_t>(m_handleTable.size() - 1);		// 핸들 테이블에 빈 공간 추가
+			m_emptyHandleTableIndex.push_back(newIndex);									// 새롭게 추가된 빈 공간의 인덱스 기록
 		}
 
 		assert(m_emptyHandleTableIndex.empty() == false);
 
-		const uint32_t emptyIndex = m_emptyHandleTableIndex.back();
+		const uint32_t tableIndex = m_emptyHandleTableIndex.back();
 		m_emptyHandleTableIndex.pop_back();
 
 		// 핸들 테이블 사용
-		m_handleTable[emptyIndex] = pComponent;
-		pComponent->m_tableIndex = emptyIndex;
+		m_handleTable[tableIndex] = pComponent;
+		pComponent->m_tableIndex = tableIndex;
 	}
 
 	hComponent = ComponentHandleBase(pComponent->m_tableIndex, pComponent->GetId());	// 유효한 핸들 준비

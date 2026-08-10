@@ -3,93 +3,111 @@
 
 using namespace ze;
 
-UIStateNone UIStateNone::s_instance;
-UIStateScoreboard UIStateScoreboard::s_instance;
-UIStateGameMenu UIStateGameMenu::s_instance;
+const wchar_t* const GAME_UI_TEXT_FONT = L"Agency FB";
 
-void UIStateNone::Enter(GameUIManager* pGameUIManager)
+GameUIStateDeactivate GameUIStateDeactivate::s_instance;
+GameUIStatePlaying GameUIStatePlaying::s_instance;
+GameUIStateScoreboard GameUIStateScoreboard::s_instance;
+GameUIStateMenu GameUIStateMenu::s_instance;
+
+void GameUIStateDeactivate::Enter(GameUIManager* pGameUIManager)
+{
+	Cursor::SetVisible(true);
+	Cursor::SetLockState(CursorLockMode::None);
+
+	pGameUIManager->HideAdapterInfo();
+	pGameUIManager->HideScoreboard();
+	pGameUIManager->HideMenu();
+	pGameUIManager->HideGameUI();
+}
+
+void GameUIStateDeactivate::Update(GameUIManager* pGameUIManager)
 {
 }
 
-void UIStateNone::Update(GameUIManager* pGameUIManager)
+void GameUIStateDeactivate::Exit(GameUIManager* pGameUIManager)
+{
+}
+
+void GameUIStatePlaying::Enter(GameUIManager* pGameUIManager)
+{
+	Cursor::SetVisible(false);
+	Cursor::SetLockState(CursorLockMode::Locked);
+
+	pGameUIManager->ShowGameUI();
+}
+
+void GameUIStatePlaying::Update(GameUIManager* pGameUIManager)
 {
 	if (Input::GetInstance()->GetKey(Keycode::KEY_TAB))
 	{
-		pGameUIManager->SetState(UIStateScoreboard::GetState());
+		pGameUIManager->SetState(GameUIStateScoreboard::GetState());
 		return;
 	}
 
 	if (Input::GetInstance()->GetKeyDown(Keycode::KEY_ESCAPE))
 	{
-		pGameUIManager->SetState(UIStateGameMenu::GetState());
+		pGameUIManager->SetState(GameUIStateMenu::GetState());
 		return;
 	}
 }
 
-void UIStateNone::Exit(GameUIManager* pGameUIManager)
+void GameUIStatePlaying::Exit(GameUIManager* pGameUIManager)
 {
+	pGameUIManager->HideGameUI();
 }
 
-void UIStateScoreboard::Enter(GameUIManager* pGameUIManager)
+void GameUIStateScoreboard::Enter(GameUIManager* pGameUIManager)
 {
-	IUIObject* pPanelScoreboardRoot = pGameUIManager->m_hPanelScoreboardRoot.ToPtr();
-	assert(pPanelScoreboardRoot);
-
-	pPanelScoreboardRoot->SetActive(true);
+	pGameUIManager->ShowAdapterInfo();
+	pGameUIManager->ShowScoreboard();
 }
 
-void UIStateScoreboard::Update(GameUIManager* pGameUIManager)
+void GameUIStateScoreboard::Update(GameUIManager* pGameUIManager)
 {
 	if (!Input::GetInstance()->GetKey(Keycode::KEY_TAB))
 	{
-		pGameUIManager->SetState(UIStateNone::GetState());
+		pGameUIManager->SetState(GameUIStatePlaying::GetState());
 		return;
 	}
 }
 
-void UIStateScoreboard::Exit(GameUIManager* pGameUIManager)
+void GameUIStateScoreboard::Exit(GameUIManager* pGameUIManager)
 {
-	IUIObject* pPanelScoreboardRoot = pGameUIManager->m_hPanelScoreboardRoot.ToPtr();
-	assert(pPanelScoreboardRoot);
-
-	pPanelScoreboardRoot->SetActive(false);
+	pGameUIManager->HideAdapterInfo();
+	pGameUIManager->HideScoreboard();
 }
 
-void UIStateGameMenu::Enter(GameUIManager* pGameUIManager)
+void GameUIStateMenu::Enter(GameUIManager* pGameUIManager)
 {
-	Player* pScriptPlayer = pGameUIManager->m_hScriptPlayer.ToPtr();
-	assert(pScriptPlayer);
-	pScriptPlayer->SetProcessingInput(false);
-
-	IUIObject* pPanelMenuRoot = pGameUIManager->m_hPanelGameMenuRoot.ToPtr();
-	assert(pPanelMenuRoot);
-	pPanelMenuRoot->SetActive(true);
-
 	Cursor::SetVisible(true);
 	Cursor::SetLockState(CursorLockMode::None);
+
+	Player* pScriptPlayer = pGameUIManager->GetPlayerScript();
+	if (pScriptPlayer)
+		pScriptPlayer->SetProcessingInput(false);
+
+	pGameUIManager->ShowAdapterInfo();
+	pGameUIManager->ShowMenu();
 }
 
-void UIStateGameMenu::Update(GameUIManager* pGameUIManager)
+void GameUIStateMenu::Update(GameUIManager* pGameUIManager)
 {
 }
 
-void UIStateGameMenu::Exit(GameUIManager* pGameUIManager)
+void GameUIStateMenu::Exit(GameUIManager* pGameUIManager)
 {
-	IUIObject* pPanelMenuRoot = pGameUIManager->m_hPanelGameMenuRoot.ToPtr();
-	assert(pPanelMenuRoot);
-	pPanelMenuRoot->SetActive(false);
+	pGameUIManager->HideAdapterInfo();
+	pGameUIManager->HideMenu();
 
-	Player* pScriptPlayer = pGameUIManager->m_hScriptPlayer.ToPtr();
-	assert(pScriptPlayer);
-	pScriptPlayer->SetProcessingInput(true);
-
-	Cursor::SetVisible(false);
-	Cursor::SetLockState(CursorLockMode::Locked);
+	Player* pScriptPlayer = pGameUIManager->GetPlayerScript();
+	if (pScriptPlayer)
+		pScriptPlayer->SetProcessingInput(true);
 }
 
 GameUIManager::GameUIManager(ze::GameObject& owner)
 	: ze::MonoBehaviour(owner)
-	, m_pUIState(UIStateNone::GetState())
+	, m_pUIState(nullptr)
 	, m_redTeamPlayersCount(0)
 	, m_blueTeamPlayersCount(0)
 {
@@ -99,12 +117,106 @@ GameUIManager::GameUIManager(ze::GameObject& owner)
 
 void GameUIManager::Awake()
 {
-	Cursor::SetVisible(false);
-	Cursor::SetLockState(CursorLockMode::Locked);
+	// ###################################
+	// Adapter Info UI
+	UIObjectHandle hPanelAdapterInfoRoot = Runtime::GetInstance()->CreatePanel();
+	m_hPanelAdapterInfoRoot = hPanelAdapterInfoRoot;
+	Panel* pPanelAdapterInfoRoot = static_cast<Panel*>(hPanelAdapterInfoRoot.ToPtr());
+	
+	{
+		UIObjectHandle hText = Runtime::GetInstance()->CreateText();
+		Text* pText = static_cast<Text*>(hText.ToPtr());
+		pText->m_transform.SetParent(&pPanelAdapterInfoRoot->m_transform);
+		pText->SetSize(XMFLOAT2(256, 16));
+		std::wstring text = GraphicDevice::GetInstance()->GetAdapterDescription();
+		pText->SetText(std::move(text));
+		pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+		pText->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
+		pText->m_transform.SetPosition(128 + 2, -(8));
+		pText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+		pText->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+		pText->SetColor(ColorsLinear::Orange);
+		pText->GetTextFormat().SetSize(12);
+		pText->GetTextFormat().SetFontFamilyName(L"Consolas");
+		pText->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
+		pText->ApplyTextFormat();
+	}
+
+	{
+		UIObjectHandle hText = Runtime::GetInstance()->CreateText();
+		Text* pText = static_cast<Text*>(hText.ToPtr());
+		pText->m_transform.SetParent(&pPanelAdapterInfoRoot->m_transform);
+		pText->SetSize(XMFLOAT2(256, 16));
+		std::wstring text = L"DedicatedVideoMemory: ";
+		size_t val = GraphicDevice::GetInstance()->GetAdapterDedicatedVideoMemory();
+		text += std::to_wstring(val / (1024 * 1024));
+		text += L"MB";
+		pText->SetText(std::move(text));
+		pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+		pText->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
+		pText->m_transform.SetPosition(128 + 2, -(8 + 16 * 1));
+		pText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+		pText->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+		pText->SetColor(ColorsLinear::Orange);
+		pText->GetTextFormat().SetSize(12);
+		pText->GetTextFormat().SetFontFamilyName(L"Consolas");
+		pText->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
+		pText->ApplyTextFormat();
+	}
+
+	{
+		UIObjectHandle hText = Runtime::GetInstance()->CreateText();
+		Text* pText = static_cast<Text*>(hText.ToPtr());
+		pText->m_transform.SetParent(&pPanelAdapterInfoRoot->m_transform);
+		pText->SetSize(XMFLOAT2(256, 16));
+		std::wstring text = L"DedicatedSystemMemory: ";
+		size_t val = GraphicDevice::GetInstance()->GetAdapterDedicatedSystemMemory();
+		text += std::to_wstring(val / (1024 * 1024));
+		text += L"MB";
+		pText->SetText(std::move(text));
+		pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+		pText->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
+		pText->m_transform.SetPosition(128 + 2, -(8 + 16 * 2));
+		pText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+		pText->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+		pText->SetColor(ColorsLinear::Orange);
+		pText->GetTextFormat().SetSize(12);
+		pText->GetTextFormat().SetFontFamilyName(L"Consolas");
+		pText->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
+		pText->ApplyTextFormat();
+	}
+
+	{
+		UIObjectHandle hText = Runtime::GetInstance()->CreateText();
+		Text* pText = static_cast<Text*>(hText.ToPtr());
+		pText->m_transform.SetParent(&pPanelAdapterInfoRoot->m_transform);
+		pText->SetSize(XMFLOAT2(256, 16));
+		std::wstring text = L"SharedSystemMemory: ";
+		size_t val = GraphicDevice::GetInstance()->GetAdapterSharedSystemMemory();
+		text += std::to_wstring(val / (1024 * 1024));
+		text += L"MB";
+		pText->SetText(std::move(text));
+		pText->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+		pText->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
+		pText->m_transform.SetPosition(128 + 2, -(8 + 16 * 3));
+		pText->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+		pText->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+		pText->SetColor(ColorsLinear::Orange);
+		pText->GetTextFormat().SetSize(12);
+		pText->GetTextFormat().SetFontFamilyName(L"Consolas");
+		pText->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
+		pText->ApplyTextFormat();
+	}
+	// ###################################
 
 
 
-	// ## 점수판 UI 생성
+
+
+
+
+
+	// ##### 점수판 UI 생성 #####
 	constexpr XMFLOAT2 SCOREBOARD_SIZE(960, 540);
 	UIObjectHandle hPanelScoreboardRoot = Runtime::GetInstance()->CreatePanel();
 	m_hPanelScoreboardRoot = hPanelScoreboardRoot;		// 핸들 저장
@@ -213,18 +325,18 @@ void GameUIManager::Awake()
 
 
 	
-	// ## 게임 메뉴 UI 생성
-	UIObjectHandle hPanelGameMenuRoot = Runtime::GetInstance()->CreatePanel();
-	m_hPanelGameMenuRoot = hPanelGameMenuRoot;
-	Panel* pPanelGameMenuRoot = static_cast<Panel*>(hPanelGameMenuRoot.ToPtr());
-	pPanelGameMenuRoot->SetActive(false);
-	pPanelGameMenuRoot->SetSize(140, 200);
-	pPanelGameMenuRoot->SetShape(PanelShape::Rectangle);
-	pPanelGameMenuRoot->SetColor(Colors::DimGray);
+	// ##### 게임 메뉴 UI 생성 #####
+	UIObjectHandle hPanelMenuRoot = Runtime::GetInstance()->CreatePanel();
+	m_hPanelMenuRoot = hPanelMenuRoot;
+	Panel* pPanelMenuRoot = static_cast<Panel*>(hPanelMenuRoot.ToPtr());
+	pPanelMenuRoot->SetActive(false);
+	pPanelMenuRoot->SetSize(140, 200);
+	pPanelMenuRoot->SetShape(PanelShape::Rectangle);
+	pPanelMenuRoot->SetColor(Colors::DimGray);
 
 	UIObjectHandle hButtonCloseGameMenu = Runtime::GetInstance()->CreateButton();
 	Button* pButtonCloseGameMenu = static_cast<Button*>(hButtonCloseGameMenu.ToPtr());
-	pButtonCloseGameMenu->m_transform.SetParent(&pPanelGameMenuRoot->m_transform);
+	pButtonCloseGameMenu->m_transform.SetParent(&pPanelMenuRoot->m_transform);
 	pButtonCloseGameMenu->m_transform.SetPosition(55, 85);
 	pButtonCloseGameMenu->SetSize(20, 20);
 	pButtonCloseGameMenu->SetText(L"X");
@@ -233,20 +345,154 @@ void GameUIManager::Awake()
 
 	UIObjectHandle hButtonGameSettings = Runtime::GetInstance()->CreateButton();
 	Button* pButtonGameSettings = static_cast<Button*>(hButtonGameSettings.ToPtr());
-	pButtonGameSettings->m_transform.SetParent(&pPanelGameMenuRoot->m_transform);
+	pButtonGameSettings->m_transform.SetParent(&pPanelMenuRoot->m_transform);
 	pButtonGameSettings->m_transform.SetPosition(0, +40);
 	pButtonGameSettings->SetSize(80, 20);
 	pButtonGameSettings->SetText(L"옵션");
-	// pButtonGameSettings->SetHandlerOnClick();
+	// pButtonGameSettings->SetHandlerOnClick(MakeUIHandler(ComponentHandle<GameUIManager>(this->ToHandle()), &GameUIManager::OnClickCloseGameMenu));
 
 	UIObjectHandle hButtonExitGame = Runtime::GetInstance()->CreateButton();
 	Button* pButtonExitGame = static_cast<Button*>(hButtonExitGame.ToPtr());
-	pButtonExitGame->m_transform.SetParent(&pPanelGameMenuRoot->m_transform);
+	pButtonExitGame->m_transform.SetParent(&pPanelMenuRoot->m_transform);
 	pButtonExitGame->m_transform.SetPosition(0, -60);
 	pButtonExitGame->SetSize(80, 20);
 	pButtonExitGame->SetText(L"나가기");
-	// pButtonExitGame->SetHandlerOnClick();
+	pButtonExitGame->SetHandlerOnClick(MakeUIHandler(ComponentHandle<GameUIManager>(this->ToHandle()), &GameUIManager::OnClickCloseGameMenu));
 
+
+
+
+	// ##### 게임 UI 생성 #####
+	UIObjectHandle hImageGameUIRoot = Runtime::GetInstance()->CreateImage();
+	m_hImageGameUIRoot = hImageGameUIRoot;
+	Image* pImageGameUIRoot = static_cast<Image*>(hImageGameUIRoot.ToPtr());
+
+	UIObjectHandle hImageCrosshair = Runtime::GetInstance()->CreateImage();
+	m_hImageCrosshair = hImageCrosshair;
+	Image* pImageCrosshair = static_cast<Image*>(hImageCrosshair.ToPtr());
+	pImageCrosshair->m_transform.SetParent(&pImageGameUIRoot->m_transform);
+	pImageCrosshair->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\crosshair.dds"));
+	pImageCrosshair->SetNativeSize(true);
+	pImageCrosshair->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pImageCrosshair->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+
+	UIObjectHandle hImageHealthBackground = Runtime::GetInstance()->CreateImage();
+	m_hImageHealthBackground = hImageHealthBackground;
+	Image* pImageHealthBackground = static_cast<Image*>(hImageHealthBackground.ToPtr());
+	pImageHealthBackground->m_transform.SetParent(&pImageGameUIRoot->m_transform);
+	pImageHealthBackground->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\health.png"));
+	pImageHealthBackground->SetNativeSize(true);
+	pImageHealthBackground->m_transform.SetPosition(pImageHealthBackground->GetHalfSizeX() + 4, pImageHealthBackground->GetHalfSizeY() + 4);
+	pImageHealthBackground->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+	pImageHealthBackground->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
+
+	UIObjectHandle hImageRBUIBackground = Runtime::GetInstance()->CreateImage();
+	m_hImageRBUIBackground = hImageRBUIBackground;
+	Image* pImageRBUIBackground = static_cast<Image*>(hImageRBUIBackground.ToPtr());
+	pImageRBUIBackground->m_transform.SetParent(&pImageGameUIRoot->m_transform);
+	pImageRBUIBackground->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\weapon_indicator.png"));
+	pImageRBUIBackground->SetNativeSize(true);
+	pImageRBUIBackground->m_transform.SetPosition(-pImageRBUIBackground->GetHalfSizeX() - 4, pImageRBUIBackground->GetHalfSizeY() + 4);
+	pImageRBUIBackground->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
+	pImageRBUIBackground->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
+
+	UIObjectHandle hTextHP = Runtime::GetInstance()->CreateText();
+	m_hTextHP = hTextHP;
+	Text* pTextHP = static_cast<Text*>(hTextHP.ToPtr());
+	pTextHP->m_transform.SetParent(&pImageGameUIRoot->m_transform);
+	pTextHP->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+	pTextHP->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
+	pTextHP->m_transform.SetPosition(pImageHealthBackground->m_transform.GetPosition());
+	pTextHP->m_transform.TranslateX(-56);
+	pTextHP->SetSize(128, 48);
+	pTextHP->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pTextHP->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pTextHP->SetColor(ColorsLinear::White);
+	pTextHP->GetTextFormat().SetSize(28);
+	pTextHP->GetTextFormat().SetFontFamilyName(L"Impact");
+	pTextHP->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
+	pTextHP->ApplyTextFormat();
+
+	UIObjectHandle hTextAP = Runtime::GetInstance()->CreateText();
+	m_hTextAP = hTextAP;
+	Text* pTextAP = static_cast<Text*>(hTextAP.ToPtr());
+	pTextAP->m_transform.SetParent(&pImageGameUIRoot->m_transform);
+	pTextAP->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+	pTextAP->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
+	pTextAP->m_transform.SetPosition(pImageHealthBackground->m_transform.GetPosition());
+	pTextAP->m_transform.TranslateX(120);
+	pTextAP->SetSize(128, 48);
+	pTextAP->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pTextAP->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pTextAP->SetColor(ColorsLinear::White);
+	pTextAP->GetTextFormat().SetSize(28);
+	pTextAP->GetTextFormat().SetFontFamilyName(L"Impact");
+	pTextAP->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
+	pTextAP->ApplyTextFormat();
+
+	UIObjectHandle hTextPoint = Runtime::GetInstance()->CreateText();
+	m_hTextPoint = hTextPoint;
+	Text* pTextPoint = static_cast<Text*>(hTextPoint.ToPtr());
+	pTextPoint->m_transform.SetParent(&pImageGameUIRoot->m_transform);
+	pTextPoint->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
+	pTextPoint->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
+	pTextPoint->m_transform.SetPosition(pImageRBUIBackground->m_transform.GetPosition());
+	pTextPoint->m_transform.Translate(-45, 34);
+	pTextPoint->SetSize(128, 32);
+	pTextPoint->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pTextPoint->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pTextPoint->SetColor(ColorsLinear::White);
+	pTextPoint->GetTextFormat().SetSize(22);
+	pTextPoint->GetTextFormat().SetFontFamilyName(GAME_UI_TEXT_FONT);
+	pTextPoint->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_ULTRA_BOLD);
+	pTextPoint->GetTextFormat().SetStyle(DWRITE_FONT_STYLE_ITALIC);
+	pTextPoint->ApplyTextFormat();
+
+	UIObjectHandle hTextWeaponName = Runtime::GetInstance()->CreateText();
+	m_hTextWeaponName = hTextWeaponName;
+	Text* pTextWeaponName = static_cast<Text*>(hTextWeaponName.ToPtr());
+	pTextWeaponName->m_transform.SetParent(&pImageGameUIRoot->m_transform);
+	pTextWeaponName->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
+	pTextWeaponName->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
+	pTextWeaponName->m_transform.SetPosition(pImageRBUIBackground->m_transform.GetPosition());
+	pTextWeaponName->m_transform.TranslateY(6);
+	pTextWeaponName->SetSize(XMFLOAT2(200, 32));
+	pTextWeaponName->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pTextWeaponName->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pTextWeaponName->SetColor(ColorsLinear::White);
+	pTextWeaponName->GetTextFormat().SetSize(22);
+	pTextWeaponName->GetTextFormat().SetFontFamilyName(GAME_UI_TEXT_FONT);
+	pTextWeaponName->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_ULTRA_BOLD);
+	pTextWeaponName->ApplyTextFormat();
+
+	UIObjectHandle hTextAmmoState = Runtime::GetInstance()->CreateText();
+	m_hTextAmmoState = hTextAmmoState;
+	Text* pTextAmmoState = static_cast<Text*>(hTextAmmoState.ToPtr());
+	pTextAmmoState->m_transform.SetParent(&pImageGameUIRoot->m_transform);
+	pTextAmmoState->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
+	pTextAmmoState->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
+	pTextAmmoState->m_transform.SetPosition(pImageRBUIBackground->m_transform.GetPosition());
+	pTextAmmoState->m_transform.Translate(16, -28);
+	pTextAmmoState->SetSize(XMFLOAT2(128, 40));
+	pTextAmmoState->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pTextAmmoState->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pTextAmmoState->SetColor(ColorsLinear::White);
+	pTextAmmoState->GetTextFormat().SetSize(34);
+	pTextAmmoState->GetTextFormat().SetFontFamilyName(GAME_UI_TEXT_FONT);
+	pTextAmmoState->GetTextFormat().SetStyle(DWRITE_FONT_STYLE_ITALIC);
+	pTextAmmoState->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_ULTRA_BOLD);
+	pTextAmmoState->ApplyTextFormat();
+
+
+	
+	// ###########################################################
+	m_hPanelAdapterInfoRoot.ToPtr()->DontDestroyOnLoadRecursively();
+	m_hPanelScoreboardRoot.ToPtr()->DontDestroyOnLoadRecursively();
+	m_hPanelMenuRoot.ToPtr()->DontDestroyOnLoadRecursively();
+	m_hImageGameUIRoot.ToPtr()->DontDestroyOnLoadRecursively();
+	// ###########################################################
+
+	this->SetState(GameUIStateDeactivate::GetState());
 }
 
 void GameUIManager::Update()
@@ -283,6 +529,11 @@ void GameUIManager::SetTextAmmoState(const wchar_t* str)
 	static_cast<Text*>(m_hTextAmmoState.ToPtr())->SetText(str);
 }
 
+void GameUIManager::ClearTextAmmoState()
+{
+	static_cast<Text*>(m_hTextAmmoState.ToPtr())->GetText().clear();
+}
+
 void GameUIManager::SetTextPoint(uint32_t point)
 {
 	wchar_t buf[32];
@@ -296,9 +547,14 @@ void GameUIManager::SetTextWeaponName(const wchar_t* name)
 	static_cast<Text*>(m_hTextWeaponName.ToPtr())->SetText(name);
 }
 
-void GameUIManager::SetState(IUIState* pUIState)
+void GameUIManager::ClearTextWeaponName()
 {
-	IUIState* pOldState = m_pUIState;
+	static_cast<Text*>(m_hTextWeaponName.ToPtr())->GetText().clear();
+}
+
+void GameUIManager::SetState(IGameUIManagerState* pUIState)
+{
+	IGameUIManagerState* pOldState = m_pUIState;
 
 	if (pOldState)
 		pOldState->Exit(this);
@@ -309,23 +565,54 @@ void GameUIManager::SetState(IUIState* pUIState)
 		m_pUIState->Enter(this);
 }
 
-void GameUIManager::ShowAliveUI()
+Player* GameUIManager::GetPlayerScript() const
 {
-	m_hImageCrosshair.ToPtr()->SetActive(true);
-	m_hImageHealthBackground.ToPtr()->SetActive(true);
-	m_hImageRBUIBackground.ToPtr()->SetActive(true);
+	return m_hScriptPlayer.ToPtr();
 }
 
-void GameUIManager::HideAliveUI()
+void GameUIManager::ShowAdapterInfo()
 {
-	m_hImageCrosshair.ToPtr()->SetActive(false);
-	m_hImageHealthBackground.ToPtr()->SetActive(false);
-	m_hImageRBUIBackground.ToPtr()->SetActive(false);
+	m_hPanelAdapterInfoRoot.ToPtr()->SetActive(true);
+}
+
+void GameUIManager::HideAdapterInfo()
+{
+	m_hPanelAdapterInfoRoot.ToPtr()->SetActive(false);
+}
+
+void GameUIManager::ShowScoreboard()
+{
+	m_hPanelScoreboardRoot.ToPtr()->SetActive(true);
+}
+
+void GameUIManager::HideScoreboard()
+{
+	m_hPanelScoreboardRoot.ToPtr()->SetActive(false);
+}
+
+void GameUIManager::ShowMenu()
+{
+	m_hPanelMenuRoot.ToPtr()->SetActive(true);
+}
+
+void GameUIManager::HideMenu()
+{
+	m_hPanelMenuRoot.ToPtr()->SetActive(false);
+}
+
+void GameUIManager::ShowGameUI()
+{
+	m_hImageGameUIRoot.ToPtr()->SetActive(true);
+}
+
+void GameUIManager::HideGameUI()
+{
+	m_hImageGameUIRoot.ToPtr()->SetActive(false);
 }
 
 void GameUIManager::OnClickCloseGameMenu()
 {
-	assert(GetState() == UIStateGameMenu::GetState());
+	assert(GetState() == GameUIStateMenu::GetState());
 
-	this->SetState(UIStateNone::GetState());
+	this->SetState(GameUIStatePlaying::GetState());
 }

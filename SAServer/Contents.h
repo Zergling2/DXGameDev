@@ -23,7 +23,9 @@ enum class GameMap : uint16_t
 enum class GameRoomState : uint8_t
 {
 	InWaiting,
-	InPlay
+	InPlay,
+
+	Unknown
 };
 
 enum class PlayerState : uint8_t

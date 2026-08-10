@@ -15,6 +15,20 @@ const wchar_t* GameMapInfo::GetMapNameString(GameMap map)
 	}
 }
 
+const wchar_t* GameMapInfo::GetMapSceneNameString(GameMap map)
+{
+	switch (map)
+	{
+	case GameMap::tdm_warehouse:
+		return L"Warehouse";
+	case GameMap::de_a_supply_base:
+		return L"ASupplyBase";
+	default:
+		assert(false);
+		return L"Unknown";
+	}
+}
+
 const wchar_t* GameMapInfo::GetModeNameString(GameMap map)
 {
 	const uint32_t mapId = static_cast<uint32_t>(map);

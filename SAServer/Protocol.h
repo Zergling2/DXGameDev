@@ -20,10 +20,12 @@ enum class Protocol : protocol_type
 	CS_REQ_JOIN_GAME_ROOM,
 	CS_REQ_CHANGE_TEAM,
 	CS_REQ_EXIT_GAME_ROOM,
-	CS_REQ_HOST_GAME_STARTABLE_STATE,
+	CS_REQ_HOST_GAME_START,
 	CS_REQ_GAME_READY,
 	CS_REQ_GAME_UNREADY,
+	CS_REQ_GAME_ENTER,
 	CS_REQ_EXIT_GAME_CHANNEL,
+	CS_NOTIFY_LISTEN_SERVER_START,
 
 	SC_RES_LOGIN,
 	SC_RES_ID_DUPLICATE_CHECK,
@@ -34,7 +36,7 @@ enum class Protocol : protocol_type
 	SC_RES_GAME_ROOM_LIST,
 	SC_RES_CREATE_GAME_ROOM,
 	SC_RES_JOIN_GAME_ROOM,
-	SC_RES_HOST_GAME_STARTABLE_STATE,
+	SC_RES_HOST_GAME_START,
 	SC_RES_EXIT_GAME_ROOM,
 	SC_RES_EXIT_GAME_CHANNEL,
 	SC_NOTIFY_LOBBY_CHAT,
@@ -42,6 +44,7 @@ enum class Protocol : protocol_type
 	SC_NOTIFY_PLAYER_JOINED_GAME_ROOM,
 	SC_NOTIFY_GAME_ROOM_PLAYER,
 	SC_NOTIFY_PLAYER_EXIT_GAME_ROOM,
+	SC_NOTIFY_GAME_ROOM_STATE_CHANGED,
 	SC_NOTIFY_HOST_CHANGED,
 	SC_NOTIFY_PLAYER_STATE_CHANGED
 };
@@ -199,6 +202,7 @@ struct SCResCreateGameRoom
 	uint64_t m_gameRoomId;
 	uint16_t m_gameRoomNo;
 	uint32_t m_gameRoomHostAccountId;
+	GameRoomState m_gameRoomState;
 	GameRoomTeamFormat m_gameRoomTeamFormat;
 	GameMap m_gameMap;
 	GameTeam m_joinedTeam;
@@ -212,6 +216,7 @@ struct SCResJoinGameRoom
 	uint64_t m_gameRoomId;
 	uint16_t m_gameRoomNo;
 	uint32_t m_gameRoomHostAccountId;
+	GameRoomState m_gameRoomState;
 	GameRoomTeamFormat m_gameRoomTeamFormat;
 	GameMap m_gameMap;
 	GameTeam m_joinedTeam;
@@ -228,7 +233,7 @@ enum class HostGameStartableState : uint8_t
 struct SCResHostGameStartableState
 {
 	HostGameStartableState m_result;
-	GameTeam m_team;
+	GameTeam m_startingTeam;
 	GameMap	m_map;
 };
 
@@ -264,6 +269,12 @@ struct SCNotifyHostChanged
 	PlayerState m_oldHostNewState;
 	uint32_t m_newHostAccountId;
 	PlayerState m_newHostNewState;
+};
+
+struct SCNotifyGameRoomStateChanged
+{
+	uint64_t m_gameRoomId;
+	GameRoomState m_newState;
 };
 
 struct SCNotifyPlayerStateChanged

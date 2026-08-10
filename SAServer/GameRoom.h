@@ -49,7 +49,7 @@ public:
     void SetMap(GameMap map) { m_map = map; }
 
     GameRoomState GetState() const { return m_state; }
-    void SetState(GameRoomState state) { m_state = state; }
+    void SetState(winppy::TCPServer& server, GameRoomState state);
 
     const std::wstring& GetName() const { return m_name; }
     void SetName(const wchar_t* name) { m_name = name; }
@@ -60,11 +60,12 @@ public:
     const Player* GetHost() const { return m_pHost; }
 
     HostGameStartableResult IsGameStartable() const;
-    void ChangeReadyPlayersAndHostStateToPlaying(winppy::TCPServer& server);
+    void ChangeHostAndReadyPlayersStateToPlaying(winppy::TCPServer& server);
     size_t GetNumOfPlayers() const { return m_redTeam.size() + m_blueTeam.size(); }
     void ChangePlayerState(winppy::TCPServer& server, uint32_t accountId, PlayerState newState);
     PlayerState GetPlayerState(uint32_t accountId) const;
     bool ChangePlayerTeam(winppy::TCPServer& server, uint32_t accountId, GameTeam newTeam);
+    GameTeam GetPlayerTeam(uint32_t accountId) const;
 
     bool IsFull() const;
 

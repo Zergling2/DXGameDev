@@ -1,10 +1,9 @@
 #include "Player.h"
-#include "..\Resource/GlobalGameObjects.h"
+#include "..\Resource\GlobalScriptGameObject.h"
 #include "..\Resource\Arms.h"
 #include "Weapon.h"
 #include "GameResources.h"
 #include "GameUIManager.h"
-#include "CollisionEventTest.h"	// Script
 #include <algorithm>
 
 using namespace ze;
@@ -42,8 +41,18 @@ Player::Player(ze::GameObject& owner)
 
 void Player::Awake()
 {
+	// GameUIManager 검색 및 상호참조
+	GameObjectHandle hGameObjGlobalScripts = GameObject::Find(GLOBAL_SCRIPTS_GAME_OBJECT_NAME);
+	assert(hGameObjGlobalScripts.IsValid());
+
+	ComponentHandle<GameUIManager> hScriptGameUIManager = hGameObjGlobalScripts.ToPtr()->GetComponent<GameUIManager>();
+	m_hScriptGameUIManager = hScriptGameUIManager;
+	GameUIManager* pGameUIManager = hScriptGameUIManager.ToPtr();
+	pGameUIManager->SetPlayerScriptHandle(this->ToHandle());
+
+
 	// GameResources 오브젝트 검색 및 스크립트 저장
-	GameObjectHandle hGameObjectGameResources = GameObject::Find(GO_GAME_RESOURCES_NAME);
+	GameObjectHandle hGameObjectGameResources = GameObject::Find(GAME_RESOURCES_GAME_OBJECT_NAME);
 	assert(hGameObjectGameResources.IsValid());
 
 	m_hScriptGameResources = hGameObjectGameResources.ToPtr()->GetComponent<GameResources>();
@@ -72,7 +81,8 @@ void Player::Awake()
 	XMStoreFloat4x4A(&m_playerColliderLocalTransform, playerColliderLocalTransform);
 
 
-	// 자식 오브젝트로 카메라 추가
+	// 카메라 컴포넌트 추가
+	// (자식 오브젝트로 추가한다.)
 	GameObjectHandle hGameObjectCamera = Runtime::GetInstance()->CreateGameObject();
 	m_hGameObjectCamera = hGameObjectCamera;
 	GameObject* pGameObjectCamera = hGameObjectCamera.ToPtr();
@@ -120,7 +130,7 @@ void Player::Awake()
 	}
 
 	m_hScriptWeapon[static_cast<size_t>(WeaponSlot::Primary)].ToPtr()->Init(pScriptGameResources->GetWeaponDefinition(WeaponCode::M16), 24, 115);
-	m_hScriptWeapon[static_cast<size_t>(WeaponSlot::Secondary)].ToPtr()->Init(pScriptGameResources->GetWeaponDefinition(WeaponCode::M4A1), 12, 24);
+	m_hScriptWeapon[static_cast<size_t>(WeaponSlot::Secondary)].ToPtr()->Init(pScriptGameResources->GetWeaponDefinition(WeaponCode::USP), 12, 24);
 
 	m_currWeaponSlot = WeaponSlot::Secondary;
 	m_hScriptWeapon[static_cast<size_t>(m_currWeaponSlot)].ToPtr()->Draw();

@@ -5,6 +5,7 @@
 
 using namespace ze;
 
+constexpr float CHARACTER_COLLIDER_TOTAL_HEIGHT = 1.7f;
 constexpr float CHARACTER_COLLIDER_RADIUS = 0.25f;
 constexpr float GROUND_CHECK_COLLIDER_HEIGHT = 0.1f;
 constexpr float ANIMATION_DEAD_FRAME_TIME = 0.01f;
@@ -58,7 +59,7 @@ void GameResources::Awake()
 
 
 	m_errTex = ResourceLoader::GetInstance()->GetErrorTexture2D();
-	m_spCharacterCollider = std::make_shared<CapsuleCollider>(CHARACTER_COLLIDER_RADIUS, 1.7f - 2 * CHARACTER_COLLIDER_RADIUS);
+	m_spCharacterCollider = std::make_shared<CapsuleCollider>(CHARACTER_COLLIDER_RADIUS, CHARACTER_COLLIDER_TOTAL_HEIGHT - 2 * CHARACTER_COLLIDER_RADIUS);
 	m_spGroundCheckSweepCollider = std::make_shared<CylinderCollider>(CHARACTER_COLLIDER_RADIUS, GROUND_CHECK_COLLIDER_HEIGHT);
 
 
@@ -617,6 +618,11 @@ float GameResources::GetCharacterCalfColliderHeight() const
 const XMFLOAT3& GameResources::GetCharacterFootColliderHalfExtents() const
 {
 	return CHARACTER_FOOT_COLLIDER_HALF_EXTENTS;
+}
+
+float GameResources::GetCharacterColliderTotalHeight() const
+{
+	return CHARACTER_COLLIDER_TOTAL_HEIGHT;
 }
 
 float GameResources::GetCharacterColliderRadius() const

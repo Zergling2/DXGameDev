@@ -1,6 +1,6 @@
 #include "ThirdPersonCharacter.h"
-#include "../Resource/GlobalGameObjects.h"
-#include "../Resource/Character.h"
+#include "..\Resource\GlobalScriptGameObject.h"
+#include "..\Resource\Character.h"
 #include "GameResources.h"
 
 using namespace ze;
@@ -10,8 +10,10 @@ const XMFLOAT3 ThirdPersonCharacter::SECONDARY_WEAPON_TV_OFFSET(-0.014f, +0.07f,
 
 ThirdPersonCharacter::ThirdPersonCharacter(ze::GameObject& owner)
 	: MonoBehaviour(owner)
+	, m_hScriptGameResources()
 	, m_primaryWeaponLocalRot(0.0f, 0.0f, 0.0f, 0.0f)
 	, m_secondaryWeaponLocalRot(0.0f, 0.0f, 0.0f, 0.0f)
+	, m_hColliderRigidbody()
 	, m_hSkinnedMeshRendererCharacter()
 	, m_hGameObjectTVWeaponBase()
 	, m_hGameObjectTVWeapons()
@@ -50,17 +52,29 @@ ThirdPersonCharacter::ThirdPersonCharacter(ze::GameObject& owner)
 
 void ThirdPersonCharacter::Awake()
 {
-	// GameResources 오브젝트 검색 및 스크립트 저장
-	GameObjectHandle hGameObjectGameResources = GameObject::Find(GO_GAME_RESOURCES_NAME);
+	// ###################################################################
+	// GameResources 스크립트 검색 및 저장
+	GameObjectHandle hGameObjectGameResources = GameObject::Find(GAME_RESOURCES_GAME_OBJECT_NAME);
 	assert(hGameObjectGameResources.IsValid());
 
 	ComponentHandle<GameResources> hScriptGameResources = hGameObjectGameResources.ToPtr()->GetComponent<GameResources>();
 	assert(hScriptGameResources.IsValid());
 	m_hScriptGameResources = hScriptGameResources;
-	GameResources* pScriptGameResources = hScriptGameResources.ToPtr();
+	const GameResources* pScriptGameResources = hScriptGameResources.ToPtr();
 
+
+	// ###################################################################
+	// 캐릭터 콜라이더 생성
 	std::shared_ptr<CapsuleCollider> spCharacterCollider = pScriptGameResources->GetCharacterCollider();
-	// ...
+	ComponentHandle<Rigidbody> hColliderRigidbody = m_pGameObject->AddComponent<Rigidbody>(
+		spCharacterCollider,
+		XMFLOAT3(0.0f, pScriptGameResources->GetCharacterColliderTotalHeight() / 2.0f, 0.0f)
+	);
+	m_hColliderRigidbody = hColliderRigidbody;
+	Rigidbody* pColliderRigidbody = hColliderRigidbody.ToPtr();
+	pColliderRigidbody->UseGravity(false);
+
+
 
 	// ###################################################################
 	// TV 무기 베이스 오프셋 계산 및 저장
@@ -88,7 +102,7 @@ void ThirdPersonCharacter::Awake()
 	const CharacterViewInfo* pCharacterViewInfo = pScriptGameResources->GetCharacterViewInfo(L"steven");
 	this->CreateCharacterView(pCharacterViewInfo);
 
-
+	// ##############################################################################
 	// 캐릭터 히트박스 생성
 	m_hGameObjectHitboxBody = Runtime::GetInstance()->CreateGameObject();
 	GameObject* pGameObjectHitboxBody = m_hGameObjectHitboxBody.ToPtr();
@@ -98,7 +112,7 @@ void ThirdPersonCharacter::Awake()
 			pScriptGameResources->GetCharacterBodyCollider(),
 			XMFLOAT3(
 				0.0f,
-				pScriptGameResources->GetCharacterBodyColliderHalfExtents().y - 1.0f,
+				pScriptGameResources->GetCharacterBodyColliderHalfExtents().y - 0.01f,
 				0.03f
 			)
 		);
@@ -296,6 +310,9 @@ void ThirdPersonCharacter::Awake()
 	Rigidbody* pRigidbodyHitboxRightFoot = hRigidbodyHitboxRightFoot.ToPtr();
 	pRigidbodyHitboxRightFoot->SetBodyType(RigidbodyType::Kinematic);
 	pRigidbodyHitboxRightFoot->SetTrigger(true);
+	// ##############################################################################
+
+
 
 	// 상체 애니메이션
 	// fire_rifle
@@ -351,6 +368,17 @@ void ThirdPersonCharacter::CreateCharacterView(const CharacterViewInfo* pCharact
 		pSkinnedMeshRendererCharacter->SetMaterial(i, pCharacterViewInfo->GetMaterials()[i]);
 }
 
+void ThirdPersonCharacter::ActivateCharacterCollider()
+{
+	m_hColliderRigidbody.ToPtr()->Enable();
+}
+
+void ThirdPersonCharacter::DeactivateCharacterCollider()
+{
+	m_hColliderRigidbody.ToPtr()->Disable();
+}
+
+/*
 void ThirdPersonCharacter::UpdateWeaponBaseTransform()
 {
 	const SkinnedMeshRenderer* pSkinnedMeshRendererCharacter = m_hSkinnedMeshRendererCharacter.ToPtr();
@@ -369,6 +397,7 @@ void ThirdPersonCharacter::UpdateWeaponBaseTransform()
 	pGameObjectTVWeaponBase->m_transform.SetRotationQuaternion(r);
 	pGameObjectTVWeaponBase->m_transform.SetPosition(t);
 }
+*/
 
 void ThirdPersonCharacter::UpdateWeaponBaseAndHitboxTransforms()
 {

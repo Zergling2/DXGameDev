@@ -83,8 +83,8 @@ void SAServer::OnReceive(uint64_t id, winppy::Packet packet)
 	case Protocol::CS_REQ_EXIT_GAME_ROOM:
 		OnCSReqExitGameRoom(id, std::move(packet));
 		break;
-	case Protocol::CS_REQ_HOST_GAME_STARTABLE_STATE:
-		OnCSReqHostGameStartableState(id, std::move(packet));
+	case Protocol::CS_REQ_HOST_GAME_START:
+		OnCSReqHostGameStart(id, std::move(packet));
 		break;
 	case Protocol::CS_REQ_GAME_READY:
 		OnCSReqGameReady(id, std::move(packet));
@@ -92,8 +92,14 @@ void SAServer::OnReceive(uint64_t id, winppy::Packet packet)
 	case Protocol::CS_REQ_GAME_UNREADY:
 		OnCSReqGameUnready(id, std::move(packet));
 		break;
+	case Protocol::CS_REQ_GAME_ENTER:
+		OnCSReqGameEnter(id, std::move(packet));
+		break;
 	case Protocol::CS_REQ_EXIT_GAME_CHANNEL:
 		OnCSReqExitGameChannel(id, std::move(packet));
+		break;
+	case Protocol::CS_NOTIFY_LISTEN_SERVER_START:
+		OnCSNotifyListenServerStart(id, std::move(packet));
 		break;
 	default:
 		Disconnect(id);
@@ -352,15 +358,9 @@ void SAServer::OnCSReqExitGameRoom(uint64_t netId, winppy::Packet packet)
 	m_logicThread->DispatchJob(std::move(upJob));
 }
 
-void SAServer::OnCSReqExitGameChannel(uint64_t netId, winppy::Packet packet)
+void SAServer::OnCSReqHostGameStart(uint64_t netId, winppy::Packet packet)
 {
-	std::unique_ptr<JobReqExitChannel> upJob = std::make_unique<JobReqExitChannel>(netId);
-	m_logicThread->DispatchJob(std::move(upJob));
-}
-
-void SAServer::OnCSReqHostGameStartableState(uint64_t netId, winppy::Packet packet)
-{
-	std::unique_ptr<JobReqGameStartableState> upJob = std::make_unique<JobReqGameStartableState>(netId);
+	std::unique_ptr<JobReqHostGameStart> upJob = std::make_unique<JobReqHostGameStart>(netId);
 	m_logicThread->DispatchJob(std::move(upJob));
 }
 
@@ -373,5 +373,23 @@ void SAServer::OnCSReqGameReady(uint64_t netId, winppy::Packet packet)
 void SAServer::OnCSReqGameUnready(uint64_t netId, winppy::Packet packet)
 {
 	std::unique_ptr<JobReqChangeGameReadyState> upJob = std::make_unique<JobReqChangeGameReadyState>(netId, false);
+	m_logicThread->DispatchJob(std::move(upJob));
+}
+
+void SAServer::OnCSReqGameEnter(uint64_t netId, winppy::Packet packet)
+{
+	std::unique_ptr<JobReqGameEnter> upJob = std::make_unique<JobReqGameEnter>(netId);
+	m_logicThread->DispatchJob(std::move(upJob));
+}
+
+void SAServer::OnCSReqExitGameChannel(uint64_t netId, winppy::Packet packet)
+{
+	std::unique_ptr<JobReqExitGameChannel> upJob = std::make_unique<JobReqExitGameChannel>(netId);
+	m_logicThread->DispatchJob(std::move(upJob));
+}
+
+void SAServer::OnCSNotifyListenServerStart(uint64_t netId, winppy::Packet packet)
+{
+	std::unique_ptr<JobNotifyListenServerStart> upJob = std::make_unique<JobNotifyListenServerStart>(netId);
 	m_logicThread->DispatchJob(std::move(upJob));
 }

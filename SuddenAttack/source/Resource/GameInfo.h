@@ -6,6 +6,7 @@ class GameMapInfo
 {
 public:
 	static const wchar_t* GetMapNameString(GameMap map);
+	static const wchar_t* GetMapSceneNameString(GameMap map);
 	static const wchar_t* GetModeNameString(GameMap map);
 };
 

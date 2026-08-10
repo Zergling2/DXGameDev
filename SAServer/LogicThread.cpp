@@ -108,39 +108,6 @@ void JobCreateNewSession::Execute(LogicThread& thread)
 	thread.m_sessions.insert(std::make_pair(m_netId, std::make_unique<Session>(m_netId)));
 }
 
-void JobSessionDisconnected::Execute(LogicThread& thread)
-{
-	auto iter = thread.m_sessions.find(m_netId);
-	if (iter == thread.m_sessions.end())	// 비정상적인 상황
-	{
-		*reinterpret_cast<int*>(0) = 0;
-		return;
-	}
-
-	Session* pSession = iter->second.get();
-	Player* pPlayer = pSession->GetPlayer();
-
-	// 
-	if (pPlayer)
-	{
-		// 1. 만약 플레이어가 방에 입장해있는 상태인 경우
-		if (pPlayer->IsInRoom())
-			PlayerExitRoom(thread, pPlayer);
-
-		// 2. 만약 플레이어가 채널에 입장해있는 상태인 경우
-		if (pPlayer->IsInChannel())
-			PlayerExitChannel(thread, pPlayer);
-
-		pSession->UnbindPlayer();
-		pPlayer->UnbindSession();
-		thread.m_players.erase(pPlayer->GetAccountId());	// Player 객체 제거
-		pPlayer = nullptr;	// 댕글링 포인터 무효화
-	}
-	
-	thread.m_sessions.erase(m_netId);	// Session 객체 제거
-	pSession = nullptr;
-}
-
 JobReqLogin::JobReqLogin(uint64_t netId, const wchar_t* id, const wchar_t* pw)
 	: m_netId(netId)
 {
@@ -269,36 +236,6 @@ LogicThread::LogicThread(SAServer& server)
 
 	for (uint8_t channelId = 0; channelId < CHANNEL_COUNT; ++channelId)
 		m_channel.push_back(std::make_unique<Channel>(channelId, MAX_PLAYERS_PER_CHANNEL));
-}
-
-void JobReqExitChannel::Execute(LogicThread& thread)
-{
-	const auto sessionIter = thread.m_sessions.find(m_netId);
-	if (sessionIter == thread.m_sessions.end())
-		*reinterpret_cast<int*>(0) = 0;
-
-	const Session* pSession = sessionIter->second.get();
-	Player* pPlayer = pSession->GetPlayer();
-	if (!pPlayer)
-	{
-		thread.m_server.Disconnect(m_netId);
-		return;
-	}
-
-	// 방에 입장해있는 상태이면 먼저 방에서 퇴장 처리
-	if (pPlayer->IsInRoom())
-	{
-		PlayerExitRoom(thread, pPlayer);
-	}
-
-	// 채널에 입장해있지 않은데 이 패킷을 보낸 경우는 예외 처리
-	if (!pPlayer->IsInChannel())
-	{
-		thread.m_server.Disconnect(m_netId);
-		return;
-	}
-
-	PlayerExitChannel(thread, pPlayer);
 }
 
 void JobReqLobbyChat::Execute(LogicThread& thread)
@@ -443,30 +380,20 @@ void JobReqJoinGameRoom::Execute(LogicThread& thread)
 	const uint8_t joinedChannelId = pPlayer->GetChannelId();
 	Channel& joinedChannel = *thread.m_channel[joinedChannelId];
 	GameRoom* pGameRoom = joinedChannel.FindRoom(m_gameRoomId);
-	
 
-	if (!pGameRoom)		// 이미 존재하지 않는 방인 경우
+
+	if (!pGameRoom || pGameRoom->IsFull())
 	{
 		SCResJoinGameRoom res;
-		res.m_result = JoinGameRoomResult::InvalidGame;
+		if (!pGameRoom)// 이미 존재하지 않는 방인 경우
+			res.m_result = JoinGameRoomResult::InvalidGame;
+		else if (pGameRoom->IsFull())// 방이 다 찬 경우
+			res.m_result = JoinGameRoomResult::Full;
 
 		winppy::Packet pkt;
 		pkt->Write(static_cast<protocol_type>(Protocol::SC_RES_JOIN_GAME_ROOM));
 		pkt->WriteBytes(&res, sizeof(res));
 		thread.m_server.Send(pPlayer->GetSession()->GetNetId(), std::move(pkt));
-		return;
-	}
-
-	if (pGameRoom->IsFull())		// 방이 다 찬 경우
-	{
-		SCResJoinGameRoom res;
-		res.m_result = JoinGameRoomResult::Full;
-
-		winppy::Packet pkt;
-		pkt->Write(static_cast<protocol_type>(Protocol::SC_RES_JOIN_GAME_ROOM));
-		pkt->WriteBytes(&res, sizeof(res));
-		thread.m_server.Send(pPlayer->GetSession()->GetNetId(), std::move(pkt));
-
 		return;
 	}
 
@@ -498,10 +425,41 @@ void JobReqExitGameRoom::Execute(LogicThread& thread)
 	const uint8_t joinedChannelId = pPlayer->GetChannelId();
 	Channel& joinedChannel = *thread.m_channel[joinedChannelId];
 	GameRoom* pGameRoom = joinedChannel.FindRoom(joinedRoomId);
-	if (pGameRoom->GetPlayerState(pPlayer->GetAccountId()) == PlayerState::Playing)
+	if (pGameRoom->GetPlayerState(pPlayer->GetAccountId()) != PlayerState::None)		// 정비중/게임시작/게임진입중인 경우 나가기 허용 X.
 		return;
 
 	PlayerExitRoom(thread, pPlayer);
+}
+
+void JobReqChangeTeam::Execute(LogicThread& thread)
+{
+	const auto sessionIter = thread.m_sessions.find(m_netId);
+	if (sessionIter == thread.m_sessions.end())
+		*reinterpret_cast<int*>(0) = 0;
+
+	const Session* pSession = sessionIter->second.get();
+	Player* pPlayer = pSession->GetPlayer();
+	if (!pPlayer)
+	{
+		thread.m_server.Disconnect(m_netId);
+		return;
+	}
+
+	if (!pPlayer->IsInChannel() || !pPlayer->IsInRoom())
+	{
+		thread.m_server.Disconnect(m_netId);
+		return;
+	}
+
+	const uint64_t joinedRoomId = pPlayer->GetRoomId();
+	const uint8_t joinedChannelId = pPlayer->GetChannelId();
+	Channel& joinedChannel = *thread.m_channel[joinedChannelId];
+
+	GameRoom* pGameRoom = joinedChannel.FindRoom(joinedRoomId);
+	if (pGameRoom->GetPlayerState(pPlayer->GetAccountId()) != PlayerState::None)
+		return;
+
+	pGameRoom->ChangePlayerTeam(thread.m_server, pPlayer->GetAccountId(), m_newTeam);
 }
 
 void JobReqChangeGameReadyState::Execute(LogicThread& thread)
@@ -532,7 +490,7 @@ void JobReqChangeGameReadyState::Execute(LogicThread& thread)
 	pGameRoom->ChangePlayerState(thread.m_server, pPlayer->GetAccountId(), m_ready ? PlayerState::Ready : PlayerState::None);
 }
 
-void JobReqGameStartableState::Execute(LogicThread& thread)
+void JobReqHostGameStart::Execute(LogicThread& thread)
 {
 	const auto sessionIter = thread.m_sessions.find(m_netId);
 	if (sessionIter == thread.m_sessions.end())
@@ -563,49 +521,53 @@ void JobReqGameStartableState::Execute(LogicThread& thread)
 		return;
 	}
 
+	const GameTeam hostTeam = pGameRoom->GetPlayerTeam(pPlayer->GetAccountId());
+	if (hostTeam == GameTeam::Unknown)
+	{
+		thread.m_server.Disconnect(m_netId);
+		return;
+	}
+
 	HostGameStartableResult ret = pGameRoom->IsGameStartable();	// 방장의 상대팀에 한 명 이상의 플레이어가 레디 상태인지 검사하는 함수 호출
 	assert(ret != HostGameStartableResult::Unknown);
+
+	SCResHostGameStartableState res;
 	switch (ret)
 	{
 	case HostGameStartableResult::AlreadyStarted:
 		// 무시 (아무 작업도 하지 않음) (게임시작 버튼 빠르게 여러번 클릭 시 가능한 상황)
 		break;
 	case HostGameStartableResult::Startable:
-	{
-		pGameRoom->ChangeReadyPlayersAndHostStateToPlaying(thread.m_server);	// 준비 상태 플레이어 & 방장의 퇴장 불허
-		pGameRoom->SetState(GameRoomState::InPlay);				// 게임 상태 '진행중'으로 변경
+		pGameRoom->ChangeHostAndReadyPlayersStateToPlaying(thread.m_server);	// 준비 상태 플레이어 & 방장의 퇴장 불허
+		pGameRoom->SetState(thread.m_server, GameRoomState::InPlay);				// 게임 상태 '진행중'으로 변경
 
-		// 1. 방장에게는 SC_RES_HOST_GAME_START 패킷 전송
-		SCResHostGameStartableState res;
+		// 방장에게 게임 시작 가능하다는 패킷 전송. (방장은 이걸 받을 시 리슨서버 생성 및 맵 씬 로드)
 		res.m_result = HostGameStartableState::Startable;
-		// res.m_team = ;
-		// res.m_map = ;
-		
-		// additional code...;
+		res.m_startingTeam = hostTeam;
+		res.m_map = pGameRoom->GetMap();
 
 		// 이후 방장으로부터 CS_NOTIFY_HOST_CREATED 패킷이 도착하면
 		// 레디 상태에 있는 모든 플레이어들에게 방장의 enet 호스트 정보로 연결 시도하도록 패킷 브로드캐스트
-	}
 		break;
 	case HostGameStartableResult::NotReady:
-	{
-		// 실패 패킷 전송
-		SCResHostGameStartableState res;
+		// 현재 게임을 시작할 수 없는 상태를 알리는 패킷 전송.
 		res.m_result = HostGameStartableState::NotReady;
-
-		winppy::Packet pktResHostGameStart;
-		pktResHostGameStart->Write(static_cast<protocol_type>(Protocol::SC_RES_HOST_GAME_STARTABLE_STATE));
-		pktResHostGameStart->WriteBytes(&res, sizeof(res));
-
-		thread.m_server.Send(pSession->GetNetId(), std::move(pktResHostGameStart));
-	}
+		res.m_startingTeam = GameTeam::Unknown;
+		res.m_map = GameMap::Unknown;
 		break;
 	default:
+		*reinterpret_cast<int*>(0) = 0;
 		break;
 	}
+
+	winppy::Packet pkt;
+	pkt->Write(static_cast<protocol_type>(Protocol::SC_RES_HOST_GAME_START));
+	pkt->WriteBytes(&res, sizeof(res));
+
+	thread.m_server.Send(pSession->GetNetId(), std::move(pkt));
 }
 
-void JobReqChangeTeam::Execute(LogicThread& thread)
+void JobReqExitGameChannel::Execute(LogicThread& thread)
 {
 	const auto sessionIter = thread.m_sessions.find(m_netId);
 	if (sessionIter == thread.m_sessions.end())
@@ -619,18 +581,53 @@ void JobReqChangeTeam::Execute(LogicThread& thread)
 		return;
 	}
 
-	if (!pPlayer->IsInChannel() || !pPlayer->IsInRoom())
+	// 방에 입장해있는 상태이면 먼저 방에서 퇴장 처리
+	if (pPlayer->IsInRoom())
+	{
+		PlayerExitRoom(thread, pPlayer);
+	}
+
+	// 채널에 입장해있지 않은데 이 패킷을 보낸 경우는 예외 처리
+	if (!pPlayer->IsInChannel())
 	{
 		thread.m_server.Disconnect(m_netId);
 		return;
 	}
 
-	const uint64_t joinedRoomId = pPlayer->GetRoomId();
-	const uint8_t joinedChannelId = pPlayer->GetChannelId();
-	Channel& joinedChannel = *thread.m_channel[joinedChannelId];
+	PlayerExitChannel(thread, pPlayer);
+}
 
-	GameRoom* pGameRoom = joinedChannel.FindRoom(joinedRoomId);
-	pGameRoom->ChangePlayerTeam(thread.m_server, pPlayer->GetAccountId(), m_newTeam);
+void JobSessionDisconnected::Execute(LogicThread& thread)
+{
+	auto iter = thread.m_sessions.find(m_netId);
+	if (iter == thread.m_sessions.end())	// 비정상적인 상황
+	{
+		*reinterpret_cast<int*>(0) = 0;
+		return;
+	}
+
+	Session* pSession = iter->second.get();
+	Player* pPlayer = pSession->GetPlayer();
+
+	// 
+	if (pPlayer)
+	{
+		// 1. 만약 플레이어가 방에 입장해있는 상태인 경우
+		if (pPlayer->IsInRoom())
+			PlayerExitRoom(thread, pPlayer);
+
+		// 2. 만약 플레이어가 채널에 입장해있는 상태인 경우
+		if (pPlayer->IsInChannel())
+			PlayerExitChannel(thread, pPlayer);
+
+		pSession->UnbindPlayer();
+		pPlayer->UnbindSession();
+		thread.m_players.erase(pPlayer->GetAccountId());	// Player 객체 제거
+		pPlayer = nullptr;	// 댕글링 포인터 무효화
+	}
+
+	thread.m_sessions.erase(m_netId);	// Session 객체 제거
+	pSession = nullptr;
 }
 
 JobReqCreateAccount::JobReqCreateAccount(uint64_t netId, const wchar_t* id, const wchar_t* nickname, const wchar_t* pw)
@@ -751,3 +748,20 @@ void JobDBJobNicknameDuplicateCheckResult::Execute(LogicThread& thread)
 	thread.m_server.Send(m_netId, std::move(pktResNicknameDuplicateCheck));
 }
 
+void JobReqGameEnter::Execute(LogicThread& thread)
+{
+	printf("JobReqGameEnter::Execute\n");
+}
+
+void JobNotifyListenServerStart::Execute(LogicThread& thread)
+{
+	// SCNotifyListenServerInfo noti;
+	// noti.
+	// 
+	// winppy::Packet pkt;
+	// pkt->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_LISTEN_SERVER_INFO));
+	// pkt->WriteBytes(&noti, sizeof(noti));
+
+	// 방에다가 브로드캐스트(방장 제외하고)
+	// thread.m_server.GetAddress(id,)
+}

@@ -81,7 +81,7 @@ static bool IsAlphaNumSpecialOnly(const wchar_t* str)
 }
 
 LobbyHandler::LobbyHandler(ze::GameObject& owner)
-	: MonoBehaviour(owner)
+	: ze::MonoBehaviour(owner)
 	, m_needUIUpdate(false)
 	, m_showSelectedGameRoomIndicator(true)
 	, m_lobbyState(LobbyState::None)
@@ -126,6 +126,8 @@ LobbyHandler::LobbyHandler(ze::GameObject& owner)
 	, m_hRadioButtonGameRoomTeamFormat{}
 	, m_createGameRoomTeamFormatSelected(GameRoomTeamFormat::Team8vs8)
 	, m_gameRoomHostAccountId(0)
+	, m_gameRoomNo(0)
+	, m_gameRoomState(GameRoomState::Unknown)
 	, m_gameRoomTeamFormat(GameRoomTeamFormat::Unknown)
 	, m_gameRoomGameMap(GameMap::Unknown)
 	, m_gameRoomMyTeam(GameTeam::Unknown)
@@ -138,6 +140,7 @@ LobbyHandler::LobbyHandler(ze::GameObject& owner)
 	, m_hButtonHostGameStart()
 	, m_hButtonGameReady()
 	, m_hButtonGameUnready()
+	, m_hButtonGameEnter()
 	, m_gameRoomList()
 	, m_gameListQueryContextNo(0)
 	, m_currGameListPage(0)
@@ -638,7 +641,7 @@ void LobbyHandler::OnClickHostGameStart()
 	Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
 	
 	winppy::Packet outPacket;
-	outPacket->Write(static_cast<protocol_type>(Protocol::CS_REQ_HOST_GAME_STARTABLE_STATE));
+	outPacket->Write(static_cast<protocol_type>(Protocol::CS_REQ_HOST_GAME_START));
 	
 	pScriptNetwork->GetClient().Send(std::move(outPacket));
 }
@@ -656,6 +659,15 @@ void LobbyHandler::OnClickGameUnready()
 {
 	winppy::Packet outPacket;
 	outPacket->Write(static_cast<protocol_type>(Protocol::CS_REQ_GAME_UNREADY));
+
+	Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
+	pScriptNetwork->GetClient().Send(std::move(outPacket));
+}
+
+void LobbyHandler::OnClickGameEnter()
+{
+	winppy::Packet outPacket;
+	outPacket->Write(static_cast<protocol_type>(Protocol::CS_REQ_GAME_ENTER));
 
 	Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
 	pScriptNetwork->GetClient().Send(std::move(outPacket));
@@ -964,28 +976,53 @@ void LobbyHandler::UpdateGameRoomUI()
 	static_cast<Text*>(m_hTextGameRoomInfo.ToPtr())->SetText(gameInfoBuf);
 
 	const Account* pScriptAccount = m_hScriptAccount.ToPtr();
-	if (m_gameRoomHostAccountId == pScriptAccount->GetAccountId())
+	if (m_gameRoomHostAccountId == pScriptAccount->GetAccountId())		// 내가 방장인 경우
 	{
+		// 게임시작 버튼만 활성화, 나머지 버튼은 모두 비활성화
+		m_hButtonHostGameStart.ToPtr()->SetActive(true);
+
 		m_hButtonGameReady.ToPtr()->SetActive(false);
 		m_hButtonGameUnready.ToPtr()->SetActive(false);
-		m_hButtonHostGameStart.ToPtr()->SetActive(true);
+		m_hButtonGameEnter.ToPtr()->SetActive(false);
 	}
-	else
+	else		// 내가 현재 방장이 아닌 경우
 	{
+		// 게임 시작 버튼은 비활성화
+		m_hButtonHostGameStart.ToPtr()->SetActive(false);
+
 		const GameRoomPlayer* pMyPlayer = FindMyGameRoomPlayer();
 
-		if (pMyPlayer->m_state == PlayerState::None)
+		switch (m_gameRoomState)
 		{
-			m_hButtonGameReady.ToPtr()->SetActive(true);
-			m_hButtonGameUnready.ToPtr()->SetActive(false);
-		}
-		else
-		{
-			m_hButtonGameReady.ToPtr()->SetActive(false);
-			m_hButtonGameUnready.ToPtr()->SetActive(true);
-		}
+		case GameRoomState::InWaiting:		// 방 상태가 대기중인 경우, 게임입장 버튼은 비활성화, 게임준비 & 준비해제 버튼만 플레이어 상태에 맞게 활성화
+			m_hButtonGameEnter.ToPtr()->SetActive(false);
 
-		m_hButtonHostGameStart.ToPtr()->SetActive(false);
+			switch (pMyPlayer->m_state)
+			{
+			case PlayerState::None:
+				m_hButtonGameReady.ToPtr()->SetActive(true);
+				m_hButtonGameUnready.ToPtr()->SetActive(false);
+				break;
+			case PlayerState::Ready:
+				m_hButtonGameReady.ToPtr()->SetActive(false);
+				m_hButtonGameUnready.ToPtr()->SetActive(true);
+				break;
+			default:
+				m_hButtonGameReady.ToPtr()->SetActive(false);
+				m_hButtonGameUnready.ToPtr()->SetActive(false);
+				break;
+			}
+			break;
+		case GameRoomState::InPlay:		// 방 상태가 게임중인 경우, 게임입장 버튼만 활성화
+			m_hButtonGameReady.ToPtr()->SetActive(false);
+			m_hButtonGameUnready.ToPtr()->SetActive(false);
+
+			m_hButtonGameEnter.ToPtr()->SetActive(true);
+			break;
+		default:
+			assert(false);
+			break;
+		}
 	}
 }
 
@@ -1018,12 +1055,13 @@ void LobbyHandler::OnReceiveGameList(uint32_t listContextNo, const std::vector<G
 	this->UpdateGameListBrowserUI();
 }
 
-void LobbyHandler::OnJoinGameRoom(uint32_t hostAccountId, uint16_t roomNo, GameRoomTeamFormat tf, GameMap map, GameTeam team, const wchar_t* gameRoomName)
+void LobbyHandler::OnJoinGameRoom(uint32_t hostAccountId, uint16_t roomNo, GameRoomState roomState, GameRoomTeamFormat tf, GameMap map, GameTeam team, const wchar_t* gameRoomName)
 {
 	const Account* pScriptAccount = m_hScriptAccount.ToPtr();
 
 	m_gameRoomHostAccountId = hostAccountId;
 	m_gameRoomNo = roomNo;
+	m_gameRoomState = roomState;
 	m_gameRoomName = gameRoomName;
 	m_gameRoomTeamFormat = tf;
 	m_gameRoomGameMap = map;
@@ -1034,7 +1072,7 @@ void LobbyHandler::OnJoinGameRoom(uint32_t hostAccountId, uint16_t roomNo, GameR
 	player.m_level = pScriptAccount->GetLevel();
 	player.m_nickname = pScriptAccount->GetNickname();
 	player.m_state = PlayerState::None;
-
+	
 	switch (team)
 	{
 	case GameTeam::RedTeam:
@@ -1120,6 +1158,7 @@ void LobbyHandler::OnExitGameRoom()
 	// 게임 방 정보 & UI 클리어
 	m_gameRoomHostAccountId = 0;
 	m_gameRoomNo = 0;
+	m_gameRoomState = GameRoomState::Unknown;
 	m_gameRoomName.clear();
 	m_gameRoomTeamFormat = GameRoomTeamFormat::Unknown;
 	m_gameRoomGameMap = GameMap::Unknown;
@@ -1163,25 +1202,17 @@ void LobbyHandler::OnPlayerExitGameRoom(uint32_t accountId)
 	UpdateGameRoomUI();
 }
 
+void LobbyHandler::OnGameRoomStateChanged(uint64_t roomId, GameRoomState newState)
+{
+	m_gameRoomState = newState;
+
+	UpdateGameRoomUI();
+}
+
 void LobbyHandler::OnGameRoomHostChanged(uint32_t oldHostAccountId, PlayerState oldHostNewState, uint32_t newHostAccountId, PlayerState newHostNewState)
 {
 	assert(oldHostAccountId == m_gameRoomHostAccountId);
 	m_gameRoomHostAccountId = newHostAccountId;
-
-	const Account* pScriptAccount = m_hScriptAccount.ToPtr();
-	if (oldHostAccountId == pScriptAccount->GetAccountId() && newHostAccountId != pScriptAccount->GetAccountId())
-	{
-		m_hButtonGameReady.ToPtr()->SetActive(true);
-		m_hButtonGameUnready.ToPtr()->SetActive(false);
-		m_hButtonHostGameStart.ToPtr()->SetActive(false);
-	}
-
-	if (newHostAccountId == pScriptAccount->GetAccountId())
-	{
-		m_hButtonGameReady.ToPtr()->SetActive(false);
-		m_hButtonGameUnready.ToPtr()->SetActive(false);
-		m_hButtonHostGameStart.ToPtr()->SetActive(true);
-	}
 
 	GameTeam oldHostTeam;
 	size_t oldHostIndex;
@@ -1222,22 +1253,6 @@ void LobbyHandler::OnGameRoomHostChanged(uint32_t oldHostAccountId, PlayerState 
 
 void LobbyHandler::OnGameRoomPlayerStateChanged(uint32_t accountId, PlayerState state)
 {
-	const Account* pScriptAccount = m_hScriptAccount.ToPtr();
-
-	if (accountId == pScriptAccount->GetAccountId())
-	{
-		if (state == PlayerState::Ready)
-		{
-			m_hButtonGameReady.ToPtr()->SetActive(false);
-			m_hButtonGameUnready.ToPtr()->SetActive(true);
-		}
-		else if (state == PlayerState::None)
-		{
-			m_hButtonGameReady.ToPtr()->SetActive(true);
-			m_hButtonGameUnready.ToPtr()->SetActive(false);
-		}
-	}
-
 	GameTeam team;
 	size_t index;
 	if (!FindGameRoomPlayer(accountId, team, index))

@@ -17,6 +17,21 @@ GameRoom::GameRoom(uint64_t id, uint16_t no, GameRoomTeamFormat tf, GameMap map,
 {
 }
 
+void GameRoom::SetState(winppy::TCPServer& server, GameRoomState state)
+{
+	m_state = state;
+
+	SCNotifyGameRoomStateChanged noti;
+	noti.m_gameRoomId = this->GetId();
+	noti.m_newState = this->GetState();
+
+	winppy::Packet pkt;
+	pkt->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_GAME_ROOM_STATE_CHANGED));
+	pkt->WriteBytes(&noti, sizeof(noti));
+
+	BroadcastPacket(server, std::move(pkt));
+}
+
 void GameRoom::AddPlayerAsHost(winppy::TCPServer& server, Player* pPlayer)
 {
 	assert(pPlayer != nullptr);
@@ -52,6 +67,7 @@ void GameRoom::AddPlayerAsHost(winppy::TCPServer& server, Player* pPlayer)
 	res.m_result = true;
 	res.m_gameRoomId = this->GetId();
 	res.m_gameRoomNo = this->GetNo();
+	res.m_gameRoomState = this->GetState();
 	res.m_gameRoomHostAccountId = this->GetHost()->GetAccountId();
 	res.m_gameRoomTeamFormat = this->GetTeamFormat();
 	res.m_gameMap = this->GetMap();
@@ -115,6 +131,7 @@ bool GameRoom::AddPlayer(winppy::TCPServer& server, Player* pPlayer)
 		res.m_result = JoinGameRoomResult::Success;
 		res.m_gameRoomId = this->GetId();
 		res.m_gameRoomNo = this->GetNo();
+		res.m_gameRoomState = this->GetState();
 		res.m_gameRoomHostAccountId = this->GetHost()->GetAccountId();
 		res.m_gameRoomTeamFormat = this->GetTeamFormat();
 		res.m_gameMap = this->GetMap();
@@ -328,8 +345,10 @@ HostGameStartableResult GameRoom::IsGameStartable() const
 	return result;
 }
 
-void GameRoom::ChangeReadyPlayersAndHostStateToPlaying(winppy::TCPServer& server)
+void GameRoom::ChangeHostAndReadyPlayersStateToPlaying(winppy::TCPServer& server)
 {
+	this->ChangePlayerState(server, m_pHost->GetAccountId(), PlayerState::Playing);
+
 	for (auto& item : m_redTeam)
 	{
 		if (item.m_pPlayer == m_pHost || item.m_state == PlayerState::Ready)
@@ -390,13 +409,13 @@ void GameRoom::ChangePlayerState(winppy::TCPServer& server, uint32_t accountId, 
 	}
 
 	// 방에 있는 플레이어들에게 팀 변경된 플레이어 통지
-	SCNotifyPlayerStateChanged noti;
-	noti.m_accountId = accountId;
-	noti.m_newState = newState;
+	SCNotifyPlayerStateChanged psc;
+	psc.m_accountId = accountId;
+	psc.m_newState = newState;
 
 	winppy::Packet pkt;
 	pkt->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_PLAYER_STATE_CHANGED));
-	pkt->WriteBytes(&noti, sizeof(noti));
+	pkt->WriteBytes(&psc, sizeof(psc));
 
 	this->BroadcastPacket(server, std::move(pkt));
 }
@@ -481,6 +500,18 @@ bool GameRoom::ChangePlayerTeam(winppy::TCPServer& server, uint32_t accountId, G
 	this->BroadcastPacket(server, std::move(pkt));
 
 	return true;
+}
+
+GameTeam GameRoom::GetPlayerTeam(uint32_t accountId) const
+{
+	GameTeam team;
+	size_t index;
+	PlayerState state;
+
+	if (!this->FindPlayer(accountId, team, index, state))
+		return GameTeam::Unknown;
+	else
+		return team;
 }
 
 bool GameRoom::IsFull() const

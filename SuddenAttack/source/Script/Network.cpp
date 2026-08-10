@@ -2,41 +2,44 @@
 #include "Constants.h"
 #include "Protocol.h"
 #include "LobbyHandler.h"
+#include "ListenServer.h"
 #include "Account.h"
 #include "..\Resource\GameInfo.h"
 
 using namespace ze;
 
+SAClient::SAClient()
+{
+	InitializeSRWLock(&m_lock);
+}
+
 void SAClient::OnConnect()
 {
 	printf("Connected to the SAServer.\n");
-	m_network.m_connected = true;
+	m_connected = true;
 }
 
 void SAClient::OnReceive(winppy::Packet packet)
 {
-	AcquireSRWLockExclusive(&m_network.m_lock);
-	m_network.m_packetQueue.push(std::move(packet));
-	ReleaseSRWLockExclusive(&m_network.m_lock);
+	AcquireSRWLockExclusive(&m_lock);
+	m_packetQueue.push(std::move(packet));
+	ReleaseSRWLockExclusive(&m_lock);
 }
 
 void SAClient::OnDisconnect()
 {
 	printf("Disconnected from the SAServer.\n");
-	m_network.m_disconnectJobDone = true;
+	m_disconnectJobDone = true;
 }
 
 Network::Network(ze::GameObject& owner)
 	: MonoBehaviour(owner)
 	, m_ce()
-	, m_client(*this)
-	, m_packetQueue()
-	, m_connected(false)
-	, m_disconnectJobDone(false)
-	, m_hostType(ENetHostType::None)
-	, m_pHost(nullptr)
+	, m_client()
+	, m_hScriptLobbyHandler()
+	, m_hScriptAccount()
+	, m_hScriptListenServer()
 {
-	InitializeSRWLock(&m_lock);
 }
 
 void Network::Awake()
@@ -53,82 +56,16 @@ void Network::Awake()
 	m_client.Init(desc);
 
 	m_client.Connect(L"127.0.0.1", SASERVER_PORT);
-
-	// ENet 초기화
-	if (enet_initialize() != 0)
-	{
-		ze::Runtime::GetInstance()->GetSyncFileLogger().Write(L"enet 초기화 실패!\n");
-	}
-	else
-	{
-		atexit(enet_deinitialize);
-	}
 }
 
-void Network::Update()
+void Network::FixedUpdate()
 {
-	PktProcFromSAServer();
+	AcquireSRWLockExclusive(&m_client.m_lock);
 
-	//ENetEvent event;
-	//while (enet_host_service(client, &event, 0) > 0)
-	//{
-	//	switch (event.type)
-	//	{
-	//	case ENET_EVENT_TYPE_CONNECT:
-	//		printf("A new client connected from %x:%u.\n",
-	//			event.peer->address.host,
-	//			event.peer->address.port);
-	//
-	//		/* Store any relevant client information here. */
-	//		event.peer->data = "Client information";
-	//		break;
-	//	case ENET_EVENT_TYPE_RECEIVE:
-	//		printf("A packet of length %u containing %s was received from %s on channel %u.\n",
-	//			event.packet->dataLength,
-	//			event.packet->data,
-	//			event.peer->data,
-	//			event.channelID);
-	//
-	//		/* Clean up the packet now that we're done using it. */
-	//		enet_packet_destroy(event.packet);
-	//		break;
-	//	case ENET_EVENT_TYPE_DISCONNECT:
-	//		printf("%s disconnected.\n", event.peer->data);
-	//
-	//		/* Reset the peer's client information. */
-	//
-	//		event.peer->data = NULL;
-	//		break;
-	//	}
-	//}
-}
-
-void Network::OnDestroy()
-{
-	if (m_pHost)
+	while (!m_client.m_packetQueue.empty())
 	{
-		enet_host_destroy(m_pHost);
-		m_pHost = nullptr;
-	}
-
-	m_client.Disconnect();
-
-	while (m_connected && !m_disconnectJobDone)
-	{
-		printf("Waiting disconnect job done!\n");
-		Sleep(5);
-	}
-
-	m_ce.Release();
-}
-
-void Network::PktProcFromSAServer()
-{
-	AcquireSRWLockExclusive(&m_lock);
-	while (!m_packetQueue.empty())
-	{
-		winppy::Packet packet = std::move(m_packetQueue.front());
-		m_packetQueue.pop();
+		winppy::Packet packet = std::move(m_client.m_packetQueue.front());
+		m_client.m_packetQueue.pop();
 
 		if (packet->ReadableSize() < sizeof(Protocol))
 			continue;
@@ -165,8 +102,8 @@ void Network::PktProcFromSAServer()
 		case Protocol::SC_RES_JOIN_GAME_ROOM:
 			PktProcSCResJoinGameRoom(std::move(packet));
 			break;
-		case Protocol::SC_RES_HOST_GAME_STARTABLE_STATE:
-			PktProcSCResHostGameStartableState(std::move(packet));
+		case Protocol::SC_RES_HOST_GAME_START:
+			PktProcSCResHostGameStart(std::move(packet));
 			break;
 		case Protocol::SC_RES_EXIT_GAME_ROOM:
 			PktProcSCResExitGameRoom(std::move(packet));
@@ -189,6 +126,9 @@ void Network::PktProcFromSAServer()
 		case Protocol::SC_NOTIFY_PLAYER_EXIT_GAME_ROOM:
 			PktProcSCNotifyPlayerExitGameRoom(std::move(packet));
 			break;
+		case Protocol::SC_NOTIFY_GAME_ROOM_STATE_CHANGED:
+			PktProcSCNotifyGameRoomStateChanged(std::move(packet));
+			break;
 		case Protocol::SC_NOTIFY_HOST_CHANGED:
 			PktProcSCNotifyHostChanged(std::move(packet));
 			break;
@@ -199,7 +139,24 @@ void Network::PktProcFromSAServer()
 			break;
 		}
 	}
-	ReleaseSRWLockExclusive(&m_lock);
+
+	ReleaseSRWLockExclusive(&m_client.m_lock);
+}
+
+void Network::OnDestroy()
+{
+	m_client.Disconnect();
+
+	if (m_client.IsConnected())
+	{
+		while (!m_client.DisconnectJobDone())
+		{
+			printf("Waiting disconnect job done!\n");
+			Sleep(5);
+		}
+	}
+
+	m_ce.Release();
 }
 
 void Network::PktProcSCResLogin(winppy::Packet packet)
@@ -446,7 +403,15 @@ void Network::PktProcSCResCreateGameRoom(winppy::Packet packet)
 		wmemcpy_s(gameRoomName, _countof(gameRoomName), res.m_gameRoomName, res.m_gameRoomNameLen);
 		gameRoomName[res.m_gameRoomNameLen] = L'\0';
 
-		pScriptLobbyHandler->OnJoinGameRoom(res.m_gameRoomHostAccountId, res.m_gameRoomNo, res.m_gameRoomTeamFormat, res.m_gameMap, res.m_joinedTeam, gameRoomName);
+		pScriptLobbyHandler->OnJoinGameRoom(
+			res.m_gameRoomHostAccountId,
+			res.m_gameRoomNo,
+			res.m_gameRoomState,
+			res.m_gameRoomTeamFormat,
+			res.m_gameMap,
+			res.m_joinedTeam,
+			gameRoomName
+		);
 	}
 	else
 	{
@@ -496,11 +461,19 @@ void Network::PktProcSCResJoinGameRoom(winppy::Packet packet)
 		wmemcpy_s(gameRoomName, _countof(gameRoomName), res.m_gameRoomName, res.m_gameRoomNameLen);
 		gameRoomName[res.m_gameRoomNameLen] = L'\0';
 
-		pScriptLobbyHandler->OnJoinGameRoom(res.m_gameRoomHostAccountId, res.m_gameRoomNo, res.m_gameRoomTeamFormat, res.m_gameMap, res.m_joinedTeam, gameRoomName);
+		pScriptLobbyHandler->OnJoinGameRoom(
+			res.m_gameRoomHostAccountId,
+			res.m_gameRoomNo,
+			res.m_gameRoomState,
+			res.m_gameRoomTeamFormat,
+			res.m_gameMap,
+			res.m_joinedTeam,
+			gameRoomName
+		);
 	}
 }
 
-void Network::PktProcSCResHostGameStartableState(winppy::Packet packet)
+void Network::PktProcSCResHostGameStart(winppy::Packet packet)
 {
 	SCResHostGameStartableState res;
 	if (!packet->ReadBytes(&res, sizeof(res)))
@@ -515,35 +488,11 @@ void Network::PktProcSCResHostGameStartableState(winppy::Packet packet)
 		// 0. 로비 UI 숨기기
 		pScriptLobbyHandler->HideLobbyUI();
 
-		// 1. enet 호스트 생성
-		if (m_pHost)
-		{
-			enet_host_destroy(m_pHost);
-			m_pHost = nullptr;
-		}
-
-		ENetAddress addr;
-		addr.host = ENET_HOST_ANY;
-		addr.port = ENET_HOST_PORT;
-		constexpr size_t NUM_OF_MAX_PEER = 32;
-		constexpr size_t NUM_OF_CHANNELS = 2;
-
-		// 0 채널은 Reliable, 1 채널은 Fastest
-		m_pHost = enet_host_create(
-			&addr,	/* the address to bind the server host to */
-			NUM_OF_MAX_PEER,		/* allow up to 32 clients and/or outgoing connections */
-			NUM_OF_CHANNELS,		/* allow up to 2 channels to be used, 0 and 1 */
-			0,		/* assume any amount of incoming bandwidth */
-			0		/* assume any amount of outgoing bandwidth */
-		);
-
-		// 2. enet 호스트 생성이 완료되면 서버로 호스트 정보 전달
-		// (서버에서 방에 입장해있는 플레이어들에게 enet 호스트 엔드포인트 정보를 브로드캐스트)
-
-		// additional code...;
+		ListenServer* pScriptListenServer = m_hScriptListenServer.ToPtr();
+		pScriptListenServer->SetStartInfo(res.m_startingTeam, res.m_map);
 		
-		// 3. 서버에서 지정한 맵 씬 로드 및 다른 플레이어 입장 대기
-		SceneManager::GetInstance()->LoadScene(GameMapInfo::GetMapNameString(res.m_map));
+		// 2. 서버에서 지정한 맵 씬 로드 및 다른 플레이어 입장 대기
+		SceneManager::GetInstance()->LoadScene(GameMapInfo::GetMapSceneNameString(res.m_map));
 	}
 		break;
 	case HostGameStartableState::NotReady:
@@ -557,6 +506,7 @@ void Network::PktProcSCResHostGameStartableState(winppy::Packet packet)
 	}
 		break;
 	default:
+		*reinterpret_cast<int*>(0) = 0;
 		break;
 	}
 }
@@ -627,6 +577,16 @@ void Network::PktProcSCNotifyGameRoomPlayer(winppy::Packet packet)
 
 	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
 	pScriptLobbyHandler->OnPlayerJoinGameRoom(notify.m_accountId, notify.m_level, nickname, notify.m_state, notify.m_team);
+}
+
+void Network::PktProcSCNotifyGameRoomStateChanged(winppy::Packet packet)
+{
+	SCNotifyGameRoomStateChanged notify;
+	if (!packet->ReadBytes(&notify, sizeof(notify)))
+		*reinterpret_cast<int*>(0) = 0;
+
+	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
+	pScriptLobbyHandler->OnGameRoomStateChanged(notify.m_gameRoomId, notify.m_newState);
 }
 
 void Network::PktProcSCNotifyHostChanged(winppy::Packet packet)

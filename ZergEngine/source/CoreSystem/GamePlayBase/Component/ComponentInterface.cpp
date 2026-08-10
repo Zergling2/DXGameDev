@@ -53,9 +53,10 @@ const GameObjectHandle IComponent::GetGameObjectHandle() const
 
 const ComponentHandleBase IComponent::ToHandle() const
 {
+#ifdef DEBUG
 	IComponentManager* pComponentManager = this->GetComponentManager();
 	assert(pComponentManager->ToPtr(m_tableIndex, m_id) == this);
-
+#endif // DEBUG
 	return ComponentHandleBase(m_tableIndex, m_id);
 }
 

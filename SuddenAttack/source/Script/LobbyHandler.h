@@ -76,6 +76,7 @@ public:
 	void OnClickHostGameStart();
 	void OnClickGameReady();
 	void OnClickGameUnready();
+	void OnClickGameEnter();
 	void OnClickExitGameRoom();
 	void OnClickCreateGameRoomCancel();
 	void OnClickRadioButtonGameRoom1vs1();
@@ -114,11 +115,12 @@ public:
 	void UpdateGameRoomUI();
 	void OnReceiveChannelInfo(const ChannelInfo* pInfos, size_t count);
 	void OnReceiveGameList(uint32_t listContextNo, const std::vector<GameRoomItem>& list);
-	void OnJoinGameRoom(uint32_t hostAccountId, uint16_t roomNo, GameRoomTeamFormat tf, GameMap map, GameTeam team, const wchar_t* gameRoomName);	// 방에 입장했을 때
+	void OnJoinGameRoom(uint32_t hostAccountId, uint16_t roomNo, GameRoomState roomState, GameRoomTeamFormat tf, GameMap map, GameTeam team, const wchar_t* gameRoomName);	// 방에 입장했을 때
 	void OnPlayerJoinGameRoom(uint32_t accountId, uint16_t level, wchar_t* nickname, PlayerState state, GameTeam team);	// 다른 플레이어가 방에 들어왔을 때
 	void OnPlayerTeamChanged(uint32_t accountId, GameTeam newTeam);
 	void OnExitGameRoom();
 	void OnPlayerExitGameRoom(uint32_t accountId);
+	void OnGameRoomStateChanged(uint64_t roomId, GameRoomState newState);
 	void OnGameRoomHostChanged(uint32_t oldHostAccountId, PlayerState oldHostNewState, uint32_t newHostAccountId, PlayerState newHostNewState);
 	void OnGameRoomPlayerStateChanged(uint32_t accountId, PlayerState state);
 	void AddChatMsg(const wchar_t* msg);
@@ -201,6 +203,7 @@ public:
 	// 게임 방 관련
 	uint32_t m_gameRoomHostAccountId;
 	uint16_t m_gameRoomNo;
+	GameRoomState m_gameRoomState;
 	std::wstring m_gameRoomName;
 	GameRoomTeamFormat m_gameRoomTeamFormat;
 	GameMap m_gameRoomGameMap;
@@ -217,7 +220,7 @@ public:
 	ze::UIObjectHandle m_hButtonHostGameStart;
 	ze::UIObjectHandle m_hButtonGameReady;
 	ze::UIObjectHandle m_hButtonGameUnready;
-
+	ze::UIObjectHandle m_hButtonGameEnter;
 
 	// 게임 리스트 컨텍스트 관련
 	std::vector<GameRoomItem> m_gameRoomList;

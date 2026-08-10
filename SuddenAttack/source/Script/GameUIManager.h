@@ -6,7 +6,7 @@
 class GameUIManager;
 class Player;
 
-class IUIState
+class IGameUIManagerState
 {
 public:
 	virtual void Enter(GameUIManager* pGameUIManager) = 0;
@@ -14,40 +14,52 @@ public:
 	virtual void Exit(GameUIManager* pGameUIManager) = 0;
 };
 
-class UIStateNone : public IUIState
+class GameUIStateDeactivate : public IGameUIManagerState
 {
 public:
-	static UIStateNone* GetState() { return &s_instance; }
+	static GameUIStateDeactivate* GetState() { return &s_instance; }
 
 	virtual void Enter(GameUIManager* pGameUIManager);
 	virtual void Update(GameUIManager* pGameUIManager);
 	virtual void Exit(GameUIManager* pGameUIManager);
 private:
-	static UIStateNone s_instance;
+	static GameUIStateDeactivate s_instance;
 };
 
-class UIStateScoreboard : public IUIState
+class GameUIStatePlaying : public IGameUIManagerState
 {
 public:
-	static UIStateScoreboard* GetState() { return &s_instance; }
+	static GameUIStatePlaying* GetState() { return &s_instance; }
 
 	virtual void Enter(GameUIManager* pGameUIManager);
 	virtual void Update(GameUIManager* pGameUIManager);
 	virtual void Exit(GameUIManager* pGameUIManager);
 private:
-	static UIStateScoreboard s_instance;
+	static GameUIStatePlaying s_instance;
 };
 
-class UIStateGameMenu : public IUIState
+class GameUIStateScoreboard : public IGameUIManagerState
 {
 public:
-	static UIStateGameMenu* GetState() { return &s_instance; }
+	static GameUIStateScoreboard* GetState() { return &s_instance; }
 
 	virtual void Enter(GameUIManager* pGameUIManager);
 	virtual void Update(GameUIManager* pGameUIManager);
 	virtual void Exit(GameUIManager* pGameUIManager);
 private:
-	static UIStateGameMenu s_instance;
+	static GameUIStateScoreboard s_instance;
+};
+
+class GameUIStateMenu : public IGameUIManagerState
+{
+public:
+	static GameUIStateMenu* GetState() { return &s_instance; }
+
+	virtual void Enter(GameUIManager* pGameUIManager);
+	virtual void Update(GameUIManager* pGameUIManager);
+	virtual void Exit(GameUIManager* pGameUIManager);
+private:
+	static GameUIStateMenu s_instance;
 };
 
 struct PlayerInfo
@@ -73,36 +85,37 @@ public:
 	void SetTextHP(uint32_t hp);
 	void SetTextAP(uint32_t ap);
 	void SetTextAmmoState(const wchar_t* str);
+	void ClearTextAmmoState();
 	void SetTextPoint(uint32_t point);
 	void SetTextWeaponName(const wchar_t* name);
+	void ClearTextWeaponName();
 
-	void SetState(IUIState* pUIState);
-	IUIState* GetState() const { return m_pUIState; }
+	void SetState(IGameUIManagerState* pUIState);
+	IGameUIManagerState* GetState() const { return m_pUIState; }
 
-	void ShowAliveUI();
-	void HideAliveUI();
-	void ShowRespawnUI() {}
-	void HideRespawnUI() {}
+	void SetPlayerScriptHandle(ze::ComponentHandle<Player> hScriptPlayer) { m_hScriptPlayer = hScriptPlayer; }
+	Player* GetPlayerScript() const;
+	
+	void ShowAdapterInfo();
+	void HideAdapterInfo();
+
+	void ShowScoreboard();
+	void HideScoreboard();
+
+	void ShowMenu();
+	void HideMenu();
+
+	void ShowGameUI();
+	void HideGameUI();
 
 	void OnClickCloseGameMenu();
 private:
-	IUIState* m_pUIState;
-public:
-	ze::UIObjectHandle m_hImageCrosshair;
-	ze::UIObjectHandle m_hImageHealthBackground;
-	ze::UIObjectHandle m_hImageRBUIBackground;
-	ze::UIObjectHandle m_hTextHP;
-	ze::UIObjectHandle m_hTextAP;
-	ze::UIObjectHandle m_hTextPoint;
-	ze::UIObjectHandle m_hTextWeaponName;
-	ze::UIObjectHandle m_hTextAmmoState;
+	IGameUIManagerState* m_pUIState;
+	ze::ComponentHandle<Player> m_hScriptPlayer;
 
-	ze::UIObjectHandle m_hPanelGameMenuRoot;
+	ze::UIObjectHandle m_hPanelAdapterInfoRoot;
+
 	ze::UIObjectHandle m_hPanelScoreboardRoot;
-	uint32_t m_redTeamPlayersCount;
-	uint32_t m_blueTeamPlayersCount;
-	uint64_t m_scoreboardRedTeamPlayersNetId[MAX_PLAYERS_PER_TEAM];
-	uint64_t m_scoreboardBlueTeamPlayersNetId[MAX_PLAYERS_PER_TEAM];
 	ze::UIObjectHandle m_hTextScoreboardRedTeamPlayerLevel[MAX_PLAYERS_PER_TEAM];
 	ze::UIObjectHandle m_hTextScoreboardRedTeamPlayerNickname[MAX_PLAYERS_PER_TEAM];
 	ze::UIObjectHandle m_hTextScoreboardRedTeamPlayerKill[MAX_PLAYERS_PER_TEAM];
@@ -113,6 +126,22 @@ public:
 	ze::UIObjectHandle m_hTextScoreboardBlueTeamPlayerKill[MAX_PLAYERS_PER_TEAM];
 	ze::UIObjectHandle m_hTextScoreboardBlueTeamPlayerDeath[MAX_PLAYERS_PER_TEAM];
 	ze::UIObjectHandle m_hTextScoreboardBlueTeamPlayerLatency[MAX_PLAYERS_PER_TEAM];
+	uint32_t m_redTeamPlayersCount;
+	uint32_t m_blueTeamPlayersCount;
+	uint64_t m_scoreboardRedTeamPlayersNetId[MAX_PLAYERS_PER_TEAM];
+	uint64_t m_scoreboardBlueTeamPlayersNetId[MAX_PLAYERS_PER_TEAM];
 
-	ze::ComponentHandle<Player> m_hScriptPlayer;
+
+	ze::UIObjectHandle m_hPanelMenuRoot;
+
+
+	ze::UIObjectHandle m_hImageGameUIRoot;
+	ze::UIObjectHandle m_hImageCrosshair;
+	ze::UIObjectHandle m_hImageHealthBackground;
+	ze::UIObjectHandle m_hImageRBUIBackground;
+	ze::UIObjectHandle m_hTextHP;
+	ze::UIObjectHandle m_hTextAP;
+	ze::UIObjectHandle m_hTextPoint;
+	ze::UIObjectHandle m_hTextWeaponName;
+	ze::UIObjectHandle m_hTextAmmoState;
 };

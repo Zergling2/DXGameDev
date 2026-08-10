@@ -119,7 +119,7 @@ ComponentHandleBase GameObject::AddComponentImpl(IComponent* pComponent)
 
 		pMonoBehaviour->Awake();            // 1. Awake는 활성화 여부와 관계 없이 호출
 
-		if (pMonoBehaviour->IsEnabled())    // 2. Enabled된 상태로 씬에 배치된 경우 스크립트의 OnEnable() 호출 및 Start 큐에 등록
+		if (pMonoBehaviour->IsEnabled() && pMonoBehaviour->m_pGameObject->IsActiveInHierarchy())    // 2. Enabled된 상태로 씬에 배치된 경우 스크립트의 OnEnable() 호출 및 Start 큐에 등록
 			pMonoBehaviour->OnEnableSysJob();   // 작업은 이 함수 내부에서
 	}
 

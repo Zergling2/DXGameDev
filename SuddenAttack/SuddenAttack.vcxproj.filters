@@ -55,12 +55,6 @@
     <ClCompile Include="source\Script\GameUIManager.cpp">
       <Filter>source\Script</Filter>
     </ClCompile>
-    <ClCompile Include="source\Resource\GlobalGameObjects.cpp">
-      <Filter>source\Resource</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Script\AnimControl.cpp">
-      <Filter>source\Script</Filter>
-    </ClCompile>
     <ClCompile Include="source\Resource\Arms.cpp">
       <Filter>source\Resource</Filter>
     </ClCompile>
@@ -71,6 +65,15 @@
       <Filter>source\Resource</Filter>
     </ClCompile>
     <ClCompile Include="source\Script\Weapon.cpp">
+      <Filter>source\Script</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Script\ListenServer.cpp">
+      <Filter>source\Script</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Resource\GlobalScriptGameObject.cpp">
+      <Filter>source\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Script\ListenServerStarter.cpp">
       <Filter>source\Script</Filter>
     </ClCompile>
   </ItemGroup>
@@ -111,12 +114,6 @@
     <ClInclude Include="source\Script\GameUIManager.h">
       <Filter>source\Script</Filter>
     </ClInclude>
-    <ClInclude Include="source\Resource\GlobalGameObjects.h">
-      <Filter>source\Resource</Filter>
-    </ClInclude>
-    <ClInclude Include="source\Script\AnimControl.h">
-      <Filter>source\Script</Filter>
-    </ClInclude>
     <ClInclude Include="source\Resource\Arms.h">
       <Filter>source\Resource</Filter>
     </ClInclude>
@@ -137,6 +134,15 @@
     </ClInclude>
     <ClInclude Include="source\Resource\WeaponCode.h">
       <Filter>source\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Script\ListenServer.h">
+      <Filter>source\Script</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Resource\GlobalScriptGameObject.h">
+      <Filter>source\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Script\ListenServerStarter.h">
+      <Filter>source\Script</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

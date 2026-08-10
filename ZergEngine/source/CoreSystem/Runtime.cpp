@@ -329,8 +329,8 @@ void Runtime::OnIdle()
 
         m_accumDeltaTime = 0.0f;
     }
-    // 다른 종류의 컴포넌트들이 모두 초기화 된 후
-    // Call MonoBehaviour::Start() for all starting scripts.
+
+    // 다른 종류의 컴포넌트들이 모두 초기화 된 후 대기중인 스크립트들의 Start를 호출한다.
     MonoBehaviourManager::GetInstance()->CallStart();
 
     // FixedUpdate

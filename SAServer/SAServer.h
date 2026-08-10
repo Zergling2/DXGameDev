@@ -32,10 +32,12 @@ public:
 	void OnCSReqJoinGameRoom(uint64_t netId, winppy::Packet packet);
 	void OnCSReqChangeTeam(uint64_t netId, winppy::Packet packet);
 	void OnCSReqExitGameRoom(uint64_t netId, winppy::Packet packet);
-	void OnCSReqExitGameChannel(uint64_t netId, winppy::Packet packet);
-	void OnCSReqHostGameStartableState(uint64_t netId, winppy::Packet packet);
+	void OnCSReqHostGameStart(uint64_t netId, winppy::Packet packet);
 	void OnCSReqGameReady(uint64_t netId, winppy::Packet packet);
 	void OnCSReqGameUnready(uint64_t netId, winppy::Packet packet);
+	void OnCSReqGameEnter(uint64_t netId, winppy::Packet packet);
+	void OnCSReqExitGameChannel(uint64_t netId, winppy::Packet packet);
+	void OnCSNotifyListenServerStart(uint64_t netId, winppy::Packet packet);
 private:
 	std::vector<std::unique_ptr<DBThread>> m_dbThreads;
 	std::unique_ptr<LogicThread> m_logicThread;

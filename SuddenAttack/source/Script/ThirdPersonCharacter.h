@@ -17,16 +17,20 @@ public:
 	virtual void FixedUpdate() override;
 
 	void CreateCharacterView(const CharacterViewInfo* pCharacterViewInfo);
+private:
+	void ActivateCharacterCollider();
+	void DeactivateCharacterCollider();
 
-	void UpdateWeaponBaseTransform();
+	// void UpdateWeaponBaseTransform();	// deprecated
 	void UpdateWeaponBaseAndHitboxTransforms();
 private:
-	ze::ComponentHandle<GameResources> m_hScriptGameResources;
-
 	static const XMFLOAT3 PRIMARY_WEAPON_TV_OFFSET;		// Primary weapon local pos
 	static const XMFLOAT3 SECONDARY_WEAPON_TV_OFFSET;		// Secondary weapon local pos
+	ze::ComponentHandle<GameResources> m_hScriptGameResources;
 	XMFLOAT4 m_primaryWeaponLocalRot;
 	XMFLOAT4 m_secondaryWeaponLocalRot;
+
+	ze::ComponentHandle<ze::Rigidbody> m_hColliderRigidbody;
 public:
 	ze::ComponentHandle<ze::SkinnedMeshRenderer> m_hSkinnedMeshRendererCharacter;
 	ze::GameObjectHandle m_hGameObjectTVWeaponBase;

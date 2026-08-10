@@ -1,16 +1,16 @@
 #include "Lobby.h"
-#include "../Script/GameResources.h"
-#include "../Script/LobbyHandler.h"
-#include "../Script/Network.h"
-#include "../Script/Account.h"
-#include "../Resource/GlobalGameObjects.h"
+#include "..\Script\GameResources.h"
+#include "..\Script\LobbyHandler.h"
+#include "..\Script\Network.h"
+#include "..\Script\Account.h"
+#include "..\Script\ListenServer.h"
+#include "..\Script\GameUIManager.h"
+#include "..\Resource\GlobalScriptGameObject.h"
 #include "Constants.h"
 
 using namespace ze;
 
 ZE_IMPLEMENT_SCENE(Lobby);
-
-static bool g_singleton = false;
 
 constexpr uint32_t STATIC_TEXT_SIZE_MEDIUM = 16;
 constexpr uint32_t STATIC_TEXT_SIZE_SMALL = 12;
@@ -20,7 +20,8 @@ constexpr DWRITE_FONT_WEIGHT BOLD_TEXT_WEIGHT = DWRITE_FONT_WEIGHT_BOLD;
 
 void Lobby::OnLoadScene()
 {
-	if (g_singleton)
+	static bool s_globalObjectCreated = false;
+	if (s_globalObjectCreated)
 		return;
 
 	// ############################
@@ -28,37 +29,48 @@ void Lobby::OnLoadScene()
 	// ############################
 
 	// 1. 게임 리소스 매니저 게임오브젝트 생성
-	GameObjectHandle hGameObjectGameResources = CreateGameObject(GO_GAME_RESOURCES_NAME);
+	GameObjectHandle hGameObjectGameResources = CreateGameObject(GAME_RESOURCES_GAME_OBJECT_NAME);
 	GameObject* pGameObjectGameResources = hGameObjectGameResources.ToPtr();
 	ComponentHandle<GameResources> hScriptGameResources = pGameObjectGameResources->AddComponent<GameResources>();
 
-	// 2. 로비 핸들러 게임오브젝트 생성
-	GameObjectHandle hGameObjectLobbyHandler = CreateGameObject(GO_LOBBY_HANDLER_NAME);
-	GameObject* pGameObjectLobbyHandler = hGameObjectLobbyHandler.ToPtr();
-	ComponentHandle<LobbyHandler> hScriptLobbyHandler = pGameObjectLobbyHandler->AddComponent<LobbyHandler>();
+	// 2. 글로벌 스크립트 GameObject 생성
+	GameObjectHandle hGameObjGlobalScripts = CreateGameObject(GLOBAL_SCRIPTS_GAME_OBJECT_NAME);
+	GameObject* pGameObjGlobalScripts = hGameObjGlobalScripts.ToPtr();
+
+
+	// 2-1. 로비 핸들러 스크립트 생성
+	ComponentHandle<LobbyHandler> hScriptLobbyHandler = pGameObjGlobalScripts->AddComponent<LobbyHandler>();
 	LobbyHandler* pScriptLobbyHandler = hScriptLobbyHandler.ToPtr();
 	pScriptLobbyHandler->m_hScriptGameResources = hScriptGameResources;	// 핸들 저장
 
-	// 3. 계정 정보 게임오브젝트 생성
-	GameObjectHandle hGameObjectAccount = CreateGameObject(GO_ACCOUNT_NAME);
-	GameObject* pGameObjectAccount = hGameObjectAccount.ToPtr();
-	ComponentHandle<Account> hScriptAccount = pGameObjectAccount->AddComponent<Account>();
+
+	// 2-2. 계정 정보 스크립트 생성
+	ComponentHandle<Account> hScriptAccount = pGameObjGlobalScripts->AddComponent<Account>();
 	pScriptLobbyHandler->m_hScriptAccount = hScriptAccount;
 
-	// 4. 네트워크 게임오브젝트 생성
-	GameObjectHandle hGameObjectNetwork = CreateGameObject(GO_NETWORK_NAME);
-	GameObject* pGameObjectNetwork = hGameObjectNetwork.ToPtr();
-	ComponentHandle<Network> hScriptNetwork = pGameObjectNetwork->AddComponent<Network>();
+
+	// 2-3. 네트워크 스크립트 생성
+	ComponentHandle<Network> hScriptNetwork = pGameObjGlobalScripts->AddComponent<Network>();
 	pScriptLobbyHandler->m_hScriptNetwork = hScriptNetwork;	// 핸들 저장
+
 	Network* pScriptNetwork = hScriptNetwork.ToPtr();
-	pScriptNetwork->m_hScriptAccount = hScriptAccount;
-	pScriptNetwork->m_hScriptLobbyHandler = hScriptLobbyHandler;
+	pScriptNetwork->SetLobbyHandlerScriptHandle(hScriptLobbyHandler);
+	pScriptNetwork->SetAccountScriptHandle(hScriptAccount);
+
+	// 2-4. 리슨서버 스크립트 생성
+	ComponentHandle<ListenServer> hScriptListenServer = pGameObjGlobalScripts->AddComponent<ListenServer>();
+	pScriptNetwork->SetListenServerScriptHandle(hScriptListenServer);
+
+	ListenServer* pScriptListenServer = hScriptListenServer.ToPtr();
+	pScriptListenServer->SetNetworkScriptHandle(hScriptNetwork);
+
+	// 2-5. 인게임 UI 관리자 스크립트 생성
+	ComponentHandle<GameUIManager> hScriptGameUIManager = pGameObjGlobalScripts->AddComponent<GameUIManager>();
+	GameUIManager* pScriptGameUIManager = hScriptGameUIManager.ToPtr();
 
 
-	// ############################
-	// 최초에 생성 필요한 객체들 생성
-	// ############################
 
+	// ########### 로비 UI ###########
 	UIObjectHandle hImageLobbyBgr = CreateImage();
 	pScriptLobbyHandler->m_hImageLobbyBgr = hImageLobbyBgr;
 	Image* pImageLobbyBgr = static_cast<Image*>(hImageLobbyBgr.ToPtr());
@@ -1742,6 +1754,27 @@ void Lobby::OnLoadScene()
 	pButtonGameUnready->ApplyTextFormat();
 	pButtonGameUnready->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickGameUnready));
 
+	constexpr XMFLOAT2 GAME_ENTER_BUTTON_SIZE(GAME_READY_BUTTON_SIZE);
+	constexpr XMFLOAT2 GAME_ENTER_BUTTON_OFFSET(GAME_READY_BUTTON_OFFSET);
+	UIObjectHandle hButtonGameEnter = CreateButton();
+	pScriptLobbyHandler->m_hButtonGameEnter = hButtonGameEnter;
+	Button* pButtonGameEnter = static_cast<Button*>(hButtonGameEnter.ToPtr());
+	pButtonGameEnter->m_transform.SetParent(&pPanelGameRoomRoot->m_transform);
+	pButtonGameEnter->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pButtonGameEnter->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pButtonGameEnter->m_transform.SetPosition(GAME_ENTER_BUTTON_OFFSET);
+	pButtonGameEnter->SetSize(GAME_ENTER_BUTTON_SIZE);
+	pButtonGameEnter->SetButtonColor(ColorsLinear::DarkOliveGreen);
+	pButtonGameEnter->SetTextColor(ColorsLinear::Gold);
+	pButtonGameEnter->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pButtonGameEnter->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pButtonGameEnter->SetText(L"게임입장");
+	pButtonGameEnter->GetTextFormat().SetSize(STATIC_TEXT_SIZE_MEDIUM);
+	pButtonGameEnter->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+	pButtonGameEnter->ApplyTextFormat();
+	pButtonGameEnter->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickGameEnter));
+
+
 	constexpr XMFLOAT2 EXIT_GAME_ROOM_BUTTON_SIZE(100, 26);
 	constexpr XMFLOAT2 EXIT_GAME_ROOM_BUTTON_OFFSET(HOST_GAME_START_BUTTON_OFFSET.x - HOST_GAME_START_BUTTON_SIZE.x / 2 - 10 - EXIT_GAME_ROOM_BUTTON_SIZE.x / 2, HOST_GAME_START_BUTTON_OFFSET.y);
 	UIObjectHandle hButtonExitGameRoom = CreateButton();
@@ -1766,12 +1799,10 @@ void Lobby::OnLoadScene()
 
 
 
-
+	// 글로벌 스크립트 게임 오브젝트 & 로비 오브젝트들 파괴 금지 설정
 	pGameObjectGameResources->DontDestroyOnLoadRecursively();	// DontDestroyOnLoad
-	pGameObjectLobbyHandler->DontDestroyOnLoadRecursively();	// DontDestroyOnLoad
-	pGameObjectAccount->DontDestroyOnLoadRecursively();			// DontDestroyOnLoad
-	pGameObjectNetwork->DontDestroyOnLoadRecursively();			// DontDestroyOnLoad
+	pGameObjGlobalScripts->DontDestroyOnLoadRecursively();		// DontDestroyOnLoad
 	pImageLobbyBgr->DontDestroyOnLoadRecursively();				// DontDestroyOnLoad
 
-	g_singleton = true;
+	s_globalObjectCreated = true;	// 글로벌 오브젝트들 재생성 방지
 }

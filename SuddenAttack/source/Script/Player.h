@@ -36,7 +36,7 @@ public:
 	void SetProcessingInput(bool b) { m_processingInput = b; }
 	void CreateArmsView(const ArmsViewInfo* pArmsViewInfo);
 
-	void EquipWeapon(WeaponSlot slot, WeaponCode wc);
+	void SetUpWeapon(WeaponSlot slot, WeaponCode wc);
 private:
 	bool m_processingInput;
 	bool m_isStand;
