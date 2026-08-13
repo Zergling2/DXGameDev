@@ -10,6 +10,7 @@ class Network;
 class Account;
 class LobbyHandler;
 class ListenServer;
+class ListenServerClient;
 
 class SAClient : public winppy::TCPClient
 {
@@ -42,7 +43,7 @@ public:
 	void SetLobbyHandlerScriptHandle(ze::ComponentHandle<LobbyHandler> hScript) { m_hScriptLobbyHandler = hScript; }
 	void SetAccountScriptHandle(ze::ComponentHandle<Account> hScript) { m_hScriptAccount = hScript; }
 	void SetListenServerScriptHandle(ze::ComponentHandle<ListenServer> hScript) { m_hScriptListenServer = hScript; }
-	
+	void SetListenServerClientScriptHandle(ze::ComponentHandle<ListenServer> hScript) { m_hScriptListenServerClient = hScript; }
 
 	virtual void Awake() override;
 	virtual void FixedUpdate() override;
@@ -68,10 +69,12 @@ private:
 	void PktProcSCNotifyGameRoomStateChanged(winppy::Packet packet);
 	void PktProcSCNotifyHostChanged(winppy::Packet packet);
 	void PktProcSCNotifyPlayerStateChanged(winppy::Packet packet);
+	void PktProcSCNotifyListenServerInfo(winppy::Packet packet);
 private:
 	ze::ComponentHandle<LobbyHandler> m_hScriptLobbyHandler;
 	ze::ComponentHandle<Account> m_hScriptAccount;
 	ze::ComponentHandle<ListenServer> m_hScriptListenServer;
+	ze::ComponentHandle<ListenServerClient> m_hScriptListenServerClient;
 
 	winppy::TCPClientEngine m_ce;
 	SAClient m_client;

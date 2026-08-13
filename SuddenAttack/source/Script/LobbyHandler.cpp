@@ -538,6 +538,16 @@ void LobbyHandler::OnClickJoinChannel5()
 	this->SendJoinChannelPacket(5);
 }
 
+void LobbyHandler::OnClickJoinChannel6()
+{
+	this->SendJoinChannelPacket(6);
+}
+
+void LobbyHandler::OnClickJoinChannel7()
+{
+	this->SendJoinChannelPacket(7);
+}
+
 void LobbyHandler::OnClickRefreshChannelList()
 {
 	CSReqChannelInfo req;
@@ -1278,7 +1288,7 @@ void LobbyHandler::AddChatMsg(const wchar_t* msg)
 	if (m_lobbyState != LobbyState::GameListBrowser && m_lobbyState != LobbyState::GameRoom)
 		return;
 
-	if (m_textLobbyChatMsgCount < CHAT_MSG_ITEM_ROW_COUNT)
+	if (m_textLobbyChatMsgCount < LOBBY_CHAT_MSG_ITEM_ROW_COUNT)
 	{
 		Text* pTextLobbyChatMsg = static_cast<Text*>(m_hTextLobbyChatMsg[m_textLobbyChatMsgCount].ToPtr());
 		pTextLobbyChatMsg->SetText(msg);
@@ -1286,7 +1296,7 @@ void LobbyHandler::AddChatMsg(const wchar_t* msg)
 	}
 	else
 	{
-		Text* pTextLobbyChatMsgs[CHAT_MSG_ITEM_ROW_COUNT];
+		Text* pTextLobbyChatMsgs[LOBBY_CHAT_MSG_ITEM_ROW_COUNT];
 		for (size_t i = 0; i < _countof(m_hTextLobbyChatMsg); ++i)
 			pTextLobbyChatMsgs[i] = static_cast<Text*>(m_hTextLobbyChatMsg[i].ToPtr());
 		
@@ -1294,8 +1304,8 @@ void LobbyHandler::AddChatMsg(const wchar_t* msg)
 		for (size_t i = 0; i < _countof(m_hTextLobbyChatMsg) - 1; ++i)
 			pTextLobbyChatMsgs[i]->GetText() = std::move(pTextLobbyChatMsgs[i + 1]->GetText());
 
-		pTextLobbyChatMsgs[CHAT_MSG_ITEM_ROW_COUNT - 1]->GetText() = std::move(first);
-		pTextLobbyChatMsgs[CHAT_MSG_ITEM_ROW_COUNT - 1]->GetText() = msg;
+		pTextLobbyChatMsgs[LOBBY_CHAT_MSG_ITEM_ROW_COUNT - 1]->GetText() = std::move(first);
+		pTextLobbyChatMsgs[LOBBY_CHAT_MSG_ITEM_ROW_COUNT - 1]->GetText() = msg;
 	}
 }
 

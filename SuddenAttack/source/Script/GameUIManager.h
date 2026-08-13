@@ -62,6 +62,18 @@ private:
 	static GameUIStateMenu s_instance;
 };
 
+class GameUIStateChatting : public IGameUIManagerState
+{
+public:
+	static GameUIStateChatting* GetState() { return &s_instance; }
+
+	virtual void Enter(GameUIManager* pGameUIManager);
+	virtual void Update(GameUIManager* pGameUIManager);
+	virtual void Exit(GameUIManager* pGameUIManager);
+private:
+	static GameUIStateChatting s_instance;
+};
+
 struct PlayerInfo
 {
 	uint32_t m_level;
@@ -108,7 +120,12 @@ public:
 	void ShowGameUI();
 	void HideGameUI();
 
+	void ShowChatPanel();
+	void HideChatPanel();
+
 	void OnClickCloseGameMenu();
+	void ClearAllChatMsgs();
+	void SendChatMsg();
 private:
 	IGameUIManagerState* m_pUIState;
 	ze::ComponentHandle<Player> m_hScriptPlayer;
@@ -144,4 +161,9 @@ private:
 	ze::UIObjectHandle m_hTextPoint;
 	ze::UIObjectHandle m_hTextWeaponName;
 	ze::UIObjectHandle m_hTextAmmoState;
+
+
+	ze::UIObjectHandle m_hPanelChatRoot;
+	ze::UIObjectHandle m_hTextChatMsg[INGAME_CHAT_MSG_ITEM_ROW_COUNT];
+	ze::UIObjectHandle m_hInputFieldChatMsg;
 };

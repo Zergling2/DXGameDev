@@ -458,7 +458,7 @@ void GameResources::Awake()
 	XMStoreFloat4A(&spStevenMtl1->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.6f), 1.0f));
 	XMStoreFloat4A(&spStevenMtl1->m_specular, XMVectorSetW(ColorsLinear::Black, 1.0f));
 	spStevenMtl1->m_specular.w = 4.0f;
-	spStevenMtl1->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\characters\\steven\\clothes_diffuse.png");
+	spStevenMtl1->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\characters\\steven\\clothes_diffuse_red.png");
 	spStevenMtl1->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\characters\\steven\\clothes_normal.png");
 	auto spStevenMtl2 = ResourceLoader::GetInstance()->CreateMaterial();
 	XMStoreFloat4A(&spStevenMtl2->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::DarkOliveGreen, 0.5f), 1.0f));

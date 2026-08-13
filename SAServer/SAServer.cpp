@@ -390,6 +390,9 @@ void SAServer::OnCSReqExitGameChannel(uint64_t netId, winppy::Packet packet)
 
 void SAServer::OnCSNotifyListenServerStart(uint64_t netId, winppy::Packet packet)
 {
-	std::unique_ptr<JobNotifyListenServerStart> upJob = std::make_unique<JobNotifyListenServerStart>(netId);
+	uint16_t listenServerPort;
+	packet->Read(&listenServerPort);
+
+	std::unique_ptr<JobNotifyListenServerStart> upJob = std::make_unique<JobNotifyListenServerStart>(netId, listenServerPort);
 	m_logicThread->DispatchJob(std::move(upJob));
 }

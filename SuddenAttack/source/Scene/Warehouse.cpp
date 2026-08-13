@@ -1,5 +1,4 @@
 #include "Warehouse.h"
-#include "..\Script\Player.h"
 #include "..\Script\ListenServerStarter.h"
 
 using namespace ze;
@@ -478,35 +477,22 @@ void Warehouse::OnLoadScene()
 	{
 		GameObjectHandle hSun = CreateGameObject(L"global light1");
 		GameObject* pSun = hSun.ToPtr();
-		pSun->m_transform.SetRotationEuler(XMConvertToRadians(50), XMConvertToRadians(45), 0.0f);
+		pSun->m_transform.SetRotationEuler(XMConvertToRadians(75), XMConvertToRadians(45), 0.0f);
 		ComponentHandle<DirectionalLight> hLight = pSun->AddComponent<DirectionalLight>();
 		DirectionalLight* pLight = hLight.ToPtr();
-		XMStoreFloat4A(&pLight->m_diffuse, XMVectorScale(Vector3::One(), 0.15f));
-		XMStoreFloat4A(&pLight->m_specular, Vector3::OneHalf());
+		XMStoreFloat4A(&pLight->m_diffuse, XMVectorScale(Vector3::One(), 0.25f));
+		XMStoreFloat4A(&pLight->m_specular, XMVectorScale(Vector3::One(), 0.3f));
 	}
 
 	{
 		GameObjectHandle hSun = CreateGameObject(L"global light2");
 		GameObject* pSun = hSun.ToPtr();
-		pSun->m_transform.SetRotationEuler(XMConvertToRadians(50), XMConvertToRadians(-135), 0.0f);
+		pSun->m_transform.SetRotationEuler(XMConvertToRadians(45), XMConvertToRadians(-135), 0.0f);
 		ComponentHandle<DirectionalLight> hLight = pSun->AddComponent<DirectionalLight>();
 		DirectionalLight* pLight = hLight.ToPtr();
-		XMStoreFloat4A(&pLight->m_diffuse, XMVectorScale(Vector3::One(), 0.15f));
-		XMStoreFloat4A(&pLight->m_specular, Vector3::OneHalf());
+		XMStoreFloat4A(&pLight->m_diffuse, XMVectorScale(Vector3::One(), 0.2f));
+		XMStoreFloat4A(&pLight->m_specular, XMVectorScale(Vector3::One(), 0.2f));
 	}
-
-	// ## Player
-	{
-		GameObjectHandle hGameObjectPlayer = CreateGameObject(L"Player");
-		GameObject* pGameObjectPlayer = hGameObjectPlayer.ToPtr();
-		pGameObjectPlayer->m_transform.SetPosition(-7.0f, 4.0f, -5.0f);
-		ComponentHandle<Player> hScriptPlayer = pGameObjectPlayer->AddComponent<Player>();		// 플레이어 스크립트
-	}
-
-	// GameObjectHandle hGameObjectThirdPersonCharacter = CreateGameObject(L"TPC");
-	// GameObject* pGameObjectThirdPersonCharacter = hGameObjectThirdPersonCharacter.ToPtr();
-	// pGameObjectThirdPersonCharacter->m_transform.SetPosition(1, 0, 1);
-	// pGameObjectThirdPersonCharacter->AddComponent<ThirdPersonCharacter>();
 
 	// ## MATERIALS
 	// std::shared_ptr<Material> matAsphault = ResourceLoader::GetInstance()->CreateMaterial();

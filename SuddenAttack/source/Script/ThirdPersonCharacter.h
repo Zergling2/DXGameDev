@@ -30,7 +30,7 @@ private:
 	XMFLOAT4 m_primaryWeaponLocalRot;
 	XMFLOAT4 m_secondaryWeaponLocalRot;
 
-	ze::ComponentHandle<ze::Rigidbody> m_hColliderRigidbody;
+	ze::ComponentHandle<ze::Rigidbody> m_hCharacterColliderRigidbody;
 public:
 	ze::ComponentHandle<ze::SkinnedMeshRenderer> m_hSkinnedMeshRendererCharacter;
 	ze::GameObjectHandle m_hGameObjectTVWeaponBase;

@@ -13,7 +13,7 @@ ThirdPersonCharacter::ThirdPersonCharacter(ze::GameObject& owner)
 	, m_hScriptGameResources()
 	, m_primaryWeaponLocalRot(0.0f, 0.0f, 0.0f, 0.0f)
 	, m_secondaryWeaponLocalRot(0.0f, 0.0f, 0.0f, 0.0f)
-	, m_hColliderRigidbody()
+	, m_hCharacterColliderRigidbody()
 	, m_hSkinnedMeshRendererCharacter()
 	, m_hGameObjectTVWeaponBase()
 	, m_hGameObjectTVWeapons()
@@ -66,13 +66,13 @@ void ThirdPersonCharacter::Awake()
 	// ###################################################################
 	// 캐릭터 콜라이더 생성
 	std::shared_ptr<CapsuleCollider> spCharacterCollider = pScriptGameResources->GetCharacterCollider();
-	ComponentHandle<Rigidbody> hColliderRigidbody = m_pGameObject->AddComponent<Rigidbody>(
+	ComponentHandle<Rigidbody> hCharacterColliderRigidbody = m_pGameObject->AddComponent<Rigidbody>(
 		spCharacterCollider,
 		XMFLOAT3(0.0f, pScriptGameResources->GetCharacterColliderTotalHeight() / 2.0f, 0.0f)
 	);
-	m_hColliderRigidbody = hColliderRigidbody;
-	Rigidbody* pColliderRigidbody = hColliderRigidbody.ToPtr();
-	pColliderRigidbody->UseGravity(false);
+	m_hCharacterColliderRigidbody = hCharacterColliderRigidbody;
+	Rigidbody* pCharacterColliderRigidbody = m_hCharacterColliderRigidbody.ToPtr();
+	pCharacterColliderRigidbody->SetBodyType(RigidbodyType::Kinematic);
 
 
 
@@ -112,7 +112,7 @@ void ThirdPersonCharacter::Awake()
 			pScriptGameResources->GetCharacterBodyCollider(),
 			XMFLOAT3(
 				0.0f,
-				pScriptGameResources->GetCharacterBodyColliderHalfExtents().y - 0.01f,
+				pScriptGameResources->GetCharacterBodyColliderHalfExtents().y - 0.06f,
 				0.03f
 			)
 		);
@@ -370,12 +370,12 @@ void ThirdPersonCharacter::CreateCharacterView(const CharacterViewInfo* pCharact
 
 void ThirdPersonCharacter::ActivateCharacterCollider()
 {
-	m_hColliderRigidbody.ToPtr()->Enable();
+	m_hCharacterColliderRigidbody.ToPtr()->Enable();
 }
 
 void ThirdPersonCharacter::DeactivateCharacterCollider()
 {
-	m_hColliderRigidbody.ToPtr()->Disable();
+	m_hCharacterColliderRigidbody.ToPtr()->Disable();
 }
 
 /*

@@ -524,8 +524,11 @@ void ResourceLoader::AiLoadSkinnedMeshNode(TempModelData& tmd, const aiScene* pA
 
 
 	// ###################################################################
-	// 루트 뼈 찾기 및 본 인덱스 맵 생성
-	std::unordered_map<std::string, const aiBone*> allBones;
+	// 아래부터는 스켈레탈 메시 데이터를 로드하는 과정.
+	// 뼈 계층을 나타내는 배열(Bone Hierarchy), MdInv 배열, 본 인덱스 맵(본 이름으로 인덱스 찾기 기능 제공을 위함)을 만드는 코드들이다.
+
+
+	std::unordered_map<std::string, const aiBone*> allBones;	// 모든 뼈들만 선별해서 담는 맵 (이후 프로세스에서 필요)
 	for (unsigned int i = 0; i < pAiNode->mNumMeshes; ++i)
 	{
 		const aiMesh* pAiMesh = pAiScene->mMeshes[pAiNode->mMeshes[i]];
@@ -540,14 +543,19 @@ void ResourceLoader::AiLoadSkinnedMeshNode(TempModelData& tmd, const aiScene* pA
 	}
 	assert(allBones.size() < (std::numeric_limits<bone_index_type>::max)());
 
+	// 루트 뼈를 찾는다.
 	const aiNode* pAiRootBoneNode = nullptr;
-	auto end = allBones.cend();
-	for (auto iter = allBones.cbegin(); iter != end; ++iter)
+	for (auto iter = allBones.cbegin(); iter != allBones.cend(); ++iter)
 	{
 		const aiNode* pCurrentAiBoneNode = iter->second->mNode;
 		const aiNode* pParentNode = pCurrentAiBoneNode->mParent;
-		
-		if (pParentNode != nullptr)
+
+		if (pParentNode == nullptr)		// 사실 블렌더에서 모델링한 경우에는 루트 본의 부모로 Armature 노드가 존재하기 때문에 이 조건문이 수행될 일은 없다.
+		{
+			pAiRootBoneNode = pCurrentAiBoneNode;
+			break;
+		}
+		else
 		{
 			auto found = allBones.find(pParentNode->mName.C_Str());	// 부모 노드를 본 맵에서 검색(만약 검색에 실패하면 루트 노드로 볼 수 있음)
 			if (found == allBones.cend())
@@ -557,20 +565,24 @@ void ResourceLoader::AiLoadSkinnedMeshNode(TempModelData& tmd, const aiScene* pA
 			}
 		}
 	}
+	assert(pAiRootBoneNode != nullptr);
 
 	const size_t boneCount = allBones.size();
 	assert(boneCount <= (std::numeric_limits<bone_index_type>::max)() - 1);
 
+
+	// 이미 로드된 뼈대구조인지 검사.
+	// (서로 다른 메시가 동일한 뼈대를 사용하고 있는 경우에는 이전에 로드된 메시가 이미 뼈대 자료구조를 완성해놓았을 수 있으므로
+	// 만약 이미 로드된 뼈대이면 중복 로드를 피하기 위해 검사한다.)
 	bool armatureAlreadyLoaded;
-	const char* armatureNodeName = pAiRootBoneNode->mParent->mName.C_Str();	// 블렌더 기준 루트 본의 부모가 Armature 노드임.
+	const char* const armatureNodeName = pAiRootBoneNode->mParent->mName.C_Str();	// 블렌더 기준 루트 본의 부모가 Armature 노드임.
 	if (tmd.m_armatureData.m_armatureNodeNames.find(armatureNodeName) != tmd.m_armatureData.m_armatureNodeNames.cend())
 		armatureAlreadyLoaded = true;
 	else
 		armatureAlreadyLoaded = false;
 
 
-	// 아래부터 Armature 데이터를 만들어내는 핵심 부분!
-	// 다른 메시에 의해서 이미 뼈대 객체가 만들어진 경우에는 새로 만들지 않음 (서로 다른 메시가 동일한 뼈대를 참조하고 있는 경우에 해당)
+	// 로드된 적 없는 뼈대이면 로드를 시작한다.
 	if (armatureAlreadyLoaded == false)
 	{
 		// Armature를 위한 데이터 할당
@@ -578,11 +590,11 @@ void ResourceLoader::AiLoadSkinnedMeshNode(TempModelData& tmd, const aiScene* pA
 		boneIndexMap.reserve(boneCount);
 		std::unique_ptr<bone_index_type[]> upBoneHierarchy = std::make_unique<bone_index_type[]>(boneCount);
 		XMFLOAT4X4A* pMdInvArray = static_cast<XMFLOAT4X4A*>(_aligned_malloc_dbg(sizeof(XMFLOAT4X4A) * boneCount, 16, __FILE__, __LINE__));
-#ifndef _DEBUG
-		std::unique_ptr<XMFLOAT4X4A[], void(*)(void*)> upMdInvArray(pMdInvArray, _aligned_free);	// Character space -> Bone space
-#else
+#if defined DEBUG || defined _DEBUG
 		std::unique_ptr<XMFLOAT4X4A[], void(*)(void*)> upMdInvArray(pMdInvArray, _aligned_free_dbg);	// Character space -> Bone space
-#endif
+#else
+		std::unique_ptr<XMFLOAT4X4A[], void(*)(void*)> upMdInvArray(pMdInvArray, _aligned_free);	// Character space -> Bone space
+#endif // DEBUG || defined _DEBUG
 
 		// Bone Index Map, MdInvArray, Bone Hierarchy 정보를 생성
 		// 본 큐에 루트 본을 넣고 시작한다.
@@ -664,14 +676,14 @@ void ResourceLoader::AiLoadSkinnedMeshNode(TempModelData& tmd, const aiScene* pA
 		}
 
 		// Armature 객체 생성 및 뼈대 정보 전달
-		std::shared_ptr<Armature> armature = std::make_shared<Armature>(
+		std::shared_ptr<Armature> spArmature = std::make_shared<Armature>(
 			std::move(boneIndexMap),
 			std::move(upBoneHierarchy),
 			std::move(upMdInvArray)
 		);
 
 		tmd.m_armatureData.m_armatureNodeNames.insert(armatureNodeName);	// Armature 중복 생성 방지를 위해 기록
-		tmd.m_armatureData.m_armatures.push_back(std::move(armature));		// Armature 저장
+		tmd.m_armatureData.m_armatures.push_back(std::move(spArmature));	// Armature 저장
 	}
 
 	// 정보 세팅

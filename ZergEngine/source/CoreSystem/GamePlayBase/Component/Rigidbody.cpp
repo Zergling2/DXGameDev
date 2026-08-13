@@ -21,6 +21,7 @@ Rigidbody::Rigidbody(GameObject& owner, std::shared_ptr<ICollider> collider, con
 	, m_upMotionState(std::make_unique<MotionState>(owner.m_transform, localPos, localRot))
 	, m_mass(1.0f)
 	, m_freezeState(FF_None)
+	, m_gravityBackUp(0.0f, 0.0f, 0.0f)
 {
 	m_spCollider = std::move(collider);
 
@@ -138,11 +139,15 @@ void Rigidbody::UseGravity(bool b)
 	m_useGravity = b;
 
 	if (m_useGravity)
+	{
 		m_upBtRigidBody->setFlags(m_upBtRigidBody->getFlags() & ~btRigidBodyFlags::BT_DISABLE_WORLD_GRAVITY);
+		m_upBtRigidBody->setGravity(DXToBt::ConvertVector(m_gravityBackUp));
+	}
 	else
 	{
+		m_gravityBackUp = BtToDX::ConvertVector(m_upBtRigidBody->getGravity());
+		m_upBtRigidBody->setGravity(btVector3(0.0f, 0.0f, 0.0f));
 		m_upBtRigidBody->setFlags(m_upBtRigidBody->getFlags() | btRigidBodyFlags::BT_DISABLE_WORLD_GRAVITY);
-		m_upBtRigidBody->clearGravity();
 	}
 }
 

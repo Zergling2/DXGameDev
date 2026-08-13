@@ -6,15 +6,6 @@
 #include "Constants.h"
 #include "Contents.h"
 
-enum class HostGameStartableResult
-{
-    AlreadyStarted,
-    Startable,
-    NotReady,
-
-    Unknown
-};
-
 class Player;
 
 struct GameRoomPlayer
@@ -59,7 +50,7 @@ public:
     size_t RemovePlayer(winppy::TCPServer& server, Player* pPlayer);
     const Player* GetHost() const { return m_pHost; }
 
-    HostGameStartableResult IsGameStartable() const;
+    void IsGameStartable(winppy::TCPServer& server);
     void ChangeHostAndReadyPlayersStateToPlaying(winppy::TCPServer& server);
     size_t GetNumOfPlayers() const { return m_redTeam.size() + m_blueTeam.size(); }
     void ChangePlayerState(winppy::TCPServer& server, uint32_t accountId, PlayerState newState);

@@ -106,5 +106,6 @@ namespace ze
 		std::unique_ptr<MotionState> m_upMotionState;
 		float m_mass;	// mass backup (Dynamic <-> Kinematic/Static 전환시 보존)
 		uint8_t m_freezeState;
+		XMFLOAT3 m_gravityBackUp;
 	};
 }

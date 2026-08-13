@@ -5,7 +5,8 @@
 
 constexpr size_t MAX_GAMES_PER_LIST_PAGE = 12;
 constexpr size_t MAX_PLAYERS_PER_TEAM = 8;
-constexpr size_t CHAT_MSG_ITEM_ROW_COUNT = 7;
+constexpr size_t LOBBY_CHAT_MSG_ITEM_ROW_COUNT = 7;
+constexpr size_t INGAME_CHAT_MSG_ITEM_ROW_COUNT = 6;
 constexpr size_t MAX_CHAT_MSG_LEN = 56;
 constexpr size_t MAX_GAME_ROOM_NAME_LEN = 24;
 constexpr size_t MAX_ID_LEN = 16;
@@ -21,7 +22,8 @@ constexpr size_t UTF8_MAX_PW_SIZE = MAX_PW_LEN;		// 숫자/영문/특수문자만 허용
 
 constexpr uint32_t HEADER_CODE = 0xbeef9999;
 constexpr uint16_t SASERVER_PORT = 37015;
-constexpr uint16_t ENET_HOST_PORT = 37025;
+constexpr uint16_t LISTEN_SERVER_PORT = 37025;
+constexpr int UDP_CHANNEL_COUNT = 2;
 constexpr size_t DB_THREAD_COUNT = 4;
-constexpr size_t CHANNEL_COUNT = 6;
+constexpr size_t CHANNEL_COUNT = 8;
 constexpr size_t MAX_PLAYERS_PER_CHANNEL = 500;

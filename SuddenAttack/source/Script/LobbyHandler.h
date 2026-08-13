@@ -66,6 +66,8 @@ public:
 	void OnClickJoinChannel3();
 	void OnClickJoinChannel4();
 	void OnClickJoinChannel5();
+	void OnClickJoinChannel6();
+	void OnClickJoinChannel7();
 	void OnClickRefreshChannelList();
 	void OnClickSendChatMsg();
 	void OnClickRefreshGameList();
@@ -180,7 +182,7 @@ public:
 	// 채팅 UI 관련
 	ze::UIObjectHandle m_hPanelChatRoot;
 	ze::UIObjectHandle m_hInputFieldChatMsg;
-	ze::UIObjectHandle m_hTextLobbyChatMsg[CHAT_MSG_ITEM_ROW_COUNT];
+	ze::UIObjectHandle m_hTextLobbyChatMsg[LOBBY_CHAT_MSG_ITEM_ROW_COUNT];
 
 	// 게임 브라우저 UI 관련
 	ze::UIObjectHandle m_hPanelGameListBrowserRoot;

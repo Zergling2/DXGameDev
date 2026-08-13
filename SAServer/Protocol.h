@@ -46,7 +46,8 @@ enum class Protocol : protocol_type
 	SC_NOTIFY_PLAYER_EXIT_GAME_ROOM,
 	SC_NOTIFY_GAME_ROOM_STATE_CHANGED,
 	SC_NOTIFY_HOST_CHANGED,
-	SC_NOTIFY_PLAYER_STATE_CHANGED
+	SC_NOTIFY_PLAYER_STATE_CHANGED,
+	SC_NOTIFY_LISTEN_SERVER_INFO
 };
 
 enum class JoinGameRoomResult : uint8_t
@@ -233,8 +234,10 @@ enum class HostGameStartableState : uint8_t
 struct SCResHostGameStartableState
 {
 	HostGameStartableState m_result;
-	GameTeam m_startingTeam;
 	GameMap	m_map;
+	uint32_t m_numOfStartingPlayers;
+	uint32_t m_startingPlayersAccountIds[MAX_PLAYERS_PER_TEAM * 2];
+	GameTeam m_startingPlayersTeams[MAX_PLAYERS_PER_TEAM * 2];
 };
 
 struct SCResExitGameRoom
@@ -299,10 +302,10 @@ struct SCNotifyPlayerExitGameRoom
 	uint32_t m_accountId;
 };
 
-struct SCNotifyHostGameStarted
+struct SCNotifyListenServerInfo
 {
-	uint32_t m_hostGameAddr;
-	uint16_t m_hostGamePort;
+	uint32_t m_listenServerIP;
+	uint16_t m_listenServerPort;
 };
 
 // 압축 프로토콜들

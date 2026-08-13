@@ -273,9 +273,9 @@ bool SkinnedMeshRenderer::GetBoneTransforms(BoneTransform* pArr, size_t len) con
 	const size_t boneCount = m_spArmature->GetBoneCount();
 
 	// Ma 계산
-	if (boneCount > 0)	// 먼저 Ma 배열의 0번 인덱스를 채우고 (Ma(0) = Ml(0) * Mp(0))
+	if (boneCount > 0)	// 먼저 Ma 배열의 0번 인덱스를 채우고 (Ma[0] = Ml[0] * Mp[0])
 		XMStoreFloat4x4A(&Ma[0], XMLoadFloat4x4A(&MlMp[0]));
-	for (size_t boneIndex = 1; boneIndex < boneCount; ++boneIndex)	// Ma(i) = Ml(i) * Mp(i) * Ma(i - 1)
+	for (size_t boneIndex = 1; boneIndex < boneCount; ++boneIndex)	// Ma[i] = Ml[i] * Mp[i] * Ma[i - 1]
 		XMStoreFloat4x4A(&Ma[boneIndex], XMLoadFloat4x4A(&MlMp[boneIndex]) * XMLoadFloat4x4A(&Ma[pBoneHierarchy[boneIndex]]));
 
 	for (size_t i = 0; i < boneCount && i < len; ++i)
@@ -330,19 +330,20 @@ void SkinnedMeshRenderer::ComputeFinalTransform(XMFLOAT4X4A* pOut, size_t len) c
 	}
 
 	// Pass 2.
-	// 0번 뼈부터 높은 인덱스로 가며 Ma 행렬을 계산하고 최종적으로 Mf(i) = MdInv(i) * Ml(i) * Mp(i) * Ma(i-1)를 계산한다.
+	// 0번(루트) 뼈부터 높은 인덱스로 가며 Ma 행렬을 계산하고 최종적으로 Mf[i] = MdInv[i] * Ml[i] * Mp[i] * Ma[i-1]를 계산한다.
+	// 자식 뼈들은 부모 뼈의 Ma에 대한 의존성이 있으므로 루트부터 계산해 나가야함.
 	const BYTE* const pBoneHierarchy = m_spArmature->GetBoneHierarchy();
 	const size_t boneCount = m_spArmature->GetBoneCount();
 
 	// Ma 계산
-	if (boneCount > 0)	// 먼저 Ma 배열의 0번 인덱스를 채우고 (Ma(0) = Ml(0) * Mp(0))
+	if (boneCount > 0)	// 먼저 Ma 배열의 0번 인덱스를 채우고 (Ma[0] = Ml[0] * Mp[0] (루트 뼈 공간 -> 로컬 공간으로의 변환 (루트 뼈의 부모는 로컬 공간이므로)))
 		XMStoreFloat4x4A(&Ma[0], XMLoadFloat4x4A(&MlMp[0]));
-	for (size_t boneIndex = 1; boneIndex < boneCount; ++boneIndex)	// Ma(i) = Ml(i) * Mp(i) * Ma(i - 1)
+	for (size_t boneIndex = 1; boneIndex < boneCount; ++boneIndex)	// Ma[i] = Ml[i] * Mp[i] * Ma[i - 1]
 		XMStoreFloat4x4A(&Ma[boneIndex], XMLoadFloat4x4A(&MlMp[boneIndex]) * XMLoadFloat4x4A(&Ma[pBoneHierarchy[boneIndex]]));
 
 
 
-	// Mf (Final transform) 계산
+	// Mf (Final transform) 계산 (Mf[i] = MdInv[i] * Ma[i])
 	const XMFLOAT4X4A* pMdInvArray = m_spArmature->GetMdInvArray();
 	for (size_t boneIndex = 0; boneIndex < boneCount && boneIndex < len; ++boneIndex)
 		XMStoreFloat4x4A(&pOut[boneIndex], XMLoadFloat4x4A(&pMdInvArray[boneIndex]) * XMLoadFloat4x4A(&Ma[boneIndex]));

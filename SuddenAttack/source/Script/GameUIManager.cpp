@@ -9,6 +9,7 @@ GameUIStateDeactivate GameUIStateDeactivate::s_instance;
 GameUIStatePlaying GameUIStatePlaying::s_instance;
 GameUIStateScoreboard GameUIStateScoreboard::s_instance;
 GameUIStateMenu GameUIStateMenu::s_instance;
+GameUIStateChatting GameUIStateChatting::s_instance;
 
 void GameUIStateDeactivate::Enter(GameUIManager* pGameUIManager)
 {
@@ -19,6 +20,7 @@ void GameUIStateDeactivate::Enter(GameUIManager* pGameUIManager)
 	pGameUIManager->HideScoreboard();
 	pGameUIManager->HideMenu();
 	pGameUIManager->HideGameUI();
+	pGameUIManager->HideChatPanel();
 }
 
 void GameUIStateDeactivate::Update(GameUIManager* pGameUIManager)
@@ -34,12 +36,16 @@ void GameUIStatePlaying::Enter(GameUIManager* pGameUIManager)
 	Cursor::SetVisible(false);
 	Cursor::SetLockState(CursorLockMode::Locked);
 
+	Player* pScriptPlayer = pGameUIManager->GetPlayerScript();
+	if (pScriptPlayer)
+		pScriptPlayer->SetProcessingInput(true);
+
 	pGameUIManager->ShowGameUI();
 }
 
 void GameUIStatePlaying::Update(GameUIManager* pGameUIManager)
 {
-	if (Input::GetInstance()->GetKey(Keycode::KEY_TAB))
+	if (Input::GetInstance()->GetKeyDown(Keycode::KEY_TAB))
 	{
 		pGameUIManager->SetState(GameUIStateScoreboard::GetState());
 		return;
@@ -48,6 +54,12 @@ void GameUIStatePlaying::Update(GameUIManager* pGameUIManager)
 	if (Input::GetInstance()->GetKeyDown(Keycode::KEY_ESCAPE))
 	{
 		pGameUIManager->SetState(GameUIStateMenu::GetState());
+		return;
+	}
+
+	if (Input::GetInstance()->GetKeyDown(Keycode::KEY_RETURN))
+	{
+		pGameUIManager->SetState(GameUIStateChatting::GetState());
 		return;
 	}
 }
@@ -93,16 +105,45 @@ void GameUIStateMenu::Enter(GameUIManager* pGameUIManager)
 
 void GameUIStateMenu::Update(GameUIManager* pGameUIManager)
 {
+	if (Input::GetInstance()->GetKeyDown(Keycode::KEY_ESCAPE))
+	{
+		pGameUIManager->SetState(GameUIStatePlaying::GetState());
+		return;
+	}
 }
 
 void GameUIStateMenu::Exit(GameUIManager* pGameUIManager)
 {
 	pGameUIManager->HideAdapterInfo();
 	pGameUIManager->HideMenu();
+}
+
+void GameUIStateChatting::Enter(GameUIManager* pGameUIManager)
+{
+	Cursor::SetVisible(true);
+	Cursor::SetLockState(CursorLockMode::None);
 
 	Player* pScriptPlayer = pGameUIManager->GetPlayerScript();
 	if (pScriptPlayer)
-		pScriptPlayer->SetProcessingInput(true);
+		pScriptPlayer->SetProcessingInput(false);
+
+	pGameUIManager->ShowChatPanel();
+	pGameUIManager->ShowGameUI();
+}
+
+void GameUIStateChatting::Update(GameUIManager* pGameUIManager)
+{
+	if (Input::GetInstance()->GetKeyDown(Keycode::KEY_RETURN))
+	{
+		pGameUIManager->SendChatMsg();
+		pGameUIManager->SetState(GameUIStatePlaying::GetState());
+		return;
+	}
+}
+
+void GameUIStateChatting::Exit(GameUIManager* pGameUIManager)
+{
+	pGameUIManager->HideChatPanel();
 }
 
 GameUIManager::GameUIManager(ze::GameObject& owner)
@@ -122,6 +163,13 @@ void GameUIManager::Awake()
 	UIObjectHandle hPanelAdapterInfoRoot = Runtime::GetInstance()->CreatePanel();
 	m_hPanelAdapterInfoRoot = hPanelAdapterInfoRoot;
 	Panel* pPanelAdapterInfoRoot = static_cast<Panel*>(hPanelAdapterInfoRoot.ToPtr());
+	pPanelAdapterInfoRoot->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+	pPanelAdapterInfoRoot->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
+	pPanelAdapterInfoRoot->m_transform.SetPosition(0, 0);
+	pPanelAdapterInfoRoot->SetShape(PanelShape::Rectangle);
+	pPanelAdapterInfoRoot->SetColor(ColorsLinear::DimGray);
+	pPanelAdapterInfoRoot->SetColorA(0.25f);
+	pPanelAdapterInfoRoot->SetSize(100, 70);
 	
 	{
 		UIObjectHandle hText = Runtime::GetInstance()->CreateText();
@@ -221,7 +269,6 @@ void GameUIManager::Awake()
 	UIObjectHandle hPanelScoreboardRoot = Runtime::GetInstance()->CreatePanel();
 	m_hPanelScoreboardRoot = hPanelScoreboardRoot;		// 핸들 저장
 	Panel* pPanelScoreboardRoot = static_cast<Panel*>(hPanelScoreboardRoot.ToPtr());
-	pPanelScoreboardRoot->SetActive(false);
 	pPanelScoreboardRoot->SetSize(SCOREBOARD_SIZE);
 	pPanelScoreboardRoot->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 	pPanelScoreboardRoot->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
@@ -329,7 +376,6 @@ void GameUIManager::Awake()
 	UIObjectHandle hPanelMenuRoot = Runtime::GetInstance()->CreatePanel();
 	m_hPanelMenuRoot = hPanelMenuRoot;
 	Panel* pPanelMenuRoot = static_cast<Panel*>(hPanelMenuRoot.ToPtr());
-	pPanelMenuRoot->SetActive(false);
 	pPanelMenuRoot->SetSize(140, 200);
 	pPanelMenuRoot->SetShape(PanelShape::Rectangle);
 	pPanelMenuRoot->SetColor(Colors::DimGray);
@@ -484,12 +530,61 @@ void GameUIManager::Awake()
 	pTextAmmoState->ApplyTextFormat();
 
 
+
+
+
+
+
+
+	// 채팅 패널 UI
+	constexpr XMFLOAT2 INGAME_CHAT_PANEL_SIZE(500, 220);
+	UIObjectHandle hPanelChatRoot = Runtime::GetInstance()->CreatePanel();
+	m_hPanelChatRoot = hPanelChatRoot;
+	Panel* pPanelChatRoot = static_cast<Panel*>(hPanelChatRoot.ToPtr());
+	pPanelChatRoot->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
+	pPanelChatRoot->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+	pPanelChatRoot->m_transform.SetPosition(INGAME_CHAT_PANEL_SIZE.x / 2 + 10, INGAME_CHAT_PANEL_SIZE.y / 2 + 200);
+	pPanelChatRoot->SetSize(INGAME_CHAT_PANEL_SIZE);
+	pPanelChatRoot->SetShape(PanelShape::RoundedRectangle);
+	pPanelChatRoot->SetColor(Colors::DimGray);
+	pPanelChatRoot->SetColorA(0.25f);
+	
+	const XMFLOAT2 CHAT_MSG_TEXT_SIZE(INGAME_CHAT_PANEL_SIZE.x - 20, 20);
+	for (size_t i = 0; i < INGAME_CHAT_MSG_ITEM_ROW_COUNT; ++i)
+	{
+		m_hTextChatMsg[i] = Runtime::GetInstance()->CreateText();
+		Text* pTextChatMsg = static_cast<Text*>(m_hTextChatMsg[i].ToPtr());
+		pTextChatMsg->m_transform.SetParent(&pPanelChatRoot->m_transform);
+		pTextChatMsg->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
+		pTextChatMsg->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+		pTextChatMsg->m_transform.SetPosition(
+			pPanelChatRoot->m_transform.GetPositionX(),
+			pPanelChatRoot->m_transform.GetPositionY() + INGAME_CHAT_PANEL_SIZE.y / 2 - CHAT_MSG_TEXT_SIZE.y / 2 - 10 - CHAT_MSG_TEXT_SIZE.y * i
+		);
+		pTextChatMsg->SetSize(CHAT_MSG_TEXT_SIZE);
+		pTextChatMsg->SetText(L"Test Chat Message!!!\n");
+	}
+
+	const XMFLOAT2 CHAT_MSG_INPUT_FIELD_SIZE(INGAME_CHAT_PANEL_SIZE.x - 20, 20);
+	m_hInputFieldChatMsg = Runtime::GetInstance()->CreateInputField();
+	InputField* pInputFieldChatMsg = static_cast<InputField*>(m_hInputFieldChatMsg.ToPtr());
+	pInputFieldChatMsg->m_transform.SetParent(&pPanelChatRoot->m_transform);
+	pInputFieldChatMsg->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
+	pInputFieldChatMsg->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+	pInputFieldChatMsg->m_transform.SetPosition(
+		pPanelChatRoot->m_transform.GetPositionX(),
+		pPanelChatRoot->m_transform.GetPositionY() - INGAME_CHAT_PANEL_SIZE.y / 2 + CHAT_MSG_INPUT_FIELD_SIZE.y / 2 + 10
+	);
+	pInputFieldChatMsg->SetSize(CHAT_MSG_INPUT_FIELD_SIZE);
+	pInputFieldChatMsg->SetMaxChar(MAX_CHAT_MSG_LEN);
+
 	
 	// ###########################################################
 	m_hPanelAdapterInfoRoot.ToPtr()->DontDestroyOnLoadRecursively();
 	m_hPanelScoreboardRoot.ToPtr()->DontDestroyOnLoadRecursively();
 	m_hPanelMenuRoot.ToPtr()->DontDestroyOnLoadRecursively();
 	m_hImageGameUIRoot.ToPtr()->DontDestroyOnLoadRecursively();
+	m_hPanelChatRoot.ToPtr()->DontDestroyOnLoadRecursively();
 	// ###########################################################
 
 	this->SetState(GameUIStateDeactivate::GetState());
@@ -504,7 +599,7 @@ void GameUIManager::Update()
 void GameUIManager::LateUpdate()
 {
 	// Update 루틴에서 카메라 최종 위치 결정된 상태로 가정
-	// -> 카메라 행렬을 이용해서 캐릭터 위 닉네임에 대한 스크린 좌표 위치 획득 및 Text UI 이동
+	// -> 카메라 행렬, 투영 행렬, 뷰포트 변환 및 화면 좌표계에서의 좌표를 구해서 캐릭터 위 닉네임에 대한 스크린 좌표 위치 획득 및 Text UI 이동
 	// 코드 구현...
 
 
@@ -610,9 +705,35 @@ void GameUIManager::HideGameUI()
 	m_hImageGameUIRoot.ToPtr()->SetActive(false);
 }
 
+void GameUIManager::ShowChatPanel()
+{
+	m_hPanelChatRoot.ToPtr()->SetActive(true);
+}
+
+void GameUIManager::HideChatPanel()
+{
+	m_hPanelChatRoot.ToPtr()->SetActive(false);
+}
+
 void GameUIManager::OnClickCloseGameMenu()
 {
 	assert(GetState() == GameUIStateMenu::GetState());
 
 	this->SetState(GameUIStatePlaying::GetState());
+}
+
+void GameUIManager::ClearAllChatMsgs()
+{
+	for (size_t i = 0; i < _countof(m_hTextChatMsg); ++i)
+	{
+		Text* pTextChatMsg = static_cast<Text*>(m_hTextChatMsg[i].ToPtr());
+		pTextChatMsg->GetText().clear();
+	}
+}
+
+void GameUIManager::SendChatMsg()
+{
+	// 채팅 입력 글자가 1자 이상일 경우 UDP 채팅 채널을 통해 리슨 서버로 채팅 전송.
+
+	// ...
 }

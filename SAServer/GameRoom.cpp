@@ -304,9 +304,14 @@ size_t GameRoom::RemovePlayer(winppy::TCPServer& server, Player* pPlayer)
 	return this->GetNumOfPlayers();
 }
 
-HostGameStartableResult GameRoom::IsGameStartable() const
+void GameRoom::IsGameStartable(winppy::TCPServer& server)
 {
-	HostGameStartableResult result = HostGameStartableResult::Unknown;
+	constexpr int UNKNOWN = 0;
+	constexpr int ALREADY_STARTED = 1;
+	constexpr int STARTABLE = 2;
+	constexpr int NOT_READY = 3;
+
+	int result = UNKNOWN;
 
 	switch (this->GetState())
 	{
@@ -329,25 +334,83 @@ HostGameStartableResult GameRoom::IsGameStartable() const
 		}
 
 		if (opposingReadyExist)
-			result = HostGameStartableResult::Startable;
+			result = STARTABLE;
 		else
-			result = HostGameStartableResult::NotReady;
+			result = NOT_READY;
 	}
 		break;
 	case GameRoomState::InPlay:
-		result = HostGameStartableResult::AlreadyStarted;
+		result = ALREADY_STARTED;
 		break;
 	default:
-		result = HostGameStartableResult::NotReady;
+		result = NOT_READY;
 		break;
 	}
 
-	return result;
+	// 패킷 생성
+	SCResHostGameStartableState res;
+	uint32_t index;
+	switch (result)
+	{
+	case ALREADY_STARTED:
+		// 무시 (아무 작업도 하지 않음) (게임시작 버튼 빠르게 여러번 클릭 시 가능한 상황)
+		break;
+	case STARTABLE:
+		this->ChangeHostAndReadyPlayersStateToPlaying(server);	// 준비 상태 플레이어 & 방장의 퇴장 불허
+		this->SetState(server, GameRoomState::InPlay);			// 게임 상태 '진행중'으로 변경
+
+		// 방장에게 게임 시작 가능하다는 패킷 전송. (방장은 이걸 받을 시 리슨서버 생성 및 맵 씬 로드)
+		res.m_result = HostGameStartableState::Startable;
+
+		// Playing 상태인 유저들의 AccountId, 시작 팀을 담는다.
+		index = 0;
+		for (const auto& item : m_redTeam)
+		{
+			if (item.m_state != PlayerState::Playing)
+				continue;
+
+			assert(index < _countof(res.m_startingPlayersAccountIds));
+			res.m_startingPlayersAccountIds[index] = item.m_pPlayer->GetAccountId();
+			res.m_startingPlayersTeams[index] = GameTeam::RedTeam;
+			++index;
+		}
+		for (const auto& item : m_blueTeam)
+		{
+			if (item.m_state != PlayerState::Playing)
+				continue;
+
+			assert(index < _countof(res.m_startingPlayersAccountIds));
+			res.m_startingPlayersAccountIds[index] = item.m_pPlayer->GetAccountId();
+			res.m_startingPlayersTeams[index] = GameTeam::BlueTeam;
+			++index;
+		}
+		res.m_numOfStartingPlayers = index;
+		res.m_map = this->GetMap();
+
+		// 이후 방장으로부터 CS_NOTIFY_HOST_CREATED 패킷이 도착하면
+		// 레디 상태에 있는 모든 플레이어들에게 방장의 enet 호스트 정보로 연결 시도하도록 패킷 브로드캐스트
+		break;
+	case NOT_READY:
+		// 현재 게임을 시작할 수 없는 상태를 알리는 패킷 전송.
+		res.m_result = HostGameStartableState::NotReady;
+		// res.m_numOfPlayers = 0;
+		// res.m_map = GameMap::Unknown;
+		break;
+	default:
+		*reinterpret_cast<int*>(0) = 0;
+		break;
+	}
+
+	winppy::Packet pkt;
+	pkt->Write(static_cast<protocol_type>(Protocol::SC_RES_HOST_GAME_START));
+	pkt->WriteBytes(&res, sizeof(res));
+
+	server.Send(this->GetHost()->GetSession()->GetNetId(), std::move(pkt));
 }
 
 void GameRoom::ChangeHostAndReadyPlayersStateToPlaying(winppy::TCPServer& server)
 {
-	this->ChangePlayerState(server, m_pHost->GetAccountId(), PlayerState::Playing);
+	// this->ChangePlayerState(server, m_pHost->GetAccountId(), PlayerState::Playing);	// 아래 루프에서 방장 아닌 플레이어들과 같이 변경하는게 나음.
 
 	for (auto& item : m_redTeam)
 	{

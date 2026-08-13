@@ -93,6 +93,6 @@ protected:
 	virtual void OnThreadExit() override;
 	virtual void ProcessJob(std::unique_ptr<IDBJob> upJob) override;
 public:
-	SAServer& m_server;
+	std::reference_wrapper<SAServer> m_server;
 	DBConnection m_dbConnection;
 };

@@ -156,6 +156,7 @@
     <ClCompile Include="source\Resource\Arms.cpp" />
     <ClCompile Include="source\Resource\Character.cpp" />
     <ClCompile Include="source\Resource\GameInfo.cpp" />
+    <ClCompile Include="source\Resource\GamePlayer.cpp" />
     <ClCompile Include="source\Resource\GlobalScriptGameObject.cpp" />
     <ClCompile Include="source\Resource\WeaponDefinition.cpp" />
     <ClCompile Include="source\Scene\Lobby.cpp" />
@@ -163,6 +164,7 @@
     <ClCompile Include="source\Scene\Warehouse.cpp" />
     <ClCompile Include="source\Script\Account.cpp" />
     <ClCompile Include="source\Script\ListenServer.cpp" />
+    <ClCompile Include="source\Script\ListenServerClient.cpp" />
     <ClCompile Include="source\Script\ListenServerStarter.cpp" />
     <ClCompile Include="source\Script\Weapon.cpp" />
     <ClCompile Include="source\Script\ThirdPersonCharacter.cpp" />
@@ -177,6 +179,7 @@
     <ClInclude Include="source\Resource\Arms.h" />
     <ClInclude Include="source\Resource\Character.h" />
     <ClInclude Include="source\Resource\GameInfo.h" />
+    <ClInclude Include="source\Resource\GamePlayer.h" />
     <ClInclude Include="source\Resource\GlobalScriptGameObject.h" />
     <ClInclude Include="source\Resource\WeaponAction.h" />
     <ClInclude Include="source\Resource\WeaponCode.h" />
@@ -187,6 +190,7 @@
     <ClInclude Include="source\Scene\Warehouse.h" />
     <ClInclude Include="source\Script\Account.h" />
     <ClInclude Include="source\Script\ListenServer.h" />
+    <ClInclude Include="source\Script\ListenServerClient.h" />
     <ClInclude Include="source\Script\ListenServerStarter.h" />
     <ClInclude Include="source\Script\Weapon.h" />
     <ClInclude Include="source\Script\ThirdPersonCharacter.h" />

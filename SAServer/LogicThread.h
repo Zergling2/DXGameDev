@@ -32,7 +32,7 @@ public:
 
 	virtual void Execute(LogicThread& thread) override;
 private:
-	uint64_t m_netId;
+	const uint64_t m_netId;
 };
 
 class JobReqLogin : public IJob
@@ -43,7 +43,7 @@ public:
 
 	virtual void Execute(LogicThread& thread) override;
 private:
-	uint64_t m_netId;
+	const uint64_t m_netId;
 	wchar_t m_id[MAX_ID_LEN + 1];
 	wchar_t m_pw[MAX_PW_LEN + 1];
 };
@@ -67,9 +67,9 @@ public:
 
 	virtual void Execute(LogicThread& thread) override;
 private:
-	uint64_t m_netId;
-	bool m_querySuccess;	// 쿼리 성공 여부
-	bool m_result;			// 결과
+	const uint64_t m_netId;
+	const bool m_querySuccess;	// 쿼리 성공 여부
+	const bool m_result;			// 결과
 public:
 	uint32_t m_accountId;
 	uint16_t m_nicknameLen;
@@ -87,7 +87,7 @@ public:
 
 	virtual void Execute(LogicThread& thread) override;
 private:
-	uint64_t m_netId;
+	const uint64_t m_netId;
 	wchar_t m_id[MAX_ID_LEN + 1];
 	wchar_t m_nickname[MAX_NICKNAME_LEN + 1];
 	wchar_t m_pw[MAX_PW_LEN + 1];
@@ -105,8 +105,8 @@ public:
 
 	virtual void Execute(LogicThread& thread) override;
 private:
-	uint64_t m_netId;
-	bool m_result;
+	const uint64_t m_netId;
+	const bool m_result;
 };
 
 class JobReqIdDuplicateCheck : public IJob
@@ -117,7 +117,7 @@ public:
 
 	virtual void Execute(LogicThread& thread) override;
 private:
-	uint64_t m_netId;
+	const uint64_t m_netId;
 	wchar_t m_id[MAX_ID_LEN + 1];
 };
 
@@ -134,9 +134,9 @@ public:
 
 	virtual void Execute(LogicThread& thread) override;
 private:
-	uint64_t m_netId;
-	bool m_querySuccess;		// 조회 성공 시 true, 실패 시 false
-	bool m_duplicated;
+	const uint64_t m_netId;
+	const bool m_querySuccess;		// 조회 성공 시 true, 실패 시 false
+	const bool m_duplicated;
 };
 
 class JobReqNicknameDuplicateCheck : public IJob
@@ -147,7 +147,7 @@ public:
 
 	virtual void Execute(LogicThread& thread) override;
 private:
-	uint64_t m_netId;
+	const uint64_t m_netId;
 	wchar_t m_nickname[MAX_NICKNAME_LEN + 1];
 };
 
@@ -164,9 +164,9 @@ public:
 
 	virtual void Execute(LogicThread& thread) override;
 private:
-	uint64_t m_netId;
-	bool m_querySuccess;		// 조회 성공 시 true, 실패 시 false
-	bool m_duplicated;
+	const uint64_t m_netId;
+	const bool m_querySuccess;		// 조회 성공 시 true, 실패 시 false
+	const bool m_duplicated;
 };
 
 class JobReqChannelInfo : public IJob
@@ -180,7 +180,7 @@ public:
 
 	virtual void Execute(LogicThread& thread) override;
 private:
-	uint64_t m_netId;
+	const uint64_t m_netId;
 };
 
 class JobReqJoinChannel : public IJob
@@ -195,8 +195,8 @@ public:
 
 	virtual void Execute(LogicThread& thread) override;
 private:
-	uint64_t m_netId;
-	uint8_t m_channelId;
+	const uint64_t m_netId;
+	const uint8_t m_channelId;
 };
 
 class JobReqLobbyChat : public IJob
@@ -207,8 +207,8 @@ public:
 
 	virtual void Execute(LogicThread& thread) override;
 private:
-	uint64_t m_netId;
-	uint16_t m_msgLen;
+	const uint64_t m_netId;
+	const uint16_t m_msgLen;
 	wchar_t m_msg[MAX_CHAT_MSG_LEN + 1];
 };
 
@@ -224,8 +224,8 @@ public:
 
 	virtual void Execute(LogicThread& thread) override;
 private:
-	uint64_t m_netId;
-	uint32_t m_queryContextNo;
+	const uint64_t m_netId;
+	const uint32_t m_queryContextNo;
 };
 
 class JobReqCreateGameRoom : public IJob
@@ -236,9 +236,9 @@ public:
 
 	virtual void Execute(LogicThread& thread) override;
 private:
-	uint64_t m_netId;
-	GameRoomTeamFormat m_roomTeamFormat;
-	uint16_t m_roomNameLen;
+	const uint64_t m_netId;
+	const GameRoomTeamFormat m_roomTeamFormat;
+	const uint16_t m_roomNameLen;
 	wchar_t m_roomName[MAX_GAME_ROOM_NAME_LEN + 1];
 };
 
@@ -254,8 +254,8 @@ public:
 
 	virtual void Execute(LogicThread& thread) override;
 private:
-	uint64_t m_netId;
-	uint64_t m_gameRoomId;
+	const uint64_t m_netId;
+	const uint64_t m_gameRoomId;
 };
 
 class JobReqExitGameRoom : public IJob
@@ -269,7 +269,7 @@ public:
 
 	virtual void Execute(LogicThread& thread) override;
 private:
-	uint64_t m_netId;
+	const uint64_t m_netId;
 };
 
 class JobReqChangeTeam : public IJob
@@ -284,8 +284,8 @@ public:
 
 	virtual void Execute(LogicThread& thread) override;
 private:
-	uint64_t m_netId;
-	GameTeam m_newTeam;
+	const uint64_t m_netId;
+	const GameTeam m_newTeam;
 };
 
 class JobReqChangeGameReadyState : public IJob
@@ -300,8 +300,8 @@ public:
 
 	virtual void Execute(LogicThread& thread) override;
 private:
-	uint64_t m_netId;
-	bool m_ready;
+	const uint64_t m_netId;
+	const bool m_ready;
 };
 
 class JobReqGameEnter : public IJob
@@ -315,7 +315,7 @@ public:
 
 	virtual void Execute(LogicThread& thread) override;
 private:
-	uint64_t m_netId;
+	const uint64_t m_netId;
 };
 
 class JobReqHostGameStart : public IJob
@@ -329,7 +329,7 @@ public:
 
 	virtual void Execute(LogicThread& thread) override;
 private:
-	uint64_t m_netId;
+	const uint64_t m_netId;
 };
 
 class JobReqExitGameChannel : public IJob
@@ -343,21 +343,23 @@ public:
 
 	virtual void Execute(LogicThread& thread) override;
 private:
-	uint64_t m_netId;
+	const uint64_t m_netId;
 };
 
 class JobNotifyListenServerStart : public IJob
 {
 public:
-	JobNotifyListenServerStart(uint64_t netId)
+	JobNotifyListenServerStart(uint64_t netId, uint16_t listenServerPort)
 		: m_netId(netId)
+		, m_listenServerPort(listenServerPort)
 	{
 	}
 	virtual ~JobNotifyListenServerStart() = default;
 
 	virtual void Execute(LogicThread& thread) override;
 private:
-	uint64_t m_netId;
+	const uint64_t m_netId;
+	const uint16_t m_listenServerPort;
 };
 
 class JobSessionDisconnected : public IJob
@@ -371,7 +373,7 @@ public:
 
 	virtual void Execute(LogicThread& thread) override;
 private:
-	uint64_t m_netId;
+	const uint64_t m_netId;
 };
 
 class LogicThread : public JobThreadBase<IJob>

@@ -153,7 +153,7 @@ namespace ze
 			std::vector<std::shared_ptr<StaticMesh>> m_staticMeshes;
 			struct ArmatureData
 			{
-				std::set<std::string> m_armatureNodeNames;	// Armature 노드들의 이름 기록
+				std::set<std::string> m_armatureNodeNames;	// Armature 노드들의 이름 기록 (동일 Armature 중복 로드 방지를 위해 기록한다.)
 				std::vector<std::shared_ptr<Armature>> m_armatures;
 			}m_armatureData;
 			std::vector<std::shared_ptr<SkinnedMesh>> m_skinnedMeshes;

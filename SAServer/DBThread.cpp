@@ -150,13 +150,13 @@ void DBJobLogin::Execute(DBThread& thread)
 			upDBResultJob->m_exp = upResultSet->getInt(4);		// "exp"
 			upDBResultJob->m_point = upResultSet->getInt(5);	// "point"
 
-			thread.m_server.GetLogicThread().DispatchJob(std::move(upDBResultJob));
+			thread.m_server.get().GetLogicThread().DispatchJob(std::move(upDBResultJob));
 		}
 		else
 		{
 			// 계정 정보 없음
 			std::unique_ptr<JobDBJobReqLoginResult> upDBResultJob = std::make_unique<JobDBJobReqLoginResult>(m_netId, true, false);
-			thread.m_server.GetLogicThread().DispatchJob(std::move(upDBResultJob));
+			thread.m_server.get().GetLogicThread().DispatchJob(std::move(upDBResultJob));
 		}
 	}
 	catch (const sql::SQLException& e)
@@ -168,7 +168,7 @@ void DBJobLogin::Execute(DBThread& thread)
 
 		// DB 조회 실패
 		std::unique_ptr<JobDBJobReqLoginResult> upDBResultJob = std::make_unique<JobDBJobReqLoginResult>(m_netId, false, false);
-		thread.m_server.GetLogicThread().DispatchJob(std::move(upDBResultJob));
+		thread.m_server.get().GetLogicThread().DispatchJob(std::move(upDBResultJob));
 	}
 }
 
@@ -243,7 +243,7 @@ void DBJobCreateAccount::Execute(DBThread& thread)
 	std::unique_ptr<JobDBJobCreateAccountResult> upDBResultJob = std::make_unique<JobDBJobCreateAccountResult>(m_netId, querySuccess);
 
 	// 로직 스레드에게 잡 디스패칭
-	thread.m_server.GetLogicThread().DispatchJob(std::move(upDBResultJob));
+	thread.m_server.get().GetLogicThread().DispatchJob(std::move(upDBResultJob));
 }
 
 DBJobIdDuplicateCheck::DBJobIdDuplicateCheck(uint64_t netId, const wchar_t* id) noexcept
@@ -291,7 +291,7 @@ void DBJobIdDuplicateCheck::Execute(DBThread& thread)
 		std::make_unique<JobDBJobIdDuplicateCheckResult>(m_netId, querySuccess, querySuccess ? duplicated : false);
 
 	// 로직 스레드에게 잡 디스패칭
-	thread.m_server.GetLogicThread().DispatchJob(std::move(upDBResultJob));
+	thread.m_server.get().GetLogicThread().DispatchJob(std::move(upDBResultJob));
 }
 
 DBJobNicknameDuplicateCheck::DBJobNicknameDuplicateCheck(uint64_t netId, const wchar_t* nickname) noexcept
@@ -345,5 +345,5 @@ void DBJobNicknameDuplicateCheck::Execute(DBThread& thread)
 		std::make_unique<JobDBJobNicknameDuplicateCheckResult>(m_netId, querySuccess, querySuccess ? duplicated : false);
 
 	// 로직 스레드에게 잡 디스패칭
-	thread.m_server.GetLogicThread().DispatchJob(std::move(upDBResultJob));
+	thread.m_server.get().GetLogicThread().DispatchJob(std::move(upDBResultJob));
 }

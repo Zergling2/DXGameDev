@@ -4,6 +4,7 @@
 #include "..\Script\Network.h"
 #include "..\Script\Account.h"
 #include "..\Script\ListenServer.h"
+#include "..\Script\ListenServerClient.h"
 #include "..\Script\GameUIManager.h"
 #include "..\Resource\GlobalScriptGameObject.h"
 #include "Constants.h"
@@ -57,16 +58,24 @@ void Lobby::OnLoadScene()
 	pScriptNetwork->SetLobbyHandlerScriptHandle(hScriptLobbyHandler);
 	pScriptNetwork->SetAccountScriptHandle(hScriptAccount);
 
-	// 2-4. 리슨서버 스크립트 생성
+	// 2-4. 인게임 UI 관리자 스크립트 생성
+	ComponentHandle<GameUIManager> hScriptGameUIManager = pGameObjGlobalScripts->AddComponent<GameUIManager>();
+	GameUIManager* pScriptGameUIManager = hScriptGameUIManager.ToPtr();
+
+	// 2-5. 리슨서버 스크립트 생성
 	ComponentHandle<ListenServer> hScriptListenServer = pGameObjGlobalScripts->AddComponent<ListenServer>();
 	pScriptNetwork->SetListenServerScriptHandle(hScriptListenServer);
 
 	ListenServer* pScriptListenServer = hScriptListenServer.ToPtr();
 	pScriptListenServer->SetNetworkScriptHandle(hScriptNetwork);
+	pScriptListenServer->SetGameUIManagerScriptHandle(hScriptGameUIManager);
 
-	// 2-5. 인게임 UI 관리자 스크립트 생성
-	ComponentHandle<GameUIManager> hScriptGameUIManager = pGameObjGlobalScripts->AddComponent<GameUIManager>();
-	GameUIManager* pScriptGameUIManager = hScriptGameUIManager.ToPtr();
+	// 2-6. 리슨서버클라이언트 스크립트 생성
+	ComponentHandle<ListenServerClient> hScriptListenServerClient = pGameObjGlobalScripts->AddComponent<ListenServerClient>();
+	pScriptNetwork->SetListenServerClientScriptHandle(hScriptListenServerClient);
+
+	ListenServerClient* pScriptListenServerClient = hScriptListenServerClient.ToPtr();
+	pScriptListenServerClient->SetNetworkScriptHandle(hScriptNetwork);
 
 
 
@@ -778,7 +787,7 @@ void Lobby::OnLoadScene()
 
 	constexpr float UI_TAB_ITEM_VERTICAL_DISTANCE = 60;
 	constexpr float LIST_ITEM_VERTICAL_DISTANCE = 40;
-	Button* pTempPtrButtonJoinChannel[CHANNEL_COUNT] = { nullptr };
+	Button* pTempPtrButtonJoinChannel[CHANNEL_COUNT] = {};
 	for (size_t i = 0; i < CHANNEL_COUNT; ++i)
 	{
 		UIObjectHandle hTextChannelName = CreateText();
@@ -841,6 +850,10 @@ void Lobby::OnLoadScene()
 	pTempPtrButtonJoinChannel[4] = nullptr;
 	pTempPtrButtonJoinChannel[5]->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickJoinChannel5));
 	pTempPtrButtonJoinChannel[5] = nullptr;
+	pTempPtrButtonJoinChannel[6]->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickJoinChannel6));
+	pTempPtrButtonJoinChannel[6] = nullptr;
+	pTempPtrButtonJoinChannel[7]->SetHandlerOnClick(MakeUIHandler(hScriptLobbyHandler, &LobbyHandler::OnClickJoinChannel7));
+	pTempPtrButtonJoinChannel[7] = nullptr;
 	for (size_t i = 0; i < _countof(pTempPtrButtonJoinChannel); ++i)
 		assert(pTempPtrButtonJoinChannel[i] == nullptr);
 
@@ -1483,7 +1496,7 @@ void Lobby::OnLoadScene()
 
 	constexpr XMFLOAT2 CHAT_MSG_SIZE(CHAT_INPUT_FIELD_SIZE.x + SEND_CHAT_MSG_BUTTON_SIZE.x, CHAT_INPUT_FIELD_SIZE.y);
 	constexpr XMFLOAT2 FIRST_CHAT_MSG_OFFSET(CHAT_PANEL_OFFSET.x, CHAT_PANEL_OFFSET.y + CHAT_PANEL_SIZE.y / 2 - CHAT_MSG_SIZE.y / 2 - 10);
-	for (size_t i = 0; i < CHAT_MSG_ITEM_ROW_COUNT; ++i)
+	for (size_t i = 0; i < LOBBY_CHAT_MSG_ITEM_ROW_COUNT; ++i)
 	{
 		UIObjectHandle hTextLobbyChatMsg = CreateText();
 		pScriptLobbyHandler->m_hTextLobbyChatMsg[i] = hTextLobbyChatMsg;

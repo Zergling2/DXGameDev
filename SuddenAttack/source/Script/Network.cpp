@@ -3,6 +3,7 @@
 #include "Protocol.h"
 #include "LobbyHandler.h"
 #include "ListenServer.h"
+#include "ListenServerClient.h"
 #include "Account.h"
 #include "..\Resource\GameInfo.h"
 
@@ -134,6 +135,9 @@ void Network::FixedUpdate()
 			break;
 		case Protocol::SC_NOTIFY_PLAYER_STATE_CHANGED:
 			PktProcSCNotifyPlayerStateChanged(std::move(packet));
+			break;
+		case Protocol::SC_NOTIFY_LISTEN_SERVER_INFO:
+			PktProcSCNotifyListenServerInfo(std::move(packet));
 			break;
 		default:
 			break;
@@ -489,7 +493,7 @@ void Network::PktProcSCResHostGameStart(winppy::Packet packet)
 		pScriptLobbyHandler->HideLobbyUI();
 
 		ListenServer* pScriptListenServer = m_hScriptListenServer.ToPtr();
-		pScriptListenServer->SetStartInfo(res.m_startingTeam, res.m_map);
+		pScriptListenServer->SetStartupInfo(res.m_map, res.m_startingPlayersAccountIds, res.m_startingPlayersTeams, res.m_numOfStartingPlayers);
 		
 		// 2. 서버에서 지정한 맵 씬 로드 및 다른 플레이어 입장 대기
 		SceneManager::GetInstance()->LoadScene(GameMapInfo::GetMapSceneNameString(res.m_map));
@@ -609,3 +613,15 @@ void Network::PktProcSCNotifyPlayerStateChanged(winppy::Packet packet)
 	pScriptLobbyHandler->OnGameRoomPlayerStateChanged(notify.m_accountId, notify.m_newState);
 }
 
+void Network::PktProcSCNotifyListenServerInfo(winppy::Packet packet)
+{
+	SCNotifyListenServerInfo notify;
+	if (!packet->ReadBytes(&notify, sizeof(notify)))
+		*reinterpret_cast<int*>(0) = 0;
+
+	ListenServer* pScriptListenServer = m_hScriptListenServer.ToPtr();
+	pScriptListenServer->InitState();	// ListenServerStarter가 서버를 실행하지 않도록 플래그 초기화등의 동작 이루어짐.
+
+	ListenServerClient* pScriptListenServerClient = m_hScriptListenServerClient.ToPtr();
+	pScriptListenServerClient->StartClient(notify.m_listenServerIP, notify.m_listenServerPort);
+}
