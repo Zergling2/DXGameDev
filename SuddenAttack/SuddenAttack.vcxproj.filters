@@ -138,9 +138,6 @@
     <ClInclude Include="source\Resource\WeaponAction.h">
       <Filter>source\Resource</Filter>
     </ClInclude>
-    <ClInclude Include="source\Resource\WeaponCode.h">
-      <Filter>source\Resource</Filter>
-    </ClInclude>
     <ClInclude Include="source\Script\ListenServer.h">
       <Filter>source\Script</Filter>
     </ClInclude>
@@ -154,6 +151,9 @@
       <Filter>source\Script</Filter>
     </ClInclude>
     <ClInclude Include="source\Resource\GamePlayer.h">
+      <Filter>source\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Resource\LSProtocol.h">
       <Filter>source\Resource</Filter>
     </ClInclude>
   </ItemGroup>

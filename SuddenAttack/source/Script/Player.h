@@ -1,7 +1,7 @@
 #pragma once
 
 #include <ZergEngine\ZergEngine.h>
-#include "..\Resource\WeaponCode.h"
+#include "Contents.h"
 
 class GameResources;
 class GameUIManager;

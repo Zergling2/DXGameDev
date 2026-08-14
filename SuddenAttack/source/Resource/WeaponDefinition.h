@@ -7,20 +7,7 @@
 #include <memory>
 #include "WeaponEvent.h"
 #include "WeaponAction.h"
-#include "WeaponCode.h"
-
-enum class WeaponType
-{
-	Rifle,
-	SniperRifle,
-	Shotgun,
-	Pistol,
-	Melee,
-	Utility,
-	Etc,
-
-	Unknown
-};
+#include "Contents.h"
 
 class WeaponEventTable
 {

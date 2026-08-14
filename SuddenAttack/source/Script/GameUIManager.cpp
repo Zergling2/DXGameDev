@@ -151,6 +151,7 @@ GameUIManager::GameUIManager(ze::GameObject& owner)
 	, m_pUIState(nullptr)
 	, m_redTeamPlayersCount(0)
 	, m_blueTeamPlayersCount(0)
+	, m_chatMsgCount(0)
 {
 	ZeroMemory(&m_scoreboardRedTeamPlayersNetId, sizeof(m_scoreboardRedTeamPlayersNetId));
 	ZeroMemory(&m_scoreboardBlueTeamPlayersNetId, sizeof(m_scoreboardBlueTeamPlayersNetId));
@@ -728,6 +729,26 @@ void GameUIManager::ClearAllChatMsgs()
 	{
 		Text* pTextChatMsg = static_cast<Text*>(m_hTextChatMsg[i].ToPtr());
 		pTextChatMsg->GetText().clear();
+	}
+
+	m_chatMsgCount = 0;
+}
+
+void GameUIManager::AddChatMsg(const wchar_t* msg)
+{
+	if (m_chatMsgCount < _countof(m_hTextChatMsg))
+	{
+		static_cast<Text*>(m_hTextChatMsg[m_chatMsgCount].ToPtr())->SetText(msg);
+	}
+	else
+	{
+		for (size_t i = 0; i < _countof(m_hTextChatMsg) - 1; ++i)
+		{
+			static_cast<Text*>(m_hTextChatMsg[i].ToPtr())->SetText(
+				static_cast<Text*>(m_hTextChatMsg[i + 1].ToPtr())->GetText().c_str()
+			);
+		}
+		static_cast<Text*>(m_hTextChatMsg[_countof(m_hTextChatMsg) - 1].ToPtr())->SetText(msg);
 	}
 }
 

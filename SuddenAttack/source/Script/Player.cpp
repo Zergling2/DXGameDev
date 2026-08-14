@@ -1,9 +1,9 @@
 #include "Player.h"
-#include "..\Resource\GlobalScriptGameObject.h"
-#include "..\Resource\Arms.h"
 #include "Weapon.h"
 #include "GameResources.h"
 #include "GameUIManager.h"
+#include "..\Resource\GlobalScriptGameObject.h"
+#include "..\Resource\Arms.h"
 #include <algorithm>
 
 using namespace ze;

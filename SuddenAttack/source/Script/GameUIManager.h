@@ -1,7 +1,7 @@
 #pragma once
 
 #include <ZergEngine\ZergEngine.h>
-#include <Constants.h>
+#include "Constants.h"
 
 class GameUIManager;
 class Player;
@@ -125,6 +125,7 @@ public:
 
 	void OnClickCloseGameMenu();
 	void ClearAllChatMsgs();
+	void AddChatMsg(const wchar_t* msg);
 	void SendChatMsg();
 private:
 	IGameUIManagerState* m_pUIState;
@@ -166,4 +167,5 @@ private:
 	ze::UIObjectHandle m_hPanelChatRoot;
 	ze::UIObjectHandle m_hTextChatMsg[INGAME_CHAT_MSG_ITEM_ROW_COUNT];
 	ze::UIObjectHandle m_hInputFieldChatMsg;
+	size_t m_chatMsgCount;
 };

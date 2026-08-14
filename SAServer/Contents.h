@@ -65,3 +65,13 @@ enum class GameTeam : uint8_t
 
 	Unknown
 };
+
+enum class WeaponCode
+{
+	M16,
+	M4A1,
+	USP,
+	B92FSBlack,
+
+	Unknown
+};
