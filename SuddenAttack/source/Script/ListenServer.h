@@ -3,11 +3,10 @@
 #include <ZergEngine\ZergEngine.h>
 #include <enet\enet.h>
 #include "Contents.h"
-#include "..\Resource\GamePlayer.h"
+#include "..\Resource\LSProtocol.h"
 
 class Network;
-class GameUIManager;
-class GamePlayer;
+struct LSGamePlayerInfo;
 
 class ListenServer : public ze::MonoBehaviour
 {
@@ -18,26 +17,32 @@ public:
 
 	virtual void Awake() override;
 	virtual void Update() override;
+	virtual void FixedUpdate() override;
 	virtual void OnDestroy() override;
 
-	void SetStartupInfo(GameMap startingMap, const uint32_t* pStartingPlayersAccountIds, const GameTeam* pStartingPlayersTeam, size_t count);
-	void StartServer();
+	void OnConnect(ENetPeer* pPeer);
+	void OnReceive(ENetPeer* pPeer, uint8_t channelId, const ENetPacket* pPacket);
+	void OnDisconnect(ENetPeer* pPeer);
+
+	void StartServer(GameMap map, float gameDuration, const uint32_t* pStartingPlayersAccountIds, const GameTeam* pStartingPlayersTeam, size_t count);
 	void CloseServer();
 
-	bool IsReady() const { return m_ready; }
-	void InitState();
-
 	void SetNetworkScriptHandle(ze::ComponentHandle<Network> hScript) { m_hScriptNetwork = hScript; }
-	void SetGameUIManagerScriptHandle(ze::ComponentHandle<GameUIManager> hScript) { m_hScriptGameUIManager = hScript; }
+
+	bool SendPacket(ENetPeer* pPeer, ENetPacket* pPacket) const;
+	size_t BroadcastPacket(ENetPacket* pPacket) const;
+	size_t BroadcastPacketExcept(ENetPacket* pPacket, const ENetPeer* pExceptor) const;
 private:
-	void CreateMainPlayer();
+	void UpdateRespawn(float dt, LSGamePlayerInfo& player);
+
+	void OnCSReqAuth(const LSCSReqAuth* pPacket, ENetPeer* pRequester);
+	void OnCSReqChat(const LSCSReqChat* pPacket, ENetPeer* pRequester);
+	void OnCSNotifyGamePlayerTransform(const LSCSNotifyGamePlayerTransform* pPacket, ENetPeer* pRequester);
 private:
 	ze::ComponentHandle<Network> m_hScriptNetwork;
-	ze::ComponentHandle<GameUIManager> m_hScriptGameUIManager;
 	ENetHost* m_pHost;
+	std::unordered_map<ENetPeer*, std::unique_ptr<LSGamePlayerInfo>> m_peers;
 	GameMap m_map;
-	std::map<uint32_t, GameTeam> m_playersTeam;
-	std::vector<std::unique_ptr<GamePlayer>> m_redTeamPlayers;
-	std::vector<std::unique_ptr<GamePlayer>> m_blueTeamPlayers;
-	bool m_ready;
+	float m_gameRemainingTime;
+	std::unordered_map<uint32_t, GameTeam> m_playersTeam;
 };

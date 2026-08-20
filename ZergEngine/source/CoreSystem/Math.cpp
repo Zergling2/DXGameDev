@@ -95,7 +95,7 @@ XMVECTOR XM_CALLCONV Math::QuaternionToEulerNormal(FXMVECTOR quaternion) noexcep
 	float cosy_cosp = 1.0f - 2.0f * (qx * qx + qy * qy);
 	euler.y = std::atan2(siny_cosp, cosy_cosp);
 
-	// X(Pitch), Y(Yaw), Z(Roll) 순서로 XMVECTOR에 패킹
+	
 	return XMLoadFloat3A(&euler);
 }
 

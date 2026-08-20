@@ -489,14 +489,12 @@ void Network::PktProcSCResHostGameStart(winppy::Packet packet)
 	{
 	case HostGameStartableState::Startable:
 	{
-		// 0. 로비 UI 숨기기
+		// 로비 UI 숨기기
 		pScriptLobbyHandler->HideLobbyUI();
 
+		// 리슨서버 시작
 		ListenServer* pScriptListenServer = m_hScriptListenServer.ToPtr();
-		pScriptListenServer->SetStartupInfo(res.m_map, res.m_startingPlayersAccountIds, res.m_startingPlayersTeams, res.m_numOfStartingPlayers);
-		
-		// 2. 서버에서 지정한 맵 씬 로드 및 다른 플레이어 입장 대기
-		SceneManager::GetInstance()->LoadScene(GameMapInfo::GetMapSceneNameString(res.m_map));
+		pScriptListenServer->StartServer(res.m_map, 60 * 10, res.m_startingPlayersAccountIds, res.m_startingPlayersTeams, res.m_numOfStartingPlayers);
 	}
 		break;
 	case HostGameStartableState::NotReady:
@@ -619,9 +617,16 @@ void Network::PktProcSCNotifyListenServerInfo(winppy::Packet packet)
 	if (!packet->ReadBytes(&notify, sizeof(notify)))
 		*reinterpret_cast<int*>(0) = 0;
 
-	ListenServer* pScriptListenServer = m_hScriptListenServer.ToPtr();
-	pScriptListenServer->InitState();	// ListenServerStarter가 서버를 실행하지 않도록 플래그 초기화등의 동작 이루어짐.
+	assert(notify.m_map != GameMap::Unknown);
 
+	// 로비 UI 숨기기
+	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
+	pScriptLobbyHandler->HideLobbyUI();
+
+	// 맵 씬이 로드된 후 리슨서버 클라이언트가 시작될 수 있도록 시작 정보 세팅
 	ListenServerClient* pScriptListenServerClient = m_hScriptListenServerClient.ToPtr();
-	pScriptListenServerClient->StartClient(notify.m_listenServerIP, notify.m_listenServerPort);
+	pScriptListenServerClient->SetStartupInfo(notify.m_listenServerIP, notify.m_listenServerPort);
+
+	// 서버에서 지정한 맵 씬 로드 및 다른 플레이어 입장 대기
+	SceneManager::GetInstance()->LoadScene(GameMapInfo::GetMapSceneNameString(notify.m_map));
 }

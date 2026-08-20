@@ -748,17 +748,9 @@ void JobNotifyListenServerStart::Execute(LogicThread& thread)
 	}
 
 	// 호스트의 IP 주소 획득
-	uint32_t ip;
+	uint32_t hostIP;
 	uint16_t tcpRemotePort;
-	thread.m_server.GetAddress(m_netId, ip, tcpRemotePort);
-
-	SCNotifyListenServerInfo notify;
-	notify.m_listenServerIP = ip;
-	notify.m_listenServerPort = m_listenServerPort;
-	winppy::Packet pkt;
-	pkt->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_LISTEN_SERVER_INFO));
-	pkt->WriteBytes(&notify, sizeof(notify));
-
-	// 방에다가 브로드캐스트(방장 제외하고)
-	pGameRoom->BroadcastPacketExcept(thread.m_server, std::move(pkt), pPlayer->GetAccountId());
+	thread.m_server.GetAddress(m_netId, hostIP, tcpRemotePort);
+	
+	pGameRoom->NotifyListenServerInfoToPlayingPlayers(thread.m_server, hostIP, m_listenServerPort);
 }

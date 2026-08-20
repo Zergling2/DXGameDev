@@ -95,6 +95,15 @@ namespace ze
 			m_rotation.w = quaternion.w;
 		}
 
+		// 로컬 회전각도를 쿼터니언으로 재설정합니다.
+		void SetRotationQuaternion(float x, float y, float z, float w)
+		{
+			m_rotation.x = x;
+			m_rotation.y = y;
+			m_rotation.z = z;
+			m_rotation.w = w;
+		}
+
 		// 로컬 회전각도를 오일러 각으로 재설정합니다.
 		// 변환 순서는 Z(Roll), X(Pitch), Y(Yaw)입니다. 회전각 단위는 라디안입니다.
 		void XM_CALLCONV SetRotationEuler(FXMVECTOR euler) { SetRotationQuaternion(XMQuaternionRotationRollPitchYawFromVector(euler)); }

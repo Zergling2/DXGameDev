@@ -359,7 +359,7 @@ void GameRoom::IsGameStartable(winppy::TCPServer& server)
 		this->ChangeHostAndReadyPlayersStateToPlaying(server);	// 준비 상태 플레이어 & 방장의 퇴장 불허
 		this->SetState(server, GameRoomState::InPlay);			// 게임 상태 '진행중'으로 변경
 
-		// 방장에게 게임 시작 가능하다는 패킷 전송. (방장은 이걸 받을 시 리슨서버 생성 및 맵 씬 로드)
+		// 방장에게 게임 시작 가능하다는 패킷 전송. (방장은 이걸 받을 시 리슨서버 시작)
 		res.m_result = HostGameStartableState::Startable;
 
 		// Playing 상태인 유저들의 AccountId, 시작 팀을 담는다.
@@ -387,8 +387,8 @@ void GameRoom::IsGameStartable(winppy::TCPServer& server)
 		res.m_numOfStartingPlayers = index;
 		res.m_map = this->GetMap();
 
-		// 이후 방장으로부터 CS_NOTIFY_HOST_CREATED 패킷이 도착하면
-		// 레디 상태에 있는 모든 플레이어들에게 방장의 enet 호스트 정보로 연결 시도하도록 패킷 브로드캐스트
+		// 이후 방장으로부터 리슨서버 생성 완료와 관련한 패킷이 도착하면
+		// Playing 상태에 있는 모든 플레이어들에게 방장의 리슨 서버로 연결 시도하도록 패킷 브로드캐스트
 		break;
 	case NOT_READY:
 		// 현재 게임을 시작할 수 없는 상태를 알리는 패킷 전송.
@@ -611,6 +611,26 @@ void GameRoom::BroadcastPacketExcept(winppy::TCPServer& server, winppy::Packet p
 
 		server.Send(item.m_pPlayer->GetSession()->GetNetId(), packet);
 	}
+}
+
+void GameRoom::NotifyListenServerInfoToPlayingPlayers(winppy::TCPServer& server, uint32_t ip, uint16_t port) const
+{
+	SCNotifyListenServerInfo notify;
+	notify.m_listenServerIP = ip;
+	notify.m_listenServerPort = port;
+	notify.m_map = this->GetMap();
+	winppy::Packet pkt;
+	pkt->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_LISTEN_SERVER_INFO));
+	pkt->WriteBytes(&notify, sizeof(notify));
+
+	// Playing 상태인 유저들에게만 패킷 전송
+	for (const auto& item : m_redTeam)
+		if (item.m_state == PlayerState::Playing)
+			server.Send(item.m_pPlayer->GetSession()->GetNetId(), pkt);
+
+	for (const auto& item : m_blueTeam)
+		if (item.m_state == PlayerState::Playing)
+			server.Send(item.m_pPlayer->GetSession()->GetNetId(), pkt);
 }
 
 bool GameRoom::FindPlayer(uint32_t accountId, GameTeam& team, size_t& index, PlayerState& state) const

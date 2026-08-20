@@ -34,9 +34,14 @@ public:
 	bool CanJump() const { return m_isGround && m_jumpCoolTime <= 0.0f; }
 
 	void SetProcessingInput(bool b) { m_processingInput = b; }
-	void CreateArmsView(const ArmsViewInfo* pArmsViewInfo);
+	void SetArmsView(const ArmsViewInfo* pArmsViewInfo);
 
-	void SetUpWeapon(WeaponSlot slot, WeaponCode wc);
+	void OnRespawn(const XMFLOAT3& pos, const XMFLOAT4& rot, float camRotX);
+
+	void GetTransform(XMFLOAT3& pos, XMFLOAT4& rot) const;
+	float GetCameraRotationEulerX() const;
+	void SetTransform(const XMFLOAT3& pos, const XMFLOAT4& rot);
+	void SetCameraRotationX(float x);
 private:
 	bool m_processingInput;
 	bool m_isStand;
@@ -59,12 +64,12 @@ public:
 	ze::ComponentHandle<GameResources> m_hScriptGameResources;
 	ze::ComponentHandle<GameUIManager> m_hScriptGameUIManager;
 
+	ze::ComponentHandle<ze::Camera> m_hCamera;
 	ze::ComponentHandle<ze::CharacterController> m_hCharacterController;
 	ze::ComponentHandle<ze::Rigidbody> m_hPlayerRigidbody;
 	std::shared_ptr<ze::CylinderCollider> m_spGroundCheckCollider;
 	ze::GameObjectHandle m_hGameObjectArms;
 	ze::ComponentHandle<ze::SkinnedMeshRenderer> m_hArmsSkinnedMeshRenderer;
-	const ArmsViewInfo* m_pArmsViewInfo;
 
 	ze::GameObjectHandle m_hGameObjectWeapons[static_cast<size_t>(WeaponSlot::Count)];
 	ze::ComponentHandle<ze::SkinnedMeshRenderer> m_hWeaponSkinnedMeshRenderers[static_cast<size_t>(WeaponSlot::Count)];

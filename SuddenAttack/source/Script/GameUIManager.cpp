@@ -443,6 +443,22 @@ void GameUIManager::Awake()
 	pImageRBUIBackground->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
 	pImageRBUIBackground->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
 
+	UIObjectHandle hTextGameRemainingTime = Runtime::GetInstance()->CreateText();
+	m_hTextGameRemainingTime = hTextGameRemainingTime;
+	Text* pTextGameRemainingTime = static_cast<Text*>(hTextGameRemainingTime.ToPtr());
+	pTextGameRemainingTime->m_transform.SetParent(&pImageGameUIRoot->m_transform);
+	pTextGameRemainingTime->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+	pTextGameRemainingTime->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
+	pTextGameRemainingTime->m_transform.SetPosition(100, -400);
+	pTextGameRemainingTime->SetSize(200, 50);
+	pTextGameRemainingTime->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pTextGameRemainingTime->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pTextGameRemainingTime->SetColor(ColorsLinear::WhiteSmoke);
+	pTextGameRemainingTime->GetTextFormat().SetSize(28);
+	pTextGameRemainingTime->GetTextFormat().SetFontFamilyName(L"Impact");
+	pTextGameRemainingTime->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
+	pTextGameRemainingTime->ApplyTextFormat();
+
 	UIObjectHandle hTextHP = Runtime::GetInstance()->CreateText();
 	m_hTextHP = hTextHP;
 	Text* pTextHP = static_cast<Text*>(hTextHP.ToPtr());
@@ -454,7 +470,7 @@ void GameUIManager::Awake()
 	pTextHP->SetSize(128, 48);
 	pTextHP->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pTextHP->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pTextHP->SetColor(ColorsLinear::White);
+	pTextHP->SetColor(ColorsLinear::WhiteSmoke);
 	pTextHP->GetTextFormat().SetSize(28);
 	pTextHP->GetTextFormat().SetFontFamilyName(L"Impact");
 	pTextHP->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
@@ -471,7 +487,7 @@ void GameUIManager::Awake()
 	pTextAP->SetSize(128, 48);
 	pTextAP->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pTextAP->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pTextAP->SetColor(ColorsLinear::White);
+	pTextAP->SetColor(ColorsLinear::WhiteSmoke);
 	pTextAP->GetTextFormat().SetSize(28);
 	pTextAP->GetTextFormat().SetFontFamilyName(L"Impact");
 	pTextAP->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
@@ -488,7 +504,7 @@ void GameUIManager::Awake()
 	pTextPoint->SetSize(128, 32);
 	pTextPoint->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pTextPoint->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pTextPoint->SetColor(ColorsLinear::White);
+	pTextPoint->SetColor(ColorsLinear::WhiteSmoke);
 	pTextPoint->GetTextFormat().SetSize(22);
 	pTextPoint->GetTextFormat().SetFontFamilyName(GAME_UI_TEXT_FONT);
 	pTextPoint->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_ULTRA_BOLD);
@@ -506,7 +522,7 @@ void GameUIManager::Awake()
 	pTextWeaponName->SetSize(XMFLOAT2(200, 32));
 	pTextWeaponName->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pTextWeaponName->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pTextWeaponName->SetColor(ColorsLinear::White);
+	pTextWeaponName->SetColor(ColorsLinear::WhiteSmoke);
 	pTextWeaponName->GetTextFormat().SetSize(22);
 	pTextWeaponName->GetTextFormat().SetFontFamilyName(GAME_UI_TEXT_FONT);
 	pTextWeaponName->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_ULTRA_BOLD);
@@ -523,7 +539,7 @@ void GameUIManager::Awake()
 	pTextAmmoState->SetSize(XMFLOAT2(128, 40));
 	pTextAmmoState->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pTextAmmoState->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pTextAmmoState->SetColor(ColorsLinear::White);
+	pTextAmmoState->SetColor(ColorsLinear::WhiteSmoke);
 	pTextAmmoState->GetTextFormat().SetSize(34);
 	pTextAmmoState->GetTextFormat().SetFontFamilyName(GAME_UI_TEXT_FONT);
 	pTextAmmoState->GetTextFormat().SetStyle(DWRITE_FONT_STYLE_ITALIC);
@@ -604,6 +620,17 @@ void GameUIManager::LateUpdate()
 	// 코드 구현...
 
 
+}
+
+void GameUIManager::SetTextGameRemainingTime(float time)
+{
+	const uint32_t intTime = static_cast<uint32_t>(time);
+	const uint32_t m = intTime / 60;
+	const uint32_t s = intTime % 60;
+
+	wchar_t buf[32];
+	StringCchPrintfW(buf, _countof(buf), L"%02u : %02u", m, s);
+	static_cast<Text*>(m_hTextGameRemainingTime.ToPtr())->SetText(buf);
 }
 
 void GameUIManager::SetTextHP(uint32_t hp)

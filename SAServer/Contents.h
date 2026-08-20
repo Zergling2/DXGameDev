@@ -63,6 +63,17 @@ enum class GameTeam : uint8_t
 	RedTeam,
 	BlueTeam,
 
+	Count,
+
+	Unknown = Count
+};
+
+enum class InGamePlayerState : uint8_t
+{
+	Alive,
+	Dead,
+	Spectating,
+
 	Unknown
 };
 

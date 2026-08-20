@@ -73,14 +73,11 @@
     <ClCompile Include="source\Resource\GlobalScriptGameObject.cpp">
       <Filter>source\Resource</Filter>
     </ClCompile>
-    <ClCompile Include="source\Script\ListenServerStarter.cpp">
-      <Filter>source\Script</Filter>
-    </ClCompile>
     <ClCompile Include="source\Script\ListenServerClient.cpp">
       <Filter>source\Script</Filter>
     </ClCompile>
-    <ClCompile Include="source\Resource\GamePlayer.cpp">
-      <Filter>source\Resource</Filter>
+    <ClCompile Include="source\Script\ListenServerClientStarter.cpp">
+      <Filter>source\Script</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -144,16 +141,19 @@
     <ClInclude Include="source\Resource\GlobalScriptGameObject.h">
       <Filter>source\Resource</Filter>
     </ClInclude>
-    <ClInclude Include="source\Script\ListenServerStarter.h">
-      <Filter>source\Script</Filter>
-    </ClInclude>
     <ClInclude Include="source\Script\ListenServerClient.h">
       <Filter>source\Script</Filter>
     </ClInclude>
-    <ClInclude Include="source\Resource\GamePlayer.h">
+    <ClInclude Include="source\Resource\LSProtocol.h">
       <Filter>source\Resource</Filter>
     </ClInclude>
-    <ClInclude Include="source\Resource\LSProtocol.h">
+    <ClInclude Include="source\Resource\GamePlayerInfo.h">
+      <Filter>source\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Script\ListenServerClientStarter.h">
+      <Filter>source\Script</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Resource\LSGamePlayerInfo.h">
       <Filter>source\Resource</Filter>
     </ClInclude>
   </ItemGroup>

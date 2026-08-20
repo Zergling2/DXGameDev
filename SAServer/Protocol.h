@@ -306,6 +306,7 @@ struct SCNotifyListenServerInfo
 {
 	uint32_t m_listenServerIP;
 	uint16_t m_listenServerPort;
+	GameMap m_map;
 };
 
 // 압축 프로토콜들

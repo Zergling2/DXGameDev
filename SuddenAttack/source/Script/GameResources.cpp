@@ -438,43 +438,68 @@ void GameResources::Awake()
 
 	this->AddWeaponDefinition(b92fsb_wd->GetCode(), b92fsb_wd);
 
+
+
+
+	// ######## 3ÀÎÄª Ä³¸¯ÅÍ ######## 
 	// ## SHARED_DATA
-	// 1. arma_steven
-	ModelData md_steven = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\characters\\steven\\steven.glb");
-	std::shared_ptr<SkinnedMesh> mdl_steven = md_steven.m_skinnedMeshes[0];
-	std::shared_ptr<Armature> arma_steven = md_steven.m_armatures[0];
-	grouping = arma_steven->CreateBoneGroupByRootBoneName("upper_body", "Spine0");
-	assert(grouping);
-	grouping = arma_steven->CreateBoneGroupByExcludeGroup("lower_body", "upper_body");
-	assert(grouping);
+	// 1. mdl_steven
+	// 2. arma_steven
+	{
+		ModelData md_steven = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\characters\\steven\\steven.glb");
+		std::shared_ptr<SkinnedMesh> mdl_steven = md_steven.m_skinnedMeshes[0];
+		std::shared_ptr<Armature> arma_steven = md_steven.m_armatures[0];
+		grouping = arma_steven->CreateBoneGroupByRootBoneName("upper_body", "Spine0");
+		assert(grouping);
+		grouping = arma_steven->CreateBoneGroupByExcludeGroup("lower_body", "upper_body");
+		assert(grouping);
 
-	std::vector<std::shared_ptr<Material>> steven_mtls;
-	auto spStevenMtl0 = ResourceLoader::GetInstance()->CreateMaterial();
-	XMStoreFloat4A(&spStevenMtl0->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.6f), 1.0f));
-	XMStoreFloat4A(&spStevenMtl0->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 1.0f));
-	spStevenMtl0->m_specular.w = 4.0f;
-	spStevenMtl0->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\characters\\steven\\body_diffuse.png");
-	auto spStevenMtl1 = ResourceLoader::GetInstance()->CreateMaterial();
-	XMStoreFloat4A(&spStevenMtl1->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.6f), 1.0f));
-	XMStoreFloat4A(&spStevenMtl1->m_specular, XMVectorSetW(ColorsLinear::Black, 1.0f));
-	spStevenMtl1->m_specular.w = 4.0f;
-	spStevenMtl1->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\characters\\steven\\clothes_diffuse_red.png");
-	spStevenMtl1->m_normalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\characters\\steven\\clothes_normal.png");
-	auto spStevenMtl2 = ResourceLoader::GetInstance()->CreateMaterial();
-	XMStoreFloat4A(&spStevenMtl2->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::DarkOliveGreen, 0.5f), 1.0f));
-	XMStoreFloat4A(&spStevenMtl2->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::DarkOliveGreen, 0.15f), 1.0f));
-	spStevenMtl2->m_specular.w = 4.0f;
+		// ½ºÆ¼ºì ÆÀ °ø¿ë ÀçÁú
+		auto spMtlStevenBody = ResourceLoader::GetInstance()->CreateMaterial();
+		XMStoreFloat4A(&spMtlStevenBody->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.6f), 1.0f));
+		XMStoreFloat4A(&spMtlStevenBody->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.1f), 1.0f));
+		spMtlStevenBody->m_specular.w = 4.0f;
+		spMtlStevenBody->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\characters\\steven\\body_diffuse.png");
+		auto spMtlStevenShoes = ResourceLoader::GetInstance()->CreateMaterial();
+		XMStoreFloat4A(&spMtlStevenShoes->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::DarkOliveGreen, 0.5f), 1.0f));
+		XMStoreFloat4A(&spMtlStevenShoes->m_specular, XMVectorSetW(XMVectorScale(ColorsLinear::DarkOliveGreen, 0.15f), 1.0f));
+		spMtlStevenShoes->m_specular.w = 4.0f;
+		auto texStevenBodyNormalMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\characters\\steven\\clothes_normal.png");
 
-	steven_mtls.push_back(spStevenMtl0);
-	steven_mtls.push_back(spStevenMtl1);
-	steven_mtls.push_back(spStevenMtl2);
+		// ·¹µåÆÀ ½ºÆ¼ºì ÀçÁú
+		auto spStevenMtl1_redTeam = ResourceLoader::GetInstance()->CreateMaterial();
+		XMStoreFloat4A(&spStevenMtl1_redTeam->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.6f), 1.0f));
+		XMStoreFloat4A(&spStevenMtl1_redTeam->m_specular, XMVectorSetW(ColorsLinear::Black, 1.0f));
+		spStevenMtl1_redTeam->m_specular.w = 4.0f;
+		spStevenMtl1_redTeam->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\characters\\steven\\clothes_diffuse_red.png");
+		spStevenMtl1_redTeam->m_normalMap = texStevenBodyNormalMap;
 
-	std::unique_ptr<CharacterViewInfo> upStevenViewInfo = std::make_unique<CharacterViewInfo>(mdl_steven, arma_steven, std::move(steven_mtls));
-	this->AddCharacterViewInfo(L"steven", std::move(upStevenViewInfo));
+		// ºí·çÆÀ ½ºÆ¼ºì ÀçÁú
+		auto spStevenMtl1_blueTeam = ResourceLoader::GetInstance()->CreateMaterial();
+		XMStoreFloat4A(&spStevenMtl1_blueTeam->m_diffuse, XMVectorSetW(XMVectorScale(ColorsLinear::White, 0.6f), 1.0f));
+		XMStoreFloat4A(&spStevenMtl1_blueTeam->m_specular, XMVectorSetW(ColorsLinear::Black, 1.0f));
+		spStevenMtl1_blueTeam->m_specular.w = 4.0f;
+		spStevenMtl1_blueTeam->m_diffuseMap = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\models\\characters\\steven\\clothes_diffuse_blue.png");
+		spStevenMtl1_blueTeam->m_normalMap = texStevenBodyNormalMap;
+
+		std::vector<std::shared_ptr<Material>> steven_redTeam_mtls;
+		steven_redTeam_mtls.push_back(spMtlStevenBody);
+		steven_redTeam_mtls.push_back(spStevenMtl1_redTeam);
+		steven_redTeam_mtls.push_back(spMtlStevenShoes);
+		this->AddCharacterViewInfo(L"steven.rt", std::make_unique<CharacterViewInfo>(mdl_steven, arma_steven, std::move(steven_redTeam_mtls)));
+
+		
+		std::vector<std::shared_ptr<Material>> steven_blueTeam_mtls;
+		steven_blueTeam_mtls.push_back(spMtlStevenBody);
+		steven_blueTeam_mtls.push_back(spStevenMtl1_blueTeam);
+		steven_blueTeam_mtls.push_back(spMtlStevenShoes);
+		this->AddCharacterViewInfo(L"steven.bt", std::make_unique<CharacterViewInfo>(mdl_steven, arma_steven, std::move(steven_blueTeam_mtls)));
+	}
+	
 
 
 
-
+	// ######## 1ÀÎÄª Ä³¸¯ÅÍ ######## 
 	// ## SHARED_DATA
 	// 1. arma_stevenArms
 	ModelData md_stevenArms = ResourceLoader::GetInstance()->LoadModel(L"resources\\models\\characters\\steven\\arms.glb");

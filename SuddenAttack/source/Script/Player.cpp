@@ -5,6 +5,7 @@
 #include "..\Resource\GlobalScriptGameObject.h"
 #include "..\Resource\Arms.h"
 #include <algorithm>
+#include "..\Resource\WeaponDefinition.h"
 
 using namespace ze;
 
@@ -34,7 +35,6 @@ Player::Player(ze::GameObject& owner)
 	, m_ampY(0.0f)
 	, m_maxSlope(0.0f)
 	, m_groundCheckSweepDistY(0.0f)
-	, m_pArmsViewInfo(nullptr)
 	, m_currWeaponSlot(WeaponSlot::Unknown)
 {
 }
@@ -89,6 +89,7 @@ void Player::Awake()
 	pGameObjectCamera->m_transform.SetParent(&m_pGameObject->m_transform);
 	pGameObjectCamera->m_transform.SetPositionY(spCharacterCollider->GetTotalHeight() - 0.1f);
 	ComponentHandle<Camera> hCamera = pGameObjectCamera->AddComponent<Camera>();
+	m_hCamera = hCamera;
 	Camera* pCamera = hCamera.ToPtr();
 	pCamera->SetDepth(0);
 	pCamera->SetFieldOfView(82);
@@ -104,24 +105,24 @@ void Player::Awake()
 	pGameObjectArms->m_transform.SetPosition(FPSARM_POS);
 	ComponentHandle<SkinnedMeshRenderer> hArmsSkinnedMeshRenderer = pGameObjectArms->AddComponent<SkinnedMeshRenderer>();
 	m_hArmsSkinnedMeshRenderer = hArmsSkinnedMeshRenderer;
+	SetArmsView(pScriptGameResources->GetArmsViewinfo(L"steven"));
 
-	m_pArmsViewInfo = pScriptGameResources->GetArmsViewinfo(L"steven");
-	CreateArmsView(m_pArmsViewInfo);
 
+	assert(m_hArmsSkinnedMeshRenderer.IsValid() && m_hScriptGameUIManager.IsValid());
 
 	// 무기 오브젝트 생성
 	for (size_t i = 0; i < _countof(m_hGameObjectWeapons); ++i)
 	{
 		m_hGameObjectWeapons[i] = Runtime::GetInstance()->CreateGameObject();
-		GameObject* pGameObjectWeapon = m_hGameObjectWeapons[i].ToPtr();
-		pGameObjectWeapon->m_transform.SetParent(&pGameObjectCamera->m_transform);
-		pGameObjectWeapon->m_transform.SetPosition(PRIMARY_WEAPON_PV_OFFSET);
-		m_hWeaponSkinnedMeshRenderers[i] = pGameObjectWeapon->AddComponent<SkinnedMeshRenderer>();
-		auto pWeaponSkinnedMeshRenderer = m_hWeaponSkinnedMeshRenderers[i].ToPtr();
+		GameObject* pGameObjWeapon = m_hGameObjectWeapons[i].ToPtr();
+		pGameObjWeapon->m_transform.SetParent(&pGameObjectCamera->m_transform);	// 무기들은 카메라 오브젝트의 자식으로 추가된다.
+		pGameObjWeapon->m_transform.SetPosition(PRIMARY_WEAPON_PV_OFFSET);
+		m_hWeaponSkinnedMeshRenderers[i] = pGameObjWeapon->AddComponent<SkinnedMeshRenderer>();
+		SkinnedMeshRenderer* pWeaponSkinnedMeshRenderer = m_hWeaponSkinnedMeshRenderers[i].ToPtr();
 
-		assert(m_hWeaponSkinnedMeshRenderers[i].IsValid() && m_hArmsSkinnedMeshRenderer.IsValid() && m_hScriptGameUIManager.IsValid());
-		m_hScriptWeapon[i] = pGameObjectWeapon->AddComponent<Weapon>();
-		auto pScriptWeapon = m_hScriptWeapon[i].ToPtr();
+		assert(m_hWeaponSkinnedMeshRenderers[i].IsValid());
+		m_hScriptWeapon[i] = pGameObjWeapon->AddComponent<Weapon>();
+		Weapon* pScriptWeapon = m_hScriptWeapon[i].ToPtr();
 		pScriptWeapon->m_hWeaponMeshRenderer = m_hWeaponSkinnedMeshRenderers[i];
 		pScriptWeapon->m_hArmsMeshRenderer = m_hArmsSkinnedMeshRenderer;
 		pScriptWeapon->m_hScriptGameUIManager = m_hScriptGameUIManager;
@@ -132,8 +133,8 @@ void Player::Awake()
 	m_hScriptWeapon[static_cast<size_t>(WeaponSlot::Primary)].ToPtr()->Init(pScriptGameResources->GetWeaponDefinition(WeaponCode::M16), 24, 115);
 	m_hScriptWeapon[static_cast<size_t>(WeaponSlot::Secondary)].ToPtr()->Init(pScriptGameResources->GetWeaponDefinition(WeaponCode::USP), 12, 24);
 
-	m_currWeaponSlot = WeaponSlot::Secondary;
-	m_hScriptWeapon[static_cast<size_t>(m_currWeaponSlot)].ToPtr()->Draw();
+	// m_currWeaponSlot = WeaponSlot::Secondary;
+	// m_hScriptWeapon[static_cast<size_t>(m_currWeaponSlot)].ToPtr()->Draw();
 }
 
 void Player::Update()
@@ -223,17 +224,23 @@ void Player::Update()
 
 		// 장전 처리
 		if (Input::GetInstance()->GetKeyDown(Keycode::KEY_R))
-			m_hScriptWeapon[static_cast<size_t>(m_currWeaponSlot)].ToPtr()->Reload();
+		{
+			if (m_currWeaponSlot < WeaponSlot::Count)
+				m_hScriptWeapon[static_cast<size_t>(m_currWeaponSlot)].ToPtr()->Reload();
+		}
 
 
 		// 사격 처리
 		if (Input::GetInstance()->GetMouseButton(MouseButton::Left))
-			m_hScriptWeapon[static_cast<size_t>(m_currWeaponSlot)].ToPtr()->Fire();
+		{
+			if (m_currWeaponSlot < WeaponSlot::Count)
+				m_hScriptWeapon[static_cast<size_t>(m_currWeaponSlot)].ToPtr()->Fire();
+		}
 
 
 		const int32_t mx = Input::GetInstance()->GetMouseAxisHorizontal();
 		const int32_t my = Input::GetInstance()->GetMouseAxisVertical();
-		if (mx != 0)
+		if (mx != 0)	// 마우스 수평 움직임은 플레이어 오브젝트의 y 회전을 조정
 		{
 			XMVECTOR mainObjectLocalRot = m_pGameObject->m_transform.GetRotation();
 			XMVECTOR temp = Math::QuaternionToEuler(mainObjectLocalRot);
@@ -247,10 +254,10 @@ void Player::Update()
 			m_pGameObject->m_transform.SetRotationEuler(rotationEuler);
 		}
 
-		if (my != 0)
+		if (my != 0)	// 마우스 수직 움직임은 카메라 오브젝트의 회전만을 변경 (카메라 오브젝트는 플레이어 오브젝트의 자식)
 		{
-			GameObject* pGameObjectCamera = m_hGameObjectCamera.ToPtr();
-			XMVECTOR cameraObjectLocalRot = pGameObjectCamera->m_transform.GetRotation();
+			GameObject* pGameObjCamera = m_hGameObjectCamera.ToPtr();
+			XMVECTOR cameraObjectLocalRot = pGameObjCamera->m_transform.GetRotation();
 			XMVECTOR temp = Math::QuaternionToEuler(cameraObjectLocalRot);
 			XMFLOAT3A rotationEuler;
 			XMStoreFloat3A(&rotationEuler, temp);
@@ -260,7 +267,7 @@ void Player::Update()
 			rotationEuler.y = 0.0f;
 			rotationEuler.z = 0.0f;
 
-			pGameObjectCamera->m_transform.SetRotationEuler(rotationEuler);
+			pGameObjCamera->m_transform.SetRotationEuler(rotationEuler);
 		}
 	}
 }
@@ -413,7 +420,7 @@ void Player::FixedUpdate()
 	m_isGround = hit;
 }
 
-void Player::CreateArmsView(const ArmsViewInfo* pArmsViewInfo)
+void Player::SetArmsView(const ArmsViewInfo* pArmsViewInfo)
 {
 	SkinnedMeshRenderer* pArmsSkinnedMeshRenderer = m_hArmsSkinnedMeshRenderer.ToPtr();
 
@@ -434,4 +441,34 @@ void Player::CreateArmsView(const ArmsViewInfo* pArmsViewInfo)
 	// pArmsSkinnedMeshRenderer->PlayAnimation("arms_shoot_usp", true);
 	// pArmsSkinnedMeshRenderer->PlayAnimation("arms_run_m16a1", true);
 	// pArmsSkinnedMeshRenderer->PlayAnimation("arms_run_usp", true);
+}
+
+void Player::OnRespawn(const XMFLOAT3& pos, const XMFLOAT4& rot, float camRotX)
+{
+	m_pGameObject->m_transform.SetPosition(pos);
+	m_pGameObject->m_transform.SetRotationQuaternion(rot);
+
+	GameObject* pGameObjCamera = m_hGameObjectCamera.ToPtr();
+	pGameObjCamera->m_transform.SetRotationEuler(camRotX, 0.0f, 0.0f);
+
+	this->SetProcessingInput(true);
+}
+
+void Player::GetTransform(XMFLOAT3& pos, XMFLOAT4& rot) const
+{
+	XMStoreFloat3(&pos, m_pGameObject->m_transform.GetWorldPosition());
+	XMStoreFloat4(&rot, m_pGameObject->m_transform.GetWorldRotation());
+}
+
+float Player::GetCameraRotationEulerX() const
+{
+	GameObject* pGameObjCamera = m_hGameObjectCamera.ToPtr();
+
+	XMVECTOR vRotEuler = Math::QuaternionToEulerNormal(pGameObjCamera->m_transform.GetRotation());	// 카메라의 X축 회전값만 얻으면 되므로 로컬 회전만으로 충분하다.
+	return XMVectorGetX(vRotEuler);
+}
+
+void Player::SetCameraRotationX(float x)
+{
+	m_hGameObjectCamera.ToPtr()->m_transform.SetRotationEuler(x, 0.0f, 0.0f);
 }

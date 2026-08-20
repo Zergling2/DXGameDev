@@ -62,6 +62,8 @@ public:
 
     void BroadcastPacket(winppy::TCPServer& server, winppy::Packet packet) const;
     void BroadcastPacketExcept(winppy::TCPServer& server, winppy::Packet packet, uint32_t exceptorAccountId) const;
+
+    void NotifyListenServerInfoToPlayingPlayers(winppy::TCPServer& server, uint32_t ip, uint16_t port) const;
 private:
     bool IsHost(const Player* pPlayer) const { return m_pHost == pPlayer; }
     bool FindPlayer(uint32_t accountId, GameTeam& team, size_t& index, PlayerState& state) const;

@@ -16,7 +16,12 @@ public:
 	virtual void Update() override;
 	virtual void FixedUpdate() override;
 
-	void CreateCharacterView(const CharacterViewInfo* pCharacterViewInfo);
+	void SetCharacterView(const CharacterViewInfo* pCVI);
+	void SetTransform(const XMFLOAT3& pos, const XMFLOAT4& rot);
+	void ShowView();
+	void HideView();
+	void PlayAnimation(const std::string& animName, bool loop, float playbackSpeed = 1.0f, float timeCursor = 0.0f);
+	void PlayGroupAnimation(const std::string& animName, const std::string& groupName, bool loop, float playbackSpeed = 1.0f, float timeCursor = 0.0f);
 private:
 	void ActivateCharacterCollider();
 	void DeactivateCharacterCollider();

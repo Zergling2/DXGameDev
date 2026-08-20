@@ -74,14 +74,6 @@ private:
 	static GameUIStateChatting s_instance;
 };
 
-struct PlayerInfo
-{
-	uint32_t m_level;
-	std::wstring m_nickname;
-	uint32_t m_kill;
-	uint32_t m_death;
-};
-
 class GameUIManager : public ze::MonoBehaviour
 {
 	DECLARE_MONOBEHAVIOUR_TYPE
@@ -94,6 +86,7 @@ public:
 	virtual void Update() override;
 	virtual void LateUpdate() override;
 
+	void SetTextGameRemainingTime(float time);
 	void SetTextHP(uint32_t hp);
 	void SetTextAP(uint32_t ap);
 	void SetTextAmmoState(const wchar_t* str);
@@ -149,20 +142,18 @@ private:
 	uint64_t m_scoreboardRedTeamPlayersNetId[MAX_PLAYERS_PER_TEAM];
 	uint64_t m_scoreboardBlueTeamPlayersNetId[MAX_PLAYERS_PER_TEAM];
 
-
 	ze::UIObjectHandle m_hPanelMenuRoot;
-
 
 	ze::UIObjectHandle m_hImageGameUIRoot;
 	ze::UIObjectHandle m_hImageCrosshair;
 	ze::UIObjectHandle m_hImageHealthBackground;
 	ze::UIObjectHandle m_hImageRBUIBackground;
+	ze::UIObjectHandle m_hTextGameRemainingTime;
 	ze::UIObjectHandle m_hTextHP;
 	ze::UIObjectHandle m_hTextAP;
 	ze::UIObjectHandle m_hTextPoint;
 	ze::UIObjectHandle m_hTextWeaponName;
 	ze::UIObjectHandle m_hTextAmmoState;
-
 
 	ze::UIObjectHandle m_hPanelChatRoot;
 	ze::UIObjectHandle m_hTextChatMsg[INGAME_CHAT_MSG_ITEM_ROW_COUNT];

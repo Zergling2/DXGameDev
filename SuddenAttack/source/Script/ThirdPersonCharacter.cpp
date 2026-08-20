@@ -99,8 +99,8 @@ void ThirdPersonCharacter::Awake()
 	ComponentHandle<SkinnedMeshRenderer> hSkinnedMeshRendererCharacter = this->m_pGameObject->AddComponent<SkinnedMeshRenderer>();
 	m_hSkinnedMeshRendererCharacter = hSkinnedMeshRendererCharacter;	// 컴포넌트 핸들을 멤버로 저장
 	SkinnedMeshRenderer* pSkinnedMeshRendererCharacter = hSkinnedMeshRendererCharacter.ToPtr();
-	const CharacterViewInfo* pCharacterViewInfo = pScriptGameResources->GetCharacterViewInfo(L"steven");
-	this->CreateCharacterView(pCharacterViewInfo);
+	const CharacterViewInfo* pCharacterViewInfo = pScriptGameResources->GetCharacterViewInfo(L"steven.rt");
+	this->SetCharacterView(pCharacterViewInfo);
 
 	// ##############################################################################
 	// 캐릭터 히트박스 생성
@@ -358,14 +358,50 @@ void ThirdPersonCharacter::FixedUpdate()
 {
 }
 
-void ThirdPersonCharacter::CreateCharacterView(const CharacterViewInfo* pCharacterViewInfo)
+void ThirdPersonCharacter::SetCharacterView(const CharacterViewInfo* pCVI)
 {
 	SkinnedMeshRenderer* pSkinnedMeshRendererCharacter = m_hSkinnedMeshRendererCharacter.ToPtr();
-	pSkinnedMeshRendererCharacter->SetMesh(pCharacterViewInfo->GetMesh());
-	pSkinnedMeshRendererCharacter->SetArmature(pCharacterViewInfo->GetArmature());
-	
-	for (size_t i = 0; i < pCharacterViewInfo->GetMaterials().size(); ++i)
-		pSkinnedMeshRendererCharacter->SetMaterial(i, pCharacterViewInfo->GetMaterials()[i]);
+
+	if (pCVI)
+	{
+		pSkinnedMeshRendererCharacter->SetMesh(pCVI->GetMesh());
+		pSkinnedMeshRendererCharacter->SetArmature(pCVI->GetArmature());
+
+		const auto& mtls = pCVI->GetMaterials();
+		for (size_t i = 0; i < mtls.size(); ++i)
+			pSkinnedMeshRendererCharacter->SetMaterial(i, mtls[i]);
+	}
+	else
+	{
+		pSkinnedMeshRendererCharacter->SetMesh(nullptr);
+		pSkinnedMeshRendererCharacter->SetArmature(nullptr);
+	}
+}
+
+void ThirdPersonCharacter::SetTransform(const XMFLOAT3& pos, const XMFLOAT4& rot)
+{
+	m_pGameObject->m_transform.SetPosition(pos);
+	m_pGameObject->m_transform.SetRotationQuaternion(rot);
+}
+
+void ThirdPersonCharacter::ShowView()
+{
+	m_hSkinnedMeshRendererCharacter.ToPtr()->Enable();
+}
+
+void ThirdPersonCharacter::HideView()
+{
+	m_hSkinnedMeshRendererCharacter.ToPtr()->Disable();
+}
+
+void ThirdPersonCharacter::PlayAnimation(const std::string& animName, bool loop, float playbackSpeed, float timeCursor)
+{
+	m_hSkinnedMeshRendererCharacter.ToPtr()->PlayAnimation(animName, loop, playbackSpeed, timeCursor);
+}
+
+void ThirdPersonCharacter::PlayGroupAnimation(const std::string& animName, const std::string& groupName, bool loop, float playbackSpeed, float timeCursor)
+{
+	m_hSkinnedMeshRendererCharacter.ToPtr()->PlayGroupAnimation(animName, groupName, loop, playbackSpeed, timeCursor);
 }
 
 void ThirdPersonCharacter::ActivateCharacterCollider()

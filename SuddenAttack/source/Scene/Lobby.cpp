@@ -68,14 +68,16 @@ void Lobby::OnLoadScene()
 
 	ListenServer* pScriptListenServer = hScriptListenServer.ToPtr();
 	pScriptListenServer->SetNetworkScriptHandle(hScriptNetwork);
-	pScriptListenServer->SetGameUIManagerScriptHandle(hScriptGameUIManager);
 
 	// 2-6. 리슨서버클라이언트 스크립트 생성
 	ComponentHandle<ListenServerClient> hScriptListenServerClient = pGameObjGlobalScripts->AddComponent<ListenServerClient>();
 	pScriptNetwork->SetListenServerClientScriptHandle(hScriptListenServerClient);
 
 	ListenServerClient* pScriptListenServerClient = hScriptListenServerClient.ToPtr();
+	pScriptListenServerClient->SetGameResourcesScriptHandle(hScriptGameResources);
 	pScriptListenServerClient->SetNetworkScriptHandle(hScriptNetwork);
+	pScriptListenServerClient->SetAccountScriptHandle(hScriptAccount);
+	pScriptListenServerClient->SetGameUIManagerScriptHandle(hScriptGameUIManager);
 
 
 

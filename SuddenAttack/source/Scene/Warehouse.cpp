@@ -1,5 +1,5 @@
 #include "Warehouse.h"
-#include "..\Script\ListenServerStarter.h"
+#include "..\Script\ListenServerClientStarter.h"
 
 using namespace ze;
 
@@ -1018,8 +1018,7 @@ void Warehouse::OnLoadScene()
 		RenderSettings::GetInstance()->SetAmbientLightIntensity(0.025f);
 	}
 
-
 	// 씬이 로드 완료되고 시작되는 첫 프레임에 리슨 서버에게 시작 명령을 내린다.
-	GameObjectHandle hGameObjListenServerStarter = CreateGameObject();
-	hGameObjListenServerStarter.ToPtr()->AddComponent<ListenServerStarter>();
+	GameObjectHandle hGameObjListenServerClientStarter = CreateGameObject(L"LSCStarter");
+	hGameObjListenServerClientStarter.ToPtr()->AddComponent<ListenServerClientStarter>();
 }
