@@ -428,9 +428,11 @@ void ListenServerClient::OnSCNotifyGamePlayerJoined(const LSSCNotifyGamePlayerJo
 		pScriptThirdPersonCharacter->PlayGroupAnimation("stand_idle", "lower_body", true);
 		break;
 	case InGamePlayerState::Dead:
+		wprintf(L"InGamePlayerState::Dead\n");
 		pScriptThirdPersonCharacter->HideView();
 		break;
 	case InGamePlayerState::Spectating:
+		wprintf(L"InGamePlayerState::Spectating\n");
 		pScriptThirdPersonCharacter->HideView();
 		break;
 	default:
@@ -496,9 +498,11 @@ void ListenServerClient::OnSCNotifyGamePlayerInfo(const LSSCNotifyGamePlayerInfo
 		pScriptThirdPersonCharacter->PlayGroupAnimation("stand_idle", "lower_body", true);
 		break;
 	case InGamePlayerState::Dead:
+		wprintf(L"InGamePlayerState::Dead\n");
 		pScriptThirdPersonCharacter->HideView();
 		break;
 	case InGamePlayerState::Spectating:
+		wprintf(L"InGamePlayerState::Spectating\n");
 		pScriptThirdPersonCharacter->HideView();
 		break;
 	default:

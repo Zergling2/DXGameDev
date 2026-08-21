@@ -87,7 +87,7 @@ void Player::Awake()
 	m_hGameObjectCamera = hGameObjectCamera;
 	GameObject* pGameObjectCamera = hGameObjectCamera.ToPtr();
 	pGameObjectCamera->m_transform.SetParent(&m_pGameObject->m_transform);
-	pGameObjectCamera->m_transform.SetPositionY(spCharacterCollider->GetTotalHeight() - 0.1f);
+	pGameObjectCamera->m_transform.SetPositionY(spCharacterCollider->GetTotalHeight() - 0.2f);
 	ComponentHandle<Camera> hCamera = pGameObjectCamera->AddComponent<Camera>();
 	m_hCamera = hCamera;
 	Camera* pCamera = hCamera.ToPtr();

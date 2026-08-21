@@ -18,6 +18,8 @@ ListenServer::ListenServer(ze::GameObject& owner)
 
 void ListenServer::Awake()
 {
+	srand(static_cast<unsigned int>(time(nullptr)));
+
 	// ENet 초기화
 	if (enet_initialize() != 0)
 	{
@@ -91,7 +93,7 @@ void ListenServer::FixedUpdate()
 		LSGamePlayerInfo& player = *item.second.get();
 
 		// 1. 리스폰 업데이트
-		if (player.m_state == InGamePlayerState::Dead && player.m_respawnRemainingTime > 0.0f)
+		if (player.m_state == InGamePlayerState::Dead && player.m_respawnRemainingTime >= 0.0f)
 			UpdateRespawn(dt, player);
 	}
 }
@@ -362,6 +364,7 @@ void ListenServer::OnCSReqAuth(const LSCSReqAuth* pPacket, ENetPeer* pRequester)
 
 	// 0. GamePlayerInfo 생성
 	std::unique_ptr<LSGamePlayerInfo> upNewLSGamePlayerInfo = std::make_unique<LSGamePlayerInfo>(pPacket->m_accountId);
+	const LSGamePlayerInfo* const pNewLsGamePlayerInfo = upNewLSGamePlayerInfo.get();
 	upNewLSGamePlayerInfo->m_nicknameLen = pPacket->m_nicknameLen;
 	wmemcpy(upNewLSGamePlayerInfo->m_nickname, pPacket->m_nickname, pPacket->m_nicknameLen);
 	upNewLSGamePlayerInfo->m_nickname[pPacket->m_nicknameLen] = L'\0';
@@ -402,7 +405,7 @@ void ListenServer::OnCSReqAuth(const LSCSReqAuth* pPacket, ENetPeer* pRequester)
 	ntfyPlayerJoined.m_kill = 0;
 	ntfyPlayerJoined.m_death = 0;
 	ntfyPlayerJoined.m_ping = 0;
-	ntfyPlayerJoined.m_state = InGamePlayerState::Spectating;
+	ntfyPlayerJoined.m_state = pNewLsGamePlayerInfo->m_state;
 	ntfyPlayerJoined.m_x = 0.0f;
 	ntfyPlayerJoined.m_y = 0.0f;
 	ntfyPlayerJoined.m_z = 0.0f;
