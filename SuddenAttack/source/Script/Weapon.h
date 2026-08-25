@@ -3,6 +3,7 @@
 #include <ZergEngine\ZergEngine.h>
 #include <vector>
 #include <memory>
+#include "Contents.h"
 #include "..\Resource\WeaponAction.h"
 
 class GameUIManager;
@@ -27,8 +28,10 @@ public:
 	void Reload();
 	void Fire();
 	void Undraw();
+
+	WeaponCode GetWeaponCode() const;
 private:
-	void OnReloadFinished();
+	void OnReloadFinish();
 	void OnIdle(float exceed);
 	void CreateAmmoUIText(wchar_t* pBuf, size_t len) const;
 	void PlayAnim(WeaponAction action, bool loop);

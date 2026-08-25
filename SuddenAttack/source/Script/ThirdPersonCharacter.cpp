@@ -1,22 +1,30 @@
 #include "ThirdPersonCharacter.h"
 #include "..\Resource\GlobalScriptGameObject.h"
 #include "..\Resource\Character.h"
+#include "..\Resource\WeaponDefinition.h"
 #include "GameResources.h"
 
 using namespace ze;
 
-const XMFLOAT3 ThirdPersonCharacter::PRIMARY_WEAPON_TV_OFFSET(-0.004f, +0.06f, +0.03f);
-const XMFLOAT3 ThirdPersonCharacter::SECONDARY_WEAPON_TV_OFFSET(-0.014f, +0.07f, +0.03f);
+const XMFLOAT3 ThirdPersonCharacter::s_weaponTVOffset[] =
+{
+	XMFLOAT3(-0.004f, +0.06f, +0.03f),
+	XMFLOAT3(-0.014f, +0.07f, +0.03f)
+};
+bool ThirdPersonCharacter::s_weaponLocalRotCalc = false;
+XMFLOAT4 ThirdPersonCharacter::s_weaponLocalRotQuaternion[];
 
 ThirdPersonCharacter::ThirdPersonCharacter(ze::GameObject& owner)
 	: MonoBehaviour(owner)
+	, m_hitboxActivated(true)
+	, m_currWeaponSlot(WeaponSlot::Unknown)
+	, m_spWeaponDefs{}
 	, m_hScriptGameResources()
-	, m_primaryWeaponLocalRot(0.0f, 0.0f, 0.0f, 0.0f)
-	, m_secondaryWeaponLocalRot(0.0f, 0.0f, 0.0f, 0.0f)
 	, m_hCharacterColliderRigidbody()
 	, m_hSkinnedMeshRendererCharacter()
+	, m_hMeshRendererTVWeapon()
 	, m_hGameObjectTVWeaponBase()
-	, m_hGameObjectTVWeapons()
+	, m_hGameObjectTVWeapon()
 	, m_hGameObjectHitboxBody()			// Spine0
 	, m_hGameObjectHitboxNeck()			// Neck
 	, m_hGameObjectHitboxHead()			// Head
@@ -47,11 +55,32 @@ ThirdPersonCharacter::ThirdPersonCharacter(ze::GameObject& owner)
 	, m_biRightToe(0)
 	, m_biLeftHand(0)
 	, m_biRightHand(0)
+	, m_action(WeaponAction::None)
+	, m_pCurrWeaponEventTable(nullptr)
+	, m_eventIndexCursor(0)
+	, m_actionDuration(0.0f)
+	, m_actionElapsed(0.0f)
 {
 }
 
 void ThirdPersonCharacter::Awake()
 {
+	if (!s_weaponLocalRotCalc)
+	{
+		// TV 무기 베이스 오프셋 계산 및 저장
+		XMVECTOR primaryWeaponLocalRot = XMQuaternionRotationNormal(Vector3::Up(), XMConvertToRadians(+90));
+		primaryWeaponLocalRot = XMQuaternionMultiply(primaryWeaponLocalRot, XMQuaternionRotationNormal(Vector3::Forward(), XMConvertToRadians(+81)));
+		primaryWeaponLocalRot = XMQuaternionMultiply(primaryWeaponLocalRot, XMQuaternionRotationNormal(Vector3::Right(), XMConvertToRadians(+8)));
+		XMStoreFloat4(&s_weaponLocalRotQuaternion[static_cast<size_t>(WeaponSlot::Primary)], primaryWeaponLocalRot);
+
+		XMVECTOR secondaryWeaponLocalRot = XMQuaternionRotationNormal(Vector3::Up(), XMConvertToRadians(+90));
+		secondaryWeaponLocalRot = XMQuaternionMultiply(secondaryWeaponLocalRot, XMQuaternionRotationNormal(Vector3::Forward(), XMConvertToRadians(+81)));
+		secondaryWeaponLocalRot = XMQuaternionMultiply(secondaryWeaponLocalRot, XMQuaternionRotationNormal(Vector3::Right(), XMConvertToRadians(-10)));
+		XMStoreFloat4(&s_weaponLocalRotQuaternion[static_cast<size_t>(WeaponSlot::Secondary)], secondaryWeaponLocalRot);
+
+		s_weaponLocalRotCalc = true;
+	}
+
 	// ###################################################################
 	// GameResources 스크립트 검색 및 저장
 	GameObjectHandle hGameObjectGameResources = GameObject::Find(GAME_RESOURCES_GAME_OBJECT_NAME);
@@ -74,29 +103,25 @@ void ThirdPersonCharacter::Awake()
 	Rigidbody* pCharacterColliderRigidbody = m_hCharacterColliderRigidbody.ToPtr();
 	pCharacterColliderRigidbody->SetBodyType(RigidbodyType::Kinematic);
 
-
-
-	// ###################################################################
-	// TV 무기 베이스 오프셋 계산 및 저장
-	XMVECTOR primaryWeaponLocalRot = XMQuaternionRotationNormal(Vector3::Up(), XMConvertToRadians(+90));
-	primaryWeaponLocalRot = XMQuaternionMultiply(primaryWeaponLocalRot, XMQuaternionRotationNormal(Vector3::Forward(), XMConvertToRadians(+81)));
-	primaryWeaponLocalRot = XMQuaternionMultiply(primaryWeaponLocalRot, XMQuaternionRotationNormal(Vector3::Right(), XMConvertToRadians(+8)));
-	XMStoreFloat4(&m_primaryWeaponLocalRot, primaryWeaponLocalRot);
-
-	XMVECTOR secondaryWeaponLocalRot = XMQuaternionRotationNormal(Vector3::Up(), XMConvertToRadians(+90));
-	secondaryWeaponLocalRot = XMQuaternionMultiply(secondaryWeaponLocalRot, XMQuaternionRotationNormal(Vector3::Forward(), XMConvertToRadians(+81)));
-	secondaryWeaponLocalRot = XMQuaternionMultiply(secondaryWeaponLocalRot, XMQuaternionRotationNormal(Vector3::Right(), XMConvertToRadians(-10)));
-	XMStoreFloat4(&m_secondaryWeaponLocalRot, secondaryWeaponLocalRot);
-	// ###################################################################
-
 	// TV 무기 베이스 오브젝트 생성
-	GameObjectHandle hGameObjectTVWeaponBase = Runtime::GetInstance()->CreateGameObject(L"tv_weapon_base");
+	GameObjectHandle hGameObjectTVWeaponBase = Runtime::GetInstance()->CreateGameObject(L"TVWeaponBase");
 	m_hGameObjectTVWeaponBase = hGameObjectTVWeaponBase;		// 오브젝트 핸들 저장
 	GameObject* pGameObjectTVWeaponBase = hGameObjectTVWeaponBase.ToPtr();
-	pGameObjectTVWeaponBase->m_transform.SetParent(&this->m_pGameObject->m_transform);
+	pGameObjectTVWeaponBase->m_transform.SetParent(&m_pGameObject->m_transform);
+
+	// TV 테스트 무기
+	{
+		GameObjectHandle hGameObjTVWeapon = Runtime::GetInstance()->CreateGameObject(L"TVWeapon");
+		m_hGameObjectTVWeapon = hGameObjTVWeapon;
+		GameObject* pGameObjTVWeapon = hGameObjTVWeapon.ToPtr();
+		pGameObjTVWeapon->m_transform.SetParent(&pGameObjectTVWeaponBase->m_transform);	// TVWeaponBase 게임오브젝트의 자식으로 추가해야 함.
+		ComponentHandle<MeshRenderer> hWeaponMeshRendererTVWeapon = pGameObjTVWeapon->AddComponent<MeshRenderer>();
+		m_hMeshRendererTVWeapon = hWeaponMeshRendererTVWeapon;
+	}
+
 
 	// 캐릭터 SkinnedMesh 오브젝트 생성 및 초기화
-	ComponentHandle<SkinnedMeshRenderer> hSkinnedMeshRendererCharacter = this->m_pGameObject->AddComponent<SkinnedMeshRenderer>();
+	ComponentHandle<SkinnedMeshRenderer> hSkinnedMeshRendererCharacter = m_pGameObject->AddComponent<SkinnedMeshRenderer>();
 	m_hSkinnedMeshRendererCharacter = hSkinnedMeshRendererCharacter;	// 컴포넌트 핸들을 멤버로 저장
 	SkinnedMeshRenderer* pSkinnedMeshRendererCharacter = hSkinnedMeshRendererCharacter.ToPtr();
 	const CharacterViewInfo* pCharacterViewInfo = pScriptGameResources->GetCharacterViewInfo(L"steven.rt");
@@ -107,207 +132,195 @@ void ThirdPersonCharacter::Awake()
 	m_hGameObjectHitboxBody = Runtime::GetInstance()->CreateGameObject();
 	GameObject* pGameObjectHitboxBody = m_hGameObjectHitboxBody.ToPtr();
 	pGameObjectHitboxBody->m_transform.SetParent(&m_pGameObject->m_transform);
-	ComponentHandle<Rigidbody> hRigidbodyHitboxBody =
-		pGameObjectHitboxBody->AddComponent<Rigidbody>(
-			pScriptGameResources->GetCharacterBodyCollider(),
-			XMFLOAT3(
-				0.0f,
-				pScriptGameResources->GetCharacterBodyColliderHalfExtents().y - 0.06f,
-				0.03f
-			)
-		);
-	Rigidbody* pRigidbodyHitboxBody = hRigidbodyHitboxBody.ToPtr();
+	m_hRigidbodyHitboxBody = pGameObjectHitboxBody->AddComponent<Rigidbody>(
+		pScriptGameResources->GetCharacterBodyCollider(),
+		XMFLOAT3(
+			0.0f,
+			pScriptGameResources->GetCharacterBodyColliderHalfExtents().y - 0.06f,
+			0.03f
+		)
+	);
+	Rigidbody* pRigidbodyHitboxBody = m_hRigidbodyHitboxBody.ToPtr();
 	pRigidbodyHitboxBody->SetBodyType(RigidbodyType::Kinematic);
 	pRigidbodyHitboxBody->SetTrigger(true);
-	
+
 	m_hGameObjectHitboxNeck = Runtime::GetInstance()->CreateGameObject();
 	GameObject* pGameObjectHitboxNeck = m_hGameObjectHitboxNeck.ToPtr();
 	pGameObjectHitboxNeck->m_transform.SetParent(&m_pGameObject->m_transform);
-	ComponentHandle<Rigidbody> hRigidbodyHitboxNeck =
-		pGameObjectHitboxNeck->AddComponent<Rigidbody>(
-			pScriptGameResources->GetCharacterNeckCollider(),
-			XMFLOAT3(
-				0.0f,
-				pScriptGameResources->GetCharacterNeckColliderHeight(),
-				0.0f
-			)
-		);
-	Rigidbody* pRigidbodyHitboxNeck = hRigidbodyHitboxNeck.ToPtr();
+	m_hRigidbodyHitboxNeck = pGameObjectHitboxNeck->AddComponent<Rigidbody>(
+		pScriptGameResources->GetCharacterNeckCollider(),
+		XMFLOAT3(
+			0.0f,
+			pScriptGameResources->GetCharacterNeckColliderHeight(),
+			0.0f
+		)
+	);
+	Rigidbody* pRigidbodyHitboxNeck = m_hRigidbodyHitboxNeck.ToPtr();
 	pRigidbodyHitboxNeck->SetBodyType(RigidbodyType::Kinematic);
 	pRigidbodyHitboxNeck->SetTrigger(true);
-	
+
 	m_hGameObjectHitboxHead = Runtime::GetInstance()->CreateGameObject();
 	GameObject* pGameObjectHitboxHead = m_hGameObjectHitboxHead.ToPtr();
 	pGameObjectHitboxHead->m_transform.SetParent(&m_pGameObject->m_transform);
-	ComponentHandle<Rigidbody> hRigidbodyHitboxHead =
-		pGameObjectHitboxHead->AddComponent<Rigidbody>(
-			pScriptGameResources->GetCharacterHeadCollider(),
-			XMFLOAT3(
-				0.0f,
-				pScriptGameResources->GetCharacterHeadColliderRadius(),
-				0.02f)
-		);
-	Rigidbody* pRigidbodyHitboxHead = hRigidbodyHitboxHead.ToPtr();
+	m_hRigidbodyHitboxHead = pGameObjectHitboxHead->AddComponent<Rigidbody>(
+		pScriptGameResources->GetCharacterHeadCollider(),
+		XMFLOAT3(
+			0.0f,
+			pScriptGameResources->GetCharacterHeadColliderRadius(),
+			0.02f
+		)
+	);
+	Rigidbody* pRigidbodyHitboxHead = m_hRigidbodyHitboxHead.ToPtr();
 	pRigidbodyHitboxHead->SetBodyType(RigidbodyType::Kinematic);
 	pRigidbodyHitboxHead->SetTrigger(true);
-	
+
 	m_hGameObjectHitboxLeftUpperArm = Runtime::GetInstance()->CreateGameObject();
 	GameObject* pGameObjectHitboxLeftUpperArm = m_hGameObjectHitboxLeftUpperArm.ToPtr();
 	pGameObjectHitboxLeftUpperArm->m_transform.SetParent(&m_pGameObject->m_transform);
-	ComponentHandle<Rigidbody> hRigidbodyHitboxLeftUpperArm =
-		pGameObjectHitboxLeftUpperArm->AddComponent<Rigidbody>(
-			pScriptGameResources->GetCharacterUpperArmCollider(),
-			XMFLOAT3(
-				0.0f,
-				(pScriptGameResources->GetCharacterUpperArmColliderRadius() + pScriptGameResources->GetCharacterUpperArmColliderHeight()) / 2.0f,
-				0.0f
-			)
-		);
-	Rigidbody* pRigidbodyHitboxLeftUpperArm = hRigidbodyHitboxLeftUpperArm.ToPtr();
+	m_hRigidbodyHitboxLeftUpperArm = pGameObjectHitboxLeftUpperArm->AddComponent<Rigidbody>(
+		pScriptGameResources->GetCharacterUpperArmCollider(),
+		XMFLOAT3(
+			0.0f,
+			(pScriptGameResources->GetCharacterUpperArmColliderRadius() + pScriptGameResources->GetCharacterUpperArmColliderHeight()) / 2.0f,
+			0.0f
+		)
+	);
+	Rigidbody* pRigidbodyHitboxLeftUpperArm = m_hRigidbodyHitboxLeftUpperArm.ToPtr();
 	pRigidbodyHitboxLeftUpperArm->SetBodyType(RigidbodyType::Kinematic);
 	pRigidbodyHitboxLeftUpperArm->SetTrigger(true);
-	
+
 	m_hGameObjectHitboxRightUpperArm = Runtime::GetInstance()->CreateGameObject();
 	GameObject* pGameObjectHitboxRightUpperArm = m_hGameObjectHitboxRightUpperArm.ToPtr();
 	pGameObjectHitboxRightUpperArm->m_transform.SetParent(&m_pGameObject->m_transform);
-	ComponentHandle<Rigidbody> hRigidbodyHitboxRightUpperArm =
-		pGameObjectHitboxRightUpperArm->AddComponent<Rigidbody>(
-			pScriptGameResources->GetCharacterUpperArmCollider(),
-			XMFLOAT3(
-				0.0f,
-				(pScriptGameResources->GetCharacterUpperArmColliderRadius() + pScriptGameResources->GetCharacterUpperArmColliderHeight()) / 2.0f,
-				0.0f
-			)
-		);
-	Rigidbody* pRigidbodyHitboxRightUpperArm = hRigidbodyHitboxRightUpperArm.ToPtr();
+	m_hRigidbodyHitboxRightUpperArm = pGameObjectHitboxRightUpperArm->AddComponent<Rigidbody>(
+		pScriptGameResources->GetCharacterUpperArmCollider(),
+		XMFLOAT3(
+			0.0f,
+			(pScriptGameResources->GetCharacterUpperArmColliderRadius() + pScriptGameResources->GetCharacterUpperArmColliderHeight()) / 2.0f,
+			0.0f
+		)
+	);
+	Rigidbody* pRigidbodyHitboxRightUpperArm = m_hRigidbodyHitboxRightUpperArm.ToPtr();
 	pRigidbodyHitboxRightUpperArm->SetBodyType(RigidbodyType::Kinematic);
 	pRigidbodyHitboxRightUpperArm->SetTrigger(true);
-	
+
 	m_hGameObjectHitboxLeftForeArm = Runtime::GetInstance()->CreateGameObject();
 	GameObject* pGameObjectHitboxLeftForeArm = m_hGameObjectHitboxLeftForeArm.ToPtr();
 	pGameObjectHitboxLeftForeArm->m_transform.SetParent(&m_pGameObject->m_transform);
-	ComponentHandle<Rigidbody> hRigidbodyHitboxLeftForeArm =
-		pGameObjectHitboxLeftForeArm->AddComponent<Rigidbody>(
-			pScriptGameResources->GetCharacterForeArmCollider(),
-			XMFLOAT3(
-				0.0f,
-				(pScriptGameResources->GetCharacterForeArmColliderRadius() + pScriptGameResources->GetCharacterForeArmColliderHeight()) / 2.0f,
-				0.0f
-			)
-		);
-	Rigidbody* pRigidbodyHitboxLeftForeArm = hRigidbodyHitboxLeftForeArm.ToPtr();
+	m_hRigidbodyHitboxLeftForeArm = pGameObjectHitboxLeftForeArm->AddComponent<Rigidbody>(
+		pScriptGameResources->GetCharacterForeArmCollider(),
+		XMFLOAT3(
+			0.0f,
+			(pScriptGameResources->GetCharacterForeArmColliderRadius() + pScriptGameResources->GetCharacterForeArmColliderHeight()) / 2.0f,
+			0.0f
+		)
+	);
+	Rigidbody* pRigidbodyHitboxLeftForeArm = m_hRigidbodyHitboxLeftForeArm.ToPtr();
 	pRigidbodyHitboxLeftForeArm->SetBodyType(RigidbodyType::Kinematic);
 	pRigidbodyHitboxLeftForeArm->SetTrigger(true);
-	
+
 	m_hGameObjectHitboxRightForeArm = Runtime::GetInstance()->CreateGameObject();
 	GameObject* pGameObjectHitboxRightForeArm = m_hGameObjectHitboxRightForeArm.ToPtr();
 	pGameObjectHitboxRightForeArm->m_transform.SetParent(&m_pGameObject->m_transform);
-	ComponentHandle<Rigidbody> hRigidbodyHitboxRightForeArm =
-		pGameObjectHitboxRightForeArm->AddComponent<Rigidbody>(
-			pScriptGameResources->GetCharacterForeArmCollider(),
-			XMFLOAT3(
-				0.0f,
-				(pScriptGameResources->GetCharacterForeArmColliderRadius() + pScriptGameResources->GetCharacterForeArmColliderHeight()) / 2.0f,
-				0.0f
-			)
-		);
-	Rigidbody* pRigidbodyHitboxRightForeArm = hRigidbodyHitboxRightForeArm.ToPtr();
+	m_hRigidbodyHitboxRightForeArm = pGameObjectHitboxRightForeArm->AddComponent<Rigidbody>(
+		pScriptGameResources->GetCharacterForeArmCollider(),
+		XMFLOAT3(
+			0.0f,
+			(pScriptGameResources->GetCharacterForeArmColliderRadius() + pScriptGameResources->GetCharacterForeArmColliderHeight()) / 2.0f,
+			0.0f
+		)
+	);
+	Rigidbody* pRigidbodyHitboxRightForeArm = m_hRigidbodyHitboxRightForeArm.ToPtr();
 	pRigidbodyHitboxRightForeArm->SetBodyType(RigidbodyType::Kinematic);
 	pRigidbodyHitboxRightForeArm->SetTrigger(true);
 
 	m_hGameObjectHitboxLeftThigh = Runtime::GetInstance()->CreateGameObject();
 	GameObject* pGameObjectHitboxLeftThigh = m_hGameObjectHitboxLeftThigh.ToPtr();
 	pGameObjectHitboxLeftThigh->m_transform.SetParent(&m_pGameObject->m_transform);
-	ComponentHandle<Rigidbody> hRigidbodyHitboxLeftThigh =
-		pGameObjectHitboxLeftThigh->AddComponent<Rigidbody>(
-			pScriptGameResources->GetCharacterThighCollider(),
-			XMFLOAT3(
-				0.0f,
-				(pScriptGameResources->GetCharacterThighColliderRadius() + pScriptGameResources->GetCharacterThighColliderHeight()) / 2.0f - 0.075f,
-				0.0f
-			)
-		);
-	Rigidbody* pRigidbodyHitboxLeftThigh = hRigidbodyHitboxLeftThigh.ToPtr();
+	m_hRigidbodyHitboxLeftThigh = pGameObjectHitboxLeftThigh->AddComponent<Rigidbody>(
+		pScriptGameResources->GetCharacterThighCollider(),
+		XMFLOAT3(
+			0.0f,
+			(pScriptGameResources->GetCharacterThighColliderRadius() + pScriptGameResources->GetCharacterThighColliderHeight()) / 2.0f - 0.075f,
+			0.0f
+		)
+	);
+	Rigidbody* pRigidbodyHitboxLeftThigh = m_hRigidbodyHitboxLeftThigh.ToPtr();
 	pRigidbodyHitboxLeftThigh->SetBodyType(RigidbodyType::Kinematic);
 	pRigidbodyHitboxLeftThigh->SetTrigger(true);
 
 	m_hGameObjectHitboxRightThigh = Runtime::GetInstance()->CreateGameObject();
 	GameObject* pGameObjectHitboxRightThigh = m_hGameObjectHitboxRightThigh.ToPtr();
 	pGameObjectHitboxRightThigh->m_transform.SetParent(&m_pGameObject->m_transform);
-	ComponentHandle<Rigidbody> hRigidbodyHitboxRightThigh =
-		pGameObjectHitboxRightThigh->AddComponent<Rigidbody>(
-			pScriptGameResources->GetCharacterThighCollider(),
-			XMFLOAT3(
-				0.0f,
-				(pScriptGameResources->GetCharacterThighColliderRadius() + pScriptGameResources->GetCharacterThighColliderHeight()) / 2.0f - 0.075f,
-				0.0f
-			)
-		);
-	Rigidbody* pRigidbodyHitboxRightThigh = hRigidbodyHitboxRightThigh.ToPtr();
+	m_hRigidbodyHitboxRightThigh = pGameObjectHitboxRightThigh->AddComponent<Rigidbody>(
+		pScriptGameResources->GetCharacterThighCollider(),
+		XMFLOAT3(
+			0.0f,
+			(pScriptGameResources->GetCharacterThighColliderRadius() + pScriptGameResources->GetCharacterThighColliderHeight()) / 2.0f - 0.075f,
+			0.0f
+		)
+	);
+	Rigidbody* pRigidbodyHitboxRightThigh = m_hRigidbodyHitboxRightThigh.ToPtr();
 	pRigidbodyHitboxRightThigh->SetBodyType(RigidbodyType::Kinematic);
 	pRigidbodyHitboxRightThigh->SetTrigger(true);
 
 	m_hGameObjectHitboxLeftCalf = Runtime::GetInstance()->CreateGameObject();
 	GameObject* pGameObjectHitboxLeftCalf = m_hGameObjectHitboxLeftCalf.ToPtr();
 	pGameObjectHitboxLeftCalf->m_transform.SetParent(&m_pGameObject->m_transform);
-	ComponentHandle<Rigidbody> hRigidbodyHitboxLeftCalf =
-		pGameObjectHitboxLeftCalf->AddComponent<Rigidbody>(
-			pScriptGameResources->GetCharacterCalfCollider(),
-			XMFLOAT3(
-				0.0f,
-				(pScriptGameResources->GetCharacterCalfColliderRadius() + pScriptGameResources->GetCharacterCalfColliderHeight()) / 2.0f,
-				0.0f
-			)
-		);
-	Rigidbody* pRigidbodyHitboxLeftCalf = hRigidbodyHitboxLeftCalf.ToPtr();
+	m_hRigidbodyHitboxLeftCalf = pGameObjectHitboxLeftCalf->AddComponent<Rigidbody>(
+		pScriptGameResources->GetCharacterCalfCollider(),
+		XMFLOAT3(
+			0.0f,
+			(pScriptGameResources->GetCharacterCalfColliderRadius() + pScriptGameResources->GetCharacterCalfColliderHeight()) / 2.0f,
+			0.0f
+		)
+	);
+	Rigidbody* pRigidbodyHitboxLeftCalf = m_hRigidbodyHitboxLeftCalf.ToPtr();
 	pRigidbodyHitboxLeftCalf->SetBodyType(RigidbodyType::Kinematic);
 	pRigidbodyHitboxLeftCalf->SetTrigger(true);
 
 	m_hGameObjectHitboxRightCalf = Runtime::GetInstance()->CreateGameObject();
 	GameObject* pGameObjectHitboxRightCalf = m_hGameObjectHitboxRightCalf.ToPtr();
 	pGameObjectHitboxRightCalf->m_transform.SetParent(&m_pGameObject->m_transform);
-	ComponentHandle<Rigidbody> hRigidbodyHitboxRightCalf =
-		pGameObjectHitboxRightCalf->AddComponent<Rigidbody>(
-			pScriptGameResources->GetCharacterCalfCollider(),
-			XMFLOAT3(
-				0.0f,
-				(pScriptGameResources->GetCharacterCalfColliderRadius() + pScriptGameResources->GetCharacterCalfColliderHeight()) / 2.0f,
-				0.0f
-			)
-		);
-	Rigidbody* pRigidbodyHitboxRightCalf = hRigidbodyHitboxRightCalf.ToPtr();
+	m_hRigidbodyHitboxRightCalf = pGameObjectHitboxRightCalf->AddComponent<Rigidbody>(
+		pScriptGameResources->GetCharacterCalfCollider(),
+		XMFLOAT3(
+			0.0f,
+			(pScriptGameResources->GetCharacterCalfColliderRadius() + pScriptGameResources->GetCharacterCalfColliderHeight()) / 2.0f,
+			0.0f
+		)
+	);
+	Rigidbody* pRigidbodyHitboxRightCalf = m_hRigidbodyHitboxRightCalf.ToPtr();
 	pRigidbodyHitboxRightCalf->SetBodyType(RigidbodyType::Kinematic);
 	pRigidbodyHitboxRightCalf->SetTrigger(true);
 
 	m_hGameObjectHitboxLeftFoot = Runtime::GetInstance()->CreateGameObject();
 	GameObject* pGameObjectHitboxLeftFoot = m_hGameObjectHitboxLeftFoot.ToPtr();
 	pGameObjectHitboxLeftFoot->m_transform.SetParent(&m_pGameObject->m_transform);
-	ComponentHandle<Rigidbody> hRigidbodyHitboxLeftFoot =
-		pGameObjectHitboxLeftFoot->AddComponent<Rigidbody>(
-			pScriptGameResources->GetCharacterFootCollider(),
-			XMFLOAT3(
-				0.0f,
-				-0.075f,
-				-0.01f
-			)
-		);
-	Rigidbody* pRigidbodyHitboxLeftFoot = hRigidbodyHitboxLeftFoot.ToPtr();
+	m_hRigidbodyHitboxLeftFoot = pGameObjectHitboxLeftFoot->AddComponent<Rigidbody>(
+		pScriptGameResources->GetCharacterFootCollider(),
+		XMFLOAT3(
+			0.0f,
+			-0.075f,
+			-0.01f
+		)
+	);
+	Rigidbody* pRigidbodyHitboxLeftFoot = m_hRigidbodyHitboxLeftFoot.ToPtr();
 	pRigidbodyHitboxLeftFoot->SetBodyType(RigidbodyType::Kinematic);
 	pRigidbodyHitboxLeftFoot->SetTrigger(true);
 
 	m_hGameObjectHitboxRightFoot = Runtime::GetInstance()->CreateGameObject();
 	GameObject* pGameObjectHitboxRightFoot = m_hGameObjectHitboxRightFoot.ToPtr();
 	pGameObjectHitboxRightFoot->m_transform.SetParent(&m_pGameObject->m_transform);
-	ComponentHandle<Rigidbody> hRigidbodyHitboxRightFoot =
-		pGameObjectHitboxRightFoot->AddComponent<Rigidbody>(
-			pScriptGameResources->GetCharacterFootCollider(),
-			XMFLOAT3(
-				0.0f,
-				-0.075f,
-				-0.01f
-			)
-		);
-	Rigidbody* pRigidbodyHitboxRightFoot = hRigidbodyHitboxRightFoot.ToPtr();
+	m_hRigidbodyHitboxRightFoot = pGameObjectHitboxRightFoot->AddComponent<Rigidbody>(
+		pScriptGameResources->GetCharacterFootCollider(),
+		XMFLOAT3(
+			0.0f,
+			-0.075f,
+			-0.01f
+		)
+	);
+	Rigidbody* pRigidbodyHitboxRightFoot = m_hRigidbodyHitboxRightFoot.ToPtr();
 	pRigidbodyHitboxRightFoot->SetBodyType(RigidbodyType::Kinematic);
 	pRigidbodyHitboxRightFoot->SetTrigger(true);
 	// ##############################################################################
@@ -326,10 +339,7 @@ void ThirdPersonCharacter::Awake()
 	// run
 	// stand_idle
 
-	pSkinnedMeshRendererCharacter->PlayGroupAnimation("idle_pistol", "upper_body", true);
-	pSkinnedMeshRendererCharacter->PlayGroupAnimation("run", "lower_body", true);
-
-	const Armature* pCharacterArmature = pSkinnedMeshRendererCharacter->GetArmaturePtr();
+	const Armature* const pCharacterArmature = pSkinnedMeshRendererCharacter->GetArmaturePtr();
 	m_biSpine0 = pCharacterArmature->GetBoneIndex("Spine0");
 	m_biNeck = pCharacterArmature->GetBoneIndex("Neck");
 	m_biHead = pCharacterArmature->GetBoneIndex("Head");
@@ -351,11 +361,65 @@ void ThirdPersonCharacter::Awake()
 
 void ThirdPersonCharacter::Update()
 {
-	this->UpdateWeaponBaseAndHitboxTransforms();
-}
+	const float dt = ze::Time::GetInstance()->GetDeltaTime();
 
-void ThirdPersonCharacter::FixedUpdate()
-{
+	if (m_hitboxActivated)
+		this->UpdateTVWeaponBaseAndHitboxTransforms();
+	
+
+	if (m_action != WeaponAction::Idle && m_action != WeaponAction::None)
+	{
+		m_actionElapsed += dt;		// 업데이트
+
+		/*
+		// 이벤트 테이블 참조 및 이벤트 처리
+		if (m_pCurrWeaponEventTable)
+		{
+			while (m_eventIndexCursor < m_pCurrWeaponEventTable->m_events.size())
+			{
+				const auto& item = m_pCurrWeaponEventTable->m_events[m_eventIndexCursor];
+				if (item.first <= m_actionElapsed)
+				{
+					// 무기 이벤트 처리
+					// 
+					// 1. 사운드 처리
+					const auto iter = m_spWeaponDef->m_weaponSounds.find(item.second);
+					if (iter != m_spWeaponDef->m_weaponSounds.cend())
+					{
+						if (iter->second)
+							iter->second->Play();
+					}
+
+					++m_eventIndexCursor;
+				}
+				else
+				{
+					break;
+				}
+			}
+		}
+		*/
+
+		/*
+		switch (m_action)
+		{
+		case WeaponAction::Draw:
+			break;
+		case WeaponAction::Reload:
+			if (m_actionDuration <= m_actionElapsed)
+			 	this->OnReloadFinish();
+			break;
+		case WeaponAction::Fire:
+			m_fireCoolTime = (std::max)(m_fireCoolTime - dt, 0.0f);
+			break;
+		default:
+			break;
+		}
+		*/
+
+		if (m_actionDuration <= m_actionElapsed)
+			this->OnIdle(m_actionElapsed - m_actionDuration);
+	}
 }
 
 void ThirdPersonCharacter::SetCharacterView(const CharacterViewInfo* pCVI)
@@ -378,40 +442,216 @@ void ThirdPersonCharacter::SetCharacterView(const CharacterViewInfo* pCVI)
 	}
 }
 
-void ThirdPersonCharacter::SetTransform(const XMFLOAT3& pos, const XMFLOAT4& rot)
+void ThirdPersonCharacter::SetWeaponInUse(WeaponSlot slot, WeaponCode weaponCode)
 {
-	m_pGameObject->m_transform.SetPosition(pos);
-	m_pGameObject->m_transform.SetRotationQuaternion(rot);
+	const GameResources* pScriptGameResources = m_hScriptGameResources.ToPtr();
+
+	m_spWeaponDefs[static_cast<size_t>(slot)] = pScriptGameResources->GetWeaponDefinition(weaponCode);
 }
 
 void ThirdPersonCharacter::ShowView()
 {
 	m_hSkinnedMeshRendererCharacter.ToPtr()->Enable();
+	m_hMeshRendererTVWeapon.ToPtr()->Enable();
 }
 
 void ThirdPersonCharacter::HideView()
 {
 	m_hSkinnedMeshRendererCharacter.ToPtr()->Disable();
+	m_hMeshRendererTVWeapon.ToPtr()->Disable();
 }
 
-void ThirdPersonCharacter::PlayAnimation(const std::string& animName, bool loop, float playbackSpeed, float timeCursor)
+void ThirdPersonCharacter::OnInit(GameTeam team, WeaponCode primary, WeaponCode secondary, WeaponSlot currWeapon, InGamePlayerState state,
+	const XMFLOAT3& pos, const XMFLOAT4& rot, float camRotX)
 {
-	m_hSkinnedMeshRendererCharacter.ToPtr()->PlayAnimation(animName, loop, playbackSpeed, timeCursor);
+	const GameResources* pScriptGameResources = m_hScriptGameResources.ToPtr();
+
+	m_currWeaponSlot = currWeapon;
+
+	// 1. TPC 캐릭터 뷰 설정
+	const CharacterViewInfo* pCVI = nullptr;
+	switch (team)
+	{
+	case GameTeam::RedTeam:
+		pCVI = pScriptGameResources->GetCharacterViewInfo(L"steven.rt");
+		break;
+	case GameTeam::BlueTeam:
+		pCVI = pScriptGameResources->GetCharacterViewInfo(L"steven.bt");
+		break;
+	default:
+		*reinterpret_cast<int*>(0) = 0;
+		break;
+	}
+	this->SetCharacterView(pCVI);
+
+	m_hSkinnedMeshRendererCharacter.ToPtr()->PlayGroupAnimation("stand_idle", "lower_body", true);
+
+	// 2. 무기 뷰 설정
+	this->SetWeaponInUse(WeaponSlot::Primary, primary);
+	this->SetWeaponInUse(WeaponSlot::Secondary, secondary);
+
+	// 3. 상태에 따른 뷰 표시 제어
+	switch (state)
+	{
+	case InGamePlayerState::Alive:
+		m_pGameObject->m_transform.SetPosition(pos);
+		m_pGameObject->m_transform.SetRotationQuaternion(rot);
+		// this->SetBoneAdditiveBlending(pPacket->m_camRotX);
+		this->ShowView();
+		this->OnDraw(m_currWeaponSlot);
+		// this->OnIdle(0.0f);	// 무기를 들고 무기에 대한 상호작용은 하지 않고 있는 상태.
+		break;
+	case InGamePlayerState::Dead:
+		this->HideView();
+		break;
+	case InGamePlayerState::Spectating:
+		this->HideView();
+		break;
+	default:
+		break;
+	}
 }
 
-void ThirdPersonCharacter::PlayGroupAnimation(const std::string& animName, const std::string& groupName, bool loop, float playbackSpeed, float timeCursor)
+void ThirdPersonCharacter::OnDraw(WeaponSlot slot)
 {
-	m_hSkinnedMeshRendererCharacter.ToPtr()->PlayGroupAnimation(animName, groupName, loop, playbackSpeed, timeCursor);
+	if (slot < WeaponSlot::Count)
+	{
+		m_currWeaponSlot = slot;
+
+		const WeaponDefinition* pWeaponDef = m_spWeaponDefs[static_cast<size_t>(m_currWeaponSlot)].get();
+
+		// 1. 로컬 트랜스폼 설정
+		GameObject* pGameObjTVWeapon = m_hGameObjectTVWeapon.ToPtr();
+		pGameObjTVWeapon->m_transform.SetRotationQuaternion(s_weaponLocalRotQuaternion[static_cast<size_t>(m_currWeaponSlot)]);
+		pGameObjTVWeapon->m_transform.SetPosition(s_weaponTVOffset[static_cast<size_t>(m_currWeaponSlot)]);
+
+
+		// 2. 드로잉하는 무기로 메시를 업데이트
+		MeshRenderer* pMeshRendererTVWeapon = m_hMeshRendererTVWeapon.ToPtr();
+		pMeshRendererTVWeapon->SetMesh(pWeaponDef->m_spTVMesh);
+		for (size_t i = 0; i < pWeaponDef->m_materials.size(); ++i)
+			pMeshRendererTVWeapon->SetMaterial(i, pWeaponDef->m_materials[i]);
+
+
+		m_action = WeaponAction::Draw;
+
+		auto eventTableIter = pWeaponDef->m_eventTables.find(m_action);
+		m_pCurrWeaponEventTable = eventTableIter == pWeaponDef->m_eventTables.end() ? nullptr : eventTableIter->second.get();
+		m_eventIndexCursor = 0;
+		m_actionDuration = pWeaponDef->GetDrawTime();
+		m_actionElapsed = 0.0f;
+
+		// 3. 애니메이션 재생
+		this->PlayAnimation(WeaponAction::Draw, false);
+	}
 }
 
-void ThirdPersonCharacter::ActivateCharacterCollider()
+void ThirdPersonCharacter::OnFire()
+{
+	if (m_currWeaponSlot < WeaponSlot::Count)
+	{
+		const WeaponDefinition* pWeaponDef = m_spWeaponDefs[static_cast<size_t>(m_currWeaponSlot)].get();
+
+		m_action = WeaponAction::Fire;
+		auto eventTableIter = pWeaponDef->m_eventTables.find(m_action);
+		m_pCurrWeaponEventTable = eventTableIter == pWeaponDef->m_eventTables.end() ? nullptr : eventTableIter->second.get();
+		m_eventIndexCursor = 0;
+
+		m_actionDuration = pWeaponDef->GetRecoilTime();
+		m_actionElapsed = 0.0f;
+
+		// 3. 애니메이션 재생
+		this->PlayAnimation(WeaponAction::Fire, false);
+	}
+}
+
+void ThirdPersonCharacter::OnReload()
+{
+	if (m_currWeaponSlot < WeaponSlot::Count)
+	{
+		wprintf(L"ThirdPersonCharacter::OnReload()\n");
+		const WeaponDefinition* pWeaponDef = m_spWeaponDefs[static_cast<size_t>(m_currWeaponSlot)].get();
+
+		m_action = WeaponAction::Reload;
+		auto eventTableIter = pWeaponDef->m_eventTables.find(m_action);
+		m_pCurrWeaponEventTable = eventTableIter == pWeaponDef->m_eventTables.end() ? nullptr : eventTableIter->second.get();
+		m_eventIndexCursor = 0;
+
+		m_actionDuration = pWeaponDef->GetReloadTime();
+		m_actionElapsed = 0.0f;
+
+		this->PlayAnimation(WeaponAction::Reload, false);
+	}
+}
+
+void ThirdPersonCharacter::OnIdle(float exceed)
+{
+	if (m_currWeaponSlot < WeaponSlot::Count)
+	{
+		m_action = WeaponAction::Idle;
+		m_actionDuration = 0.0f;
+		m_actionElapsed = 0.0f;
+
+		this->PlayAnimation(WeaponAction::Idle, true);
+	}
+}
+
+void ThirdPersonCharacter::OnRespawn(const XMFLOAT3& pos, const XMFLOAT4& rot, float camRotX)
+{
+	m_pGameObject->m_transform.SetPosition(pos);
+	m_pGameObject->m_transform.SetRotationQuaternion(rot);
+	// this->SetBoneAdditiveBlending(camRotX);
+	this->ShowView();
+	this->OnDraw(WeaponSlot::Secondary);
+
+	m_hSkinnedMeshRendererCharacter.ToPtr()->PlayGroupAnimation("stand_idle", "lower_body", true);
+}
+
+void ThirdPersonCharacter::OnTransform(const XMFLOAT3& pos, const XMFLOAT4& rot, float camRotX)
+{
+	m_pGameObject->m_transform.SetPosition(pos);
+	m_pGameObject->m_transform.SetRotationQuaternion(rot);
+	// this->SetBoneAdditiveBlending(camRotX);
+}
+
+void ThirdPersonCharacter::ActivateCharacterColliderAndHitbox()
 {
 	m_hCharacterColliderRigidbody.ToPtr()->Enable();
+	m_hRigidbodyHitboxBody.ToPtr()->Enable();
+	m_hRigidbodyHitboxNeck.ToPtr()->Enable();
+	m_hRigidbodyHitboxHead.ToPtr()->Enable();
+	m_hRigidbodyHitboxLeftUpperArm.ToPtr()->Enable();
+	m_hRigidbodyHitboxRightUpperArm.ToPtr()->Enable();
+	m_hRigidbodyHitboxLeftForeArm.ToPtr()->Enable();
+	m_hRigidbodyHitboxRightForeArm.ToPtr()->Enable();
+	m_hRigidbodyHitboxLeftThigh.ToPtr()->Enable();
+	m_hRigidbodyHitboxRightThigh.ToPtr()->Enable();
+	m_hRigidbodyHitboxLeftCalf.ToPtr()->Enable();
+	m_hRigidbodyHitboxRightCalf.ToPtr()->Enable();
+	m_hRigidbodyHitboxLeftFoot.ToPtr()->Enable();
+	m_hRigidbodyHitboxRightFoot.ToPtr()->Enable();
+	
+	m_hitboxActivated = true;
 }
 
-void ThirdPersonCharacter::DeactivateCharacterCollider()
+void ThirdPersonCharacter::DeactivateCharacterColliderAndHitbox()
 {
 	m_hCharacterColliderRigidbody.ToPtr()->Disable();
+	m_hRigidbodyHitboxBody.ToPtr()->Disable();
+	m_hRigidbodyHitboxNeck.ToPtr()->Disable();
+	m_hRigidbodyHitboxHead.ToPtr()->Disable();
+	m_hRigidbodyHitboxLeftUpperArm.ToPtr()->Disable();
+	m_hRigidbodyHitboxRightUpperArm.ToPtr()->Disable();
+	m_hRigidbodyHitboxLeftForeArm.ToPtr()->Disable();
+	m_hRigidbodyHitboxRightForeArm.ToPtr()->Disable();
+	m_hRigidbodyHitboxLeftThigh.ToPtr()->Disable();
+	m_hRigidbodyHitboxRightThigh.ToPtr()->Disable();
+	m_hRigidbodyHitboxLeftCalf.ToPtr()->Disable();
+	m_hRigidbodyHitboxRightCalf.ToPtr()->Disable();
+	m_hRigidbodyHitboxLeftFoot.ToPtr()->Disable();
+	m_hRigidbodyHitboxRightFoot.ToPtr()->Disable();
+
+	m_hitboxActivated = false;
 }
 
 /*
@@ -435,7 +675,7 @@ void ThirdPersonCharacter::UpdateWeaponBaseTransform()
 }
 */
 
-void ThirdPersonCharacter::UpdateWeaponBaseAndHitboxTransforms()
+void ThirdPersonCharacter::UpdateTVWeaponBaseAndHitboxTransforms()
 {
 	const SkinnedMeshRenderer* pCharacterSkinnedMeshRenderer = m_hSkinnedMeshRendererCharacter.ToPtr();
 
@@ -443,7 +683,7 @@ void ThirdPersonCharacter::UpdateWeaponBaseAndHitboxTransforms()
 	pCharacterSkinnedMeshRenderer->GetBoneTransforms(bt, _countof(bt));
 
 
-	// 1. 무기 베이스 오브젝트 위치 업데이트
+	// 1. 무기 베이스 오브젝트 위치 업데이트 (오른손 뼈의 Transform 사용)
 	GameObject* pGameObjectTVWeaponBase = m_hGameObjectTVWeaponBase.ToPtr();
 	pGameObjectTVWeaponBase->m_transform.SetRotationQuaternion(bt[m_biRightHand].m_rot);
 	pGameObjectTVWeaponBase->m_transform.SetPosition(bt[m_biRightHand].m_translation);
@@ -501,4 +741,16 @@ void ThirdPersonCharacter::UpdateWeaponBaseAndHitboxTransforms()
 	GameObject* pGameObjectHitboxRightFoot = m_hGameObjectHitboxRightFoot.ToPtr();
 	pGameObjectHitboxRightFoot->m_transform.SetRotationQuaternion(bt[m_biRightToe].m_rot);
 	pGameObjectHitboxRightFoot->m_transform.SetPosition(bt[m_biRightToe].m_translation);
+}
+
+void ThirdPersonCharacter::PlayAnimation(WeaponAction action, bool loop)
+{
+	if (m_currWeaponSlot < WeaponSlot::Count)
+	{
+		const WeaponDefinition* const pWeaponDef = m_spWeaponDefs[static_cast<size_t>(m_currWeaponSlot)].get();
+
+		const auto animIter = pWeaponDef->m_tvAnims.find(action);
+		if (animIter != pWeaponDef->m_tvAnims.cend())
+			m_hSkinnedMeshRendererCharacter.ToPtr()->PlayGroupAnimation(animIter->second, "upper_body", loop);
+	}
 }

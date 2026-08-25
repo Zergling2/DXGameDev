@@ -54,7 +54,14 @@ void ListenServerClient::FixedUpdate()
 			break;
 		case ENET_EVENT_TYPE_DISCONNECT:
 			wprintf(L"ENET_EVENT_TYPE_DISCONNECT\n");
-			OnDisconnect(event.peer);
+			if (m_pPeer == event.peer)
+			{
+				m_pPeer = nullptr;
+			}
+			else
+			{
+				wprintf(L"[WARNING] m_pPeer != event.peer\n");
+			}
 			// printf("%s disconnected.\n", event.peer->data);
 			// 
 			/* Reset the peer's client information. */
@@ -83,33 +90,6 @@ void ListenServerClient::FixedUpdate()
 	m_gameRemainingTime = (std::max)(m_gameRemainingTime - dt, 0.0f);
 	GameUIManager* pScriptGameUIManager = m_hScriptGameUIManager.ToPtr();
 	pScriptGameUIManager->SetTextGameRemainingTime(m_gameRemainingTime);
-
-	// 위치 브로드캐스팅
-	const Player* pScriptPlayer = m_hScriptPlayer.ToPtr();
-	if (pScriptPlayer)
-	{
-		LSCSNotifyGamePlayerTransform ntfyTransform;
-		ntfyTransform.m_protocol = LSProtocol::CS_NOTIFY_GAME_PLAYER_TRANSFORM;
-
-		XMFLOAT3 pos;
-		XMFLOAT4 rot;
-		pScriptPlayer->GetTransform(pos, rot);
-		ntfyTransform.m_x = pos.x;
-		ntfyTransform.m_y = pos.y;
-		ntfyTransform.m_z = pos.z;
-		ntfyTransform.m_rx = rot.x;
-		ntfyTransform.m_ry = rot.y;
-		ntfyTransform.m_rz = rot.z;
-		ntfyTransform.m_rw = rot.w;
-		ntfyTransform.m_camRotX = pScriptPlayer->GetCameraRotationEulerX();
-
-		ENetPacket* pNtfyPktTransform = enet_packet_create(&ntfyTransform, sizeof(ntfyTransform), 0);
-		if (!SendPacket(m_pPeer, pNtfyPktTransform))
-		{
-			enet_packet_destroy(pNtfyPktTransform);
-			pNtfyPktTransform = nullptr;
-		}
-	}
 }
 
 void ListenServerClient::OnDestroy()
@@ -134,7 +114,7 @@ void ListenServerClient::OnConnect(ENetPeer* pPeer)
 	req.m_level = pScriptAccount->GetLevel();
 
 	ENetPacket* pReqPkt = enet_packet_create(&req, sizeof(req), ENET_PACKET_FLAG_RELIABLE);
-	if (!SendPacket(m_pPeer, pReqPkt))
+	if (!SendPacket(pReqPkt))
 	{
 		enet_packet_destroy(pReqPkt);
 		pReqPkt = nullptr;
@@ -191,6 +171,12 @@ void ListenServerClient::OnReceive(ENetPeer* pPeer, uint8_t channelId, const ENe
 		else
 			OnSCNotifyGamePlayerInfo(reinterpret_cast<const LSSCNotifyGamePlayerInfo*>(pPacket->data));
 		break;
+	case LSProtocol::SC_NOTIFY_GAME_PLAYER_WEAPON_EVENT:
+		if (packetSize != sizeof(LSSCNotifyGamePlayerWeaponEvent))
+			enet_peer_disconnect_now(pPeer, 0);
+		else
+			OnSCNotifyGamePlayerWeaponEvent(reinterpret_cast<const LSSCNotifyGamePlayerWeaponEvent*>(pPacket->data));
+		break;
 	case LSProtocol::SC_NOTIFY_GAME_PLAYER_TRANSFORM:
 		if (packetSize != sizeof(LSSCNotifyGamePlayerTransform))
 			enet_peer_disconnect_now(pPeer, 0);
@@ -207,19 +193,6 @@ void ListenServerClient::OnReceive(ENetPeer* pPeer, uint8_t channelId, const ENe
 		// ...
 		break;
 	}
-}
-
-void ListenServerClient::OnDisconnect(ENetPeer* pPeer)
-{
-	// ...
-
-	if (m_pPeer != pPeer)
-	{
-		wprintf(L"m_pPeer != pPeer\n");
-		return;
-	}
-
-	m_pPeer = nullptr;
 }
 
 void ListenServerClient::SetStartupInfo(uint32_t serverIP, uint16_t serverPort)
@@ -287,7 +260,7 @@ void ListenServerClient::StartClient()
 	// 	/* received. Reset the peer in the event the 5 seconds   */
 	// 	/* had run out without any significant event.            */
 	// 	enet_peer_reset(m_pPeer);		// DISCONNECT 이벤트 발생 X
-	// 	OnDisconnect(m_pPeer);
+	// 	m_pPeer = nullptr;
 	// 
 	// 	puts("Connection to listen server failed.");
 	// }
@@ -298,7 +271,7 @@ void ListenServerClient::CloseClient()
 	if (m_pPeer)
 	{
 		enet_peer_reset(m_pPeer);
-		OnDisconnect(m_pPeer);
+		m_pPeer = nullptr;
 	}
 
 	if (m_pClient)
@@ -311,15 +284,18 @@ void ListenServerClient::CloseClient()
 	m_serverPort = 0;
 }
 
-bool ListenServerClient::SendPacket(ENetPeer* pPeer, ENetPacket* pPacket) const
+bool ListenServerClient::SendPacket(ENetPacket* pPacket) const
 {
+	if (!m_pPeer)
+		return false;
+
 	const uint8_t channelId = pPacket->flags & ENET_PACKET_FLAG_RELIABLE ? UDP_RELIABLE_CHANNEL_ID : UDP_UNRELIABLE_CHANNEL_ID;
-	return enet_peer_send(pPeer, channelId, pPacket) == 0;
+	return enet_peer_send(m_pPeer, channelId, pPacket) == 0;
 }
 
 void ListenServerClient::OnSCResAuthResult(const LSSCResAuthResult* pPacket)
 {
-	// SAServer로 리슨서버 퇴장 알림->은 방장의 역할
+	// SAServer로 리슨서버 퇴장 알림->은 방장의 역할 (근데 이 동작은 필요가 없을것 같기도 하다.)
 
 	if (!pPacket->m_result)
 		this->CloseClient();
@@ -329,13 +305,14 @@ void ListenServerClient::OnSCNotifyGameStatus(const LSSCNotifyGameStatus* pPacke
 {
 	m_gameRemainingTime = pPacket->m_gameRemainingTime;
 
-	// 플레이어 캐릭터 뷰 오브젝트 생성
+	// 플레이어 캐릭터 오브젝트 생성
 	GameObjectHandle hGameObjectPlayer = Runtime::GetInstance()->CreateGameObject(L"MyPlayer");
 	GameObject* pGameObjectPlayer = hGameObjectPlayer.ToPtr();
 	pGameObjectPlayer->m_transform.SetPosition(-7.0f, 0.0f, -5.0f);
 	ComponentHandle<Player> hScriptPlayer = pGameObjectPlayer->AddComponent<Player>();
 	m_hScriptPlayer = hScriptPlayer;
 	Player* pScriptPlayer = hScriptPlayer.ToPtr();
+	pScriptPlayer->m_hScriptListenServerClient = this->ToHandle();
 	pScriptPlayer->SetProcessingInput(false);
 
 	// GameUIManager 상태 설정
@@ -393,51 +370,26 @@ void ListenServerClient::OnSCNotifyGamePlayerJoined(const LSSCNotifyGamePlayerJo
 	upNewPlayer->m_death = pPacket->m_death;
 	upNewPlayer->m_ping = pPacket->m_ping;
 	upNewPlayer->m_state = pPacket->m_state;
+	upNewPlayer->m_weaponCodes[static_cast<size_t>(WeaponSlot::Primary)] = pPacket->m_weaponCodes[static_cast<size_t>(WeaponSlot::Primary)];
+	upNewPlayer->m_weaponCodes[static_cast<size_t>(WeaponSlot::Secondary)] = pPacket->m_weaponCodes[static_cast<size_t>(WeaponSlot::Secondary)];
+	upNewPlayer->m_currWeapon = pPacket->m_currWeapon;
 
 	GameObjectHandle hPlayerGameObject = Runtime::GetInstance()->CreateGameObject(L"Player");
 	GameObject* pPlayerGameObject = hPlayerGameObject.ToPtr();
 	ComponentHandle<ThirdPersonCharacter> hScriptThirdPersonCharacter = pPlayerGameObject->AddComponent<ThirdPersonCharacter>();
 	ThirdPersonCharacter* pScriptThirdPersonCharacter = hScriptThirdPersonCharacter.ToPtr();
 
-	const GameResources* pScriptGameResources = m_hScriptGameResources.ToPtr();
-	const wchar_t* cviId = nullptr;
-	switch (upNewPlayer->m_team)
-	{
-	case GameTeam::RedTeam:
-		cviId = L"steven.rt";
-		break;
-	case GameTeam::BlueTeam:
-		cviId = L"steven.bt";
-		break;
-	default:
-		*reinterpret_cast<int*>(0) = 0;
-		break;
-	}
-	pScriptThirdPersonCharacter->SetCharacterView(pScriptGameResources->GetCharacterViewInfo(cviId));
 
-	switch (upNewPlayer->m_state)
-	{
-	case InGamePlayerState::Alive:
-		pScriptThirdPersonCharacter->SetTransform(
-			XMFLOAT3(pPacket->m_x, pPacket->m_y, pPacket->m_z),
-			XMFLOAT4(pPacket->m_rx, pPacket->m_ry, pPacket->m_rz, pPacket->m_rw)
-		);
-		// pScriptThirdPersonCharacter->SetBoneAdditiveBlending(pPacket->m_camRotX);
-		pScriptThirdPersonCharacter->ShowView();
-		pScriptThirdPersonCharacter->PlayGroupAnimation("idle_pistol", "upper_body", true);
-		pScriptThirdPersonCharacter->PlayGroupAnimation("stand_idle", "lower_body", true);
-		break;
-	case InGamePlayerState::Dead:
-		wprintf(L"InGamePlayerState::Dead\n");
-		pScriptThirdPersonCharacter->HideView();
-		break;
-	case InGamePlayerState::Spectating:
-		wprintf(L"InGamePlayerState::Spectating\n");
-		pScriptThirdPersonCharacter->HideView();
-		break;
-	default:
-		break;
-	}
+	pScriptThirdPersonCharacter->OnInit(
+		upNewPlayer->m_team,
+		upNewPlayer->m_weaponCodes[0],
+		upNewPlayer->m_weaponCodes[1],
+		upNewPlayer->m_currWeapon,
+		upNewPlayer->m_state,
+		XMFLOAT3(pPacket->m_x, pPacket->m_y, pPacket->m_z),
+		XMFLOAT4(pPacket->m_rx, pPacket->m_ry, pPacket->m_rz, pPacket->m_rw),
+		pPacket->m_camRotX
+	);
 
 	auto ret = m_players.insert(std::make_pair(pPacket->m_accountId, std::make_pair(std::move(upNewPlayer), hScriptThirdPersonCharacter)));
 	assert(ret.second);
@@ -463,54 +415,52 @@ void ListenServerClient::OnSCNotifyGamePlayerInfo(const LSSCNotifyGamePlayerInfo
 	upNewPlayer->m_death = pPacket->m_death;
 	upNewPlayer->m_ping = pPacket->m_ping;
 	upNewPlayer->m_state = pPacket->m_state;
+	upNewPlayer->m_weaponCodes[static_cast<size_t>(WeaponSlot::Primary)] = pPacket->m_weaponCodes[static_cast<size_t>(WeaponSlot::Primary)];
+	upNewPlayer->m_weaponCodes[static_cast<size_t>(WeaponSlot::Secondary)] = pPacket->m_weaponCodes[static_cast<size_t>(WeaponSlot::Secondary)];
+	upNewPlayer->m_currWeapon = pPacket->m_currWeapon;
 
 	GameObjectHandle hPlayerGameObject = Runtime::GetInstance()->CreateGameObject(L"Player");
 	GameObject* pPlayerGameObject = hPlayerGameObject.ToPtr();
 	ComponentHandle<ThirdPersonCharacter> hScriptThirdPersonCharacter = pPlayerGameObject->AddComponent<ThirdPersonCharacter>();
 	ThirdPersonCharacter* pScriptThirdPersonCharacter = hScriptThirdPersonCharacter.ToPtr();
 
-	const GameResources* pScriptGameResources = m_hScriptGameResources.ToPtr();
-	const wchar_t* cviId = nullptr;
-	switch (upNewPlayer->m_team)
-	{
-	case GameTeam::RedTeam:
-		cviId = L"steven.rt";
-		break;
-	case GameTeam::BlueTeam:
-		cviId = L"steven.bt";
-		break;
-	default:
-		*reinterpret_cast<int*>(0) = 0;
-		break;
-	}
-	pScriptThirdPersonCharacter->SetCharacterView(pScriptGameResources->GetCharacterViewInfo(cviId));
 
-	switch (upNewPlayer->m_state)
-	{
-	case InGamePlayerState::Alive:
-		pScriptThirdPersonCharacter->SetTransform(
-			XMFLOAT3(pPacket->m_x, pPacket->m_y, pPacket->m_z),
-			XMFLOAT4(pPacket->m_rx, pPacket->m_ry, pPacket->m_rz, pPacket->m_rw)
-		);
-		// pScriptThirdPersonCharacter->SetBoneAdditiveBlending(pPacket->m_camRotX);
-		pScriptThirdPersonCharacter->ShowView();
-		pScriptThirdPersonCharacter->PlayGroupAnimation("idle_pistol", "upper_body", true);
-		pScriptThirdPersonCharacter->PlayGroupAnimation("stand_idle", "lower_body", true);
-		break;
-	case InGamePlayerState::Dead:
-		wprintf(L"InGamePlayerState::Dead\n");
-		pScriptThirdPersonCharacter->HideView();
-		break;
-	case InGamePlayerState::Spectating:
-		wprintf(L"InGamePlayerState::Spectating\n");
-		pScriptThirdPersonCharacter->HideView();
-		break;
-	default:
-		break;
-	}
+	pScriptThirdPersonCharacter->OnInit(
+		upNewPlayer->m_team,
+		upNewPlayer->m_weaponCodes[0],
+		upNewPlayer->m_weaponCodes[1],
+		upNewPlayer->m_currWeapon,
+		upNewPlayer->m_state,
+		XMFLOAT3(pPacket->m_x, pPacket->m_y, pPacket->m_z),
+		XMFLOAT4(pPacket->m_rx, pPacket->m_ry, pPacket->m_rz, pPacket->m_rw),
+		pPacket->m_camRotX
+	);
 
 	auto ret = m_players.insert(std::make_pair(pPacket->m_accountId, std::make_pair(std::move(upNewPlayer), hScriptThirdPersonCharacter)));
 	assert(ret.second);
+}
+
+void ListenServerClient::OnSCNotifyGamePlayerWeaponEvent(const LSSCNotifyGamePlayerWeaponEvent* pPacket)
+{
+	const auto iter = m_players.find(pPacket->m_accountId);
+	if (iter == m_players.cend())
+		return;
+
+	ThirdPersonCharacter* pScriptThirdPersonCharacter = iter->second.second.ToPtr();
+	switch (pPacket->m_action)
+	{
+	case WeaponAction::Draw:
+		pScriptThirdPersonCharacter->OnDraw(pPacket->m_slot);
+		break;
+	case WeaponAction::Fire:
+		pScriptThirdPersonCharacter->OnFire();
+		break;
+	case WeaponAction::Reload:
+		pScriptThirdPersonCharacter->OnReload();
+		break;
+	default:
+		break;
+	}
 }
 
 void ListenServerClient::OnSCNotifyGamePlayerTransform(const LSSCNotifyGamePlayerTransform* pPacket)
@@ -520,17 +470,15 @@ void ListenServerClient::OnSCNotifyGamePlayerTransform(const LSSCNotifyGamePlaye
 		return;
 
 	ThirdPersonCharacter* pScriptThirdPersonCharacter = iter->second.second.ToPtr();
-	pScriptThirdPersonCharacter->SetTransform(
+	pScriptThirdPersonCharacter->OnTransform(
 		XMFLOAT3(pPacket->m_x, pPacket->m_y, pPacket->m_z),
-		XMFLOAT4(pPacket->m_rx, pPacket->m_ry, pPacket->m_rz, pPacket->m_rw)
+		XMFLOAT4(pPacket->m_rx, pPacket->m_ry, pPacket->m_rz, pPacket->m_rw),
+		pPacket->m_camRotX
 	);
-	// pScriptThirdPersonCharacter->SetBoneAdditiveBlending(pPacket->m_camRotX);
 }
 
 void ListenServerClient::OnSCNotifyGamePlayerRespawn(const LSSCNotifyGamePlayerRespawn* pPacket)
 {
-	wprintf(L"OnSCNotifyGamePlayerRespawn\n");
-
 	const Account* pScriptAccount = m_hScriptAccount.ToPtr();
 
 	if (pPacket->m_accountId == pScriptAccount->GetAccountId())		// 나의 리스폰 소식인 경우
@@ -549,13 +497,10 @@ void ListenServerClient::OnSCNotifyGamePlayerRespawn(const LSSCNotifyGamePlayerR
 			return;
 
 		ThirdPersonCharacter* pScriptThirdPersonCharacter = iter->second.second.ToPtr();
-		pScriptThirdPersonCharacter->SetTransform(
+		pScriptThirdPersonCharacter->OnRespawn(
 			XMFLOAT3(pPacket->m_x, pPacket->m_y, pPacket->m_z),
-			XMFLOAT4(pPacket->m_rx, pPacket->m_ry, pPacket->m_rz, pPacket->m_rw)
+			XMFLOAT4(pPacket->m_rx, pPacket->m_ry, pPacket->m_rz, pPacket->m_rw),
+			pPacket->m_camRotX
 		);
-		// pScriptThirdPersonCharacter->SetBoneAdditiveBlending(pPacket->m_camRotX);
-		pScriptThirdPersonCharacter->ShowView();
-		pScriptThirdPersonCharacter->PlayGroupAnimation("idle_pistol", "upper_body", true);
-		pScriptThirdPersonCharacter->PlayGroupAnimation("stand_idle", "lower_body", true);
 	}
 }

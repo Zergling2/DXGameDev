@@ -164,8 +164,12 @@ void LobbyHandler::Update()
 {
 	if (Input::GetInstance()->GetKeyDown(Keycode::KEY_F5))
 	{
-		SetResolution(1366, 768, DisplayMode::Windowed);
-		SetResolution(0, 0, DisplayMode::BorderlessWindowed);
+		static int r = 0;
+		++r;
+		if (r & 1)
+			SetResolution(1366, 768, DisplayMode::Windowed);
+		else
+			SetResolution(0, 0, DisplayMode::BorderlessWindowed);
 	}
 
 	if (m_needUIUpdate)

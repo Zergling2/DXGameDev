@@ -37,6 +37,7 @@ private:
 
 	void OnCSReqAuth(const LSCSReqAuth* pPacket, ENetPeer* pRequester);
 	void OnCSReqChat(const LSCSReqChat* pPacket, ENetPeer* pRequester);
+	void OnCSNotifyGamePlayerWeaponEvent(const LSCSNotifyGamePlayerWeaponEvent* pPacket, ENetPeer* pRequester);
 	void OnCSNotifyGamePlayerTransform(const LSCSNotifyGamePlayerTransform* pPacket, ENetPeer* pRequester);
 private:
 	ze::ComponentHandle<Network> m_hScriptNetwork;

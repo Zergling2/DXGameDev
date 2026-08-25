@@ -16,6 +16,8 @@ struct GamePlayerInfo
 		, m_death(0)
 		, m_ping(0)
 		, m_state(InGamePlayerState::Unknown)
+		, m_weaponCodes{ WeaponCode::Unknown, WeaponCode::Unknown }
+		, m_currWeapon(WeaponSlot::Unknown)
 	{
 	}
 	uint32_t m_accountId;
@@ -27,4 +29,6 @@ struct GamePlayerInfo
 	uint32_t m_death;
 	uint32_t m_ping;
 	InGamePlayerState m_state;
+	WeaponCode m_weaponCodes[static_cast<size_t>(WeaponSlot::Count)];
+	WeaponSlot m_currWeapon;
 };

@@ -2,10 +2,13 @@
 #include "Weapon.h"
 #include "GameResources.h"
 #include "GameUIManager.h"
+#include "ListenServerClient.h"
 #include "..\Resource\GlobalScriptGameObject.h"
 #include "..\Resource\Arms.h"
-#include <algorithm>
 #include "..\Resource\WeaponDefinition.h"
+#include "..\Resource\LSProtocol.h"
+#include <enet\enet.h>
+#include <algorithm>
 
 using namespace ze;
 
@@ -24,6 +27,7 @@ Player::Player(ze::GameObject& owner)
 	: ze::MonoBehaviour(owner)
 	, m_processingInput(true)
 	, m_isStand(true)
+	, m_prevIsMoving(false)
 	, m_isMoving(false)
 	, m_isGround(false)
 	, m_jumpCoolTime(0.0f)
@@ -130,8 +134,10 @@ void Player::Awake()
 		pScriptWeapon->Undraw();
 	}
 
-	m_hScriptWeapon[static_cast<size_t>(WeaponSlot::Primary)].ToPtr()->Init(pScriptGameResources->GetWeaponDefinition(WeaponCode::M16), 24, 115);
-	m_hScriptWeapon[static_cast<size_t>(WeaponSlot::Secondary)].ToPtr()->Init(pScriptGameResources->GetWeaponDefinition(WeaponCode::USP), 12, 24);
+	Weapon* pScriptPrimaryWeapon = m_hScriptWeapon[static_cast<size_t>(WeaponSlot::Primary)].ToPtr();
+	Weapon* pScriptSecondaryWeapon = m_hScriptWeapon[static_cast<size_t>(WeaponSlot::Secondary)].ToPtr();
+	pScriptPrimaryWeapon->Init(pScriptGameResources->GetWeaponDefinition(WeaponCode::M16), 24, 115);
+	pScriptSecondaryWeapon->Init(pScriptGameResources->GetWeaponDefinition(WeaponCode::USP), 12, 24);
 
 	// m_currWeaponSlot = WeaponSlot::Secondary;
 	// m_hScriptWeapon[static_cast<size_t>(m_currWeaponSlot)].ToPtr()->Draw();
@@ -171,71 +177,26 @@ void Player::Update()
 	case WeaponSlot::Secondary:
 		m_hGameObjectWeapons[static_cast<size_t>(WeaponSlot::Secondary)].ToPtr()->m_transform.SetPosition(SECONDARY_WEAPON_PV_OFFSET.x + xw, SECONDARY_WEAPON_PV_OFFSET.y + yw, SECONDARY_WEAPON_PV_OFFSET.z);
 		break;
-	case WeaponSlot::Melee:
-		// ...
-		break;
-	case WeaponSlot::Utility:
-		// ...
-		break;
 	default:
 		break;
 	}
 
 	if (m_processingInput)
 	{
-		// 무기 드로잉 처리
-		if (Input::GetInstance()->GetKeyDown(Keycode::KEY_1))
-		{
-			// 사망 시 리스폰 직전까지 m_currWeaponSlot를 WeaponSlot::Unknown으로 설정해야 함!
-			
-			if (m_currWeaponSlot != WeaponSlot::Primary)
-			{
-				const WeaponSlot oldWeaponSlot = m_currWeaponSlot;
-				m_currWeaponSlot = WeaponSlot::Primary;
+		// 무기 드로잉 처리 (사망 시 리스폰 직전까지 m_currWeaponSlot를 WeaponSlot::Unknown으로 설정해야 함!)
+		if (Input::GetInstance()->GetKeyDown(Keycode::KEY_1) && m_currWeaponSlot != WeaponSlot::Primary)
+			this->DrawWeapon(WeaponSlot::Primary);
 
-				if (oldWeaponSlot != WeaponSlot::Unknown)
-				{
-					Weapon* pOldScriptWeapon = m_hScriptWeapon[static_cast<size_t>(oldWeaponSlot)].ToPtr();
-					pOldScriptWeapon->Undraw();
-				}
-
-				Weapon* pCurrScriptWeapon = m_hScriptWeapon[static_cast<size_t>(m_currWeaponSlot)].ToPtr();
-				pCurrScriptWeapon->Draw();
-			}
-		}
-
-		if (Input::GetInstance()->GetKeyDown(Keycode::KEY_2))
-		{
-			if (m_currWeaponSlot != WeaponSlot::Secondary)
-			{
-				const WeaponSlot oldWeaponSlot = m_currWeaponSlot;
-				m_currWeaponSlot = WeaponSlot::Secondary;
-
-				if (oldWeaponSlot != WeaponSlot::Unknown)
-				{
-					Weapon* pOldScriptWeapon = m_hScriptWeapon[static_cast<size_t>(oldWeaponSlot)].ToPtr();
-					pOldScriptWeapon->Undraw();
-				}
-
-				Weapon* pCurrScriptWeapon = m_hScriptWeapon[static_cast<size_t>(m_currWeaponSlot)].ToPtr();
-				pCurrScriptWeapon->Draw();
-			}
-		}
+		if (Input::GetInstance()->GetKeyDown(Keycode::KEY_2) && m_currWeaponSlot != WeaponSlot::Secondary)
+			this->DrawWeapon(WeaponSlot::Secondary);
 
 		// 장전 처리
 		if (Input::GetInstance()->GetKeyDown(Keycode::KEY_R))
-		{
-			if (m_currWeaponSlot < WeaponSlot::Count)
-				m_hScriptWeapon[static_cast<size_t>(m_currWeaponSlot)].ToPtr()->Reload();
-		}
-
+			this->ReloadWeapon();
 
 		// 사격 처리
 		if (Input::GetInstance()->GetMouseButton(MouseButton::Left))
-		{
-			if (m_currWeaponSlot < WeaponSlot::Count)
-				m_hScriptWeapon[static_cast<size_t>(m_currWeaponSlot)].ToPtr()->Fire();
-		}
+			this->FireWeapon();
 
 
 		const int32_t mx = Input::GetInstance()->GetMouseAxisHorizontal();
@@ -418,6 +379,10 @@ void Player::FixedUpdate()
 	}
 
 	m_isGround = hit;
+
+
+	// 위치 브로드캐스팅
+	this->BroadcastTransform();
 }
 
 void Player::SetArmsView(const ArmsViewInfo* pArmsViewInfo)
@@ -443,32 +408,153 @@ void Player::SetArmsView(const ArmsViewInfo* pArmsViewInfo)
 	// pArmsSkinnedMeshRenderer->PlayAnimation("arms_run_usp", true);
 }
 
+void Player::DrawWeapon(WeaponSlot slot)
+{
+	if (!(slot < WeaponSlot::Count))
+		return;
+
+	if (m_currWeaponSlot != slot)
+	{
+		const WeaponSlot oldWeaponSlot = m_currWeaponSlot;
+		m_currWeaponSlot = slot;
+
+		if (oldWeaponSlot < WeaponSlot::Count)
+		{
+			Weapon* pScriptOldWeapon = m_hScriptWeapon[static_cast<size_t>(oldWeaponSlot)].ToPtr();
+			pScriptOldWeapon->Undraw();
+		}
+
+		Weapon* pScriptCurrWeapon = m_hScriptWeapon[static_cast<size_t>(m_currWeaponSlot)].ToPtr();
+		pScriptCurrWeapon->Draw();
+
+		LSCSNotifyGamePlayerWeaponEvent ntfy;
+		ntfy.m_protocol = LSProtocol::CS_NOTIFY_GAME_PLAYER_WEAPON_EVENT;
+		ntfy.m_action = WeaponAction::Draw;
+		ntfy.m_slot = m_currWeaponSlot;	// m_slot 멤버 필드는 Draw Weapon Event인 경우에만 사용됨.
+
+		ListenServerClient* pScriptListenServerClient = m_hScriptListenServerClient.ToPtr();
+
+		// 사격 이벤트는 UNRELIABLE, 나머지 이벤트는 RELIABLE 채널로 송신.
+		ENetPacket* pNtfyPktWeaponEvent = enet_packet_create(&ntfy, sizeof(ntfy), ENET_PACKET_FLAG_RELIABLE);
+		if (!pScriptListenServerClient->SendPacket(pNtfyPktWeaponEvent))
+		{
+			enet_packet_destroy(pNtfyPktWeaponEvent);
+			pNtfyPktWeaponEvent = nullptr;
+		}
+	}
+}
+
+void Player::ReloadWeapon()
+{
+	if (m_currWeaponSlot == WeaponSlot::Unknown)
+		return;
+
+	Weapon* pScriptCurrWeapon = m_hScriptWeapon[static_cast<size_t>(m_currWeaponSlot)].ToPtr();
+	if (!pScriptCurrWeapon->CanReload())
+		return;
+
+	pScriptCurrWeapon->Reload();
+
+	LSCSNotifyGamePlayerWeaponEvent ntfy;
+	ntfy.m_protocol = LSProtocol::CS_NOTIFY_GAME_PLAYER_WEAPON_EVENT;
+	ntfy.m_action = WeaponAction::Reload;
+	ntfy.m_slot = m_currWeaponSlot;	// m_slot 멤버 필드는 Draw Weapon Event인 경우에만 사용되지만 참고용으로 전달.
+
+	ListenServerClient* pScriptListenServerClient = m_hScriptListenServerClient.ToPtr();
+
+	// 사격 이벤트는 UNRELIABLE, 나머지 이벤트는 RELIABLE 채널로 송신.
+	ENetPacket* pNtfyPktWeaponEvent = enet_packet_create(&ntfy, sizeof(ntfy), ENET_PACKET_FLAG_RELIABLE);
+	if (!pScriptListenServerClient->SendPacket(pNtfyPktWeaponEvent))
+	{
+		enet_packet_destroy(pNtfyPktWeaponEvent);
+		pNtfyPktWeaponEvent = nullptr;
+	}
+}
+
+void Player::FireWeapon()
+{
+	if (m_currWeaponSlot == WeaponSlot::Unknown)
+		return;
+
+	Weapon* pScriptCurrWeapon = m_hScriptWeapon[static_cast<size_t>(m_currWeaponSlot)].ToPtr();
+	if (!pScriptCurrWeapon->CanFire())
+		return;
+
+	pScriptCurrWeapon->Fire();
+
+	LSCSNotifyGamePlayerWeaponEvent ntfy;
+	ntfy.m_protocol = LSProtocol::CS_NOTIFY_GAME_PLAYER_WEAPON_EVENT;
+	ntfy.m_action = WeaponAction::Fire;
+	ntfy.m_slot = m_currWeaponSlot;	// m_slot 멤버 필드는 Draw Weapon Event인 경우에만 사용되지만 참고용으로 전달.
+
+	ListenServerClient* pScriptListenServerClient = m_hScriptListenServerClient.ToPtr();
+
+	// 사격 이벤트는 UNRELIABLE, 나머지 이벤트는 RELIABLE 채널로 송신.
+	ENetPacket* pNtfyPktWeaponEvent = enet_packet_create(&ntfy, sizeof(ntfy), ENET_PACKET_FLAG_RELIABLE);
+	if (!pScriptListenServerClient->SendPacket(pNtfyPktWeaponEvent))
+	{
+		enet_packet_destroy(pNtfyPktWeaponEvent);
+		pNtfyPktWeaponEvent = nullptr;
+	}
+}
+
+WeaponCode Player::GetCurrentWeaponCode() const
+{
+	if (m_currWeaponSlot < WeaponSlot::Count)
+		return m_hScriptWeapon[static_cast<size_t>(m_currWeaponSlot)].ToPtr()->GetWeaponCode();
+	else
+		return WeaponCode::Unknown;
+}
+
+void Player::OnDead(float respawnTime)
+{
+	GameUIManager* pScriptGameUIManager = m_hScriptGameUIManager.ToPtr();
+	// pScriptGameUIManager->ShowRespawnUI(respawnTime);
+
+	this->SetProcessingInput(false);
+
+	m_currWeaponSlot = WeaponSlot::Unknown;
+}
+
 void Player::OnRespawn(const XMFLOAT3& pos, const XMFLOAT4& rot, float camRotX)
 {
+	GameUIManager* pScriptGameUIManager = m_hScriptGameUIManager.ToPtr();
+	// pScriptGameUIManager->HideRespawnUI();
+
 	m_pGameObject->m_transform.SetPosition(pos);
 	m_pGameObject->m_transform.SetRotationQuaternion(rot);
-
+	
 	GameObject* pGameObjCamera = m_hGameObjectCamera.ToPtr();
 	pGameObjCamera->m_transform.SetRotationEuler(camRotX, 0.0f, 0.0f);
+
+	this->DrawWeapon(WeaponSlot::Secondary);	// 리스폰 시 보조무기를 들고 시작.
 
 	this->SetProcessingInput(true);
 }
 
-void Player::GetTransform(XMFLOAT3& pos, XMFLOAT4& rot) const
+void Player::BroadcastTransform() const
 {
-	XMStoreFloat3(&pos, m_pGameObject->m_transform.GetWorldPosition());
-	XMStoreFloat4(&rot, m_pGameObject->m_transform.GetWorldRotation());
-}
+	LSCSNotifyGamePlayerTransform ntfyTransform;
+	ntfyTransform.m_protocol = LSProtocol::CS_NOTIFY_GAME_PLAYER_TRANSFORM;
 
-float Player::GetCameraRotationEulerX() const
-{
+	
+	ntfyTransform.m_x = m_pGameObject->m_transform.GetPositionX();
+	ntfyTransform.m_y = m_pGameObject->m_transform.GetPositionY();
+	ntfyTransform.m_z = m_pGameObject->m_transform.GetPositionZ();
+	ntfyTransform.m_rx = m_pGameObject->m_transform.GetRotationX();
+	ntfyTransform.m_ry = m_pGameObject->m_transform.GetRotationY();
+	ntfyTransform.m_rz = m_pGameObject->m_transform.GetRotationZ();
+	ntfyTransform.m_rw = m_pGameObject->m_transform.GetRotationW();
+
 	GameObject* pGameObjCamera = m_hGameObjectCamera.ToPtr();
+	const XMVECTOR rotEuler = Math::QuaternionToEulerNormal(pGameObjCamera->m_transform.GetRotation());
+	ntfyTransform.m_camRotX = XMVectorGetX(rotEuler);
 
-	XMVECTOR vRotEuler = Math::QuaternionToEulerNormal(pGameObjCamera->m_transform.GetRotation());	// 카메라의 X축 회전값만 얻으면 되므로 로컬 회전만으로 충분하다.
-	return XMVectorGetX(vRotEuler);
-}
-
-void Player::SetCameraRotationX(float x)
-{
-	m_hGameObjectCamera.ToPtr()->m_transform.SetRotationEuler(x, 0.0f, 0.0f);
+	ENetPacket* pNtfyPktTransform = enet_packet_create(&ntfyTransform, sizeof(ntfyTransform), 0);
+	ListenServerClient* pScriptListenServerClient = m_hScriptListenServerClient.ToPtr();
+	if (!pScriptListenServerClient->SendPacket(pNtfyPktTransform))
+	{
+		enet_packet_destroy(pNtfyPktTransform);
+		pNtfyPktTransform = nullptr;
+	}
 }

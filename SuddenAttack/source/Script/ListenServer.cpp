@@ -144,6 +144,12 @@ void ListenServer::OnReceive(ENetPeer* pPeer, uint8_t channelId, const ENetPacke
 			else
 				OnCSReqChat(reinterpret_cast<const LSCSReqChat*>(pPacket->data), pPeer);
 			break;
+		case LSProtocol::CS_NOTIFY_GAME_PLAYER_WEAPON_EVENT:
+			if (packetSize != sizeof(LSCSNotifyGamePlayerWeaponEvent))
+				enet_peer_disconnect_now(pPeer, 0);		// 즉시 연결 종료
+			else
+				OnCSNotifyGamePlayerWeaponEvent(reinterpret_cast<const LSCSNotifyGamePlayerWeaponEvent*>(pPacket->data), pPeer);
+			break;
 		case LSProtocol::CS_NOTIFY_GAME_PLAYER_TRANSFORM:
 			if (packetSize != sizeof(LSCSNotifyGamePlayerTransform))
 				enet_peer_disconnect_now(pPeer, 0);		// 즉시 연결 종료
@@ -151,7 +157,7 @@ void ListenServer::OnReceive(ENetPeer* pPeer, uint8_t channelId, const ENetPacke
 				OnCSNotifyGamePlayerTransform(reinterpret_cast<const LSCSNotifyGamePlayerTransform*>(pPacket->data), pPeer);
 			break;
 		default:
-			// ...
+			wprintf(L"Invalid protocol type packet has been arrived: %u.\n", static_cast<uint32_t>(protocol));
 			break;
 		}
 	}
@@ -364,7 +370,7 @@ void ListenServer::OnCSReqAuth(const LSCSReqAuth* pPacket, ENetPeer* pRequester)
 
 	// 0. GamePlayerInfo 생성
 	std::unique_ptr<LSGamePlayerInfo> upNewLSGamePlayerInfo = std::make_unique<LSGamePlayerInfo>(pPacket->m_accountId);
-	const LSGamePlayerInfo* const pNewLsGamePlayerInfo = upNewLSGamePlayerInfo.get();
+	const LSGamePlayerInfo* const pNewLSGamePlayerInfo = upNewLSGamePlayerInfo.get();	// move 전에 포인터 획득해두기
 	upNewLSGamePlayerInfo->m_nicknameLen = pPacket->m_nicknameLen;
 	wmemcpy(upNewLSGamePlayerInfo->m_nickname, pPacket->m_nickname, pPacket->m_nicknameLen);
 	upNewLSGamePlayerInfo->m_nickname[pPacket->m_nicknameLen] = L'\0';
@@ -374,6 +380,9 @@ void ListenServer::OnCSReqAuth(const LSCSReqAuth* pPacket, ENetPeer* pRequester)
 	upNewLSGamePlayerInfo->m_death = 0;
 	upNewLSGamePlayerInfo->m_ping = 0;
 	upNewLSGamePlayerInfo->m_state = InGamePlayerState::Dead;	// 최초 상태는 Dead
+	upNewLSGamePlayerInfo->m_weaponCodes[static_cast<size_t>(WeaponSlot::Primary)] = WeaponCode::M16;
+	upNewLSGamePlayerInfo->m_weaponCodes[static_cast<size_t>(WeaponSlot::Secondary)] = WeaponCode::USP;
+	upNewLSGamePlayerInfo->m_currWeapon = WeaponSlot::Secondary;
 	upNewLSGamePlayerInfo->m_respawnRemainingTime = 0.0f;
 
 	m_peers[pRequester] = std::move(upNewLSGamePlayerInfo);
@@ -405,7 +414,7 @@ void ListenServer::OnCSReqAuth(const LSCSReqAuth* pPacket, ENetPeer* pRequester)
 	ntfyPlayerJoined.m_kill = 0;
 	ntfyPlayerJoined.m_death = 0;
 	ntfyPlayerJoined.m_ping = 0;
-	ntfyPlayerJoined.m_state = pNewLsGamePlayerInfo->m_state;
+	ntfyPlayerJoined.m_state = pNewLSGamePlayerInfo->m_state;
 	ntfyPlayerJoined.m_x = 0.0f;
 	ntfyPlayerJoined.m_y = 0.0f;
 	ntfyPlayerJoined.m_z = 0.0f;
@@ -414,10 +423,16 @@ void ListenServer::OnCSReqAuth(const LSCSReqAuth* pPacket, ENetPeer* pRequester)
 	ntfyPlayerJoined.m_rz = 0.0f;
 	ntfyPlayerJoined.m_rw = 1.0f;
 	ntfyPlayerJoined.m_camRotX = 0.0f;
+	ntfyPlayerJoined.m_weaponCodes[static_cast<size_t>(WeaponSlot::Primary)] = pNewLSGamePlayerInfo->m_weaponCodes[static_cast<size_t>(WeaponSlot::Primary)];
+	ntfyPlayerJoined.m_weaponCodes[static_cast<size_t>(WeaponSlot::Secondary)] = pNewLSGamePlayerInfo->m_weaponCodes[static_cast<size_t>(WeaponSlot::Secondary)];
+	ntfyPlayerJoined.m_currWeapon = pNewLSGamePlayerInfo->m_currWeapon;
 
 	ENetPacket* pNtfyPktPlayerJoined = enet_packet_create(&ntfyPlayerJoined, sizeof(ntfyPlayerJoined), ENET_PACKET_FLAG_RELIABLE);
-	assert(pNtfyPktPlayerJoined);
-	BroadcastPacketExcept(pNtfyPktPlayerJoined, pRequester);
+	if (BroadcastPacketExcept(pNtfyPktPlayerJoined, pRequester) == 0)
+	{
+		enet_packet_destroy(pNtfyPktPlayerJoined);
+		pNtfyPktPlayerJoined = nullptr;
+	}
 
 	// 3. 새로 입장하는 클라이언트에게 기존 플레이어들의 정보 전송
 	size_t numOfOtherPlayers = 0;
@@ -451,6 +466,10 @@ void ListenServer::OnCSReqAuth(const LSCSReqAuth* pPacket, ENetPeer* pRequester)
 		ntfyPlayerInfo.m_death = pOtherPlayer->m_death;
 		ntfyPlayerInfo.m_ping = pOtherPlayer->m_ping;
 		ntfyPlayerInfo.m_state = pOtherPlayer->m_state;
+		ntfyPlayerInfo.m_weaponCodes[static_cast<size_t>(WeaponSlot::Primary)] = pOtherPlayer->m_weaponCodes[static_cast<size_t>(WeaponSlot::Primary)];
+		ntfyPlayerInfo.m_weaponCodes[static_cast<size_t>(WeaponSlot::Secondary)] = pOtherPlayer->m_weaponCodes[static_cast<size_t>(WeaponSlot::Secondary)];
+		ntfyPlayerInfo.m_currWeapon = pOtherPlayer->m_currWeapon;
+		// 테스트 코드(랜덤 위치에 있다고 알려주기) -> 근데 나중에는 서버에서 위치 추적하고 있어야 할듯. 그래야 정보를 보내준다.
 		if (pOtherPlayer->m_state == InGamePlayerState::Alive)
 		{
 			int r[3] = { rand() & 1, rand() & 1, rand() & 1 };
@@ -509,6 +528,30 @@ void ListenServer::OnCSReqChat(const LSCSReqChat* pPacket, ENetPeer* pRequester)
 	}
 }
 
+void ListenServer::OnCSNotifyGamePlayerWeaponEvent(const LSCSNotifyGamePlayerWeaponEvent* pPacket, ENetPeer* pRequester)
+{
+	const auto iter = m_peers.find(pRequester);
+	if (iter == m_peers.cend())
+	{
+		enet_peer_disconnect(pRequester, 0);
+		return;
+	}
+
+	LSSCNotifyGamePlayerWeaponEvent ntfyWeaponEvent;
+	ntfyWeaponEvent.m_protocol = LSProtocol::SC_NOTIFY_GAME_PLAYER_WEAPON_EVENT;
+	ntfyWeaponEvent.m_accountId = iter->second->m_accountId;	// Requester의 account id를 획득해서 전달.
+	ntfyWeaponEvent.m_action = pPacket->m_action;
+	ntfyWeaponEvent.m_slot = pPacket->m_slot;
+
+	ENetPacket* pNtfyPktWeaponEvent = enet_packet_create(&ntfyWeaponEvent, sizeof(ntfyWeaponEvent), 0);
+	if (BroadcastPacketExcept(pNtfyPktWeaponEvent, pRequester) == 0)
+	{
+		enet_packet_destroy(pNtfyPktWeaponEvent);
+		pNtfyPktWeaponEvent = nullptr;
+		return;
+	}
+}
+
 void ListenServer::OnCSNotifyGamePlayerTransform(const LSCSNotifyGamePlayerTransform* pPacket, ENetPeer* pRequester)
 {
 	const auto iter = m_peers.find(pRequester);
@@ -531,5 +574,10 @@ void ListenServer::OnCSNotifyGamePlayerTransform(const LSCSNotifyGamePlayerTrans
 	ntfyTransform.m_camRotX = pPacket->m_camRotX;
 
 	ENetPacket* pNtfyPktTransform = enet_packet_create(&ntfyTransform, sizeof(ntfyTransform), 0);
-	BroadcastPacketExcept(pNtfyPktTransform, pRequester);
+	if (BroadcastPacketExcept(pNtfyPktTransform, pRequester) == 0)
+	{
+		enet_packet_destroy(pNtfyPktTransform);
+		pNtfyPktTransform = nullptr;
+		return;
+	}
 }

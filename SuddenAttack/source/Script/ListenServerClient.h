@@ -24,13 +24,12 @@ public:
 
 	void OnConnect(ENetPeer* pPeer);
 	void OnReceive(ENetPeer* pPeer, uint8_t channelId, const ENetPacket* pPacket);
-	void OnDisconnect(ENetPeer* pPeer);
 
 	void SetStartupInfo(uint32_t serverIP, uint16_t serverPort);
 	void StartClient();
 	void CloseClient();
 
-	bool SendPacket(ENetPeer* pPeer, ENetPacket* pPacket) const;
+	bool SendPacket(ENetPacket* pPacket) const;
 
 	void SetGameResourcesScriptHandle(ze::ComponentHandle<GameResources> hScript) { m_hScriptGameResources = hScript; }
 	void SetNetworkScriptHandle(ze::ComponentHandle<Network> hScript) { m_hScriptNetwork = hScript; }
@@ -43,6 +42,7 @@ private:
 	void OnSCNotifyGamePlayerJoined(const LSSCNotifyGamePlayerJoined* pPacket);
 	void OnSCNotifyGamePlayerExit(const LSSCNotifyGamePlayerExit* pPacket);
 	void OnSCNotifyGamePlayerInfo(const LSSCNotifyGamePlayerInfo* pPacket);
+	void OnSCNotifyGamePlayerWeaponEvent(const LSSCNotifyGamePlayerWeaponEvent* pPacket);
 	void OnSCNotifyGamePlayerTransform(const LSSCNotifyGamePlayerTransform* pPacket);
 	void OnSCNotifyGamePlayerRespawn(const LSSCNotifyGamePlayerRespawn* pPacket);
 private:

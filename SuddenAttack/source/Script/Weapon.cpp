@@ -63,7 +63,7 @@ void Weapon::Update()
 					// 
 					// 1. 사운드 처리
 					const auto iter = m_spWeaponDef->m_weaponSounds.find(item.second);
-					if (iter != m_spWeaponDef->m_weaponSounds.end())
+					if (iter != m_spWeaponDef->m_weaponSounds.cend())
 					{
 						if (iter->second)
 							iter->second->Play();
@@ -84,7 +84,7 @@ void Weapon::Update()
 			break;
 		case WeaponAction::Reload:
 			if (m_actionDuration <= m_actionElapsed)
-				this->OnReloadFinished();
+				this->OnReloadFinish();
 			break;
 		case WeaponAction::Fire:
 			m_fireCoolTime = (std::max)(m_fireCoolTime - dt, 0.0f);
@@ -204,7 +204,15 @@ void Weapon::Undraw()
 	pGameUIManager->ClearTextWeaponName();
 }
 
-void Weapon::OnReloadFinished()
+WeaponCode Weapon::GetWeaponCode() const
+{
+	if (!m_spWeaponDef)
+		return WeaponCode::Unknown;
+	else
+		return m_spWeaponDef->GetCode();
+}
+
+void Weapon::OnReloadFinish()
 {
 	const int32_t needed = m_spWeaponDef->GetMagCapacity() - m_ammoInMag;
 	assert(needed > 0);
@@ -244,8 +252,8 @@ void Weapon::PlayAnim(WeaponAction action, bool loop)
 	if (!m_spWeaponDef)
 		return;
 
-	const auto actionAnimsIter = m_spWeaponDef->m_actionAnims.find(action);
-	if (actionAnimsIter != m_spWeaponDef->m_actionAnims.end())
+	const auto actionAnimsIter = m_spWeaponDef->m_pvAnims.find(action);
+	if (actionAnimsIter != m_spWeaponDef->m_pvAnims.end())
 	{
 		m_hWeaponMeshRenderer.ToPtr()->PlayAnimation(actionAnimsIter->second.first, loop);
 		m_hArmsMeshRenderer.ToPtr()->PlayAnimation(actionAnimsIter->second.second, loop);

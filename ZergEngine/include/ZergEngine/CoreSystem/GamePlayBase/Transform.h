@@ -145,6 +145,12 @@ namespace ze
 		void SetPositionY(FLOAT y) { m_position.y = y; }
 		void SetPositionZ(FLOAT z) { m_position.z = z; }
 
+		FLOAT GetRotationX() const { return m_rotation.x; }
+		FLOAT GetRotationY() const { return m_rotation.y; }
+		FLOAT GetRotationZ() const { return m_rotation.z; }
+		FLOAT GetRotationW() const { return m_rotation.w; }
+
+
 		Transform* GetParent() const { return m_pParent; }
 		bool SetParent(Transform* pTransform);	// 부모로 설정할 오브젝트의 Transform을 인수로 전달받습니다.
 		bool IsDescendantOf(Transform* pTransform) const;

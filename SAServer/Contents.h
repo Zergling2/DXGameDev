@@ -86,3 +86,12 @@ enum class WeaponCode
 
 	Unknown
 };
+
+enum class WeaponSlot : uint8_t
+{
+	Primary,
+	Secondary,
+
+	Count,
+	Unknown = Count
+};

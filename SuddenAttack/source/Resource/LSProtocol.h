@@ -4,12 +4,14 @@
 
 #include "Constants.h"
 #include "Contents.h"
+#include "WeaponAction.h"
 #include <cstdint>
 
 enum class LSProtocol : uint32_t
 {
 	CS_REQ_AUTH,
 	CS_REQ_CHAT,
+	CS_NOTIFY_GAME_PLAYER_WEAPON_EVENT,	// Draw, Fire, Reload
 	CS_NOTIFY_GAME_PLAYER_TRANSFORM,
 
 	SC_RES_AUTH_RESULT,
@@ -20,7 +22,7 @@ enum class LSProtocol : uint32_t
 	SC_NOTIFY_GAME_PLAYER_INFO,			// 먼저 들어와있던 클라이언트의 정보들을 알려주는 용도.
 	SC_NOTIFY_GAME_PLAYER_KILL,			// 킬 이벤트는 사망 정보를 암시적으로 내포
 	SC_NOTIFY_GAME_PLAYER_DEAD,
-	SC_NOTIFY_GAME_PLAYER_WEAPON_EVENT,	// DRAW, FIRE, RELOAD, ...
+	SC_NOTIFY_GAME_PLAYER_WEAPON_EVENT,	// Draw, Fire, Reload...
 	SC_NOTIFY_GAME_PLAYER_TRANSFORM,	// 캐릭터 월드 트랜스폼 & 카메라 트랜스폼(위를 바라보는지 아래를 바라보는지 참고 & Additive Blending 수행)
 	// SC_NOTIFY_DEAD,		// SC_NOTIFY_PLAYER_DEATH로 정보 대체 (자기 자신일 시 예외 처리 등)
 	// SC_NOTIFY_PLAYER_DROP_WEAPON,
@@ -65,6 +67,12 @@ struct LSCSNotifyGamePlayerTransform : public LSPacketBase
 	float m_camRotX;
 };
 
+struct LSCSNotifyGamePlayerWeaponEvent : public LSPacketBase
+{
+	WeaponAction m_action;
+	WeaponSlot m_slot;
+};
+
 struct LSSCResAuthResult : public LSPacketBase
 {
 	bool m_result;
@@ -101,6 +109,8 @@ struct LSSCNotifyGamePlayerJoined : public LSPacketBase
 	float m_rz;
 	float m_rw;
 	float m_camRotX;
+	WeaponCode m_weaponCodes[static_cast<size_t>(WeaponSlot::Count)];
+	WeaponSlot m_currWeapon;
 };
 
 struct LSSCNotifyGamePlayerExit : public LSPacketBase
@@ -127,13 +137,15 @@ struct LSSCNotifyGamePlayerInfo : public LSPacketBase
 	float m_rz;
 	float m_rw;
 	float m_camRotX;
+	WeaponCode m_weaponCodes[static_cast<size_t>(WeaponSlot::Count)];	// 장착중인 무기
+	WeaponSlot m_currWeapon;
 };
 
 struct LSSCNotifyGamePlayerKill : public LSPacketBase
 {
 	uint32_t m_killerAccountId;
 	uint32_t m_deaderAccountId;
-	WeaponCode m_weapon;
+	WeaponCode m_weaponCode;
 };
 
 struct LSSCNotifyGamePlayerDead : public LSPacketBase
@@ -152,7 +164,7 @@ enum class LSNotifyWeaponEventType : uint8_t
 struct LSSCNotifyWeaponEvent : public LSPacketBase
 {
 	LSNotifyWeaponEventType m_type;
-	WeaponCode m_weapon;
+	WeaponCode m_weaponCode;
 };
 
 struct LSSCNotifyGamePlayerTransform : public LSPacketBase
@@ -166,6 +178,13 @@ struct LSSCNotifyGamePlayerTransform : public LSPacketBase
 	float m_rz;
 	float m_rw;
 	float m_camRotX;
+};
+
+struct LSSCNotifyGamePlayerWeaponEvent : public LSPacketBase
+{
+	uint32_t m_accountId;
+	WeaponAction m_action;
+	WeaponSlot m_slot;
 };
 
 struct LSSCNotifyStartRespawn : public LSPacketBase

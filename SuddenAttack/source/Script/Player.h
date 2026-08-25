@@ -5,19 +5,9 @@
 
 class GameResources;
 class GameUIManager;
+class ListenServerClient;
 class ArmsViewInfo;
 class Weapon;
-
-enum class WeaponSlot
-{
-	Primary,
-	Secondary,
-	Melee,
-	Utility,
-
-	Count,
-	Unknown = Count
-};
 
 class Player : public ze::MonoBehaviour
 {
@@ -36,15 +26,19 @@ public:
 	void SetProcessingInput(bool b) { m_processingInput = b; }
 	void SetArmsView(const ArmsViewInfo* pArmsViewInfo);
 
+	void DrawWeapon(WeaponSlot slot);
+	void ReloadWeapon();
+	void FireWeapon();
+	WeaponCode GetCurrentWeaponCode() const;
+
+	void OnDead(float respawnTime);
 	void OnRespawn(const XMFLOAT3& pos, const XMFLOAT4& rot, float camRotX);
 
-	void GetTransform(XMFLOAT3& pos, XMFLOAT4& rot) const;
-	float GetCameraRotationEulerX() const;
-	void SetTransform(const XMFLOAT3& pos, const XMFLOAT4& rot);
-	void SetCameraRotationX(float x);
+	void BroadcastTransform() const;
 private:
 	bool m_processingInput;
 	bool m_isStand;
+	bool m_prevIsMoving;
 	bool m_isMoving;
 	bool m_isGround;
 	float m_jumpCoolTime;
@@ -63,6 +57,7 @@ public:
 	ze::GameObjectHandle m_hGameObjectCamera;
 	ze::ComponentHandle<GameResources> m_hScriptGameResources;
 	ze::ComponentHandle<GameUIManager> m_hScriptGameUIManager;
+	ze::ComponentHandle<ListenServerClient> m_hScriptListenServerClient;
 
 	ze::ComponentHandle<ze::Camera> m_hCamera;
 	ze::ComponentHandle<ze::CharacterController> m_hCharacterController;

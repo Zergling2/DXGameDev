@@ -47,7 +47,8 @@ public:
 		, m_spTVMesh()
 		, m_materials()
 		, m_previewImage()
-		, m_actionAnims()
+		, m_pvAnims()
+		, m_tvAnims()
 		, m_weaponSounds()
 	{
 	}
@@ -80,6 +81,7 @@ public:
 	std::shared_ptr<ze::StaticMesh> m_spTVMesh;
 	std::vector<std::shared_ptr<ze::Material>> m_materials;
 	ze::Texture2D m_previewImage;
-	std::unordered_map<WeaponAction, std::pair<std::string, std::string>> m_actionAnims;	// pair(weapon anim name, arms anim name)
+	std::unordered_map<WeaponAction, std::pair<std::string, std::string>> m_pvAnims;	// pair(weapon anim name, arms anim name)
+	std::unordered_map<WeaponAction, std::string> m_tvAnims;	// tpc anim name
 	std::unordered_map<WeaponEvent, std::shared_ptr<ze::AudioClip>> m_weaponSounds;
 };
