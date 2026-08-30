@@ -3,6 +3,7 @@
 #include <ZergEngine\ZergEngine.h>
 #include "Contents.h"
 #include "..\Resource\WeaponAction.h"
+#include "..\Resource\MovementType.h"
 
 class WeaponDefinition;
 class GameResources;
@@ -35,12 +36,14 @@ public:
 	void OnDead(WeaponAction deadAction);
 	void OnDeadIdle(float exceed, WeaponAction deathAction);
 	void OnRespawn(const XMFLOAT3& pos, const XMFLOAT4& rot, float camRotX);
-	void OnTransform(const XMFLOAT3& pos, const XMFLOAT4& rot, float camRotX);
+	void OnTransform(const XMFLOAT3& pos, const XMFLOAT4& rot, float camRotX, MovementType type);
 	void ActivateCharacterColliderAndHitbox();
 	void DeactivateCharacterColliderAndHitbox();
 
 	// void UpdateWeaponBaseTransform();	// deprecated
 	void UpdateTVWeaponBaseAndHitboxTransforms();
+
+	GameTeam GetTeam() const { return m_team; }
 private:
 	void PlayWeaponAnimation(WeaponAction action, bool loop);
 	void PlayDeathAnimation(WeaponAction deathAction, bool loop);
@@ -107,4 +110,8 @@ private:
 	size_t m_eventIndexCursor;
 	float m_actionDuration;
 	float m_actionElapsed;
+
+	bool m_isDead;
+	GameTeam m_team;
+	MovementType m_prevMoveType;
 };

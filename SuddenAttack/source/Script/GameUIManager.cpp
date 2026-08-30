@@ -154,12 +154,11 @@ GameUIManager::GameUIManager(ze::GameObject& owner)
 	, m_pUIState(nullptr)
 	, m_activeRespawnUI(false)
 	, m_respawnRemainingTime(0.0f)
-	, m_redTeamPlayersCount(0)
-	, m_blueTeamPlayersCount(0)
+	, m_numOfPlayers{}
 	, m_chatMsgCount(0)
 {
-	ZeroMemory(&m_scoreboardRedTeamPlayersNetId, sizeof(m_scoreboardRedTeamPlayersNetId));
-	ZeroMemory(&m_scoreboardBlueTeamPlayersNetId, sizeof(m_scoreboardBlueTeamPlayersNetId));
+	m_scoreboardPlayerAccountId[static_cast<size_t>(GameTeam::RedTeam)].reserve(MAX_PLAYERS_PER_TEAM);
+	m_scoreboardPlayerAccountId[static_cast<size_t>(GameTeam::BlueTeam)].reserve(MAX_PLAYERS_PER_TEAM);
 }
 
 void GameUIManager::Awake()
@@ -286,21 +285,26 @@ void GameUIManager::Awake()
 	Text* pTextScoreboardTitle = static_cast<Text*>(hTextScoreboardTitle.ToPtr());
 	pTextScoreboardTitle->m_transform.SetParent(&pPanelScoreboardRoot->m_transform);
 	pTextScoreboardTitle->SetSize(300, 40);
-	pTextScoreboardTitle->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+	pTextScoreboardTitle->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pTextScoreboardTitle->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 	pTextScoreboardTitle->GetTextFormat().SetSize(32);
 	pTextScoreboardTitle->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
 	pTextScoreboardTitle->ApplyTextFormat();
-	pTextScoreboardTitle->m_transform.SetPosition(0, SCOREBOARD_SIZE.y / 2 - 80);
+	pTextScoreboardTitle->m_transform.SetPosition(0, SCOREBOARD_SIZE.y / 2 - 40);
 	pTextScoreboardTitle->SetColor(ColorsLinear::Gold);
 	pTextScoreboardTitle->SetText(L"SCOREBOARD");
 
 	constexpr XMFLOAT2 TEAM_PANEL_SIZE(SCOREBOARD_SIZE.x / 2 - 10, 26);
-	constexpr XMFLOAT2 RED_TEAM_PANEL_OFFSET(-SCOREBOARD_SIZE.x / 2 + TEAM_PANEL_SIZE.x / 2 + 7, +SCOREBOARD_SIZE.y / 2 - 120);
+	constexpr XMFLOAT2 TEAM_PANEL_OFFSET[static_cast<size_t>(GameTeam::Count)] =
+	{
+		XMFLOAT2(-SCOREBOARD_SIZE.x / 2 + TEAM_PANEL_SIZE.x / 2 + 7, +SCOREBOARD_SIZE.y / 2 - 120),
+		XMFLOAT2(+SCOREBOARD_SIZE.x / 2 - TEAM_PANEL_SIZE.x / 2 - 7, +SCOREBOARD_SIZE.y / 2 - 120)
+	};
+
 	UIObjectHandle hPanelRedTeamPanel = Runtime::GetInstance()->CreatePanel();
 	Panel* pPanelRedTeamPanel = static_cast<Panel*>(hPanelRedTeamPanel.ToPtr());
 	pPanelRedTeamPanel->m_transform.SetParent(&pPanelScoreboardRoot->m_transform);
-	pPanelRedTeamPanel->m_transform.SetPosition(RED_TEAM_PANEL_OFFSET);
+	pPanelRedTeamPanel->m_transform.SetPosition(TEAM_PANEL_OFFSET[static_cast<size_t>(GameTeam::RedTeam)]);
 	pPanelRedTeamPanel->SetSize(TEAM_PANEL_SIZE);
 	pPanelRedTeamPanel->SetColor(ColorsLinear::Red);
 	pPanelRedTeamPanel->SetColorA(0.4f);
@@ -310,7 +314,7 @@ void GameUIManager::Awake()
 	UIObjectHandle hTextRedTeamPanel = Runtime::GetInstance()->CreateText();
 	Text* pTextRedTeamPanel = static_cast<Text*>(hTextRedTeamPanel.ToPtr());
 	pTextRedTeamPanel->m_transform.SetParent(&pPanelRedTeamPanel->m_transform);
-	pTextRedTeamPanel->m_transform.SetPosition(RED_TEAM_PANEL_OFFSET);
+	pTextRedTeamPanel->m_transform.SetPosition(TEAM_PANEL_OFFSET[static_cast<size_t>(GameTeam::RedTeam)]);
 	pTextRedTeamPanel->SetSize(TEAM_PANEL_TEXT_SIZE);
 	pTextRedTeamPanel->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 	pTextRedTeamPanel->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
@@ -319,11 +323,11 @@ void GameUIManager::Awake()
 	pTextRedTeamPanel->ApplyTextFormat();
 	pTextRedTeamPanel->SetText(L"RED TEAM");
 
-	constexpr XMFLOAT2 BLUE_TEAM_PANEL_OFFSET(+SCOREBOARD_SIZE.x / 2 - TEAM_PANEL_SIZE.x / 2 - 7, RED_TEAM_PANEL_OFFSET.y);
+	
 	UIObjectHandle hPanelBlueTeamPanel = Runtime::GetInstance()->CreatePanel();
 	Panel* pPanelBlueTeamPanel = static_cast<Panel*>(hPanelBlueTeamPanel.ToPtr());
 	pPanelBlueTeamPanel->m_transform.SetParent(&pPanelScoreboardRoot->m_transform);
-	pPanelBlueTeamPanel->m_transform.SetPosition(BLUE_TEAM_PANEL_OFFSET);
+	pPanelBlueTeamPanel->m_transform.SetPosition(TEAM_PANEL_OFFSET[static_cast<size_t>(GameTeam::BlueTeam)]);
 	pPanelBlueTeamPanel->SetSize(TEAM_PANEL_SIZE);
 	pPanelBlueTeamPanel->SetColor(ColorsLinear::Blue);
 	pPanelBlueTeamPanel->SetColorA(0.4f);
@@ -332,7 +336,7 @@ void GameUIManager::Awake()
 	UIObjectHandle hTextBlueTeamPanel = Runtime::GetInstance()->CreateText();
 	Text* pTextBlueTeamPanel = static_cast<Text*>(hTextBlueTeamPanel.ToPtr());
 	pTextBlueTeamPanel->m_transform.SetParent(&pPanelBlueTeamPanel->m_transform);
-	pTextBlueTeamPanel->m_transform.SetPosition(BLUE_TEAM_PANEL_OFFSET);
+	pTextBlueTeamPanel->m_transform.SetPosition(TEAM_PANEL_OFFSET[static_cast<size_t>(GameTeam::BlueTeam)]);
 	pTextBlueTeamPanel->SetSize(TEAM_PANEL_TEXT_SIZE);
 	pTextBlueTeamPanel->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 	pTextBlueTeamPanel->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
@@ -342,44 +346,95 @@ void GameUIManager::Awake()
 	pTextBlueTeamPanel->SetText(L"BLUE TEAM");
 
 	constexpr XMFLOAT2 PLAYER_INFO_COLUMNS_SIZE(TEAM_PANEL_SIZE.x - 10, 20);
-	constexpr XMFLOAT2 RED_TEAM_PLAYER_INFO_COLUMNS_OFFSET(RED_TEAM_PANEL_OFFSET.x, RED_TEAM_PANEL_OFFSET.y - TEAM_PANEL_SIZE.y / 2 - 3 - PLAYER_INFO_COLUMNS_SIZE.y);
+	constexpr XMFLOAT2 PLAYER_INFO_COLUMNS_OFFSET[static_cast<size_t>(GameTeam::Count)] =
+	{
+		XMFLOAT2(TEAM_PANEL_OFFSET[static_cast<size_t>(GameTeam::RedTeam)].x, TEAM_PANEL_OFFSET[static_cast<size_t>(GameTeam::RedTeam)].y - TEAM_PANEL_SIZE.y / 2 - 3 - PLAYER_INFO_COLUMNS_SIZE.y),
+		XMFLOAT2(TEAM_PANEL_OFFSET[static_cast<size_t>(GameTeam::BlueTeam)].x, TEAM_PANEL_OFFSET[static_cast<size_t>(GameTeam::BlueTeam)].y - TEAM_PANEL_SIZE.y / 2 - 3 - PLAYER_INFO_COLUMNS_SIZE.y)
+	};
 	UIObjectHandle hTextScoreboardRedTeamColumns = Runtime::GetInstance()->CreateText();
 	Text* pTextScoreboardRedTeamColumns = static_cast<Text*>(hTextScoreboardRedTeamColumns.ToPtr());
 	pTextScoreboardRedTeamColumns->m_transform.SetParent(&pPanelScoreboardRoot->m_transform);
-	pTextScoreboardRedTeamColumns->m_transform.SetPosition(RED_TEAM_PLAYER_INFO_COLUMNS_OFFSET);
+	pTextScoreboardRedTeamColumns->m_transform.SetPosition(PLAYER_INFO_COLUMNS_OFFSET[static_cast<size_t>(GameTeam::RedTeam)]);
 	pTextScoreboardRedTeamColumns->SetSize(PLAYER_INFO_COLUMNS_SIZE);
 	pTextScoreboardRedTeamColumns->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 	pTextScoreboardRedTeamColumns->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 	pTextScoreboardRedTeamColumns->GetTextFormat().SetSize(14);
 	pTextScoreboardRedTeamColumns->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
 	pTextScoreboardRedTeamColumns->ApplyTextFormat();
-	pTextScoreboardRedTeamColumns->SetText(L"Lv.\t닉네임\t\t\t\t킬\t데스\t지연시간");
+	pTextScoreboardRedTeamColumns->SetText(L"Lv.\t닉네임\t\t\t\t킬/데스\t지연시간");
 
 	constexpr FLOAT ROW_PITCHES_PER_ITEM = 20;
 	constexpr FLOAT ITEM_ROW_SIZE = 20;
-	constexpr FLOAT FIRST_ITEM_POS_Y = RED_TEAM_PLAYER_INFO_COLUMNS_OFFSET.y - PLAYER_INFO_COLUMNS_SIZE.y / 2 - 10 - ITEM_ROW_SIZE / 2;
+	constexpr FLOAT FIRST_ITEM_POS_Y = PLAYER_INFO_COLUMNS_OFFSET[static_cast<size_t>(GameTeam::RedTeam)].y - PLAYER_INFO_COLUMNS_SIZE.y / 2 - 10 - ITEM_ROW_SIZE / 2;
 	constexpr XMFLOAT2 SCOREBOARD_LEVEL_TEXT_SIZE(60, 20);
-	for (size_t i = 0; i < MAX_PLAYERS_PER_TEAM; ++i)
+	for (size_t i = 0; i < static_cast<size_t>(GameTeam::Count); ++i)
 	{
-		UIObjectHandle hTextScoreboardRedTeamPlayerLevel = Runtime::GetInstance()->CreateText();
-		m_hTextScoreboardRedTeamPlayerLevel[i] = hTextScoreboardRedTeamPlayerLevel;
-		Text* pTextScoreboardRedTeamPlayerLevel = static_cast<Text*>(hTextScoreboardRedTeamPlayerLevel.ToPtr());
-		pTextScoreboardRedTeamPlayerLevel->m_transform.SetParent(&pPanelScoreboardRoot->m_transform);
-		pTextScoreboardRedTeamPlayerLevel->m_transform.SetPosition(RED_TEAM_PANEL_OFFSET.x - TEAM_PANEL_SIZE.x / 2 + SCOREBOARD_LEVEL_TEXT_SIZE.x / 2, FIRST_ITEM_POS_Y - i * (ITEM_ROW_SIZE + ROW_PITCHES_PER_ITEM));
-		pTextScoreboardRedTeamPlayerLevel->SetSize(SCOREBOARD_LEVEL_TEXT_SIZE);
-		pTextScoreboardRedTeamPlayerLevel->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-		pTextScoreboardRedTeamPlayerLevel->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-		pTextScoreboardRedTeamPlayerLevel->GetTextFormat().SetSize(14);
-		pTextScoreboardRedTeamPlayerLevel->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
-		pTextScoreboardRedTeamPlayerLevel->ApplyTextFormat();
-		pTextScoreboardRedTeamPlayerLevel->SetText(L"999");
+		for (size_t j = 0; j < MAX_PLAYERS_PER_TEAM; ++j)
+		{
+			UIObjectHandle hTextScoreboardPlayerLevel = Runtime::GetInstance()->CreateText();
+			m_hTextScoreboardPlayerLevel[i][j] = hTextScoreboardPlayerLevel;
+			Text* pTextScoreboardPlayerLevel = static_cast<Text*>(hTextScoreboardPlayerLevel.ToPtr());
+			pTextScoreboardPlayerLevel->m_transform.SetParent(&pPanelScoreboardRoot->m_transform);
+			pTextScoreboardPlayerLevel->m_transform.SetPosition(TEAM_PANEL_OFFSET[i].x - TEAM_PANEL_SIZE.x / 2 + SCOREBOARD_LEVEL_TEXT_SIZE.x / 2, FIRST_ITEM_POS_Y - i * (ITEM_ROW_SIZE + ROW_PITCHES_PER_ITEM));
+			pTextScoreboardPlayerLevel->SetSize(SCOREBOARD_LEVEL_TEXT_SIZE);
+			pTextScoreboardPlayerLevel->SetColor(ColorsLinear::WhiteSmoke);
+			pTextScoreboardPlayerLevel->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+			pTextScoreboardPlayerLevel->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+			pTextScoreboardPlayerLevel->GetTextFormat().SetSize(14);
+			pTextScoreboardPlayerLevel->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+			pTextScoreboardPlayerLevel->ApplyTextFormat();
+			pTextScoreboardPlayerLevel->SetText(L"123");
+
+
+
+			UIObjectHandle hTextScoreboardPlayerNickname = Runtime::GetInstance()->CreateText();
+			m_hTextScoreboardPlayerNickname[i][j] = hTextScoreboardPlayerNickname;
+			Text* pTextScoreboardPlayerNickname = static_cast<Text*>(hTextScoreboardPlayerNickname.ToPtr());
+			pTextScoreboardPlayerNickname->m_transform.SetParent(&pPanelScoreboardRoot->m_transform);
+			pTextScoreboardPlayerNickname->m_transform.SetPosition(TEAM_PANEL_OFFSET[i].x - TEAM_PANEL_SIZE.x / 2 + SCOREBOARD_LEVEL_TEXT_SIZE.x / 2, FIRST_ITEM_POS_Y - i * (ITEM_ROW_SIZE + ROW_PITCHES_PER_ITEM));
+			pTextScoreboardPlayerNickname->SetSize(SCOREBOARD_LEVEL_TEXT_SIZE);
+			pTextScoreboardPlayerNickname->SetColor(ColorsLinear::WhiteSmoke);
+			pTextScoreboardPlayerNickname->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+			pTextScoreboardPlayerNickname->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+			pTextScoreboardPlayerNickname->GetTextFormat().SetSize(14);
+			pTextScoreboardPlayerNickname->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+			pTextScoreboardPlayerNickname->ApplyTextFormat();
+			pTextScoreboardPlayerNickname->SetText(L"TEST STRING");
+
+			UIObjectHandle hTextScoreboardPlayerKillDeath = Runtime::GetInstance()->CreateText();
+			m_hTextScoreboardPlayerKillDeath[i][j] = hTextScoreboardPlayerKillDeath;
+			Text* pTextScoreboardPlayerKillDeath = static_cast<Text*>(hTextScoreboardPlayerKillDeath.ToPtr());
+			pTextScoreboardPlayerKillDeath->m_transform.SetParent(&pPanelScoreboardRoot->m_transform);
+			pTextScoreboardPlayerKillDeath->m_transform.SetPosition(TEAM_PANEL_OFFSET[i].x - TEAM_PANEL_SIZE.x / 2 + SCOREBOARD_LEVEL_TEXT_SIZE.x / 2, FIRST_ITEM_POS_Y - i * (ITEM_ROW_SIZE + ROW_PITCHES_PER_ITEM));
+			pTextScoreboardPlayerKillDeath->SetSize(SCOREBOARD_LEVEL_TEXT_SIZE);
+			pTextScoreboardPlayerKillDeath->SetColor(ColorsLinear::WhiteSmoke);
+			pTextScoreboardPlayerKillDeath->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+			pTextScoreboardPlayerKillDeath->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+			pTextScoreboardPlayerKillDeath->GetTextFormat().SetSize(14);
+			pTextScoreboardPlayerKillDeath->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+			pTextScoreboardPlayerKillDeath->ApplyTextFormat();
+			pTextScoreboardPlayerKillDeath->SetText(L"5/4");
+
+			UIObjectHandle hTextScoreboardPlayerPing = Runtime::GetInstance()->CreateText();
+			m_hTextScoreboardPlayerPing[i][j] = hTextScoreboardPlayerPing;
+			Text* pTextScoreboardPlayerPing = static_cast<Text*>(hTextScoreboardPlayerPing.ToPtr());
+			pTextScoreboardPlayerPing->m_transform.SetParent(&pPanelScoreboardRoot->m_transform);
+			pTextScoreboardPlayerPing->m_transform.SetPosition(TEAM_PANEL_OFFSET[i].x - TEAM_PANEL_SIZE.x / 2 + SCOREBOARD_LEVEL_TEXT_SIZE.x / 2, FIRST_ITEM_POS_Y - i * (ITEM_ROW_SIZE + ROW_PITCHES_PER_ITEM));
+			pTextScoreboardPlayerPing->SetSize(SCOREBOARD_LEVEL_TEXT_SIZE);
+			pTextScoreboardPlayerPing->SetColor(ColorsLinear::WhiteSmoke);
+			pTextScoreboardPlayerPing->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+			pTextScoreboardPlayerPing->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+			pTextScoreboardPlayerPing->GetTextFormat().SetSize(14);
+			pTextScoreboardPlayerPing->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+			pTextScoreboardPlayerPing->ApplyTextFormat();
+			pTextScoreboardPlayerPing->SetText(L"5");
+		}
 	}
 
-	constexpr XMFLOAT2 BLUE_TEAM_PLAYER_INFO_COLUMNS_OFFSET(RED_TEAM_PANEL_OFFSET.x, RED_TEAM_PANEL_OFFSET.y - TEAM_PANEL_SIZE.y / 2 - 3 - PLAYER_INFO_COLUMNS_SIZE.y);
 	UIObjectHandle hTextScoreboardBlueTeamColumns = Runtime::GetInstance()->CreateText();
 	Text* pTextScoreboardBlueTeamColumns = static_cast<Text*>(hTextScoreboardBlueTeamColumns.ToPtr());
 	pTextScoreboardBlueTeamColumns->m_transform.SetParent(&pPanelScoreboardRoot->m_transform);
-	pTextScoreboardBlueTeamColumns->m_transform.SetPosition(BLUE_TEAM_PLAYER_INFO_COLUMNS_OFFSET);
+	pTextScoreboardBlueTeamColumns->m_transform.SetPosition(PLAYER_INFO_COLUMNS_OFFSET[static_cast<size_t>(GameTeam::BlueTeam)]);
 	pTextScoreboardBlueTeamColumns->SetSize(PLAYER_INFO_COLUMNS_SIZE);
 	pTextScoreboardBlueTeamColumns->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 	pTextScoreboardBlueTeamColumns->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
@@ -395,31 +450,62 @@ void GameUIManager::Awake()
 	UIObjectHandle hPanelMenuRoot = Runtime::GetInstance()->CreatePanel();
 	m_hPanelMenuRoot = hPanelMenuRoot;
 	Panel* pPanelMenuRoot = static_cast<Panel*>(hPanelMenuRoot.ToPtr());
-	pPanelMenuRoot->SetSize(140, 200);
-	pPanelMenuRoot->SetShape(PanelShape::Rectangle);
+	pPanelMenuRoot->SetSize(200, 300);
+	pPanelMenuRoot->SetShape(PanelShape::RoundedRectangle);
 	pPanelMenuRoot->SetColor(Colors::DimGray);
 
 	UIObjectHandle hButtonCloseGameMenu = Runtime::GetInstance()->CreateButton();
 	Button* pButtonCloseGameMenu = static_cast<Button*>(hButtonCloseGameMenu.ToPtr());
 	pButtonCloseGameMenu->m_transform.SetParent(&pPanelMenuRoot->m_transform);
-	pButtonCloseGameMenu->m_transform.SetPosition(55, 85);
 	pButtonCloseGameMenu->SetSize(20, 20);
+	pButtonCloseGameMenu->m_transform.SetPosition(
+		pPanelMenuRoot->GetHalfSizeX() - pButtonCloseGameMenu->GetHalfSizeX() - 5,
+		pPanelMenuRoot->GetHalfSizeY() - pButtonCloseGameMenu->GetHalfSizeY() - 5
+	);
 	pButtonCloseGameMenu->SetText(L"X");
 	pButtonCloseGameMenu->SetButtonColor(ColorsLinear::Red);
 	pButtonCloseGameMenu->SetHandlerOnClick(MakeUIHandler(ComponentHandle<GameUIManager>(this->ToHandle()), &GameUIManager::OnClickCloseGameMenu));
 
-	UIObjectHandle hButtonGameSettings = Runtime::GetInstance()->CreateButton();
-	Button* pButtonGameSettings = static_cast<Button*>(hButtonGameSettings.ToPtr());
-	pButtonGameSettings->m_transform.SetParent(&pPanelMenuRoot->m_transform);
-	pButtonGameSettings->m_transform.SetPosition(0, +40);
-	pButtonGameSettings->SetSize(80, 20);
-	pButtonGameSettings->SetText(L"옵션");
-	// pButtonGameSettings->SetHandlerOnClick(MakeUIHandler(ComponentHandle<GameUIManager>(this->ToHandle()), &GameUIManager::OnClickCloseGameMenu));
+	UIObjectHandle hTextSliderControlPlayerFoV = Runtime::GetInstance()->CreateText();
+	Text* pTextSliderControlPlayerFoV = static_cast<Text*>(hTextSliderControlPlayerFoV.ToPtr());
+	pTextSliderControlPlayerFoV->m_transform.SetParent(&pPanelMenuRoot->m_transform);
+	pTextSliderControlPlayerFoV->m_transform.SetPosition(-70, 80);
+	pTextSliderControlPlayerFoV->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pTextSliderControlPlayerFoV->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pTextSliderControlPlayerFoV->SetText(L"FoV");
+	pTextSliderControlPlayerFoV->SetSize(30, 20);
+
+	UIObjectHandle hSliderControlPlayerFoV = Runtime::GetInstance()->CreateSliderControl();
+	m_hSliderControlPlayerFoV = hSliderControlPlayerFoV;	// 핸들 저장
+	SliderControl* pSliderControlPlayerFoV = static_cast<SliderControl*>(hSliderControlPlayerFoV.ToPtr());
+	pSliderControlPlayerFoV->m_transform.SetParent(&pPanelMenuRoot->m_transform);
+	// pSliderControlPlayerFoV->SetSliderControlType(SliderControlType::Horizontal);	// 기본값
+	pSliderControlPlayerFoV->SetTrackLength(120);
+	pSliderControlPlayerFoV->SetRange(70, 99);
+	pSliderControlPlayerFoV->SetThumbPos(82);
+	pSliderControlPlayerFoV->m_transform.SetPosition(
+		pTextSliderControlPlayerFoV->m_transform.GetPositionX() + pTextSliderControlPlayerFoV->GetHalfSizeX() / 2 + 10 + pSliderControlPlayerFoV->GetTrackLength() / 2,
+		pTextSliderControlPlayerFoV->m_transform.GetPositionY()
+	);
+	pSliderControlPlayerFoV->SetHandlerOnPosChange(MakeUIHandler(ComponentHandle<GameUIManager>(this->ToHandle()), &GameUIManager::OnPosChangePlayerFoV));
+
+	UIObjectHandle hCheckboxDrawDebugInfo = Runtime::GetInstance()->CreateCheckbox();
+	m_hCheckboxDrawDebugInfo = hCheckboxDrawDebugInfo;
+	Checkbox* pCheckboxDrawDebugInfo = static_cast<Checkbox*>(hCheckboxDrawDebugInfo.ToPtr());
+	pCheckboxDrawDebugInfo->m_transform.SetParent(&pPanelMenuRoot->m_transform);
+	pCheckboxDrawDebugInfo->m_transform.SetPosition(60, 0);
+	pCheckboxDrawDebugInfo->SetCheck(Physics::GetInstance()->GetDrawDebugInfo());
+	pCheckboxDrawDebugInfo->SetText(L"콜라이더 디버그 그리기");
+	pCheckboxDrawDebugInfo->SetTextboxSize(150);
+	pCheckboxDrawDebugInfo->SetBoxColor(ColorsLinear::Orange);
+	pCheckboxDrawDebugInfo->SetCheckColor(ColorsLinear::Black);
+	pCheckboxDrawDebugInfo->SetLeftText(true);
+	pCheckboxDrawDebugInfo->SetHandlerOnClick(MakeUIHandler(ComponentHandle<GameUIManager>(this->ToHandle()), &GameUIManager::OnClickDrawDebugInfo));
 
 	UIObjectHandle hButtonExitGame = Runtime::GetInstance()->CreateButton();
 	Button* pButtonExitGame = static_cast<Button*>(hButtonExitGame.ToPtr());
 	pButtonExitGame->m_transform.SetParent(&pPanelMenuRoot->m_transform);
-	pButtonExitGame->m_transform.SetPosition(0, -60);
+	pButtonExitGame->m_transform.SetPosition(0, -70);
 	pButtonExitGame->SetSize(80, 20);
 	pButtonExitGame->SetText(L"나가기");
 	pButtonExitGame->SetHandlerOnClick(MakeUIHandler(ComponentHandle<GameUIManager>(this->ToHandle()), &GameUIManager::OnClickCloseGameMenu));
@@ -441,15 +527,24 @@ void GameUIManager::Awake()
 	pImageCrosshair->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 	pImageCrosshair->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
 
-	UIObjectHandle hImageHealthBackground = Runtime::GetInstance()->CreateImage();
-	m_hImageHealthBackground = hImageHealthBackground;
-	Image* pImageHealthBackground = static_cast<Image*>(hImageHealthBackground.ToPtr());
-	pImageHealthBackground->m_transform.SetParent(&pImageGameUIRoot->m_transform);
-	pImageHealthBackground->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\health.png"));
-	pImageHealthBackground->SetNativeSize(true);
-	pImageHealthBackground->m_transform.SetPosition(pImageHealthBackground->GetHalfSizeX() + 4, pImageHealthBackground->GetHalfSizeY() + 4);
-	pImageHealthBackground->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-	pImageHealthBackground->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
+	UIObjectHandle hImageTeamScore = Runtime::GetInstance()->CreateImage();
+	Image* pImageTeamScore = static_cast<Image*>(hImageTeamScore.ToPtr());
+	pImageTeamScore->m_transform.SetParent(&pImageGameUIRoot->m_transform);
+	pImageTeamScore->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\team_score_indicator.png"));
+	pImageTeamScore->SetNativeSize(true);
+	pImageTeamScore->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pImageTeamScore->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
+	pImageTeamScore->m_transform.SetPosition(0, -pImageTeamScore->GetHalfSizeY() - 4);
+
+	UIObjectHandle hImageHPAPBackground = Runtime::GetInstance()->CreateImage();
+	m_hImageHPAPBackground = hImageHPAPBackground;
+	Image* pImageHPAPBackground = static_cast<Image*>(hImageHPAPBackground.ToPtr());
+	pImageHPAPBackground->m_transform.SetParent(&pImageGameUIRoot->m_transform);
+	pImageHPAPBackground->SetTexture(ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\hpap_indicator.png"));
+	pImageHPAPBackground->SetNativeSize(true);
+	pImageHPAPBackground->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+	pImageHPAPBackground->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
+	pImageHPAPBackground->m_transform.SetPosition(pImageHPAPBackground->GetHalfSizeX() + 4, pImageHPAPBackground->GetHalfSizeY() + 4);
 
 	UIObjectHandle hImageRBUIBackground = Runtime::GetInstance()->CreateImage();
 	m_hImageRBUIBackground = hImageRBUIBackground;
@@ -477,13 +572,67 @@ void GameUIManager::Awake()
 	pTextGameRemainingTime->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
 	pTextGameRemainingTime->ApplyTextFormat();
 
+	UIObjectHandle hTextRedTeamScore = Runtime::GetInstance()->CreateText();
+	m_hTextRedTeamScore = hTextRedTeamScore;
+	Text* pTextRedTeamScore = static_cast<Text*>(hTextRedTeamScore.ToPtr());
+	pTextRedTeamScore->m_transform.SetParent(&pImageTeamScore->m_transform);
+	pTextRedTeamScore->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pTextRedTeamScore->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
+	pTextRedTeamScore->m_transform.SetPosition(pImageTeamScore->m_transform.GetPosition());
+	pTextRedTeamScore->m_transform.TranslateX(-92);
+	pTextRedTeamScore->SetSize(80, 28);
+	pTextRedTeamScore->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pTextRedTeamScore->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pTextRedTeamScore->SetColor(ColorsLinear::WhiteSmoke);
+	pTextRedTeamScore->GetTextFormat().SetSize(20);
+	pTextRedTeamScore->GetTextFormat().SetFontFamilyName(L"Impact");
+	pTextRedTeamScore->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
+	pTextRedTeamScore->ApplyTextFormat();
+	pTextRedTeamScore->SetText(L"000");
+
+	UIObjectHandle hTextTeamScoreGoal = Runtime::GetInstance()->CreateText();
+	m_hTextTeamScoreGoal = hTextTeamScoreGoal;
+	Text* pTextTeamScoreGoal = static_cast<Text*>(hTextTeamScoreGoal.ToPtr());
+	pTextTeamScoreGoal->m_transform.SetParent(&pImageTeamScore->m_transform);
+	pTextTeamScoreGoal->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pTextTeamScoreGoal->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
+	pTextTeamScoreGoal->m_transform.SetPosition(pImageTeamScore->m_transform.GetPosition());
+	pTextTeamScoreGoal->SetSize(80, 28);
+	pTextTeamScoreGoal->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pTextTeamScoreGoal->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pTextTeamScoreGoal->SetColor(ColorsLinear::WhiteSmoke);
+	pTextTeamScoreGoal->GetTextFormat().SetSize(20);
+	pTextTeamScoreGoal->GetTextFormat().SetFontFamilyName(L"Impact");
+	pTextTeamScoreGoal->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
+	pTextTeamScoreGoal->ApplyTextFormat();
+	pTextTeamScoreGoal->SetText(L"100");
+
+	UIObjectHandle hTextBlueTeamScore = Runtime::GetInstance()->CreateText();
+	m_hTextBlueTeamScore = hTextBlueTeamScore;
+	Text* pTextBlueTeamScore = static_cast<Text*>(hTextBlueTeamScore.ToPtr());
+	pTextBlueTeamScore->m_transform.SetParent(&pImageTeamScore->m_transform);
+	pTextBlueTeamScore->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pTextBlueTeamScore->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
+	pTextBlueTeamScore->m_transform.SetPosition(pImageTeamScore->m_transform.GetPosition());
+	pTextBlueTeamScore->m_transform.TranslateX(+92);
+	pTextBlueTeamScore->SetSize(80, 28);
+	pTextBlueTeamScore->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pTextBlueTeamScore->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pTextBlueTeamScore->SetColor(ColorsLinear::WhiteSmoke);
+	pTextBlueTeamScore->GetTextFormat().SetSize(20);
+	pTextBlueTeamScore->GetTextFormat().SetFontFamilyName(L"Impact");
+	pTextBlueTeamScore->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
+	pTextBlueTeamScore->ApplyTextFormat();
+	pTextBlueTeamScore->SetText(L"000");
+
+
 	UIObjectHandle hTextHP = Runtime::GetInstance()->CreateText();
 	m_hTextHP = hTextHP;
 	Text* pTextHP = static_cast<Text*>(hTextHP.ToPtr());
 	pTextHP->m_transform.SetParent(&pImageGameUIRoot->m_transform);
 	pTextHP->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
 	pTextHP->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
-	pTextHP->m_transform.SetPosition(pImageHealthBackground->m_transform.GetPosition());
+	pTextHP->m_transform.SetPosition(pImageHPAPBackground->m_transform.GetPosition());
 	pTextHP->m_transform.TranslateX(-56);
 	pTextHP->SetSize(128, 48);
 	pTextHP->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
@@ -500,7 +649,7 @@ void GameUIManager::Awake()
 	pTextAP->m_transform.SetParent(&pImageGameUIRoot->m_transform);
 	pTextAP->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
 	pTextAP->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
-	pTextAP->m_transform.SetPosition(pImageHealthBackground->m_transform.GetPosition());
+	pTextAP->m_transform.SetPosition(pImageHPAPBackground->m_transform.GetPosition());
 	pTextAP->m_transform.TranslateX(120);
 	pTextAP->SetSize(128, 48);
 	pTextAP->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
@@ -564,18 +713,20 @@ void GameUIManager::Awake()
 	pTextAmmoState->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_ULTRA_BOLD);
 	pTextAmmoState->ApplyTextFormat();
 
-
-
 	UIObjectHandle hTextRespawnIndicator = Runtime::GetInstance()->CreateText();
 	m_hTextRespawnIndicator = hTextRespawnIndicator;
 	Text* pTextRespawnIndicator = static_cast<Text*>(hTextRespawnIndicator.ToPtr());
 	pTextRespawnIndicator->m_transform.SetParent(&pImageGameUIRoot->m_transform);
+	pTextRespawnIndicator->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
+	pTextRespawnIndicator->m_transform.SetPosition(0, +300);
 	pTextRespawnIndicator->SetSize(400, 100);
 	pTextRespawnIndicator->GetTextFormat().SetSize(24);
+	pTextRespawnIndicator->GetTextFormat().SetStyle(DWRITE_FONT_STYLE_ITALIC);
+	pTextRespawnIndicator->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_HEAVY);
 	pTextRespawnIndicator->ApplyTextFormat();
 	pTextRespawnIndicator->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pTextRespawnIndicator->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	pTextRespawnIndicator->SetColor(Colors::WhiteSmoke);
+	pTextRespawnIndicator->SetColor(ColorsLinear::WhiteSmoke);
 	pTextRespawnIndicator->SetText(L"R E S P A W N\n초 남았습니다.");
 
 
@@ -688,14 +839,30 @@ void GameUIManager::SetTextHP(uint32_t hp)
 {
 	wchar_t buf[32];
 	StringCchPrintfW(buf, _countof(buf), L"%u", hp);
-	static_cast<Text*>(m_hTextHP.ToPtr())->SetText(buf);
+	Text* pTextHP = static_cast<Text*>(m_hTextHP.ToPtr());
+	pTextHP->SetText(buf);
+
+	constexpr int MAX_HP = 100;
+	constexpr int MIN_HP = 0;
+	const float lerpFactor = static_cast<float>(hp) / static_cast<float>(MAX_HP - MIN_HP);
+	XMVECTOR color = XMVectorLerp(ColorsLinear::Red, ColorsLinear::GreenYellow, lerpFactor);
+
+	pTextHP->SetColor(color);
 }
 
 void GameUIManager::SetTextAP(uint32_t ap)
 {
 	wchar_t buf[32];
 	StringCchPrintfW(buf, _countof(buf), L"%u", ap);
-	static_cast<Text*>(m_hTextAP.ToPtr())->SetText(buf);
+	Text* pTextAP = static_cast<Text*>(m_hTextAP.ToPtr());
+	pTextAP->SetText(buf);
+
+	constexpr int MAX_AP = 100;
+	constexpr int MIN_AP = 0;
+	const float lerpFactor = static_cast<float>(ap) / static_cast<float>(MAX_AP - MIN_AP);
+	XMVECTOR color = XMVectorLerp(ColorsLinear::Red, ColorsLinear::GreenYellow, lerpFactor);
+
+	pTextAP->SetColor(color);
 }
 
 void GameUIManager::SetTextAmmoState(const wchar_t* str)
@@ -873,4 +1040,28 @@ void GameUIManager::StartRespawnUI(float time)
 	wchar_t buf[32];
 	StringCchPrintfW(buf, _countof(buf), L"R E S P A W N\n%d초 남았습니다.", static_cast<int>(m_respawnRemainingTime));
 	pTextRespawnIndicator->SetText(buf);
+}
+
+void GameUIManager::OnPosChangePlayerFoV()
+{
+	const SliderControl* pSliderControlPlayerFoV = static_cast<SliderControl*>(m_hSliderControlPlayerFoV.ToPtr());
+	if (!pSliderControlPlayerFoV)
+		return;
+
+	Player* pScriptPlayer = m_hScriptPlayer.ToPtr();
+	if (!pScriptPlayer)
+		return;
+
+	wprintf(L"Thumb pos: %d\n", pSliderControlPlayerFoV->GetThumbPos());
+
+	pScriptPlayer->SetFoV(pSliderControlPlayerFoV->GetThumbPos());
+}
+
+void GameUIManager::OnClickDrawDebugInfo()
+{
+	const Checkbox* pCheckboxDrawDebugInfo = static_cast<Checkbox*>(m_hCheckboxDrawDebugInfo.ToPtr());
+	if (!pCheckboxDrawDebugInfo)
+		return;
+
+	Physics::GetInstance()->SetDrawDebugInfo(pCheckboxDrawDebugInfo->GetCheck());
 }

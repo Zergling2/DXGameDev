@@ -100,7 +100,7 @@ namespace ze
 		ComPtr<ID3D11ShaderResourceView> m_cpColorBufferSRV;		// 렌더링 결과 병합시 필요
 		ComPtr<ID3D11DepthStencilView> m_cpDepthStencilBufferDSV;
 		XMFLOAT4A m_backgroundColor;
-		uint8_t m_fov;
+		uint8_t m_fov;	// degree 단위
 		int8_t m_depth;
 		ProjectionMethod m_projMethod;
 		ClearFlag m_clearFlag;

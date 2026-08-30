@@ -2,6 +2,7 @@
 
 #include <ZergEngine\ZergEngine.h>
 #include "Contents.h"
+#include "..\Resource\MovementType.h"
 
 class GameResources;
 class GameUIManager;
@@ -23,7 +24,8 @@ public:
 	bool IsGround() const { return m_isGround; }
 	bool CanJump() const { return m_isGround && m_jumpCoolTime <= 0.0f; }
 
-	void OnInit(WeaponCode primary, WeaponCode secondary, WeaponSlot currWeapon, InGamePlayerState state);
+	void OnInit(GameTeam team, WeaponCode primary, WeaponCode secondary, WeaponSlot currWeapon, InGamePlayerState state);
+	void SetFoV(uint8_t degree);
 
 	void SetArmsView(const ArmsViewInfo* pArmsViewInfo);
 	void SetWeaponInUse(WeaponSlot slot, WeaponCode weaponCode);
@@ -39,11 +41,13 @@ public:
 	void BroadcastTransform() const;
 
 	void SetProcessingInput(bool b) { m_processingInput = b; }
+
+	void SetListenServerClientScriptHandle(ze::ComponentHandle<ListenServerClient> hScript) { m_hScriptListenServerClient = hScript; }
 private:
+	GameTeam m_team;
 	bool m_processingInput;
+	bool m_isDead;
 	bool m_isStand;
-	bool m_prevIsMoving;
-	bool m_isMoving;
 	bool m_isGround;
 	float m_jumpCoolTime;
 	float m_jumpSpeed;
@@ -57,7 +61,7 @@ private:
 	XMFLOAT4X4A m_playerColliderLocalTransform;
 	XMFLOAT4X4A m_groundCheckColliderLocalTransform;
 	std::vector<ze::SweepHit> m_sweepResults;
-public:
+
 	ze::GameObjectHandle m_hGameObjectCamera;
 	ze::ComponentHandle<GameResources> m_hScriptGameResources;
 	ze::ComponentHandle<GameUIManager> m_hScriptGameUIManager;
@@ -74,4 +78,6 @@ public:
 	ze::ComponentHandle<ze::SkinnedMeshRenderer> m_hWeaponSkinnedMeshRenderers[static_cast<size_t>(WeaponSlot::Count)];
 	ze::ComponentHandle<Weapon> m_hScriptWeapon[static_cast<size_t>(WeaponSlot::Count)];
 	WeaponSlot m_currWeaponSlot;
+
+	MovementType m_currMoveType;
 };

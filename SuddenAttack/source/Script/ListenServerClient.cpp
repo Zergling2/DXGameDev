@@ -337,7 +337,7 @@ void ListenServerClient::OnSCNotifyGameStatus(const LSSCNotifyGameStatus* pPacke
 	ComponentHandle<Player> hScriptPlayer = pGameObjectPlayer->AddComponent<Player>();
 	m_hScriptPlayer = hScriptPlayer;
 	Player* pScriptPlayer = hScriptPlayer.ToPtr();
-	pScriptPlayer->m_hScriptListenServerClient = this->ToHandle();
+	pScriptPlayer->SetListenServerClientScriptHandle(this->ToHandle());
 
 	// GameUIManager 상태 설정
 	m_hScriptGameUIManager.ToPtr()->SetState(GameUIStatePlaying::GetState());
@@ -367,6 +367,7 @@ void ListenServerClient::OnSCNotifyGameStatus(const LSSCNotifyGameStatus* pPacke
 	// 이제 게임 플레이 로직에서 나의 pNewMyPlayer에도 접근해서 수정해야 한다.(클라이언트 단에서 자체적으로 판단하는 것들에 한해서.)
 
 	pScriptPlayer->OnInit(
+		pNewMyPlayer->m_team,
 		pNewMyPlayer->m_weaponCodes[static_cast<size_t>(WeaponSlot::Primary)],
 		pNewMyPlayer->m_weaponCodes[static_cast<size_t>(WeaponSlot::Secondary)],
 		pNewMyPlayer->m_currWeapon,
@@ -532,7 +533,8 @@ void ListenServerClient::OnSCNotifyGamePlayerTransform(const LSSCNotifyGamePlaye
 	pScriptThirdPersonCharacter->OnTransform(
 		XMFLOAT3(pPacket->m_x, pPacket->m_y, pPacket->m_z),
 		XMFLOAT4(pPacket->m_rx, pPacket->m_ry, pPacket->m_rz, pPacket->m_rw),
-		pPacket->m_camRotX
+		pPacket->m_camRotX,
+		pPacket->m_moveType
 	);
 }
 

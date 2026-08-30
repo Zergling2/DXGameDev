@@ -2,6 +2,7 @@
 
 #include <ZergEngine\ZergEngine.h>
 #include "Constants.h"
+#include "Contents.h"
 
 class GameUIManager;
 class Account;
@@ -127,6 +128,9 @@ public:
 
 	void StartRespawnUI(float time);
 private:
+	void OnPosChangePlayerFoV();
+	void OnClickDrawDebugInfo();
+private:
 	IGameUIManagerState* m_pUIState;
 	bool m_activeRespawnUI;
 	float m_respawnRemainingTime;
@@ -137,28 +141,25 @@ private:
 	ze::UIObjectHandle m_hPanelAdapterInfoRoot;
 
 	ze::UIObjectHandle m_hPanelScoreboardRoot;
-	ze::UIObjectHandle m_hTextScoreboardRedTeamPlayerLevel[MAX_PLAYERS_PER_TEAM];
-	ze::UIObjectHandle m_hTextScoreboardRedTeamPlayerNickname[MAX_PLAYERS_PER_TEAM];
-	ze::UIObjectHandle m_hTextScoreboardRedTeamPlayerKill[MAX_PLAYERS_PER_TEAM];
-	ze::UIObjectHandle m_hTextScoreboardRedTeamPlayerDeath[MAX_PLAYERS_PER_TEAM];
-	ze::UIObjectHandle m_hTextScoreboardRedTeamPlayerLatency[MAX_PLAYERS_PER_TEAM];
-	ze::UIObjectHandle m_hTextScoreboardBlueTeamPlayerLevel[MAX_PLAYERS_PER_TEAM];
-	ze::UIObjectHandle m_hTextScoreboardBlueTeamPlayerNickname[MAX_PLAYERS_PER_TEAM];
-	ze::UIObjectHandle m_hTextScoreboardBlueTeamPlayerKill[MAX_PLAYERS_PER_TEAM];
-	ze::UIObjectHandle m_hTextScoreboardBlueTeamPlayerDeath[MAX_PLAYERS_PER_TEAM];
-	ze::UIObjectHandle m_hTextScoreboardBlueTeamPlayerLatency[MAX_PLAYERS_PER_TEAM];
-	uint32_t m_redTeamPlayersCount;
-	uint32_t m_blueTeamPlayersCount;
-	uint64_t m_scoreboardRedTeamPlayersNetId[MAX_PLAYERS_PER_TEAM];
-	uint64_t m_scoreboardBlueTeamPlayersNetId[MAX_PLAYERS_PER_TEAM];
+	ze::UIObjectHandle m_hTextScoreboardPlayerLevel[static_cast<size_t>(GameTeam::Count)][MAX_PLAYERS_PER_TEAM];
+	ze::UIObjectHandle m_hTextScoreboardPlayerNickname[static_cast<size_t>(GameTeam::Count)][MAX_PLAYERS_PER_TEAM];
+	ze::UIObjectHandle m_hTextScoreboardPlayerKillDeath[static_cast<size_t>(GameTeam::Count)][MAX_PLAYERS_PER_TEAM];
+	ze::UIObjectHandle m_hTextScoreboardPlayerPing[static_cast<size_t>(GameTeam::Count)][MAX_PLAYERS_PER_TEAM];
+	size_t m_numOfPlayers[static_cast<size_t>(GameTeam::Count)];
+	std::vector<uint32_t> m_scoreboardPlayerAccountId[static_cast<size_t>(GameTeam::Count)];
 
 	ze::UIObjectHandle m_hPanelMenuRoot;
+	ze::UIObjectHandle m_hSliderControlPlayerFoV;
+	ze::UIObjectHandle m_hCheckboxDrawDebugInfo;
 
 	ze::UIObjectHandle m_hImageGameUIRoot;
 	ze::UIObjectHandle m_hImageCrosshair;
-	ze::UIObjectHandle m_hImageHealthBackground;
+	ze::UIObjectHandle m_hImageHPAPBackground;
 	ze::UIObjectHandle m_hImageRBUIBackground;
 	ze::UIObjectHandle m_hTextGameRemainingTime;
+	ze::UIObjectHandle m_hTextRedTeamScore;
+	ze::UIObjectHandle m_hTextTeamScoreGoal;
+	ze::UIObjectHandle m_hTextBlueTeamScore;
 	ze::UIObjectHandle m_hTextHP;
 	ze::UIObjectHandle m_hTextAP;
 	ze::UIObjectHandle m_hTextPoint;

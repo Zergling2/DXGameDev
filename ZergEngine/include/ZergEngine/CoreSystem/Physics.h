@@ -78,7 +78,8 @@ namespace ze
 	public:
 		static Physics* GetInstance() { return s_pInstance; }
 
-		void DrawDebugInfo(bool b);
+		void SetDrawDebugInfo(bool b);
+		bool GetDrawDebugInfo() const { return m_drawDebugInfo; }
 
 		void SetGravity(const XMFLOAT3& gravity);
 		const XMFLOAT3& GetGravity() const { return m_gravity; }

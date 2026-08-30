@@ -200,6 +200,7 @@ void Lobby::OnLoadScene()
 	pTextLoginHelpMsg->GetTextFormat().SetSize(CHAT_MSG_TEXT_SIZE);
 	pTextLoginHelpMsg->ApplyTextFormat();
 	pTextLoginHelpMsg->SetSize(LOGIN_HELP_MSG_TEXT_SIZE);
+	pTextLoginHelpMsg->SetText(L"");
 
 
 
@@ -381,6 +382,7 @@ void Lobby::OnLoadScene()
 	pTextCreateAccountIdDuplicateCheckMsg->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
 	pTextCreateAccountIdDuplicateCheckMsg->GetTextFormat().SetSize(CHAT_MSG_TEXT_SIZE);
 	pTextCreateAccountIdDuplicateCheckMsg->ApplyTextFormat();
+	pTextCreateAccountIdDuplicateCheckMsg->SetText(L"");
 
 	
 	constexpr XMFLOAT2 CREATE_ACCOUNT_WINDOW_NICKNAME_TEXT_SIZE(120, IDPW_INPUT_FIELD_SIZE.y);
@@ -459,6 +461,7 @@ void Lobby::OnLoadScene()
 	pTextCreateAccountNicknameDuplicateCheckMsg->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
 	pTextCreateAccountNicknameDuplicateCheckMsg->GetTextFormat().SetSize(CHAT_MSG_TEXT_SIZE);
 	pTextCreateAccountNicknameDuplicateCheckMsg->ApplyTextFormat();
+	pTextCreateAccountNicknameDuplicateCheckMsg->SetText(L"");
 
 
 
@@ -555,6 +558,7 @@ void Lobby::OnLoadScene()
 	pTextCreateAccountPwCheckMsg->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
 	pTextCreateAccountPwCheckMsg->GetTextFormat().SetSize(CHAT_MSG_TEXT_SIZE);
 	pTextCreateAccountPwCheckMsg->ApplyTextFormat();
+	pTextCreateAccountPwCheckMsg->SetText(L"");
 
 	constexpr XMFLOAT2 REQUEST_CREATE_ACCOUNT_BUTTON_SIZE(100, 24);
 	UIObjectHandle hButtonRequestCreateAccount = CreateButton();

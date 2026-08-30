@@ -197,7 +197,7 @@ struct ClosestRayResultCallbackOnlyTrigger : btCollisionWorld::ClosestRayResultC
 	}
 };
 
-void Physics::DrawDebugInfo(bool b)
+void Physics::SetDrawDebugInfo(bool b)
 {
 	m_drawDebugInfo = b;
 
@@ -418,7 +418,7 @@ std::vector<RayHit> Physics::RaycastTest(const XMFLOAT3& fromWorld, const XMFLOA
 }
 
 Physics::Physics()
-	: m_drawDebugInfo(true)
+	: m_drawDebugInfo(false)
 	, m_gravity(0.0f, 0.0f, 0.0f)
 	, m_upDebugDrawer()
 	, m_upCollisionConfiguration()
@@ -494,7 +494,8 @@ bool Physics::Init()
 		btIDebugDraw::DBG_DrawConstraints |
 		btIDebugDraw::DBG_DrawFrames
 	);
-	m_upDynamicsWorld->setDebugDrawer(m_upDebugDrawer.get());
+
+	// m_upDynamicsWorld->setDebugDrawer(m_upDebugDrawer.get());
 
 	// 중력 설정
 	m_upDynamicsWorld->setGravity(DXToBt::ConvertVector(m_gravity));

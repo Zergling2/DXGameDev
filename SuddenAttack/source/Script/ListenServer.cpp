@@ -606,6 +606,7 @@ void ListenServer::OnCSNotifyGamePlayerTransform(const LSCSNotifyGamePlayerTrans
 	ntfyTransform.m_rz = pPacket->m_rz;
 	ntfyTransform.m_rw = pPacket->m_rw;
 	ntfyTransform.m_camRotX = pPacket->m_camRotX;
+	ntfyTransform.m_moveType = pPacket->m_moveType;
 
 	ENetPacket* pNtfyPktTransform = enet_packet_create(&ntfyTransform, sizeof(ntfyTransform), 0);
 	if (BroadcastPacketExcept(pNtfyPktTransform, pRequester) == 0)

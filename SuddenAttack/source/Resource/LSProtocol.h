@@ -7,6 +7,7 @@
 #include "WeaponAction.h"
 #include "HitboxPart.h"
 #include <cstdint>
+#include "..\Resource\MovementType.h"
 
 enum class LSProtocol : uint32_t
 {
@@ -68,6 +69,7 @@ struct LSCSNotifyGamePlayerTransform : public LSPacketBase
 	float m_rz;
 	float m_rw;
 	float m_camRotX;
+	MovementType m_moveType;
 };
 
 struct LSCSNotifyGamePlayerHit : public LSPacketBase
@@ -196,6 +198,7 @@ struct LSSCNotifyGamePlayerTransform : public LSPacketBase
 	float m_rz;
 	float m_rw;
 	float m_camRotX;
+	MovementType m_moveType;
 };
 
 struct LSSCNotifyGamePlayerHit : public LSPacketBase

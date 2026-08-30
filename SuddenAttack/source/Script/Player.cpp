@@ -27,11 +27,10 @@ constexpr float WALK_SPEED = SPEED * 0.5f;
 constexpr float HEAD_CLAMP_ANGLE = 89.0f;
 
 Player::Player(ze::GameObject& owner)
-	: ze::MonoBehaviour(owner)
+	: MonoBehaviour(owner)
 	, m_processingInput(true)
+	, m_isDead(true)
 	, m_isStand(true)
-	, m_prevIsMoving(false)
-	, m_isMoving(false)
 	, m_isGround(false)
 	, m_jumpCoolTime(0.0f)
 	, m_jumpSpeed(0.0f)
@@ -43,6 +42,7 @@ Player::Player(ze::GameObject& owner)
 	, m_maxSlope(0.0f)
 	, m_groundCheckSweepDistY(0.0f)
 	, m_currWeaponSlot(WeaponSlot::Unknown)
+	, m_currMoveType(MovementType::Unknown)
 {
 }
 
@@ -147,10 +147,12 @@ void Player::Update()
 
 	// 팔과 무기 흔들림 업데이트
 	constexpr float BOUNCE_FREQ_WEIGHT_RUNNING = 9.0f;
-	bool isRunning = m_isMoving && Input::GetInstance()->GetKey(Keycode::KEY_LSHIFT) == false;
+	const bool isMoving = m_currMoveType != MovementType::Stop && m_currMoveType != MovementType::Unknown;
+	bool isRunning = isMoving && Input::GetInstance()->GetKey(Keycode::KEY_LSHIFT) == false;
+
 	float targetBounceFreq = isRunning ? BOUNCE_FREQ_WEIGHT_RUNNING : BOUNCE_FREQ_WEIGHT_RUNNING * 0.5f;
-	float targetAmpX = m_isMoving ? 0.01f : 0.0f;
-	float targetAmpY = m_isMoving ? 0.02f : 0.0f;
+	float targetAmpX = isMoving ? 0.01f : 0.0f;
+	float targetAmpY = isMoving ? 0.02f : 0.0f;
 
 	constexpr float INTERPOLATION_SPEED = 12.0f;
 	m_bounceFreq = Math::Lerp(m_bounceFreq, targetBounceFreq, dt * INTERPOLATION_SPEED);
@@ -238,8 +240,7 @@ void Player::FixedUpdate()
 	XMVECTOR vForward = XMVector3Normalize(XMVectorSetY(XMVector3Rotate(Vector3::Forward(), qWorldRotation), 0.0f)); // Y성분 제거
 
 	XMVECTOR vFinalMove = XMVectorZero(); // 이동해야할 변위량 누적
-
-	m_isMoving = false;
+	MovementType moveType = MovementType::Stop;
 
 	if (m_processingInput)
 	{
@@ -250,25 +251,25 @@ void Player::FixedUpdate()
 
 		if (Input::GetInstance()->GetKey(KEY_W))
 		{
-			m_isMoving = true;
+			moveType = moveType | MovementType::ForwardBackward;
 			vFinalMove = XMVectorAdd(vFinalMove, vForwardMove);
 		}
 
 		if (Input::GetInstance()->GetKey(KEY_S))
 		{
-			m_isMoving = true;
+			moveType = moveType | MovementType::ForwardBackward;
 			vFinalMove = XMVectorAdd(vFinalMove, XMVectorNegate(vForwardMove));
 		}
 
 		if (Input::GetInstance()->GetKey(KEY_A))
 		{
-			m_isMoving = true;
+			moveType = moveType | MovementType::LeftRight;
 			vFinalMove = XMVectorAdd(vFinalMove, XMVectorNegate(vRightMove));
 		}
 
 		if (Input::GetInstance()->GetKey(KEY_D))
 		{
-			m_isMoving = true;
+			moveType = moveType | MovementType::LeftRight;
 			vFinalMove = XMVectorAdd(vFinalMove, vRightMove);
 		}
 
@@ -278,6 +279,8 @@ void Player::FixedUpdate()
 
 		vFinalMove = XMVectorScale(vFinalMove, speed * dt);
 	}
+
+	m_currMoveType = moveType;
 
 	// 2. 중력에 의한 이동량 누적
 	if (m_isGround)
@@ -395,12 +398,15 @@ void Player::FixedUpdate()
 
 
 	// 위치 브로드캐스팅
-	this->BroadcastTransform();
+	if (!m_isDead)
+		this->BroadcastTransform();
 }
 
-void Player::OnInit(WeaponCode primary, WeaponCode secondary, WeaponSlot currWeapon, InGamePlayerState state)
+void Player::OnInit(GameTeam team, WeaponCode primary, WeaponCode secondary, WeaponSlot currWeapon, InGamePlayerState state)
 {
 	UNREFERENCED_PARAMETER(state);
+
+	m_team = team;
 
 	this->SetProcessingInput(false);
 
@@ -416,6 +422,15 @@ void Player::OnInit(WeaponCode primary, WeaponCode secondary, WeaponSlot currWea
 	this->DrawWeapon(currWeapon);
 
 	// m_pGameObject->m_transform.SetPosition(0.0f, 0.0f, 0.0f);
+}
+
+void Player::SetFoV(uint8_t degree)
+{
+	Camera* pCamera = m_hCamera.ToPtr();
+	if (!pCamera)
+		return;
+
+	pCamera->SetFieldOfView(degree);
 }
 
 void Player::SetArmsView(const ArmsViewInfo* pArmsViewInfo)
@@ -564,21 +579,30 @@ void Player::FireWeapon()
 
 	const GameObject* pGameObjCamera = m_hGameObjectCamera.ToPtr();
 	XMFLOAT3A from;
-	XMStoreFloat3(&from, pGameObjCamera->m_transform.GetWorldPosition());
+	XMStoreFloat3A(&from, pGameObjCamera->m_transform.GetWorldPosition());
 	XMFLOAT3A to;
-	constexpr float RAY_DIST = 500.0f;
-	XMStoreFloat3A(&to, XMVectorScale(pGameObjCamera->m_transform.GetWorldTransformMatrix().r[2], RAY_DIST));	// 기저벡터의 z축이 향하는 방향
+	constexpr float RAY_DIST = 1000.0f;
+	XMVECTOR dir = XMVector3Normalize(pGameObjCamera->m_transform.GetWorldTransformMatrix().r[2]);
+	XMStoreFloat3A(&to, XMVectorScale(dir, RAY_DIST));	// 기저벡터의 z축이 향하는 방향
 
-	RayHit rh;
-	if (Physics::GetInstance()->ClosestRaycastTestOnlyTrigger(rh, from, to))
+	RayHit triggerHit;
+	if (Physics::GetInstance()->ClosestRaycastTestOnlyTrigger(triggerHit, from, to))
 	{
-		const Rigidbody* pHitRigidbody = rh.m_pHitObject;
-		wprintf(L"Ray Hit Part: %s (Hit Fraction: %f)\n", pHitRigidbody->GetGameObjectHandle().ToPtr()->GetName(), rh.m_hitFraction);
+		const Rigidbody* pHitRigidbody = triggerHit.m_pHitObject;
+		wprintf(L"Ray Hit Part: %s (Hit Fraction: %f)\n", pHitRigidbody->GetGameObjectHandle().ToPtr()->GetName(), triggerHit.m_hitFraction);
 
 		const GameObject* pGameObjHitbox = pHitRigidbody->GetGameObjectHandle().ToPtr();
 		const GameObject* pGameObj = pGameObjHitbox->m_transform.GetParent()->GetGameObject();
 		ComponentHandle<ThirdPersonCharacter> hScriptThirdPersonCharacter = pGameObj->GetComponent<ThirdPersonCharacter>();
 		const ThirdPersonCharacter* pScriptThirdPersonCharacter = hScriptThirdPersonCharacter.ToPtr();
+
+		if (pScriptThirdPersonCharacter->GetTeam() == m_team)	// 아군 사격 예외처리
+			return;
+
+
+		// 현재 예외처리 루틴이 없어서 지형지물을 통과해서 판정됨.
+		// TPC 캡슐 콜라이더들만을 제외하고 ClosestRaycast를 수행하고 hitFraction을 비교한다.
+		// ...
 
 		LSCSNotifyGamePlayerHit notify;
 		notify.m_protocol = LSProtocol::CS_NOTIFY_GAME_PLAYER_HIT;
@@ -623,13 +647,21 @@ WeaponCode Player::GetCurrentWeaponCode() const
 
 void Player::OnDead()
 {
+	m_isDead = true;
+	m_currMoveType = MovementType::Stop;
+
 	this->SetProcessingInput(false);
 
-	UndrawWeapon();
+	this->UndrawWeapon();
 }
 
 void Player::OnRespawn(const XMFLOAT3& pos, const XMFLOAT4& rot, float camRotX, uint16_t hp, uint16_t ap)
 {
+	m_isDead = false;
+	m_currMoveType = MovementType::Stop;
+
+	this->SetProcessingInput(true);
+
 	GameUIManager* pScriptGameUIManager = m_hScriptGameUIManager.ToPtr();
 	pScriptGameUIManager->SetTextHP(hp);
 	pScriptGameUIManager->SetTextAP(ap);
@@ -641,8 +673,6 @@ void Player::OnRespawn(const XMFLOAT3& pos, const XMFLOAT4& rot, float camRotX, 
 	pGameObjCamera->m_transform.SetRotationEuler(camRotX, 0.0f, 0.0f);
 
 	this->DrawWeapon(WeaponSlot::Secondary);	// 리스폰 시 보조무기를 들고 시작.
-
-	this->SetProcessingInput(true);
 }
 
 void Player::BroadcastTransform() const
@@ -658,6 +688,7 @@ void Player::BroadcastTransform() const
 	ntfyTransform.m_ry = m_pGameObject->m_transform.GetRotationY();
 	ntfyTransform.m_rz = m_pGameObject->m_transform.GetRotationZ();
 	ntfyTransform.m_rw = m_pGameObject->m_transform.GetRotationW();
+	ntfyTransform.m_moveType = m_currMoveType;
 
 	GameObject* pGameObjCamera = m_hGameObjectCamera.ToPtr();
 	const XMVECTOR rotEuler = Math::QuaternionToEulerNormal(pGameObjCamera->m_transform.GetRotation());

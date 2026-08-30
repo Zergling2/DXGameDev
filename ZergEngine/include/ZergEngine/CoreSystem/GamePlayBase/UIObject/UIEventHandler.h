@@ -7,7 +7,8 @@ namespace ze
 	template<typename T>
 	std::function<bool()> MakeUIHandler(ComponentHandle<T> ch, void (T::*mf)())
 	{
-		std::function<bool()> handler = [ch, mf]()
+		std::function<bool()> handler = 
+			[ch, mf]()
 			{
 				T* pComponent = ch.ToPtr();
 
@@ -18,7 +19,7 @@ namespace ze
 
 				return true;
 			};
-
+		
 		return handler;
 	}
 }

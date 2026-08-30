@@ -165,5 +165,8 @@
     <ClInclude Include="source\Resource\HitboxPart.h">
       <Filter>source\Resource</Filter>
     </ClInclude>
+    <ClInclude Include="source\Resource\MovementType.h">
+      <Filter>source\Resource</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

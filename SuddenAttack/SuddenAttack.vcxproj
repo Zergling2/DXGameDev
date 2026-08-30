@@ -185,6 +185,7 @@
     <ClInclude Include="source\Resource\LSGamePlayerInfo.h" />
     <ClInclude Include="source\Resource\LSProtocol.h" />
     <ClInclude Include="source\Resource\GamePlayerInfo.h" />
+    <ClInclude Include="source\Resource\MovementType.h" />
     <ClInclude Include="source\Resource\WeaponAction.h" />
     <ClInclude Include="source\Resource\WeaponDefinition.h" />
     <ClInclude Include="source\Resource\WeaponEvent.h" />

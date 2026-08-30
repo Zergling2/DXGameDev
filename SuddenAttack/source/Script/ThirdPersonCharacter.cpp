@@ -62,6 +62,9 @@ ThirdPersonCharacter::ThirdPersonCharacter(ze::GameObject& owner)
 	, m_eventIndexCursor(0)
 	, m_actionDuration(0.0f)
 	, m_actionElapsed(0.0f)
+	, m_isDead(true)
+	, m_team(GameTeam::Unknown)
+	, m_prevMoveType(MovementType::Unknown)
 {
 }
 
@@ -473,15 +476,15 @@ void ThirdPersonCharacter::HideView()
 void ThirdPersonCharacter::OnInit(uint32_t accountId, GameTeam team, WeaponCode primary, WeaponCode secondary, WeaponSlot currWeapon, InGamePlayerState state,
 	const XMFLOAT3& pos, const XMFLOAT4& rot, float camRotX)
 {
-	m_accountId = accountId;
-
 	const GameResources* pScriptGameResources = m_hScriptGameResources.ToPtr();
 
+	m_accountId = accountId;
+	m_team = team;
 	m_currWeaponSlot = currWeapon;
 
 	// 1. TPC 캐릭터 뷰 설정
 	const CharacterViewInfo* pCVI = nullptr;
-	switch (team)
+	switch (m_team)
 	{
 	case GameTeam::RedTeam:
 		pCVI = pScriptGameResources->GetCharacterViewInfo(L"steven.rt");
@@ -494,8 +497,6 @@ void ThirdPersonCharacter::OnInit(uint32_t accountId, GameTeam team, WeaponCode 
 		break;
 	}
 	this->SetCharacterView(pCVI);
-
-	// m_hSkinnedMeshRendererCharacter.ToPtr()->PlayGroupAnimation("stand_idle", "lower_body", true);
 
 	// 2. 무기 뷰 설정
 	this->SetWeaponInUse(WeaponSlot::Primary, primary);
@@ -511,6 +512,7 @@ void ThirdPersonCharacter::OnInit(uint32_t accountId, GameTeam team, WeaponCode 
 		this->ShowView();
 		this->OnDraw(m_currWeaponSlot);
 		// this->OnIdle(0.0f);	// 무기를 들고 무기에 대한 상호작용은 하지 않고 있는 상태.
+		m_hSkinnedMeshRendererCharacter.ToPtr()->PlayGroupAnimation("stand_idle", "lower_body", true);
 		break;
 	case InGamePlayerState::Dead:
 		this->HideView();
@@ -608,6 +610,10 @@ void ThirdPersonCharacter::OnIdle(float exceed)
 
 void ThirdPersonCharacter::OnDead(WeaponAction deadAction)
 {
+	m_isDead = true;
+
+	m_prevMoveType = MovementType::Stop;
+
 	// 캐릭터 콜라이더 비활성화
 	m_hCharacterColliderRigidbody.ToPtr()->Disable();
 
@@ -635,6 +641,8 @@ void ThirdPersonCharacter::OnDeadIdle(float exceed, WeaponAction deathAction)
 
 void ThirdPersonCharacter::OnRespawn(const XMFLOAT3& pos, const XMFLOAT4& rot, float camRotX)
 {
+	m_isDead = false;
+
 	m_pGameObject->m_transform.SetPosition(pos);
 	m_pGameObject->m_transform.SetRotationQuaternion(rot);
 	// this->SetBoneAdditiveBlending(camRotX);
@@ -645,13 +653,41 @@ void ThirdPersonCharacter::OnRespawn(const XMFLOAT3& pos, const XMFLOAT4& rot, f
 
 	// 캐릭터 콜라이더 활성화
 	m_hCharacterColliderRigidbody.ToPtr()->Enable();
+
+	m_prevMoveType = MovementType::Stop;
 }
 
-void ThirdPersonCharacter::OnTransform(const XMFLOAT3& pos, const XMFLOAT4& rot, float camRotX)
+void ThirdPersonCharacter::OnTransform(const XMFLOAT3& pos, const XMFLOAT4& rot, float camRotX, MovementType moveType)
 {
 	m_pGameObject->m_transform.SetPosition(pos);
 	m_pGameObject->m_transform.SetRotationQuaternion(rot);
 	// this->SetBoneAdditiveBlending(camRotX);
+
+	if (!m_isDead)
+	{
+		if (m_prevMoveType != moveType)	// 이동 애니메이션 교체 필요.
+		{
+			switch (moveType)
+			{
+			case MovementType::Stop:
+				m_hSkinnedMeshRendererCharacter.ToPtr()->PlayGroupAnimation("stand_idle", "lower_body", true);
+				break;
+			case MovementType::LeftRight:
+				m_hSkinnedMeshRendererCharacter.ToPtr()->PlayGroupAnimation("run_horizontal", "lower_body", true);
+				break;
+			case MovementType::ForwardBackward:
+				m_hSkinnedMeshRendererCharacter.ToPtr()->PlayGroupAnimation("run", "lower_body", true);
+				break;
+			case MovementType::Diagonal:
+				m_hSkinnedMeshRendererCharacter.ToPtr()->PlayGroupAnimation("run_horizontal", "lower_body", true);
+				break;
+			default:
+				break;
+			}
+		}
+	}
+
+	m_prevMoveType = moveType;
 }
 
 void ThirdPersonCharacter::ActivateCharacterColliderAndHitbox()
