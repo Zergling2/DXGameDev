@@ -61,7 +61,7 @@ public:
 public:
 	std::vector<SweepHit>& m_results;
 private:
-	const btCollisionObject* m_pExcept;
+	const btCollisionObject* const m_pExcept;
 };
 
 struct AllConvexResultCallbackNotIncludeExceptTrigger : public AllConvexResultCallbackNotInclude
@@ -107,7 +107,7 @@ public:
 		return true;
 	}
 private:
-	const btCollisionObject* m_pExcept;
+	const btCollisionObject* const m_pExcept;
 };
 
 struct ClosestConvexResultCallbackNotIncludeExceptTrigger : public ClosestConvexResultCallbackNotInclude
@@ -131,6 +131,72 @@ struct ClosestConvexResultCallbackNotIncludeExceptTrigger : public ClosestConvex
 	}
 };
 
+struct ClosestRayResultCallbackNotInclude : btCollisionWorld::ClosestRayResultCallback
+{
+	ClosestRayResultCallbackNotInclude(const btVector3& rayFromWorld, const btVector3& rayToWorld, const btCollisionObject* pExcept)
+		: ClosestRayResultCallback(rayFromWorld, rayToWorld)
+		, m_pExcept(pExcept)
+	{
+	}
+
+	virtual bool needsCollision(btBroadphaseProxy* proxy0) const override
+	{
+		if (!ClosestRayResultCallback::needsCollision(proxy0))
+			return false;
+
+		const btCollisionObject* pObj = static_cast<const btCollisionObject*>(proxy0->m_clientObject);
+
+		if (pObj == m_pExcept)
+			return false;
+
+		return true;
+	}
+private:
+	const btCollisionObject* const m_pExcept;
+};
+
+struct ClosestRayResultCallbackNotIncludeExceptTrigger : ClosestRayResultCallbackNotInclude
+{
+	ClosestRayResultCallbackNotIncludeExceptTrigger(const btVector3& rayFromWorld, const btVector3& rayToWorld, const btCollisionObject* pExcept)
+		: ClosestRayResultCallbackNotInclude(rayFromWorld, rayToWorld, pExcept)
+	{
+	}
+
+	virtual bool needsCollision(btBroadphaseProxy* proxy0) const override
+	{
+		if (!ClosestRayResultCallbackNotInclude::needsCollision(proxy0))
+			return false;
+
+		const btCollisionObject* pObj = static_cast<const btCollisionObject*>(proxy0->m_clientObject);
+		const Rigidbody* pRigidbody = static_cast<const Rigidbody*>(pObj->getUserPointer());
+		if (pRigidbody->IsTrigger())
+			return false;
+
+		return true;
+	}
+};
+
+struct ClosestRayResultCallbackOnlyTrigger : btCollisionWorld::ClosestRayResultCallback
+{
+	ClosestRayResultCallbackOnlyTrigger(const btVector3& rayFromWorld, const btVector3& rayToWorld)
+		: ClosestRayResultCallback(rayFromWorld, rayToWorld)
+	{
+	}
+
+	virtual bool needsCollision(btBroadphaseProxy* proxy0) const override
+	{
+		if (!ClosestRayResultCallback::needsCollision(proxy0))
+			return false;
+
+		const btCollisionObject* pObj = static_cast<const btCollisionObject*>(proxy0->m_clientObject);
+		const Rigidbody* pRigidbody = static_cast<const Rigidbody*>(pObj->getUserPointer());
+		if (!pRigidbody->IsTrigger())
+			return false;
+
+		return true;
+	}
+};
+
 void Physics::DrawDebugInfo(bool b)
 {
 	m_drawDebugInfo = b;
@@ -146,7 +212,7 @@ void Physics::SetGravity(const XMFLOAT3& gravity)
 	m_upDynamicsWorld->setGravity(DXToBt::ConvertVector(gravity));
 }
 
-size_t XM_CALLCONV Physics::ConvexSweepTestAllNotInclude(std::vector<SweepHit>& results, FXMMATRIX transform, const XMFLOAT3& move, const ICollider* pCollider, const Rigidbody* pExcept)
+size_t XM_CALLCONV Physics::ConvexSweepTestNotInclude(std::vector<SweepHit>& results, FXMMATRIX transform, const XMFLOAT3& move, const ICollider* pCollider, const Rigidbody* pExcept)
 {
 	results.clear();
 
@@ -169,7 +235,7 @@ size_t XM_CALLCONV Physics::ConvexSweepTestAllNotInclude(std::vector<SweepHit>& 
 	return results.size();
 }
 
-size_t XM_CALLCONV Physics::ConvexSweepTestAllNotIncludeExceptTrigger(std::vector<SweepHit>& results, FXMMATRIX transform, const XMFLOAT3& move, const ICollider* pCollider, const Rigidbody* pExcept)
+size_t XM_CALLCONV Physics::ConvexSweepTestNotIncludeExceptTrigger(std::vector<SweepHit>& results, FXMMATRIX transform, const XMFLOAT3& move, const ICollider* pCollider, const Rigidbody* pExcept)
 {
 	results.clear();
 
@@ -192,7 +258,7 @@ size_t XM_CALLCONV Physics::ConvexSweepTestAllNotIncludeExceptTrigger(std::vecto
 	return results.size();
 }
 
-bool XM_CALLCONV Physics::ConvexSweepTestClosestNotInclude(SweepHit& result, FXMMATRIX transform, const XMFLOAT3& move, const ICollider* pCollider, const Rigidbody* pExcept)
+bool XM_CALLCONV Physics::ClosestConvexSweepTestNotInclude(SweepHit& result, FXMMATRIX transform, const XMFLOAT3& move, const ICollider* pCollider, const Rigidbody* pExcept)
 {
 	btTransform from = DXToBt::ConvertMatrix(transform);
 	btTransform to = from;
@@ -219,7 +285,7 @@ bool XM_CALLCONV Physics::ConvexSweepTestClosestNotInclude(SweepHit& result, FXM
 	}
 }
 
-bool XM_CALLCONV Physics::ConvexSweepTestClosestNotIncludeExceptTrigger(SweepHit& result, FXMMATRIX transform, const XMFLOAT3& move, const ICollider* pCollider, const Rigidbody* pExcept)
+bool XM_CALLCONV Physics::ClosestConvexSweepTestNotIncludeExceptTrigger(SweepHit& result, FXMMATRIX transform, const XMFLOAT3& move, const ICollider* pCollider, const Rigidbody* pExcept)
 {
 	btTransform from = DXToBt::ConvertMatrix(transform);
 	btTransform to = from;
@@ -246,7 +312,7 @@ bool XM_CALLCONV Physics::ConvexSweepTestClosestNotIncludeExceptTrigger(SweepHit
 	}
 }
 
-RayHit Physics::ClosestRaycastTest(const XMFLOAT3& fromWorld, const XMFLOAT3& toWorld)
+bool Physics::ClosestRaycastTest(RayHit& result, const XMFLOAT3& fromWorld, const XMFLOAT3& toWorld)
 {
 	const btVector3 btFromWorld = DXToBt::ConvertVector(fromWorld);
 	const btVector3 btToWorld = DXToBt::ConvertVector(toWorld);
@@ -254,7 +320,6 @@ RayHit Physics::ClosestRaycastTest(const XMFLOAT3& fromWorld, const XMFLOAT3& to
 	btCollisionWorld::ClosestRayResultCallback cb(btFromWorld, btToWorld);
 	m_upDynamicsWorld->rayTest(btFromWorld, btToWorld, cb);
 
-	RayHit result;
 	if (cb.hasHit())
 	{
 		result.m_pHitObject = static_cast<Rigidbody*>(cb.m_collisionObject->getUserPointer());
@@ -265,9 +330,64 @@ RayHit Physics::ClosestRaycastTest(const XMFLOAT3& fromWorld, const XMFLOAT3& to
 	else
 	{
 		result.m_pHitObject = nullptr;
+		// XMStoreFloat3(&result.m_hitNormalWorld, XMVectorZero());
+		// XMStoreFloat3(&result.m_hitPointWorld, XMVectorZero());
+		// result.m_hitFraction = 0.0f;
 	}
 
-	return result;
+	return result.m_pHitObject != nullptr;
+}
+
+bool Physics::ClosestRaycastTestNotInclude(RayHit& result, const XMFLOAT3& fromWorld, const XMFLOAT3& toWorld, const Rigidbody* pExcept)
+{
+	const btVector3 btFromWorld = DXToBt::ConvertVector(fromWorld);
+	const btVector3 btToWorld = DXToBt::ConvertVector(toWorld);
+	
+	ClosestRayResultCallbackNotInclude cb(btFromWorld, btToWorld, pExcept->m_upBtRigidBody.get());
+	m_upDynamicsWorld->rayTest(btFromWorld, btToWorld, cb);
+
+	if (cb.hasHit())
+	{
+		result.m_pHitObject = static_cast<Rigidbody*>(cb.m_collisionObject->getUserPointer());
+		result.m_hitNormalWorld = BtToDX::ConvertVector(cb.m_hitNormalWorld);
+		result.m_hitPointWorld = BtToDX::ConvertVector(cb.m_hitPointWorld);
+		result.m_hitFraction = cb.m_closestHitFraction;
+	}
+	else
+	{
+		result.m_pHitObject = nullptr;
+		// XMStoreFloat3(&result.m_hitNormalWorld, XMVectorZero());
+		// XMStoreFloat3(&result.m_hitPointWorld, XMVectorZero());
+		// result.m_hitFraction = 0.0f;
+	}
+
+	return result.m_pHitObject != nullptr;
+}
+
+bool Physics::ClosestRaycastTestOnlyTrigger(RayHit& result, const XMFLOAT3& fromWorld, const XMFLOAT3& toWorld)
+{
+	const btVector3 btFromWorld = DXToBt::ConvertVector(fromWorld);
+	const btVector3 btToWorld = DXToBt::ConvertVector(toWorld);
+
+	ClosestRayResultCallbackOnlyTrigger cb(btFromWorld, btToWorld);
+	m_upDynamicsWorld->rayTest(btFromWorld, btToWorld, cb);
+
+	if (cb.hasHit())
+	{
+		result.m_pHitObject = static_cast<Rigidbody*>(cb.m_collisionObject->getUserPointer());
+		result.m_hitNormalWorld = BtToDX::ConvertVector(cb.m_hitNormalWorld);
+		result.m_hitPointWorld = BtToDX::ConvertVector(cb.m_hitPointWorld);
+		result.m_hitFraction = cb.m_closestHitFraction;
+	}
+	else
+	{
+		result.m_pHitObject = nullptr;
+		// XMStoreFloat3(&result.m_hitNormalWorld, XMVectorZero());
+		// XMStoreFloat3(&result.m_hitPointWorld, XMVectorZero());
+		// result.m_hitFraction = 0.0f;
+	}
+
+	return result.m_pHitObject != nullptr;
 }
 
 std::vector<RayHit> Physics::RaycastTest(const XMFLOAT3& fromWorld, const XMFLOAT3& toWorld)

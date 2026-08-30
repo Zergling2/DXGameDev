@@ -83,12 +83,14 @@ namespace ze
 		void SetGravity(const XMFLOAT3& gravity);
 		const XMFLOAT3& GetGravity() const { return m_gravity; }
 
-		size_t XM_CALLCONV ConvexSweepTestAllNotInclude(std::vector<SweepHit>& results, FXMMATRIX transform, const XMFLOAT3& move, const ICollider* pCollider, const Rigidbody* pExcept);
-		size_t XM_CALLCONV ConvexSweepTestAllNotIncludeExceptTrigger(std::vector<SweepHit>& results, FXMMATRIX transform, const XMFLOAT3& move, const ICollider* pCollider, const Rigidbody* pExcept);
-		bool XM_CALLCONV ConvexSweepTestClosestNotInclude(SweepHit& result, FXMMATRIX transform, const XMFLOAT3& move, const ICollider* pCollider, const Rigidbody* pExcept);
-		bool XM_CALLCONV ConvexSweepTestClosestNotIncludeExceptTrigger(SweepHit& result, FXMMATRIX transform, const XMFLOAT3& move, const ICollider* pCollider, const Rigidbody* pExcept);
+		size_t XM_CALLCONV ConvexSweepTestNotInclude(std::vector<SweepHit>& results, FXMMATRIX transform, const XMFLOAT3& move, const ICollider* pCollider, const Rigidbody* pExcept);
+		size_t XM_CALLCONV ConvexSweepTestNotIncludeExceptTrigger(std::vector<SweepHit>& results, FXMMATRIX transform, const XMFLOAT3& move, const ICollider* pCollider, const Rigidbody* pExcept);
+		bool XM_CALLCONV ClosestConvexSweepTestNotInclude(SweepHit& result, FXMMATRIX transform, const XMFLOAT3& move, const ICollider* pCollider, const Rigidbody* pExcept);
+		bool XM_CALLCONV ClosestConvexSweepTestNotIncludeExceptTrigger(SweepHit& result, FXMMATRIX transform, const XMFLOAT3& move, const ICollider* pCollider, const Rigidbody* pExcept);
 
-		RayHit ClosestRaycastTest(const XMFLOAT3& fromWorld, const XMFLOAT3& toWorld);
+		bool ClosestRaycastTest(RayHit& result, const XMFLOAT3& fromWorld, const XMFLOAT3& toWorld);
+		bool ClosestRaycastTestNotInclude(RayHit& result, const XMFLOAT3& fromWorld, const XMFLOAT3& toWorld, const Rigidbody* pExcept);
+		bool ClosestRaycastTestOnlyTrigger(RayHit& result, const XMFLOAT3& fromWorld, const XMFLOAT3& toWorld);
 		std::vector<RayHit> RaycastTest(const XMFLOAT3& fromWorld, const XMFLOAT3& toWorld);
 	private:
 		Physics();

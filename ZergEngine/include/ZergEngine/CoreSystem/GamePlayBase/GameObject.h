@@ -67,10 +67,10 @@ namespace ze
 		ComponentHandle<ComponentType> AddComponent(Args&& ...args);
 
 		template<class ComponentType>
-		ComponentHandle<ComponentType> GetComponent();
+		ComponentHandle<ComponentType> GetComponent() const;
 
 		template<class ComponentType>
-		std::vector<ComponentHandle<ComponentType>> GetComponents();
+		std::vector<ComponentHandle<ComponentType>> GetComponents() const;
 
 		// Return number of components
 		template<class ComponentType>
@@ -124,7 +124,7 @@ namespace ze
 	}
 
 	template<class ComponentType>
-	ComponentHandle<ComponentType> GameObject::GetComponent()
+	ComponentHandle<ComponentType> GameObject::GetComponent() const
 	{
 		ComponentHandle<ComponentType> hComponent;
 
@@ -150,7 +150,7 @@ namespace ze
 	}
 
 	template<class ComponentType>
-	std::vector<ComponentHandle<ComponentType>> GameObject::GetComponents()
+	std::vector<ComponentHandle<ComponentType>> GameObject::GetComponents() const
 	{
 		std::vector<ComponentHandle<ComponentType>> hv;
 

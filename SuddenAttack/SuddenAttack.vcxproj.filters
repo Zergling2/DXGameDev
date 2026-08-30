@@ -79,6 +79,9 @@
     <ClCompile Include="source\Script\ListenServerClientStarter.cpp">
       <Filter>source\Script</Filter>
     </ClCompile>
+    <ClCompile Include="source\Resource\HitboxName.cpp">
+      <Filter>source\Resource</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Scene\Lobby.h">
@@ -154,6 +157,12 @@
       <Filter>source\Script</Filter>
     </ClInclude>
     <ClInclude Include="source\Resource\LSGamePlayerInfo.h">
+      <Filter>source\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Resource\HitboxName.h">
+      <Filter>source\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Resource\HitboxPart.h">
       <Filter>source\Resource</Filter>
     </ClInclude>
   </ItemGroup>

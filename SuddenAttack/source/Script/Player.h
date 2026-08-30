@@ -23,18 +23,22 @@ public:
 	bool IsGround() const { return m_isGround; }
 	bool CanJump() const { return m_isGround && m_jumpCoolTime <= 0.0f; }
 
-	void SetProcessingInput(bool b) { m_processingInput = b; }
+	void OnInit(WeaponCode primary, WeaponCode secondary, WeaponSlot currWeapon, InGamePlayerState state);
+
 	void SetArmsView(const ArmsViewInfo* pArmsViewInfo);
+	void SetWeaponInUse(WeaponSlot slot, WeaponCode weaponCode);
 
 	void DrawWeapon(WeaponSlot slot);
+	void UndrawWeapon();
 	void ReloadWeapon();
 	void FireWeapon();
 	WeaponCode GetCurrentWeaponCode() const;
 
-	void OnDead(float respawnTime);
-	void OnRespawn(const XMFLOAT3& pos, const XMFLOAT4& rot, float camRotX);
-
+	void OnDead();
+	void OnRespawn(const XMFLOAT3& pos, const XMFLOAT4& rot, float camRotX, uint16_t hp, uint16_t ap);
 	void BroadcastTransform() const;
+
+	void SetProcessingInput(bool b) { m_processingInput = b; }
 private:
 	bool m_processingInput;
 	bool m_isStand;

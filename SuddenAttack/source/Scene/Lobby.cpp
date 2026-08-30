@@ -61,6 +61,7 @@ void Lobby::OnLoadScene()
 	// 2-4. 인게임 UI 관리자 스크립트 생성
 	ComponentHandle<GameUIManager> hScriptGameUIManager = pGameObjGlobalScripts->AddComponent<GameUIManager>();
 	GameUIManager* pScriptGameUIManager = hScriptGameUIManager.ToPtr();
+	pScriptGameUIManager->SetAccountScriptHandle(hScriptAccount);
 
 	// 2-5. 리슨서버 스크립트 생성
 	ComponentHandle<ListenServer> hScriptListenServer = pGameObjGlobalScripts->AddComponent<ListenServer>();
@@ -71,6 +72,7 @@ void Lobby::OnLoadScene()
 
 	// 2-6. 리슨서버클라이언트 스크립트 생성
 	ComponentHandle<ListenServerClient> hScriptListenServerClient = pGameObjGlobalScripts->AddComponent<ListenServerClient>();
+	pScriptGameUIManager->SetListenServerClientScriptHandle(hScriptListenServerClient);
 	pScriptNetwork->SetListenServerClientScriptHandle(hScriptListenServerClient);
 
 	ListenServerClient* pScriptListenServerClient = hScriptListenServerClient.ToPtr();

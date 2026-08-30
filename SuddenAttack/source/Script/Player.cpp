@@ -1,12 +1,15 @@
 #include "Player.h"
 #include "Weapon.h"
+#include "ThirdPersonCharacter.h"
 #include "GameResources.h"
 #include "GameUIManager.h"
 #include "ListenServerClient.h"
 #include "..\Resource\GlobalScriptGameObject.h"
+#include "..\Resource\GameInfo.h"
 #include "..\Resource\Arms.h"
 #include "..\Resource\WeaponDefinition.h"
 #include "..\Resource\LSProtocol.h"
+#include "..\Resource\HitboxName.h"
 #include <enet\enet.h>
 #include <algorithm>
 
@@ -62,7 +65,7 @@ void Player::Awake()
 	m_hScriptGameResources = hGameObjectGameResources.ToPtr()->GetComponent<GameResources>();
 	assert(m_hScriptGameResources.IsValid());
 
-	GameResources* pScriptGameResources = m_hScriptGameResources.ToPtr();
+	const GameResources* pScriptGameResources = m_hScriptGameResources.ToPtr();
 	m_jumpSpeed = pScriptGameResources->GetJumpSpeed();
 	m_spGroundCheckCollider = pScriptGameResources->GetGroundCheckCollider();
 
@@ -70,7 +73,7 @@ void Player::Awake()
 
 	// Rigidbody 컴포넌트 추가
 	auto spCharacterCollider = pScriptGameResources->GetCharacterCollider();
-	m_groundCheckSweepDistY = spCharacterCollider->GetTotalHeight() / 2.0f + 0.02f;
+	m_groundCheckSweepDistY = spCharacterCollider->GetTotalHeight() / 2.0f;
 
 	ComponentHandle<Rigidbody> hPlayerRigidbody = m_pGameObject->AddComponent<Rigidbody>(
 		spCharacterCollider, XMFLOAT3(0.0f, spCharacterCollider->GetTotalHeight() / 2.0f, 0.0f)		// GameObject에 캡슐 콜라이더 밑면이 오게한다.
@@ -85,8 +88,7 @@ void Player::Awake()
 	XMStoreFloat4x4A(&m_playerColliderLocalTransform, playerColliderLocalTransform);
 
 
-	// 카메라 컴포넌트 추가
-	// (자식 오브젝트로 추가한다.)
+	// 카메라 컴포넌트 추가 (자식 오브젝트로 추가!)
 	GameObjectHandle hGameObjectCamera = Runtime::GetInstance()->CreateGameObject();
 	m_hGameObjectCamera = hGameObjectCamera;
 	GameObject* pGameObjectCamera = hGameObjectCamera.ToPtr();
@@ -102,7 +104,7 @@ void Player::Awake()
 
 
 	// FPS 팔 생성
-	GameObjectHandle hGameObjectArms = Runtime::GetInstance()->CreateGameObject(L"fpsarms");
+	GameObjectHandle hGameObjectArms = Runtime::GetInstance()->CreateGameObject(L"pvarms");
 	m_hGameObjectArms = hGameObjectArms;
 	GameObject* pGameObjectArms = hGameObjectArms.ToPtr();
 	pGameObjectArms->m_transform.SetParent(&pGameObjectCamera->m_transform);
@@ -115,6 +117,7 @@ void Player::Awake()
 	assert(m_hArmsSkinnedMeshRenderer.IsValid() && m_hScriptGameUIManager.IsValid());
 
 	// 무기 오브젝트 생성
+
 	for (size_t i = 0; i < _countof(m_hGameObjectWeapons); ++i)
 	{
 		m_hGameObjectWeapons[i] = Runtime::GetInstance()->CreateGameObject();
@@ -133,14 +136,6 @@ void Player::Awake()
 
 		pScriptWeapon->Undraw();
 	}
-
-	Weapon* pScriptPrimaryWeapon = m_hScriptWeapon[static_cast<size_t>(WeaponSlot::Primary)].ToPtr();
-	Weapon* pScriptSecondaryWeapon = m_hScriptWeapon[static_cast<size_t>(WeaponSlot::Secondary)].ToPtr();
-	pScriptPrimaryWeapon->Init(pScriptGameResources->GetWeaponDefinition(WeaponCode::M16), 24, 115);
-	pScriptSecondaryWeapon->Init(pScriptGameResources->GetWeaponDefinition(WeaponCode::USP), 12, 24);
-
-	// m_currWeaponSlot = WeaponSlot::Secondary;
-	// m_hScriptWeapon[static_cast<size_t>(m_currWeaponSlot)].ToPtr()->Draw();
 }
 
 void Player::Update()
@@ -320,7 +315,7 @@ void Player::FixedUpdate()
 		XMFLOAT3A remainingMove;
 		XMStoreFloat3A(&remainingMove, vRemainingMove);
 
-		size_t collisionCount = Physics::GetInstance()->ConvexSweepTestAllNotIncludeExceptTrigger(
+		size_t collisionCount = Physics::GetInstance()->ConvexSweepTestNotIncludeExceptTrigger(
 			m_sweepResults,
 			playerColliderWorldTransform,
 			remainingMove,
@@ -348,7 +343,7 @@ void Player::FixedUpdate()
 
 		vRemainingMove = XMVectorScale(vRemainingMove, 1.0f - closestHitFraction);
 
-		for (const auto& hitItem : m_sweepResults)
+		for (const SweepHit& hitItem : m_sweepResults)
 		{
 			// if (hitItem.m_hitFraction > closestHitFraction + 0.01f)
 			// 	break;
@@ -364,25 +359,63 @@ void Player::FixedUpdate()
 
 	// 마지막으로 아래방향 sweep으로 m_isGround 업데이트
 	XMMATRIX groundCheckColliderWorldTransform = XMMatrixMultiply(playerColliderLocalTransform, m_pGameObject->m_transform.GetWorldTransformMatrix());
-	const XMFLOAT3 groundCheckSweepVector(0.0f, -m_groundCheckSweepDistY, 0.0f);
+	const XMFLOAT3A groundCheckSweepVector(0.0f, -m_groundCheckSweepDistY, 0.0f);
 
-	Physics::GetInstance()->ConvexSweepTestAllNotIncludeExceptTrigger(m_sweepResults, groundCheckColliderWorldTransform, groundCheckSweepVector, m_spGroundCheckCollider.get(), pPlayerRigidbody);
-	bool hit = false;
-	for (const auto& item : m_sweepResults)
+	// Physics::GetInstance()->ConvexSweepTestNotIncludeExceptTrigger(m_sweepResults, groundCheckColliderWorldTransform, groundCheckSweepVector, m_spGroundCheckCollider.get(), pPlayerRigidbody);
+	// bool hit = false;
+	// for (const SweepHit& item : m_sweepResults)
+	// {
+	// 	const float dot = XMVectorGetX(XMVector3Dot(Vector3::Up(), XMVector3Normalize(XMLoadFloat3(&item.m_hitNormalWorld))));
+	// 	if (dot > m_maxSlope)
+	// 	{
+	// 		hit = true;
+	// 		break;
+	// 	}
+	// }
+	// 
+	// m_isGround = hit;
+
+	SweepHit groundSweep;
+	if (Physics::GetInstance()->ClosestConvexSweepTestNotIncludeExceptTrigger(groundSweep, groundCheckColliderWorldTransform, groundCheckSweepVector, m_spGroundCheckCollider.get(), pPlayerRigidbody))
 	{
-		const float dot = XMVectorGetX(XMVector3Dot(Vector3::Up(), XMVector3Normalize(XMLoadFloat3(&item.m_hitNormalWorld))));
-		if (dot > m_maxSlope)
+		if (groundSweep.m_hitFraction < 1.0f)
 		{
-			hit = true;
-			break;
+			XMVECTOR vCorrection = XMVectorScale(XMVectorNegate(XMLoadFloat3A(&groundCheckSweepVector)), (1.0f - groundSweep.m_hitFraction));
+			m_pGameObject->m_transform.Translate(vCorrection);
 		}
+	
+		const float dot = XMVectorGetX(XMVector3Dot(Vector3::Up(), XMVector3Normalize(XMLoadFloat3(&groundSweep.m_hitNormalWorld))));
+		m_isGround = dot > m_maxSlope;
+	}
+	else
+	{
+		m_isGround = false;
 	}
 
-	m_isGround = hit;
 
 
 	// 위치 브로드캐스팅
 	this->BroadcastTransform();
+}
+
+void Player::OnInit(WeaponCode primary, WeaponCode secondary, WeaponSlot currWeapon, InGamePlayerState state)
+{
+	UNREFERENCED_PARAMETER(state);
+
+	this->SetProcessingInput(false);
+
+	const GameResources* pScriptGameResources = m_hScriptGameResources.ToPtr();
+
+	// 1인칭 팔 뷰 설정
+	this->SetArmsView(pScriptGameResources->GetArmsViewinfo(L"steven"));
+
+	// 무기 뷰 설정
+	this->SetWeaponInUse(WeaponSlot::Primary, primary);
+	this->SetWeaponInUse(WeaponSlot::Secondary, secondary);
+
+	this->DrawWeapon(currWeapon);
+
+	// m_pGameObject->m_transform.SetPosition(0.0f, 0.0f, 0.0f);
 }
 
 void Player::SetArmsView(const ArmsViewInfo* pArmsViewInfo)
@@ -408,6 +441,23 @@ void Player::SetArmsView(const ArmsViewInfo* pArmsViewInfo)
 	// pArmsSkinnedMeshRenderer->PlayAnimation("arms_run_usp", true);
 }
 
+void Player::SetWeaponInUse(WeaponSlot slot, WeaponCode weaponCode)
+{
+	const GameResources* pScriptGameResources = m_hScriptGameResources.ToPtr();
+
+	Weapon* pScriptWeapon = m_hScriptWeapon[static_cast<size_t>(slot)].ToPtr();
+
+	const std::shared_ptr<WeaponDefinition> spWeaponDef = pScriptGameResources->GetWeaponDefinition(weaponCode);
+	if (spWeaponDef)
+	{
+		pScriptWeapon->Init(spWeaponDef, spWeaponDef->GetMagCapacity(), spWeaponDef->GetInitAuxAmmo());
+	}
+	else
+	{
+		wprintf(L"[Player::SetWeaponInUse()] Invalid weapon code: %zu\n", static_cast<size_t>(weaponCode));
+	}
+}
+
 void Player::DrawWeapon(WeaponSlot slot)
 {
 	if (!(slot < WeaponSlot::Count))
@@ -427,6 +477,9 @@ void Player::DrawWeapon(WeaponSlot slot)
 		Weapon* pScriptCurrWeapon = m_hScriptWeapon[static_cast<size_t>(m_currWeaponSlot)].ToPtr();
 		pScriptCurrWeapon->Draw();
 
+		GameUIManager* pScriptGameUIManager = m_hScriptGameUIManager.ToPtr();
+		pScriptGameUIManager->SetTextWeaponName(WeaponInfo::GetWeaponNameString(pScriptCurrWeapon->GetWeaponCode()));
+
 		LSCSNotifyGamePlayerWeaponEvent ntfy;
 		ntfy.m_protocol = LSProtocol::CS_NOTIFY_GAME_PLAYER_WEAPON_EVENT;
 		ntfy.m_action = WeaponAction::Draw;
@@ -441,6 +494,17 @@ void Player::DrawWeapon(WeaponSlot slot)
 			enet_packet_destroy(pNtfyPktWeaponEvent);
 			pNtfyPktWeaponEvent = nullptr;
 		}
+	}
+}
+
+void Player::UndrawWeapon()
+{
+	if (m_currWeaponSlot < WeaponSlot::Count)
+	{
+		Weapon* pScriptOldWeapon = m_hScriptWeapon[static_cast<size_t>(m_currWeaponSlot)].ToPtr();
+		pScriptOldWeapon->Undraw();
+
+		m_currWeaponSlot = WeaponSlot::Unknown;
 	}
 }
 
@@ -496,6 +560,57 @@ void Player::FireWeapon()
 		enet_packet_destroy(pNtfyPktWeaponEvent);
 		pNtfyPktWeaponEvent = nullptr;
 	}
+
+
+	const GameObject* pGameObjCamera = m_hGameObjectCamera.ToPtr();
+	XMFLOAT3A from;
+	XMStoreFloat3(&from, pGameObjCamera->m_transform.GetWorldPosition());
+	XMFLOAT3A to;
+	constexpr float RAY_DIST = 500.0f;
+	XMStoreFloat3A(&to, XMVectorScale(pGameObjCamera->m_transform.GetWorldTransformMatrix().r[2], RAY_DIST));	// 기저벡터의 z축이 향하는 방향
+
+	RayHit rh;
+	if (Physics::GetInstance()->ClosestRaycastTestOnlyTrigger(rh, from, to))
+	{
+		const Rigidbody* pHitRigidbody = rh.m_pHitObject;
+		wprintf(L"Ray Hit Part: %s (Hit Fraction: %f)\n", pHitRigidbody->GetGameObjectHandle().ToPtr()->GetName(), rh.m_hitFraction);
+
+		const GameObject* pGameObjHitbox = pHitRigidbody->GetGameObjectHandle().ToPtr();
+		const GameObject* pGameObj = pGameObjHitbox->m_transform.GetParent()->GetGameObject();
+		ComponentHandle<ThirdPersonCharacter> hScriptThirdPersonCharacter = pGameObj->GetComponent<ThirdPersonCharacter>();
+		const ThirdPersonCharacter* pScriptThirdPersonCharacter = hScriptThirdPersonCharacter.ToPtr();
+
+		LSCSNotifyGamePlayerHit notify;
+		notify.m_protocol = LSProtocol::CS_NOTIFY_GAME_PLAYER_HIT;
+		notify.m_accountIdWhoWasShot = pScriptThirdPersonCharacter->GetAccountId();
+		notify.m_weaponCode = pScriptCurrWeapon->GetWeaponCode();
+		if (wcscmp(pGameObjHitbox->GetName(), HTB_BODY_NAME) == 0)
+			notify.m_hitPart = HitboxPart::Body;
+		else if (wcscmp(pGameObjHitbox->GetName(), HTB_NECK_NAME) == 0)
+			notify.m_hitPart = HitboxPart::Neck;
+		else if (wcscmp(pGameObjHitbox->GetName(), HTB_HEAD_NAME) == 0)
+			notify.m_hitPart = HitboxPart::Head;
+		else if (wcscmp(pGameObjHitbox->GetName(), HTB_UPPER_ARM_NAME) == 0)
+			notify.m_hitPart = HitboxPart::UpperArm;
+		else if (wcscmp(pGameObjHitbox->GetName(), HTB_FORE_ARM_NAME) == 0)
+			notify.m_hitPart = HitboxPart::ForeArm;
+		else if (wcscmp(pGameObjHitbox->GetName(), HTB_THIGH_NAME) == 0)
+			notify.m_hitPart = HitboxPart::Thigh;
+		else if (wcscmp(pGameObjHitbox->GetName(), HTB_CALF_NAME) == 0)
+			notify.m_hitPart = HitboxPart::Calf;
+		else if (wcscmp(pGameObjHitbox->GetName(), HTB_FOOT_NAME) == 0)
+			notify.m_hitPart = HitboxPart::Foot;
+		else
+			notify.m_hitPart = HitboxPart::Body;
+
+
+		ENetPacket* pPkt = enet_packet_create(&notify, sizeof(notify), ENET_PACKET_FLAG_RELIABLE);
+		if (!m_hScriptListenServerClient.ToPtr()->SendPacket(pPkt))
+		{
+			enet_packet_destroy(pPkt);
+			pPkt = nullptr;
+		}
+	}
 }
 
 WeaponCode Player::GetCurrentWeaponCode() const
@@ -506,20 +621,18 @@ WeaponCode Player::GetCurrentWeaponCode() const
 		return WeaponCode::Unknown;
 }
 
-void Player::OnDead(float respawnTime)
+void Player::OnDead()
 {
-	GameUIManager* pScriptGameUIManager = m_hScriptGameUIManager.ToPtr();
-	// pScriptGameUIManager->ShowRespawnUI(respawnTime);
-
 	this->SetProcessingInput(false);
 
-	m_currWeaponSlot = WeaponSlot::Unknown;
+	UndrawWeapon();
 }
 
-void Player::OnRespawn(const XMFLOAT3& pos, const XMFLOAT4& rot, float camRotX)
+void Player::OnRespawn(const XMFLOAT3& pos, const XMFLOAT4& rot, float camRotX, uint16_t hp, uint16_t ap)
 {
 	GameUIManager* pScriptGameUIManager = m_hScriptGameUIManager.ToPtr();
-	// pScriptGameUIManager->HideRespawnUI();
+	pScriptGameUIManager->SetTextHP(hp);
+	pScriptGameUIManager->SetTextAP(ap);
 
 	m_pGameObject->m_transform.SetPosition(pos);
 	m_pGameObject->m_transform.SetRotationQuaternion(rot);

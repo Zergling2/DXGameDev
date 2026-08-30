@@ -39,10 +39,12 @@ private:
 	void OnCSReqChat(const LSCSReqChat* pPacket, ENetPeer* pRequester);
 	void OnCSNotifyGamePlayerWeaponEvent(const LSCSNotifyGamePlayerWeaponEvent* pPacket, ENetPeer* pRequester);
 	void OnCSNotifyGamePlayerTransform(const LSCSNotifyGamePlayerTransform* pPacket, ENetPeer* pRequester);
+	void OnCSNotifyGamePlayerHit(const LSCSNotifyGamePlayerHit* pPacket, ENetPeer* pRequester);
 private:
 	ze::ComponentHandle<Network> m_hScriptNetwork;
 	ENetHost* m_pHost;
-	std::unordered_map<ENetPeer*, std::unique_ptr<LSGamePlayerInfo>> m_peers;
+	std::unordered_map<ENetPeer*, std::shared_ptr<LSGamePlayerInfo>> m_peers;
+	std::unordered_map<uint32_t, std::pair<std::shared_ptr<LSGamePlayerInfo>, ENetPeer*>> m_peersWithAccountId;
 	GameMap m_map;
 	float m_gameRemainingTime;
 	std::unordered_map<uint32_t, GameTeam> m_playersTeam;

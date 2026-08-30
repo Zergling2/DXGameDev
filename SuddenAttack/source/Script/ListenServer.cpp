@@ -2,6 +2,7 @@
 #include "Network.h"
 #include "Protocol.h"
 #include "..\Resource\LSGamePlayerInfo.h"
+#include "..\Resource\GameInfo.h"
 
 using namespace ze;
 
@@ -156,6 +157,12 @@ void ListenServer::OnReceive(ENetPeer* pPeer, uint8_t channelId, const ENetPacke
 			else
 				OnCSNotifyGamePlayerTransform(reinterpret_cast<const LSCSNotifyGamePlayerTransform*>(pPacket->data), pPeer);
 			break;
+		case LSProtocol::CS_NOTIFY_GAME_PLAYER_HIT:
+			if (packetSize != sizeof(LSCSNotifyGamePlayerHit))
+				enet_peer_disconnect_now(pPeer, 0);		// 즉시 연결 종료
+			else
+				OnCSNotifyGamePlayerHit(reinterpret_cast<const LSCSNotifyGamePlayerHit*>(pPacket->data), pPeer);
+			break;
 		default:
 			wprintf(L"Invalid protocol type packet has been arrived: %u.\n", static_cast<uint32_t>(protocol));
 			break;
@@ -166,7 +173,14 @@ void ListenServer::OnReceive(ENetPeer* pPeer, uint8_t channelId, const ENetPacke
 void ListenServer::OnDisconnect(ENetPeer* pPeer)
 {
 	// pPeer->data;	// 유효 필드
-	m_peers.erase(pPeer);		// 피어(플레이어) 정보 제거
+	const auto iter = m_peers.find(pPeer);
+	if (iter != m_peers.cend())
+	{
+		if (iter->second != nullptr)	// 인증된 피어여서 LSGamePlayerInfo 구조체가 할당된 피어인 경우
+			m_peersWithAccountId.erase(iter->second->m_accountId);	// account id 맵에서 항목을 지운다.
+
+		m_peers.erase(iter);	// 피어(플레이어) 정보 제거
+	}
 }
 
 void ListenServer::StartServer(GameMap map, float gameDuration, const uint32_t* pStartingPlayersAccountIds, const GameTeam* pStartingPlayersTeam, size_t count)
@@ -245,6 +259,7 @@ void ListenServer::CloseServer()
 	// m_redTeamPlayers.clear();
 	// m_blueTeamPlayers.clear();
 	m_peers.clear();
+	m_peersWithAccountId.clear();
 	m_playersTeam.clear();
 	m_map = GameMap::Unknown;
 }
@@ -302,6 +317,8 @@ void ListenServer::UpdateRespawn(float dt, LSGamePlayerInfo& player)
 	{
 		// 리스폰 전파 (RELIABLE)
 		player.m_state = InGamePlayerState::Alive;
+		player.m_hp = 100;
+		player.m_ap = 100;
 
 		LSSCNotifyGamePlayerRespawn ntfyRespawn;
 		ntfyRespawn.m_protocol = LSProtocol::SC_NOTIFY_GAME_PLAYER_RESPAWN;
@@ -320,6 +337,8 @@ void ListenServer::UpdateRespawn(float dt, LSGamePlayerInfo& player)
 		ntfyRespawn.m_rz = 0.0f;
 		ntfyRespawn.m_rw = 1.0f;
 		ntfyRespawn.m_camRotX = 0.0f;
+		ntfyRespawn.m_hp = player.m_hp;
+		ntfyRespawn.m_ap = player.m_ap;
 
 		ENetPacket* pNtfyPktRespawn = enet_packet_create(&ntfyRespawn, sizeof(ntfyRespawn), ENET_PACKET_FLAG_RELIABLE);
 		BroadcastPacket(pNtfyPktRespawn);
@@ -369,29 +388,36 @@ void ListenServer::OnCSReqAuth(const LSCSReqAuth* pPacket, ENetPeer* pRequester)
 	assert(joinedTeam != GameTeam::Unknown);
 
 	// 0. GamePlayerInfo 생성
-	std::unique_ptr<LSGamePlayerInfo> upNewLSGamePlayerInfo = std::make_unique<LSGamePlayerInfo>(pPacket->m_accountId);
-	const LSGamePlayerInfo* const pNewLSGamePlayerInfo = upNewLSGamePlayerInfo.get();	// move 전에 포인터 획득해두기
-	upNewLSGamePlayerInfo->m_nicknameLen = pPacket->m_nicknameLen;
-	wmemcpy(upNewLSGamePlayerInfo->m_nickname, pPacket->m_nickname, pPacket->m_nicknameLen);
-	upNewLSGamePlayerInfo->m_nickname[pPacket->m_nicknameLen] = L'\0';
-	upNewLSGamePlayerInfo->m_team = joinedTeam;
-	upNewLSGamePlayerInfo->m_level = pPacket->m_level;
-	upNewLSGamePlayerInfo->m_kill = 0;
-	upNewLSGamePlayerInfo->m_death = 0;
-	upNewLSGamePlayerInfo->m_ping = 0;
-	upNewLSGamePlayerInfo->m_state = InGamePlayerState::Dead;	// 최초 상태는 Dead
-	upNewLSGamePlayerInfo->m_weaponCodes[static_cast<size_t>(WeaponSlot::Primary)] = WeaponCode::M16;
-	upNewLSGamePlayerInfo->m_weaponCodes[static_cast<size_t>(WeaponSlot::Secondary)] = WeaponCode::USP;
-	upNewLSGamePlayerInfo->m_currWeapon = WeaponSlot::Secondary;
-	upNewLSGamePlayerInfo->m_respawnRemainingTime = 0.0f;
+	std::shared_ptr<LSGamePlayerInfo> spNewLSGamePlayerInfo = std::make_unique<LSGamePlayerInfo>(pPacket->m_accountId);
+	spNewLSGamePlayerInfo->m_nicknameLen = pPacket->m_nicknameLen;
+	wmemcpy(spNewLSGamePlayerInfo->m_nickname, pPacket->m_nickname, pPacket->m_nicknameLen);
+	spNewLSGamePlayerInfo->m_nickname[pPacket->m_nicknameLen] = L'\0';
+	spNewLSGamePlayerInfo->m_team = joinedTeam;
+	spNewLSGamePlayerInfo->m_level = pPacket->m_level;
+	spNewLSGamePlayerInfo->m_kill = 0;
+	spNewLSGamePlayerInfo->m_death = 0;
+	spNewLSGamePlayerInfo->m_ping = 0;
+	spNewLSGamePlayerInfo->m_state = InGamePlayerState::Dead;	// 최초 상태는 Dead
+	spNewLSGamePlayerInfo->m_weaponCodes[static_cast<size_t>(WeaponSlot::Primary)] = WeaponCode::M16;
+	spNewLSGamePlayerInfo->m_weaponCodes[static_cast<size_t>(WeaponSlot::Secondary)] = WeaponCode::USP;
+	spNewLSGamePlayerInfo->m_currWeapon = WeaponSlot::Secondary;
+	spNewLSGamePlayerInfo->m_respawnRemainingTime = 0.0f;
 
-	m_peers[pRequester] = std::move(upNewLSGamePlayerInfo);
-
+	m_peers[pRequester] = spNewLSGamePlayerInfo;	// OnConnect에서 버킷만 만들어두고 nullptr로 지정해둔 GamePlayer 정보를 지금 바인딩한다.
+	m_peersWithAccountId[spNewLSGamePlayerInfo->m_accountId] = std::make_pair(spNewLSGamePlayerInfo, pRequester);
 
 	// 1. 게임 상태 전송
 	LSSCNotifyGameStatus ntfyGameStatus;
 	ntfyGameStatus.m_protocol = LSProtocol::SC_NOTIFY_GAME_STATUS;
 	ntfyGameStatus.m_gameRemainingTime = m_gameRemainingTime;
+	ntfyGameStatus.m_team = joinedTeam;
+	ntfyGameStatus.m_kill = spNewLSGamePlayerInfo->m_kill;
+	ntfyGameStatus.m_death = spNewLSGamePlayerInfo->m_death;
+	ntfyGameStatus.m_ping = spNewLSGamePlayerInfo->m_ping;
+	ntfyGameStatus.m_state = spNewLSGamePlayerInfo->m_state;
+	ntfyGameStatus.m_weaponCodes[static_cast<size_t>(WeaponSlot::Primary)] = spNewLSGamePlayerInfo->m_weaponCodes[static_cast<size_t>(WeaponSlot::Primary)];
+	ntfyGameStatus.m_weaponCodes[static_cast<size_t>(WeaponSlot::Secondary)] = spNewLSGamePlayerInfo->m_weaponCodes[static_cast<size_t>(WeaponSlot::Secondary)];
+	ntfyGameStatus.m_currWeapon = WeaponSlot::Secondary;
 
 	ENetPacket* pNtfyPktGameStatus = enet_packet_create(&ntfyGameStatus, sizeof(ntfyGameStatus), ENET_PACKET_FLAG_RELIABLE);
 	assert(pNtfyPktGameStatus);
@@ -414,7 +440,7 @@ void ListenServer::OnCSReqAuth(const LSCSReqAuth* pPacket, ENetPeer* pRequester)
 	ntfyPlayerJoined.m_kill = 0;
 	ntfyPlayerJoined.m_death = 0;
 	ntfyPlayerJoined.m_ping = 0;
-	ntfyPlayerJoined.m_state = pNewLSGamePlayerInfo->m_state;
+	ntfyPlayerJoined.m_state = spNewLSGamePlayerInfo->m_state;
 	ntfyPlayerJoined.m_x = 0.0f;
 	ntfyPlayerJoined.m_y = 0.0f;
 	ntfyPlayerJoined.m_z = 0.0f;
@@ -423,9 +449,9 @@ void ListenServer::OnCSReqAuth(const LSCSReqAuth* pPacket, ENetPeer* pRequester)
 	ntfyPlayerJoined.m_rz = 0.0f;
 	ntfyPlayerJoined.m_rw = 1.0f;
 	ntfyPlayerJoined.m_camRotX = 0.0f;
-	ntfyPlayerJoined.m_weaponCodes[static_cast<size_t>(WeaponSlot::Primary)] = pNewLSGamePlayerInfo->m_weaponCodes[static_cast<size_t>(WeaponSlot::Primary)];
-	ntfyPlayerJoined.m_weaponCodes[static_cast<size_t>(WeaponSlot::Secondary)] = pNewLSGamePlayerInfo->m_weaponCodes[static_cast<size_t>(WeaponSlot::Secondary)];
-	ntfyPlayerJoined.m_currWeapon = pNewLSGamePlayerInfo->m_currWeapon;
+	ntfyPlayerJoined.m_weaponCodes[static_cast<size_t>(WeaponSlot::Primary)] = spNewLSGamePlayerInfo->m_weaponCodes[static_cast<size_t>(WeaponSlot::Primary)];
+	ntfyPlayerJoined.m_weaponCodes[static_cast<size_t>(WeaponSlot::Secondary)] = spNewLSGamePlayerInfo->m_weaponCodes[static_cast<size_t>(WeaponSlot::Secondary)];
+	ntfyPlayerJoined.m_currWeapon = spNewLSGamePlayerInfo->m_currWeapon;
 
 	ENetPacket* pNtfyPktPlayerJoined = enet_packet_create(&ntfyPlayerJoined, sizeof(ntfyPlayerJoined), ENET_PACKET_FLAG_RELIABLE);
 	if (BroadcastPacketExcept(pNtfyPktPlayerJoined, pRequester) == 0)
@@ -499,13 +525,12 @@ void ListenServer::OnCSReqAuth(const LSCSReqAuth* pPacket, ENetPeer* pRequester)
 
 void ListenServer::OnCSReqChat(const LSCSReqChat* pPacket, ENetPeer* pRequester)
 {
-	auto iter = m_peers.find(pRequester);
+	const auto iter = m_peers.find(pRequester);
 	if (iter == m_peers.cend())
 	{
 		enet_peer_disconnect(pRequester, 0);
 		return;
 	}
-	
 
 	if (pPacket->m_chatMsgLen >= MAX_CHAT_MSG_LEN)
 	{
@@ -520,7 +545,7 @@ void ListenServer::OnCSReqChat(const LSCSReqChat* pPacket, ENetPeer* pRequester)
 	wmemcpy(notify.m_chatMsg, pPacket->m_chatMsg, pPacket->m_chatMsgLen);
 
 	ENetPacket* pResPkt = enet_packet_create(&notify, sizeof(notify), ENET_PACKET_FLAG_RELIABLE);
-	if (!SendPacket(pRequester, pResPkt))
+	if (BroadcastPacket(pResPkt) == 0)
 	{
 		enet_packet_destroy(pResPkt);
 		pResPkt = nullptr;
@@ -535,6 +560,15 @@ void ListenServer::OnCSNotifyGamePlayerWeaponEvent(const LSCSNotifyGamePlayerWea
 	{
 		enet_peer_disconnect(pRequester, 0);
 		return;
+	}
+
+	switch (pPacket->m_action)
+	{
+	case WeaponAction::Draw:
+		iter->second->m_currWeapon = pPacket->m_slot;
+		break;
+	default:
+		break;
 	}
 
 	LSSCNotifyGamePlayerWeaponEvent ntfyWeaponEvent;
@@ -579,5 +613,81 @@ void ListenServer::OnCSNotifyGamePlayerTransform(const LSCSNotifyGamePlayerTrans
 		enet_packet_destroy(pNtfyPktTransform);
 		pNtfyPktTransform = nullptr;
 		return;
+	}
+}
+
+void ListenServer::OnCSNotifyGamePlayerHit(const LSCSNotifyGamePlayerHit* pPacket, ENetPeer* pRequester)
+{
+	const auto iter = m_peers.find(pRequester);
+	if (iter == m_peers.cend())
+	{
+		enet_peer_disconnect(pRequester, 0);
+		return;
+	}
+	
+	const auto iterWhoWasShot = m_peersWithAccountId.find(pPacket->m_accountIdWhoWasShot);
+
+	if (iterWhoWasShot->second.first->m_state != InGamePlayerState::Alive)
+		return;
+
+	const uint16_t damage = WeaponInfo::GetWeaponDamage(pPacket->m_weaponCode, pPacket->m_hitPart);
+	wprintf(L"damage: %u\n", static_cast<uint32_t>(damage));
+	if (iterWhoWasShot->second.first->m_hp <= damage)
+		iterWhoWasShot->second.first->m_hp = 0;
+	else
+		iterWhoWasShot->second.first->m_hp -= damage;
+	
+	{
+		// 피격 이벤트 브로드캐스팅 (피격 애니메이션 재생, 피격 이펙트 표시, 피격자는 이 패킷 수신 시 자신의 체력 UI 업데이트 등을 위해)
+		// 히트를 주장한 플레이어는 자체적으로 피격 애니메이션, 피격 이펙트를 표시한다.
+		LSSCNotifyGamePlayerHit ntfy;
+		ntfy.m_protocol = LSProtocol::SC_NOTIFY_GAME_PLAYER_HIT;
+		ntfy.m_accountIdWhoWasShot = pPacket->m_accountIdWhoWasShot;
+		ntfy.m_hp = iterWhoWasShot->second.first->m_hp;
+		ntfy.m_ap = iterWhoWasShot->second.first->m_ap;
+
+		ENetPacket* pPkt = enet_packet_create(&ntfy, sizeof(ntfy), ENET_PACKET_FLAG_RELIABLE);
+		if (BroadcastPacketExcept(pPkt, pRequester) == 0)
+		{
+			enet_packet_destroy(pPkt);
+			pPkt = nullptr;
+		}
+	}
+
+	if (iterWhoWasShot->second.first->m_hp == 0)
+	{
+		iterWhoWasShot->second.first->m_state = InGamePlayerState::Dead;
+		iterWhoWasShot->second.first->m_respawnRemainingTime = GameSettings::GetRespawnTime();
+
+		{
+			// 사망 이벤트 알림
+			LSSCNotifyGamePlayerKill ntfy;
+			ntfy.m_protocol = LSProtocol::SC_NOTIFY_GAME_PLAYER_KILL;
+			ntfy.m_killerAccountId = iter->second->m_accountId;
+			ntfy.m_deaderAccountId = iterWhoWasShot->second.first->m_accountId;
+			ntfy.m_weaponCode = pPacket->m_weaponCode;
+			ntfy.m_headshot = pPacket->m_hitPart == HitboxPart::Head;
+
+			ENetPacket* pPkt = enet_packet_create(&ntfy, sizeof(ntfy), ENET_PACKET_FLAG_RELIABLE);
+			if (BroadcastPacket(pPkt) == 0)
+			{
+				enet_packet_destroy(pPkt);
+				pPkt = nullptr;
+			}
+		}
+
+		{
+			// 사망한 플레이어에게 리스폰 시작을 알림
+			LSSCNotifyGamePlayerStartRespawn ntfy;
+			ntfy.m_protocol = LSProtocol::SC_NOTIFY_GAME_PLAYER_START_RESPAWN;
+			ntfy.m_remainingTime = iterWhoWasShot->second.first->m_respawnRemainingTime;
+
+			ENetPacket* pPkt = enet_packet_create(&ntfy, sizeof(ntfy), ENET_PACKET_FLAG_RELIABLE);
+			if (!SendPacket(iterWhoWasShot->second.second, pPkt))
+			{
+				enet_packet_destroy(pPkt);
+				pPkt = nullptr;
+			}
+		}
 	}
 }

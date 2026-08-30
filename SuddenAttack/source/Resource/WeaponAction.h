@@ -7,5 +7,8 @@ enum class WeaponAction
 	Fire,
 	Idle,
 
+	Death1,
+	Death1Idle,
+
 	None
 };

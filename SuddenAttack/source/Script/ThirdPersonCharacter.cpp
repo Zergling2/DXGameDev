@@ -2,6 +2,7 @@
 #include "..\Resource\GlobalScriptGameObject.h"
 #include "..\Resource\Character.h"
 #include "..\Resource\WeaponDefinition.h"
+#include "..\Resource\HitboxName.h"
 #include "GameResources.h"
 
 using namespace ze;
@@ -17,6 +18,7 @@ XMFLOAT4 ThirdPersonCharacter::s_weaponLocalRotQuaternion[];
 ThirdPersonCharacter::ThirdPersonCharacter(ze::GameObject& owner)
 	: MonoBehaviour(owner)
 	, m_hitboxActivated(true)
+	, m_accountId(0)
 	, m_currWeaponSlot(WeaponSlot::Unknown)
 	, m_spWeaponDefs{}
 	, m_hScriptGameResources()
@@ -129,7 +131,7 @@ void ThirdPersonCharacter::Awake()
 
 	// ##############################################################################
 	// 캐릭터 히트박스 생성
-	m_hGameObjectHitboxBody = Runtime::GetInstance()->CreateGameObject();
+	m_hGameObjectHitboxBody = Runtime::GetInstance()->CreateGameObject(HTB_BODY_NAME);
 	GameObject* pGameObjectHitboxBody = m_hGameObjectHitboxBody.ToPtr();
 	pGameObjectHitboxBody->m_transform.SetParent(&m_pGameObject->m_transform);
 	m_hRigidbodyHitboxBody = pGameObjectHitboxBody->AddComponent<Rigidbody>(
@@ -144,7 +146,7 @@ void ThirdPersonCharacter::Awake()
 	pRigidbodyHitboxBody->SetBodyType(RigidbodyType::Kinematic);
 	pRigidbodyHitboxBody->SetTrigger(true);
 
-	m_hGameObjectHitboxNeck = Runtime::GetInstance()->CreateGameObject();
+	m_hGameObjectHitboxNeck = Runtime::GetInstance()->CreateGameObject(HTB_NECK_NAME);
 	GameObject* pGameObjectHitboxNeck = m_hGameObjectHitboxNeck.ToPtr();
 	pGameObjectHitboxNeck->m_transform.SetParent(&m_pGameObject->m_transform);
 	m_hRigidbodyHitboxNeck = pGameObjectHitboxNeck->AddComponent<Rigidbody>(
@@ -159,7 +161,7 @@ void ThirdPersonCharacter::Awake()
 	pRigidbodyHitboxNeck->SetBodyType(RigidbodyType::Kinematic);
 	pRigidbodyHitboxNeck->SetTrigger(true);
 
-	m_hGameObjectHitboxHead = Runtime::GetInstance()->CreateGameObject();
+	m_hGameObjectHitboxHead = Runtime::GetInstance()->CreateGameObject(HTB_HEAD_NAME);
 	GameObject* pGameObjectHitboxHead = m_hGameObjectHitboxHead.ToPtr();
 	pGameObjectHitboxHead->m_transform.SetParent(&m_pGameObject->m_transform);
 	m_hRigidbodyHitboxHead = pGameObjectHitboxHead->AddComponent<Rigidbody>(
@@ -174,7 +176,7 @@ void ThirdPersonCharacter::Awake()
 	pRigidbodyHitboxHead->SetBodyType(RigidbodyType::Kinematic);
 	pRigidbodyHitboxHead->SetTrigger(true);
 
-	m_hGameObjectHitboxLeftUpperArm = Runtime::GetInstance()->CreateGameObject();
+	m_hGameObjectHitboxLeftUpperArm = Runtime::GetInstance()->CreateGameObject(HTB_UPPER_ARM_NAME);
 	GameObject* pGameObjectHitboxLeftUpperArm = m_hGameObjectHitboxLeftUpperArm.ToPtr();
 	pGameObjectHitboxLeftUpperArm->m_transform.SetParent(&m_pGameObject->m_transform);
 	m_hRigidbodyHitboxLeftUpperArm = pGameObjectHitboxLeftUpperArm->AddComponent<Rigidbody>(
@@ -189,7 +191,7 @@ void ThirdPersonCharacter::Awake()
 	pRigidbodyHitboxLeftUpperArm->SetBodyType(RigidbodyType::Kinematic);
 	pRigidbodyHitboxLeftUpperArm->SetTrigger(true);
 
-	m_hGameObjectHitboxRightUpperArm = Runtime::GetInstance()->CreateGameObject();
+	m_hGameObjectHitboxRightUpperArm = Runtime::GetInstance()->CreateGameObject(HTB_UPPER_ARM_NAME);
 	GameObject* pGameObjectHitboxRightUpperArm = m_hGameObjectHitboxRightUpperArm.ToPtr();
 	pGameObjectHitboxRightUpperArm->m_transform.SetParent(&m_pGameObject->m_transform);
 	m_hRigidbodyHitboxRightUpperArm = pGameObjectHitboxRightUpperArm->AddComponent<Rigidbody>(
@@ -204,7 +206,7 @@ void ThirdPersonCharacter::Awake()
 	pRigidbodyHitboxRightUpperArm->SetBodyType(RigidbodyType::Kinematic);
 	pRigidbodyHitboxRightUpperArm->SetTrigger(true);
 
-	m_hGameObjectHitboxLeftForeArm = Runtime::GetInstance()->CreateGameObject();
+	m_hGameObjectHitboxLeftForeArm = Runtime::GetInstance()->CreateGameObject(HTB_FORE_ARM_NAME);
 	GameObject* pGameObjectHitboxLeftForeArm = m_hGameObjectHitboxLeftForeArm.ToPtr();
 	pGameObjectHitboxLeftForeArm->m_transform.SetParent(&m_pGameObject->m_transform);
 	m_hRigidbodyHitboxLeftForeArm = pGameObjectHitboxLeftForeArm->AddComponent<Rigidbody>(
@@ -219,7 +221,7 @@ void ThirdPersonCharacter::Awake()
 	pRigidbodyHitboxLeftForeArm->SetBodyType(RigidbodyType::Kinematic);
 	pRigidbodyHitboxLeftForeArm->SetTrigger(true);
 
-	m_hGameObjectHitboxRightForeArm = Runtime::GetInstance()->CreateGameObject();
+	m_hGameObjectHitboxRightForeArm = Runtime::GetInstance()->CreateGameObject(HTB_FORE_ARM_NAME);
 	GameObject* pGameObjectHitboxRightForeArm = m_hGameObjectHitboxRightForeArm.ToPtr();
 	pGameObjectHitboxRightForeArm->m_transform.SetParent(&m_pGameObject->m_transform);
 	m_hRigidbodyHitboxRightForeArm = pGameObjectHitboxRightForeArm->AddComponent<Rigidbody>(
@@ -234,7 +236,7 @@ void ThirdPersonCharacter::Awake()
 	pRigidbodyHitboxRightForeArm->SetBodyType(RigidbodyType::Kinematic);
 	pRigidbodyHitboxRightForeArm->SetTrigger(true);
 
-	m_hGameObjectHitboxLeftThigh = Runtime::GetInstance()->CreateGameObject();
+	m_hGameObjectHitboxLeftThigh = Runtime::GetInstance()->CreateGameObject(HTB_THIGH_NAME);
 	GameObject* pGameObjectHitboxLeftThigh = m_hGameObjectHitboxLeftThigh.ToPtr();
 	pGameObjectHitboxLeftThigh->m_transform.SetParent(&m_pGameObject->m_transform);
 	m_hRigidbodyHitboxLeftThigh = pGameObjectHitboxLeftThigh->AddComponent<Rigidbody>(
@@ -249,7 +251,7 @@ void ThirdPersonCharacter::Awake()
 	pRigidbodyHitboxLeftThigh->SetBodyType(RigidbodyType::Kinematic);
 	pRigidbodyHitboxLeftThigh->SetTrigger(true);
 
-	m_hGameObjectHitboxRightThigh = Runtime::GetInstance()->CreateGameObject();
+	m_hGameObjectHitboxRightThigh = Runtime::GetInstance()->CreateGameObject(HTB_THIGH_NAME);
 	GameObject* pGameObjectHitboxRightThigh = m_hGameObjectHitboxRightThigh.ToPtr();
 	pGameObjectHitboxRightThigh->m_transform.SetParent(&m_pGameObject->m_transform);
 	m_hRigidbodyHitboxRightThigh = pGameObjectHitboxRightThigh->AddComponent<Rigidbody>(
@@ -264,7 +266,7 @@ void ThirdPersonCharacter::Awake()
 	pRigidbodyHitboxRightThigh->SetBodyType(RigidbodyType::Kinematic);
 	pRigidbodyHitboxRightThigh->SetTrigger(true);
 
-	m_hGameObjectHitboxLeftCalf = Runtime::GetInstance()->CreateGameObject();
+	m_hGameObjectHitboxLeftCalf = Runtime::GetInstance()->CreateGameObject(HTB_CALF_NAME);
 	GameObject* pGameObjectHitboxLeftCalf = m_hGameObjectHitboxLeftCalf.ToPtr();
 	pGameObjectHitboxLeftCalf->m_transform.SetParent(&m_pGameObject->m_transform);
 	m_hRigidbodyHitboxLeftCalf = pGameObjectHitboxLeftCalf->AddComponent<Rigidbody>(
@@ -279,7 +281,7 @@ void ThirdPersonCharacter::Awake()
 	pRigidbodyHitboxLeftCalf->SetBodyType(RigidbodyType::Kinematic);
 	pRigidbodyHitboxLeftCalf->SetTrigger(true);
 
-	m_hGameObjectHitboxRightCalf = Runtime::GetInstance()->CreateGameObject();
+	m_hGameObjectHitboxRightCalf = Runtime::GetInstance()->CreateGameObject(HTB_CALF_NAME);
 	GameObject* pGameObjectHitboxRightCalf = m_hGameObjectHitboxRightCalf.ToPtr();
 	pGameObjectHitboxRightCalf->m_transform.SetParent(&m_pGameObject->m_transform);
 	m_hRigidbodyHitboxRightCalf = pGameObjectHitboxRightCalf->AddComponent<Rigidbody>(
@@ -294,7 +296,7 @@ void ThirdPersonCharacter::Awake()
 	pRigidbodyHitboxRightCalf->SetBodyType(RigidbodyType::Kinematic);
 	pRigidbodyHitboxRightCalf->SetTrigger(true);
 
-	m_hGameObjectHitboxLeftFoot = Runtime::GetInstance()->CreateGameObject();
+	m_hGameObjectHitboxLeftFoot = Runtime::GetInstance()->CreateGameObject(HTB_FOOT_NAME);
 	GameObject* pGameObjectHitboxLeftFoot = m_hGameObjectHitboxLeftFoot.ToPtr();
 	pGameObjectHitboxLeftFoot->m_transform.SetParent(&m_pGameObject->m_transform);
 	m_hRigidbodyHitboxLeftFoot = pGameObjectHitboxLeftFoot->AddComponent<Rigidbody>(
@@ -309,7 +311,7 @@ void ThirdPersonCharacter::Awake()
 	pRigidbodyHitboxLeftFoot->SetBodyType(RigidbodyType::Kinematic);
 	pRigidbodyHitboxLeftFoot->SetTrigger(true);
 
-	m_hGameObjectHitboxRightFoot = Runtime::GetInstance()->CreateGameObject();
+	m_hGameObjectHitboxRightFoot = Runtime::GetInstance()->CreateGameObject(HTB_FOOT_NAME);
 	GameObject* pGameObjectHitboxRightFoot = m_hGameObjectHitboxRightFoot.ToPtr();
 	pGameObjectHitboxRightFoot->m_transform.SetParent(&m_pGameObject->m_transform);
 	m_hRigidbodyHitboxRightFoot = pGameObjectHitboxRightFoot->AddComponent<Rigidbody>(
@@ -367,7 +369,7 @@ void ThirdPersonCharacter::Update()
 		this->UpdateTVWeaponBaseAndHitboxTransforms();
 	
 
-	if (m_action != WeaponAction::Idle && m_action != WeaponAction::None)
+	if (m_action != WeaponAction::Idle && m_action != WeaponAction::Death1Idle && m_action != WeaponAction::None)
 	{
 		m_actionElapsed += dt;		// 업데이트
 
@@ -400,25 +402,32 @@ void ThirdPersonCharacter::Update()
 		}
 		*/
 
-		/*
+		const float exceed = m_actionElapsed - m_actionDuration;
 		switch (m_action)
 		{
 		case WeaponAction::Draw:
+			if (exceed >= 0)
+				this->OnIdle(exceed);
 			break;
 		case WeaponAction::Reload:
-			if (m_actionDuration <= m_actionElapsed)
-			 	this->OnReloadFinish();
+			if (exceed >= 0)
+			{
+				// this->OnReloadFinish();
+				this->OnIdle(exceed);
+			}
 			break;
 		case WeaponAction::Fire:
-			m_fireCoolTime = (std::max)(m_fireCoolTime - dt, 0.0f);
+			// m_fireCoolTime = (std::max)(m_fireCoolTime - dt, 0.0f);
+			if (exceed >= 0)
+				this->OnIdle(exceed);
+			break;
+		case WeaponAction::Death1:
+			if (exceed >= 0)
+				this->OnDeadIdle(exceed, WeaponAction::Death1);
 			break;
 		default:
 			break;
 		}
-		*/
-
-		if (m_actionDuration <= m_actionElapsed)
-			this->OnIdle(m_actionElapsed - m_actionDuration);
 	}
 }
 
@@ -461,9 +470,11 @@ void ThirdPersonCharacter::HideView()
 	m_hMeshRendererTVWeapon.ToPtr()->Disable();
 }
 
-void ThirdPersonCharacter::OnInit(GameTeam team, WeaponCode primary, WeaponCode secondary, WeaponSlot currWeapon, InGamePlayerState state,
+void ThirdPersonCharacter::OnInit(uint32_t accountId, GameTeam team, WeaponCode primary, WeaponCode secondary, WeaponSlot currWeapon, InGamePlayerState state,
 	const XMFLOAT3& pos, const XMFLOAT4& rot, float camRotX)
 {
+	m_accountId = accountId;
+
 	const GameResources* pScriptGameResources = m_hScriptGameResources.ToPtr();
 
 	m_currWeaponSlot = currWeapon;
@@ -484,7 +495,7 @@ void ThirdPersonCharacter::OnInit(GameTeam team, WeaponCode primary, WeaponCode 
 	}
 	this->SetCharacterView(pCVI);
 
-	m_hSkinnedMeshRendererCharacter.ToPtr()->PlayGroupAnimation("stand_idle", "lower_body", true);
+	// m_hSkinnedMeshRendererCharacter.ToPtr()->PlayGroupAnimation("stand_idle", "lower_body", true);
 
 	// 2. 무기 뷰 설정
 	this->SetWeaponInUse(WeaponSlot::Primary, primary);
@@ -542,7 +553,7 @@ void ThirdPersonCharacter::OnDraw(WeaponSlot slot)
 		m_actionElapsed = 0.0f;
 
 		// 3. 애니메이션 재생
-		this->PlayAnimation(WeaponAction::Draw, false);
+		this->PlayWeaponAnimation(WeaponAction::Draw, false);
 	}
 }
 
@@ -561,7 +572,7 @@ void ThirdPersonCharacter::OnFire()
 		m_actionElapsed = 0.0f;
 
 		// 3. 애니메이션 재생
-		this->PlayAnimation(WeaponAction::Fire, false);
+		this->PlayWeaponAnimation(WeaponAction::Fire, false);
 	}
 }
 
@@ -569,7 +580,6 @@ void ThirdPersonCharacter::OnReload()
 {
 	if (m_currWeaponSlot < WeaponSlot::Count)
 	{
-		wprintf(L"ThirdPersonCharacter::OnReload()\n");
 		const WeaponDefinition* pWeaponDef = m_spWeaponDefs[static_cast<size_t>(m_currWeaponSlot)].get();
 
 		m_action = WeaponAction::Reload;
@@ -580,7 +590,7 @@ void ThirdPersonCharacter::OnReload()
 		m_actionDuration = pWeaponDef->GetReloadTime();
 		m_actionElapsed = 0.0f;
 
-		this->PlayAnimation(WeaponAction::Reload, false);
+		this->PlayWeaponAnimation(WeaponAction::Reload, false);
 	}
 }
 
@@ -592,7 +602,34 @@ void ThirdPersonCharacter::OnIdle(float exceed)
 		m_actionDuration = 0.0f;
 		m_actionElapsed = 0.0f;
 
-		this->PlayAnimation(WeaponAction::Idle, true);
+		this->PlayWeaponAnimation(WeaponAction::Idle, true);
+	}
+}
+
+void ThirdPersonCharacter::OnDead(WeaponAction deadAction)
+{
+	// 캐릭터 콜라이더 비활성화
+	m_hCharacterColliderRigidbody.ToPtr()->Disable();
+
+	if (m_currWeaponSlot < WeaponSlot::Count)
+	{
+		m_action = WeaponAction::Death1;
+		m_actionDuration = CharacterViewInfo::GetDeathAnimTime();
+		m_actionElapsed = 0.0f;
+
+		this->PlayDeathAnimation(WeaponAction::Death1, false);
+	}
+}
+
+void ThirdPersonCharacter::OnDeadIdle(float exceed, WeaponAction deathAction)
+{
+	if (m_currWeaponSlot < WeaponSlot::Count)
+	{
+		m_action = WeaponAction::Death1Idle;
+		m_actionDuration = 0.0f;
+		m_actionElapsed = 0.0f;
+
+		this->PlayDeathAnimation(WeaponAction::Death1Idle, true);
 	}
 }
 
@@ -605,6 +642,9 @@ void ThirdPersonCharacter::OnRespawn(const XMFLOAT3& pos, const XMFLOAT4& rot, f
 	this->OnDraw(WeaponSlot::Secondary);
 
 	m_hSkinnedMeshRendererCharacter.ToPtr()->PlayGroupAnimation("stand_idle", "lower_body", true);
+
+	// 캐릭터 콜라이더 활성화
+	m_hCharacterColliderRigidbody.ToPtr()->Enable();
 }
 
 void ThirdPersonCharacter::OnTransform(const XMFLOAT3& pos, const XMFLOAT4& rot, float camRotX)
@@ -743,7 +783,7 @@ void ThirdPersonCharacter::UpdateTVWeaponBaseAndHitboxTransforms()
 	pGameObjectHitboxRightFoot->m_transform.SetPosition(bt[m_biRightToe].m_translation);
 }
 
-void ThirdPersonCharacter::PlayAnimation(WeaponAction action, bool loop)
+void ThirdPersonCharacter::PlayWeaponAnimation(WeaponAction action, bool loop)
 {
 	if (m_currWeaponSlot < WeaponSlot::Count)
 	{
@@ -751,6 +791,30 @@ void ThirdPersonCharacter::PlayAnimation(WeaponAction action, bool loop)
 
 		const auto animIter = pWeaponDef->m_tvAnims.find(action);
 		if (animIter != pWeaponDef->m_tvAnims.cend())
-			m_hSkinnedMeshRendererCharacter.ToPtr()->PlayGroupAnimation(animIter->second, "upper_body", loop);
+		{
+			m_hSkinnedMeshRendererCharacter.ToPtr()->PlayGroupAnimation(animIter->second, "upper_body", loop);	// 무기는 상체 애니메이션만 관여
+		}
+		else
+		{
+			wprintf(L"[ThirdPersonCharacter::PlayWeaponAnimation()] Can not find animation item about '%s'.", pWeaponDef->GetName().c_str());
+		}
+	}
+}
+
+void ThirdPersonCharacter::PlayDeathAnimation(WeaponAction deathAction, bool loop)
+{
+	if (m_currWeaponSlot < WeaponSlot::Count)
+	{
+		const WeaponDefinition* const pWeaponDef = m_spWeaponDefs[static_cast<size_t>(m_currWeaponSlot)].get();
+
+		const auto animIter = pWeaponDef->m_tvAnims.find(deathAction);
+		if (animIter != pWeaponDef->m_tvAnims.cend())
+		{
+			m_hSkinnedMeshRendererCharacter.ToPtr()->PlayAnimation(animIter->second, loop);	// 상하체 모두 재생
+		}
+		else
+		{
+			wprintf(L"[ThirdPersonCharacter::PlayDeathAnimation()] Can not find animation item about '%s'.", pWeaponDef->GetName().c_str());
+		}
 	}
 }

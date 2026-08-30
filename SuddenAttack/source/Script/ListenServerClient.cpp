@@ -171,6 +171,18 @@ void ListenServerClient::OnReceive(ENetPeer* pPeer, uint8_t channelId, const ENe
 		else
 			OnSCNotifyGamePlayerInfo(reinterpret_cast<const LSSCNotifyGamePlayerInfo*>(pPacket->data));
 		break;
+	case LSProtocol::SC_NOTIFY_GAME_PLAYER_KILL:
+		if (packetSize != sizeof(LSSCNotifyGamePlayerKill))
+			enet_peer_disconnect_now(pPeer, 0);
+		else
+			OnSCNotifyGamePlayerKill(reinterpret_cast<const LSSCNotifyGamePlayerKill*>(pPacket->data));
+		break;
+	case LSProtocol::SC_NOTIFY_GAME_PLAYER_DEAD:
+		if (packetSize != sizeof(LSSCNotifyGamePlayerDead))
+			enet_peer_disconnect_now(pPeer, 0);
+		else
+			OnSCNotifyGamePlayerDead(reinterpret_cast<const LSSCNotifyGamePlayerDead*>(pPacket->data));
+		break;
 	case LSProtocol::SC_NOTIFY_GAME_PLAYER_WEAPON_EVENT:
 		if (packetSize != sizeof(LSSCNotifyGamePlayerWeaponEvent))
 			enet_peer_disconnect_now(pPeer, 0);
@@ -182,6 +194,18 @@ void ListenServerClient::OnReceive(ENetPeer* pPeer, uint8_t channelId, const ENe
 			enet_peer_disconnect_now(pPeer, 0);
 		else
 			OnSCNotifyGamePlayerTransform(reinterpret_cast<const LSSCNotifyGamePlayerTransform*>(pPacket->data));
+		break;
+	case LSProtocol::SC_NOTIFY_GAME_PLAYER_HIT:
+		if (packetSize != sizeof(LSSCNotifyGamePlayerHit))
+			enet_peer_disconnect_now(pPeer, 0);
+		else
+			OnSCNotifyGamePlayerHit(reinterpret_cast<const LSSCNotifyGamePlayerHit*>(pPacket->data));
+		break;
+	case LSProtocol::SC_NOTIFY_GAME_PLAYER_START_RESPAWN:
+		if (packetSize != sizeof(LSSCNotifyGamePlayerStartRespawn))
+			enet_peer_disconnect_now(pPeer, 0);
+		else
+			OnSCNotifyGamePlayerStartRespawn(reinterpret_cast<const LSSCNotifyGamePlayerStartRespawn*>(pPacket->data));
 		break;
 	case LSProtocol::SC_NOTIFY_GAME_PLAYER_RESPAWN:
 		if (packetSize != sizeof(LSSCNotifyGamePlayerRespawn))
@@ -280,6 +304,8 @@ void ListenServerClient::CloseClient()
 		m_pClient = nullptr;
 	}
 
+	m_players.clear();
+
 	m_serverIP = 0;
 	m_serverPort = 0;
 }
@@ -308,15 +334,44 @@ void ListenServerClient::OnSCNotifyGameStatus(const LSSCNotifyGameStatus* pPacke
 	// 플레이어 캐릭터 오브젝트 생성
 	GameObjectHandle hGameObjectPlayer = Runtime::GetInstance()->CreateGameObject(L"MyPlayer");
 	GameObject* pGameObjectPlayer = hGameObjectPlayer.ToPtr();
-	pGameObjectPlayer->m_transform.SetPosition(-7.0f, 0.0f, -5.0f);
 	ComponentHandle<Player> hScriptPlayer = pGameObjectPlayer->AddComponent<Player>();
 	m_hScriptPlayer = hScriptPlayer;
 	Player* pScriptPlayer = hScriptPlayer.ToPtr();
 	pScriptPlayer->m_hScriptListenServerClient = this->ToHandle();
-	pScriptPlayer->SetProcessingInput(false);
 
 	// GameUIManager 상태 설정
 	m_hScriptGameUIManager.ToPtr()->SetState(GameUIStatePlaying::GetState());
+
+	const Account* pScriptAccount = m_hScriptAccount.ToPtr();
+	std::unique_ptr<GamePlayerInfo> upNewMyPlayer = std::make_unique<GamePlayerInfo>(pScriptAccount->GetAccountId());
+	const GamePlayerInfo* const pNewMyPlayer = upNewMyPlayer.get();	// move 대비
+
+	upNewMyPlayer->m_nicknameLen = pScriptAccount->GetNicknameLen();
+	wmemcpy(upNewMyPlayer->m_nickname, pScriptAccount->GetNickname(), pScriptAccount->GetNicknameLen());
+	upNewMyPlayer->m_nickname[pScriptAccount->GetNicknameLen()] = L'\0';	// null termination
+	upNewMyPlayer->m_team = pPacket->m_team;
+	upNewMyPlayer->m_level = pScriptAccount->GetLevel();
+	upNewMyPlayer->m_kill = pPacket->m_kill;
+	upNewMyPlayer->m_death = pPacket->m_death;
+	upNewMyPlayer->m_ping = pPacket->m_ping;
+	upNewMyPlayer->m_state = pPacket->m_state;
+	upNewMyPlayer->m_weaponCodes[static_cast<size_t>(WeaponSlot::Primary)] = pPacket->m_weaponCodes[static_cast<size_t>(WeaponSlot::Primary)];
+	upNewMyPlayer->m_weaponCodes[static_cast<size_t>(WeaponSlot::Secondary)] = pPacket->m_weaponCodes[static_cast<size_t>(WeaponSlot::Secondary)];
+	upNewMyPlayer->m_currWeapon = pPacket->m_currWeapon;
+
+	// 나의 플레이어 객체 생성 (ThirdPersonCharacter는 생성하지 않음.
+	ComponentHandle<ThirdPersonCharacter> hEmptyThirdPersonCharacter;
+	auto ret = m_players.insert(std::make_pair(pNewMyPlayer->m_accountId, std::make_pair(std::move(upNewMyPlayer), hEmptyThirdPersonCharacter)));
+	assert(ret.second);
+
+	// 이제 게임 플레이 로직에서 나의 pNewMyPlayer에도 접근해서 수정해야 한다.(클라이언트 단에서 자체적으로 판단하는 것들에 한해서.)
+
+	pScriptPlayer->OnInit(
+		pNewMyPlayer->m_weaponCodes[static_cast<size_t>(WeaponSlot::Primary)],
+		pNewMyPlayer->m_weaponCodes[static_cast<size_t>(WeaponSlot::Secondary)],
+		pNewMyPlayer->m_currWeapon,
+		pNewMyPlayer->m_state
+	);
 }
 
 void ListenServerClient::OnSCNotifyChat(const LSSCNotifyChat* pPacket)
@@ -360,6 +415,7 @@ void ListenServerClient::OnSCNotifyGamePlayerJoined(const LSSCNotifyGamePlayerJo
 	wprintf(L"OnSCNotifyGamePlayerJoined\n");
 
 	std::unique_ptr<GamePlayerInfo> upNewPlayer = std::make_unique<GamePlayerInfo>(pPacket->m_accountId);
+	const GamePlayerInfo* const pNewPlayer = upNewPlayer.get();	// move 대비
 
 	upNewPlayer->m_nicknameLen = pPacket->m_nicknameLen;
 	wmemcpy(upNewPlayer->m_nickname, pPacket->m_nickname, upNewPlayer->m_nicknameLen);
@@ -379,8 +435,8 @@ void ListenServerClient::OnSCNotifyGamePlayerJoined(const LSSCNotifyGamePlayerJo
 	ComponentHandle<ThirdPersonCharacter> hScriptThirdPersonCharacter = pPlayerGameObject->AddComponent<ThirdPersonCharacter>();
 	ThirdPersonCharacter* pScriptThirdPersonCharacter = hScriptThirdPersonCharacter.ToPtr();
 
-
 	pScriptThirdPersonCharacter->OnInit(
+		upNewPlayer->m_accountId,
 		upNewPlayer->m_team,
 		upNewPlayer->m_weaponCodes[0],
 		upNewPlayer->m_weaponCodes[1],
@@ -391,13 +447,15 @@ void ListenServerClient::OnSCNotifyGamePlayerJoined(const LSSCNotifyGamePlayerJo
 		pPacket->m_camRotX
 	);
 
-	auto ret = m_players.insert(std::make_pair(pPacket->m_accountId, std::make_pair(std::move(upNewPlayer), hScriptThirdPersonCharacter)));
+	auto ret = m_players.insert(std::make_pair(pNewPlayer->m_accountId, std::make_pair(std::move(upNewPlayer), hScriptThirdPersonCharacter)));
 	assert(ret.second);
 }
 
 void ListenServerClient::OnSCNotifyGamePlayerExit(const LSSCNotifyGamePlayerExit* pPacket)
 {
 	wprintf(L"OnSCNotifyGamePlayerExit\n");
+
+	// ...
 }
 
 void ListenServerClient::OnSCNotifyGamePlayerInfo(const LSSCNotifyGamePlayerInfo* pPacket)
@@ -405,6 +463,7 @@ void ListenServerClient::OnSCNotifyGamePlayerInfo(const LSSCNotifyGamePlayerInfo
 	wprintf(L"OnSCNotifyGamePlayerInfo\n");
 
 	std::unique_ptr<GamePlayerInfo> upNewPlayer = std::make_unique<GamePlayerInfo>(pPacket->m_accountId);
+	const GamePlayerInfo* const pNewPlayer = upNewPlayer.get();	// move 대비
 
 	upNewPlayer->m_nicknameLen = pPacket->m_nicknameLen;
 	wmemcpy(upNewPlayer->m_nickname, pPacket->m_nickname, upNewPlayer->m_nicknameLen);
@@ -424,8 +483,8 @@ void ListenServerClient::OnSCNotifyGamePlayerInfo(const LSSCNotifyGamePlayerInfo
 	ComponentHandle<ThirdPersonCharacter> hScriptThirdPersonCharacter = pPlayerGameObject->AddComponent<ThirdPersonCharacter>();
 	ThirdPersonCharacter* pScriptThirdPersonCharacter = hScriptThirdPersonCharacter.ToPtr();
 
-
 	pScriptThirdPersonCharacter->OnInit(
+		upNewPlayer->m_accountId,
 		upNewPlayer->m_team,
 		upNewPlayer->m_weaponCodes[0],
 		upNewPlayer->m_weaponCodes[1],
@@ -436,7 +495,7 @@ void ListenServerClient::OnSCNotifyGamePlayerInfo(const LSSCNotifyGamePlayerInfo
 		pPacket->m_camRotX
 	);
 
-	auto ret = m_players.insert(std::make_pair(pPacket->m_accountId, std::make_pair(std::move(upNewPlayer), hScriptThirdPersonCharacter)));
+	auto ret = m_players.insert(std::make_pair(pNewPlayer->m_accountId, std::make_pair(std::move(upNewPlayer), hScriptThirdPersonCharacter)));
 	assert(ret.second);
 }
 
@@ -477,6 +536,30 @@ void ListenServerClient::OnSCNotifyGamePlayerTransform(const LSSCNotifyGamePlaye
 	);
 }
 
+void ListenServerClient::OnSCNotifyGamePlayerHit(const LSSCNotifyGamePlayerHit* pPacket)
+{
+	const Account* pScriptAccount = m_hScriptAccount.ToPtr();
+
+	if (pPacket->m_accountIdWhoWasShot == pScriptAccount->GetAccountId())
+	{
+		// 나의 체력 뷰 업데이트
+		GameUIManager* pScriptGameUIManager = m_hScriptGameUIManager.ToPtr();
+		pScriptGameUIManager->SetTextHP(pPacket->m_hp);
+		pScriptGameUIManager->SetTextAP(pPacket->m_ap);
+	}
+	else
+	{
+		// 다른 플레이어의 TPC에 피격 이펙트 등 재생
+		// ...
+	}
+}
+
+void ListenServerClient::OnSCNotifyGamePlayerStartRespawn(const LSSCNotifyGamePlayerStartRespawn* pPacket)
+{
+	GameUIManager* pScriptGameUIManager = m_hScriptGameUIManager.ToPtr();
+	pScriptGameUIManager->StartRespawnUI(pPacket->m_remainingTime);
+}
+
 void ListenServerClient::OnSCNotifyGamePlayerRespawn(const LSSCNotifyGamePlayerRespawn* pPacket)
 {
 	const Account* pScriptAccount = m_hScriptAccount.ToPtr();
@@ -487,7 +570,9 @@ void ListenServerClient::OnSCNotifyGamePlayerRespawn(const LSSCNotifyGamePlayerR
 		pScriptMyPlayer->OnRespawn(
 			XMFLOAT3(pPacket->m_x, pPacket->m_y, pPacket->m_z),
 			XMFLOAT4(pPacket->m_rx, pPacket->m_ry, pPacket->m_rz, pPacket->m_rw),
-			pPacket->m_camRotX
+			pPacket->m_camRotX,
+			pPacket->m_hp,
+			pPacket->m_ap
 		);
 	}
 	else	// 다른 플레이어의 리스폰 소식인 경우
@@ -502,5 +587,78 @@ void ListenServerClient::OnSCNotifyGamePlayerRespawn(const LSSCNotifyGamePlayerR
 			XMFLOAT4(pPacket->m_rx, pPacket->m_ry, pPacket->m_rz, pPacket->m_rw),
 			pPacket->m_camRotX
 		);
+	}
+}
+
+void ListenServerClient::OnSCNotifyGamePlayerKill(const LSSCNotifyGamePlayerKill* pPacket)
+{
+	// Kill 이벤트가 암시적으로 Dead 이벤트를 포함.
+	const auto iterKiller = m_players.find(pPacket->m_killerAccountId);
+	const auto iterDeader = m_players.find(pPacket->m_deaderAccountId);
+	const wchar_t* killerNickname;
+	const wchar_t* deaderNickname;
+
+	if (iterKiller != m_players.cend())
+	{
+		killerNickname = iterKiller->second.first->m_nickname;
+		++iterKiller->second.first->m_kill;
+	}
+	else
+	{
+		killerNickname = L"";
+	}
+
+	if (iterDeader != m_players.cend())
+	{
+		deaderNickname = iterDeader->second.first->m_nickname;
+		++iterDeader->second.first->m_death;
+	}
+	else
+	{
+		deaderNickname = L"";
+	}
+
+	// 추후 게임 UI로 대체
+	wprintf(L"%s - %s - %s\n", killerNickname, WeaponInfo::GetWeaponNameString(pPacket->m_weaponCode), deaderNickname);
+	
+	const Account* pScriptAccount = m_hScriptAccount.ToPtr();
+	if (pPacket->m_deaderAccountId == pScriptAccount->GetAccountId())
+	{
+		Player* pScriptPlayer = m_hScriptPlayer.ToPtr();
+		pScriptPlayer->OnDead();
+	}
+	else
+	{
+		ThirdPersonCharacter* pScriptThirdPersonCharacter = iterDeader->second.second.ToPtr();
+		pScriptThirdPersonCharacter->OnDead(WeaponAction::Death1);
+	}
+}
+
+void ListenServerClient::OnSCNotifyGamePlayerDead(const LSSCNotifyGamePlayerDead* pPacket)
+{
+	// Dead 이벤트는 사망 요인이 다른 플레이어에 의한 kill이 아닌 경우 발생.
+	const auto iterDeader = m_players.find(pPacket->m_deaderAccountId);
+	const wchar_t* deaderNickname;
+
+	if (iterDeader != m_players.cend())
+	{
+		deaderNickname = iterDeader->second.first->m_nickname;
+		++iterDeader->second.first->m_death;
+	}
+	else
+	{
+		deaderNickname = L"";
+	}
+
+	const Account* pScriptAccount = m_hScriptAccount.ToPtr();
+	if (pPacket->m_deaderAccountId == pScriptAccount->GetAccountId())
+	{
+		Player* pScriptPlayer = m_hScriptPlayer.ToPtr();
+		pScriptPlayer->OnDead();
+	}
+	else
+	{
+		ThirdPersonCharacter* pScriptThirdPersonCharacter = iterDeader->second.second.ToPtr();
+		pScriptThirdPersonCharacter->OnDead(WeaponAction::Death1);
 	}
 }

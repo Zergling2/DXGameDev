@@ -155,7 +155,8 @@ namespace ze
 		bool SetParent(Transform* pTransform);	// 부모로 설정할 오브젝트의 Transform을 인수로 전달받습니다.
 		bool IsDescendantOf(Transform* pTransform) const;
 
-		GameObjectHandle GetChild(uint32_t index);
+		Transform* GetChild(uint32_t index);
+		GameObject* GetGameObject() const { return m_pGameObject; }
 	private:
 		GameObject* m_pGameObject;
 		Transform* m_pParent;

@@ -19,33 +19,37 @@ public:
 	virtual void Awake() override;
 	virtual void Update() override;
 
+	uint32_t GetAccountId() const { return m_accountId; }
+
 	void SetCharacterView(const CharacterViewInfo* pCVI);
 	void SetWeaponInUse(WeaponSlot slot, WeaponCode weaponCode);
 
 	void ShowView();
 	void HideView();
-	void OnInit(GameTeam team, WeaponCode primary, WeaponCode secondary, WeaponSlot currWeapon, InGamePlayerState state,
+	void OnInit(uint32_t accountId, GameTeam team, WeaponCode primary, WeaponCode secondary, WeaponSlot currWeapon, InGamePlayerState state,
 		const XMFLOAT3& pos, const XMFLOAT4& rot, float camRotX);
 	void OnDraw(WeaponSlot slot);
 	void OnFire();
 	void OnReload();
 	void OnIdle(float exceed);
+	void OnDead(WeaponAction deadAction);
+	void OnDeadIdle(float exceed, WeaponAction deathAction);
 	void OnRespawn(const XMFLOAT3& pos, const XMFLOAT4& rot, float camRotX);
 	void OnTransform(const XMFLOAT3& pos, const XMFLOAT4& rot, float camRotX);
 	void ActivateCharacterColliderAndHitbox();
 	void DeactivateCharacterColliderAndHitbox();
 
-	void SetAnim();
-
 	// void UpdateWeaponBaseTransform();	// deprecated
 	void UpdateTVWeaponBaseAndHitboxTransforms();
 private:
-	void PlayAnimation(WeaponAction action, bool loop);
+	void PlayWeaponAnimation(WeaponAction action, bool loop);
+	void PlayDeathAnimation(WeaponAction deathAction, bool loop);
 private:
 	static const XMFLOAT3 s_weaponTVOffset[static_cast<size_t>(WeaponSlot::Count)];
 	static bool s_weaponLocalRotCalc;
 	static XMFLOAT4 s_weaponLocalRotQuaternion[static_cast<size_t>(WeaponSlot::Count)];
 	bool m_hitboxActivated;
+	uint32_t m_accountId;
 	WeaponSlot m_currWeaponSlot;
 	std::shared_ptr<WeaponDefinition> m_spWeaponDefs[static_cast<size_t>(WeaponSlot::Count)];
 	ze::ComponentHandle<GameResources> m_hScriptGameResources;

@@ -4,13 +4,15 @@
 #include "Constants.h"
 
 class GameUIManager;
+class Account;
 class Player;
+class ListenServerClient;
 
 class IGameUIManagerState
 {
 public:
 	virtual void Enter(GameUIManager* pGameUIManager) = 0;
-	virtual void Update(GameUIManager* pGameUIManager) = 0;
+	virtual void Update(GameUIManager* pGameUIManager, float dt) = 0;
 	virtual void Exit(GameUIManager* pGameUIManager) = 0;
 };
 
@@ -20,7 +22,7 @@ public:
 	static GameUIStateDeactivate* GetState() { return &s_instance; }
 
 	virtual void Enter(GameUIManager* pGameUIManager);
-	virtual void Update(GameUIManager* pGameUIManager);
+	virtual void Update(GameUIManager* pGameUIManager, float dt);
 	virtual void Exit(GameUIManager* pGameUIManager);
 private:
 	static GameUIStateDeactivate s_instance;
@@ -32,7 +34,7 @@ public:
 	static GameUIStatePlaying* GetState() { return &s_instance; }
 
 	virtual void Enter(GameUIManager* pGameUIManager);
-	virtual void Update(GameUIManager* pGameUIManager);
+	virtual void Update(GameUIManager* pGameUIManager, float dt);
 	virtual void Exit(GameUIManager* pGameUIManager);
 private:
 	static GameUIStatePlaying s_instance;
@@ -44,7 +46,7 @@ public:
 	static GameUIStateScoreboard* GetState() { return &s_instance; }
 
 	virtual void Enter(GameUIManager* pGameUIManager);
-	virtual void Update(GameUIManager* pGameUIManager);
+	virtual void Update(GameUIManager* pGameUIManager, float dt);
 	virtual void Exit(GameUIManager* pGameUIManager);
 private:
 	static GameUIStateScoreboard s_instance;
@@ -56,7 +58,7 @@ public:
 	static GameUIStateMenu* GetState() { return &s_instance; }
 
 	virtual void Enter(GameUIManager* pGameUIManager);
-	virtual void Update(GameUIManager* pGameUIManager);
+	virtual void Update(GameUIManager* pGameUIManager, float dt);
 	virtual void Exit(GameUIManager* pGameUIManager);
 private:
 	static GameUIStateMenu s_instance;
@@ -68,7 +70,7 @@ public:
 	static GameUIStateChatting* GetState() { return &s_instance; }
 
 	virtual void Enter(GameUIManager* pGameUIManager);
-	virtual void Update(GameUIManager* pGameUIManager);
+	virtual void Update(GameUIManager* pGameUIManager, float dt);
 	virtual void Exit(GameUIManager* pGameUIManager);
 private:
 	static GameUIStateChatting s_instance;
@@ -98,7 +100,9 @@ public:
 	void SetState(IGameUIManagerState* pUIState);
 	IGameUIManagerState* GetState() const { return m_pUIState; }
 
-	void SetPlayerScriptHandle(ze::ComponentHandle<Player> hScriptPlayer) { m_hScriptPlayer = hScriptPlayer; }
+	void SetAccountScriptHandle(ze::ComponentHandle<Account> hScript) { m_hScriptAccount = hScript; }
+	void SetPlayerScriptHandle(ze::ComponentHandle<Player> hScript) { m_hScriptPlayer = hScript; }
+	void SetListenServerClientScriptHandle(ze::ComponentHandle<ListenServerClient> hScript) { m_hScriptListenServerClient = hScript; }
 	Player* GetPlayerScript() const;
 	
 	void ShowAdapterInfo();
@@ -120,9 +124,15 @@ public:
 	void ClearAllChatMsgs();
 	void AddChatMsg(const wchar_t* msg);
 	void SendChatMsg();
+
+	void StartRespawnUI(float time);
 private:
 	IGameUIManagerState* m_pUIState;
+	bool m_activeRespawnUI;
+	float m_respawnRemainingTime;
+	ze::ComponentHandle<Account> m_hScriptAccount;
 	ze::ComponentHandle<Player> m_hScriptPlayer;
+	ze::ComponentHandle<ListenServerClient> m_hScriptListenServerClient;
 
 	ze::UIObjectHandle m_hPanelAdapterInfoRoot;
 
@@ -154,6 +164,7 @@ private:
 	ze::UIObjectHandle m_hTextPoint;
 	ze::UIObjectHandle m_hTextWeaponName;
 	ze::UIObjectHandle m_hTextAmmoState;
+	ze::UIObjectHandle m_hTextRespawnIndicator;
 
 	ze::UIObjectHandle m_hPanelChatRoot;
 	ze::UIObjectHandle m_hTextChatMsg[INGAME_CHAT_MSG_ITEM_ROW_COUNT];

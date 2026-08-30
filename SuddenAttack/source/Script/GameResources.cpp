@@ -192,6 +192,8 @@ void GameResources::Awake()
 	m16a1_wd->m_tvAnims.insert(std::make_pair(WeaponAction::Reload, "reload_rifle"));
 	m16a1_wd->m_tvAnims.insert(std::make_pair(WeaponAction::Fire, "fire_rifle"));
 	m16a1_wd->m_tvAnims.insert(std::make_pair(WeaponAction::Idle, "idle_rifle"));
+	m16a1_wd->m_tvAnims.insert(std::make_pair(WeaponAction::Death1, "death1"));
+	m16a1_wd->m_tvAnims.insert(std::make_pair(WeaponAction::Death1Idle, "death1_idle"));
 	m16a1_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::Bolt, m16a1_sounds[WeaponEvent::Bolt]));
 	m16a1_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::MagOut, m16a1_sounds[WeaponEvent::MagOut]));
 	m16a1_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::MagIn, m16a1_sounds[WeaponEvent::MagIn]));
@@ -268,6 +270,8 @@ void GameResources::Awake()
 	m4a1_wd->m_tvAnims.insert(std::make_pair(WeaponAction::Reload, "reload_rifle"));
 	m4a1_wd->m_tvAnims.insert(std::make_pair(WeaponAction::Fire, "fire_rifle"));
 	m4a1_wd->m_tvAnims.insert(std::make_pair(WeaponAction::Idle, "idle_rifle"));
+	m4a1_wd->m_tvAnims.insert(std::make_pair(WeaponAction::Death1, "death1"));
+	m4a1_wd->m_tvAnims.insert(std::make_pair(WeaponAction::Death1Idle, "death1_idle"));
 	m4a1_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::Bolt, m4a1_sounds[WeaponEvent::Bolt]));
 	m4a1_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::MagOut, m4a1_sounds[WeaponEvent::MagOut]));
 	m4a1_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::MagIn, m4a1_sounds[WeaponEvent::MagIn]));
@@ -368,6 +372,8 @@ void GameResources::Awake()
 	usp_wd->m_tvAnims.insert(std::make_pair(WeaponAction::Reload, "reload_pistol"));
 	usp_wd->m_tvAnims.insert(std::make_pair(WeaponAction::Fire, "fire_pistol"));
 	usp_wd->m_tvAnims.insert(std::make_pair(WeaponAction::Idle, "idle_pistol"));
+	usp_wd->m_tvAnims.insert(std::make_pair(WeaponAction::Death1, "death1"));
+	usp_wd->m_tvAnims.insert(std::make_pair(WeaponAction::Death1Idle, "death1_idle"));
 	usp_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::SlideBack, usp_sounds[WeaponEvent::SlideBack]));
 	usp_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::SlideRelease, usp_sounds[WeaponEvent::SlideRelease]));
 	usp_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::MagOut, usp_sounds[WeaponEvent::MagOut]));
@@ -446,6 +452,8 @@ void GameResources::Awake()
 	b92fsb_wd->m_tvAnims.insert(std::make_pair(WeaponAction::Reload, "reload_pistol"));
 	b92fsb_wd->m_tvAnims.insert(std::make_pair(WeaponAction::Fire, "fire_pistol"));
 	b92fsb_wd->m_tvAnims.insert(std::make_pair(WeaponAction::Idle, "idle_pistol"));
+	b92fsb_wd->m_tvAnims.insert(std::make_pair(WeaponAction::Death1, "death1"));
+	b92fsb_wd->m_tvAnims.insert(std::make_pair(WeaponAction::Death1Idle, "death1_idle"));
 	b92fsb_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::SlideBack, b92fsb_sounds[WeaponEvent::SlideBack]));
 	b92fsb_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::SlideRelease, b92fsb_sounds[WeaponEvent::SlideRelease]));
 	b92fsb_wd->m_weaponSounds.insert(std::make_pair(WeaponEvent::MagOut, b92fsb_sounds[WeaponEvent::MagOut]));
@@ -469,6 +477,12 @@ void GameResources::Awake()
 		assert(grouping);
 		grouping = arma_steven->CreateBoneGroupByExcludeGroup("lower_body", "upper_body");
 		assert(grouping);
+
+		// 사망 애니메이션 타임
+		// 모든 캐릭터에 공통으로 적용되는 값
+		const float character_death1_time = arma_steven->GetAnimation("death1")->GetDuration() - ANIMATION_DEAD_FRAME_TIME;
+		CharacterViewInfo::SetDeathAnimTime(character_death1_time);
+
 
 		// 스티븐 팀 공용 재질
 		auto spMtlStevenBody = ResourceLoader::GetInstance()->CreateMaterial();

@@ -5,6 +5,7 @@
 #include "Constants.h"
 #include "Contents.h"
 #include "WeaponAction.h"
+#include "HitboxPart.h"
 #include <cstdint>
 
 enum class LSProtocol : uint32_t
@@ -13,6 +14,7 @@ enum class LSProtocol : uint32_t
 	CS_REQ_CHAT,
 	CS_NOTIFY_GAME_PLAYER_WEAPON_EVENT,	// Draw, Fire, Reload
 	CS_NOTIFY_GAME_PLAYER_TRANSFORM,
+	CS_NOTIFY_GAME_PLAYER_HIT,
 
 	SC_RES_AUTH_RESULT,
 	SC_NOTIFY_GAME_STATUS,
@@ -24,9 +26,10 @@ enum class LSProtocol : uint32_t
 	SC_NOTIFY_GAME_PLAYER_DEAD,
 	SC_NOTIFY_GAME_PLAYER_WEAPON_EVENT,	// Draw, Fire, Reload...
 	SC_NOTIFY_GAME_PLAYER_TRANSFORM,	// 캐릭터 월드 트랜스폼 & 카메라 트랜스폼(위를 바라보는지 아래를 바라보는지 참고 & Additive Blending 수행)
+	SC_NOTIFY_GAME_PLAYER_HIT,
 	// SC_NOTIFY_DEAD,		// SC_NOTIFY_PLAYER_DEATH로 정보 대체 (자기 자신일 시 예외 처리 등)
 	// SC_NOTIFY_PLAYER_DROP_WEAPON,
-	SC_NOTIFY_START_RESPAWN,		// 서버에서 플레이어의 리스폰이 시작되었다는 정보 전달 목적 (수신 시 리스폰 UI 표시)
+	SC_NOTIFY_GAME_PLAYER_START_RESPAWN,		// 서버에서 플레이어의 리스폰이 시작되었다는 정보 전달 목적 (수신 시 리스폰 UI 표시)
 	SC_NOTIFY_GAME_PLAYER_RESPAWN,
 	SC_NOTIFY_GAME_PLAYER_MOVEMENT_STATE_CHANGED,
 	SC_NOTIFY_GAME_END
@@ -67,6 +70,13 @@ struct LSCSNotifyGamePlayerTransform : public LSPacketBase
 	float m_camRotX;
 };
 
+struct LSCSNotifyGamePlayerHit : public LSPacketBase
+{
+	uint32_t m_accountIdWhoWasShot;
+	HitboxPart m_hitPart;
+	WeaponCode m_weaponCode;
+};
+
 struct LSCSNotifyGamePlayerWeaponEvent : public LSPacketBase
 {
 	WeaponAction m_action;
@@ -81,6 +91,13 @@ struct LSSCResAuthResult : public LSPacketBase
 struct LSSCNotifyGameStatus : public LSPacketBase
 {
 	float m_gameRemainingTime;
+	GameTeam m_team;
+	uint32_t m_kill;
+	uint32_t m_death;
+	uint32_t m_ping;
+	InGamePlayerState m_state;
+	WeaponCode m_weaponCodes[static_cast<size_t>(WeaponSlot::Count)];
+	WeaponSlot m_currWeapon;
 };
 
 struct LSSCNotifyChat : public LSPacketBase
@@ -146,6 +163,7 @@ struct LSSCNotifyGamePlayerKill : public LSPacketBase
 	uint32_t m_killerAccountId;
 	uint32_t m_deaderAccountId;
 	WeaponCode m_weaponCode;
+	bool m_headshot;
 };
 
 struct LSSCNotifyGamePlayerDead : public LSPacketBase
@@ -180,6 +198,13 @@ struct LSSCNotifyGamePlayerTransform : public LSPacketBase
 	float m_camRotX;
 };
 
+struct LSSCNotifyGamePlayerHit : public LSPacketBase
+{
+	uint32_t m_accountIdWhoWasShot;
+	uint32_t m_hp;	// 피격자에게만 의미있음. (피격자 이외의 클라이언트들에서는 이 값을 참조하지 않음.)
+	uint32_t m_ap;	// 피격자에게만 의미있음. (피격자 이외의 클라이언트들에서는 이 값을 참조하지 않음.)
+};
+
 struct LSSCNotifyGamePlayerWeaponEvent : public LSPacketBase
 {
 	uint32_t m_accountId;
@@ -187,7 +212,7 @@ struct LSSCNotifyGamePlayerWeaponEvent : public LSPacketBase
 	WeaponSlot m_slot;
 };
 
-struct LSSCNotifyStartRespawn : public LSPacketBase
+struct LSSCNotifyGamePlayerStartRespawn : public LSPacketBase
 {
 	float m_remainingTime;
 };
@@ -203,6 +228,8 @@ struct LSSCNotifyGamePlayerRespawn : public LSPacketBase
 	float m_rz;
 	float m_rw;
 	float m_camRotX;
+	uint16_t m_hp;
+	uint16_t m_ap;
 };
 
 struct LSSCNotifyGamePlayerMovementStateChanged : public LSPacketBase

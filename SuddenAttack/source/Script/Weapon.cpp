@@ -21,7 +21,7 @@ Weapon::Weapon(ze::GameObject& owner)
 
 void Weapon::Init(std::shared_ptr<WeaponDefinition> spWeaponDef, int32_t ammoInMag, int32_t auxAmmo)
 {
-	m_spWeaponDef = spWeaponDef;
+	m_spWeaponDef = std::move(spWeaponDef);
 	m_ammoInMag = ammoInMag;
 	m_auxAmmo = auxAmmo;
 

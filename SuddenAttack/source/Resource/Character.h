@@ -5,7 +5,11 @@
 class CharacterViewInfo
 {
 public:
-	CharacterViewInfo(std::shared_ptr<ze::SkinnedMesh> spMesh, std::shared_ptr<ze::Armature> spArmature, std::vector<std::shared_ptr<ze::Material>> materials)
+	CharacterViewInfo(
+		std::shared_ptr<ze::SkinnedMesh> spMesh,
+		std::shared_ptr<ze::Armature> spArmature,
+		std::vector<std::shared_ptr<ze::Material>> materials
+	)
 		: m_spMesh(std::move(spMesh))
 		, m_spArmature(std::move(spArmature))
 		, m_materials(std::move(materials))
@@ -15,7 +19,10 @@ public:
 	std::shared_ptr<ze::SkinnedMesh> GetMesh() const { return m_spMesh; }
 	std::shared_ptr<ze::Armature> GetArmature() const { return m_spArmature; }
 	const std::vector<std::shared_ptr<ze::Material>>& GetMaterials() const { return m_materials; }
+	static float GetDeathAnimTime() { return s_deathAnimTime; }
+	static void SetDeathAnimTime(float time) { s_deathAnimTime = time; }
 private:
+	static float s_deathAnimTime;
 	std::shared_ptr<ze::SkinnedMesh> m_spMesh;
 	std::shared_ptr<ze::Armature> m_spArmature;
 	std::vector<std::shared_ptr<ze::Material>> m_materials;

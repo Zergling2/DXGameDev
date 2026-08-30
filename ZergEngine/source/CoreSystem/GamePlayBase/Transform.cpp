@@ -215,10 +215,10 @@ bool Transform::IsDescendantOf(Transform* pTransform) const
     return false;
 }
 
-GameObjectHandle Transform::GetChild(uint32_t index)
+Transform* Transform::GetChild(uint32_t index)
 {
     if (index >= static_cast<uint32_t>(m_children.size()))
-        return GameObjectHandle();
+        return nullptr;
     else
-        return m_children[index]->m_pGameObject->ToHandle();
+        return m_children[index];
 }

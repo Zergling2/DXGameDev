@@ -44,7 +44,11 @@ private:
 	void OnSCNotifyGamePlayerInfo(const LSSCNotifyGamePlayerInfo* pPacket);
 	void OnSCNotifyGamePlayerWeaponEvent(const LSSCNotifyGamePlayerWeaponEvent* pPacket);
 	void OnSCNotifyGamePlayerTransform(const LSSCNotifyGamePlayerTransform* pPacket);
+	void OnSCNotifyGamePlayerHit(const LSSCNotifyGamePlayerHit* pPacket);
+	void OnSCNotifyGamePlayerStartRespawn(const LSSCNotifyGamePlayerStartRespawn* pPacket);
 	void OnSCNotifyGamePlayerRespawn(const LSSCNotifyGamePlayerRespawn* pPacket);
+	void OnSCNotifyGamePlayerKill(const LSSCNotifyGamePlayerKill* pPacket);
+	void OnSCNotifyGamePlayerDead(const LSSCNotifyGamePlayerDead* pPacket);
 private:
 	uint32_t m_serverIP;
 	uint16_t m_serverPort;

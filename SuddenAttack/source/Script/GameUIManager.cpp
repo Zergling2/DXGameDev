@@ -1,5 +1,8 @@
 #include "GameUIManager.h"
 #include "Player.h"
+#include "Account.h"
+#include "ListenServerClient.h"
+#include "..\Resource\LSProtocol.h"
 
 using namespace ze;
 
@@ -23,7 +26,7 @@ void GameUIStateDeactivate::Enter(GameUIManager* pGameUIManager)
 	pGameUIManager->HideChatPanel();
 }
 
-void GameUIStateDeactivate::Update(GameUIManager* pGameUIManager)
+void GameUIStateDeactivate::Update(GameUIManager* pGameUIManager, float dt)
 {
 }
 
@@ -43,7 +46,7 @@ void GameUIStatePlaying::Enter(GameUIManager* pGameUIManager)
 	pGameUIManager->ShowGameUI();
 }
 
-void GameUIStatePlaying::Update(GameUIManager* pGameUIManager)
+void GameUIStatePlaying::Update(GameUIManager* pGameUIManager, float dt)
 {
 	if (Input::GetInstance()->GetKeyDown(Keycode::KEY_TAB))
 	{
@@ -75,7 +78,7 @@ void GameUIStateScoreboard::Enter(GameUIManager* pGameUIManager)
 	pGameUIManager->ShowScoreboard();
 }
 
-void GameUIStateScoreboard::Update(GameUIManager* pGameUIManager)
+void GameUIStateScoreboard::Update(GameUIManager* pGameUIManager, float dt)
 {
 	if (!Input::GetInstance()->GetKey(Keycode::KEY_TAB))
 	{
@@ -103,7 +106,7 @@ void GameUIStateMenu::Enter(GameUIManager* pGameUIManager)
 	pGameUIManager->ShowMenu();
 }
 
-void GameUIStateMenu::Update(GameUIManager* pGameUIManager)
+void GameUIStateMenu::Update(GameUIManager* pGameUIManager, float dt)
 {
 	if (Input::GetInstance()->GetKeyDown(Keycode::KEY_ESCAPE))
 	{
@@ -131,7 +134,7 @@ void GameUIStateChatting::Enter(GameUIManager* pGameUIManager)
 	pGameUIManager->ShowGameUI();
 }
 
-void GameUIStateChatting::Update(GameUIManager* pGameUIManager)
+void GameUIStateChatting::Update(GameUIManager* pGameUIManager, float dt)
 {
 	if (Input::GetInstance()->GetKeyDown(Keycode::KEY_RETURN))
 	{
@@ -149,6 +152,8 @@ void GameUIStateChatting::Exit(GameUIManager* pGameUIManager)
 GameUIManager::GameUIManager(ze::GameObject& owner)
 	: ze::MonoBehaviour(owner)
 	, m_pUIState(nullptr)
+	, m_activeRespawnUI(false)
+	, m_respawnRemainingTime(0.0f)
 	, m_redTeamPlayersCount(0)
 	, m_blueTeamPlayersCount(0)
 	, m_chatMsgCount(0)
@@ -276,6 +281,19 @@ void GameUIManager::Awake()
 	pPanelScoreboardRoot->SetColor(Colors::Black);
 	pPanelScoreboardRoot->SetColorA(0.4f);
 	pPanelScoreboardRoot->SetShape(PanelShape::RoundedRectangle);
+
+	UIObjectHandle hTextScoreboardTitle = Runtime::GetInstance()->CreateText();
+	Text* pTextScoreboardTitle = static_cast<Text*>(hTextScoreboardTitle.ToPtr());
+	pTextScoreboardTitle->m_transform.SetParent(&pPanelScoreboardRoot->m_transform);
+	pTextScoreboardTitle->SetSize(300, 40);
+	pTextScoreboardTitle->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+	pTextScoreboardTitle->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pTextScoreboardTitle->GetTextFormat().SetSize(32);
+	pTextScoreboardTitle->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
+	pTextScoreboardTitle->ApplyTextFormat();
+	pTextScoreboardTitle->m_transform.SetPosition(0, SCOREBOARD_SIZE.y / 2 - 80);
+	pTextScoreboardTitle->SetColor(ColorsLinear::Gold);
+	pTextScoreboardTitle->SetText(L"SCOREBOARD");
 
 	constexpr XMFLOAT2 TEAM_PANEL_SIZE(SCOREBOARD_SIZE.x / 2 - 10, 26);
 	constexpr XMFLOAT2 RED_TEAM_PANEL_OFFSET(-SCOREBOARD_SIZE.x / 2 + TEAM_PANEL_SIZE.x / 2 + 7, +SCOREBOARD_SIZE.y / 2 - 120);
@@ -548,6 +566,19 @@ void GameUIManager::Awake()
 
 
 
+	UIObjectHandle hTextRespawnIndicator = Runtime::GetInstance()->CreateText();
+	m_hTextRespawnIndicator = hTextRespawnIndicator;
+	Text* pTextRespawnIndicator = static_cast<Text*>(hTextRespawnIndicator.ToPtr());
+	pTextRespawnIndicator->m_transform.SetParent(&pImageGameUIRoot->m_transform);
+	pTextRespawnIndicator->SetSize(400, 100);
+	pTextRespawnIndicator->GetTextFormat().SetSize(24);
+	pTextRespawnIndicator->ApplyTextFormat();
+	pTextRespawnIndicator->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pTextRespawnIndicator->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+	pTextRespawnIndicator->SetColor(Colors::WhiteSmoke);
+	pTextRespawnIndicator->SetText(L"R E S P A W N\n초 남았습니다.");
+
+
 
 
 
@@ -579,7 +610,7 @@ void GameUIManager::Awake()
 			pPanelChatRoot->m_transform.GetPositionY() + INGAME_CHAT_PANEL_SIZE.y / 2 - CHAT_MSG_TEXT_SIZE.y / 2 - 10 - CHAT_MSG_TEXT_SIZE.y * i
 		);
 		pTextChatMsg->SetSize(CHAT_MSG_TEXT_SIZE);
-		pTextChatMsg->SetText(L"Test Chat Message!!!\n");
+		// pTextChatMsg->SetText();
 	}
 
 	const XMFLOAT2 CHAT_MSG_INPUT_FIELD_SIZE(INGAME_CHAT_PANEL_SIZE.x - 20, 20);
@@ -609,8 +640,28 @@ void GameUIManager::Awake()
 
 void GameUIManager::Update()
 {
+	const float dt = Time::GetInstance()->GetDeltaTime();
+
+	// UI 상태머신 업데이트
 	if (m_pUIState)
-		m_pUIState->Update(this);
+		m_pUIState->Update(this, dt);
+
+	// 리스폰 UI 업데이트
+	if (m_activeRespawnUI)
+	{
+		m_respawnRemainingTime = (std::max)(m_respawnRemainingTime - dt, 0.0f);
+
+		Text* pTextRespawnIndicator = static_cast<Text*>(m_hTextRespawnIndicator.ToPtr());
+		wchar_t buf[32];
+		StringCchPrintfW(buf, _countof(buf), L"R E S P A W N\n%d초 남았습니다.", static_cast<int>(m_respawnRemainingTime));
+		pTextRespawnIndicator->SetText(buf);
+
+		if (m_respawnRemainingTime == 0.0f)
+		{
+			m_hTextRespawnIndicator.ToPtr()->SetActive(false);
+			m_activeRespawnUI = false;
+		}
+	}
 }
 
 void GameUIManager::LateUpdate()
@@ -726,11 +777,15 @@ void GameUIManager::HideMenu()
 void GameUIManager::ShowGameUI()
 {
 	m_hImageGameUIRoot.ToPtr()->SetActive(true);
+
+	if (m_activeRespawnUI)
+		m_hTextRespawnIndicator.ToPtr()->SetActive(true);
 }
 
 void GameUIManager::HideGameUI()
 {
 	m_hImageGameUIRoot.ToPtr()->SetActive(false);
+	m_hTextRespawnIndicator.ToPtr()->SetActive(false);
 }
 
 void GameUIManager::ShowChatPanel()
@@ -781,7 +836,41 @@ void GameUIManager::AddChatMsg(const wchar_t* msg)
 
 void GameUIManager::SendChatMsg()
 {
-	// 채팅 입력 글자가 1자 이상일 경우 UDP 채팅 채널을 통해 리슨 서버로 채팅 전송.
+	InputField* pInputFieldChatMsg = static_cast<InputField*>(m_hInputFieldChatMsg.ToPtr());
+	uint16_t chatMsgLen = static_cast<uint16_t>(pInputFieldChatMsg->GetText().length());
+	
+	if (chatMsgLen > 0)
+	{
+		LSCSReqChat req;
+		const Account* pAccount = m_hScriptAccount.ToPtr();
 
-	// ...
+		req.m_protocol = LSProtocol::CS_REQ_CHAT;
+		req.m_accountId = pAccount->GetAccountId();
+		req.m_chatMsgLen = chatMsgLen;
+		wmemcpy(req.m_chatMsg, pInputFieldChatMsg->GetText().c_str(), (std::min)(MAX_CHAT_MSG_LEN, static_cast<size_t>(chatMsgLen)));
+
+		ENetPacket* pPkt = enet_packet_create(&req, sizeof(req), ENET_PACKET_FLAG_RELIABLE);
+		ListenServerClient* pScriptListenServerClient = m_hScriptListenServerClient.ToPtr();
+		if (!pScriptListenServerClient->SendPacket(pPkt))
+		{
+			enet_packet_destroy(pPkt);
+			pPkt = nullptr;
+		}
+
+		pInputFieldChatMsg->GetText().clear();
+	}
+}
+
+void GameUIManager::StartRespawnUI(float time)
+{
+	m_activeRespawnUI = true;
+	m_respawnRemainingTime = time;
+
+	Text* pTextRespawnIndicator = static_cast<Text*>(m_hTextRespawnIndicator.ToPtr());
+	pTextRespawnIndicator->SetActive(true);
+
+
+	wchar_t buf[32];
+	StringCchPrintfW(buf, _countof(buf), L"R E S P A W N\n%d초 남았습니다.", static_cast<int>(m_respawnRemainingTime));
+	pTextRespawnIndicator->SetText(buf);
 }

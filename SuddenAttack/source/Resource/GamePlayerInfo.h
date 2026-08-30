@@ -30,5 +30,5 @@ struct GamePlayerInfo
 	uint32_t m_ping;
 	InGamePlayerState m_state;
 	WeaponCode m_weaponCodes[static_cast<size_t>(WeaponSlot::Count)];
-	WeaponSlot m_currWeapon;
+	WeaponSlot m_currWeapon;	// 게임 참가 시 플레이어가 최초 들고있는 무기 뷰 동기화에 필요.
 };

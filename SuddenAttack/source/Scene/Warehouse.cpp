@@ -7,7 +7,7 @@ ZE_IMPLEMENT_SCENE(Warehouse);
 
 void Warehouse::CreateShortContainer(const XMFLOAT3& pos, const XMFLOAT3& rot)
 {
-	GameObjectHandle hGameObject = CreateGameObject(L"short container");
+	GameObjectHandle hGameObject = CreateGameObject(L"ShortContainer");
 	GameObject* pGameObject = hGameObject.ToPtr();
 	pGameObject->m_transform.SetPosition(pos);
 	pGameObject->m_transform.SetRotationEuler(rot);
@@ -27,7 +27,7 @@ void Warehouse::CreateShortContainer(const XMFLOAT3& pos, const XMFLOAT3& rot)
 
 void Warehouse::CreateLongContainer(const XMFLOAT3& pos, const XMFLOAT3& rot)
 {
-	GameObjectHandle hGameObject = CreateGameObject(L"long container");
+	GameObjectHandle hGameObject = CreateGameObject(L"LongContainer");
 	GameObject* pGameObject = hGameObject.ToPtr();
 	pGameObject->m_transform.SetPosition(pos);
 	pGameObject->m_transform.SetRotationEuler(rot);
@@ -47,7 +47,7 @@ void Warehouse::CreateLongContainer(const XMFLOAT3& pos, const XMFLOAT3& rot)
 
 void Warehouse::CreateWoodenBox8060(const XMFLOAT3& pos, const XMFLOAT3& rot)
 {
-	GameObjectHandle hGameObject = CreateGameObject(L"wooden box");
+	GameObjectHandle hGameObject = CreateGameObject(L"WoodenBox");
 	GameObject* pGameObject = hGameObject.ToPtr();
 	pGameObject->m_transform.SetPosition(pos);
 	pGameObject->m_transform.SetRotationEuler(rot);
@@ -67,7 +67,7 @@ void Warehouse::CreateWoodenBox8060(const XMFLOAT3& pos, const XMFLOAT3& rot)
 
 void Warehouse::CreateWoodenBox9070(const XMFLOAT3& pos, const XMFLOAT3& rot)
 {
-	GameObjectHandle hGameObject = CreateGameObject(L"wooden box");
+	GameObjectHandle hGameObject = CreateGameObject(L"WoodenBox");
 	GameObject* pGameObject = hGameObject.ToPtr();
 	pGameObject->m_transform.SetPosition(pos);
 	pGameObject->m_transform.SetRotationEuler(rot);
@@ -87,7 +87,7 @@ void Warehouse::CreateWoodenBox9070(const XMFLOAT3& pos, const XMFLOAT3& rot)
 
 void Warehouse::CreateWoodenBox10090(const XMFLOAT3& pos, const XMFLOAT3& rot)
 {
-	GameObjectHandle hGameObject = CreateGameObject(L"wooden box");
+	GameObjectHandle hGameObject = CreateGameObject(L"WoodenBox");
 	GameObject* pGameObject = hGameObject.ToPtr();
 	pGameObject->m_transform.SetPosition(pos);
 	pGameObject->m_transform.SetRotationEuler(rot);
@@ -107,7 +107,7 @@ void Warehouse::CreateWoodenBox10090(const XMFLOAT3& pos, const XMFLOAT3& rot)
 
 void Warehouse::CreatePaperBox(const XMFLOAT3& pos, const XMFLOAT3& rot)
 {
-	GameObjectHandle hGameObject = CreateGameObject(L"paper box");
+	GameObjectHandle hGameObject = CreateGameObject(L"PaperBox");
 	GameObject* pGameObject = hGameObject.ToPtr();
 	pGameObject->m_transform.SetPosition(pos);
 	pGameObject->m_transform.SetRotationEuler(rot);
@@ -127,7 +127,7 @@ void Warehouse::CreatePaperBox(const XMFLOAT3& pos, const XMFLOAT3& rot)
 
 void Warehouse::CreateOpenContainer1(const XMFLOAT3& pos, const XMFLOAT3& rot)
 {
-	GameObjectHandle hGameObject = CreateGameObject(L"open container1");
+	GameObjectHandle hGameObject = CreateGameObject(L"OpenContainer1");
 	GameObject* pGameObject = hGameObject.ToPtr();
 	pGameObject->m_transform.SetPosition(pos);
 	pGameObject->m_transform.SetRotationEuler(rot);
@@ -171,7 +171,7 @@ void Warehouse::CreateOpenContainer1(const XMFLOAT3& pos, const XMFLOAT3& rot)
 
 void Warehouse::CreateOpenContainer2(const XMFLOAT3& pos, const XMFLOAT3& rot)
 {
-	GameObjectHandle hGameObject = CreateGameObject(L"open container2");
+	GameObjectHandle hGameObject = CreateGameObject(L"OpenContainer2");
 	GameObject* pGameObject = hGameObject.ToPtr();
 	pGameObject->m_transform.SetPosition(pos);
 	pGameObject->m_transform.SetRotationEuler(rot);
@@ -215,7 +215,7 @@ void Warehouse::CreateOpenContainer2(const XMFLOAT3& pos, const XMFLOAT3& rot)
 
 void Warehouse::CreateHouseSideWall(const XMFLOAT3& pos, const XMFLOAT3& rot)
 {
-	GameObjectHandle hGameObject = CreateGameObject(L"house side wall");
+	GameObjectHandle hGameObject = CreateGameObject(L"HouseSideWall");
 	GameObject* pGameObject = hGameObject.ToPtr();
 	pGameObject->m_transform.SetPosition(pos);
 	pGameObject->m_transform.SetRotationEuler(rot);
@@ -236,7 +236,7 @@ void Warehouse::CreateHouseSideWall(const XMFLOAT3& pos, const XMFLOAT3& rot)
 
 void Warehouse::CreateRedTeamBase(const XMFLOAT3& pos, const XMFLOAT3& rot)
 {
-	GameObjectHandle hGameObject = CreateGameObject(L"redbase");
+	GameObjectHandle hGameObject = CreateGameObject(L"RedTeamBase");
 	GameObject* pGameObject = hGameObject.ToPtr();
 	pGameObject->m_transform.SetPosition(pos);
 	pGameObject->m_transform.SetRotationEuler(rot);
@@ -281,7 +281,7 @@ void Warehouse::CreateRedTeamBase(const XMFLOAT3& pos, const XMFLOAT3& rot)
 
 void Warehouse::CreateRedBaseWall(const XMFLOAT3& pos, const XMFLOAT3& rot)
 {
-	GameObjectHandle hGameObject = CreateGameObject(L"redbasewall");
+	GameObjectHandle hGameObject = CreateGameObject(L"RedBaseWall");
 	GameObject* pGameObject = hGameObject.ToPtr();
 	pGameObject->m_transform.SetPosition(pos);
 	pGameObject->m_transform.SetRotationEuler(rot);
@@ -323,7 +323,7 @@ void Warehouse::CreateRedBaseWall(const XMFLOAT3& pos, const XMFLOAT3& rot)
 
 void Warehouse::CreateBlueTeamBase(const XMFLOAT3& pos, const XMFLOAT3& rot)
 {
-	GameObjectHandle hGameObject = CreateGameObject(L"bluebase");
+	GameObjectHandle hGameObject = CreateGameObject(L"BlueTeamBase");
 	GameObject* pGameObject = hGameObject.ToPtr();
 	pGameObject->m_transform.SetPosition(pos);
 	pGameObject->m_transform.SetRotationEuler(rot);
@@ -377,7 +377,7 @@ void Warehouse::CreateBlueTeamBase(const XMFLOAT3& pos, const XMFLOAT3& rot)
 
 void Warehouse::CreateBlueBaseWall(const XMFLOAT3& pos, const XMFLOAT3& rot)
 {
-	GameObjectHandle hGameObject = CreateGameObject(L"bluebasewall");
+	GameObjectHandle hGameObject = CreateGameObject(L"BlueBaseWall");
 	GameObject* pGameObject = hGameObject.ToPtr();
 	pGameObject->m_transform.SetPosition(pos);
 	pGameObject->m_transform.SetRotationEuler(rot);
@@ -412,7 +412,7 @@ void Warehouse::CreateBlueBaseWall(const XMFLOAT3& pos, const XMFLOAT3& rot)
 
 void Warehouse::CreateHouseRoof(const XMFLOAT3& pos, const XMFLOAT3& rot)
 {
-	GameObjectHandle hGameObject = CreateGameObject(L"houseroof");
+	GameObjectHandle hGameObject = CreateGameObject(L"HouseRoof");
 	GameObject* pGameObject = hGameObject.ToPtr();
 	pGameObject->m_transform.SetPosition(pos);
 	pGameObject->m_transform.SetRotationEuler(rot);
@@ -453,7 +453,7 @@ void Warehouse::CreateBarrel3(const XMFLOAT3& pos, const XMFLOAT3& rot)
 
 void Warehouse::CreateBarrelImpl(size_t matIndex, const XMFLOAT3& pos, const XMFLOAT3& rot)
 {
-	GameObjectHandle hGameObject = CreateGameObject(L"houseroof");
+	GameObjectHandle hGameObject = CreateGameObject(L"Barrel");
 	GameObject* pGameObject = hGameObject.ToPtr();
 	pGameObject->m_transform.SetPosition(pos);
 	pGameObject->m_transform.SetRotationEuler(rot);
@@ -475,7 +475,7 @@ void Warehouse::OnLoadScene()
 {
 	// ## Lights
 	{
-		GameObjectHandle hSun = CreateGameObject(L"global light1");
+		GameObjectHandle hSun = CreateGameObject(L"GlobalLight1");
 		GameObject* pSun = hSun.ToPtr();
 		pSun->m_transform.SetRotationEuler(XMConvertToRadians(75), XMConvertToRadians(45), 0.0f);
 		ComponentHandle<DirectionalLight> hLight = pSun->AddComponent<DirectionalLight>();
@@ -483,9 +483,9 @@ void Warehouse::OnLoadScene()
 		XMStoreFloat4A(&pLight->m_diffuse, XMVectorScale(Vector3::One(), 0.25f));
 		XMStoreFloat4A(&pLight->m_specular, XMVectorScale(Vector3::One(), 0.3f));
 	}
-
+	
 	{
-		GameObjectHandle hSun = CreateGameObject(L"global light2");
+		GameObjectHandle hSun = CreateGameObject(L"GlobalLight2");
 		GameObject* pSun = hSun.ToPtr();
 		pSun->m_transform.SetRotationEuler(XMConvertToRadians(45), XMConvertToRadians(-135), 0.0f);
 		ComponentHandle<DirectionalLight> hLight = pSun->AddComponent<DirectionalLight>();
