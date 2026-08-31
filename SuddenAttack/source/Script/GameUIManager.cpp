@@ -288,9 +288,9 @@ void GameUIManager::Awake()
 	pTextScoreboardTitle->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pTextScoreboardTitle->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 	pTextScoreboardTitle->GetTextFormat().SetSize(32);
-	pTextScoreboardTitle->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
+	pTextScoreboardTitle->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_BOLD);
 	pTextScoreboardTitle->ApplyTextFormat();
-	pTextScoreboardTitle->m_transform.SetPosition(0, SCOREBOARD_SIZE.y / 2 - 40);
+	pTextScoreboardTitle->m_transform.SetPosition(0, SCOREBOARD_SIZE.y / 2 - 55);
 	pTextScoreboardTitle->SetColor(ColorsLinear::Gold);
 	pTextScoreboardTitle->SetText(L"SCOREBOARD");
 
@@ -361,21 +361,29 @@ void GameUIManager::Awake()
 	pTextScoreboardRedTeamColumns->GetTextFormat().SetSize(14);
 	pTextScoreboardRedTeamColumns->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
 	pTextScoreboardRedTeamColumns->ApplyTextFormat();
-	pTextScoreboardRedTeamColumns->SetText(L"Lv.\t닉네임\t\t\t\t킬/데스\t지연시간");
+	pTextScoreboardRedTeamColumns->SetText(L"  Lv.                           닉네임                           킬/데스                  지연시간");
 
 	constexpr FLOAT ROW_PITCHES_PER_ITEM = 20;
 	constexpr FLOAT ITEM_ROW_SIZE = 20;
 	constexpr FLOAT FIRST_ITEM_POS_Y = PLAYER_INFO_COLUMNS_OFFSET[static_cast<size_t>(GameTeam::RedTeam)].y - PLAYER_INFO_COLUMNS_SIZE.y / 2 - 10 - ITEM_ROW_SIZE / 2;
-	constexpr XMFLOAT2 SCOREBOARD_LEVEL_TEXT_SIZE(60, 20);
+	constexpr XMFLOAT2 SCOREBOARD_LEVEL_TEXT_SIZE(40, 20);
+	constexpr XMFLOAT2 SCOREBOARD_NICKNAME_TEXT_SIZE(200, 20);
+	constexpr XMFLOAT2 SCOREBOARD_KILLDEATH_TEXT_SIZE(100, 20);
+	constexpr XMFLOAT2 SCOREBOARD_PING_TEXT_SIZE(100, 20);
 	for (size_t i = 0; i < static_cast<size_t>(GameTeam::Count); ++i)
 	{
 		for (size_t j = 0; j < MAX_PLAYERS_PER_TEAM; ++j)
 		{
+			const float yPos = FIRST_ITEM_POS_Y - j * (ITEM_ROW_SIZE + ROW_PITCHES_PER_ITEM);
+
 			UIObjectHandle hTextScoreboardPlayerLevel = Runtime::GetInstance()->CreateText();
 			m_hTextScoreboardPlayerLevel[i][j] = hTextScoreboardPlayerLevel;
 			Text* pTextScoreboardPlayerLevel = static_cast<Text*>(hTextScoreboardPlayerLevel.ToPtr());
 			pTextScoreboardPlayerLevel->m_transform.SetParent(&pPanelScoreboardRoot->m_transform);
-			pTextScoreboardPlayerLevel->m_transform.SetPosition(TEAM_PANEL_OFFSET[i].x - TEAM_PANEL_SIZE.x / 2 + SCOREBOARD_LEVEL_TEXT_SIZE.x / 2, FIRST_ITEM_POS_Y - i * (ITEM_ROW_SIZE + ROW_PITCHES_PER_ITEM));
+			pTextScoreboardPlayerLevel->m_transform.SetPosition(
+				TEAM_PANEL_OFFSET[i].x - TEAM_PANEL_SIZE.x / 2 + 10 + SCOREBOARD_LEVEL_TEXT_SIZE.x / 2,
+				yPos
+			);
 			pTextScoreboardPlayerLevel->SetSize(SCOREBOARD_LEVEL_TEXT_SIZE);
 			pTextScoreboardPlayerLevel->SetColor(ColorsLinear::WhiteSmoke);
 			pTextScoreboardPlayerLevel->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
@@ -391,22 +399,28 @@ void GameUIManager::Awake()
 			m_hTextScoreboardPlayerNickname[i][j] = hTextScoreboardPlayerNickname;
 			Text* pTextScoreboardPlayerNickname = static_cast<Text*>(hTextScoreboardPlayerNickname.ToPtr());
 			pTextScoreboardPlayerNickname->m_transform.SetParent(&pPanelScoreboardRoot->m_transform);
-			pTextScoreboardPlayerNickname->m_transform.SetPosition(TEAM_PANEL_OFFSET[i].x - TEAM_PANEL_SIZE.x / 2 + SCOREBOARD_LEVEL_TEXT_SIZE.x / 2, FIRST_ITEM_POS_Y - i * (ITEM_ROW_SIZE + ROW_PITCHES_PER_ITEM));
-			pTextScoreboardPlayerNickname->SetSize(SCOREBOARD_LEVEL_TEXT_SIZE);
+			pTextScoreboardPlayerNickname->m_transform.SetPosition(
+				TEAM_PANEL_OFFSET[i].x - TEAM_PANEL_SIZE.x / 2 + 10 + SCOREBOARD_LEVEL_TEXT_SIZE.x + 10 + SCOREBOARD_NICKNAME_TEXT_SIZE.x / 2,
+				yPos
+			);
+			pTextScoreboardPlayerNickname->SetSize(SCOREBOARD_NICKNAME_TEXT_SIZE);
 			pTextScoreboardPlayerNickname->SetColor(ColorsLinear::WhiteSmoke);
-			pTextScoreboardPlayerNickname->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+			pTextScoreboardPlayerNickname->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 			pTextScoreboardPlayerNickname->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 			pTextScoreboardPlayerNickname->GetTextFormat().SetSize(14);
 			pTextScoreboardPlayerNickname->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
 			pTextScoreboardPlayerNickname->ApplyTextFormat();
-			pTextScoreboardPlayerNickname->SetText(L"TEST STRING");
+			pTextScoreboardPlayerNickname->SetText(L"닉네임 자리입니다-닉네임자리입니다");
 
 			UIObjectHandle hTextScoreboardPlayerKillDeath = Runtime::GetInstance()->CreateText();
 			m_hTextScoreboardPlayerKillDeath[i][j] = hTextScoreboardPlayerKillDeath;
 			Text* pTextScoreboardPlayerKillDeath = static_cast<Text*>(hTextScoreboardPlayerKillDeath.ToPtr());
 			pTextScoreboardPlayerKillDeath->m_transform.SetParent(&pPanelScoreboardRoot->m_transform);
-			pTextScoreboardPlayerKillDeath->m_transform.SetPosition(TEAM_PANEL_OFFSET[i].x - TEAM_PANEL_SIZE.x / 2 + SCOREBOARD_LEVEL_TEXT_SIZE.x / 2, FIRST_ITEM_POS_Y - i * (ITEM_ROW_SIZE + ROW_PITCHES_PER_ITEM));
-			pTextScoreboardPlayerKillDeath->SetSize(SCOREBOARD_LEVEL_TEXT_SIZE);
+			pTextScoreboardPlayerKillDeath->m_transform.SetPosition(
+				TEAM_PANEL_OFFSET[i].x - TEAM_PANEL_SIZE.x / 2 + 10 + SCOREBOARD_LEVEL_TEXT_SIZE.x + 10 + SCOREBOARD_NICKNAME_TEXT_SIZE.x + 10 + SCOREBOARD_KILLDEATH_TEXT_SIZE.x / 2,
+				yPos
+			);
+			pTextScoreboardPlayerKillDeath->SetSize(SCOREBOARD_KILLDEATH_TEXT_SIZE);
 			pTextScoreboardPlayerKillDeath->SetColor(ColorsLinear::WhiteSmoke);
 			pTextScoreboardPlayerKillDeath->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 			pTextScoreboardPlayerKillDeath->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
@@ -419,8 +433,11 @@ void GameUIManager::Awake()
 			m_hTextScoreboardPlayerPing[i][j] = hTextScoreboardPlayerPing;
 			Text* pTextScoreboardPlayerPing = static_cast<Text*>(hTextScoreboardPlayerPing.ToPtr());
 			pTextScoreboardPlayerPing->m_transform.SetParent(&pPanelScoreboardRoot->m_transform);
-			pTextScoreboardPlayerPing->m_transform.SetPosition(TEAM_PANEL_OFFSET[i].x - TEAM_PANEL_SIZE.x / 2 + SCOREBOARD_LEVEL_TEXT_SIZE.x / 2, FIRST_ITEM_POS_Y - i * (ITEM_ROW_SIZE + ROW_PITCHES_PER_ITEM));
-			pTextScoreboardPlayerPing->SetSize(SCOREBOARD_LEVEL_TEXT_SIZE);
+			pTextScoreboardPlayerPing->m_transform.SetPosition(
+				TEAM_PANEL_OFFSET[i].x - TEAM_PANEL_SIZE.x / 2 + 10 + SCOREBOARD_LEVEL_TEXT_SIZE.x + 10 + SCOREBOARD_NICKNAME_TEXT_SIZE.x + 10 + SCOREBOARD_KILLDEATH_TEXT_SIZE.x + 10 + SCOREBOARD_PING_TEXT_SIZE.x / 2,
+				yPos
+			);
+			pTextScoreboardPlayerPing->SetSize(SCOREBOARD_PING_TEXT_SIZE);
 			pTextScoreboardPlayerPing->SetColor(ColorsLinear::WhiteSmoke);
 			pTextScoreboardPlayerPing->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 			pTextScoreboardPlayerPing->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
@@ -441,7 +458,7 @@ void GameUIManager::Awake()
 	pTextScoreboardBlueTeamColumns->GetTextFormat().SetSize(14);
 	pTextScoreboardBlueTeamColumns->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
 	pTextScoreboardBlueTeamColumns->ApplyTextFormat();
-	pTextScoreboardBlueTeamColumns->SetText(L"Lv.\t닉네임\t\t\t\t킬\t데스\t지연시간");
+	pTextScoreboardBlueTeamColumns->SetText(L"  Lv.                           닉네임                           킬/데스                  지연시간");
 
 
 
@@ -571,6 +588,7 @@ void GameUIManager::Awake()
 	pTextGameRemainingTime->GetTextFormat().SetFontFamilyName(L"Impact");
 	pTextGameRemainingTime->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
 	pTextGameRemainingTime->ApplyTextFormat();
+	pTextGameRemainingTime->SetText(L"");
 
 	UIObjectHandle hTextRedTeamScore = Runtime::GetInstance()->CreateText();
 	m_hTextRedTeamScore = hTextRedTeamScore;
@@ -677,6 +695,7 @@ void GameUIManager::Awake()
 	pTextPoint->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_ULTRA_BOLD);
 	pTextPoint->GetTextFormat().SetStyle(DWRITE_FONT_STYLE_ITALIC);
 	pTextPoint->ApplyTextFormat();
+	pTextPoint->SetText(L"-");
 
 	UIObjectHandle hTextWeaponName = Runtime::GetInstance()->CreateText();
 	m_hTextWeaponName = hTextWeaponName;
@@ -845,7 +864,7 @@ void GameUIManager::SetTextHP(uint32_t hp)
 	constexpr int MAX_HP = 100;
 	constexpr int MIN_HP = 0;
 	const float lerpFactor = static_cast<float>(hp) / static_cast<float>(MAX_HP - MIN_HP);
-	XMVECTOR color = XMVectorLerp(ColorsLinear::Red, ColorsLinear::GreenYellow, lerpFactor);
+	XMVECTOR color = XMVectorLerp(ColorsLinear::OrangeRed, ColorsLinear::ForestGreen, lerpFactor);
 
 	pTextHP->SetColor(color);
 }
@@ -860,8 +879,8 @@ void GameUIManager::SetTextAP(uint32_t ap)
 	constexpr int MAX_AP = 100;
 	constexpr int MIN_AP = 0;
 	const float lerpFactor = static_cast<float>(ap) / static_cast<float>(MAX_AP - MIN_AP);
-	XMVECTOR color = XMVectorLerp(ColorsLinear::Red, ColorsLinear::GreenYellow, lerpFactor);
-
+	XMVECTOR color = XMVectorLerp(ColorsLinear::OrangeRed, ColorsLinear::DeepSkyBlue, lerpFactor);
+	
 	pTextAP->SetColor(color);
 }
 
