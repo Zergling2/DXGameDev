@@ -154,7 +154,6 @@ GameUIManager::GameUIManager(ze::GameObject& owner)
 	, m_pUIState(nullptr)
 	, m_activeRespawnUI(false)
 	, m_respawnRemainingTime(0.0f)
-	, m_numOfPlayers{}
 	, m_chatMsgCount(0)
 {
 	m_scoreboardPlayerAccountId[static_cast<size_t>(GameTeam::RedTeam)].reserve(MAX_PLAYERS_PER_TEAM);
@@ -361,7 +360,7 @@ void GameUIManager::Awake()
 	pTextScoreboardRedTeamColumns->GetTextFormat().SetSize(14);
 	pTextScoreboardRedTeamColumns->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
 	pTextScoreboardRedTeamColumns->ApplyTextFormat();
-	pTextScoreboardRedTeamColumns->SetText(L"  Lv.                           닉네임                           킬/데스                  지연시간");
+	pTextScoreboardRedTeamColumns->SetText(L"  Lv.                             닉네임                             킬/데스              지연시간");
 
 	constexpr FLOAT ROW_PITCHES_PER_ITEM = 20;
 	constexpr FLOAT ITEM_ROW_SIZE = 20;
@@ -391,7 +390,7 @@ void GameUIManager::Awake()
 			pTextScoreboardPlayerLevel->GetTextFormat().SetSize(14);
 			pTextScoreboardPlayerLevel->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
 			pTextScoreboardPlayerLevel->ApplyTextFormat();
-			pTextScoreboardPlayerLevel->SetText(L"123");
+			pTextScoreboardPlayerLevel->SetText(L"");
 
 
 
@@ -410,7 +409,7 @@ void GameUIManager::Awake()
 			pTextScoreboardPlayerNickname->GetTextFormat().SetSize(14);
 			pTextScoreboardPlayerNickname->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
 			pTextScoreboardPlayerNickname->ApplyTextFormat();
-			pTextScoreboardPlayerNickname->SetText(L"닉네임 자리입니다-닉네임자리입니다");
+			pTextScoreboardPlayerNickname->SetText(L"");
 
 			UIObjectHandle hTextScoreboardPlayerKillDeath = Runtime::GetInstance()->CreateText();
 			m_hTextScoreboardPlayerKillDeath[i][j] = hTextScoreboardPlayerKillDeath;
@@ -427,7 +426,7 @@ void GameUIManager::Awake()
 			pTextScoreboardPlayerKillDeath->GetTextFormat().SetSize(14);
 			pTextScoreboardPlayerKillDeath->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
 			pTextScoreboardPlayerKillDeath->ApplyTextFormat();
-			pTextScoreboardPlayerKillDeath->SetText(L"5/4");
+			pTextScoreboardPlayerKillDeath->SetText(L"");
 
 			UIObjectHandle hTextScoreboardPlayerPing = Runtime::GetInstance()->CreateText();
 			m_hTextScoreboardPlayerPing[i][j] = hTextScoreboardPlayerPing;
@@ -444,7 +443,7 @@ void GameUIManager::Awake()
 			pTextScoreboardPlayerPing->GetTextFormat().SetSize(14);
 			pTextScoreboardPlayerPing->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
 			pTextScoreboardPlayerPing->ApplyTextFormat();
-			pTextScoreboardPlayerPing->SetText(L"5");
+			pTextScoreboardPlayerPing->SetText(L"");
 		}
 	}
 
@@ -458,7 +457,7 @@ void GameUIManager::Awake()
 	pTextScoreboardBlueTeamColumns->GetTextFormat().SetSize(14);
 	pTextScoreboardBlueTeamColumns->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
 	pTextScoreboardBlueTeamColumns->ApplyTextFormat();
-	pTextScoreboardBlueTeamColumns->SetText(L"  Lv.                           닉네임                           킬/데스                  지연시간");
+	pTextScoreboardBlueTeamColumns->SetText(L"  Lv.                             닉네임                             킬/데스              지연시간");
 
 
 
@@ -597,7 +596,7 @@ void GameUIManager::Awake()
 	pTextRedTeamScore->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 	pTextRedTeamScore->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
 	pTextRedTeamScore->m_transform.SetPosition(pImageTeamScore->m_transform.GetPosition());
-	pTextRedTeamScore->m_transform.TranslateX(-92);
+	pTextRedTeamScore->m_transform.TranslateX(-82);
 	pTextRedTeamScore->SetSize(80, 28);
 	pTextRedTeamScore->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pTextRedTeamScore->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
@@ -632,7 +631,7 @@ void GameUIManager::Awake()
 	pTextBlueTeamScore->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
 	pTextBlueTeamScore->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
 	pTextBlueTeamScore->m_transform.SetPosition(pImageTeamScore->m_transform.GetPosition());
-	pTextBlueTeamScore->m_transform.TranslateX(+92);
+	pTextBlueTeamScore->m_transform.TranslateX(+82);
 	pTextBlueTeamScore->SetSize(80, 28);
 	pTextBlueTeamScore->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pTextBlueTeamScore->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
@@ -843,6 +842,47 @@ void GameUIManager::LateUpdate()
 
 }
 
+void GameUIManager::Init()
+{
+	for (size_t i = 0; i < static_cast<size_t>(GameTeam::Count); ++i)
+	{
+		for (size_t j = 0; j < MAX_PLAYERS_PER_TEAM; ++j)
+		{
+			Text* pTextScoreboardPlayerLevel = static_cast<Text*>(m_hTextScoreboardPlayerLevel[i][j].ToPtr());
+			if (pTextScoreboardPlayerLevel)
+				pTextScoreboardPlayerLevel->GetText().clear();
+
+			Text* pTextScoreboardPlayerNickname = static_cast<Text*>(m_hTextScoreboardPlayerNickname[i][j].ToPtr());
+			if (pTextScoreboardPlayerNickname)
+				pTextScoreboardPlayerNickname->GetText().clear();
+
+			Text* pTextScoreboardPlayerKillDeath = static_cast<Text*>(m_hTextScoreboardPlayerKillDeath[i][j].ToPtr());
+			if (pTextScoreboardPlayerKillDeath)
+				pTextScoreboardPlayerKillDeath->GetText().clear();
+
+			Text* pTextScoreboardPlayerPing = static_cast<Text*>(m_hTextScoreboardPlayerPing[i][j].ToPtr());
+			if (pTextScoreboardPlayerPing)
+				pTextScoreboardPlayerPing->GetText().clear();
+		}
+	}
+
+	for (size_t i = 0; i < static_cast<size_t>(GameTeam::Count); ++i)
+	{
+		m_scoreboardPlayerAccountId[i].clear();
+	}
+
+	for (size_t i = 0; i < _countof(m_hTextChatMsg); ++i)
+	{
+		Text* pTextChatMsg = static_cast<Text*>(m_hTextChatMsg[i].ToPtr());
+		if (pTextChatMsg)
+			pTextChatMsg->GetText().clear();
+	}
+
+	InputField* pInputFieldChatMsg = static_cast<InputField*>(m_hInputFieldChatMsg.ToPtr());
+	if (pInputFieldChatMsg)
+		pInputFieldChatMsg->GetText().clear();
+}
+
 void GameUIManager::SetTextGameRemainingTime(float time)
 {
 	const uint32_t intTime = static_cast<uint32_t>(time);
@@ -864,7 +904,7 @@ void GameUIManager::SetTextHP(uint32_t hp)
 	constexpr int MAX_HP = 100;
 	constexpr int MIN_HP = 0;
 	const float lerpFactor = static_cast<float>(hp) / static_cast<float>(MAX_HP - MIN_HP);
-	XMVECTOR color = XMVectorLerp(ColorsLinear::OrangeRed, ColorsLinear::ForestGreen, lerpFactor);
+	XMVECTOR color = XMVectorLerp(ColorsLinear::OrangeRed, ColorsLinear::PaleGreen, lerpFactor);
 
 	pTextHP->SetColor(color);
 }
@@ -1059,6 +1099,116 @@ void GameUIManager::StartRespawnUI(float time)
 	wchar_t buf[32];
 	StringCchPrintfW(buf, _countof(buf), L"R E S P A W N\n%d초 남았습니다.", static_cast<int>(m_respawnRemainingTime));
 	pTextRespawnIndicator->SetText(buf);
+}
+
+void GameUIManager::AddPlayer(uint32_t accountId, GameTeam team, uint16_t level, const wchar_t* nickname, uint32_t kill, uint32_t death, uint32_t ping)
+{
+	const auto& v = m_scoreboardPlayerAccountId[static_cast<size_t>(team)];
+
+	const size_t playerIndex = v.size();
+	assert(playerIndex < MAX_PLAYERS_PER_TEAM);
+
+	m_scoreboardPlayerAccountId[static_cast<size_t>(team)].push_back(accountId);
+
+	wchar_t buf[32];
+
+	// Level 표시
+	StringCchPrintfW(buf, _countof(buf), L"%u", static_cast<uint32_t>(level));
+	static_cast<Text*>(m_hTextScoreboardPlayerLevel[static_cast<size_t>(team)][playerIndex].ToPtr())->SetText(buf);
+
+	// 닉네임 표시
+	static_cast<Text*>(m_hTextScoreboardPlayerNickname[static_cast<size_t>(team)][playerIndex].ToPtr())->SetText(nickname);
+
+	// 킬/데스 표시
+	StringCchPrintfW(buf, _countof(buf), L"%u/%u", kill, death);
+	static_cast<Text*>(m_hTextScoreboardPlayerKillDeath[static_cast<size_t>(team)][playerIndex].ToPtr())->SetText(buf);
+
+	// 핑 표시
+	StringCchPrintfW(buf, _countof(buf), L"%u", ping);
+	static_cast<Text*>(m_hTextScoreboardPlayerPing[static_cast<size_t>(team)][playerIndex].ToPtr())->SetText(buf);
+}
+
+void GameUIManager::RemovePlayer(uint32_t accountId)
+{
+	for (size_t i = 0; i < static_cast<size_t>(GameTeam::Count); ++i)
+	{
+		for (size_t j = 0; j < m_scoreboardPlayerAccountId[i].size(); ++j)
+		{
+			if (m_scoreboardPlayerAccountId[i][j] == accountId)
+			{
+				assert(j < MAX_PLAYERS_PER_TEAM);
+
+				if (j < MAX_PLAYERS_PER_TEAM)
+				{
+					// 한 칸씩 당기기
+					for (size_t k = j + 1; k < m_scoreboardPlayerAccountId[i].size(); ++k)
+					{
+						static_cast<Text*>(m_hTextScoreboardPlayerLevel[i][k - 1].ToPtr())->GetText() =
+							static_cast<Text*>(m_hTextScoreboardPlayerLevel[i][k].ToPtr())->GetText();
+
+						static_cast<Text*>(m_hTextScoreboardPlayerNickname[i][k - 1].ToPtr())->GetText() =
+							static_cast<Text*>(m_hTextScoreboardPlayerNickname[i][k].ToPtr())->GetText();
+
+						static_cast<Text*>(m_hTextScoreboardPlayerKillDeath[i][k - 1].ToPtr())->GetText() =
+							static_cast<Text*>(m_hTextScoreboardPlayerKillDeath[i][k].ToPtr())->GetText();
+
+						static_cast<Text*>(m_hTextScoreboardPlayerPing[i][k - 1].ToPtr())->GetText() =
+							static_cast<Text*>(m_hTextScoreboardPlayerPing[i][k].ToPtr())->GetText();
+
+					}
+					const size_t lastItemIndex = m_scoreboardPlayerAccountId[i].size() - 1;
+					static_cast<Text*>(m_hTextScoreboardPlayerLevel[i][lastItemIndex].ToPtr())->GetText().clear();
+					static_cast<Text*>(m_hTextScoreboardPlayerNickname[i][lastItemIndex].ToPtr())->GetText().clear();
+					static_cast<Text*>(m_hTextScoreboardPlayerKillDeath[i][lastItemIndex].ToPtr())->GetText().clear();
+					static_cast<Text*>(m_hTextScoreboardPlayerPing[i][lastItemIndex].ToPtr())->GetText().clear();
+				}
+
+				m_scoreboardPlayerAccountId[i].erase(m_scoreboardPlayerAccountId[i].begin() + j);
+
+				return;
+			}
+		}
+	}
+}
+
+void GameUIManager::SetPlayerKillDeath(uint32_t accountId, uint32_t kill, uint32_t death)
+{
+	for (size_t i = 0; i < static_cast<size_t>(GameTeam::Count); ++i)
+	{
+		for (size_t j = 0; j < m_scoreboardPlayerAccountId[i].size(); ++j)
+		{
+			if (m_scoreboardPlayerAccountId[i][j] == accountId)
+			{
+				assert(j < MAX_PLAYERS_PER_TEAM);
+
+				wchar_t buf[32];
+				StringCchPrintfW(buf, _countof(buf), L"%u/%u", kill, death);
+				static_cast<Text*>(m_hTextScoreboardPlayerKillDeath[i][j].ToPtr())->SetText(buf);
+				
+				return;
+			}
+		}
+	}
+}
+
+void GameUIManager::SetPlayerPing(uint32_t accountId, uint32_t ping)
+{
+	for (size_t i = 0; i < static_cast<size_t>(GameTeam::Count); ++i)
+	{
+		for (size_t j = 0; j < m_scoreboardPlayerAccountId[i].size(); ++j)
+		{
+			if (m_scoreboardPlayerAccountId[i][j] == accountId)
+			{
+				assert(j < MAX_PLAYERS_PER_TEAM);
+
+				wchar_t buf[32];
+				StringCchPrintfW(buf, _countof(buf), L"%u", ping);
+				static_cast<Text*>(m_hTextScoreboardPlayerPing[i][j].ToPtr())->SetText(buf);
+
+				return;
+			}
+		}
+	}
 }
 
 void GameUIManager::OnPosChangePlayerFoV()

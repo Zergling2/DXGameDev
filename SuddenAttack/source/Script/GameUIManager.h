@@ -89,6 +89,8 @@ public:
 	virtual void Update() override;
 	virtual void LateUpdate() override;
 
+	void Init();
+
 	void SetTextGameRemainingTime(float time);
 	void SetTextHP(uint32_t hp);
 	void SetTextAP(uint32_t ap);
@@ -127,6 +129,11 @@ public:
 	void SendChatMsg();
 
 	void StartRespawnUI(float time);
+
+	void AddPlayer(uint32_t accountId, GameTeam team, uint16_t level, const wchar_t* nickname, uint32_t kill, uint32_t death, uint32_t ping);
+	void RemovePlayer(uint32_t accountId);
+	void SetPlayerKillDeath(uint32_t accountId, uint32_t kill, uint32_t death);
+	void SetPlayerPing(uint32_t accountId, uint32_t ping);
 private:
 	void OnPosChangePlayerFoV();
 	void OnClickDrawDebugInfo();
@@ -145,7 +152,6 @@ private:
 	ze::UIObjectHandle m_hTextScoreboardPlayerNickname[static_cast<size_t>(GameTeam::Count)][MAX_PLAYERS_PER_TEAM];
 	ze::UIObjectHandle m_hTextScoreboardPlayerKillDeath[static_cast<size_t>(GameTeam::Count)][MAX_PLAYERS_PER_TEAM];
 	ze::UIObjectHandle m_hTextScoreboardPlayerPing[static_cast<size_t>(GameTeam::Count)][MAX_PLAYERS_PER_TEAM];
-	size_t m_numOfPlayers[static_cast<size_t>(GameTeam::Count)];
 	std::vector<uint32_t> m_scoreboardPlayerAccountId[static_cast<size_t>(GameTeam::Count)];
 
 	ze::UIObjectHandle m_hPanelMenuRoot;

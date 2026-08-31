@@ -227,6 +227,10 @@ void ListenServerClient::SetStartupInfo(uint32_t serverIP, uint16_t serverPort)
 
 void ListenServerClient::StartClient()
 {
+	GameUIManager* pScriptGameUIManager = m_hScriptGameUIManager.ToPtr();
+	pScriptGameUIManager->Init();
+
+
 	assert(m_pClient == nullptr);
 	assert(m_pPeer == nullptr);
 
@@ -288,10 +292,16 @@ void ListenServerClient::StartClient()
 	// 
 	// 	puts("Connection to listen server failed.");
 	// }
+
+
+
 }
 
 void ListenServerClient::CloseClient()
 {
+	GameUIManager* pScriptGameUIManager = m_hScriptGameUIManager.ToPtr();
+	pScriptGameUIManager->Init();
+
 	if (m_pPeer)
 	{
 		enet_peer_reset(m_pPeer);
@@ -339,9 +349,6 @@ void ListenServerClient::OnSCNotifyGameStatus(const LSSCNotifyGameStatus* pPacke
 	Player* pScriptPlayer = hScriptPlayer.ToPtr();
 	pScriptPlayer->SetListenServerClientScriptHandle(this->ToHandle());
 
-	// GameUIManager 상태 설정
-	m_hScriptGameUIManager.ToPtr()->SetState(GameUIStatePlaying::GetState());
-
 	const Account* pScriptAccount = m_hScriptAccount.ToPtr();
 	std::unique_ptr<GamePlayerInfo> upNewMyPlayer = std::make_unique<GamePlayerInfo>(pScriptAccount->GetAccountId());
 	const GamePlayerInfo* const pNewMyPlayer = upNewMyPlayer.get();	// move 대비
@@ -372,6 +379,20 @@ void ListenServerClient::OnSCNotifyGameStatus(const LSSCNotifyGameStatus* pPacke
 		pNewMyPlayer->m_weaponCodes[static_cast<size_t>(WeaponSlot::Secondary)],
 		pNewMyPlayer->m_currWeapon,
 		pNewMyPlayer->m_state
+	);
+
+	// GameUIManager 상태 설정
+	GameUIManager* pScriptGameUIManager = m_hScriptGameUIManager.ToPtr();
+	pScriptGameUIManager->SetState(GameUIStatePlaying::GetState());
+
+	pScriptGameUIManager->AddPlayer(
+		pNewMyPlayer->m_accountId,
+		pNewMyPlayer->m_team,
+		pNewMyPlayer->m_level,
+		pNewMyPlayer->m_nickname,
+		pNewMyPlayer->m_kill,
+		pNewMyPlayer->m_death,
+		pNewMyPlayer->m_ping
 	);
 }
 
@@ -450,6 +471,17 @@ void ListenServerClient::OnSCNotifyGamePlayerJoined(const LSSCNotifyGamePlayerJo
 
 	auto ret = m_players.insert(std::make_pair(pNewPlayer->m_accountId, std::make_pair(std::move(upNewPlayer), hScriptThirdPersonCharacter)));
 	assert(ret.second);
+
+	GameUIManager* pScriptGameUIManager = m_hScriptGameUIManager.ToPtr();
+	pScriptGameUIManager->AddPlayer(
+		pNewPlayer->m_accountId,
+		pNewPlayer->m_team,
+		pNewPlayer->m_level,
+		pNewPlayer->m_nickname,
+		pNewPlayer->m_kill,
+		pNewPlayer->m_death,
+		pNewPlayer->m_ping
+	);
 }
 
 void ListenServerClient::OnSCNotifyGamePlayerExit(const LSSCNotifyGamePlayerExit* pPacket)
@@ -498,6 +530,17 @@ void ListenServerClient::OnSCNotifyGamePlayerInfo(const LSSCNotifyGamePlayerInfo
 
 	auto ret = m_players.insert(std::make_pair(pNewPlayer->m_accountId, std::make_pair(std::move(upNewPlayer), hScriptThirdPersonCharacter)));
 	assert(ret.second);
+
+	GameUIManager* pScriptGameUIManager = m_hScriptGameUIManager.ToPtr();
+	pScriptGameUIManager->AddPlayer(
+		pNewPlayer->m_accountId,
+		pNewPlayer->m_team,
+		pNewPlayer->m_level,
+		pNewPlayer->m_nickname,
+		pNewPlayer->m_kill,
+		pNewPlayer->m_death,
+		pNewPlayer->m_ping
+	);
 }
 
 void ListenServerClient::OnSCNotifyGamePlayerWeaponEvent(const LSSCNotifyGamePlayerWeaponEvent* pPacket)
@@ -595,6 +638,9 @@ void ListenServerClient::OnSCNotifyGamePlayerRespawn(const LSSCNotifyGamePlayerR
 void ListenServerClient::OnSCNotifyGamePlayerKill(const LSSCNotifyGamePlayerKill* pPacket)
 {
 	// Kill 이벤트가 암시적으로 Dead 이벤트를 포함.
+
+	GameUIManager* pScriptGameUIManager = m_hScriptGameUIManager.ToPtr();
+
 	const auto iterKiller = m_players.find(pPacket->m_killerAccountId);
 	const auto iterDeader = m_players.find(pPacket->m_deaderAccountId);
 	const wchar_t* killerNickname;
@@ -604,6 +650,8 @@ void ListenServerClient::OnSCNotifyGamePlayerKill(const LSSCNotifyGamePlayerKill
 	{
 		killerNickname = iterKiller->second.first->m_nickname;
 		++iterKiller->second.first->m_kill;
+
+		pScriptGameUIManager->SetPlayerKillDeath(iterKiller->second.first->m_accountId, iterKiller->second.first->m_kill, iterKiller->second.first->m_death);
 	}
 	else
 	{
@@ -614,6 +662,8 @@ void ListenServerClient::OnSCNotifyGamePlayerKill(const LSSCNotifyGamePlayerKill
 	{
 		deaderNickname = iterDeader->second.first->m_nickname;
 		++iterDeader->second.first->m_death;
+
+		pScriptGameUIManager->SetPlayerKillDeath(iterDeader->second.first->m_accountId, iterDeader->second.first->m_kill, iterDeader->second.first->m_death);
 	}
 	else
 	{
@@ -639,6 +689,9 @@ void ListenServerClient::OnSCNotifyGamePlayerKill(const LSSCNotifyGamePlayerKill
 void ListenServerClient::OnSCNotifyGamePlayerDead(const LSSCNotifyGamePlayerDead* pPacket)
 {
 	// Dead 이벤트는 사망 요인이 다른 플레이어에 의한 kill이 아닌 경우 발생.
+
+	GameUIManager* pScriptGameUIManager = m_hScriptGameUIManager.ToPtr();
+
 	const auto iterDeader = m_players.find(pPacket->m_deaderAccountId);
 	const wchar_t* deaderNickname;
 
@@ -646,6 +699,8 @@ void ListenServerClient::OnSCNotifyGamePlayerDead(const LSSCNotifyGamePlayerDead
 	{
 		deaderNickname = iterDeader->second.first->m_nickname;
 		++iterDeader->second.first->m_death;
+
+		pScriptGameUIManager->SetPlayerKillDeath(iterDeader->second.first->m_accountId, iterDeader->second.first->m_kill, iterDeader->second.first->m_death);
 	}
 	else
 	{
