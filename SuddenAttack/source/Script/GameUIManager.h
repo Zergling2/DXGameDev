@@ -137,6 +137,7 @@ public:
 private:
 	void OnPosChangePlayerFoV();
 	void OnClickDrawDebugInfo();
+	void OnClickWindowMode();
 private:
 	IGameUIManagerState* m_pUIState;
 	bool m_activeRespawnUI;
@@ -158,6 +159,7 @@ private:
 	ze::UIObjectHandle m_hPanelMenuRoot;
 	ze::UIObjectHandle m_hSliderControlPlayerFoV;
 	ze::UIObjectHandle m_hCheckboxDrawDebugInfo;
+	ze::UIObjectHandle m_hCheckboxWindowMode;
 
 	ze::UIObjectHandle m_hImageGameUIRoot;
 	ze::UIObjectHandle m_hImageCrosshair;

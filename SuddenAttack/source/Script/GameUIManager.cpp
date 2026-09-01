@@ -514,7 +514,7 @@ void GameUIManager::Awake()
 	m_hCheckboxDrawDebugInfo = hCheckboxDrawDebugInfo;
 	Checkbox* pCheckboxDrawDebugInfo = static_cast<Checkbox*>(hCheckboxDrawDebugInfo.ToPtr());
 	pCheckboxDrawDebugInfo->m_transform.SetParent(&pPanelMenuRoot->m_transform);
-	pCheckboxDrawDebugInfo->m_transform.SetPosition(60, 0);
+	pCheckboxDrawDebugInfo->m_transform.SetPosition(60, 30);
 	pCheckboxDrawDebugInfo->SetCheck(Physics::GetInstance()->GetDrawDebugInfo());
 	pCheckboxDrawDebugInfo->SetText(L"콜라이더 디버그 그리기");
 	pCheckboxDrawDebugInfo->SetTextboxSize(150);
@@ -522,6 +522,19 @@ void GameUIManager::Awake()
 	pCheckboxDrawDebugInfo->SetCheckColor(ColorsLinear::Black);
 	pCheckboxDrawDebugInfo->SetLeftText(true);
 	pCheckboxDrawDebugInfo->SetHandlerOnClick(MakeUIHandler(ComponentHandle<GameUIManager>(this->ToHandle()), &GameUIManager::OnClickDrawDebugInfo));
+
+	UIObjectHandle hCheckboxWindowMode = Runtime::GetInstance()->CreateCheckbox();
+	m_hCheckboxWindowMode = hCheckboxWindowMode;
+	Checkbox* pCheckboxWindowMode = static_cast<Checkbox*>(hCheckboxWindowMode.ToPtr());
+	pCheckboxWindowMode->m_transform.SetParent(&pPanelMenuRoot->m_transform);
+	pCheckboxWindowMode->m_transform.SetPosition(15, 0);
+	pCheckboxWindowMode->SetCheck(Physics::GetInstance()->GetDrawDebugInfo());
+	pCheckboxWindowMode->SetText(L"창 모드");
+	pCheckboxWindowMode->SetTextboxSize(150);
+	// pCheckboxWindowMode->SetBoxColor(ColorsLinear::Orange);
+	// pCheckboxWindowMode->SetCheckColor(ColorsLinear::Black);
+	pCheckboxWindowMode->SetLeftText(true);
+	pCheckboxWindowMode->SetHandlerOnClick(MakeUIHandler(ComponentHandle<GameUIManager>(this->ToHandle()), &GameUIManager::OnClickWindowMode));
 
 	UIObjectHandle hButtonExitGame = Runtime::GetInstance()->CreateButton();
 	Button* pButtonExitGame = static_cast<Button*>(hButtonExitGame.ToPtr());
@@ -1277,8 +1290,6 @@ void GameUIManager::OnPosChangePlayerFoV()
 	if (!pScriptPlayer)
 		return;
 
-	wprintf(L"Thumb pos: %d\n", pSliderControlPlayerFoV->GetThumbPos());
-
 	pScriptPlayer->SetFoV(pSliderControlPlayerFoV->GetThumbPos());
 }
 
@@ -1289,4 +1300,12 @@ void GameUIManager::OnClickDrawDebugInfo()
 		return;
 
 	Physics::GetInstance()->SetDrawDebugInfo(pCheckboxDrawDebugInfo->GetCheck());
+}
+
+void GameUIManager::OnClickWindowMode()
+{
+	if (static_cast<Checkbox*>(m_hCheckboxWindowMode.ToPtr())->GetCheck())
+		SetResolution(1366, 768, DisplayMode::Windowed);
+	else
+		SetResolution(0, 0, DisplayMode::BorderlessWindowed);
 }
