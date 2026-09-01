@@ -7,6 +7,7 @@
 using namespace ze;
 
 const wchar_t* const GAME_UI_TEXT_FONT = L"Agency FB";
+const FLOAT CHAT_PANEL_ALPHA = 0.25f;
 
 GameUIStateDeactivate GameUIStateDeactivate::s_instance;
 GameUIStatePlaying GameUIStatePlaying::s_instance;
@@ -41,7 +42,8 @@ void GameUIStatePlaying::Enter(GameUIManager* pGameUIManager)
 
 	Player* pScriptPlayer = pGameUIManager->GetPlayerScript();
 	if (pScriptPlayer)
-		pScriptPlayer->SetProcessingInput(true);
+		if (!pScriptPlayer->IsDead())
+			pScriptPlayer->SetProcessingInput(true);
 
 	pGameUIManager->ShowGameUI();
 }
@@ -130,8 +132,8 @@ void GameUIStateChatting::Enter(GameUIManager* pGameUIManager)
 	if (pScriptPlayer)
 		pScriptPlayer->SetProcessingInput(false);
 
-	pGameUIManager->ShowChatPanel();
 	pGameUIManager->ShowGameUI();
+	pGameUIManager->ShowChatPanel();
 }
 
 void GameUIStateChatting::Update(GameUIManager* pGameUIManager, float dt)
@@ -147,14 +149,17 @@ void GameUIStateChatting::Update(GameUIManager* pGameUIManager, float dt)
 void GameUIStateChatting::Exit(GameUIManager* pGameUIManager)
 {
 	pGameUIManager->HideChatPanel();
+	pGameUIManager->HideGameUI();
 }
 
 GameUIManager::GameUIManager(ze::GameObject& owner)
 	: ze::MonoBehaviour(owner)
 	, m_pUIState(nullptr)
 	, m_activeRespawnUI(false)
+	, m_needUpdateChatMsgTransparency(false)
 	, m_respawnRemainingTime(0.0f)
 	, m_chatMsgCount(0)
+	, m_chatMsgTransparencyTimer(0.0f)
 {
 	m_scoreboardPlayerAccountId[static_cast<size_t>(GameTeam::RedTeam)].reserve(MAX_PLAYERS_PER_TEAM);
 	m_scoreboardPlayerAccountId[static_cast<size_t>(GameTeam::BlueTeam)].reserve(MAX_PLAYERS_PER_TEAM);
@@ -755,28 +760,29 @@ void GameUIManager::Awake()
 
 	// 채팅 패널 UI
 	constexpr XMFLOAT2 INGAME_CHAT_PANEL_SIZE(500, 220);
-	UIObjectHandle hPanelChatRoot = Runtime::GetInstance()->CreatePanel();
-	m_hPanelChatRoot = hPanelChatRoot;
-	Panel* pPanelChatRoot = static_cast<Panel*>(hPanelChatRoot.ToPtr());
-	pPanelChatRoot->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
-	pPanelChatRoot->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
-	pPanelChatRoot->m_transform.SetPosition(INGAME_CHAT_PANEL_SIZE.x / 2 + 10, INGAME_CHAT_PANEL_SIZE.y / 2 + 200);
-	pPanelChatRoot->SetSize(INGAME_CHAT_PANEL_SIZE);
-	pPanelChatRoot->SetShape(PanelShape::RoundedRectangle);
-	pPanelChatRoot->SetColor(Colors::DimGray);
-	pPanelChatRoot->SetColorA(0.25f);
+	UIObjectHandle hPanelChatBackground = Runtime::GetInstance()->CreatePanel();
+	m_hPanelChatBackground = hPanelChatBackground;
+	Panel* pPanelChatBackground = static_cast<Panel*>(hPanelChatBackground.ToPtr());
+	pPanelChatBackground->m_transform.SetParent(&pImageGameUIRoot->m_transform);		// 중요 (GameUI의 자식으로 추가)
+	pPanelChatBackground->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
+	pPanelChatBackground->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
+	pPanelChatBackground->m_transform.SetPosition(INGAME_CHAT_PANEL_SIZE.x / 2 + 10, INGAME_CHAT_PANEL_SIZE.y / 2 + 200);
+	pPanelChatBackground->SetSize(INGAME_CHAT_PANEL_SIZE);
+	pPanelChatBackground->SetShape(PanelShape::RoundedRectangle);
+	pPanelChatBackground->SetColor(Colors::DimGray);
+	pPanelChatBackground->SetColorA(CHAT_PANEL_ALPHA);
 	
 	const XMFLOAT2 CHAT_MSG_TEXT_SIZE(INGAME_CHAT_PANEL_SIZE.x - 20, 20);
 	for (size_t i = 0; i < INGAME_CHAT_MSG_ITEM_ROW_COUNT; ++i)
 	{
 		m_hTextChatMsg[i] = Runtime::GetInstance()->CreateText();
 		Text* pTextChatMsg = static_cast<Text*>(m_hTextChatMsg[i].ToPtr());
-		pTextChatMsg->m_transform.SetParent(&pPanelChatRoot->m_transform);
+		pTextChatMsg->m_transform.SetParent(&pImageGameUIRoot->m_transform);	// 중요 (GameUI의 자식으로 추가)
 		pTextChatMsg->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
 		pTextChatMsg->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
 		pTextChatMsg->m_transform.SetPosition(
-			pPanelChatRoot->m_transform.GetPositionX(),
-			pPanelChatRoot->m_transform.GetPositionY() + INGAME_CHAT_PANEL_SIZE.y / 2 - CHAT_MSG_TEXT_SIZE.y / 2 - 10 - CHAT_MSG_TEXT_SIZE.y * i
+			pPanelChatBackground->m_transform.GetPositionX(),
+			pPanelChatBackground->m_transform.GetPositionY() + INGAME_CHAT_PANEL_SIZE.y / 2 - CHAT_MSG_TEXT_SIZE.y / 2 - 10 - CHAT_MSG_TEXT_SIZE.y * i
 		);
 		pTextChatMsg->SetSize(CHAT_MSG_TEXT_SIZE);
 		// pTextChatMsg->SetText();
@@ -785,12 +791,12 @@ void GameUIManager::Awake()
 	const XMFLOAT2 CHAT_MSG_INPUT_FIELD_SIZE(INGAME_CHAT_PANEL_SIZE.x - 20, 20);
 	m_hInputFieldChatMsg = Runtime::GetInstance()->CreateInputField();
 	InputField* pInputFieldChatMsg = static_cast<InputField*>(m_hInputFieldChatMsg.ToPtr());
-	pInputFieldChatMsg->m_transform.SetParent(&pPanelChatRoot->m_transform);
+	pInputFieldChatMsg->m_transform.SetParent(&pPanelChatBackground->m_transform);
 	pInputFieldChatMsg->m_transform.SetVerticalAnchor(VerticalAnchor::Bottom);
 	pInputFieldChatMsg->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
 	pInputFieldChatMsg->m_transform.SetPosition(
-		pPanelChatRoot->m_transform.GetPositionX(),
-		pPanelChatRoot->m_transform.GetPositionY() - INGAME_CHAT_PANEL_SIZE.y / 2 + CHAT_MSG_INPUT_FIELD_SIZE.y / 2 + 10
+		pPanelChatBackground->m_transform.GetPositionX(),
+		pPanelChatBackground->m_transform.GetPositionY() - INGAME_CHAT_PANEL_SIZE.y / 2 + CHAT_MSG_INPUT_FIELD_SIZE.y / 2 + 10
 	);
 	pInputFieldChatMsg->SetSize(CHAT_MSG_INPUT_FIELD_SIZE);
 	pInputFieldChatMsg->SetMaxChar(MAX_CHAT_MSG_LEN);
@@ -801,7 +807,6 @@ void GameUIManager::Awake()
 	m_hPanelScoreboardRoot.ToPtr()->DontDestroyOnLoadRecursively();
 	m_hPanelMenuRoot.ToPtr()->DontDestroyOnLoadRecursively();
 	m_hImageGameUIRoot.ToPtr()->DontDestroyOnLoadRecursively();
-	m_hPanelChatRoot.ToPtr()->DontDestroyOnLoadRecursively();
 	// ###########################################################
 
 	this->SetState(GameUIStateDeactivate::GetState());
@@ -829,6 +834,26 @@ void GameUIManager::Update()
 		{
 			m_hTextRespawnIndicator.ToPtr()->SetActive(false);
 			m_activeRespawnUI = false;
+		}
+	}
+
+	if (m_needUpdateChatMsgTransparency)
+	{
+		m_chatMsgTransparencyTimer = (std::max)(m_chatMsgTransparencyTimer - dt, 0.0f);
+
+		constexpr float CHAT_MSG_TRANSPARENCY_START_TIME = 2.5f;
+		if (m_chatMsgTransparencyTimer <= CHAT_MSG_TRANSPARENCY_START_TIME)
+		{
+			for (size_t i = 0; i < _countof(m_hTextChatMsg); ++i)
+			{
+				Text* pTextChatMsg = static_cast<Text*>(m_hTextChatMsg[i].ToPtr());
+				pTextChatMsg->SetColorA(m_chatMsgTransparencyTimer / CHAT_MSG_TRANSPARENCY_START_TIME);
+			}
+		}
+
+		if (m_chatMsgTransparencyTimer == 0.0f)
+		{
+			m_needUpdateChatMsgTransparency = false;
 		}
 	}
 }
@@ -1004,6 +1029,9 @@ void GameUIManager::ShowGameUI()
 {
 	m_hImageGameUIRoot.ToPtr()->SetActive(true);
 
+	for (size_t i = 0; i < _countof(m_hTextChatMsg); ++i)
+		m_hTextChatMsg[i].ToPtr()->SetActive(true);
+
 	if (m_activeRespawnUI)
 		m_hTextRespawnIndicator.ToPtr()->SetActive(true);
 }
@@ -1011,17 +1039,36 @@ void GameUIManager::ShowGameUI()
 void GameUIManager::HideGameUI()
 {
 	m_hImageGameUIRoot.ToPtr()->SetActive(false);
+
+	for (size_t i = 0; i < _countof(m_hTextChatMsg); ++i)
+		m_hTextChatMsg[i].ToPtr()->SetActive(false);
+
 	m_hTextRespawnIndicator.ToPtr()->SetActive(false);
 }
 
 void GameUIManager::ShowChatPanel()
 {
-	m_hPanelChatRoot.ToPtr()->SetActive(true);
+	m_hPanelChatBackground.ToPtr()->SetActive(true);
+
+	for (size_t i = 0; i < _countof(m_hTextChatMsg); ++i)
+	{
+		Text* pTextChatMsg = static_cast<Text*>(m_hTextChatMsg[i].ToPtr());
+		pTextChatMsg->SetColorA(1.0f);
+	}
+
+	m_needUpdateChatMsgTransparency = false;
+
+	UIObjectManager::GetInstance()->SetFocusedUI(m_hInputFieldChatMsg.ToPtr());
 }
 
 void GameUIManager::HideChatPanel()
 {
-	m_hPanelChatRoot.ToPtr()->SetActive(false);
+	m_hPanelChatBackground.ToPtr()->SetActive(false);
+
+	m_chatMsgTransparencyTimer = 6.5f;
+	m_needUpdateChatMsgTransparency = true;
+
+	UIObjectManager::GetInstance()->SetFocusedUI(nullptr);
 }
 
 void GameUIManager::OnClickCloseGameMenu()
@@ -1044,9 +1091,18 @@ void GameUIManager::ClearAllChatMsgs()
 
 void GameUIManager::AddChatMsg(const wchar_t* msg)
 {
+	m_chatMsgTransparencyTimer = 6.5f;
+	m_needUpdateChatMsgTransparency = true;
+
+	for (size_t i = 0; i < _countof(m_hTextChatMsg); ++i)
+	{
+		Text* pTextChatMsg = static_cast<Text*>(m_hTextChatMsg[i].ToPtr());
+		pTextChatMsg->SetColorA(1.0f);
+	}
+
 	if (m_chatMsgCount < _countof(m_hTextChatMsg))
 	{
-		static_cast<Text*>(m_hTextChatMsg[m_chatMsgCount].ToPtr())->SetText(msg);
+		static_cast<Text*>(m_hTextChatMsg[m_chatMsgCount++].ToPtr())->SetText(msg);
 	}
 	else
 	{

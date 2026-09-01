@@ -228,7 +228,8 @@ void ListenServerClient::SetStartupInfo(uint32_t serverIP, uint16_t serverPort)
 void ListenServerClient::StartClient()
 {
 	GameUIManager* pScriptGameUIManager = m_hScriptGameUIManager.ToPtr();
-	pScriptGameUIManager->Init();
+	if (pScriptGameUIManager)
+		pScriptGameUIManager->Init();
 
 
 	assert(m_pClient == nullptr);
@@ -300,7 +301,8 @@ void ListenServerClient::StartClient()
 void ListenServerClient::CloseClient()
 {
 	GameUIManager* pScriptGameUIManager = m_hScriptGameUIManager.ToPtr();
-	pScriptGameUIManager->Init();
+	if (pScriptGameUIManager)
+		pScriptGameUIManager->Init();
 
 	if (m_pPeer)
 	{

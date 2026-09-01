@@ -50,13 +50,13 @@ void Network::Awake()
 	config.m_numOfConcurrentThreads = 1;
 	config.m_numOfWorkerThreads = 1;
 	m_ce.Init(config);
-
+	
 	winppy::TCPClientInitDesc desc;
 	desc.m_pEngine = &m_ce;
 	desc.m_tcpNoDelay = true;
 	m_client.Init(desc);
 
-	m_client.Connect(L"127.0.0.1", SASERVER_PORT);
+	m_client.Connect(L"192.168.55.162", SASERVER_PORT);
 }
 
 void Network::FixedUpdate()

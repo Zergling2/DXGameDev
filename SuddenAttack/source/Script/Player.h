@@ -41,6 +41,7 @@ public:
 	void BroadcastTransform() const;
 
 	void SetProcessingInput(bool b) { m_processingInput = b; }
+	bool IsDead() const { return m_isDead; }
 
 	void SetListenServerClientScriptHandle(ze::ComponentHandle<ListenServerClient> hScript) { m_hScriptListenServerClient = hScript; }
 private:

@@ -140,6 +140,7 @@ private:
 private:
 	IGameUIManagerState* m_pUIState;
 	bool m_activeRespawnUI;
+	bool m_needUpdateChatMsgTransparency;
 	float m_respawnRemainingTime;
 	ze::ComponentHandle<Account> m_hScriptAccount;
 	ze::ComponentHandle<Player> m_hScriptPlayer;
@@ -173,8 +174,9 @@ private:
 	ze::UIObjectHandle m_hTextAmmoState;
 	ze::UIObjectHandle m_hTextRespawnIndicator;
 
-	ze::UIObjectHandle m_hPanelChatRoot;
+	ze::UIObjectHandle m_hPanelChatBackground;
 	ze::UIObjectHandle m_hTextChatMsg[INGAME_CHAT_MSG_ITEM_ROW_COUNT];
 	ze::UIObjectHandle m_hInputFieldChatMsg;
 	size_t m_chatMsgCount;
+	float m_chatMsgTransparencyTimer;
 };

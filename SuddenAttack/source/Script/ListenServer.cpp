@@ -532,7 +532,7 @@ void ListenServer::OnCSReqChat(const LSCSReqChat* pPacket, ENetPeer* pRequester)
 		return;
 	}
 
-	if (pPacket->m_chatMsgLen >= MAX_CHAT_MSG_LEN)
+	if (pPacket->m_chatMsgLen > MAX_CHAT_MSG_LEN)
 	{
 		enet_peer_disconnect(pRequester, 0);
 		return;

@@ -481,6 +481,7 @@ void ThirdPersonCharacter::OnInit(uint32_t accountId, GameTeam team, WeaponCode 
 	m_accountId = accountId;
 	m_team = team;
 	m_currWeaponSlot = currWeapon;
+	m_prevMoveType = MovementType::Unknown;
 
 	// 1. TPC 캐릭터 뷰 설정
 	const CharacterViewInfo* pCVI = nullptr;
@@ -506,6 +507,7 @@ void ThirdPersonCharacter::OnInit(uint32_t accountId, GameTeam team, WeaponCode 
 	switch (state)
 	{
 	case InGamePlayerState::Alive:
+		m_isDead = false;
 		m_pGameObject->m_transform.SetPosition(pos);
 		m_pGameObject->m_transform.SetRotationQuaternion(rot);
 		// this->SetBoneAdditiveBlending(pPacket->m_camRotX);
@@ -515,9 +517,11 @@ void ThirdPersonCharacter::OnInit(uint32_t accountId, GameTeam team, WeaponCode 
 		m_hSkinnedMeshRendererCharacter.ToPtr()->PlayGroupAnimation("stand_idle", "lower_body", true);
 		break;
 	case InGamePlayerState::Dead:
+		m_isDead = true;
 		this->HideView();
 		break;
 	case InGamePlayerState::Spectating:
+		m_isDead = true;
 		this->HideView();
 		break;
 	default:
@@ -612,7 +616,7 @@ void ThirdPersonCharacter::OnDead(WeaponAction deadAction)
 {
 	m_isDead = true;
 
-	m_prevMoveType = MovementType::Stop;
+	m_prevMoveType = MovementType::Unknown;
 
 	// 캐릭터 콜라이더 비활성화
 	m_hCharacterColliderRigidbody.ToPtr()->Disable();
@@ -649,12 +653,12 @@ void ThirdPersonCharacter::OnRespawn(const XMFLOAT3& pos, const XMFLOAT4& rot, f
 	this->ShowView();
 	this->OnDraw(WeaponSlot::Secondary);
 
+	m_prevMoveType = MovementType::Unknown;
+
 	m_hSkinnedMeshRendererCharacter.ToPtr()->PlayGroupAnimation("stand_idle", "lower_body", true);
 
 	// 캐릭터 콜라이더 활성화
 	m_hCharacterColliderRigidbody.ToPtr()->Enable();
-
-	m_prevMoveType = MovementType::Stop;
 }
 
 void ThirdPersonCharacter::OnTransform(const XMFLOAT3& pos, const XMFLOAT4& rot, float camRotX, MovementType moveType)
