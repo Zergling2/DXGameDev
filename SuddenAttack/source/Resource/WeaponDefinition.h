@@ -29,7 +29,8 @@ public:
 		float rpm,
 		float drawTime,
 		float reloadTime,
-		float recoilTime
+		float recoilTime,
+		std::pair<float, float> killLogImageOffset
 	)
 		: m_code(code)
 		, m_name(name)
@@ -41,12 +42,12 @@ public:
 		, m_drawTime(drawTime)
 		, m_reloadTime(reloadTime)
 		, m_recoilTime(recoilTime)
+		, m_killLogImageUVOffset(killLogImageOffset)
 		, m_eventTables()
 		, m_spPVMesh()
 		, m_spPVArmature()
 		, m_spTVMesh()
 		, m_materials()
-		, m_previewImage()
 		, m_pvAnims()
 		, m_tvAnims()
 		, m_weaponSounds()
@@ -63,6 +64,7 @@ public:
 	float GetDrawTime() const { return m_drawTime; }
 	float GetReloadTime() const { return m_reloadTime; }
 	float GetRecoilTime() const { return m_recoilTime; }
+	std::pair<float, float> GetKillLogImageUVOffset() const { return m_killLogImageUVOffset; }
 private:
 	const WeaponCode m_code;
 	const std::wstring m_name;
@@ -74,13 +76,13 @@ private:
 	const float m_drawTime;
 	const float m_reloadTime;
 	const float m_recoilTime;
+	std::pair<float, float> m_killLogImageUVOffset;
 public:
 	std::unordered_map<WeaponAction, std::shared_ptr<WeaponEventTable>> m_eventTables;
 	std::shared_ptr<ze::SkinnedMesh> m_spPVMesh;
 	std::shared_ptr<ze::Armature> m_spPVArmature;
 	std::shared_ptr<ze::StaticMesh> m_spTVMesh;
 	std::vector<std::shared_ptr<ze::Material>> m_materials;
-	ze::Texture2D m_previewImage;
 	std::unordered_map<WeaponAction, std::pair<std::string, std::string>> m_pvAnims;	// pair(weapon anim name, arms anim name)
 	std::unordered_map<WeaponAction, std::string> m_tvAnims;	// tpc anim name
 	std::unordered_map<WeaponEvent, std::shared_ptr<ze::AudioClip>> m_weaponSounds;

@@ -475,23 +475,33 @@ void Warehouse::OnLoadScene()
 {
 	// ## Lights
 	{
-		GameObjectHandle hSun = CreateGameObject(L"GlobalLight1");
-		GameObject* pSun = hSun.ToPtr();
-		pSun->m_transform.SetRotationEuler(XMConvertToRadians(75), XMConvertToRadians(45), 0.0f);
-		ComponentHandle<DirectionalLight> hLight = pSun->AddComponent<DirectionalLight>();
-		DirectionalLight* pLight = hLight.ToPtr();
-		XMStoreFloat4A(&pLight->m_diffuse, XMVectorScale(Vector3::One(), 0.25f));
-		XMStoreFloat4A(&pLight->m_specular, XMVectorScale(Vector3::One(), 0.3f));
+		GameObjectHandle hGameObjGL1 = CreateGameObject(L"GlobalLight1");
+		GameObject* pGameObjGL1 = hGameObjGL1.ToPtr();
+		pGameObjGL1->m_transform.SetRotationEuler(XMConvertToRadians(75), XMConvertToRadians(45), 0.0f);
+		ComponentHandle<DirectionalLight> hGL1DirectionalLight = pGameObjGL1->AddComponent<DirectionalLight>();
+		DirectionalLight* pGL1DirectionalLight = hGL1DirectionalLight.ToPtr();
+		XMStoreFloat4A(&pGL1DirectionalLight->m_diffuse, XMVectorScale(Vector3::One(), 0.25f));
+		XMStoreFloat4A(&pGL1DirectionalLight->m_specular, XMVectorScale(Vector3::One(), 0.3f));
 	}
 	
 	{
-		GameObjectHandle hSun = CreateGameObject(L"GlobalLight2");
-		GameObject* pSun = hSun.ToPtr();
-		pSun->m_transform.SetRotationEuler(XMConvertToRadians(45), XMConvertToRadians(-135), 0.0f);
-		ComponentHandle<DirectionalLight> hLight = pSun->AddComponent<DirectionalLight>();
-		DirectionalLight* pLight = hLight.ToPtr();
-		XMStoreFloat4A(&pLight->m_diffuse, XMVectorScale(Vector3::One(), 0.2f));
-		XMStoreFloat4A(&pLight->m_specular, XMVectorScale(Vector3::One(), 0.2f));
+		GameObjectHandle hGameObjGL2 = CreateGameObject(L"GlobalLight2");
+		GameObject* pGameObjGL2 = hGameObjGL2.ToPtr();
+		pGameObjGL2->m_transform.SetRotationEuler(XMConvertToRadians(45), XMConvertToRadians(-135), 0.0f);
+		ComponentHandle<DirectionalLight> hGL2DirectionalLight = pGameObjGL2->AddComponent<DirectionalLight>();
+		DirectionalLight* pGL2DirectionalLight = hGL2DirectionalLight.ToPtr();
+		XMStoreFloat4A(&pGL2DirectionalLight->m_diffuse, XMVectorScale(Vector3::One(), 0.2f));
+		XMStoreFloat4A(&pGL2DirectionalLight->m_specular, XMVectorScale(Vector3::One(), 0.2f));
+	}
+
+	{
+		GameObjectHandle hGameObjGL3 = CreateGameObject(L"GlobalLight2");
+		GameObject* pGameObjGL3 = hGameObjGL3.ToPtr();
+		pGameObjGL3->m_transform.SetRotationEuler(XMConvertToRadians(-75), XMConvertToRadians(45), 0.0f);
+		ComponentHandle<DirectionalLight> hGL3DirectionalLight = pGameObjGL3->AddComponent<DirectionalLight>();
+		DirectionalLight* pGL3DirectionalLight = hGL3DirectionalLight.ToPtr();
+		XMStoreFloat4A(&pGL3DirectionalLight->m_diffuse, XMVectorScale(Vector3::One(), 0.2f));
+		XMStoreFloat4A(&pGL3DirectionalLight->m_specular, XMVectorScale(Vector3::One(), 0.2f));
 	}
 
 	// ## MATERIALS

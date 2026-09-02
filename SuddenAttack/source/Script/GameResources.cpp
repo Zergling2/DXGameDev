@@ -22,6 +22,7 @@ constexpr float CHARACTER_THIGH_COLLIDER_RADIUS = 0.08f;
 constexpr float CHARACTER_CALF_COLLIDER_HEIGHT = 0.3f;
 constexpr float CHARACTER_CALF_COLLIDER_RADIUS = 0.07f;
 constexpr XMFLOAT3 CHARACTER_FOOT_COLLIDER_HALF_EXTENTS(0.12f / 2.0f, 0.27f / 2.0f, 0.05f / 2.0f);
+constexpr XMFLOAT2 WEAPON_KILL_LOG_IMAGE_SIZE(512.0f, 512.0f);
 
 GameResources::GameResources(ze::GameObject& owner)
 	: MonoBehaviour(owner)
@@ -162,7 +163,6 @@ void GameResources::Awake()
 	m16a1_mtls.push_back(spM16A1Mtl1);
 	m16a1_mtls.push_back(spSTANAG30rdsMagMtl);
 
-	ze::Texture2D m16a1_previewImage = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\weapons\\m16a1.png");
 	std::shared_ptr<WeaponDefinition> m16a1_wd = std::make_shared<WeaponDefinition>(
 		WeaponCode::M16,
 		L"M16",
@@ -172,7 +172,8 @@ void GameResources::Awake()
 		600.0f,	// RPM
 		m16a1_draw_time,
 		m16a1_reload_time,
-		m16a1_recoil_time
+		m16a1_recoil_time,
+		std::make_pair((0 * 128.0f) / WEAPON_KILL_LOG_IMAGE_SIZE.x, (1 * 32.0f) / WEAPON_KILL_LOG_IMAGE_SIZE.y)
 	);
 
 	// 무기 이벤트 테이블
@@ -183,7 +184,6 @@ void GameResources::Awake()
 	m16a1_wd->m_spPVArmature = arma_m16a1;
 	m16a1_wd->m_spTVMesh = mdl_m16a1_tv;
 	m16a1_wd->m_materials = std::move(m16a1_mtls);
-	m16a1_wd->m_previewImage = m16a1_previewImage;
 	m16a1_wd->m_pvAnims.insert(std::make_pair(WeaponAction::Draw, m16a1_animNames[WeaponAction::Draw]));
 	m16a1_wd->m_pvAnims.insert(std::make_pair(WeaponAction::Reload, m16a1_animNames[WeaponAction::Reload]));
 	m16a1_wd->m_pvAnims.insert(std::make_pair(WeaponAction::Fire, m16a1_animNames[WeaponAction::Fire]));
@@ -238,8 +238,6 @@ void GameResources::Awake()
 	m4a1_mtls.push_back(spM4A1Mtl2);
 	m4a1_mtls.push_back(spSTANAG30rdsMagMtl);
 
-	ze::Texture2D m4a1_previewImage = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\weapons\\m4a1.png");
-
 	
 	std::shared_ptr<WeaponDefinition> m4a1_wd = std::make_shared<WeaponDefinition>(
 		WeaponCode::M4A1,
@@ -250,7 +248,8 @@ void GameResources::Awake()
 		660.0f,	// RPM
 		m16a1_draw_time,
 		m16a1_reload_time,
-		m16a1_recoil_time
+		m16a1_recoil_time,
+		std::make_pair((0 * 128.0f) / WEAPON_KILL_LOG_IMAGE_SIZE.x, (2 * 32.0f) / WEAPON_KILL_LOG_IMAGE_SIZE.y)
 	);
 
 	// 무기 이벤트 테이블
@@ -261,7 +260,6 @@ void GameResources::Awake()
 	m4a1_wd->m_spPVArmature = arma_m4a1;
 	m4a1_wd->m_spTVMesh = mdl_m4a1_tv;
 	m4a1_wd->m_materials = std::move(m4a1_mtls);
-	m4a1_wd->m_previewImage = m4a1_previewImage;
 	m4a1_wd->m_pvAnims.insert(std::make_pair(WeaponAction::Draw, m16a1_animNames[WeaponAction::Draw]));
 	m4a1_wd->m_pvAnims.insert(std::make_pair(WeaponAction::Reload, m16a1_animNames[WeaponAction::Reload]));
 	m4a1_wd->m_pvAnims.insert(std::make_pair(WeaponAction::Fire, m16a1_animNames[WeaponAction::Fire]));
@@ -341,8 +339,6 @@ void GameResources::Awake()
 
 	usp_mtls.push_back(spUSPMtl0);
 
-	ze::Texture2D usp_previewImage = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\weapons\\usp.png");
-
 	std::shared_ptr<WeaponDefinition> usp_wd = std::make_shared<WeaponDefinition>(
 		WeaponCode::USP,
 		L"C.USP",
@@ -352,7 +348,8 @@ void GameResources::Awake()
 		300.0f,	// RPM
 		usp_draw_time,
 		usp_reload_time,
-		usp_recoil_time
+		usp_recoil_time,
+		std::make_pair((1 * 128.0f) / WEAPON_KILL_LOG_IMAGE_SIZE.x, (0 * 32.0f) / WEAPON_KILL_LOG_IMAGE_SIZE.y)
 	);
 
 	// 무기 이벤트 테이블
@@ -363,7 +360,6 @@ void GameResources::Awake()
 	usp_wd->m_spPVArmature = arma_usp;
 	usp_wd->m_spTVMesh = mdl_usp_tv;
 	usp_wd->m_materials = std::move(usp_mtls);
-	usp_wd->m_previewImage = usp_previewImage;
 	usp_wd->m_pvAnims.insert(std::make_pair(WeaponAction::Draw, usp_animNames[WeaponAction::Draw]));
 	usp_wd->m_pvAnims.insert(std::make_pair(WeaponAction::Reload, usp_animNames[WeaponAction::Reload]));
 	usp_wd->m_pvAnims.insert(std::make_pair(WeaponAction::Fire, usp_animNames[WeaponAction::Fire]));
@@ -419,8 +415,6 @@ void GameResources::Awake()
 	b92fsb_mtls.push_back(spB92fsbMtl1);
 	b92fsb_mtls.push_back(spB92fsbMtl2);
 
-	ze::Texture2D b92fsb_previewImage = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\weapons\\b92fsb.png");
-
 	std::shared_ptr<WeaponDefinition> b92fsb_wd = std::make_shared<WeaponDefinition>(
 		WeaponCode::B92FSBlack,
 		L"B.92Fs Black",
@@ -430,7 +424,8 @@ void GameResources::Awake()
 		360.0f,	// RPM
 		usp_draw_time,
 		usp_reload_time,
-		usp_recoil_time
+		usp_recoil_time,
+		std::make_pair((1 * 128.0f) / WEAPON_KILL_LOG_IMAGE_SIZE.x, (1 * 32.0f) / WEAPON_KILL_LOG_IMAGE_SIZE.y)
 	);
 
 
@@ -443,7 +438,6 @@ void GameResources::Awake()
 	b92fsb_wd->m_spPVArmature = arma_b92fsb;
 	b92fsb_wd->m_spTVMesh = mdl_b92fsb_tv;
 	b92fsb_wd->m_materials = std::move(b92fsb_mtls);
-	b92fsb_wd->m_previewImage = b92fsb_previewImage;
 	b92fsb_wd->m_pvAnims.insert(std::make_pair(WeaponAction::Draw, usp_animNames[WeaponAction::Draw]));
 	b92fsb_wd->m_pvAnims.insert(std::make_pair(WeaponAction::Reload, usp_animNames[WeaponAction::Reload]));
 	b92fsb_wd->m_pvAnims.insert(std::make_pair(WeaponAction::Fire, usp_animNames[WeaponAction::Fire]));

@@ -1,13 +1,19 @@
 #include "GameUIManager.h"
 #include "Player.h"
 #include "Account.h"
+#include "GameResources.h"
 #include "ListenServerClient.h"
+#include "..\Resource\WeaponDefinition.h"
 #include "..\Resource\LSProtocol.h"
 
 using namespace ze;
 
 const wchar_t* const GAME_UI_TEXT_FONT = L"Agency FB";
+const wchar_t* const HEAD_SHOT_KILL_LOG_TEXT = L"[HEAD SHOT]";
 const FLOAT CHAT_PANEL_ALPHA = 0.25f;
+const XMVECTORF32 RED_TEAM_KILL_LOG_COLOR = ColorsLinear::Orange;
+const XMVECTORF32 BLUE_TEAM_KILL_LOG_COLOR = ColorsLinear::DodgerBlue;
+const XMVECTORF32 UNKNOWN_TEAM_KILL_LOG_COLOR = ColorsLinear::WhiteSmoke;
 
 GameUIStateDeactivate GameUIStateDeactivate::s_instance;
 GameUIStatePlaying GameUIStatePlaying::s_instance;
@@ -158,6 +164,7 @@ GameUIManager::GameUIManager(ze::GameObject& owner)
 	, m_activeRespawnUI(false)
 	, m_needUpdateChatMsgTransparency(false)
 	, m_respawnRemainingTime(0.0f)
+	, m_killLogCount(0)
 	, m_chatMsgCount(0)
 	, m_chatMsgTransparencyTimer(0.0f)
 {
@@ -323,7 +330,7 @@ void GameUIManager::Awake()
 	pTextRedTeamPanel->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 	pTextRedTeamPanel->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 	pTextRedTeamPanel->GetTextFormat().SetSize(16);
-	pTextRedTeamPanel->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
+	pTextRedTeamPanel->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_BOLD);
 	pTextRedTeamPanel->ApplyTextFormat();
 	pTextRedTeamPanel->SetText(L"RED TEAM");
 
@@ -345,7 +352,7 @@ void GameUIManager::Awake()
 	pTextBlueTeamPanel->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 	pTextBlueTeamPanel->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 	pTextBlueTeamPanel->GetTextFormat().SetSize(16);
-	pTextBlueTeamPanel->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
+	pTextBlueTeamPanel->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_BOLD);
 	pTextBlueTeamPanel->ApplyTextFormat();
 	pTextBlueTeamPanel->SetText(L"BLUE TEAM");
 
@@ -363,7 +370,7 @@ void GameUIManager::Awake()
 	pTextScoreboardRedTeamColumns->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 	pTextScoreboardRedTeamColumns->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 	pTextScoreboardRedTeamColumns->GetTextFormat().SetSize(14);
-	pTextScoreboardRedTeamColumns->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
+	pTextScoreboardRedTeamColumns->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_BOLD);
 	pTextScoreboardRedTeamColumns->ApplyTextFormat();
 	pTextScoreboardRedTeamColumns->SetText(L"  Lv.                             닉네임                             킬/데스              지연시간");
 
@@ -393,9 +400,9 @@ void GameUIManager::Awake()
 			pTextScoreboardPlayerLevel->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 			pTextScoreboardPlayerLevel->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 			pTextScoreboardPlayerLevel->GetTextFormat().SetSize(14);
-			pTextScoreboardPlayerLevel->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+			pTextScoreboardPlayerLevel->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_BOLD);
 			pTextScoreboardPlayerLevel->ApplyTextFormat();
-			pTextScoreboardPlayerLevel->SetText(L"");
+			pTextScoreboardPlayerLevel->GetText().clear();
 
 
 
@@ -412,9 +419,9 @@ void GameUIManager::Awake()
 			pTextScoreboardPlayerNickname->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 			pTextScoreboardPlayerNickname->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 			pTextScoreboardPlayerNickname->GetTextFormat().SetSize(14);
-			pTextScoreboardPlayerNickname->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+			pTextScoreboardPlayerNickname->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_BOLD);
 			pTextScoreboardPlayerNickname->ApplyTextFormat();
-			pTextScoreboardPlayerNickname->SetText(L"");
+			pTextScoreboardPlayerNickname->GetText().clear();
 
 			UIObjectHandle hTextScoreboardPlayerKillDeath = Runtime::GetInstance()->CreateText();
 			m_hTextScoreboardPlayerKillDeath[i][j] = hTextScoreboardPlayerKillDeath;
@@ -429,9 +436,9 @@ void GameUIManager::Awake()
 			pTextScoreboardPlayerKillDeath->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 			pTextScoreboardPlayerKillDeath->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 			pTextScoreboardPlayerKillDeath->GetTextFormat().SetSize(14);
-			pTextScoreboardPlayerKillDeath->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+			pTextScoreboardPlayerKillDeath->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_BOLD);
 			pTextScoreboardPlayerKillDeath->ApplyTextFormat();
-			pTextScoreboardPlayerKillDeath->SetText(L"");
+			pTextScoreboardPlayerKillDeath->GetText().clear();
 
 			UIObjectHandle hTextScoreboardPlayerPing = Runtime::GetInstance()->CreateText();
 			m_hTextScoreboardPlayerPing[i][j] = hTextScoreboardPlayerPing;
@@ -446,9 +453,9 @@ void GameUIManager::Awake()
 			pTextScoreboardPlayerPing->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 			pTextScoreboardPlayerPing->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 			pTextScoreboardPlayerPing->GetTextFormat().SetSize(14);
-			pTextScoreboardPlayerPing->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_NORMAL);
+			pTextScoreboardPlayerPing->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_BOLD);
 			pTextScoreboardPlayerPing->ApplyTextFormat();
-			pTextScoreboardPlayerPing->SetText(L"");
+			pTextScoreboardPlayerPing->GetText().clear();
 		}
 	}
 
@@ -460,7 +467,7 @@ void GameUIManager::Awake()
 	pTextScoreboardBlueTeamColumns->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 	pTextScoreboardBlueTeamColumns->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 	pTextScoreboardBlueTeamColumns->GetTextFormat().SetSize(14);
-	pTextScoreboardBlueTeamColumns->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
+	pTextScoreboardBlueTeamColumns->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_BOLD);
 	pTextScoreboardBlueTeamColumns->ApplyTextFormat();
 	pTextScoreboardBlueTeamColumns->SetText(L"  Lv.                             닉네임                             킬/데스              지연시간");
 
@@ -605,7 +612,7 @@ void GameUIManager::Awake()
 	pTextGameRemainingTime->GetTextFormat().SetFontFamilyName(L"Impact");
 	pTextGameRemainingTime->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_MEDIUM);
 	pTextGameRemainingTime->ApplyTextFormat();
-	pTextGameRemainingTime->SetText(L"");
+	pTextGameRemainingTime->GetText().clear();
 
 	UIObjectHandle hTextRedTeamScore = Runtime::GetInstance()->CreateText();
 	m_hTextRedTeamScore = hTextRedTeamScore;
@@ -765,6 +772,81 @@ void GameUIManager::Awake()
 	pTextRespawnIndicator->SetColor(ColorsLinear::WhiteSmoke);
 	pTextRespawnIndicator->SetText(L"R E S P A W N\n초 남았습니다.");
 
+	const Texture2D killLogWeaponSprite = ResourceLoader::GetInstance()->LoadTexture2D(L"resources\\sprites\\weapons\\killlogsprite.png");
+	for (size_t i = 0; i < MAX_KILL_LOG_ITEM_COUNT; ++i)
+	{
+		m_hTextKillLogSpecial[i] = Runtime::GetInstance()->CreateText();
+		Text* pTextKillLogSpecial = static_cast<Text*>(m_hTextKillLogSpecial[i].ToPtr());
+		pTextKillLogSpecial->m_transform.SetParent(&pImageGameUIRoot->m_transform);
+		pTextKillLogSpecial->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
+		pTextKillLogSpecial->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
+		pTextKillLogSpecial->SetSize(120, 32);
+		pTextKillLogSpecial->m_transform.SetPosition(
+			-pTextKillLogSpecial->GetHalfSizeX() - 550,
+			-pTextKillLogSpecial->GetHalfSizeY() - 40 - 40 * i
+		);
+		pTextKillLogSpecial->GetTextFormat().SetSize(16);
+		pTextKillLogSpecial->GetTextFormat().SetStyle(DWRITE_FONT_STYLE_NORMAL);
+		pTextKillLogSpecial->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_BOLD);
+		pTextKillLogSpecial->ApplyTextFormat();
+		pTextKillLogSpecial->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+		pTextKillLogSpecial->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+		pTextKillLogSpecial->SetColor(ColorsLinear::Red);
+		pTextKillLogSpecial->GetText().clear();
+
+		m_hTextKillLogKiller[i] = Runtime::GetInstance()->CreateText();
+		Text* pTextKillLogKiller = static_cast<Text*>(m_hTextKillLogKiller[i].ToPtr());
+		pTextKillLogKiller->m_transform.SetParent(&pImageGameUIRoot->m_transform);
+		pTextKillLogKiller->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
+		pTextKillLogKiller->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
+		pTextKillLogKiller->SetSize(200, 32);
+		pTextKillLogKiller->m_transform.SetPosition(
+			pTextKillLogSpecial->m_transform.GetPositionX() + pTextKillLogSpecial->GetHalfSizeX() + pTextKillLogKiller->GetHalfSizeX(),
+			-pTextKillLogKiller->GetHalfSizeY() - 40 - 40 * i
+		);
+		pTextKillLogKiller->GetTextFormat().SetSize(16);
+		pTextKillLogKiller->GetTextFormat().SetStyle(DWRITE_FONT_STYLE_NORMAL);
+		pTextKillLogKiller->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_BOLD);
+		pTextKillLogKiller->ApplyTextFormat();
+		pTextKillLogKiller->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+		pTextKillLogKiller->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+		pTextKillLogKiller->SetColor(ColorsLinear::WhiteSmoke);
+		pTextKillLogKiller->GetText().clear();
+
+		m_hImageKillLogWeapon[i] = Runtime::GetInstance()->CreateImage();
+		Image* pImageKillLogWeapon = static_cast<Image*>(m_hImageKillLogWeapon[i].ToPtr());
+		pImageKillLogWeapon->m_transform.SetParent(&pImageGameUIRoot->m_transform);
+		pImageKillLogWeapon->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
+		pImageKillLogWeapon->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
+		pImageKillLogWeapon->SetTexture(killLogWeaponSprite);
+		pImageKillLogWeapon->SetSize(128, 32);
+		pImageKillLogWeapon->m_transform.SetPosition(
+			pTextKillLogKiller->m_transform.GetPositionX() + pTextKillLogKiller->GetHalfSizeX() + pImageKillLogWeapon->GetHalfSizeX(),
+			-pImageKillLogWeapon->GetHalfSizeY() - 40 - 40 * i
+		);
+		pImageKillLogWeapon->SetUVOffset(0 * 128.0f / 512.0f, 0 * 32.0f / 512.0f);
+		pImageKillLogWeapon->SetUVScale(128.0f / 512.0f, 32.0f / 512.0f);
+
+		m_hTextKillLogDeader[i] = Runtime::GetInstance()->CreateText();
+		Text* pTextKillLogDeader = static_cast<Text*>(m_hTextKillLogDeader[i].ToPtr());
+		pTextKillLogDeader->m_transform.SetParent(&pImageGameUIRoot->m_transform);
+		pTextKillLogDeader->m_transform.SetVerticalAnchor(VerticalAnchor::Top);
+		pTextKillLogDeader->m_transform.SetHorizontalAnchor(HorizontalAnchor::Right);
+		pTextKillLogDeader->SetSize(200, 32);
+		pTextKillLogDeader->m_transform.SetPosition(
+			pImageKillLogWeapon->m_transform.GetPositionX() + pImageKillLogWeapon->GetHalfSizeX() + pTextKillLogDeader->GetHalfSizeX(),
+			-pTextKillLogDeader->GetHalfSizeY() - 40 - 40 * i
+		);
+		pTextKillLogDeader->GetTextFormat().SetSize(16);
+		pTextKillLogDeader->GetTextFormat().SetStyle(DWRITE_FONT_STYLE_NORMAL);
+		pTextKillLogDeader->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_BOLD);
+		pTextKillLogDeader->ApplyTextFormat();
+		pTextKillLogDeader->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+		pTextKillLogDeader->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+		pTextKillLogDeader->SetColor(ColorsLinear::WhiteSmoke);
+		pTextKillLogDeader->GetText().clear();
+	}
+
 
 
 
@@ -915,10 +997,27 @@ void GameUIManager::Init()
 		if (pTextChatMsg)
 			pTextChatMsg->GetText().clear();
 	}
+	m_chatMsgCount = 0;
 
 	InputField* pInputFieldChatMsg = static_cast<InputField*>(m_hInputFieldChatMsg.ToPtr());
 	if (pInputFieldChatMsg)
 		pInputFieldChatMsg->GetText().clear();
+
+	for (size_t i = 0; i < MAX_KILL_LOG_ITEM_COUNT; ++i)
+	{
+		Text* pTextKillLogSpecial = static_cast<Text*>(m_hTextKillLogSpecial[m_killLogCount].ToPtr());
+		pTextKillLogSpecial->GetText().clear();
+
+		Text* pTextKillLogKiller = static_cast<Text*>(m_hTextKillLogKiller[m_killLogCount].ToPtr());
+		pTextKillLogKiller->GetText().clear();
+
+		Image* pImageKillLogWeapon = static_cast<Image*>(m_hImageKillLogWeapon[m_killLogCount].ToPtr());
+		pImageKillLogWeapon->SetUVOffset(0.0f, 0.0f);
+
+		Text* pTextKillLogDeader = static_cast<Text*>(m_hTextKillLogDeader[m_killLogCount].ToPtr());
+		pTextKillLogDeader->GetText().clear();
+	}
+	m_killLogCount = 0;
 }
 
 void GameUIManager::SetTextGameRemainingTime(float time)
@@ -1084,11 +1183,94 @@ void GameUIManager::HideChatPanel()
 	UIObjectManager::GetInstance()->SetFocusedUI(nullptr);
 }
 
-void GameUIManager::OnClickCloseGameMenu()
+void GameUIManager::AddKillLog(bool headShot, GameTeam killerTeam, const wchar_t* killerNickname, WeaponCode weapon, GameTeam deaderTeam, const wchar_t* deaderNickname)
 {
-	assert(GetState() == GameUIStateMenu::GetState());
+	if (m_killLogCount == MAX_KILL_LOG_ITEM_COUNT)
+		RotateKillLog();
 
-	this->SetState(GameUIStatePlaying::GetState());
+	if (m_killLogCount >= MAX_KILL_LOG_ITEM_COUNT)
+	{
+		wprintf(L"[GameUIManager::AddKillLog] Invalid kill log index. m_killLogCount was %u.", static_cast<uint32_t>(m_killLogCount));
+		return;
+	}
+
+	Text* pTextKillLogSpecial = static_cast<Text*>(m_hTextKillLogSpecial[m_killLogCount].ToPtr());
+	if (headShot)
+		pTextKillLogSpecial->SetText(HEAD_SHOT_KILL_LOG_TEXT);
+	else
+		pTextKillLogSpecial->GetText().clear();
+
+
+	Text* pTextKillLogKiller = static_cast<Text*>(m_hTextKillLogKiller[m_killLogCount].ToPtr());
+	pTextKillLogKiller->SetText(killerNickname);
+	switch (killerTeam)
+	{
+	case GameTeam::RedTeam:
+		pTextKillLogKiller->SetColor(RED_TEAM_KILL_LOG_COLOR);
+		break;
+	case GameTeam::BlueTeam:
+		pTextKillLogKiller->SetColor(BLUE_TEAM_KILL_LOG_COLOR);
+		break;
+	default:
+		pTextKillLogKiller->SetColor(UNKNOWN_TEAM_KILL_LOG_COLOR);
+		break;
+	}
+
+	Image* pImageKillLogWeapon = static_cast<Image*>(m_hImageKillLogWeapon[m_killLogCount].ToPtr());
+	const GameResources* pScriptGameResource = m_hScriptGameResources.ToPtr();
+	const std::shared_ptr<WeaponDefinition> spWeaponDef = pScriptGameResource->GetWeaponDefinition(weapon);
+	if (spWeaponDef)
+	{
+		const std::pair<float, float> uvOffset = spWeaponDef->GetKillLogImageUVOffset();
+		pImageKillLogWeapon->SetUVOffset(uvOffset.first, uvOffset.second);
+	}
+	else
+	{
+		pImageKillLogWeapon->SetUVOffset(0.0f, 0.0f);	// 투명한 배경 부분
+	}
+
+	Text* pTextKillLogDeader = static_cast<Text*>(m_hTextKillLogDeader[m_killLogCount].ToPtr());
+	pTextKillLogDeader->SetText(deaderNickname);
+	switch (deaderTeam)
+	{
+	case GameTeam::RedTeam:
+		pTextKillLogDeader->SetColor(RED_TEAM_KILL_LOG_COLOR);
+		break;
+	case GameTeam::BlueTeam:
+		pTextKillLogDeader->SetColor(BLUE_TEAM_KILL_LOG_COLOR);
+		break;
+	default:
+		pTextKillLogDeader->SetColor(UNKNOWN_TEAM_KILL_LOG_COLOR);
+		break;
+	}
+
+	++m_killLogCount;
+}
+
+void GameUIManager::RotateKillLog()
+{
+	for (size_t i = 1; i < m_killLogCount; ++i)
+	{
+		const Text* pTextKillLogSpecial = static_cast<Text*>(m_hTextKillLogSpecial[i].ToPtr());
+		Text* pTargetTextKillLogSpecial = static_cast<Text*>(m_hTextKillLogSpecial[i - 1].ToPtr());
+		pTargetTextKillLogSpecial->SetText(pTextKillLogSpecial->GetText());
+
+		const Text* pTextKillLogKiller = static_cast<Text*>(m_hTextKillLogKiller[i].ToPtr());
+		Text* pTargetTextKillLogKiller = static_cast<Text*>(m_hTextKillLogKiller[i - 1].ToPtr());
+		pTargetTextKillLogKiller->SetText(pTextKillLogKiller->GetText());
+		pTargetTextKillLogKiller->SetColor(pTextKillLogKiller->GetColor());
+
+		const Image* pImageKillLogWeapon = static_cast<Image*>(m_hImageKillLogWeapon[i].ToPtr());
+		Image* pTargetImageKillLogWeapon = static_cast<Image*>(m_hImageKillLogWeapon[i - 1].ToPtr());
+		pTargetImageKillLogWeapon->SetUVOffset(pImageKillLogWeapon->GetUVOffsetX(), pImageKillLogWeapon->GetUVOffsetY());
+
+		const Text* pTextKillLogDeader = static_cast<Text*>(m_hTextKillLogDeader[i].ToPtr());
+		Text* pTargetTextKillLogDeader = static_cast<Text*>(m_hTextKillLogDeader[i - 1].ToPtr());
+		pTargetTextKillLogDeader->SetText(pTextKillLogDeader->GetText());
+		pTargetTextKillLogDeader->SetColor(pTextKillLogDeader->GetColor());
+	}
+
+	m_killLogCount -= 1;
 }
 
 void GameUIManager::ClearAllChatMsgs()
@@ -1308,4 +1490,11 @@ void GameUIManager::OnClickWindowMode()
 		SetResolution(1366, 768, DisplayMode::Windowed);
 	else
 		SetResolution(0, 0, DisplayMode::BorderlessWindowed);
+}
+
+void GameUIManager::OnClickCloseGameMenu()
+{
+	assert(this->GetState() == GameUIStateMenu::GetState());
+
+	this->SetState(GameUIStatePlaying::GetState());
 }

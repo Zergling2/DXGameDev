@@ -5,6 +5,7 @@
 #include "Contents.h"
 
 class GameUIManager;
+class GameResources;
 class Account;
 class Player;
 class ListenServerClient;
@@ -104,6 +105,7 @@ public:
 	IGameUIManagerState* GetState() const { return m_pUIState; }
 
 	void SetAccountScriptHandle(ze::ComponentHandle<Account> hScript) { m_hScriptAccount = hScript; }
+	void SetGameResourcesScriptHandle(ze::ComponentHandle<GameResources> hScript) { m_hScriptGameResources = hScript; }
 	void SetPlayerScriptHandle(ze::ComponentHandle<Player> hScript) { m_hScriptPlayer = hScript; }
 	void SetListenServerClientScriptHandle(ze::ComponentHandle<ListenServerClient> hScript) { m_hScriptListenServerClient = hScript; }
 	Player* GetPlayerScript() const;
@@ -123,7 +125,9 @@ public:
 	void ShowChatPanel();
 	void HideChatPanel();
 
-	void OnClickCloseGameMenu();
+	void AddKillLog(bool headShot, GameTeam killerTeam, const wchar_t* killerNickname, WeaponCode weapon, GameTeam deaderTeam, const wchar_t* deaderNickname);
+	void RotateKillLog();
+
 	void ClearAllChatMsgs();
 	void AddChatMsg(const wchar_t* msg);
 	void SendChatMsg();
@@ -138,12 +142,14 @@ private:
 	void OnPosChangePlayerFoV();
 	void OnClickDrawDebugInfo();
 	void OnClickWindowMode();
+	void OnClickCloseGameMenu();
 private:
 	IGameUIManagerState* m_pUIState;
 	bool m_activeRespawnUI;
 	bool m_needUpdateChatMsgTransparency;
 	float m_respawnRemainingTime;
 	ze::ComponentHandle<Account> m_hScriptAccount;
+	ze::ComponentHandle<GameResources> m_hScriptGameResources;
 	ze::ComponentHandle<Player> m_hScriptPlayer;
 	ze::ComponentHandle<ListenServerClient> m_hScriptListenServerClient;
 
@@ -175,7 +181,13 @@ private:
 	ze::UIObjectHandle m_hTextWeaponName;
 	ze::UIObjectHandle m_hTextAmmoState;
 	ze::UIObjectHandle m_hTextRespawnIndicator;
-
+	static constexpr size_t MAX_KILL_LOG_ITEM_COUNT = 4;
+	ze::UIObjectHandle m_hTextKillLogSpecial[MAX_KILL_LOG_ITEM_COUNT];
+	ze::UIObjectHandle m_hTextKillLogKiller[MAX_KILL_LOG_ITEM_COUNT];
+	ze::UIObjectHandle m_hImageKillLogWeapon[MAX_KILL_LOG_ITEM_COUNT];
+	ze::UIObjectHandle m_hTextKillLogDeader[MAX_KILL_LOG_ITEM_COUNT];
+	size_t m_killLogCount;
+	
 	ze::UIObjectHandle m_hPanelChatBackground;
 	ze::UIObjectHandle m_hTextChatMsg[INGAME_CHAT_MSG_ITEM_ROW_COUNT];
 	ze::UIObjectHandle m_hInputFieldChatMsg;

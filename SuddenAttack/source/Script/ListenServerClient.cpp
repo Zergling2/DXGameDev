@@ -645,13 +645,17 @@ void ListenServerClient::OnSCNotifyGamePlayerKill(const LSSCNotifyGamePlayerKill
 
 	const auto iterKiller = m_players.find(pPacket->m_killerAccountId);
 	const auto iterDeader = m_players.find(pPacket->m_deaderAccountId);
-	const wchar_t* killerNickname;
-	const wchar_t* deaderNickname;
+	const wchar_t* killerNickname = nullptr;
+	const wchar_t* deaderNickname = nullptr;;
+	GameTeam killerTeam = GameTeam::Unknown;
+	GameTeam deaderTeam = GameTeam::Unknown;
 
 	if (iterKiller != m_players.cend())
 	{
 		killerNickname = iterKiller->second.first->m_nickname;
 		++iterKiller->second.first->m_kill;
+		
+		killerTeam = iterKiller->second.first->m_team;
 
 		pScriptGameUIManager->SetPlayerKillDeath(iterKiller->second.first->m_accountId, iterKiller->second.first->m_kill, iterKiller->second.first->m_death);
 	}
@@ -665,6 +669,8 @@ void ListenServerClient::OnSCNotifyGamePlayerKill(const LSSCNotifyGamePlayerKill
 		deaderNickname = iterDeader->second.first->m_nickname;
 		++iterDeader->second.first->m_death;
 
+		deaderTeam = iterDeader->second.first->m_team;
+
 		pScriptGameUIManager->SetPlayerKillDeath(iterDeader->second.first->m_accountId, iterDeader->second.first->m_kill, iterDeader->second.first->m_death);
 	}
 	else
@@ -672,9 +678,10 @@ void ListenServerClient::OnSCNotifyGamePlayerKill(const LSSCNotifyGamePlayerKill
 		deaderNickname = L"";
 	}
 
-	// 추후 게임 UI로 대체
-	wprintf(L"%s - %s - %s\n", killerNickname, WeaponInfo::GetWeaponNameString(pPacket->m_weaponCode), deaderNickname);
+	// 킬 로그 항목 추가
+	pScriptGameUIManager->AddKillLog(pPacket->m_headshot, killerTeam, killerNickname, pPacket->m_weaponCode, deaderTeam, deaderNickname);
 	
+
 	const Account* pScriptAccount = m_hScriptAccount.ToPtr();
 	if (pPacket->m_deaderAccountId == pScriptAccount->GetAccountId())
 	{
@@ -695,12 +702,15 @@ void ListenServerClient::OnSCNotifyGamePlayerDead(const LSSCNotifyGamePlayerDead
 	GameUIManager* pScriptGameUIManager = m_hScriptGameUIManager.ToPtr();
 
 	const auto iterDeader = m_players.find(pPacket->m_deaderAccountId);
-	const wchar_t* deaderNickname;
+	const wchar_t* deaderNickname = nullptr;
+	GameTeam deaderTeam = GameTeam::Unknown;
 
 	if (iterDeader != m_players.cend())
 	{
 		deaderNickname = iterDeader->second.first->m_nickname;
 		++iterDeader->second.first->m_death;
+
+		deaderTeam = iterDeader->second.first->m_team;
 
 		pScriptGameUIManager->SetPlayerKillDeath(iterDeader->second.first->m_accountId, iterDeader->second.first->m_kill, iterDeader->second.first->m_death);
 	}
@@ -708,6 +718,10 @@ void ListenServerClient::OnSCNotifyGamePlayerDead(const LSSCNotifyGamePlayerDead
 	{
 		deaderNickname = L"";
 	}
+
+	// 킬 로그 항목 추가
+	pScriptGameUIManager->AddKillLog(false, GameTeam::Unknown, L"", WeaponCode::Unknown, deaderTeam, deaderNickname);
+
 
 	const Account* pScriptAccount = m_hScriptAccount.ToPtr();
 	if (pPacket->m_deaderAccountId == pScriptAccount->GetAccountId())
