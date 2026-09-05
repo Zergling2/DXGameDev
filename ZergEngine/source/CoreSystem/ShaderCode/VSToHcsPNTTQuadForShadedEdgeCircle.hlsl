@@ -28,7 +28,7 @@ PSInputShadedEdgeCircleFragment main(VSInputVertexPNTT input)
     float4 posH = mul(float4(posV, 1.0f), cb_UIRender.m);
     
     output.pos = posH;
-    output.posV = posH.xy;
+    output.posV = posV.xy;
     
     return output;
 }
