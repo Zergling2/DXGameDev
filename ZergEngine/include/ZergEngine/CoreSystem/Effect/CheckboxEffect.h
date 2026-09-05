@@ -14,9 +14,9 @@ namespace ze
 			PrimitiveTopology	= 1 << 0,
 			InputLayout			= 1 << 1,
 			Shader				= 1 << 2,
-			ApplyCB2DRender		= 1 << 3,
+			ApplyCBUIRender		= 1 << 3,
 			ApplyCBPerCheckbox	= 1 << 4,
-			UpdateCB2DRender	= 1 << 5,
+			UpdateCBUIRender	= 1 << 5,
 			UpdateCBPerCheckbox	= 1 << 6,
 
 			COUNT,
@@ -29,9 +29,9 @@ namespace ze
 			, m_pInputLayout(nullptr)
 			, m_pVertexShader(nullptr)
 			, m_pPixelShader(nullptr)
-			, m_cb2DRender()
+			, m_cbUIRender()
 			, m_cbPerCheckbox()
-			, m_cb2DRenderCache()
+			, m_cbUIRenderCache()
 			, m_cbPerCheckboxCache()
 		{
 		}
@@ -40,7 +40,7 @@ namespace ze
 		virtual void Init() override;
 		virtual void Release() override;
 
-		void SetScreenToNDCSpaceRatio(const XMFLOAT2& ratio) noexcept;
+		void XM_CALLCONV SetOrthoMatrix(FXMMATRIX m) noexcept;
 
 		void XM_CALLCONV SetBoxColor(FXMVECTOR color) noexcept;
 		void XM_CALLCONV SetCheckColor(FXMVECTOR color) noexcept;
@@ -51,7 +51,7 @@ namespace ze
 		virtual void OnUnbindFromDeviceContext() noexcept override;
 
 		void ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept;
-		void Apply2DRenderConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
+		void ApplyUIRenderConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
 		void ApplyPerCheckboxConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
 	private:
 		DWORD m_dirtyFlag;
@@ -60,9 +60,9 @@ namespace ze
 		ID3D11VertexShader* m_pVertexShader;
 		ID3D11PixelShader* m_pPixelShader;
 
-		ConstantBuffer<Cb2DRender> m_cb2DRender;
+		ConstantBuffer<CbUIRender> m_cbUIRender;
 		ConstantBuffer<CbPerCheckbox> m_cbPerCheckbox;
-		Cb2DRender m_cb2DRenderCache;
+		CbUIRender m_cbUIRenderCache;
 		CbPerCheckbox m_cbPerCheckboxCache;
 	};
 }

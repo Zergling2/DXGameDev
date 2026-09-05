@@ -712,7 +712,37 @@ void JobDBJobNicknameDuplicateCheckResult::Execute(LogicThread& thread)
 
 void JobReqGameEnter::Execute(LogicThread& thread)
 {
-	printf("JobReqGameEnter::Execute\n");
+	auto sessionIter = thread.m_sessions.find(m_netId);
+	if (sessionIter == thread.m_sessions.end())				// 이미 세션이 나간 후인 경우
+		return;
+
+	Session* pSession = sessionIter->second.get();
+	Player* pPlayer = pSession->GetPlayer();
+	if (!pPlayer)
+	{
+		thread.m_server.Disconnect(m_netId);
+		return;
+	}
+
+	if (!pPlayer->IsInChannel() || !pPlayer->IsInRoom())
+	{
+		thread.m_server.Disconnect(m_netId);
+		return;
+	}
+
+	const uint64_t joinedRoomId = pPlayer->GetRoomId();
+	const uint8_t joinedChannelId = pPlayer->GetChannelId();
+	Channel& joinedChannel = *thread.m_channel[joinedChannelId];
+	GameRoom* const pGameRoom = joinedChannel.FindRoom(joinedRoomId);
+
+	// 방장인지 검사 (방장은 게임 입장 요청을 보내는 상황이 있을 수 없음.)
+	if (pGameRoom->GetHost()->GetAccountId() == pPlayer->GetAccountId())
+	{
+		thread.m_server.Disconnect(m_netId);
+		return;
+	}
+
+	pGameRoom->GameEnter(thread.m_server, pPlayer);	// 이후 과정은 내부에서 처리
 }
 
 void JobNotifyListenServerStart::Execute(LogicThread& thread)
@@ -738,7 +768,7 @@ void JobNotifyListenServerStart::Execute(LogicThread& thread)
 	const uint64_t joinedRoomId = pPlayer->GetRoomId();
 	const uint8_t joinedChannelId = pPlayer->GetChannelId();
 	Channel& joinedChannel = *thread.m_channel[joinedChannelId];
-	const GameRoom* const pGameRoom = joinedChannel.FindRoom(joinedRoomId);
+	GameRoom* const pGameRoom = joinedChannel.FindRoom(joinedRoomId);
 	
 	// 방장인지 검사
 	if (pGameRoom->GetHost()->GetAccountId() != pPlayer->GetAccountId())
@@ -751,6 +781,42 @@ void JobNotifyListenServerStart::Execute(LogicThread& thread)
 	uint32_t hostIP;
 	uint16_t tcpRemotePort;
 	thread.m_server.GetAddress(m_netId, hostIP, tcpRemotePort);
+
+	pGameRoom->RecordListenServerIPAndPort(hostIP, m_listenServerPort);
 	
-	pGameRoom->NotifyListenServerInfoToPlayingPlayers(thread.m_server, hostIP, m_listenServerPort);
+	pGameRoom->NotifyListenServerInfoToPlayingPlayers(
+		thread.m_server,
+		pGameRoom->GetListenServerIP(),
+		pGameRoom->GetListenServerPort()
+	);
+}
+
+void JobNotifyGamePlayerExitListenServer::Execute(LogicThread& thread)
+{
+	auto sessionIter = thread.m_sessions.find(m_netId);
+	if (sessionIter == thread.m_sessions.end())				// 이미 세션이 나간 후인 경우
+		return;
+
+	Session* pSession = sessionIter->second.get();
+	Player* pPlayer = pSession->GetPlayer();
+	if (!pPlayer)
+	{
+		thread.m_server.Disconnect(m_netId);
+		return;
+	}
+
+	if (!pPlayer->IsInChannel() || !pPlayer->IsInRoom())
+	{
+		thread.m_server.Disconnect(m_netId);
+		return;
+	}
+
+	const uint64_t joinedRoomId = pPlayer->GetRoomId();
+	const uint8_t joinedChannelId = pPlayer->GetChannelId();
+	Channel& joinedChannel = *thread.m_channel[joinedChannelId];
+	GameRoom* const pGameRoom = joinedChannel.FindRoom(joinedRoomId);
+
+	wprintf(L"JobNotifyGamePlayerExitListenServer::Execute()\n");
+
+	pGameRoom->ChangePlayerState(thread.m_server, pPlayer->GetAccountId(), PlayerState::None);
 }

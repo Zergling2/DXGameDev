@@ -38,6 +38,7 @@ public:
 	void OnCSReqGameEnter(uint64_t netId, winppy::Packet packet);
 	void OnCSReqExitGameChannel(uint64_t netId, winppy::Packet packet);
 	void OnCSNotifyListenServerStart(uint64_t netId, winppy::Packet packet);
+	void OnCSNotifyGamePlayerExitListenServer(uint64_t netId, winppy::Packet packet);
 private:
 	std::vector<std::unique_ptr<DBThread>> m_dbThreads;
 	std::unique_ptr<LogicThread> m_logicThread;

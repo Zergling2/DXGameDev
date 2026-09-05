@@ -16,6 +16,7 @@ enum class LSProtocol : uint32_t
 	CS_NOTIFY_GAME_PLAYER_WEAPON_EVENT,	// Draw, Fire, Reload
 	CS_NOTIFY_GAME_PLAYER_TRANSFORM,
 	CS_NOTIFY_GAME_PLAYER_HIT,
+	CS_NOTIFY_GAME_PLAYER_EXIT,
 
 	SC_RES_AUTH_RESULT,
 	SC_NOTIFY_GAME_STATUS,
@@ -50,6 +51,7 @@ struct LSCSReqAuth : public LSPacketBase
 	uint16_t m_nicknameLen;
 	wchar_t m_nickname[MAX_NICKNAME_LEN];	// not a null termination string
 	uint16_t m_level;
+	GameTeam m_team;
 };
 
 struct LSCSReqChat : public LSPacketBase
@@ -77,6 +79,11 @@ struct LSCSNotifyGamePlayerHit : public LSPacketBase
 	uint32_t m_accountIdWhoWasShot;
 	HitboxPart m_hitPart;
 	WeaponCode m_weaponCode;
+};
+
+struct LSCSNotifyGamePlayerExit : public LSPacketBase
+{
+	// EMPTY
 };
 
 struct LSCSNotifyGamePlayerWeaponEvent : public LSPacketBase

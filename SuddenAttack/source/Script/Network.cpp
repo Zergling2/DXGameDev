@@ -494,7 +494,7 @@ void Network::PktProcSCResHostGameStart(winppy::Packet packet)
 
 		// 리슨서버 시작
 		ListenServer* pScriptListenServer = m_hScriptListenServer.ToPtr();
-		pScriptListenServer->StartServer(res.m_map, 60 * 10, res.m_startingPlayersAccountIds, res.m_startingPlayersTeams, res.m_numOfStartingPlayers);
+		pScriptListenServer->StartServer(res.m_map, 60 * 10);
 	}
 		break;
 	case HostGameStartableState::NotReady:
@@ -625,7 +625,7 @@ void Network::PktProcSCNotifyListenServerInfo(winppy::Packet packet)
 
 	// 맵 씬이 로드된 후 리슨서버 클라이언트가 시작될 수 있도록 시작 정보 세팅
 	ListenServerClient* pScriptListenServerClient = m_hScriptListenServerClient.ToPtr();
-	pScriptListenServerClient->SetStartupInfo(notify.m_listenServerIP, notify.m_listenServerPort);
+	pScriptListenServerClient->SetStartupInfo(notify.m_listenServerIP, notify.m_listenServerPort, notify.m_team);
 
 	// 서버에서 지정한 맵 씬 로드 및 다른 플레이어 입장 대기
 	SceneManager::GetInstance()->LoadScene(GameMapInfo::GetMapSceneNameString(notify.m_map));

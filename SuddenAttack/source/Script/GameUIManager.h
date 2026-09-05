@@ -7,6 +7,7 @@
 class GameUIManager;
 class GameResources;
 class Account;
+class LobbyHandler;
 class Player;
 class ListenServerClient;
 
@@ -106,6 +107,7 @@ public:
 
 	void SetAccountScriptHandle(ze::ComponentHandle<Account> hScript) { m_hScriptAccount = hScript; }
 	void SetGameResourcesScriptHandle(ze::ComponentHandle<GameResources> hScript) { m_hScriptGameResources = hScript; }
+	void SetLobbyHandlerScriptHandle(ze::ComponentHandle<LobbyHandler> hScript) { m_hScriptLobbyHandler = hScript; }
 	void SetPlayerScriptHandle(ze::ComponentHandle<Player> hScript) { m_hScriptPlayer = hScript; }
 	void SetListenServerClientScriptHandle(ze::ComponentHandle<ListenServerClient> hScript) { m_hScriptListenServerClient = hScript; }
 	Player* GetPlayerScript() const;
@@ -129,7 +131,8 @@ public:
 	void RotateKillLog();
 
 	void ClearAllChatMsgs();
-	void AddChatMsg(const wchar_t* msg);
+	void __vectorcall AddChatMsg(const wchar_t* msg, XMVECTOR color = ColorsLinear::WhiteSmoke);
+	void RotateChatMsg();
 	void SendChatMsg();
 
 	void StartRespawnUI(float time);
@@ -143,6 +146,7 @@ private:
 	void OnClickDrawDebugInfo();
 	void OnClickWindowMode();
 	void OnClickCloseGameMenu();
+	void OnClickExitGame();
 private:
 	IGameUIManagerState* m_pUIState;
 	bool m_activeRespawnUI;
@@ -150,6 +154,7 @@ private:
 	float m_respawnRemainingTime;
 	ze::ComponentHandle<Account> m_hScriptAccount;
 	ze::ComponentHandle<GameResources> m_hScriptGameResources;
+	ze::ComponentHandle<LobbyHandler> m_hScriptLobbyHandler;
 	ze::ComponentHandle<Player> m_hScriptPlayer;
 	ze::ComponentHandle<ListenServerClient> m_hScriptListenServerClient;
 

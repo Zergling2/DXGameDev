@@ -1,6 +1,7 @@
 #include "GameUIManager.h"
 #include "Player.h"
 #include "Account.h"
+#include "LobbyHandler.h"
 #include "GameResources.h"
 #include "ListenServerClient.h"
 #include "..\Resource\WeaponDefinition.h"
@@ -10,10 +11,11 @@ using namespace ze;
 
 const wchar_t* const GAME_UI_TEXT_FONT = L"Agency FB";
 const wchar_t* const HEAD_SHOT_KILL_LOG_TEXT = L"[HEAD SHOT]";
-const FLOAT CHAT_PANEL_ALPHA = 0.25f;
+constexpr FLOAT CHAT_PANEL_ALPHA = 0.25f;
 const XMVECTORF32 RED_TEAM_KILL_LOG_COLOR = ColorsLinear::Orange;
 const XMVECTORF32 BLUE_TEAM_KILL_LOG_COLOR = ColorsLinear::DodgerBlue;
 const XMVECTORF32 UNKNOWN_TEAM_KILL_LOG_COLOR = ColorsLinear::WhiteSmoke;
+constexpr uint32_t INGAME_CHAT_MSG_TEXT_SIZE = 12;
 
 GameUIStateDeactivate GameUIStateDeactivate::s_instance;
 GameUIStatePlaying GameUIStatePlaying::s_instance;
@@ -355,7 +357,7 @@ void GameUIManager::Awake()
 	pTextBlueTeamPanel->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_BOLD);
 	pTextBlueTeamPanel->ApplyTextFormat();
 	pTextBlueTeamPanel->SetText(L"BLUE TEAM");
-
+	
 	constexpr XMFLOAT2 PLAYER_INFO_COLUMNS_SIZE(TEAM_PANEL_SIZE.x - 10, 20);
 	constexpr XMFLOAT2 PLAYER_INFO_COLUMNS_OFFSET[static_cast<size_t>(GameTeam::Count)] =
 	{
@@ -549,7 +551,7 @@ void GameUIManager::Awake()
 	pButtonExitGame->m_transform.SetPosition(0, -70);
 	pButtonExitGame->SetSize(80, 20);
 	pButtonExitGame->SetText(L"³ª°¡±â");
-	pButtonExitGame->SetHandlerOnClick(MakeUIHandler(ComponentHandle<GameUIManager>(this->ToHandle()), &GameUIManager::OnClickCloseGameMenu));
+	pButtonExitGame->SetHandlerOnClick(MakeUIHandler(ComponentHandle<GameUIManager>(this->ToHandle()), &GameUIManager::OnClickExitGame));
 
 
 
@@ -867,7 +869,7 @@ void GameUIManager::Awake()
 	pPanelChatBackground->SetColor(Colors::DimGray);
 	pPanelChatBackground->SetColorA(CHAT_PANEL_ALPHA);
 	
-	const XMFLOAT2 CHAT_MSG_TEXT_SIZE(INGAME_CHAT_PANEL_SIZE.x - 20, 20);
+	const XMFLOAT2 CHAT_MSG_TEXTBOX_SIZE(INGAME_CHAT_PANEL_SIZE.x - 20, 25);
 	for (size_t i = 0; i < INGAME_CHAT_MSG_ITEM_ROW_COUNT; ++i)
 	{
 		m_hTextChatMsg[i] = Runtime::GetInstance()->CreateText();
@@ -877,10 +879,13 @@ void GameUIManager::Awake()
 		pTextChatMsg->m_transform.SetHorizontalAnchor(HorizontalAnchor::Left);
 		pTextChatMsg->m_transform.SetPosition(
 			pPanelChatBackground->m_transform.GetPositionX(),
-			pPanelChatBackground->m_transform.GetPositionY() + INGAME_CHAT_PANEL_SIZE.y / 2 - CHAT_MSG_TEXT_SIZE.y / 2 - 10 - CHAT_MSG_TEXT_SIZE.y * i
+			pPanelChatBackground->m_transform.GetPositionY() + INGAME_CHAT_PANEL_SIZE.y / 2 - CHAT_MSG_TEXTBOX_SIZE.y / 2 - 10 - CHAT_MSG_TEXTBOX_SIZE.y * i
 		);
-		pTextChatMsg->SetSize(CHAT_MSG_TEXT_SIZE);
-		// pTextChatMsg->SetText();
+		pTextChatMsg->SetSize(CHAT_MSG_TEXTBOX_SIZE);
+		pTextChatMsg->GetTextFormat().SetSize(INGAME_CHAT_MSG_TEXT_SIZE);
+		pTextChatMsg->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_DEMI_BOLD);
+		pTextChatMsg->ApplyTextFormat();
+		pTextChatMsg->GetText().clear();
 	}
 
 	const XMFLOAT2 CHAT_MSG_INPUT_FIELD_SIZE(INGAME_CHAT_PANEL_SIZE.x - 20, 20);
@@ -894,7 +899,10 @@ void GameUIManager::Awake()
 		pPanelChatBackground->m_transform.GetPositionY() - INGAME_CHAT_PANEL_SIZE.y / 2 + CHAT_MSG_INPUT_FIELD_SIZE.y / 2 + 10
 	);
 	pInputFieldChatMsg->SetSize(CHAT_MSG_INPUT_FIELD_SIZE);
-	pInputFieldChatMsg->SetMaxChar(MAX_CHAT_MSG_LEN);
+	pInputFieldChatMsg->GetTextFormat().SetSize(INGAME_CHAT_MSG_TEXT_SIZE);
+	pInputFieldChatMsg->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_DEMI_BOLD);
+	pInputFieldChatMsg->ApplyTextFormat();
+	pInputFieldChatMsg->SetMaxChar(MAX_CHAT_MSG_LEN - 16);
 
 	
 	// ###########################################################
@@ -1249,6 +1257,9 @@ void GameUIManager::AddKillLog(bool headShot, GameTeam killerTeam, const wchar_t
 
 void GameUIManager::RotateKillLog()
 {
+	if (m_killLogCount == 0)
+		return;
+
 	for (size_t i = 1; i < m_killLogCount; ++i)
 	{
 		const Text* pTextKillLogSpecial = static_cast<Text*>(m_hTextKillLogSpecial[i].ToPtr());
@@ -1270,7 +1281,7 @@ void GameUIManager::RotateKillLog()
 		pTargetTextKillLogDeader->SetColor(pTextKillLogDeader->GetColor());
 	}
 
-	m_killLogCount -= 1;
+	--m_killLogCount;
 }
 
 void GameUIManager::ClearAllChatMsgs()
@@ -1284,7 +1295,7 @@ void GameUIManager::ClearAllChatMsgs()
 	m_chatMsgCount = 0;
 }
 
-void GameUIManager::AddChatMsg(const wchar_t* msg)
+void __vectorcall GameUIManager::AddChatMsg(const wchar_t* msg, XMVECTOR color)
 {
 	m_chatMsgTransparencyTimer = 6.5f;
 	m_needUpdateChatMsgTransparency = true;
@@ -1295,20 +1306,32 @@ void GameUIManager::AddChatMsg(const wchar_t* msg)
 		pTextChatMsg->SetColorA(1.0f);
 	}
 
-	if (m_chatMsgCount < _countof(m_hTextChatMsg))
+	if (m_chatMsgCount == _countof(m_hTextChatMsg))
+		RotateChatMsg();
+
+	assert(m_chatMsgCount < _countof(m_hTextChatMsg));
+
+	Text* pTextChatMsg = static_cast<Text*>(m_hTextChatMsg[m_chatMsgCount].ToPtr());
+	pTextChatMsg->SetText(msg);
+	pTextChatMsg->SetColor(color);
+
+	++m_chatMsgCount;
+}
+
+void GameUIManager::RotateChatMsg()
+{
+	if (m_chatMsgCount == 0)
+		return;
+
+	for (size_t i = 1; i < m_chatMsgCount; ++i)
 	{
-		static_cast<Text*>(m_hTextChatMsg[m_chatMsgCount++].ToPtr())->SetText(msg);
+		const Text* pTextChatMsg = static_cast<Text*>(m_hTextChatMsg[i].ToPtr());
+		Text* pTargetTextChatMsg = static_cast<Text*>(m_hTextChatMsg[i - 1].ToPtr());
+		pTargetTextChatMsg->SetText(pTextChatMsg->GetText());
+		pTargetTextChatMsg->SetColor(pTextChatMsg->GetColor());
 	}
-	else
-	{
-		for (size_t i = 0; i < _countof(m_hTextChatMsg) - 1; ++i)
-		{
-			static_cast<Text*>(m_hTextChatMsg[i].ToPtr())->SetText(
-				static_cast<Text*>(m_hTextChatMsg[i + 1].ToPtr())->GetText().c_str()
-			);
-		}
-		static_cast<Text*>(m_hTextChatMsg[_countof(m_hTextChatMsg) - 1].ToPtr())->SetText(msg);
-	}
+
+	--m_chatMsgCount;
 }
 
 void GameUIManager::SendChatMsg()
@@ -1497,4 +1520,19 @@ void GameUIManager::OnClickCloseGameMenu()
 	assert(this->GetState() == GameUIStateMenu::GetState());
 
 	this->SetState(GameUIStatePlaying::GetState());
+}
+
+void GameUIManager::OnClickExitGame()
+{
+	ListenServerClient* pScriptListenServerClient = m_hScriptListenServerClient.ToPtr();
+	if (!pScriptListenServerClient)
+		return;
+
+	this->SetState(GameUIStateDeactivate::GetState());
+
+	pScriptListenServerClient->CloseClient();
+	SceneManager::GetInstance()->LoadScene(L"Lobby");
+
+	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
+	pScriptLobbyHandler->ShowLobbyUI();
 }

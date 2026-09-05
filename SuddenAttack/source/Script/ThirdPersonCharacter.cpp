@@ -757,7 +757,12 @@ void ThirdPersonCharacter::UpdateWeaponBaseTransform()
 
 void ThirdPersonCharacter::UpdateTVWeaponBaseAndHitboxTransforms()
 {
+	if (this->IsOnTheDestroyQueue())
+		return;
+
 	const SkinnedMeshRenderer* pCharacterSkinnedMeshRenderer = m_hSkinnedMeshRendererCharacter.ToPtr();
+	if (!pCharacterSkinnedMeshRenderer)
+		return;
 
 	BoneTransform bt[MAX_BONE_COUNT];
 	pCharacterSkinnedMeshRenderer->GetBoneTransforms(bt, _countof(bt));
@@ -767,7 +772,6 @@ void ThirdPersonCharacter::UpdateTVWeaponBaseAndHitboxTransforms()
 	GameObject* pGameObjectTVWeaponBase = m_hGameObjectTVWeaponBase.ToPtr();
 	pGameObjectTVWeaponBase->m_transform.SetRotationQuaternion(bt[m_biRightHand].m_rot);
 	pGameObjectTVWeaponBase->m_transform.SetPosition(bt[m_biRightHand].m_translation);
-
 
 	// 2. 히트박스 업데이트
 	GameObject* pGameObjectHitboxBody = m_hGameObjectHitboxBody.ToPtr();

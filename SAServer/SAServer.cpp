@@ -101,6 +101,9 @@ void SAServer::OnReceive(uint64_t id, winppy::Packet packet)
 	case Protocol::CS_NOTIFY_LISTEN_SERVER_START:
 		OnCSNotifyListenServerStart(id, std::move(packet));
 		break;
+	case Protocol::CS_NOTIFY_GAME_PLAYER_EXIT_LISTEN_SERVER:
+		OnCSNotifyGamePlayerExitListenServer(id, std::move(packet));
+		break;
 	default:
 		Disconnect(id);
 		break;
@@ -394,5 +397,19 @@ void SAServer::OnCSNotifyListenServerStart(uint64_t netId, winppy::Packet packet
 	packet->Read(&listenServerPort);
 
 	std::unique_ptr<JobNotifyListenServerStart> upJob = std::make_unique<JobNotifyListenServerStart>(netId, listenServerPort);
+	m_logicThread->DispatchJob(std::move(upJob));
+}
+
+void SAServer::OnCSNotifyGamePlayerExitListenServer(uint64_t netId, winppy::Packet packet)
+{
+	wprintf(L"SAServer::OnCSNotifyGamePlayerExitListenServer()\n");
+	CSNotifyGamePlayerExitListenServer notify;
+	if (!packet->ReadBytes(&notify, sizeof(notify)))
+	{
+		Disconnect(netId);
+		return;
+	}
+
+	std::unique_ptr<JobNotifyGamePlayerExitListenServer> upJob = std::make_unique<JobNotifyGamePlayerExitListenServer>(netId);
 	m_logicThread->DispatchJob(std::move(upJob));
 }

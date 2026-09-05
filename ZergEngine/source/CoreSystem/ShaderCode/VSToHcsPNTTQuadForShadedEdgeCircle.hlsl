@@ -3,13 +3,13 @@
 
 /*
 [Constant Buffer]
-Cb2DRender
+CbUIRender
 CbPerShadedEdgeCircle
 */
 
 cbuffer Cb0 : register(b0)
 {
-    Cb2DRender cb_2DRender;
+    CbUIRender cb_UIRender;
 }
 
 cbuffer Cb1 : register(b1)
@@ -23,20 +23,12 @@ PSInputShadedEdgeCircleFragment main(VSInputVertexPNTT input)
     
     float2 size = (cb_perShadedEdgeCircle.radius * 2.0f).xx;
     
-    float4x4 m = float4x4(
-        float4(size.x, 0.0f, 0.0f, 0.0f),
-        float4(0.0f, size.y, 0.0f, 0.0f),
-        float4(0.0f, 0.0f, 1.0f, 0.0f),
-        float4(cb_perShadedEdgeCircle.position, 0.0f, 1.0f)
-    );
+    float3 posL = FlipBasedOnYAxis(input.posL) * float3(size, 0.0f);
+    float3 posV = posL + float3(cb_perShadedEdgeCircle.position, 0.0f);
+    float4 posH = mul(float4(posV, 1.0f), cb_UIRender.m);
     
-    float3 posL = FlipBasedOnYAxis(input.posL); // Position (Local space)
-    float3 posV = mul(float4(posL, 1.0f), m).xyz; // Position (View space)
-    
-    float2 posH = posV.xy * cb_2DRender.toNDCSpaceRatio;
-    output.pos = float4(posH, 0.0f, 1.0f);
-    
-    output.posV = posV.xy;
+    output.pos = posH;
+    output.posV = posH.xy;
     
     return output;
 }

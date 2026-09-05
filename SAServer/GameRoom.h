@@ -57,6 +57,7 @@ public:
     PlayerState GetPlayerState(uint32_t accountId) const;
     bool ChangePlayerTeam(winppy::TCPServer& server, uint32_t accountId, GameTeam newTeam);
     GameTeam GetPlayerTeam(uint32_t accountId) const;
+    void GameEnter(winppy::TCPServer& server, const Player* pPlayer);
 
     bool IsFull() const;
 
@@ -64,6 +65,9 @@ public:
     void BroadcastPacketExcept(winppy::TCPServer& server, winppy::Packet packet, uint32_t exceptorAccountId) const;
 
     void NotifyListenServerInfoToPlayingPlayers(winppy::TCPServer& server, uint32_t ip, uint16_t port) const;
+    void RecordListenServerIPAndPort(uint32_t ip, uint16_t port) { m_listenServerIP = ip; m_listenServerPort = port; }
+    uint32_t GetListenServerIP() const { return m_listenServerIP; }
+    uint16_t GetListenServerPort() const { return m_listenServerPort; }
 private:
     bool IsHost(const Player* pPlayer) const { return m_pHost == pPlayer; }
     bool FindPlayer(uint32_t accountId, GameTeam& team, size_t& index, PlayerState& state) const;
@@ -78,4 +82,6 @@ private:
     std::vector<GameRoomPlayer> m_redTeam;
     std::vector<GameRoomPlayer> m_blueTeam;
     const Player* m_pHost;
+    uint32_t m_listenServerIP;
+    uint16_t m_listenServerPort;
 };

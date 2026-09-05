@@ -26,6 +26,7 @@ enum class Protocol : protocol_type
 	CS_REQ_GAME_ENTER,
 	CS_REQ_EXIT_GAME_CHANNEL,
 	CS_NOTIFY_LISTEN_SERVER_START,
+	CS_NOTIFY_GAME_PLAYER_EXIT_LISTEN_SERVER,
 
 	SC_RES_LOGIN,
 	SC_RES_ID_DUPLICATE_CHECK,
@@ -129,6 +130,11 @@ struct CSReqJoinGameRoom
 struct CSReqChangeTeam
 {
 	GameTeam m_newTeam;
+};
+
+struct CSNotifyGamePlayerExitListenServer
+{
+	uint32_t m_accountId;
 };
 
 struct SCResLogin
@@ -235,9 +241,6 @@ struct SCResHostGameStartableState
 {
 	HostGameStartableState m_result;
 	GameMap	m_map;
-	uint32_t m_numOfStartingPlayers;
-	uint32_t m_startingPlayersAccountIds[MAX_PLAYERS_PER_TEAM * 2];
-	GameTeam m_startingPlayersTeams[MAX_PLAYERS_PER_TEAM * 2];
 };
 
 struct SCResExitGameRoom
@@ -307,6 +310,7 @@ struct SCNotifyListenServerInfo
 	uint32_t m_listenServerIP;
 	uint16_t m_listenServerPort;
 	GameMap m_map;
+	GameTeam m_team;
 };
 
 // 압축 프로토콜들

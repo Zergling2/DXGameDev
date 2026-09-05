@@ -674,15 +674,17 @@ void Renderer::RenderFrame()
 		pImmContext->OMSetBlendState(m_pBSAlphaBlend, nullptr, 0xFFFFFFFF);
 
 		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-		// 모든 UI Effect들에 대한 ScreenToNDCSpaceRatio 설정
-		const XMFLOAT2 screenToNDCSpaceRatio = XMFLOAT2(
-			2.0f / static_cast<float>(GraphicDevice::GetInstance()->GetSwapChainDesc().BufferDesc.Width),
-			2.0f / static_cast<float>(GraphicDevice::GetInstance()->GetSwapChainDesc().BufferDesc.Height)
+		
+		XMMATRIX uiRenderOrthoMatrix = XMMatrixOrthographicLH(
+			GraphicDevice::GetInstance()->GetSwapChainWidthFlt(),
+			GraphicDevice::GetInstance()->GetSwapChainHeightFlt(),
+			0.0f,
+			1.0f
 		);
-		m_shadedEdgeQuadEffect.SetScreenToNDCSpaceRatio(screenToNDCSpaceRatio);
-		m_shadedEdgeCircleEffect.SetScreenToNDCSpaceRatio(screenToNDCSpaceRatio);
-		m_checkboxEffect.SetScreenToNDCSpaceRatio(screenToNDCSpaceRatio);
-		m_imageEffect.SetScreenToNDCSpaceRatio(screenToNDCSpaceRatio);
+		m_shadedEdgeQuadEffect.SetOrthoMatrix(uiRenderOrthoMatrix);
+		m_shadedEdgeCircleEffect.SetOrthoMatrix(uiRenderOrthoMatrix);
+		m_checkboxEffect.SetOrthoMatrix(uiRenderOrthoMatrix);
+		m_imageEffect.SetOrthoMatrix(uiRenderOrthoMatrix);
 		// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 		ID2D1RenderTarget* pD2DRenderTarget = GraphicDevice::GetInstance()->GetSwapChainD2DRT();
@@ -1190,7 +1192,7 @@ void Renderer::RenderButton(ID2D1RenderTarget* pD2DRenderTarget, ID2D1SolidColor
 	UINT offsets[] = { 0 };
 
 	m_effectImmediateContext.IASetVertexBuffers(0, 1, vbs, strides, offsets);
-
+	
 	XMFLOAT2 hcsp;
 	pButton->m_transform.GetHCSPosition(&hcsp);
 	m_shadedEdgeQuadEffect.SetHCSPosition(hcsp);

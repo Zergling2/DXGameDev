@@ -14,6 +14,7 @@ ListenServerClient::ListenServerClient(ze::GameObject& owner)
 	: MonoBehaviour(owner)
 	, m_serverIP(0)
 	, m_serverPort(0)
+	, m_team(GameTeam::Unknown)
 	, m_pClient(nullptr)
 	, m_pPeer(nullptr)
 	, m_hScriptGameResources()
@@ -54,14 +55,7 @@ void ListenServerClient::FixedUpdate()
 			break;
 		case ENET_EVENT_TYPE_DISCONNECT:
 			wprintf(L"ENET_EVENT_TYPE_DISCONNECT\n");
-			if (m_pPeer == event.peer)
-			{
-				m_pPeer = nullptr;
-			}
-			else
-			{
-				wprintf(L"[WARNING] m_pPeer != event.peer\n");
-			}
+			m_pPeer = nullptr;
 			// printf("%s disconnected.\n", event.peer->data);
 			// 
 			/* Reset the peer's client information. */
@@ -112,6 +106,7 @@ void ListenServerClient::OnConnect(ENetPeer* pPeer)
 	req.m_nicknameLen = pScriptAccount->GetNicknameLen();
 	wmemcpy(req.m_nickname, pScriptAccount->GetNickname(), req.m_nicknameLen);
 	req.m_level = pScriptAccount->GetLevel();
+	req.m_team = m_team;	// 시작 팀 힌트
 
 	ENetPacket* pReqPkt = enet_packet_create(&req, sizeof(req), ENET_PACKET_FLAG_RELIABLE);
 	if (!SendPacket(pReqPkt))
@@ -219,10 +214,11 @@ void ListenServerClient::OnReceive(ENetPeer* pPeer, uint8_t channelId, const ENe
 	}
 }
 
-void ListenServerClient::SetStartupInfo(uint32_t serverIP, uint16_t serverPort)
+void ListenServerClient::SetStartupInfo(uint32_t serverIP, uint16_t serverPort, GameTeam team)
 {
 	m_serverIP = serverIP;
 	m_serverPort = serverPort;
+	m_team = team;
 }
 
 void ListenServerClient::StartClient()
@@ -293,20 +289,43 @@ void ListenServerClient::StartClient()
 	// 
 	// 	puts("Connection to listen server failed.");
 	// }
-
-
-
 }
 
 void ListenServerClient::CloseClient()
 {
+	wprintf(L"ListenServerClient::CloseClient()\n");
+
+	this->Disconnect();
+
+	m_players.clear();
+
+	m_serverIP = 0;
+	m_serverPort = 0;
+	m_team = GameTeam::Unknown;
+
+
 	GameUIManager* pScriptGameUIManager = m_hScriptGameUIManager.ToPtr();
 	if (pScriptGameUIManager)
 		pScriptGameUIManager->Init();
+}
 
+void ListenServerClient::Disconnect()
+{
 	if (m_pPeer)
 	{
-		enet_peer_reset(m_pPeer);
+		LSCSNotifyGamePlayerExit notify;
+		notify.m_protocol = LSProtocol::CS_NOTIFY_GAME_PLAYER_EXIT;
+
+		ENetPacket* pPkt = enet_packet_create(&notify, sizeof(notify), ENET_PACKET_FLAG_RELIABLE);
+		if (!this->SendPacketFlush(pPkt))
+		{
+			enet_packet_destroy(pPkt);
+			pPkt = nullptr;
+		}
+
+		enet_peer_reset(m_pPeer);	// CloseClient 이후로는 이벤트 루프가 실행되지 않을것이므로(enet 클라이언트 객체도 밑에서 파괴할 것이므로)
+		// enet_peer_disconnect류 대신 reset을 한다.
+
 		m_pPeer = nullptr;
 	}
 
@@ -315,11 +334,6 @@ void ListenServerClient::CloseClient()
 		enet_host_destroy(m_pClient);
 		m_pClient = nullptr;
 	}
-
-	m_players.clear();
-
-	m_serverIP = 0;
-	m_serverPort = 0;
 }
 
 bool ListenServerClient::SendPacket(ENetPacket* pPacket) const
@@ -329,6 +343,19 @@ bool ListenServerClient::SendPacket(ENetPacket* pPacket) const
 
 	const uint8_t channelId = pPacket->flags & ENET_PACKET_FLAG_RELIABLE ? UDP_RELIABLE_CHANNEL_ID : UDP_UNRELIABLE_CHANNEL_ID;
 	return enet_peer_send(m_pPeer, channelId, pPacket) == 0;
+}
+
+bool ListenServerClient::SendPacketFlush(ENetPacket* pPacket) const
+{
+	if (m_pPeer == nullptr || m_pClient == nullptr)
+		return false;
+
+	const uint8_t channelId = pPacket->flags & ENET_PACKET_FLAG_RELIABLE ? UDP_RELIABLE_CHANNEL_ID : UDP_UNRELIABLE_CHANNEL_ID;
+	bool ret = enet_peer_send(m_pPeer, channelId, pPacket) == 0;
+
+	enet_host_flush(m_pClient);
+
+	return ret;
 }
 
 void ListenServerClient::OnSCResAuthResult(const LSSCResAuthResult* pPacket)
@@ -436,8 +463,6 @@ void ListenServerClient::OnSCNotifyChat(const LSSCNotifyChat* pPacket)
 
 void ListenServerClient::OnSCNotifyGamePlayerJoined(const LSSCNotifyGamePlayerJoined* pPacket)
 {
-	wprintf(L"OnSCNotifyGamePlayerJoined\n");
-
 	std::unique_ptr<GamePlayerInfo> upNewPlayer = std::make_unique<GamePlayerInfo>(pPacket->m_accountId);
 	const GamePlayerInfo* const pNewPlayer = upNewPlayer.get();	// move 대비
 
@@ -475,6 +500,10 @@ void ListenServerClient::OnSCNotifyGamePlayerJoined(const LSSCNotifyGamePlayerJo
 	assert(ret.second);
 
 	GameUIManager* pScriptGameUIManager = m_hScriptGameUIManager.ToPtr();
+	wchar_t joinMsgBuf[64];
+	StringCchPrintfW(joinMsgBuf, _countof(joinMsgBuf), L"[%s]님이 입장하였습니다.", pNewPlayer->m_nickname);
+	pScriptGameUIManager->AddChatMsg(joinMsgBuf, ColorsLinear::LimeGreen);
+
 	pScriptGameUIManager->AddPlayer(
 		pNewPlayer->m_accountId,
 		pNewPlayer->m_team,
@@ -490,13 +519,31 @@ void ListenServerClient::OnSCNotifyGamePlayerExit(const LSSCNotifyGamePlayerExit
 {
 	wprintf(L"OnSCNotifyGamePlayerExit\n");
 
-	// ...
+	auto iter = m_players.find(pPacket->m_accountId);
+	if (iter != m_players.cend())
+	{
+		GameUIManager* pScriptGameUIManager = m_hScriptGameUIManager.ToPtr();
+		if (pScriptGameUIManager)
+		{
+			wchar_t exitMsgBuf[64];
+			StringCchPrintfW(exitMsgBuf, _countof(exitMsgBuf), L"[%s]님이 퇴장하였습니다.", iter->second.first->m_nickname);
+			pScriptGameUIManager->AddChatMsg(exitMsgBuf, ColorsLinear::LimeGreen);
+
+			// 점수판 등에서 제거
+			pScriptGameUIManager->RemovePlayer(iter->second.first->m_accountId);
+		}
+
+		ThirdPersonCharacter* pScriptThirdPersonCharacter = iter->second.second.ToPtr();
+		GameObjectHandle hGameObjExitPlayer = pScriptThirdPersonCharacter->GetGameObjectHandle();
+		GameObject* pGameObjExitPlayer = hGameObjExitPlayer.ToPtr();
+		pGameObjExitPlayer->Destroy();
+
+		m_players.erase(iter);
+	}
 }
 
 void ListenServerClient::OnSCNotifyGamePlayerInfo(const LSSCNotifyGamePlayerInfo* pPacket)
 {
-	wprintf(L"OnSCNotifyGamePlayerInfo\n");
-
 	std::unique_ptr<GamePlayerInfo> upNewPlayer = std::make_unique<GamePlayerInfo>(pPacket->m_accountId);
 	const GamePlayerInfo* const pNewPlayer = upNewPlayer.get();	// move 대비
 

@@ -15,9 +15,9 @@ namespace ze
 			PrimitiveTopology	= 1 << 0,
 			InputLayout			= 1 << 1,
 			Shader				= 1 << 2,
-			ApplyCB2DRender		= 1 << 3,
+			ApplyCBUIRender		= 1 << 3,
 			ApplyCBPer2DQuad	= 1 << 4,
-			UpdateCB2DRender	= 1 << 5,
+			UpdateCBUIRender	= 1 << 5,
 			UpdateCBPer2DQuad	= 1 << 6,
 
 			COUNT,
@@ -30,9 +30,9 @@ namespace ze
 			, m_pInputLayout(nullptr)
 			, m_pVertexShader(nullptr)
 			, m_pPixelShader(nullptr)
-			, m_cb2DRender()
+			, m_cbUIRender()
 			, m_cbPer2DQuad()
-			, m_cb2DRenderCache()
+			, m_cbUIRenderCache()
 			, m_cbPer2DQuadCache()
 			, m_pTextureSRVArray{ nullptr }
 		{
@@ -42,7 +42,7 @@ namespace ze
 		virtual void Init() override;
 		virtual void Release() override;
 
-		void SetScreenToNDCSpaceRatio(const XMFLOAT2& ratio) noexcept;
+		void XM_CALLCONV SetOrthoMatrix(FXMMATRIX m) noexcept;
 
 		void SetSize(FLOAT width, FLOAT height) noexcept;
 		void SetUVScale(FLOAT sx, FLOAT sy) noexcept;
@@ -55,7 +55,7 @@ namespace ze
 		virtual void OnUnbindFromDeviceContext() noexcept override;
 
 		void ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept;
-		void Apply2DRenderConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
+		void ApplyUIRenderConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
 		void ApplyPer2DQuadConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
 
 		void ClearTextureSRVArray() { m_pTextureSRVArray[0] = nullptr; }
@@ -66,9 +66,9 @@ namespace ze
 		ID3D11VertexShader* m_pVertexShader;
 		ID3D11PixelShader* m_pPixelShader;
 
-		ConstantBuffer<Cb2DRender> m_cb2DRender;
+		ConstantBuffer<CbUIRender> m_cbUIRender;
 		ConstantBuffer<CbPer2DQuad> m_cbPer2DQuad;
-		Cb2DRender m_cb2DRenderCache;
+		CbUIRender m_cbUIRenderCache;
 		CbPer2DQuad m_cbPer2DQuadCache;
 
 		ID3D11ShaderResourceView* m_pTextureSRVArray[1];

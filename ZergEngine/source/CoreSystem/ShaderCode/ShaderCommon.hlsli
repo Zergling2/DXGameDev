@@ -154,9 +154,9 @@ hlslstruct CbPerBillboard
 	XMFLOAT2 uvScale; // UV Ω∫ƒ…¿œ
 };
 
-hlslstruct Cb2DRender
+hlslstruct CbUIRender
 {
-    XMFLOAT2 toNDCSpaceRatio;
+	XMFLOAT4X4A m;
 };
 
 hlslstruct CbPer2DQuad

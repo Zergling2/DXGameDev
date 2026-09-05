@@ -25,11 +25,14 @@ public:
 	void OnConnect(ENetPeer* pPeer);
 	void OnReceive(ENetPeer* pPeer, uint8_t channelId, const ENetPacket* pPacket);
 
-	void SetStartupInfo(uint32_t serverIP, uint16_t serverPort);
+	void SetStartupInfo(uint32_t serverIP, uint16_t serverPort, GameTeam team);
 	void StartClient();
 	void CloseClient();
 
+	void Disconnect();
+
 	bool SendPacket(ENetPacket* pPacket) const;
+	bool SendPacketFlush(ENetPacket* pPacket) const;
 
 	void SetGameResourcesScriptHandle(ze::ComponentHandle<GameResources> hScript) { m_hScriptGameResources = hScript; }
 	void SetNetworkScriptHandle(ze::ComponentHandle<Network> hScript) { m_hScriptNetwork = hScript; }
@@ -52,6 +55,7 @@ private:
 private:
 	uint32_t m_serverIP;
 	uint16_t m_serverPort;
+	GameTeam m_team;
 	ENetHost* m_pClient;
 	ENetPeer* m_pPeer;		// host
 	ze::ComponentHandle<GameResources> m_hScriptGameResources;

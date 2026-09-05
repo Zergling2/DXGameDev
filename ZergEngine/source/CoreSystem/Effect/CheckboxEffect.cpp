@@ -20,21 +20,21 @@ void CheckboxEffect::Init()
 	m_pVertexShader = pGraphicDevice->GetVSComInterface(VertexShaderType::ToHcsCheckbox);
 	m_pPixelShader = pGraphicDevice->GetPSComInterface(PixelShaderType::UnlitPC);
 
-	m_cb2DRender.Init(pGraphicDevice->GetDevice());
+	m_cbUIRender.Init(pGraphicDevice->GetDevice());
 	m_cbPerCheckbox.Init(pGraphicDevice->GetDevice());
 }
 
 void CheckboxEffect::Release()
 {
-	m_cb2DRender.Release();
+	m_cbUIRender.Release();
 	m_cbPerCheckbox.Release();
 }
 
-void CheckboxEffect::SetScreenToNDCSpaceRatio(const XMFLOAT2& ratio) noexcept
+void XM_CALLCONV CheckboxEffect::SetOrthoMatrix(FXMMATRIX m) noexcept
 {
-	m_cb2DRenderCache.toNDCSpaceRatio = ratio;
+	XMStoreFloat4x4A(&m_cbUIRenderCache.m, ConvertToHLSLMatrix(m));
 
-	m_dirtyFlag |= DirtyFlag::UpdateCB2DRender;
+	m_dirtyFlag |= DirtyFlag::UpdateCBUIRender;
 }
 
 void XM_CALLCONV CheckboxEffect::SetBoxColor(FXMVECTOR color) noexcept
@@ -83,14 +83,14 @@ void CheckboxEffect::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
 		case DirtyFlag::Shader:
 			ApplyShader(pDeviceContext);
 			break;
-		case DirtyFlag::ApplyCB2DRender:
-			Apply2DRenderConstantBuffer(pDeviceContext);
+		case DirtyFlag::ApplyCBUIRender:
+			ApplyUIRenderConstantBuffer(pDeviceContext);
 			break;
 		case DirtyFlag::ApplyCBPerCheckbox:
 			ApplyPerCheckboxConstantBuffer(pDeviceContext);
 			break;
-		case DirtyFlag::UpdateCB2DRender:
-			m_cb2DRender.Update(pDeviceContext, &m_cb2DRenderCache);
+		case DirtyFlag::UpdateCBUIRender:
+			m_cbUIRender.Update(pDeviceContext, &m_cbUIRenderCache);
 			break;
 		case DirtyFlag::UpdateCBPerCheckbox:
 			m_cbPerCheckbox.Update(pDeviceContext, &m_cbPerCheckboxCache);
@@ -110,7 +110,7 @@ void CheckboxEffect::OnUnbindFromDeviceContext() noexcept
 	m_dirtyFlag = DirtyFlag::ALL;
 
 	const DWORD except =
-		DirtyFlag::UpdateCB2DRender |
+		DirtyFlag::UpdateCBUIRender |
 		DirtyFlag::UpdateCBPerCheckbox;
 
 	m_dirtyFlag = m_dirtyFlag & ~except;
@@ -125,11 +125,11 @@ void CheckboxEffect::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
 	pDeviceContext->PSSetShader(m_pPixelShader, nullptr, 0);
 }
 
-void CheckboxEffect::Apply2DRenderConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
+void CheckboxEffect::ApplyUIRenderConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	ID3D11Buffer* const cbs[] = { m_cb2DRender.Get() };
+	ID3D11Buffer* const cbs[] = { m_cbUIRender.Get() };
 
-	// 2DRender 상수버퍼 사용 셰이더
+	// UIRender 상수버퍼 사용 셰이더
 	constexpr UINT VS_SLOT = 0;
 	pDeviceContext->VSSetConstantBuffers(VS_SLOT, 1, cbs);
 }

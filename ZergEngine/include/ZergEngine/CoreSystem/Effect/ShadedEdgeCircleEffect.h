@@ -15,10 +15,10 @@ namespace ze
 			PrimitiveTopology				= 1 << 0,
 			InputLayout						= 1 << 1,
 			Shader							= 1 << 2,
-			ApplyCB2DRender = 1 << 3,
-			ApplyCBPerShadedEdgeCircle = 1 << 4,
-			UpdateCB2DRender = 1 << 5,
-			UpdateCBPerShadedEdgeCircle = 1 << 6,
+			ApplyCBUIRender					= 1 << 3,
+			ApplyCBPerShadedEdgeCircle		= 1 << 4,
+			UpdateCBUIRender				= 1 << 5,
+			UpdateCBPerShadedEdgeCircle		= 1 << 6,
 
 			COUNT,
 
@@ -30,9 +30,9 @@ namespace ze
 			, m_pInputLayout(nullptr)
 			, m_pVertexShader(nullptr)
 			, m_pPixelShader(nullptr)
-			, m_cb2DRender()
+			, m_cbUIRender()
 			, m_cbPerShadedEdgeCircle()
-			, m_cb2DRenderCache()
+			, m_cbUIRenderCache()
 			, m_cbPerShadedEdgeCircleCache()
 		{
 		}
@@ -41,7 +41,7 @@ namespace ze
 		virtual void Init() override;
 		virtual void Release() override;
 
-		void SetScreenToNDCSpaceRatio(const XMFLOAT2& ratio) noexcept;
+		void XM_CALLCONV SetOrthoMatrix(FXMMATRIX m) noexcept;
 
 		void SetRadius(FLOAT radius) noexcept;
 		void SetHCSPosition(const XMFLOAT2& pos) noexcept;	// 화면 중앙을 원점으로 하는 NDC 공간으로 변환 직전의 2D 위치 설정
@@ -53,7 +53,7 @@ namespace ze
 		virtual void OnUnbindFromDeviceContext() noexcept override;
 
 		void ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept;
-		void Apply2DRenderConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
+		void ApplyUIRenderConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
 		void ApplyPerShadedEdgeCircleConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept;
 	private:
 		DWORD m_dirtyFlag;
@@ -62,9 +62,9 @@ namespace ze
 		ID3D11VertexShader* m_pVertexShader;
 		ID3D11PixelShader* m_pPixelShader;
 
-		ConstantBuffer<Cb2DRender> m_cb2DRender;
+		ConstantBuffer<CbUIRender> m_cbUIRender;
 		ConstantBuffer<CbPerShadedEdgeCircle> m_cbPerShadedEdgeCircle;
-		Cb2DRender m_cb2DRenderCache;
+		CbUIRender m_cbUIRenderCache;
 		CbPerShadedEdgeCircle m_cbPerShadedEdgeCircleCache;
 	};
 }

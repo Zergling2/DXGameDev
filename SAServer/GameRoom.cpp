@@ -14,6 +14,8 @@ GameRoom::GameRoom(uint64_t id, uint16_t no, GameRoomTeamFormat tf, GameMap map,
 	, m_redTeam()
 	, m_blueTeam()
 	, m_pHost(nullptr)
+	, m_listenServerIP(0)
+	, m_listenServerPort(0)
 {
 }
 
@@ -349,7 +351,6 @@ void GameRoom::IsGameStartable(winppy::TCPServer& server)
 
 	// 패킷 생성
 	SCResHostGameStartableState res;
-	uint32_t index;
 	switch (result)
 	{
 	case ALREADY_STARTED:
@@ -363,28 +364,6 @@ void GameRoom::IsGameStartable(winppy::TCPServer& server)
 		res.m_result = HostGameStartableState::Startable;
 
 		// Playing 상태인 유저들의 AccountId, 시작 팀을 담는다.
-		index = 0;
-		for (const auto& item : m_redTeam)
-		{
-			if (item.m_state != PlayerState::Playing)
-				continue;
-
-			assert(index < _countof(res.m_startingPlayersAccountIds));
-			res.m_startingPlayersAccountIds[index] = item.m_pPlayer->GetAccountId();
-			res.m_startingPlayersTeams[index] = GameTeam::RedTeam;
-			++index;
-		}
-		for (const auto& item : m_blueTeam)
-		{
-			if (item.m_state != PlayerState::Playing)
-				continue;
-
-			assert(index < _countof(res.m_startingPlayersAccountIds));
-			res.m_startingPlayersAccountIds[index] = item.m_pPlayer->GetAccountId();
-			res.m_startingPlayersTeams[index] = GameTeam::BlueTeam;
-			++index;
-		}
-		res.m_numOfStartingPlayers = index;
 		res.m_map = this->GetMap();
 
 		// 이후 방장으로부터 리슨서버 생성 완료와 관련한 패킷이 도착하면
@@ -577,6 +556,26 @@ GameTeam GameRoom::GetPlayerTeam(uint32_t accountId) const
 		return team;
 }
 
+void GameRoom::GameEnter(winppy::TCPServer& server, const Player* pPlayer)
+{
+	// '게임중' 상태로 변경.
+	this->ChangePlayerState(server, pPlayer->GetAccountId(), PlayerState::Playing);
+
+	const GameTeam team = this->GetPlayerTeam(pPlayer->GetAccountId());
+	assert(team != GameTeam::Unknown);
+
+	SCNotifyListenServerInfo notify;
+	notify.m_listenServerIP = this->GetListenServerIP();
+	notify.m_listenServerPort = this->GetListenServerPort();
+	notify.m_map = this->GetMap();
+	notify.m_team = team;
+	winppy::Packet pkt;
+	pkt->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_LISTEN_SERVER_INFO));
+	pkt->WriteBytes(&notify, sizeof(notify));
+
+	server.Send(pPlayer->GetSession()->GetNetId(), std::move(pkt));
+}
+
 bool GameRoom::IsFull() const
 {
 	if (m_redTeam.size() + m_blueTeam.size() >= GameRoomTeamFormatToMaxPlayerCount(m_tf))
@@ -615,22 +614,32 @@ void GameRoom::BroadcastPacketExcept(winppy::TCPServer& server, winppy::Packet p
 
 void GameRoom::NotifyListenServerInfoToPlayingPlayers(winppy::TCPServer& server, uint32_t ip, uint16_t port) const
 {
-	SCNotifyListenServerInfo notify;
-	notify.m_listenServerIP = ip;
-	notify.m_listenServerPort = port;
-	notify.m_map = this->GetMap();
-	winppy::Packet pkt;
-	pkt->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_LISTEN_SERVER_INFO));
-	pkt->WriteBytes(&notify, sizeof(notify));
+	SCNotifyListenServerInfo notifyToRedTeam;
+	notifyToRedTeam.m_listenServerIP = ip;
+	notifyToRedTeam.m_listenServerPort = port;
+	notifyToRedTeam.m_map = this->GetMap();
+	notifyToRedTeam.m_team = GameTeam::RedTeam;
+	winppy::Packet pktToRedTeam;
+	pktToRedTeam->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_LISTEN_SERVER_INFO));
+	pktToRedTeam->WriteBytes(&notifyToRedTeam, sizeof(notifyToRedTeam));
+
+	SCNotifyListenServerInfo notifyToBlueTeam;
+	notifyToBlueTeam.m_listenServerIP = ip;
+	notifyToBlueTeam.m_listenServerPort = port;
+	notifyToBlueTeam.m_map = this->GetMap();
+	notifyToBlueTeam.m_team = GameTeam::BlueTeam;
+	winppy::Packet pktToBlueTeam;
+	pktToBlueTeam->Write(static_cast<protocol_type>(Protocol::SC_NOTIFY_LISTEN_SERVER_INFO));
+	pktToBlueTeam->WriteBytes(&notifyToBlueTeam, sizeof(notifyToBlueTeam));
 
 	// Playing 상태인 유저들에게만 패킷 전송
 	for (const auto& item : m_redTeam)
 		if (item.m_state == PlayerState::Playing)
-			server.Send(item.m_pPlayer->GetSession()->GetNetId(), pkt);
+			server.Send(item.m_pPlayer->GetSession()->GetNetId(), pktToRedTeam);
 
 	for (const auto& item : m_blueTeam)
 		if (item.m_state == PlayerState::Playing)
-			server.Send(item.m_pPlayer->GetSession()->GetNetId(), pkt);
+			server.Send(item.m_pPlayer->GetSession()->GetNetId(), pktToBlueTeam);
 }
 
 bool GameRoom::FindPlayer(uint32_t accountId, GameTeam& team, size_t& index, PlayerState& state) const

@@ -362,6 +362,20 @@ private:
 	const uint16_t m_listenServerPort;
 };
 
+class JobNotifyGamePlayerExitListenServer : public IJob
+{
+public:
+	JobNotifyGamePlayerExitListenServer(uint64_t netId)
+		: m_netId(netId)
+	{
+	}
+	virtual ~JobNotifyGamePlayerExitListenServer() = default;
+
+	virtual void Execute(LogicThread& thread) override;
+private:
+	const uint64_t m_netId;
+};
+
 class JobSessionDisconnected : public IJob
 {
 public:

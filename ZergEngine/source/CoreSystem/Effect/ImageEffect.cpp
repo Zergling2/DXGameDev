@@ -19,21 +19,21 @@ void ImageEffect::Init()
 	m_pVertexShader = GraphicDevice::GetInstance()->GetVSComInterface(VertexShaderType::ToHcsPNTTQuadForImage);
 	m_pPixelShader = GraphicDevice::GetInstance()->GetPSComInterface(PixelShaderType::UnlitPT1Tex);
 
-	m_cb2DRender.Init(GraphicDevice::GetInstance()->GetDevice());
+	m_cbUIRender.Init(GraphicDevice::GetInstance()->GetDevice());
 	m_cbPer2DQuad.Init(GraphicDevice::GetInstance()->GetDevice());
 }
 
 void ImageEffect::Release()
 {
-	m_cb2DRender.Release();
+	m_cbUIRender.Release();
 	m_cbPer2DQuad.Release();
 }
 
-void ImageEffect::SetScreenToNDCSpaceRatio(const XMFLOAT2& ratio) noexcept
+void XM_CALLCONV ImageEffect::SetOrthoMatrix(FXMMATRIX m) noexcept
 {
-	m_cb2DRenderCache.toNDCSpaceRatio = ratio;
+	XMStoreFloat4x4A(&m_cbUIRenderCache.m, ConvertToHLSLMatrix(m));
 
-	m_dirtyFlag |= DirtyFlag::UpdateCB2DRender;
+	m_dirtyFlag |= DirtyFlag::UpdateCBUIRender;
 }
 
 void ImageEffect::SetSize(FLOAT width, FLOAT height) noexcept
@@ -89,14 +89,14 @@ void ImageEffect::ApplyImpl(ID3D11DeviceContext* pDeviceContext) noexcept
 		case DirtyFlag::Shader:
 			ApplyShader(pDeviceContext);
 			break;
-		case DirtyFlag::ApplyCB2DRender:
-			Apply2DRenderConstantBuffer(pDeviceContext);
+		case DirtyFlag::ApplyCBUIRender:
+			ApplyUIRenderConstantBuffer(pDeviceContext);
 			break;
 		case DirtyFlag::ApplyCBPer2DQuad:
 			ApplyPer2DQuadConstantBuffer(pDeviceContext);
 			break;
-		case DirtyFlag::UpdateCB2DRender:
-			m_cb2DRender.Update(pDeviceContext, &m_cb2DRenderCache);
+		case DirtyFlag::UpdateCBUIRender:
+			m_cbUIRender.Update(pDeviceContext, &m_cbUIRenderCache);
 			break;
 		case DirtyFlag::UpdateCBPer2DQuad:
 			m_cbPer2DQuad.Update(pDeviceContext, &m_cbPer2DQuadCache);
@@ -124,7 +124,7 @@ void ImageEffect::OnUnbindFromDeviceContext() noexcept
 	m_dirtyFlag = DirtyFlag::ALL;
 
 	const DWORD except =
-		DirtyFlag::UpdateCB2DRender |
+		DirtyFlag::UpdateCBUIRender |
 		DirtyFlag::UpdateCBPer2DQuad;
 
 	m_dirtyFlag = m_dirtyFlag & ~except;
@@ -139,11 +139,11 @@ void ImageEffect::ApplyShader(ID3D11DeviceContext* pDeviceContext) noexcept
 	pDeviceContext->PSSetShader(m_pPixelShader, nullptr, 0);
 }
 
-void ImageEffect::Apply2DRenderConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
+void ImageEffect::ApplyUIRenderConstantBuffer(ID3D11DeviceContext* pDeviceContext) noexcept
 {
-	ID3D11Buffer* const cbs[] = { m_cb2DRender.Get() };
+	ID3D11Buffer* const cbs[] = { m_cbUIRender.Get() };
 
-	// 2DRender 상수버퍼 사용 셰이더
+	// UIRender 상수버퍼 사용 셰이더
 	constexpr UINT VS_SLOT = 0;
 	pDeviceContext->VSSetConstantBuffers(VS_SLOT, 1, cbs);
 }

@@ -24,7 +24,7 @@ public:
 	void OnReceive(ENetPeer* pPeer, uint8_t channelId, const ENetPacket* pPacket);
 	void OnDisconnect(ENetPeer* pPeer);
 
-	void StartServer(GameMap map, float gameDuration, const uint32_t* pStartingPlayersAccountIds, const GameTeam* pStartingPlayersTeam, size_t count);
+	void StartServer(GameMap map, float gameDuration);
 	void CloseServer();
 
 	void SetNetworkScriptHandle(ze::ComponentHandle<Network> hScript) { m_hScriptNetwork = hScript; }
@@ -40,6 +40,7 @@ private:
 	void OnCSNotifyGamePlayerWeaponEvent(const LSCSNotifyGamePlayerWeaponEvent* pPacket, ENetPeer* pRequester);
 	void OnCSNotifyGamePlayerTransform(const LSCSNotifyGamePlayerTransform* pPacket, ENetPeer* pRequester);
 	void OnCSNotifyGamePlayerHit(const LSCSNotifyGamePlayerHit* pPacket, ENetPeer* pRequester);
+	void OnCSNotifyGamePlayerExit(const LSCSNotifyGamePlayerExit* pPacket, ENetPeer* pRequester);
 private:
 	ze::ComponentHandle<Network> m_hScriptNetwork;
 	ENetHost* m_pHost;
@@ -47,5 +48,4 @@ private:
 	std::unordered_map<uint32_t, std::pair<std::shared_ptr<LSGamePlayerInfo>, ENetPeer*>> m_peersWithAccountId;
 	GameMap m_map;
 	float m_gameRemainingTime;
-	std::unordered_map<uint32_t, GameTeam> m_playersTeam;
 };

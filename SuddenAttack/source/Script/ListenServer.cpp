@@ -12,9 +12,7 @@ ListenServer::ListenServer(ze::GameObject& owner)
 	, m_pHost(nullptr)
 	, m_map(GameMap::Unknown)
 	, m_gameRemainingTime(0.0f)
-	, m_playersTeam()
 {
-	m_playersTeam.reserve(MAX_PLAYERS_PER_TEAM * static_cast<size_t>(GameTeam::Count));
 }
 
 void ListenServer::Awake()
@@ -163,6 +161,12 @@ void ListenServer::OnReceive(ENetPeer* pPeer, uint8_t channelId, const ENetPacke
 			else
 				OnCSNotifyGamePlayerHit(reinterpret_cast<const LSCSNotifyGamePlayerHit*>(pPacket->data), pPeer);
 			break;
+		case LSProtocol::CS_NOTIFY_GAME_PLAYER_EXIT:
+			if (packetSize != sizeof(LSCSNotifyGamePlayerExit))
+				enet_peer_disconnect_now(pPeer, 0);		// 즉시 연결 종료
+			else
+				OnCSNotifyGamePlayerExit(reinterpret_cast<const LSCSNotifyGamePlayerExit*>(pPacket->data), pPeer);
+			break;
 		default:
 			wprintf(L"Invalid protocol type packet has been arrived: %u.\n", static_cast<uint32_t>(protocol));
 			break;
@@ -172,31 +176,56 @@ void ListenServer::OnReceive(ENetPeer* pPeer, uint8_t channelId, const ENetPacke
 
 void ListenServer::OnDisconnect(ENetPeer* pPeer)
 {
+	wprintf(L"ListenServer::OnDisconnect()\n");
 	// pPeer->data;	// 유효 필드
 	const auto iter = m_peers.find(pPeer);
-	if (iter != m_peers.cend())
-	{
-		if (iter->second != nullptr)	// 인증된 피어여서 LSGamePlayerInfo 구조체가 할당된 피어인 경우
-			m_peersWithAccountId.erase(iter->second->m_accountId);	// account id 맵에서 항목을 지운다.
+	if (iter == m_peers.cend())
+		return;
 
-		m_peers.erase(iter);	// 피어(플레이어) 정보 제거
+	if (iter->second != nullptr)		// 인증된 피어여서 LSGamePlayerInfo 구조체가 할당된 피어인 경우
+	{
+		{
+			LSSCNotifyGamePlayerExit notify;
+			notify.m_protocol = LSProtocol::SC_NOTIFY_GAME_PLAYER_EXIT;
+			notify.m_accountId = iter->second->m_accountId;
+
+			ENetPacket* pPkt = enet_packet_create(&notify, sizeof(notify), ENET_PACKET_FLAG_RELIABLE);
+			if (BroadcastPacketExcept(pPkt, iter->first) == 0)
+			{
+				enet_packet_destroy(pPkt);
+				pPkt = nullptr;
+			};
+		}
+
+
+		m_peersWithAccountId.erase(iter->second->m_accountId);	// account id 맵에서 항목을 지운다.
+
+
+		// 리슨서버에서 피어&플레이어 정보를 모두 제거 후에 재접속이 가능하도록 SAServer로 플레이어 나감을 알림.
+		Network* pScriptNetwork = m_hScriptNetwork.ToPtr();
+		SAClient& client = pScriptNetwork->GetClient();
+
+		CSNotifyGamePlayerExitListenServer notify;
+		notify.m_accountId = iter->second->m_accountId;
+
+		winppy::Packet pkt;
+		pkt->Write(static_cast<protocol_type>(Protocol::CS_NOTIFY_GAME_PLAYER_EXIT_LISTEN_SERVER));
+		pkt->WriteBytes(&notify, sizeof(notify));
+		client.Send(std::move(pkt));
 	}
+
+	m_peers.erase(iter);	// 피어(플레이어) 정보 제거
 }
 
-void ListenServer::StartServer(GameMap map, float gameDuration, const uint32_t* pStartingPlayersAccountIds, const GameTeam* pStartingPlayersTeam, size_t count)
+void ListenServer::StartServer(GameMap map, float gameDuration)
 {
 	assert(m_pHost == nullptr);
 	assert(m_peers.size() == 0);
 
 	assert(map != GameMap::Unknown);
-	assert(count > 0);
 
 	m_map = map;
 	m_gameRemainingTime = gameDuration;
-
-	m_playersTeam.clear();
-	for (size_t i = 0; i < count; ++i)
-		m_playersTeam[pStartingPlayersAccountIds[i]] = pStartingPlayersTeam[i];
 
 	if (m_pHost)
 		*reinterpret_cast<int*>(0) = 0;
@@ -260,7 +289,6 @@ void ListenServer::CloseServer()
 	// m_blueTeamPlayers.clear();
 	m_peers.clear();
 	m_peersWithAccountId.clear();
-	m_playersTeam.clear();
 	m_map = GameMap::Unknown;
 }
 
@@ -354,28 +382,19 @@ void ListenServer::OnCSReqAuth(const LSCSReqAuth* pPacket, ENetPeer* pRequester)
 		return;
 	}
 
+	if (pPacket->m_team >= GameTeam::Unknown)
+	{
+		wprintf(L"Invalid starting team: %u (Disconnect)\n", static_cast<uint32_t>(pPacket->m_team));
+		enet_peer_disconnect(pRequester, 0);
+		return;
+	}
+
 	const auto peerIter = m_peers.find(pRequester);
 	if (peerIter != m_peers.cend() && peerIter->second.get() != nullptr)
 	{
 		wprintf(L"Duplicated auth request! Account Id: %u (Disconnect)\n", pPacket->m_accountId);
 		enet_peer_disconnect(pRequester, 0);
 		return;
-	}
-
-	GameTeam joinedTeam = GameTeam::Unknown;
-	{
-		const auto iter = m_playersTeam.find(pPacket->m_accountId);
-		if (iter == m_playersTeam.cend())
-		{
-			wprintf(L"Invalid peer! (Team info not exist) Account Id: %u (Disconnect)\n", pPacket->m_accountId);
-			enet_peer_disconnect(pRequester, 0);
-			return;
-		}
-		else
-		{
-			joinedTeam = iter->second;
-			m_playersTeam.erase(iter);		// 시작 팀 정보는 플레이어가 최초 접속 시에만 사용되고 이후로는 사용할 일이 없으므로 제거한다.
-		}
 	}
 
 	if (pPacket->m_nicknameLen > MAX_NICKNAME_LEN)
@@ -385,14 +404,12 @@ void ListenServer::OnCSReqAuth(const LSCSReqAuth* pPacket, ENetPeer* pRequester)
 		return;
 	}
 
-	assert(joinedTeam != GameTeam::Unknown);
-
 	// 0. GamePlayerInfo 생성
 	std::shared_ptr<LSGamePlayerInfo> spNewLSGamePlayerInfo = std::make_unique<LSGamePlayerInfo>(pPacket->m_accountId);
 	spNewLSGamePlayerInfo->m_nicknameLen = pPacket->m_nicknameLen;
 	wmemcpy(spNewLSGamePlayerInfo->m_nickname, pPacket->m_nickname, pPacket->m_nicknameLen);
 	spNewLSGamePlayerInfo->m_nickname[pPacket->m_nicknameLen] = L'\0';
-	spNewLSGamePlayerInfo->m_team = joinedTeam;
+	spNewLSGamePlayerInfo->m_team = pPacket->m_team;
 	spNewLSGamePlayerInfo->m_level = pPacket->m_level;
 	spNewLSGamePlayerInfo->m_kill = 0;
 	spNewLSGamePlayerInfo->m_death = 0;
@@ -410,7 +427,7 @@ void ListenServer::OnCSReqAuth(const LSCSReqAuth* pPacket, ENetPeer* pRequester)
 	LSSCNotifyGameStatus ntfyGameStatus;
 	ntfyGameStatus.m_protocol = LSProtocol::SC_NOTIFY_GAME_STATUS;
 	ntfyGameStatus.m_gameRemainingTime = m_gameRemainingTime;
-	ntfyGameStatus.m_team = joinedTeam;
+	ntfyGameStatus.m_team = pPacket->m_team;
 	ntfyGameStatus.m_kill = spNewLSGamePlayerInfo->m_kill;
 	ntfyGameStatus.m_death = spNewLSGamePlayerInfo->m_death;
 	ntfyGameStatus.m_ping = spNewLSGamePlayerInfo->m_ping;
@@ -435,7 +452,7 @@ void ListenServer::OnCSReqAuth(const LSCSReqAuth* pPacket, ENetPeer* pRequester)
 	ntfyPlayerJoined.m_accountId = pPacket->m_accountId;
 	ntfyPlayerJoined.m_nicknameLen = pPacket->m_nicknameLen;
 	wmemcpy(ntfyPlayerJoined.m_nickname, pPacket->m_nickname, pPacket->m_nicknameLen);
-	ntfyPlayerJoined.m_team = joinedTeam;
+	ntfyPlayerJoined.m_team = pPacket->m_team;
 	ntfyPlayerJoined.m_level = pPacket->m_level;
 	ntfyPlayerJoined.m_kill = 0;
 	ntfyPlayerJoined.m_death = 0;
@@ -632,7 +649,6 @@ void ListenServer::OnCSNotifyGamePlayerHit(const LSCSNotifyGamePlayerHit* pPacke
 		return;
 
 	const uint16_t damage = WeaponInfo::GetWeaponDamage(pPacket->m_weaponCode, pPacket->m_hitPart);
-	wprintf(L"damage: %u\n", static_cast<uint32_t>(damage));
 	if (iterWhoWasShot->second.first->m_hp <= damage)
 		iterWhoWasShot->second.first->m_hp = 0;
 	else
@@ -691,4 +707,10 @@ void ListenServer::OnCSNotifyGamePlayerHit(const LSCSNotifyGamePlayerHit* pPacke
 			}
 		}
 	}
+}
+
+void ListenServer::OnCSNotifyGamePlayerExit(const LSCSNotifyGamePlayerExit* pPacket, ENetPeer* pRequester)
+{
+	enet_peer_disconnect_now(pRequester, 0);
+	this->OnDisconnect(pRequester);
 }
