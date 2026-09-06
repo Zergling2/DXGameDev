@@ -293,8 +293,6 @@ void ListenServerClient::StartClient()
 
 void ListenServerClient::CloseClient()
 {
-	wprintf(L"ListenServerClient::CloseClient()\n");
-
 	this->Disconnect();
 
 	m_players.clear();
@@ -413,7 +411,7 @@ void ListenServerClient::OnSCNotifyGameStatus(const LSSCNotifyGameStatus* pPacke
 	// GameUIManager 상태 설정
 	GameUIManager* pScriptGameUIManager = m_hScriptGameUIManager.ToPtr();
 	pScriptGameUIManager->SetState(GameUIStatePlaying::GetState());
-
+	pScriptGameUIManager->SetScoreText(pPacket->m_score[static_cast<size_t>(GameTeam::RedTeam)], pPacket->m_score[static_cast<size_t>(GameTeam::BlueTeam)]);
 	pScriptGameUIManager->AddPlayer(
 		pNewMyPlayer->m_accountId,
 		pNewMyPlayer->m_team,
@@ -485,7 +483,9 @@ void ListenServerClient::OnSCNotifyGamePlayerJoined(const LSSCNotifyGamePlayerJo
 	ThirdPersonCharacter* pScriptThirdPersonCharacter = hScriptThirdPersonCharacter.ToPtr();
 
 	pScriptThirdPersonCharacter->OnInit(
+		m_hScriptPlayer,
 		upNewPlayer->m_accountId,
+		upNewPlayer->m_nickname,
 		upNewPlayer->m_team,
 		upNewPlayer->m_weaponCodes[0],
 		upNewPlayer->m_weaponCodes[1],
@@ -566,7 +566,9 @@ void ListenServerClient::OnSCNotifyGamePlayerInfo(const LSSCNotifyGamePlayerInfo
 	ThirdPersonCharacter* pScriptThirdPersonCharacter = hScriptThirdPersonCharacter.ToPtr();
 
 	pScriptThirdPersonCharacter->OnInit(
+		m_hScriptPlayer,
 		upNewPlayer->m_accountId,
+		upNewPlayer->m_nickname,
 		upNewPlayer->m_team,
 		upNewPlayer->m_weaponCodes[0],
 		upNewPlayer->m_weaponCodes[1],
@@ -705,6 +707,7 @@ void ListenServerClient::OnSCNotifyGamePlayerKill(const LSSCNotifyGamePlayerKill
 		killerTeam = iterKiller->second.first->m_team;
 
 		pScriptGameUIManager->SetPlayerKillDeath(iterKiller->second.first->m_accountId, iterKiller->second.first->m_kill, iterKiller->second.first->m_death);
+		pScriptGameUIManager->IncreaseScoreText(killerTeam, 1);
 	}
 	else
 	{

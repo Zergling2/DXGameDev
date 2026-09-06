@@ -226,6 +226,8 @@ void ListenServer::StartServer(GameMap map, float gameDuration)
 
 	m_map = map;
 	m_gameRemainingTime = gameDuration;
+	for (size_t i = 0; i < _countof(m_score); ++i)
+		m_score[i] = 0;
 
 	if (m_pHost)
 		*reinterpret_cast<int*>(0) = 0;
@@ -353,9 +355,9 @@ void ListenServer::UpdateRespawn(float dt, LSGamePlayerInfo& player)
 		ntfyRespawn.m_accountId = player.m_accountId;
 
 		int r[3] = { rand() & 1, rand() & 1, rand() & 1 };
-		float x = static_cast<float>(rand() % 31) * 0.1f * (r[0] ? -1.0f : +1.0f);
+		float x = 1.0f + static_cast<float>(rand() % 31) * 0.1f * (r[0] ? -1.0f : +1.0f);
 		// float y = static_cast<float>(rand() % 31) * 0.1f * (r[1] ? -1.0f : +1.0f);
-		float z = static_cast<float>(rand() % 31) * 0.1f * (r[2] ? -1.0f : +1.0f);
+		float z = 2.5f + static_cast<float>(rand() % 31) * 0.1f * (r[2] ? -1.0f : +1.0f);
 
 		ntfyRespawn.m_x = x;
 		ntfyRespawn.m_y = 0.0f;
@@ -405,6 +407,14 @@ void ListenServer::OnCSReqAuth(const LSCSReqAuth* pPacket, ENetPeer* pRequester)
 	}
 
 	// 0. GamePlayerInfo 생성
+	constexpr std::underlying_type_t<WeaponCode> PRIMARY_WEAPON_CODE_BEGIN = static_cast<int>(WeaponCode::M16);
+	constexpr std::underlying_type_t<WeaponCode> PRIMARY_WEAPON_CODE_END = static_cast<int>(WeaponCode::M4A1);
+	constexpr std::underlying_type_t<WeaponCode> SECONDARY_WEAPON_CODE_BEGIN = static_cast<int>(WeaponCode::USP);
+	constexpr std::underlying_type_t<WeaponCode> SECONDARY_WEAPON_CODE_END = static_cast<int>(WeaponCode::B92FSBlack);
+
+	std::underlying_type_t<WeaponCode> primaryWeapon = (rand() % (PRIMARY_WEAPON_CODE_END - PRIMARY_WEAPON_CODE_BEGIN + 1)) + PRIMARY_WEAPON_CODE_BEGIN;
+	std::underlying_type_t<WeaponCode> secondaryWeapon = (rand() % (SECONDARY_WEAPON_CODE_END - SECONDARY_WEAPON_CODE_BEGIN + 1)) + SECONDARY_WEAPON_CODE_BEGIN;
+
 	std::shared_ptr<LSGamePlayerInfo> spNewLSGamePlayerInfo = std::make_unique<LSGamePlayerInfo>(pPacket->m_accountId);
 	spNewLSGamePlayerInfo->m_nicknameLen = pPacket->m_nicknameLen;
 	wmemcpy(spNewLSGamePlayerInfo->m_nickname, pPacket->m_nickname, pPacket->m_nicknameLen);
@@ -415,8 +425,8 @@ void ListenServer::OnCSReqAuth(const LSCSReqAuth* pPacket, ENetPeer* pRequester)
 	spNewLSGamePlayerInfo->m_death = 0;
 	spNewLSGamePlayerInfo->m_ping = 0;
 	spNewLSGamePlayerInfo->m_state = InGamePlayerState::Dead;	// 최초 상태는 Dead
-	spNewLSGamePlayerInfo->m_weaponCodes[static_cast<size_t>(WeaponSlot::Primary)] = WeaponCode::M16;
-	spNewLSGamePlayerInfo->m_weaponCodes[static_cast<size_t>(WeaponSlot::Secondary)] = WeaponCode::USP;
+	spNewLSGamePlayerInfo->m_weaponCodes[static_cast<size_t>(WeaponSlot::Primary)] = static_cast<WeaponCode>(primaryWeapon);
+	spNewLSGamePlayerInfo->m_weaponCodes[static_cast<size_t>(WeaponSlot::Secondary)] = static_cast<WeaponCode>(secondaryWeapon);
 	spNewLSGamePlayerInfo->m_currWeapon = WeaponSlot::Secondary;
 	spNewLSGamePlayerInfo->m_respawnRemainingTime = 0.0f;
 
@@ -427,6 +437,8 @@ void ListenServer::OnCSReqAuth(const LSCSReqAuth* pPacket, ENetPeer* pRequester)
 	LSSCNotifyGameStatus ntfyGameStatus;
 	ntfyGameStatus.m_protocol = LSProtocol::SC_NOTIFY_GAME_STATUS;
 	ntfyGameStatus.m_gameRemainingTime = m_gameRemainingTime;
+	ntfyGameStatus.m_score[static_cast<size_t>(GameTeam::RedTeam)] = m_score[static_cast<size_t>(GameTeam::RedTeam)];
+	ntfyGameStatus.m_score[static_cast<size_t>(GameTeam::BlueTeam)] = m_score[static_cast<size_t>(GameTeam::BlueTeam)];
 	ntfyGameStatus.m_team = pPacket->m_team;
 	ntfyGameStatus.m_kill = spNewLSGamePlayerInfo->m_kill;
 	ntfyGameStatus.m_death = spNewLSGamePlayerInfo->m_death;
@@ -671,10 +683,14 @@ void ListenServer::OnCSNotifyGamePlayerHit(const LSCSNotifyGamePlayerHit* pPacke
 		}
 	}
 
+	// 사망 시
 	if (iterWhoWasShot->second.first->m_hp == 0)
 	{
 		iterWhoWasShot->second.first->m_state = InGamePlayerState::Dead;
 		iterWhoWasShot->second.first->m_respawnRemainingTime = GameSettings::GetRespawnTime();
+
+		assert(iter->second->m_team < GameTeam::Count);
+		++m_score[static_cast<size_t>(iter->second->m_team)];	// 스코어 증가
 
 		{
 			// 사망 이벤트 알림

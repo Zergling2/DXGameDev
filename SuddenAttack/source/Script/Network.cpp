@@ -56,7 +56,7 @@ void Network::Awake()
 	desc.m_tcpNoDelay = true;
 	m_client.Init(desc);
 
-	m_client.Connect(L"192.168.55.162", SASERVER_PORT);
+	m_client.Connect(L"127.0.0.1", SASERVER_PORT);
 }
 
 void Network::FixedUpdate()

@@ -89,7 +89,6 @@ public:
 	virtual void Awake() override;
 	// virtual void FixedUpdate() override;
 	virtual void Update() override;
-	virtual void LateUpdate() override;
 
 	void Init();
 
@@ -127,6 +126,9 @@ public:
 	void ShowChatPanel();
 	void HideChatPanel();
 
+	void SetScoreText(uint32_t redTeamScore, uint32_t blueTeamScore);
+	void IncreaseScoreText(GameTeam team, uint32_t count);
+
 	void AddKillLog(bool headShot, GameTeam killerTeam, const wchar_t* killerNickname, WeaponCode weapon, GameTeam deaderTeam, const wchar_t* deaderNickname);
 	void RotateKillLog();
 
@@ -141,6 +143,7 @@ public:
 	void RemovePlayer(uint32_t accountId);
 	void SetPlayerKillDeath(uint32_t accountId, uint32_t kill, uint32_t death);
 	void SetPlayerPing(uint32_t accountId, uint32_t ping);
+	void SetPlayerHeadNicknameTextParent(ze::UIObjectHandle hText) const;
 private:
 	void OnPosChangePlayerFoV();
 	void OnClickDrawDebugInfo();
@@ -166,6 +169,7 @@ private:
 	ze::UIObjectHandle m_hTextScoreboardPlayerKillDeath[static_cast<size_t>(GameTeam::Count)][MAX_PLAYERS_PER_TEAM];
 	ze::UIObjectHandle m_hTextScoreboardPlayerPing[static_cast<size_t>(GameTeam::Count)][MAX_PLAYERS_PER_TEAM];
 	std::vector<uint32_t> m_scoreboardPlayerAccountId[static_cast<size_t>(GameTeam::Count)];
+	uint32_t m_score[static_cast<size_t>(GameTeam::Count)];
 
 	ze::UIObjectHandle m_hPanelMenuRoot;
 	ze::UIObjectHandle m_hSliderControlPlayerFoV;

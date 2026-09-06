@@ -30,6 +30,7 @@ public:
 	void SetArmsView(const ArmsViewInfo* pArmsViewInfo);
 	void SetWeaponInUse(WeaponSlot slot, WeaponCode weaponCode);
 
+	void LoadWeaponFullAmmo();
 	void DrawWeapon(WeaponSlot slot);
 	void UndrawWeapon();
 	void ReloadWeapon();
@@ -44,6 +45,8 @@ public:
 	bool IsDead() const { return m_isDead; }
 
 	void SetListenServerClientScriptHandle(ze::ComponentHandle<ListenServerClient> hScript) { m_hScriptListenServerClient = hScript; }
+	XMMATRIX GetCameraViewMatrix() const;
+	XMMATRIX GetCameraProjMatrix() const;
 private:
 	GameTeam m_team;
 	bool m_processingInput;

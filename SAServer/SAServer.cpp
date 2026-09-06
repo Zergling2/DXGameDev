@@ -402,7 +402,6 @@ void SAServer::OnCSNotifyListenServerStart(uint64_t netId, winppy::Packet packet
 
 void SAServer::OnCSNotifyGamePlayerExitListenServer(uint64_t netId, winppy::Packet packet)
 {
-	wprintf(L"SAServer::OnCSNotifyGamePlayerExitListenServer()\n");
 	CSNotifyGamePlayerExitListenServer notify;
 	if (!packet->ReadBytes(&notify, sizeof(notify)))
 	{

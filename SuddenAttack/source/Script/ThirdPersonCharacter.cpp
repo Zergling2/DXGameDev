@@ -4,6 +4,8 @@
 #include "..\Resource\WeaponDefinition.h"
 #include "..\Resource\HitboxName.h"
 #include "GameResources.h"
+#include "GameUIManager.h"
+#include "Player.h"
 
 using namespace ze;
 
@@ -87,14 +89,33 @@ void ThirdPersonCharacter::Awake()
 	}
 
 	// ###################################################################
-	// GameResources 스크립트 검색 및 저장
-	GameObjectHandle hGameObjectGameResources = GameObject::Find(GAME_RESOURCES_GAME_OBJECT_NAME);
-	assert(hGameObjectGameResources.IsValid());
+	// 스크립트 검색 및 저장
+	GameObjectHandle hGameObjectGlobalScripts = GameObject::Find(GLOBAL_SCRIPTS_GAME_OBJECT_NAME);
+	const GameObject* pGameObjGlobalScripts = hGameObjectGlobalScripts.ToPtr();
+	assert(pGameObjGlobalScripts);
 
-	ComponentHandle<GameResources> hScriptGameResources = hGameObjectGameResources.ToPtr()->GetComponent<GameResources>();
-	assert(hScriptGameResources.IsValid());
-	m_hScriptGameResources = hScriptGameResources;
-	const GameResources* pScriptGameResources = hScriptGameResources.ToPtr();
+	m_hScriptGameResources = pGameObjGlobalScripts->GetComponent<GameResources>();
+	assert(m_hScriptGameResources.IsValid());
+	const GameResources* pScriptGameResources = m_hScriptGameResources.ToPtr();
+
+	m_hScriptGameUIManager = pGameObjGlobalScripts->GetComponent<GameUIManager>();
+	assert(m_hScriptGameUIManager.IsValid());
+	const GameUIManager* pScriptGameUIManager = m_hScriptGameUIManager.ToPtr();
+
+
+	// 헤드 닉네임 UI 생성
+	m_hTextPlayerHeadNickname = Runtime::GetInstance()->CreateText();
+	pScriptGameUIManager->SetPlayerHeadNicknameTextParent(m_hTextPlayerHeadNickname);
+	Text* pTextPlayerHeadNickname = static_cast<Text*>(m_hTextPlayerHeadNickname.ToPtr());
+	pTextPlayerHeadNickname->m_transform.SetVerticalAnchor(VerticalAnchor::VCenter);
+	pTextPlayerHeadNickname->m_transform.SetHorizontalAnchor(HorizontalAnchor::Center);
+	pTextPlayerHeadNickname->GetText().clear();
+	pTextPlayerHeadNickname->SetSize(200, 20);
+	pTextPlayerHeadNickname->GetTextFormat().SetSize(16);
+	pTextPlayerHeadNickname->GetTextFormat().SetWeight(DWRITE_FONT_WEIGHT_BOLD);
+	pTextPlayerHeadNickname->ApplyTextFormat();
+	pTextPlayerHeadNickname->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	pTextPlayerHeadNickname->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 
 
 	// ###################################################################
@@ -434,6 +455,64 @@ void ThirdPersonCharacter::Update()
 	}
 }
 
+void ThirdPersonCharacter::LateUpdate()
+{
+	if (m_isDead)
+		return;
+
+	const Player* pPlayer = m_hScriptPlayer.ToPtr();
+	if (!pPlayer)
+		return;
+
+	Text* pTextPlayerHeadNickname = static_cast<Text*>(m_hTextPlayerHeadNickname.ToPtr());
+	if (!pTextPlayerHeadNickname)
+		return;
+	
+	// Update 루틴에서 카메라 최종 위치 결정된 상태로 가정
+	// -> 카메라 행렬, 투영 행렬, 뷰포트 변환 및 화면 좌표계에서의 좌표를 구해서 캐릭터 위 닉네임에 대한 스크린 좌표 위치 획득 및 Text UI 이동
+	// 코드 구현...
+
+	XMVECTOR vHeadNicknameOffset = XMVectorSelect(g_XMTwo, g_XMZero, g_XMSelect1011);	// 0.0f, 2.0f, 0.0f, 0.0f
+	XMVECTOR vHeadNicknameWorldPos = XMVectorAdd(m_pGameObject->m_transform.GetWorldPosition(), vHeadNicknameOffset);
+
+	XMMATRIX v = pPlayer->GetCameraViewMatrix();
+	XMMATRIX p = pPlayer->GetCameraProjMatrix();
+
+	XMVECTOR vHeadNicknameHCSPos = XMVector3TransformCoord(vHeadNicknameWorldPos, v * p);
+	XMFLOAT4A headNicknameHCSPos;
+	XMStoreFloat4A(&headNicknameHCSPos, vHeadNicknameHCSPos);
+
+	// HCS 클리핑 조건
+	if (std::abs(headNicknameHCSPos.x) <= headNicknameHCSPos.w &&
+		std::abs(headNicknameHCSPos.y) <= headNicknameHCSPos.w &&
+		0 <= headNicknameHCSPos.z && headNicknameHCSPos.z <= headNicknameHCSPos.w)
+	{
+		pTextPlayerHeadNickname->SetActive(true);
+
+		XMVECTOR headNicknameNDCPos = XMVectorScale(vHeadNicknameHCSPos, 1.0f / headNicknameHCSPos.w);	// perspective division(NDC 공간으로 이동)
+
+		XMVECTOR viewportTransform = XMVectorSet(
+			GraphicDevice::GetInstance()->GetSwapChainHalfWidthFlt(),
+			GraphicDevice::GetInstance()->GetSwapChainHalfHeightFlt(),
+			0.0f,
+			0.0f
+		);
+
+		// UI 좌표계가 화면 중앙 기준이므로 단순히 NDC 공간을 늘리면 됨
+		pTextPlayerHeadNickname->m_transform.SetPosition(XMVectorMultiply(headNicknameNDCPos, viewportTransform));
+	}
+	else
+	{
+		pTextPlayerHeadNickname->SetActive(false);
+	}
+}
+
+void ThirdPersonCharacter::OnDestroy()
+{
+	IUIObject* pTextPlayerHeadNickname = m_hTextPlayerHeadNickname.ToPtr();
+	pTextPlayerHeadNickname->Destroy();
+}
+
 void ThirdPersonCharacter::SetCharacterView(const CharacterViewInfo* pCVI)
 {
 	SkinnedMeshRenderer* pSkinnedMeshRendererCharacter = m_hSkinnedMeshRendererCharacter.ToPtr();
@@ -473,31 +552,40 @@ void ThirdPersonCharacter::HideView()
 	m_hMeshRendererTVWeapon.ToPtr()->Disable();
 }
 
-void ThirdPersonCharacter::OnInit(uint32_t accountId, GameTeam team, WeaponCode primary, WeaponCode secondary, WeaponSlot currWeapon, InGamePlayerState state,
+void ThirdPersonCharacter::OnInit(ComponentHandle<Player> hScriptPlayer, uint32_t accountId, const wchar_t* nickname, GameTeam team,
+	WeaponCode primary, WeaponCode secondary, WeaponSlot currWeapon, InGamePlayerState state,
 	const XMFLOAT3& pos, const XMFLOAT4& rot, float camRotX)
 {
 	const GameResources* pScriptGameResources = m_hScriptGameResources.ToPtr();
 
+	assert(hScriptPlayer.IsValid());
+
+	m_hScriptPlayer = hScriptPlayer;
 	m_accountId = accountId;
 	m_team = team;
 	m_currWeaponSlot = currWeapon;
 	m_prevMoveType = MovementType::Unknown;
 
-	// 1. TPC 캐릭터 뷰 설정
+	// 1. TPC 캐릭터 뷰 설정 및 헤드 닉네임 설정
+	Text* pTextPlayerHeadNickname = static_cast<Text*>(m_hTextPlayerHeadNickname.ToPtr());
 	const CharacterViewInfo* pCVI = nullptr;
 	switch (m_team)
 	{
 	case GameTeam::RedTeam:
 		pCVI = pScriptGameResources->GetCharacterViewInfo(L"steven.rt");
+		pTextPlayerHeadNickname->SetColor(ColorsLinear::OrangeRed);
 		break;
 	case GameTeam::BlueTeam:
 		pCVI = pScriptGameResources->GetCharacterViewInfo(L"steven.bt");
+		pTextPlayerHeadNickname->SetColor(ColorsLinear::DodgerBlue);
 		break;
 	default:
 		*reinterpret_cast<int*>(0) = 0;
 		break;
 	}
 	this->SetCharacterView(pCVI);
+	pTextPlayerHeadNickname->SetText(nickname);
+	pTextPlayerHeadNickname->SetActive(state == InGamePlayerState::Alive);
 
 	// 2. 무기 뷰 설정
 	this->SetWeaponInUse(WeaponSlot::Primary, primary);
@@ -616,6 +704,9 @@ void ThirdPersonCharacter::OnDead(WeaponAction deadAction)
 {
 	m_isDead = true;
 
+	Text* pTextPlayerHeadNickname = static_cast<Text*>(m_hTextPlayerHeadNickname.ToPtr());
+	pTextPlayerHeadNickname->SetActive(false);
+
 	m_prevMoveType = MovementType::Unknown;
 
 	// 캐릭터 콜라이더 비활성화
@@ -646,6 +737,10 @@ void ThirdPersonCharacter::OnDeadIdle(float exceed, WeaponAction deathAction)
 void ThirdPersonCharacter::OnRespawn(const XMFLOAT3& pos, const XMFLOAT4& rot, float camRotX)
 {
 	m_isDead = false;
+
+	Text* pTextPlayerHeadNickname = static_cast<Text*>(m_hTextPlayerHeadNickname.ToPtr());
+	pTextPlayerHeadNickname->SetActive(true);
+
 
 	m_pGameObject->m_transform.SetPosition(pos);
 	m_pGameObject->m_transform.SetRotationQuaternion(rot);

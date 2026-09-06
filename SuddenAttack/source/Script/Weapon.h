@@ -18,6 +18,7 @@ public:
 	virtual ~Weapon() = default;
 
 	void Init(std::shared_ptr<WeaponDefinition> spWeaponDef, int32_t ammoInMag, int32_t auxAmmo);
+	void LoadFullAmmo();
 
 	virtual void Update() override;
 

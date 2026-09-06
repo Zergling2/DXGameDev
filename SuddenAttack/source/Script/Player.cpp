@@ -58,11 +58,11 @@ void Player::Awake()
 	pGameUIManager->SetPlayerScriptHandle(this->ToHandle());
 
 
-	// GameResources 오브젝트 검색 및 스크립트 저장
-	GameObjectHandle hGameObjectGameResources = GameObject::Find(GAME_RESOURCES_GAME_OBJECT_NAME);
-	assert(hGameObjectGameResources.IsValid());
+	// 글로벌 스크립트 오브젝트 검색 및 스크립트 저장
+	GameObjectHandle hGameObjectGlobalScripts = GameObject::Find(GLOBAL_SCRIPTS_GAME_OBJECT_NAME);
+	assert(hGameObjectGlobalScripts.IsValid());
 
-	m_hScriptGameResources = hGameObjectGameResources.ToPtr()->GetComponent<GameResources>();
+	m_hScriptGameResources = hGameObjectGlobalScripts.ToPtr()->GetComponent<GameResources>();
 	assert(m_hScriptGameResources.IsValid());
 
 	const GameResources* pScriptGameResources = m_hScriptGameResources.ToPtr();
@@ -473,6 +473,18 @@ void Player::SetWeaponInUse(WeaponSlot slot, WeaponCode weaponCode)
 	}
 }
 
+void Player::LoadWeaponFullAmmo()
+{
+	for (size_t i = 0; i < _countof(m_hScriptWeapon); ++i)
+	{
+		Weapon* pScriptWeapon = m_hScriptWeapon[i].ToPtr();
+		if (!pScriptWeapon)
+			continue;
+
+		pScriptWeapon->LoadFullAmmo();
+	}
+}
+
 void Player::DrawWeapon(WeaponSlot slot)
 {
 	if (!(slot < WeaponSlot::Count))
@@ -660,6 +672,8 @@ void Player::OnRespawn(const XMFLOAT3& pos, const XMFLOAT4& rot, float camRotX, 
 	m_isDead = false;
 	m_currMoveType = MovementType::Stop;
 
+	this->LoadWeaponFullAmmo();
+
 	this->SetProcessingInput(true);
 
 	GameUIManager* pScriptGameUIManager = m_hScriptGameUIManager.ToPtr();
@@ -701,4 +715,22 @@ void Player::BroadcastTransform() const
 		enet_packet_destroy(pNtfyPktTransform);
 		pNtfyPktTransform = nullptr;
 	}
+}
+
+XMMATRIX Player::GetCameraViewMatrix() const
+{
+	const Camera* pCamera = m_hCamera.ToPtr();
+	if (!pCamera)
+		return XMMatrixIdentity();
+	else
+		return pCamera->GetViewMatrix();
+}
+
+XMMATRIX Player::GetCameraProjMatrix() const
+{
+	const Camera* pCamera = m_hCamera.ToPtr();
+	if (!pCamera)
+		return XMMatrixIdentity();
+	else
+		return pCamera->GetProjMatrix();
 }

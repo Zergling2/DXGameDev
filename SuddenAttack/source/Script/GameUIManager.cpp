@@ -167,6 +167,7 @@ GameUIManager::GameUIManager(ze::GameObject& owner)
 	, m_needUpdateChatMsgTransparency(false)
 	, m_respawnRemainingTime(0.0f)
 	, m_killLogCount(0)
+	, m_score{ 0, 0 }
 	, m_chatMsgCount(0)
 	, m_chatMsgTransparencyTimer(0.0f)
 {
@@ -961,15 +962,6 @@ void GameUIManager::Update()
 	}
 }
 
-void GameUIManager::LateUpdate()
-{
-	// Update 루틴에서 카메라 최종 위치 결정된 상태로 가정
-	// -> 카메라 행렬, 투영 행렬, 뷰포트 변환 및 화면 좌표계에서의 좌표를 구해서 캐릭터 위 닉네임에 대한 스크린 좌표 위치 획득 및 Text UI 이동
-	// 코드 구현...
-
-
-}
-
 void GameUIManager::Init()
 {
 	for (size_t i = 0; i < static_cast<size_t>(GameTeam::Count); ++i)
@@ -998,6 +990,10 @@ void GameUIManager::Init()
 	{
 		m_scoreboardPlayerAccountId[i].clear();
 	}
+
+	m_score[static_cast<size_t>(GameTeam::RedTeam)] = 0;
+	m_score[static_cast<size_t>(GameTeam::BlueTeam)] = 0;
+
 
 	for (size_t i = 0; i < _countof(m_hTextChatMsg); ++i)
 	{
@@ -1189,6 +1185,44 @@ void GameUIManager::HideChatPanel()
 	m_needUpdateChatMsgTransparency = true;
 
 	UIObjectManager::GetInstance()->SetFocusedUI(nullptr);
+}
+
+void GameUIManager::SetScoreText(uint32_t redTeamScore, uint32_t blueTeamScore)
+{
+	m_score[static_cast<size_t>(GameTeam::RedTeam)] = redTeamScore;
+	m_score[static_cast<size_t>(GameTeam::BlueTeam)] = blueTeamScore;
+
+	wchar_t buf[16];
+
+	StringCchPrintfW(buf, _countof(buf), L"%u", redTeamScore);
+	static_cast<Text*>(m_hTextRedTeamScore.ToPtr())->SetText(buf);
+
+	StringCchPrintfW(buf, _countof(buf), L"%u", blueTeamScore);
+	static_cast<Text*>(m_hTextBlueTeamScore.ToPtr())->SetText(buf);
+}
+
+void GameUIManager::IncreaseScoreText(GameTeam team, uint32_t count)
+{
+	if (team < GameTeam::Count)
+	{
+		m_score[static_cast<size_t>(team)] += count;
+
+		wchar_t buf[16];
+
+		switch (team)
+		{
+		case GameTeam::RedTeam:
+			StringCchPrintfW(buf, _countof(buf), L"%u", m_score[static_cast<size_t>(team)]);
+			static_cast<Text*>(m_hTextRedTeamScore.ToPtr())->SetText(buf);
+			break;
+		case GameTeam::BlueTeam:
+			StringCchPrintfW(buf, _countof(buf), L"%u", m_score[static_cast<size_t>(team)]);
+			static_cast<Text*>(m_hTextBlueTeamScore.ToPtr())->SetText(buf);
+			break;
+		default:
+			break;
+		}
+	}
 }
 
 void GameUIManager::AddKillLog(bool headShot, GameTeam killerTeam, const wchar_t* killerNickname, WeaponCode weapon, GameTeam deaderTeam, const wchar_t* deaderNickname)
@@ -1485,6 +1519,11 @@ void GameUIManager::SetPlayerPing(uint32_t accountId, uint32_t ping)
 	}
 }
 
+void GameUIManager::SetPlayerHeadNicknameTextParent(ze::UIObjectHandle hText) const
+{
+	hText.ToPtr()->m_transform.SetParent(&m_hImageGameUIRoot.ToPtr()->m_transform);
+}
+
 void GameUIManager::OnPosChangePlayerFoV()
 {
 	const SliderControl* pSliderControlPlayerFoV = static_cast<SliderControl*>(m_hSliderControlPlayerFoV.ToPtr());
@@ -1525,14 +1564,14 @@ void GameUIManager::OnClickCloseGameMenu()
 void GameUIManager::OnClickExitGame()
 {
 	ListenServerClient* pScriptListenServerClient = m_hScriptListenServerClient.ToPtr();
-	if (!pScriptListenServerClient)
-		return;
 
 	this->SetState(GameUIStateDeactivate::GetState());
 
 	pScriptListenServerClient->CloseClient();
-	SceneManager::GetInstance()->LoadScene(L"Lobby");
+	// SceneManager::GetInstance()->LoadScene(L"Lobby");
+	// 
+	// LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
+	// pScriptLobbyHandler->ShowLobbyUI();
 
-	LobbyHandler* pScriptLobbyHandler = m_hScriptLobbyHandler.ToPtr();
-	pScriptLobbyHandler->ShowLobbyUI();
+	Runtime::GetInstance()->Exit();
 }

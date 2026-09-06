@@ -29,14 +29,12 @@ void Lobby::OnLoadScene()
 	// 싱글톤 객체들 생성
 	// ############################
 
-	// 1. 게임 리소스 매니저 게임오브젝트 생성
-	GameObjectHandle hGameObjectGameResources = CreateGameObject(GAME_RESOURCES_GAME_OBJECT_NAME);
-	GameObject* pGameObjectGameResources = hGameObjectGameResources.ToPtr();
-	ComponentHandle<GameResources> hScriptGameResources = pGameObjectGameResources->AddComponent<GameResources>();
-
-	// 2. 글로벌 스크립트 GameObject 생성
+	// 1. 글로벌 스크립트 GameObject 생성
 	GameObjectHandle hGameObjGlobalScripts = CreateGameObject(GLOBAL_SCRIPTS_GAME_OBJECT_NAME);
 	GameObject* pGameObjGlobalScripts = hGameObjGlobalScripts.ToPtr();
+
+	// 2. 게임 리소스 스크립트 생성
+	ComponentHandle<GameResources> hScriptGameResources = pGameObjGlobalScripts->AddComponent<GameResources>();
 
 
 	// 2-1. 로비 핸들러 스크립트 생성
@@ -1823,7 +1821,6 @@ void Lobby::OnLoadScene()
 
 
 	// 글로벌 스크립트 게임 오브젝트 & 로비 오브젝트들 파괴 금지 설정
-	pGameObjectGameResources->DontDestroyOnLoadRecursively();	// DontDestroyOnLoad
 	pGameObjGlobalScripts->DontDestroyOnLoadRecursively();		// DontDestroyOnLoad
 	pImageLobbyBgr->DontDestroyOnLoadRecursively();				// DontDestroyOnLoad
 

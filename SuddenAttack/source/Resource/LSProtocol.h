@@ -100,6 +100,7 @@ struct LSSCResAuthResult : public LSPacketBase
 struct LSSCNotifyGameStatus : public LSPacketBase
 {
 	float m_gameRemainingTime;
+	uint32_t m_score[static_cast<size_t>(GameTeam::Count)];
 	GameTeam m_team;
 	uint32_t m_kill;
 	uint32_t m_death;

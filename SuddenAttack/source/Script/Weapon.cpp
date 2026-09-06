@@ -40,6 +40,15 @@ void Weapon::Init(std::shared_ptr<WeaponDefinition> spWeaponDef, int32_t ammoInM
 		pWeaponMeshRenderer->SetMaterial(i, m_spWeaponDef->m_materials[i]);
 }
 
+void Weapon::LoadFullAmmo()
+{
+	if (!m_spWeaponDef)
+		return;
+
+	m_ammoInMag = m_spWeaponDef->GetMagCapacity();
+	m_auxAmmo = m_spWeaponDef->GetInitAuxAmmo();
+}
+
 void Weapon::Update()
 {
 	if (!m_spWeaponDef)

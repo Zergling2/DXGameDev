@@ -7,8 +7,10 @@
 
 class WeaponDefinition;
 class GameResources;
+class GameUIManager;
 class CharacterViewInfo;
 class WeaponEventTable;
+class Player;
 
 class ThirdPersonCharacter : public ze::MonoBehaviour
 {
@@ -19,6 +21,8 @@ public:
 
 	virtual void Awake() override;
 	virtual void Update() override;
+	virtual void LateUpdate() override;
+	virtual void OnDestroy() override;
 
 	uint32_t GetAccountId() const { return m_accountId; }
 
@@ -27,7 +31,8 @@ public:
 
 	void ShowView();
 	void HideView();
-	void OnInit(uint32_t accountId, GameTeam team, WeaponCode primary, WeaponCode secondary, WeaponSlot currWeapon, InGamePlayerState state,
+	void OnInit(ze::ComponentHandle<Player> hScriptPlayer, uint32_t accountId, const wchar_t* nickname, GameTeam team,
+		WeaponCode primary, WeaponCode secondary, WeaponSlot currWeapon, InGamePlayerState state,
 		const XMFLOAT3& pos, const XMFLOAT4& rot, float camRotX);
 	void OnDraw(WeaponSlot slot);
 	void OnFire();
@@ -56,6 +61,9 @@ private:
 	WeaponSlot m_currWeaponSlot;
 	std::shared_ptr<WeaponDefinition> m_spWeaponDefs[static_cast<size_t>(WeaponSlot::Count)];
 	ze::ComponentHandle<GameResources> m_hScriptGameResources;
+	ze::ComponentHandle<GameUIManager> m_hScriptGameUIManager;
+	ze::ComponentHandle<Player> m_hScriptPlayer;
+	ze::UIObjectHandle m_hTextPlayerHeadNickname;
 	ze::ComponentHandle<ze::Rigidbody> m_hCharacterColliderRigidbody;
 	ze::ComponentHandle<ze::SkinnedMeshRenderer> m_hSkinnedMeshRendererCharacter;
 	ze::ComponentHandle<ze::MeshRenderer> m_hMeshRendererTVWeapon;

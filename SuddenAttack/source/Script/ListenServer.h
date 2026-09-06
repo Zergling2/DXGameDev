@@ -48,4 +48,5 @@ private:
 	std::unordered_map<uint32_t, std::pair<std::shared_ptr<LSGamePlayerInfo>, ENetPeer*>> m_peersWithAccountId;
 	GameMap m_map;
 	float m_gameRemainingTime;
+	uint32_t m_score[static_cast<size_t>(GameTeam::Count)];
 };
